@@ -326,6 +326,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -3489,6 +3490,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -5687,7 +5689,8 @@
         {
             "name": "md",
             "children": [
-                "mrow"
+                "mrow",
+                "conditionalContent"
             ],
             "attributes": [
                 {
@@ -5868,7 +5871,8 @@
         {
             "name": "mdn",
             "children": [
-                "mrow"
+                "mrow",
+                "conditionalContent"
             ],
             "attributes": [
                 {
@@ -6451,6 +6455,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -6755,6 +6760,7 @@
                 "boolean",
                 "booleanList",
                 "booleanInput",
+                "conditionalContent",
                 "hasSameFactoring",
                 "matchesPattern"
             ],
@@ -7020,6 +7026,7 @@
                 "boolean",
                 "booleanList",
                 "booleanInput",
+                "conditionalContent",
                 "hasSameFactoring",
                 "matchesPattern"
             ],
@@ -7285,6 +7292,7 @@
                 "boolean",
                 "booleanList",
                 "booleanInput",
+                "conditionalContent",
                 "hasSameFactoring",
                 "matchesPattern"
             ],
@@ -7600,6 +7608,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -7932,6 +7941,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -8264,6 +8274,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -8616,6 +8627,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -9166,6 +9178,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -9716,6 +9729,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -10258,6 +10272,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -10800,6 +10815,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -11342,6 +11358,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -11876,6 +11893,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -12390,6 +12408,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -12916,6 +12935,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -13442,6 +13462,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -13968,6 +13989,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -14494,6 +14516,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -15044,6 +15067,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -15594,6 +15618,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -16156,6 +16181,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -16718,6 +16744,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -17268,6 +17295,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -17818,6 +17846,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -18368,6 +18397,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -18918,6 +18948,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -19468,6 +19499,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -20018,6 +20050,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -20570,6 +20603,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -21159,6 +21193,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -21748,6 +21783,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -22345,6 +22381,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -26096,6 +26133,7 @@
         {
             "name": "section",
             "children": [
+                "conditionalContent",
                 "variantControl",
                 "title",
                 "setup",
@@ -26273,7 +26311,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -26647,6 +26684,7 @@
         {
             "name": "subsection",
             "children": [
+                "conditionalContent",
                 "variantControl",
                 "title",
                 "setup",
@@ -26824,7 +26862,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -27198,6 +27235,7 @@
         {
             "name": "subsubsection",
             "children": [
+                "conditionalContent",
                 "variantControl",
                 "title",
                 "setup",
@@ -27375,7 +27413,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -27749,6 +27786,7 @@
         {
             "name": "paragraphs",
             "children": [
+                "conditionalContent",
                 "variantControl",
                 "title",
                 "setup",
@@ -27926,7 +27964,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -28300,6 +28337,7 @@
         {
             "name": "aside",
             "children": [
+                "conditionalContent",
                 "variantControl",
                 "title",
                 "setup",
@@ -28477,7 +28515,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -28877,6 +28914,7 @@
         {
             "name": "objectives",
             "children": [
+                "conditionalContent",
                 "variantControl",
                 "title",
                 "setup",
@@ -29054,7 +29092,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -29428,6 +29465,7 @@
         {
             "name": "problem",
             "children": [
+                "conditionalContent",
                 "variantControl",
                 "title",
                 "setup",
@@ -29605,7 +29643,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -29979,6 +30016,7 @@
         {
             "name": "exercise",
             "children": [
+                "conditionalContent",
                 "variantControl",
                 "title",
                 "setup",
@@ -30156,7 +30194,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -30530,6 +30567,7 @@
         {
             "name": "question",
             "children": [
+                "conditionalContent",
                 "variantControl",
                 "title",
                 "setup",
@@ -30707,7 +30745,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -31081,6 +31118,7 @@
         {
             "name": "activity",
             "children": [
+                "conditionalContent",
                 "variantControl",
                 "title",
                 "setup",
@@ -31258,7 +31296,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -31632,6 +31669,7 @@
         {
             "name": "example",
             "children": [
+                "conditionalContent",
                 "variantControl",
                 "title",
                 "setup",
@@ -31809,7 +31847,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -32183,6 +32220,7 @@
         {
             "name": "definition",
             "children": [
+                "conditionalContent",
                 "variantControl",
                 "title",
                 "setup",
@@ -32360,7 +32398,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -32734,6 +32771,7 @@
         {
             "name": "note",
             "children": [
+                "conditionalContent",
                 "variantControl",
                 "title",
                 "setup",
@@ -32911,7 +32949,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -33285,6 +33322,7 @@
         {
             "name": "theorem",
             "children": [
+                "conditionalContent",
                 "variantControl",
                 "title",
                 "setup",
@@ -33462,7 +33500,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -33836,6 +33873,7 @@
         {
             "name": "part",
             "children": [
+                "conditionalContent",
                 "variantControl",
                 "title",
                 "setup",
@@ -34013,7 +34051,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -34387,6 +34424,7 @@
         {
             "name": "task",
             "children": [
+                "conditionalContent",
                 "variantControl",
                 "title",
                 "setup",
@@ -34564,7 +34602,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -34938,6 +34975,7 @@
         {
             "name": "proof",
             "children": [
+                "conditionalContent",
                 "variantControl",
                 "title",
                 "setup",
@@ -35115,7 +35153,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -35506,6 +35543,7 @@
         {
             "name": "problems",
             "children": [
+                "conditionalContent",
                 "variantControl",
                 "title",
                 "setup",
@@ -35683,7 +35721,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -36048,6 +36085,7 @@
         {
             "name": "exercises",
             "children": [
+                "conditionalContent",
                 "variantControl",
                 "title",
                 "setup",
@@ -36225,7 +36263,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -36590,7 +36627,8 @@
         {
             "name": "ol",
             "children": [
-                "li"
+                "li",
+                "conditionalContent"
             ],
             "attributes": [
                 {
@@ -36716,7 +36754,8 @@
         {
             "name": "ul",
             "children": [
-                "li"
+                "li",
+                "conditionalContent"
             ],
             "attributes": [
                 {
@@ -37272,7 +37311,8 @@
         {
             "name": "odeSystem",
             "children": [
-                "rightHandSide"
+                "rightHandSide",
+                "conditionalContent"
             ],
             "attributes": [
                 {
@@ -37607,6 +37647,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label"
             ],
             "attributes": [
@@ -38080,6 +38121,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label",
                 "rightHandSide",
                 "sum",
@@ -38532,6 +38574,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label",
                 "rightHandSide",
                 "topic",
@@ -38968,6 +39011,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -39866,7 +39910,8 @@
         {
             "name": "ion",
             "children": [
-                "atom"
+                "atom",
+                "conditionalContent"
             ],
             "attributes": [
                 {
@@ -40055,7 +40100,8 @@
             "name": "ionicCompound",
             "children": [
                 "atom",
-                "ion"
+                "ion",
+                "conditionalContent"
             ],
             "attributes": [
                 {
@@ -40263,6 +40309,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -40730,6 +40777,7 @@
             "name": "orbitalDiagram",
             "children": [
                 "tupleList",
+                "conditionalContent",
                 "orbitalDiagram",
                 "rightHandSide",
                 "topic",
@@ -41619,7 +41667,8 @@
         {
             "name": "sbsGroup",
             "children": [
-                "sideBySide"
+                "sideBySide",
+                "conditionalContent"
             ],
             "attributes": [
                 {
@@ -42188,6 +42237,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -42484,6 +42534,7 @@
             "name": "idx",
             "children": [
                 "h",
+                "conditionalContent",
                 "rightHandSide",
                 "xLabel",
                 "yLabel",
@@ -44685,6 +44736,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label",
                 "description",
                 "shortDescription",
@@ -45629,6 +45681,7 @@
         {
             "name": "document",
             "children": [
+                "conditionalContent",
                 "variantControl",
                 "title",
                 "description",
@@ -45805,7 +45858,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -46059,6 +46111,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -46409,6 +46462,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -46946,6 +47000,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -47245,6 +47300,7 @@
                 "boolean",
                 "booleanList",
                 "booleanInput",
+                "conditionalContent",
                 "hasSameFactoring",
                 "matchesPattern"
             ],
@@ -47419,6 +47475,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -47945,6 +48002,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -48195,6 +48253,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -48424,6 +48483,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -49018,6 +49078,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label",
                 "rightHandSide",
                 "sum",
@@ -49504,6 +49565,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -49965,6 +50027,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label",
                 "rightHandSide",
                 "topic",
@@ -50377,6 +50440,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label"
             ],
             "attributes": [
@@ -50656,6 +50720,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label"
             ],
             "attributes": [
@@ -50912,6 +50977,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label"
             ],
             "attributes": [
@@ -51269,6 +51335,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label"
             ],
             "attributes": [
@@ -51658,6 +51725,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label"
             ],
             "attributes": [
@@ -52047,6 +52115,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label"
             ],
             "attributes": [
@@ -52467,6 +52536,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label"
             ],
             "attributes": [
@@ -52916,6 +52986,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label",
                 "rightHandSide",
                 "topic",
@@ -53416,6 +53487,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label",
                 "rightHandSide",
                 "topic",
@@ -53879,6 +53951,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -54485,6 +54558,7 @@
             "name": "bezierControls",
             "children": [
                 "controlVectors",
+                "conditionalContent",
                 "rightHandSide",
                 "topic",
                 "m",
@@ -54715,6 +54789,7 @@
                 "vector",
                 "interval",
                 "sequence",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "substitute",
@@ -54912,6 +54987,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label",
                 "rightHandSide",
                 "sum",
@@ -55347,6 +55423,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label",
                 "rightHandSide",
                 "topic",
@@ -55686,6 +55763,7 @@
             "name": "answer",
             "children": [
                 "award",
+                "conditionalContent",
                 "matrixInput",
                 "mathInput",
                 "textInput",
@@ -56385,6 +56463,7 @@
             "name": "award",
             "children": [
                 "when",
+                "conditionalContent",
                 "rightHandSide",
                 "topic",
                 "m",
@@ -56894,6 +56973,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -57207,6 +57287,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label",
                 "description",
                 "shortDescription",
@@ -57674,6 +57755,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label",
                 "description",
                 "shortDescription",
@@ -58047,6 +58129,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label",
                 "description",
                 "shortDescription",
@@ -58366,6 +58449,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label",
                 "description",
                 "shortDescription",
@@ -59126,6 +59210,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -59469,6 +59554,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -59779,6 +59865,7 @@
             "name": "graph",
             "children": [
                 "xLabel",
+                "conditionalContent",
                 "yLabel",
                 "rightHandSide",
                 "sum",
@@ -59839,7 +59926,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "selectFromSequence",
                 "select",
                 "group",
@@ -60409,6 +60495,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -60927,6 +61014,7 @@
                 "derivative",
                 "function",
                 "piecewiseFunction",
+                "conditionalContent",
                 "xLabel",
                 "yLabel",
                 "label"
@@ -61450,6 +61538,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -62427,6 +62516,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -62741,6 +62831,7 @@
             "name": "spreadsheet",
             "children": [
                 "cell",
+                "conditionalContent",
                 "row",
                 "column",
                 "cellBlock",
@@ -63061,6 +63152,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -63192,7 +63284,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "variantControl",
                 "select",
@@ -63415,7 +63506,8 @@
         {
             "name": "row",
             "children": [
-                "cell"
+                "cell",
+                "conditionalContent"
             ],
             "attributes": [
                 {
@@ -63596,7 +63688,8 @@
         {
             "name": "column",
             "children": [
-                "cell"
+                "cell",
+                "conditionalContent"
             ],
             "attributes": [
                 {
@@ -63734,6 +63827,7 @@
             "name": "cellBlock",
             "children": [
                 "cell",
+                "conditionalContent",
                 "row",
                 "column",
                 "cellBlock"
@@ -63861,7 +63955,8 @@
         {
             "name": "tabular",
             "children": [
-                "row"
+                "row",
+                "conditionalContent"
             ],
             "attributes": [
                 {
@@ -64070,6 +64165,7 @@
             "name": "table",
             "children": [
                 "title",
+                "conditionalContent",
                 "rightHandSide",
                 "shortDescription",
                 "xLabel",
@@ -64178,7 +64274,6 @@
                 "repeat",
                 "repeatForSequence",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -64405,6 +64500,7 @@
         {
             "name": "figure",
             "children": [
+                "conditionalContent",
                 "caption",
                 "title",
                 "rightHandSide",
@@ -64515,7 +64611,6 @@
                 "repeat",
                 "repeatForSequence",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -64799,6 +64894,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -65616,6 +65712,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label"
             ],
             "attributes": [
@@ -66674,7 +66771,8 @@
                 "attractTo",
                 "constraintUnion",
                 "attractToConstraint",
-                "constrainToInterior"
+                "constrainToInterior",
+                "conditionalContent"
             ],
             "attributes": [
                 {
@@ -66790,7 +66888,8 @@
                 "attractTo",
                 "constraintUnion",
                 "attractToConstraint",
-                "constrainToInterior"
+                "constrainToInterior",
+                "conditionalContent"
             ],
             "attributes": [
                 {
@@ -67111,6 +67210,7 @@
             "children": [
                 "equilibriumLine",
                 "line",
+                "conditionalContent",
                 "bestFitLine",
                 "lineSegment",
                 "circle",
@@ -67210,6 +67310,7 @@
         {
             "name": "conditionalContent",
             "children": [
+                "conditionalContent",
                 "case",
                 "title",
                 "rightHandSide",
@@ -67383,7 +67484,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "variantControl",
                 "selectFromSequence",
@@ -68101,7 +68201,8 @@
         {
             "name": "select",
             "children": [
-                "option"
+                "option",
+                "conditionalContent"
             ],
             "attributes": [
                 {
@@ -70816,6 +70917,7 @@
             "name": "image",
             "children": [
                 "shortDescription",
+                "conditionalContent",
                 "description"
             ],
             "attributes": [
@@ -71078,6 +71180,7 @@
             "name": "video",
             "children": [
                 "shortDescription",
+                "conditionalContent",
                 "description"
             ],
             "attributes": [
@@ -71290,6 +71393,7 @@
             "name": "hint",
             "children": [
                 "title",
+                "conditionalContent",
                 "rightHandSide",
                 "shortDescription",
                 "description",
@@ -71461,7 +71565,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "variantControl",
                 "selectFromSequence",
@@ -71695,6 +71798,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -72050,6 +72154,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -73517,6 +73622,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label"
             ],
             "attributes": [
@@ -73730,6 +73836,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label"
             ],
             "attributes": [
@@ -73928,6 +74035,7 @@
         {
             "name": "triggerSet",
             "children": [
+                "conditionalContent",
                 "updateValue",
                 "callAction",
                 "xLabel",
@@ -74972,6 +75080,7 @@
             "name": "setup",
             "children": [
                 "styleDefinition",
+                "conditionalContent",
                 "feedbackDefinition",
                 "title",
                 "rightHandSide",
@@ -75145,7 +75254,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "variantControl",
                 "selectFromSequence",
@@ -75868,6 +75976,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label",
                 "rightHandSide",
                 "sum",
@@ -77057,6 +77166,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -77540,6 +77650,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -78414,6 +78525,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label"
             ],
             "attributes": [
@@ -78751,6 +78863,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label"
             ],
             "attributes": [
@@ -78920,6 +79033,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label",
                 "clampFunction",
                 "wrapFunctionPeriodic",
@@ -79103,6 +79217,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label"
             ],
             "attributes": [
@@ -79789,6 +79904,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -80480,6 +80596,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label"
             ],
             "attributes": [
@@ -81050,6 +81167,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -81412,6 +81530,7 @@
             "name": "matrix",
             "children": [
                 "row",
+                "conditionalContent",
                 "column"
             ],
             "attributes": [
@@ -81929,6 +82048,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -82185,6 +82305,7 @@
                 "interval",
                 "sequence",
                 "cell",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "selectRandomNumbers",
@@ -82842,6 +82963,7 @@
             "children": [
                 "xLabel",
                 "yLabel",
+                "conditionalContent",
                 "label",
                 "rightHandSide",
                 "sum",
@@ -82902,7 +83024,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "selectFromSequence",
                 "select",
                 "group",
@@ -83389,6 +83510,7 @@
         {
             "name": "cascade",
             "children": [
+                "conditionalContent",
                 "variantControl",
                 "title",
                 "setup",
@@ -83566,7 +83688,6 @@
                 "repeatForSequence",
                 "pegboard",
                 "intersection",
-                "conditionalContent",
                 "asList",
                 "selectFromSequence",
                 "select",
@@ -83988,6 +84109,7 @@
                 "vector",
                 "interval",
                 "sequence",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "substitute",
@@ -84159,6 +84281,7 @@
             "name": "intervalList",
             "children": [
                 "interval",
+                "conditionalContent",
                 "intervalList",
                 "rightHandSide",
                 "topic",
@@ -84392,6 +84515,7 @@
                 "vector",
                 "interval",
                 "sequence",
+                "conditionalContent",
                 "selectFromSequence",
                 "evaluate",
                 "substitute",

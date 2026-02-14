@@ -31,6 +31,11 @@ type ComponentClass = {
      */
     excludeFromSchema: boolean;
     /**
+     * If a composite component class has the static variable allowInSchemaAnywhere set to true,
+     * then we will treat it as though it were any component type when determining schema relationships.
+     */
+    allowInSchemaAnywhere?: boolean;
+    /**
      * If a composite component class has the static variable allowInSchemaAsComponent set
      * then we will treat it as though it were any of those
      * component types (as well as its actual component type)
@@ -217,6 +222,22 @@ export function getSchema() {
                         break;
                     }
                 }
+            }
+
+            // If a composite component class has the static variable allowInSchemaAnywhere set to true,
+            // then we will, in addition, treat it as though it were any component type when determining schema relationships.
+            // The one exception is that we don't want to treat it as though it were an _error component type,
+            // as that would cause it to show up in the schema as a possible child of even components with no children.
+
+            if (
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: type2,
+                    baseComponentType: "_composite",
+                }) &&
+                cClass.allowInSchemaAnywhere &&
+                type1 !== "_error"
+            ) {
+                inherited.push(type2);
             }
         }
         inheritedOrAdaptedTypes[type1] = inherited;
