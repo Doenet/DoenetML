@@ -425,7 +425,7 @@ export function DocViewer({
         coreCreated.current = false;
         coreCreationInProgress.current = false;
 
-        const initializeResult = await initializeCoreWorker({
+        await initializeCoreWorker({
             coreWorker: newCoreWorker,
             doenetML,
             flags,

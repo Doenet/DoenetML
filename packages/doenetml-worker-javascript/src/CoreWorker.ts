@@ -67,8 +67,7 @@ export class PublicDoenetMLCore {
         preliminaryWarnings: any;
         componentInfoObjects: any;
     };
-    // The result from calling `initializeWorker`
-    initializeResult?: { success: boolean; errMsg?: string };
+    initialized = false;
     doenetML = "";
     flags: Record<string, unknown> = {};
     addNodesToResolver?: (
@@ -164,7 +163,7 @@ export class PublicDoenetMLCore {
             componentInfoObjects,
         };
 
-        this.initializeResult = { success: true as const };
+        this.initialized = true;
 
         let allPossibleVariants = await returnAllPossibleVariants(
             this.coreBaseArgs.serializedDocument,
@@ -184,7 +183,6 @@ export class PublicDoenetMLCore {
             );
 
         return {
-            success: true as const,
             allPossibleVariants,
             baseComponentCounts,
         };
@@ -234,7 +232,7 @@ export class PublicDoenetMLCore {
             requestSolutionView,
         };
 
-        if (this.initializeResult?.success) {
+        if (this.initialized) {
             //@ts-ignore
             this.core = new Core(coreArgs);
             try {
@@ -256,10 +254,7 @@ export class PublicDoenetMLCore {
             }
         } else {
             let errMsg =
-                this.initializeResult?.success === false
-                    ? (this.initializeResult?.errMsg ??
-                      "Error initializing core")
-                    : "Internal error. Cannot create document. Core not initialized.";
+                "Internal error. Cannot create document. Core not initialized.";
 
             return {
                 success: false as const,
