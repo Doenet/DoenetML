@@ -11,7 +11,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Boolean tag tests", async () => {
+describe("Boolean tag tests @group3", async () => {
     it("basic boolean evaluation", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

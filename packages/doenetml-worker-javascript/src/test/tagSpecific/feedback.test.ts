@@ -12,7 +12,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Feedback tag tests", async () => {
+describe("Feedback tag tests @group4", async () => {
     async function test_three_feedbacks(
         core: PublicDoenetMLCore,
         resolvePathToNodeIdx: ResolvePathToNodeIdx,

@@ -291,7 +291,7 @@ async function testScene({
     }
 }
 
-describe("StickyGroup tag tests", async () => {
+describe("StickyGroup tag tests @group4", async () => {
     it("attract polygons and point when translating", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

@@ -8,7 +8,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("EigenDecomposition Tag Tests", async () => {
+describe("EigenDecomposition Tag Tests @group4", async () => {
     function reviveComplex(num: number | { re: number; im: number }) {
         if (typeof num === "number") {
             return me.math.complex({ re: num, im: 0 });

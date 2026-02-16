@@ -11,7 +11,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Sort tag tests", async () => {
+describe("Sort tag tests @group4", async () => {
     async function test_sort({
         core,
         resolvePathToNodeIdx,

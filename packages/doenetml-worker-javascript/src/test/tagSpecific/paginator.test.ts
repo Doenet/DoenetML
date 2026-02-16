@@ -11,7 +11,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Paginator tag tests", async () => {
+describe("Paginator tag tests @group4", async () => {
     it("Multiple sections in paginator", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

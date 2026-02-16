@@ -15,7 +15,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("BooleanInput tag tests", async () => {
+describe("BooleanInput tag tests @group4", async () => {
     it("single boolean input", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

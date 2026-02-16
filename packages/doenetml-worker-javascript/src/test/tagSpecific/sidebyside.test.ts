@@ -472,7 +472,7 @@ let checkFourColumnSbs = async function ({
     expect(stateVariables[sbsIdx].stateValues.valigns).eqls(valigns);
 };
 
-describe("SideBySide tag tests", async () => {
+describe("SideBySide tag tests @group4", async () => {
     it("sideBySide with no arguments, one panel, change margins first", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

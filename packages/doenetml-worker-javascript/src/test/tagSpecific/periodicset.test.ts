@@ -66,7 +66,7 @@ async function check_periodic_set({
     }
 }
 
-describe("PeriodicSet tag tests", async () => {
+describe("PeriodicSet tag tests @group4", async () => {
     it("match given periodic set", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

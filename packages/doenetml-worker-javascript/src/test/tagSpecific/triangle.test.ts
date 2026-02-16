@@ -65,7 +65,7 @@ async function test_triangle(
     await check_items(vertices);
 }
 
-describe("Triangle tag tests", async () => {
+describe("Triangle tag tests @group4", async () => {
     it("triangle with no children", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

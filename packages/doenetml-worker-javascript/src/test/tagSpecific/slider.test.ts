@@ -23,7 +23,7 @@ async function changeValue({
     });
 }
 
-describe("Slider tag tests", async () => {
+describe("Slider tag tests @group4", async () => {
     it("two number slider", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

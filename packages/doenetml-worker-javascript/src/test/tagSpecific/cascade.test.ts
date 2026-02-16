@@ -10,7 +10,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Cascade tag tests", async () => {
+describe("Cascade tag tests @group4", async () => {
     it("basic cascade", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

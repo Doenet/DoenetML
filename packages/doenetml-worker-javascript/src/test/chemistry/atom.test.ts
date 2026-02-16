@@ -10,7 +10,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Atom tests", async () => {
+describe("Atom tests @group4", async () => {
     it("information on atom", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

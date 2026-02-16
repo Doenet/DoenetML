@@ -27,7 +27,7 @@ function isUndefinedOrInactive(comp) {
     ).eq(true);
 }
 
-describe("Extend and references tests", async () => {
+describe("Extend and references tests @group4", async () => {
     it("extend copies properties", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

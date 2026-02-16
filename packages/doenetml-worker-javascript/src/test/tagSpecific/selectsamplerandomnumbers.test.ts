@@ -12,7 +12,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("SelectRandomNumbers and SampleRandomNumbers tag tests", async () => {
+describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group3", async () => {
     async function test_combined_statistics({
         doenetML,
         name,

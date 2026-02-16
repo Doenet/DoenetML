@@ -24,7 +24,7 @@ function getReplacement(
     return stateVariables[replacementIdx];
 }
 
-describe("Collect tag tests", async () => {
+describe("Collect tag tests @group4", async () => {
     it("collect points from graphs", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

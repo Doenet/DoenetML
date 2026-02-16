@@ -5,7 +5,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Math expressions equality tests", async () => {
+describe("Math expressions equality tests @group4", async () => {
     it("equivalences", async () => {
         let equivalences = [
             {

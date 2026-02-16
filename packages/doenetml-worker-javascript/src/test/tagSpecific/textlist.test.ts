@@ -7,7 +7,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("TextList tag tests", async () => {
+describe("TextList tag tests @group4", async () => {
     async function test_textList({
         core,
         resolvePathToNodeIdx,

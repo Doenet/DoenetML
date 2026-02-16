@@ -55,7 +55,7 @@ async function run_tests({
     }
 }
 
-describe("Symbolic equality tests", async () => {
+describe("Symbolic equality tests @group4", async () => {
     it("symbolic equality match with no simplification", async () => {
         const doenetML = `
     <p>Response: <mathInput name="resp" /></p>

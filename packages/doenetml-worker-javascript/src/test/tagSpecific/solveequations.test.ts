@@ -39,7 +39,7 @@ async function check_solutions(
     );
 }
 
-describe("SolveEquations tag tests", async () => {
+describe("SolveEquations tag tests @group4", async () => {
     it("solve single equation", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

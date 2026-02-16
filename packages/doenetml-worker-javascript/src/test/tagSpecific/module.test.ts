@@ -62,7 +62,7 @@ const externalDoenetMLs = {
     `,
 };
 
-describe("Module tag tests", async () => {
+describe("Module tag tests @group4", async () => {
     it("module with sentence", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

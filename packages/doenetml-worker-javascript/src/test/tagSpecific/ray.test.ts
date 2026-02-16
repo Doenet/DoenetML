@@ -16,7 +16,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Ray Tag Tests", function () {
+describe("Ray Tag Tests @group4", function () {
     /**
      * Copied from vector tests
      * @param h through

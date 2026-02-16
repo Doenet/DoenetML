@@ -179,7 +179,7 @@ async function run_ordered_unordered_tests({
     });
 }
 
-describe("match partial validation tests", async () => {
+describe("match partial validation tests @group4", async () => {
     it("match partial with ordered and unordered tuple", async () => {
         const doenetML = `
   <setup>

@@ -24,7 +24,7 @@ function isUndefinedOrInactive(comp) {
     ).eq(true);
 }
 
-describe("Group tag tests", async () => {
+describe("Group tag tests @group4", async () => {
     async function test_nested_groups(
         core: PublicDoenetMLCore,
         resolvePathToNodeIdx: ResolvePathToNodeIdx,

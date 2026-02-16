@@ -13,7 +13,7 @@ function createInterval(string: string) {
     return me.fromText(string).to_intervals().tree;
 }
 
-describe("SubsetOfReals tag tests", async () => {
+describe("SubsetOfReals tag tests @group4", async () => {
     async function test_display_as_interval({
         core,
         resolvePathToNodeIdx,

@@ -12,7 +12,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Graph Reference Test", async () => {
+describe("Graph Reference Test @group4", async () => {
     it("graph referenced multiple ways", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

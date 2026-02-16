@@ -9,7 +9,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Code Editor tag tests", async () => {
+describe("Code Editor tag tests @group4", async () => {
     it("code editor with no arguments", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

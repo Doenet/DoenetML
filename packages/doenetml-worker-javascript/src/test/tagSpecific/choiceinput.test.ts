@@ -12,7 +12,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("ChoiceInput tag tests", async () => {
+describe("ChoiceInput tag tests @group4", async () => {
     async function test_animal_choice_input(
         core: PublicDoenetMLCore,
         resolvePathToNodeIdx: ResolvePathToNodeIdx,
