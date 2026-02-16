@@ -1,6 +1,6 @@
 import { toMathJaxString } from "../../../src/util/mathDisplay";
 
-describe("Answer Tag Tests", function () {
+describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

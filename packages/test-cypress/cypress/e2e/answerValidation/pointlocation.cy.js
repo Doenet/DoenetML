@@ -1,6 +1,6 @@
 import { cesc } from "@doenet/utils";
 
-describe("Point location validation tests", function () {
+describe("Point location validation tests", { tags: ["@group5"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

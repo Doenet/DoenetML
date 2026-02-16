@@ -1,4 +1,4 @@
-describe("ChoiceInput Tag Tests", function () {
+describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

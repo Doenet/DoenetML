@@ -1,4 +1,4 @@
-describe("blockquote Tag Tests", function () {
+describe("blockquote Tag Tests", { tags: ["@group1"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

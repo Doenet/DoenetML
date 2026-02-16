@@ -1,4 +1,4 @@
-describe("EditorViewer Tests", function () {
+describe("EditorViewer Tests", { tags: ["@group5"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

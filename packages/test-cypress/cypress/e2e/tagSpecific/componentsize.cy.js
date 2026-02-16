@@ -1,4 +1,4 @@
-describe("Component Size Tag Tests", function () {
+describe("Component Size Tag Tests", { tags: ["@group1"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");
