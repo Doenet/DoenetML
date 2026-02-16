@@ -35,13 +35,12 @@ export function normalizeMathExpression({
 }
 
 export function convertValueToMathExpression(value: any): any {
-    const { isTree } = me as { isTree?: (value: unknown) => boolean };
     if (value instanceof me.class) {
         return value;
     } else if (typeof value === "number" || typeof value === "string") {
         // let value be math-expression based on value
         return me.fromAst(value);
-    } else if (isTree?.(value)) {
+    } else if (isTree(value)) {
         // let value be math-expression based on value
         return me.fromAst(value);
     } else {
