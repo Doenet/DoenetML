@@ -11,7 +11,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("cobwebPolyline Tag Tests @group4", async () => {
+describe("cobwebPolyline Tag Tests @group2", async () => {
     it("logistic system", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

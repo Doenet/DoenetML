@@ -10,7 +10,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("MatchesPattern tag tests @group4", async () => {
+describe("MatchesPattern tag tests @group3", async () => {
     it("match linear pattern", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

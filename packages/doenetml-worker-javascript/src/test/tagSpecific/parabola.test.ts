@@ -694,7 +694,7 @@ async function checkParabolaValues({
     }
 }
 
-describe("Parabola Tag Tests @group4", async () => {
+describe("Parabola Tag Tests @group2", async () => {
     it("parabola with no parameters gives y=x^2", async () => {
         let { core, resolvePathToNodeIdx } = await setupScene(
             `<parabola name="p1" />`,

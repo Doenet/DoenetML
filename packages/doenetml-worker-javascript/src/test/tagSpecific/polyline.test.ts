@@ -159,7 +159,7 @@ async function testPolylineCopiedTwice({
     }
 }
 
-describe("Polyline tag tests @group4", async () => {
+describe("Polyline tag tests @group1", async () => {
     it("Polyline vertices and copied points", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

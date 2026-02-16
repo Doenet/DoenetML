@@ -257,7 +257,7 @@ async function checkLineValues({
     }
 }
 
-describe("LineSegment tag tests @group4", async () => {
+describe("LineSegment tag tests @group1", async () => {
     it("lineSegment with no arguments", async () => {
         const { core, resolvePathToNodeIdx } = await setupScene({});
 

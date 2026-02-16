@@ -132,7 +132,7 @@ async function check_intersections(
     }
 }
 
-describe("Intersection tag tests @group4", async () => {
+describe("Intersection tag tests @group1", async () => {
     it("intersections between two lines", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

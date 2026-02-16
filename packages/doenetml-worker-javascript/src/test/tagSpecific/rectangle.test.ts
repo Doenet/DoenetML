@@ -485,7 +485,7 @@ async function checkRectangleValues(
     // expect(heightInput.stateValues.value.tree).eq(heightValue);
 }
 
-describe("Rectangle tag tests @group4", async () => {
+describe("Rectangle tag tests @group3", async () => {
     it("rectangle with no parameters (gives unit square)", async () => {
         let { core, resolvePathToNodeIdx } = await setupScene({
             rectangleProperties: "",

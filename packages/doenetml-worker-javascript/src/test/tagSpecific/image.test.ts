@@ -28,7 +28,7 @@ export async function moveImage({
     });
 }
 
-describe("Image tag tests @group4", async () => {
+describe("Image tag tests @group3", async () => {
     it("image sizes", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

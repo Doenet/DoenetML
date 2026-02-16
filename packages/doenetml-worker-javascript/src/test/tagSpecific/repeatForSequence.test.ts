@@ -13,7 +13,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("RepeatForSequence tag tests @group4", async () => {
+describe("RepeatForSequence tag tests @group3", async () => {
     it("defaults to number sequence", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

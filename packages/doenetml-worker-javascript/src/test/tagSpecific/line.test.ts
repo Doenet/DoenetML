@@ -675,7 +675,7 @@ async function checkLineEquations({
     }
 }
 
-describe("Line tag tests @group2", async () => {
+describe("Line tag tests @group3", async () => {
     it("line with no arguments", async () => {
         const { core, resolvePathToNodeIdx } = await setupScene({});
 

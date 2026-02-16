@@ -7,7 +7,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("section-wide check work attribute tests @group4", async () => {
+describe("section-wide check work attribute tests @group2", async () => {
     // Note: see sectioning.test.ts and problem.test.ts for additional section-wide check work tests
 
     async function test_section_wide_check_work(

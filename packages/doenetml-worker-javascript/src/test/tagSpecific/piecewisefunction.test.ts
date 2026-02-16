@@ -6,7 +6,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Piecewise Function Tag Tests @group4", async () => {
+describe("Piecewise Function Tag Tests @group2", async () => {
     async function check_heaviside(
         core: PublicDoenetMLCore,
         resolvePathToNodeIdx: ResolvePathToNodeIdx,

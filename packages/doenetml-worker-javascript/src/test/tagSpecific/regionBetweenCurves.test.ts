@@ -6,7 +6,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("RegionBetweenCurves tag tests @group4", async () => {
+describe("RegionBetweenCurves tag tests @group2", async () => {
     it("region between two curves", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

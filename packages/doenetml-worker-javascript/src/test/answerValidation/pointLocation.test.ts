@@ -71,7 +71,7 @@ async function run_tests({
     }
 }
 
-describe("point location validation tests @group4", async () => {
+describe("point location validation tests @group3", async () => {
     it("point in first quadrant", async () => {
         let doenetML = `
         <graph><point name="P">(-3.9,4.5)</point></graph>

@@ -438,7 +438,7 @@ async function checkCurve({
     }
 }
 
-describe("Curve Tag Bezier Tests @group4", async () => {
+describe("Curve Tag Bezier Tests @group3", async () => {
     it("no controls specified", async () => {
         let { core, resolvePathToNodeIdx } = await setupScene("");
 

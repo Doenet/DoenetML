@@ -12,7 +12,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Specifying single variant tests @group4", async () => {
+describe("Specifying single variant tests @group1", async () => {
     async function run_select_from_sequence_test({
         specifiedNumVariants,
         specifiedSeeds,

@@ -828,7 +828,7 @@ async function checkPolygonValues(
     }
 }
 
-describe("Regular Polygon  tag tests @group3", async () => {
+describe("Regular Polygon  tag tests @group4", async () => {
     it("regular polygon with no parameters (gives triangle)", async () => {
         let { core, resolvePathToNodeIdx } = await setupRegularPolygonScene({
             attributes: {},

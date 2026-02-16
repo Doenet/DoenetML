@@ -93,7 +93,7 @@ async function check_legend({
     }
 }
 
-describe("Legend tag tests @group4", async () => {
+describe("Legend tag tests @group3", async () => {
     it("legend includes unique styles, points separate, closed path not separate", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

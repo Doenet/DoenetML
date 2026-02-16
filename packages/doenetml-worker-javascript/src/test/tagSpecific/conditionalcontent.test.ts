@@ -11,7 +11,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Conditional content tag tests @group4", async () => {
+describe("Conditional content tag tests @group2", async () => {
     // tests without cases or else
 
     async function check_inline_sign_number(
