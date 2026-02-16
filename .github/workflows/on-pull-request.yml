@@ -99,6 +99,7 @@ jobs:
             matrix:
                 node-version: [24.x]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+                test-group: [group1, group2, group3, group4]
         steps:
             - uses: actions/checkout@v3
             - name: Use Node.js ${{ matrix.node-version }}
@@ -125,7 +126,7 @@ jobs:
                   WIREIT_CACHE: "local"
 
             - name: Test doenetml-worker-javascript
-              run: npm run test -w packages/doenetml-worker-javascript
+              run: npm run test:${{ matrix.test-group }} -w packages/doenetml-worker-javascript
 
     test-cypress:
         name: Cypress Tests
