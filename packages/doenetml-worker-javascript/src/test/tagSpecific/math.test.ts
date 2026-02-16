@@ -599,7 +599,7 @@ describe("Math tag tests", async () => {
                 .tree,
         ).eqls([
             "+",
-            ["-", ["*", 2, ["^", "x", 2]]],
+            ["*", -2, ["^", "x", 2]],
             ["*", 0, ["^", "x", 2]],
             ["*", 1, ["^", "x", 2]],
             ["*", 5, ["^", "x", 2]],
@@ -13050,5 +13050,29 @@ describe("Math tag tests", async () => {
             ["*", 3, "y"],
             ["*", 4, "z"],
         ]);
+    });
+
+    it("simplify ratio with negative numbers", async () => {
+        // Verify bug where simplify was creating a double quotient
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="m1">- ((q t)/(3 s ))</math>
+    <math name="m2" simplify extend="$m1" />
+    <boolean name="b" symbolicEquality>$m1 = $m2</boolean>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
+        ).eqls(["-", ["/", ["*", "q", "t"], ["*", 3, "s"]]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
+        ).eqls(["-", ["/", ["*", "q", "t"], ["*", 3, "s"]]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
+        ).eq(true);
     });
 });

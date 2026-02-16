@@ -489,6 +489,42 @@ describe("Symbolic equality tests", async () => {
         });
     });
 
+    it("symbolic equality match with normalizing order, with negative numbers", async () => {
+        // Verify that negative numbers are handled correctly with normalize order,
+        // as previously had a bug where different forms of negative numbers sorted differently, and so were not recognized as equal
+        const doenetML = `
+    <p>Response: <mathInput name="resp" /></p>
+
+    <p>
+    <math name="a">1</math>
+    <math name="m">(x-$a)(x+$a)</math>: 
+    <answer name="ansS">
+      <award symbolicEquality simplifyOnCompare="normalizeOrder"><when>$resp=$m</when></award>
+    </answer>
+    </p>
+    
+    <p>Numeric versions</p>
+    <p><answer name="ansN">
+      <award><when>$resp=$m</when></award>
+    </answer></p>
+    `;
+
+        await run_tests({
+            doenetML,
+            responseCredits: [
+                { responses: {}, credits: { S: 0, N: 0 } },
+                {
+                    responses: { resp: "(x-1)(x+1)" },
+                    credits: { S: 1, N: 1 },
+                },
+                {
+                    responses: { resp: "x^2-1" },
+                    credits: { S: 0, N: 1 },
+                },
+            ],
+        });
+    });
+
     it("symbolic equality match with full simplification", async () => {
         const doenetML = `
     <p>Response: <mathInput name="resp" /></p>
