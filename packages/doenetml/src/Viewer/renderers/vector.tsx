@@ -743,7 +743,7 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
 
     const mathJaxify = "\\(" + SVs.latex + "\\)";
     const style = !choiceInputInlineContext.inOption
-        ? textRendererStyle(darkMode, SVs.selectedStyle)
+        ? textRendererStyle(darkMode ?? "light", SVs.selectedStyle)
         : undefined;
     return (
         <span style={style} id={id}>

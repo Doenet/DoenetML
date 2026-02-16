@@ -462,8 +462,8 @@ export default function TextInput(props: UseDoenetRendererProps) {
         try {
             let anchor = me.fromAst(SVs.anchor);
             anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant(),
-                anchor.get_component(1).evaluate_to_constant(),
+                anchor.get_component(0).evaluate_to_constant() ?? NaN,
+                anchor.get_component(1).evaluate_to_constant() ?? NaN,
             ];
         } catch (e) {
             anchorCoords = [NaN, NaN];

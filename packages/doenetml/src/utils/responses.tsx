@@ -21,7 +21,7 @@ export function formatResponse(
                     )
                 ) {
                     const expr = me
-                        .fromAst(v)
+                        .fromAst(v as any)
                         .round_numbers_to_precision_plus_decimals(6, 2);
                     return (
                         <div key={i}>

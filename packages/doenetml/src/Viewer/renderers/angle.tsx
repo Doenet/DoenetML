@@ -222,7 +222,7 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
 
     const mathJaxify = "\\(" + SVs.latexForRenderer + "\\)";
     const style = !choiceInputInlineContext.inOption
-        ? textRendererStyle(darkMode, SVs.selectedStyle)
+        ? textRendererStyle(darkMode ?? "light", SVs.selectedStyle)
         : undefined;
     return (
         <span style={style} id={id}>

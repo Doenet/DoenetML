@@ -143,9 +143,3 @@ export type JXGEvent = {
     key: string;
 };
 
-declare global {
-    // XXX: We should not be accessing JXG from the global namespace. This declaration should be removed and all references should be dropped.
-    namespace JXG {
-        const COORDS_BY_USER: unknown;
-    }
-}

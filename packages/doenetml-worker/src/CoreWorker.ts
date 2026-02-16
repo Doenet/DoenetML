@@ -286,7 +286,13 @@ export class CoreWorker {
         copyToClipboard: CopyToClipboard,
         sendEvent: SendEvent,
         requestSolutionView: RequestSolutionView,
-    ) {
+    ): Promise<
+        | (FlatDastRootWithErrors & {
+              success: true;
+              [key: string]: any;
+          })
+        | { success: false; errMsg: string; coreId?: string }
+    > {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
         this.isProcessingPromise = promise;
@@ -300,7 +306,7 @@ export class CoreWorker {
         }
 
         try {
-            return await this.javascriptCore?.createCoreGenerateDast(
+            return (await this.javascriptCore?.createCoreGenerateDast(
                 args,
                 updateRenderersCallback,
                 reportScoreAndStateCallback,
@@ -309,7 +315,7 @@ export class CoreWorker {
                 copyToClipboard,
                 sendEvent,
                 requestSolutionView,
-            );
+            )) as any;
         } catch (err) {
             console.error(err);
             throw err;

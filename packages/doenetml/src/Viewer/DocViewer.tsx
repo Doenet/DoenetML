@@ -437,12 +437,6 @@ export function DocViewer({
             fetchExternalDoenetML,
         });
 
-        if (initializeResult.success === false) {
-            setErrMsg(
-                `Error initializing activity: ${initializeResult.errMsg}`,
-            );
-        }
-
         return newCoreWorker;
     }
 
@@ -1042,13 +1036,6 @@ export function DocViewer({
                 documentStructureCallback,
                 fetchExternalDoenetML,
             });
-
-            if (initializeResult.success === false) {
-                setErrMsg(
-                    `Error initializing activity: ${initializeResult.errMsg}`,
-                );
-                return;
-            }
         }
 
         onActionCallbacks.current.clear();
