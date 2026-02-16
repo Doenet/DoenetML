@@ -17,7 +17,12 @@
         "preview": "vite preview",
         "test-cypress": "cypress open",
         "test-cypress-all": "cypress run -b 'chrome' --config video=false --headless",
-        "test-cypress-parallel": "cypress-parallel -s test-cypress-all -t 4 -d cypress/e2e -n ../../node_modules/cypress-multi-reporters"
+        "test-cypress-parallel": "cypress-parallel -s test-cypress-all -t 4 -d cypress/e2e -n ../../node_modules/cypress-multi-reporters",
+        "test:group1": "cypress run -b 'chrome' --config video=false --headless --expose grepTags='@group1',grepFilterSpecs=true,grepOmitFiltered=true",
+        "test:group2": "cypress run -b 'chrome' --config video=false --headless --expose grepTags='@group2',grepFilterSpecs=true,grepOmitFiltered=true",
+        "test:group3": "cypress run -b 'chrome' --config video=false --headless --expose grepTags='@group3',grepFilterSpecs=true,grepOmitFiltered=true",
+        "test:group4": "cypress run -b 'chrome' --config video=false --headless --expose grepTags='@group4',grepFilterSpecs=true,grepOmitFiltered=true",
+        "test:group5": "cypress run -b 'chrome' --config video=false --headless --expose grepTags='-@group1+-@group2+-@group3+-@group4',grepFilterSpecs=true,grepOmitFiltered=true"
     },
     "wireit": {
         "build": {

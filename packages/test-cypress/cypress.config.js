@@ -2,6 +2,7 @@ import { defineConfig } from "cypress";
 import vitePreprocessor from "cypress-vite";
 
 import addAccessibilityTasks from "wick-a11y/accessibility-tasks";
+import { plugin as cypressGrepPlugin } from "@cypress/grep/plugin";
 
 export default defineConfig({
     numTestsKeptInMemory: 5,
@@ -38,6 +39,9 @@ export default defineConfig({
             on("file:preprocessor", vitePreprocessor());
 
             addAccessibilityTasks(on);
+
+            cypressGrepPlugin(config);
+            return config;
         },
 
         baseUrl: "http://localhost:4173",
