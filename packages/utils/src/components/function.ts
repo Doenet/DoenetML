@@ -6,19 +6,25 @@ import {
 } from "../math/mathexpressions";
 import { find_effective_domain } from "./domain";
 
-export function createFunctionFromDefinition(fDefinition) {
+type NumericalFunction = (...args: any[]) => number;
+type SymbolicFunction = (...args: any[]) => any;
+type VariableFunction = (...args: any[]) => any;
+
+export function createFunctionFromDefinition(
+    fDefinition: any,
+): NumericalFunction | SymbolicFunction {
     if (fDefinition.functionType === "formula") {
         return returnNumericalFunctionFromFormula({
             formula: me.fromAst(fDefinition.formula),
             numInputs: fDefinition.numInputs,
-            variables: fDefinition.variables.map((x) => me.fromAst(x)),
+            variables: fDefinition.variables.map((x: any) => me.fromAst(x)),
             domain: fDefinition.domain
-                ? fDefinition.domain.map((x) => me.fromAst(x))
+                ? fDefinition.domain.map((x: any) => me.fromAst(x))
                 : null,
             component: fDefinition.component,
         });
     } else if (fDefinition.functionType === "reevaluatedFormula") {
-        let evaluateChildrenToReevaluate = {};
+        let evaluateChildrenToReevaluate: any = {};
         for (let code in fDefinition.evaluateChildrenToReevaluate) {
             evaluateChildrenToReevaluate[code] = {
                 fReevaluate: createFunctionFromDefinition(
@@ -27,7 +33,7 @@ export function createFunctionFromDefinition(fDefinition) {
                 ),
                 inputMathFs: fDefinition.evaluateChildrenToReevaluate[
                     code
-                ].inputMaths.map((x) =>
+                ].inputMaths.map((x: any) =>
                     me.fromAst(x).subscripts_to_strings().f(),
                 ),
             };
@@ -39,16 +45,16 @@ export function createFunctionFromDefinition(fDefinition) {
             ),
             evaluateChildrenToReevaluate,
             numInputs: fDefinition.numInputs,
-            variables: fDefinition.variables.map((x) => me.fromAst(x)),
+            variables: fDefinition.variables.map((x: any) => me.fromAst(x)),
             domain: fDefinition.domain
-                ? fDefinition.domain.map((x) => me.fromAst(x))
+                ? fDefinition.domain.map((x: any) => me.fromAst(x))
                 : null,
             component: fDefinition.component,
         });
     } else if (fDefinition.functionType === "numericForEvaluate") {
         return returnNumericFunctionForEvaluate({
             numInputs: fDefinition.numInputs,
-            numericalfs: fDefinition.fDefinitions.map((fdef) =>
+            numericalfs: fDefinition.fDefinitions.map((fdef: any) =>
                 createFunctionFromDefinition(fdef),
             ),
         });
@@ -69,7 +75,7 @@ export function createFunctionFromDefinition(fDefinition) {
             coeffs: fDefinition.coeffs,
             interpolationPoints: fDefinition.interpolationPoints,
             domain: fDefinition.domain
-                ? fDefinition.domain.map((x) => me.fromAst(x))
+                ? fDefinition.domain.map((x: any) => me.fromAst(x))
                 : null,
         });
     } else if (fDefinition.functionType === "functionOperator") {
@@ -96,11 +102,11 @@ export function createFunctionFromDefinition(fDefinition) {
     } else if (fDefinition.functionType === "piecewise") {
         return returnPiecewiseNumericalFunctionFromChildren({
             numericalFsOfChildren: fDefinition.fDefinitionsOfChildren.map(
-                (fDef) => createFunctionFromDefinition(fDef),
+                (fDef: any) => createFunctionFromDefinition(fDef),
             ),
             numericalDomainsOfChildren: fDefinition.numericalDomainsOfChildren,
             domain: fDefinition.domain
-                ? fDefinition.domain.map((x) => me.fromAst(x))
+                ? fDefinition.domain.map((x: any) => me.fromAst(x))
                 : null,
             component: fDefinition.component,
         });
@@ -114,9 +120,15 @@ export function returnNumericalFunctionFromFormula({
     formula,
     numInputs,
     variables,
-    domain,
+    domain = null,
     component = 0,
-}) {
+}: {
+    formula: any;
+    numInputs: number;
+    variables: any[];
+    domain?: any[] | null;
+    component?: number;
+}): NumericalFunction {
     component = Number(component);
 
     let formulaIsVectorValued =
@@ -147,16 +159,20 @@ export function returnNumericalFunctionFromFormula({
             maxx = Infinity;
         let openMin = false,
             openMax = false;
-        if (domain !== null) {
+        if (domain) {
             let domain0 = domain[0];
             if (domain0 !== undefined) {
-                minx = me.fromAst(domain0.tree[1][1]).evaluate_to_constant();
+                minx = me
+                    .fromAst(domain0.tree[1][1])
+                    .evaluate_to_constant() as number;
                 if (typeof minx !== "number" || Number.isNaN(minx)) {
                     minx = -Infinity;
                 } else {
                     openMin = !domain0.tree[2][1];
                 }
-                maxx = me.fromAst(domain0.tree[1][2]).evaluate_to_constant();
+                maxx = me
+                    .fromAst(domain0.tree[1][2])
+                    .evaluate_to_constant() as number;
                 if (typeof maxx !== "number" || Number.isNaN(maxx)) {
                     maxx = Infinity;
                 } else {
@@ -174,7 +190,7 @@ export function returnNumericalFunctionFromFormula({
             }
         }
 
-        return function (x, overrideDomain = false) {
+        return function (x: number, overrideDomain = false): number {
             if (overrideDomain) {
                 if (isNaN(x)) {
                     return NaN;
@@ -192,7 +208,7 @@ export function returnNumericalFunctionFromFormula({
             } catch (e) {
                 return NaN;
             }
-        };
+        } as any;
     }
 
     let varStrings = [];
@@ -201,8 +217,8 @@ export function returnNumericalFunctionFromFormula({
     }
 
     let haveDomain = false;
-    let domainIntervals = [];
-    let domainOpens = [];
+    let domainIntervals: [number, number][] = [];
+    let domainOpens: [boolean, boolean][] = [];
 
     if (domain !== null) {
         haveDomain = true;
@@ -219,13 +235,17 @@ export function returnNumericalFunctionFromFormula({
             let openMin = false,
                 openMax = false;
 
-            minx = me.fromAst(thisDomain.tree[1][1]).evaluate_to_constant();
+            minx = me
+                .fromAst(thisDomain.tree[1][1])
+                .evaluate_to_constant() as number;
             if (typeof minx !== "number" || Number.isNaN(minx)) {
                 minx = -Infinity;
             } else {
                 openMin = !thisDomain.tree[2][1];
             }
-            maxx = me.fromAst(thisDomain.tree[1][2]).evaluate_to_constant();
+            maxx = me
+                .fromAst(thisDomain.tree[1][2])
+                .evaluate_to_constant() as number;
             if (typeof maxx !== "number" || Number.isNaN(maxx)) {
                 maxx = Infinity;
             } else {
@@ -246,8 +266,8 @@ export function returnNumericalFunctionFromFormula({
         }
     }
 
-    return function (...xs) {
-        let fArgs = {};
+    return function (...xs: any[]): number {
+        let fArgs: any = {};
         for (let i = 0; i < numInputs; i++) {
             let x = xs[i];
             if (isNaN(x)) {
@@ -280,9 +300,16 @@ export function returnNumericalFunctionFromReevaluatedFormula({
     evaluateChildrenToReevaluate,
     numInputs,
     variables,
-    domain,
+    domain = null,
     component = 0,
-}) {
+}: {
+    formulaExpressionWithCodes: any;
+    evaluateChildrenToReevaluate: any;
+    numInputs: number;
+    variables: any[];
+    domain?: any[] | null;
+    component?: number;
+}): NumericalFunction {
     component = Number(component);
 
     let formulaIsVectorValued =
@@ -317,13 +344,17 @@ export function returnNumericalFunctionFromReevaluatedFormula({
         if (domain !== null) {
             let domain0 = domain[0];
             if (domain0 !== undefined) {
-                minx = me.fromAst(domain0.tree[1][1]).evaluate_to_constant();
+                minx = me
+                    .fromAst(domain0.tree[1][1])
+                    .evaluate_to_constant() as number;
                 if (typeof minx !== "number" || Number.isNaN(minx)) {
                     minx = -Infinity;
                 } else {
                     openMin = !domain0.tree[2][1];
                 }
-                maxx = me.fromAst(domain0.tree[1][2]).evaluate_to_constant();
+                maxx = me
+                    .fromAst(domain0.tree[1][2])
+                    .evaluate_to_constant() as number;
                 if (typeof maxx !== "number" || Number.isNaN(maxx)) {
                     maxx = Infinity;
                 } else {
@@ -341,7 +372,7 @@ export function returnNumericalFunctionFromReevaluatedFormula({
             openMax = false;
         }
 
-        return function (x, overrideDomain = false) {
+        return function (x: number, overrideDomain = false): number {
             if (overrideDomain) {
                 if (isNaN(x)) {
                     return NaN;
@@ -355,14 +386,14 @@ export function returnNumericalFunctionFromReevaluatedFormula({
                 return NaN;
             }
 
-            let argsForInputs = { [varString]: x };
-            let fArgs = { [varString]: x };
+            let argsForInputs: any = { [varString]: x };
+            let fArgs: any = { [varString]: x };
 
             for (let code in evaluateChildrenToReevaluate) {
                 let childF = evaluateChildrenToReevaluate[code].fReevaluate;
                 let inputFs = evaluateChildrenToReevaluate[code].inputMathFs;
                 try {
-                    let input = inputFs.map((f) =>
+                    let input = inputFs.map((f: any) =>
                         me.fromAst(f(argsForInputs)),
                     );
                     fArgs[code] = childF(input).evaluate_to_constant();
@@ -385,8 +416,8 @@ export function returnNumericalFunctionFromReevaluatedFormula({
     }
 
     let haveDomain = false;
-    let domainIntervals = [];
-    let domainOpens = [];
+    let domainIntervals: [number, number][] = [];
+    let domainOpens: [boolean, boolean][] = [];
 
     if (domain !== null) {
         haveDomain = true;
@@ -403,13 +434,17 @@ export function returnNumericalFunctionFromReevaluatedFormula({
             let openMin = false,
                 openMax = false;
 
-            minx = me.fromAst(thisDomain.tree[1][1]).evaluate_to_constant();
+            minx = me
+                .fromAst(thisDomain.tree[1][1])
+                .evaluate_to_constant() as number;
             if (typeof minx !== "number" || Number.isNaN(minx)) {
                 minx = -Infinity;
             } else {
                 openMin = !thisDomain.tree[2][1];
             }
-            maxx = me.fromAst(thisDomain.tree[1][2]).evaluate_to_constant();
+            maxx = me
+                .fromAst(thisDomain.tree[1][2])
+                .evaluate_to_constant() as number;
             if (typeof maxx !== "number" || Number.isNaN(maxx)) {
                 maxx = Infinity;
             } else {
@@ -430,11 +465,11 @@ export function returnNumericalFunctionFromReevaluatedFormula({
         }
     }
 
-    return function (...xs) {
-        let fArgs = {};
+    return function (...xs: any[]): number {
+        let fArgs: any = {};
         for (let i = 0; i < numInputs; i++) {
             let x = xs[i];
-            if (isNaN(x)) {
+            if (typeof x !== "number" || isNaN(x)) {
                 return NaN;
             } else if (haveDomain) {
                 let [minx, maxx] = domainIntervals[i];
@@ -451,12 +486,14 @@ export function returnNumericalFunctionFromReevaluatedFormula({
             fArgs[varStrings[i]] = x;
         }
 
-        let argsForInputs = { ...fArgs };
+        let argsForInputs: any = { ...fArgs };
         for (let code in evaluateChildrenToReevaluate) {
             let childF = evaluateChildrenToReevaluate[code].fReevaluate;
             let inputFs = evaluateChildrenToReevaluate[code].inputMathFs;
             try {
-                let input = inputFs.map((f) => me.fromAst(f(argsForInputs)));
+                let input = inputFs.map((f: any) =>
+                    me.fromAst(f(argsForInputs)),
+                );
                 fArgs[code] = childF(input).evaluate_to_constant();
             } catch (e) {
                 return NaN;
@@ -474,18 +511,25 @@ export function returnNumericalFunctionFromReevaluatedFormula({
 export function returnPiecewiseNumericalFunctionFromChildren({
     numericalFsOfChildren,
     numericalDomainsOfChildren,
-    domain,
+    domain = null,
     component = 0,
-}) {
+}: {
+    numericalFsOfChildren: NumericalFunction[];
+    numericalDomainsOfChildren: any[];
+    domain?: any[] | null;
+    component?: number;
+}): NumericalFunction {
     component = Number(component);
 
     if (component !== 0) {
         return () => NaN;
     }
 
-    let { minx, maxx, openMin, openMax } = find_effective_domain({ domain });
+    let { minx, maxx, openMin, openMax } = find_effective_domain({
+        domain: domain ?? null,
+    });
 
-    return function (x, overrideDomain = false) {
+    return function (x: number, overrideDomain = false): number {
         if (overrideDomain) {
             if (isNaN(x)) {
                 return NaN;
@@ -520,11 +564,19 @@ export function returnSymbolicFunctionFromFormula({
     formula,
     simplify,
     expand,
-    domain,
+    domain = null,
     numInputs,
     variables,
     component = 0,
-}) {
+}: {
+    formula: any;
+    simplify?: string;
+    expand?: boolean;
+    domain?: any[] | null;
+    numInputs: number;
+    variables: any[];
+    component?: number;
+}): SymbolicFunction {
     component = Number(component);
 
     let formulaIsVectorValued =
@@ -553,13 +605,17 @@ export function returnSymbolicFunctionFromFormula({
         if (domain !== null) {
             let domain0 = domain[0];
             if (domain0 !== undefined) {
-                minx = me.fromAst(domain0.tree[1][1]).evaluate_to_constant();
+                minx = me
+                    .fromAst(domain0.tree[1][1])
+                    .evaluate_to_constant() as number;
                 if (typeof minx !== "number" || Number.isNaN(minx)) {
                     minx = -Infinity;
                 } else {
                     openMin = !domain0.tree[2][1];
                 }
-                maxx = me.fromAst(domain0.tree[1][2]).evaluate_to_constant();
+                maxx = me
+                    .fromAst(domain0.tree[1][2])
+                    .evaluate_to_constant() as number;
                 if (typeof maxx !== "number" || Number.isNaN(maxx)) {
                     maxx = Infinity;
                 } else {
@@ -577,7 +633,7 @@ export function returnSymbolicFunctionFromFormula({
             }
         }
 
-        return function (x, overrideDomain = false) {
+        return function (x: any, overrideDomain = false): any {
             if (!overrideDomain) {
                 let xNum = x.evaluate_to_constant();
 
@@ -608,8 +664,8 @@ export function returnSymbolicFunctionFromFormula({
     }
 
     let haveDomain = false;
-    let domainIntervals = [];
-    let domainOpens = [];
+    let domainIntervals: [number, number][] = [];
+    let domainOpens: [boolean, boolean][] = [];
 
     if (domain !== null) {
         haveDomain = true;
@@ -626,13 +682,17 @@ export function returnSymbolicFunctionFromFormula({
             let openMin = false,
                 openMax = false;
 
-            minx = me.fromAst(thisDomain.tree[1][1]).evaluate_to_constant();
+            minx = me
+                .fromAst(thisDomain.tree[1][1])
+                .evaluate_to_constant() as number;
             if (typeof minx !== "number" || Number.isNaN(minx)) {
                 minx = -Infinity;
             } else {
                 openMin = !thisDomain.tree[2][1];
             }
-            maxx = me.fromAst(thisDomain.tree[1][2]).evaluate_to_constant();
+            maxx = me
+                .fromAst(thisDomain.tree[1][2])
+                .evaluate_to_constant() as number;
             if (typeof maxx !== "number" || Number.isNaN(maxx)) {
                 maxx = Infinity;
             } else {
@@ -662,8 +722,8 @@ export function returnSymbolicFunctionFromFormula({
         }
     }
 
-    return function (...xs) {
-        let subArgs = {};
+    return function (...xs: any[]): any {
+        let subArgs: any = {};
         let foundOutsideDomain = false;
         let allNumeric = true;
 
@@ -712,9 +772,18 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
     expand,
     numInputs,
     variables,
-    domain,
+    domain = null,
     component = 0,
-}) {
+}: {
+    formulaExpressionWithCodes: any;
+    evaluateChildrenToReevaluate: any;
+    simplify?: string;
+    expand?: boolean;
+    numInputs: number;
+    variables: any[];
+    domain?: any[] | null;
+    component?: number;
+}): SymbolicFunction {
     component = Number(component);
 
     let formulaIsVectorValued =
@@ -745,13 +814,17 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
         if (domain !== null) {
             let domain0 = domain[0];
             if (domain0 !== undefined) {
-                minx = me.fromAst(domain0.tree[1][1]).evaluate_to_constant();
+                minx = me
+                    .fromAst(domain0.tree[1][1])
+                    .evaluate_to_constant() as number;
                 if (typeof minx !== "number" || Number.isNaN(minx)) {
                     minx = -Infinity;
                 } else {
                     openMin = !domain0.tree[2][1];
                 }
-                maxx = me.fromAst(domain0.tree[1][2]).evaluate_to_constant();
+                maxx = me
+                    .fromAst(domain0.tree[1][2])
+                    .evaluate_to_constant() as number;
                 if (typeof maxx !== "number" || Number.isNaN(maxx)) {
                     maxx = Infinity;
                 } else {
@@ -769,7 +842,7 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
             }
         }
 
-        return function (x, overrideDomain = false) {
+        return function (x: any, overrideDomain = false): any {
             if (!overrideDomain) {
                 let xNum = x.evaluate_to_constant();
 
@@ -784,14 +857,14 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
                 }
             }
 
-            let argsForInputs = { [varString]: x.tree };
-            let fArgs = { [varString]: x };
+            let argsForInputs: any = { [varString]: x.tree };
+            let fArgs: any = { [varString]: x };
 
             for (let code in evaluateChildrenToReevaluate) {
                 let childF = evaluateChildrenToReevaluate[code].fReevaluate;
                 let inputFs = evaluateChildrenToReevaluate[code].inputMathFs;
                 try {
-                    let input = inputFs.map((f) =>
+                    let input = inputFs.map((f: any) =>
                         me.fromAst(f(argsForInputs)),
                     );
                     fArgs[code] = childF(input);
@@ -816,8 +889,8 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
     }
 
     let haveDomain = false;
-    let domainIntervals = [];
-    let domainOpens = [];
+    let domainIntervals: [number, number][] = [];
+    let domainOpens: [boolean, boolean][] = [];
 
     if (domain !== null) {
         haveDomain = true;
@@ -834,13 +907,17 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
             let openMin = false,
                 openMax = false;
 
-            minx = me.fromAst(thisDomain.tree[1][1]).evaluate_to_constant();
+            minx = me
+                .fromAst(thisDomain.tree[1][1])
+                .evaluate_to_constant() as number;
             if (typeof minx !== "number" || Number.isNaN(minx)) {
                 minx = -Infinity;
             } else {
                 openMin = !thisDomain.tree[2][1];
             }
-            maxx = me.fromAst(thisDomain.tree[1][2]).evaluate_to_constant();
+            maxx = me
+                .fromAst(thisDomain.tree[1][2])
+                .evaluate_to_constant() as number;
             if (typeof maxx !== "number" || Number.isNaN(maxx)) {
                 maxx = Infinity;
             } else {
@@ -861,9 +938,9 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
         }
     }
 
-    return function (...xs) {
-        let subArgs = {};
-        let argsForInputs = {};
+    return function (...xs: any[]): any {
+        let subArgs: any = {};
+        let argsForInputs: any = {};
         let foundOutsideDomain = false;
         let allNumeric = true;
 
@@ -900,7 +977,9 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
             let childF = evaluateChildrenToReevaluate[code].fReevaluate;
             let inputFs = evaluateChildrenToReevaluate[code].inputMathFs;
             try {
-                let input = inputFs.map((f) => me.fromAst(f(argsForInputs)));
+                let input = inputFs.map((f: any) =>
+                    me.fromAst(f(argsForInputs)),
+                );
                 subArgs[code] = childF(input);
             } catch (e) {
                 return NaN;
@@ -917,8 +996,14 @@ export function returnSymbolicFunctionFromReevaluatedFormula({
     };
 }
 
-export function returnSymbolicFunctionForEvaluate({ symbolicfs, numInputs }) {
-    return function (input) {
+export function returnSymbolicFunctionForEvaluate({
+    symbolicfs,
+    numInputs,
+}: {
+    symbolicfs: SymbolicFunction[];
+    numInputs: number;
+}): VariableFunction {
+    return function (input: any[]): any {
         // if have a single input, check if it is a vector
         if (input.length === 1) {
             let inputTree = input[0].tree;
@@ -926,7 +1011,7 @@ export function returnSymbolicFunctionForEvaluate({ symbolicfs, numInputs }) {
                 Array.isArray(inputTree) &&
                 vectorOperators.includes(inputTree[0])
             ) {
-                input = inputTree.slice(1).map((x) => me.fromAst(x));
+                input = inputTree.slice(1).map((x: any) => me.fromAst(x));
             }
         }
 
@@ -947,8 +1032,14 @@ export function returnSymbolicFunctionForEvaluate({ symbolicfs, numInputs }) {
     };
 }
 
-export function returnNumericFunctionForEvaluate({ numericalfs, numInputs }) {
-    return function (input) {
+export function returnNumericFunctionForEvaluate({
+    numericalfs,
+    numInputs,
+}: {
+    numericalfs: NumericalFunction[];
+    numInputs: number;
+}): VariableFunction {
+    return function (input: any[]): any {
         // if have a single input, check if it is a vector
         if (input.length === 1) {
             let inputTree = input[0].tree;
@@ -956,7 +1047,7 @@ export function returnNumericFunctionForEvaluate({ numericalfs, numInputs }) {
                 Array.isArray(inputTree) &&
                 vectorOperators.includes(inputTree[0])
             ) {
-                input = inputTree.slice(1).map((x) => me.fromAst(x));
+                input = inputTree.slice(1).map((x: any) => me.fromAst(x));
             }
         }
 
@@ -964,7 +1055,7 @@ export function returnNumericFunctionForEvaluate({ numericalfs, numInputs }) {
             return me.fromAst("\uFF3F");
         }
 
-        let numericInput = input.map((x) => x.evaluate_to_constant());
+        let numericInput = input.map((x: any) => x.evaluate_to_constant());
 
         let components = numericalfs.map((f) => f(...numericInput));
 
@@ -988,7 +1079,16 @@ export function returnBezierFunctions({
     extrapolateBackward,
     extrapolateBackwardCoeffs,
     component,
-}) {
+}: {
+    numThroughPoints: number;
+    numericalThroughPoints: any[];
+    splineCoeffs: any[];
+    extrapolateForward: boolean;
+    extrapolateForwardCoeffs: any[];
+    extrapolateBackward: boolean;
+    extrapolateBackwardCoeffs: any[];
+    component?: number;
+}): NumericalFunction {
     if (numThroughPoints < 1) {
         return () => NaN;
     }
@@ -996,19 +1096,19 @@ export function returnBezierFunctions({
     let len = numThroughPoints - 1;
 
     // let firstPointX = numericalThroughPoints[0][component];
-    let lastPointX = numericalThroughPoints[len][component];
+    let lastPointX = numericalThroughPoints[len][component!];
 
-    let cs = splineCoeffs.map((x) => x[component]);
-    let cB;
+    let cs = splineCoeffs.map((x: any) => x[component!]);
+    let cB: any;
     if (extrapolateBackward) {
-        cB = extrapolateBackwardCoeffs[component];
+        cB = extrapolateBackwardCoeffs[component!];
     }
-    let cF;
+    let cF: any;
     if (extrapolateForward) {
-        cF = extrapolateForwardCoeffs[component];
+        cF = extrapolateForwardCoeffs[component!];
     }
 
-    return function (t) {
+    return function (t: number): number {
         if (isNaN(t)) {
             return NaN;
         }
@@ -1043,9 +1143,14 @@ export function returnInterpolatedFunction({
     xs,
     coeffs,
     interpolationPoints,
-    domain,
-}) {
-    let interpolationPointYs = [];
+    domain = null,
+}: {
+    xs: number[] | null;
+    coeffs: any[];
+    interpolationPoints?: any[];
+    domain?: any[] | null;
+}): NumericalFunction {
+    let interpolationPointYs: any[] = [];
     if (interpolationPoints) {
         interpolationPointYs = interpolationPoints.map((x) => x.y);
     }
@@ -1061,13 +1166,17 @@ export function returnInterpolatedFunction({
     if (domain !== null) {
         let domain0 = domain[0];
         if (domain0 !== undefined) {
-            minx = me.fromAst(domain0.tree[1][1]).evaluate_to_constant();
+            minx = me
+                .fromAst(domain0.tree[1][1])
+                .evaluate_to_constant() as number;
             if (typeof minx !== "number" || Number.isNaN(minx)) {
                 minx = -Infinity;
             } else {
                 openMin = !domain0.tree[2][1];
             }
-            maxx = me.fromAst(domain0.tree[1][2]).evaluate_to_constant();
+            maxx = me
+                .fromAst(domain0.tree[1][2])
+                .evaluate_to_constant() as number;
             if (typeof maxx !== "number" || Number.isNaN(maxx)) {
                 maxx = Infinity;
             } else {
@@ -1088,7 +1197,7 @@ export function returnInterpolatedFunction({
     let x0 = xs[0],
         xL = xs[xs.length - 1];
 
-    return function (x, overrideDomain = false) {
+    return function (x: number, overrideDomain = false): number {
         if (overrideDomain) {
             if (isNaN(x)) {
                 return NaN;
@@ -1156,7 +1265,7 @@ export function returnInterpolatedFunction({
 
         // Search for the interval x is in,
         // returning the corresponding y if x is one of the original xs
-        var low = 0,
+        let low = 0,
             mid,
             high = xs.length - 1;
         while (low <= high) {
@@ -1183,7 +1292,11 @@ export function returnReturnDerivativesOfInterpolatedFunction({
     xs,
     coeffs,
     variables,
-}) {
+}: {
+    xs: number[] | null;
+    coeffs: any[];
+    variables: any[];
+}): VariableFunction {
     if (!xs) {
         // return a function that returns a function that returns NaN!
         return () => () => NaN;
@@ -1194,7 +1307,7 @@ export function returnReturnDerivativesOfInterpolatedFunction({
     let x0 = xs[0],
         xL = xs[xs.length - 1];
 
-    return function (derivVariables) {
+    return function (derivVariables: any[]): NumericalFunction {
         let derivVariablesTrans = derivVariables.map(
             (x) => x.subscripts_to_strings().tree,
         );
@@ -1213,7 +1326,7 @@ export function returnReturnDerivativesOfInterpolatedFunction({
             return () => NaN;
         }
 
-        return function (x) {
+        return function (x: number): number {
             if (isNaN(x)) {
                 return NaN;
             }
@@ -1247,7 +1360,7 @@ export function returnReturnDerivativesOfInterpolatedFunction({
 
             // Search for the interval x is in,
             // returning the corresponding y if x is one of the original xs
-            var low = 0,
+            let low = 0,
                 mid,
                 high = xs.length - 1;
             while (low <= high) {
@@ -1291,22 +1404,28 @@ function returnFunctionOperatorFunction({
     originalFDefinition,
     numOutputs,
     component,
-}) {
+}: {
+    componentType: string;
+    functionOperatorArguments: any[];
+    operatorComposesWithOriginal: boolean;
+    originalFDefinition: any;
+    numOutputs: number;
+    component?: number;
+}): VariableFunction {
     // TODO: correctly handle numOutputs > 1
 
     if (operatorComposesWithOriginal) {
-        let childFs = [];
+        let childFs: any[] = [];
         for (let ind = 0; ind < numOutputs; ind++) {
-            childFs.push(
-                createFunctionFromDefinition(originalFDefinition, ind),
-            );
+            childFs.push(createFunctionFromDefinition(originalFDefinition));
         }
 
         let functionOperator = functionOperatorDefinitions[componentType](
             ...functionOperatorArguments,
         );
 
-        return (...xs) => functionOperator(...childFs.map((cf) => cf(...xs)));
+        return (...xs: any[]) =>
+            functionOperator(...childFs.map((cf) => cf(...xs)));
     } else {
         return functionOperatorDefinitions[componentType](
             ...functionOperatorArguments,
@@ -1314,9 +1433,14 @@ function returnFunctionOperatorFunction({
     }
 }
 
-export var functionOperatorDefinitions = {
-    clampFunction: function (lowerValue, upperValue) {
-        return function (x) {
+export const functionOperatorDefinitions: {
+    [key: string]: (...args: any[]) => any;
+} = {
+    clampFunction: function (
+        lowerValue: number,
+        upperValue: number,
+    ): NumericalFunction {
+        return function (x: number): number {
             // if don't have a number, return NaN
             if (!Number.isFinite(x)) {
                 return NaN;
@@ -1325,8 +1449,11 @@ export var functionOperatorDefinitions = {
         };
     },
 
-    wrapFunctionPeriodic: function (lowerValue, upperValue) {
-        return function (x) {
+    wrapFunctionPeriodic: function (
+        lowerValue: number,
+        upperValue: number,
+    ): NumericalFunction {
+        return function (x: number): number {
             // if don't have a number, return NaN
             if (!Number.isFinite(x)) {
                 return NaN;
@@ -1349,7 +1476,10 @@ export var functionOperatorDefinitions = {
         };
     },
 
-    derivative: function (derivDefinition, derivVariables) {
+    derivative: function (
+        derivDefinition: any,
+        derivVariables: any[],
+    ): VariableFunction {
         if (derivDefinition.derivativeType === "interpolatedFunction") {
             let derivGenerator = returnReturnDerivativesOfInterpolatedFunction({
                 xs: derivDefinition.xs,
@@ -1405,8 +1535,25 @@ function returnODESolutionFunction({
     numericalRHSfDefinitions,
     maxIterations,
     component,
-}) {
-    var workspace = {};
+}: {
+    numDimensions: number;
+    t0: number;
+    x0s: number[];
+    chunkSize: number;
+    tolerance: number;
+    numericalRHSfDefinitions: any[];
+    maxIterations: number;
+    component?: number;
+}): NumericalFunction {
+    let workspace: {
+        calculatedNumericSolutions: any[];
+        endingNumericalValues: any[];
+        maxPossibleTime?: number;
+    } = {
+        calculatedNumericSolutions: [],
+        endingNumericalValues: [],
+        maxPossibleTime: undefined,
+    };
 
     workspace.calculatedNumericSolutions = [];
     workspace.endingNumericalValues = [];
@@ -1416,8 +1563,8 @@ function returnODESolutionFunction({
         createFunctionFromDefinition(x),
     );
 
-    let numericalRHSf = function (t, x) {
-        let fargs = [t];
+    let numericalRHSf = function (t: number, x: number | number[]): number[] {
+        let fargs: any[] = [t];
         if (Array.isArray(x)) {
             fargs.push(...x);
         } else {
@@ -1426,16 +1573,16 @@ function returnODESolutionFunction({
         try {
             return numericalRHSfcomponents.map((f) => f(...fargs));
         } catch (e) {
-            return NaN;
+            return [NaN];
         }
     };
 
-    return function f(t) {
+    return function f(t: number): number {
         if (!Number.isFinite(t)) {
             return NaN;
         }
         if (t === t0) {
-            return x0s[component];
+            return x0s[component!];
         }
 
         let nChunksCalculated = workspace.calculatedNumericSolutions.length;
@@ -1478,11 +1625,11 @@ function returnODESolutionFunction({
             }
         }
 
-        if (t > workspace.maxPossibleTime) {
+        if (t > workspace.maxPossibleTime!) {
             return NaN;
         }
 
-        let value = workspace.calculatedNumericSolutions[chunk](t)[component];
+        let value = workspace.calculatedNumericSolutions[chunk](t)[component!];
 
         return value;
     };

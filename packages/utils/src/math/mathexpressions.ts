@@ -1,4 +1,4 @@
-import me from "math-expressions";
+import me, { isTree } from "math-expressions";
 
 export function normalizeMathExpression({
     value,
@@ -6,7 +6,13 @@ export function normalizeMathExpression({
     expand = false,
     createVectors = false,
     createIntervals = false,
-}) {
+}: {
+    value: any;
+    simplify?: string;
+    expand?: boolean;
+    createVectors?: boolean;
+    createIntervals?: boolean;
+}): any {
     if (createVectors) {
         value = value.tuples_to_vectors();
     }
@@ -28,13 +34,14 @@ export function normalizeMathExpression({
     return value;
 }
 
-export function convertValueToMathExpression(value) {
+export function convertValueToMathExpression(value: any): any {
+    const { isTree } = me as { isTree?: (value: unknown) => boolean };
     if (value instanceof me.class) {
         return value;
     } else if (typeof value === "number" || typeof value === "string") {
         // let value be math-expression based on value
         return me.fromAst(value);
-    } else if (Array.isArray(value)) {
+    } else if (isTree?.(value)) {
         // let value be math-expression based on value
         return me.fromAst(value);
     } else {

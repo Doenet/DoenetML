@@ -2,7 +2,11 @@ import me from "math-expressions";
 import { isSubset } from "../math/subset-of-reals";
 
 // from https://stackoverflow.com/a/40293777
-export function deepClone(obj, BaseComponent, hash) {
+export function deepClone(
+    obj: any,
+    BaseComponent?: any,
+    hash?: WeakMap<object, any>,
+): any {
     // Do not try to clone primitives or functions
     if (Object(obj) !== obj || obj instanceof Function) return obj;
 
@@ -27,22 +31,23 @@ export function deepClone(obj, BaseComponent, hash) {
     }
 
     if (hash.has(obj)) return hash.get(obj); // Cyclic reference
+    let result: any;
     try {
         // Try to run constructor (without arguments, as we don't know them)
-        var result = new obj.constructor();
+        result = new (obj as any).constructor();
     } catch (e) {
         // Constructor failed, create object without running the constructor
         result = Object.create(Object.getPrototypeOf(obj));
     }
     // Optional: support for some standard constructors (extend as desired)
-    if (obj instanceof Map)
+    if (obj instanceof Map) {
         Array.from(obj, ([key, val]) =>
             result.set(
                 deepClone(key, BaseComponent, hash),
                 deepClone(val, BaseComponent, hash),
             ),
         );
-    else if (obj instanceof Set) {
+    } else if (obj instanceof Set) {
         // result.values = result.values.bind(result);
         Array.from(obj, (key) =>
             result.add(deepClone(key, BaseComponent, hash)),
@@ -54,17 +59,18 @@ export function deepClone(obj, BaseComponent, hash) {
     return Object.assign(
         result,
         ...Object.keys(obj).map((key) => ({
-            [key]: deepClone(obj[key], BaseComponent, hash),
+            [key]: deepClone((obj as any)[key], BaseComponent, hash),
         })),
     );
 }
 
 // based on https://stackoverflow.com/a/1144249
-export function deepCompare(a, b, BaseComponent) {
-    var leftChain, rightChain;
+export function deepCompare(a: any, b: any, BaseComponent?: any): boolean {
+    let leftChain: any[] = [];
+    let rightChain: any[] = [];
 
-    function compare2Objects(x, y) {
-        var p;
+    function compare2Objects(x: any, y: any): boolean {
+        let p: string;
 
         // remember that NaN === NaN returns false
         if (Number.isNaN(x) && Number.isNaN(y)) {
@@ -170,9 +176,6 @@ export function deepCompare(a, b, BaseComponent) {
 
         return true;
     }
-
-    leftChain = [];
-    rightChain = [];
 
     return compare2Objects(a, b);
 }
