@@ -22,7 +22,8 @@
         "test:group2": "cypress run -b 'chrome' --config video=false --headless --expose grepTags='@group2',grepFilterSpecs=true,grepOmitFiltered=true",
         "test:group3": "cypress run -b 'chrome' --config video=false --headless --expose grepTags='@group3',grepFilterSpecs=true,grepOmitFiltered=true",
         "test:group4": "cypress run -b 'chrome' --config video=false --headless --expose grepTags='@group4',grepFilterSpecs=true,grepOmitFiltered=true",
-        "test:group5": "cypress run -b 'chrome' --config video=false --headless --expose grepTags='-@group1+-@group2+-@group3+-@group4',grepFilterSpecs=true,grepOmitFiltered=true"
+        "test:group5": "cypress run -b 'chrome' --config video=false --headless --expose grepTags='@group5',grepFilterSpecs=true,grepOmitFiltered=true",
+        "test:mistagged": "cypress run -b 'chrome' --config video=false --headless --expose grepTags='-@group1+-@group2+-@group3+-@group4+-@group5',grepFilterSpecs=true,grepOmitFiltered=true"
     },
     "wireit": {
         "build": {
