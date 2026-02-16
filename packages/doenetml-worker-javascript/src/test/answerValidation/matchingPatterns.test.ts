@@ -153,7 +153,7 @@ describe("matching patterns answer tests", async () => {
                         ["-", ["*", 9, "y"]],
                         -2,
                     ],
-                    matches: [4, ["-", 9], -2],
+                    matches: [4, -9, -2],
                 },
                 "4y^2+3x+5": {
                     correct: true,
