@@ -136,6 +136,7 @@ jobs:
             matrix:
                 node-version: [24.x]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+                test-group: [group1, group2, group3, group4, group5]
         steps:
             - uses: actions/checkout@v3
             - name: Use Node.js ${{ matrix.node-version }}
@@ -161,13 +162,14 @@ jobs:
               env:
                   WIREIT_CACHE: "local"
 
-            - name: Cypress run
-              uses: cypress-io/github-action@v6
-              with:
-                  browser: chrome
-                  start: npm run preview --workspace packages/test-cypress
-                  project: ./packages/test-cypress
-                  wait-on: "http://localhost:4173"
+            - name: Start preview server
+              run: npm run preview --workspace packages/test-cypress &
+
+            - name: Wait for server
+              run: npx wait-on http://localhost:4173
+
+            - name: Cypress run ${{ matrix.test-group }}
+              run: npm run test:${{ matrix.test-group }} -w packages/test-cypress
               env:
                   CYPRESS_SKIP_YOUTUBE_TESTS: true
 
@@ -175,7 +177,7 @@ jobs:
               if: failure()
               uses: actions/upload-artifact@v4
               with:
-                  name: cypress-screenshots
+                  name: cypress-screenshots-${{ matrix.test-group }}
                   path: ./packages/test-cypress/cypress/screenshots
 
     lint:
