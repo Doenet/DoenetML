@@ -176,6 +176,7 @@
         "vscode-jsonrpc": "8.2.1",
         "vscode-languageserver": "^9.0.1",
         "vscode-languageserver-protocol": "^3.17.5",
+        "wait-on": "^9.0.4",
         "wasm-pack": "^0.13.1",
         "webdriverio": "^9.21.0",
         "wick-a11y": "^2.5.0",
