@@ -248,8 +248,11 @@ function removeEndingBlankString(component: React.ReactNode) {
         if (children.length === 0) {
             // we need to recreate component since React makes it read only
             component = { ...component };
-            component.props = { ...component.props };
-            component.props.children = [];
+            component.props = { ...(component.props as any) } as Record<
+                string,
+                any
+            >;
+            (component.props as Record<string, any>).children = [];
             return component;
         }
         lastChild = children[children.length - 1];
@@ -262,8 +265,11 @@ function removeEndingBlankString(component: React.ReactNode) {
     if (lastChild !== originalLastChild) {
         // we need to recreate component since React makes it read only
         component = { ...component };
-        component.props = { ...component.props };
-        component.props.children = [
+        component.props = { ...(component.props as any) } as Record<
+            string,
+            any
+        >;
+        (component.props as Record<string, any>).children = [
             ...children.slice(0, children.length - 1),
             lastChild,
         ];

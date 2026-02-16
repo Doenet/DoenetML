@@ -1,4 +1,3 @@
-//@ts-ignore
 import me from "math-expressions";
 import { deepCompare } from "../copy/deepFunctions";
 
@@ -347,9 +346,9 @@ function buildSubsetFromIntervals(
         return InvalidSet();
     } else {
         // if `tree` is a finite number, return a singleton
-        let num = me.fromAst(tree).evaluate_to_constant();
+        let num = me.fromAst(tree as any).evaluate_to_constant();
 
-        if (Number.isFinite(num)) {
+        if (typeof num === "number" && Number.isFinite(num)) {
             return Singleton(num);
         } else {
             return InvalidSet();
@@ -370,7 +369,7 @@ function buildSubsetFromIntervals(
  * The algorithm is more permissive that standard notation,
  * allowing expressions that mix types of notation and treating numbers as sets if needed.
  */
-export function buildSubsetFromMathExpression(expr: any, variable: any) {
+export function buildSubsetFromMathExpression(expr: any, variable?: any) {
     return buildSubsetFromIntervals(expr.to_intervals().tree, variable?.tree);
 }
 

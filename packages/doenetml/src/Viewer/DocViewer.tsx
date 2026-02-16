@@ -425,7 +425,7 @@ export function DocViewer({
         coreCreated.current = false;
         coreCreationInProgress.current = false;
 
-        const initializeResult = await initializeCoreWorker({
+        await initializeCoreWorker({
             coreWorker: newCoreWorker,
             doenetML,
             flags,
@@ -436,12 +436,6 @@ export function DocViewer({
             documentStructureCallback,
             fetchExternalDoenetML,
         });
-
-        if (initializeResult.success === false) {
-            setErrMsg(
-                `Error initializing activity: ${initializeResult.errMsg}`,
-            );
-        }
 
         return newCoreWorker;
     }
@@ -1042,13 +1036,6 @@ export function DocViewer({
                 documentStructureCallback,
                 fetchExternalDoenetML,
             });
-
-            if (initializeResult.success === false) {
-                setErrMsg(
-                    `Error initializing activity: ${initializeResult.errMsg}`,
-                );
-                return;
-            }
         }
 
         onActionCallbacks.current.clear();

@@ -3,11 +3,22 @@ import me from "math-expressions";
 import { EmptySet, RealLine } from "../math/subset-of-reals";
 import { buildSubsetFromMathExpression } from "../math/subset-of-reals-operations";
 
+interface DomainResult {
+    minx: number;
+    maxx: number;
+    openMin: boolean;
+    openMax: boolean;
+}
+
 export function find_effective_domain({
     domain,
     truncateToFiniteDomain = false,
     xscale = 1,
-}) {
+}: {
+    domain: any[] | null;
+    truncateToFiniteDomain?: boolean;
+    xscale?: number;
+}): DomainResult {
     // Works only for 1 dimension.
 
     // Arguments
@@ -30,13 +41,17 @@ export function find_effective_domain({
     if (domain !== null) {
         let domain1 = domain[0];
         if (domain1 !== undefined) {
-            minx = me.fromAst(domain1.tree[1][1]).evaluate_to_constant();
+            minx = me
+                .fromAst(domain1.tree[1][1])
+                .evaluate_to_constant() as number;
             if (!Number.isFinite(minx)) {
                 minx = -Infinity;
             } else {
                 openMin = !domain1.tree[2][1];
             }
-            maxx = me.fromAst(domain1.tree[1][2]).evaluate_to_constant();
+            maxx = me
+                .fromAst(domain1.tree[1][2])
+                .evaluate_to_constant() as number;
             if (!Number.isFinite(maxx)) {
                 maxx = Infinity;
             } else {
@@ -73,7 +88,10 @@ export function find_effective_domain({
 export function find_effective_domains_piecewise_children({
     domain,
     numericalDomainsOfChildren,
-}) {
+}: {
+    domain?: any;
+    numericalDomainsOfChildren: any[];
+}): any[] {
     let domainUnused;
 
     if (domain) {

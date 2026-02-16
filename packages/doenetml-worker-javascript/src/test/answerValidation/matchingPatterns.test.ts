@@ -49,44 +49,44 @@ describe("matching patterns answer tests", async () => {
         let desiredResults = {
             x: {
                 "": {
-                    correct: false,
+                    correct: false as const,
                     response: "\uff3f",
                 },
                 "x^2": {
-                    correct: true,
+                    correct: true as const,
                     response: ["^", "x", 2],
                     matches: [1, 0, 0],
                 },
                 "x^2+1": {
-                    correct: true,
+                    correct: true as const,
                     response: ["+", ["^", "x", 2], 1],
                     matches: [1, 0, 1],
                 },
                 "x^2+x": {
-                    correct: true,
+                    correct: true as const,
                     response: ["+", ["^", "x", 2], "x"],
                     matches: [1, 1, 0],
                 },
                 "x^2+x+x": {
-                    correct: false,
+                    correct: false as const,
                     response: ["+", ["^", "x", 2], "x", "x"],
                 },
                 "x^2+c": {
-                    correct: true,
+                    correct: true as const,
                     response: ["+", ["^", "x", 2], "c"],
                     matches: [1, 0, "c"],
                 },
                 "xx^2+c": {
-                    correct: false,
+                    correct: false as const,
                     response: ["+", ["*", "x", ["^", "x", 2]], "c"],
                 },
                 "x^2+x+c+d": {
-                    correct: true,
+                    correct: true as const,
                     response: ["+", ["^", "x", 2], "x", "c", "d"],
                     matches: [1, 1, ["+", "c", "d"]],
                 },
                 "ax^2+bx+c": {
-                    correct: true,
+                    correct: true as const,
                     response: [
                         "+",
                         ["*", "a", ["^", "x", 2]],
@@ -96,7 +96,7 @@ describe("matching patterns answer tests", async () => {
                     matches: ["a", "b", "c"],
                 },
                 "ay^2+by+c": {
-                    correct: false,
+                    correct: false as const,
                     response: [
                         "+",
                         ["*", "a", ["^", "y", 2]],
@@ -105,7 +105,7 @@ describe("matching patterns answer tests", async () => {
                     ],
                 },
                 "\\sqrt{2}x^2+5/8x+e^y": {
-                    correct: true,
+                    correct: true as const,
                     response: [
                         "+",
                         ["*", ["apply", "sqrt", 2], ["^", "x", 2]],
@@ -121,7 +121,7 @@ describe("matching patterns answer tests", async () => {
             },
             y: {
                 "ay^2+by+c": {
-                    correct: true,
+                    correct: true as const,
                     response: [
                         "+",
                         ["*", "a", ["^", "y", 2]],
@@ -131,7 +131,7 @@ describe("matching patterns answer tests", async () => {
                     matches: ["a", "b", "c"],
                 },
                 "\\pi y^2x^2+e^xy+x+x": {
-                    correct: true,
+                    correct: true as const,
                     response: [
                         "+",
                         ["*", "pi", ["^", "y", 2], ["^", "x", 2]],
@@ -146,7 +146,7 @@ describe("matching patterns answer tests", async () => {
                     ],
                 },
                 "4y^2-9y-2": {
-                    correct: true,
+                    correct: true as const,
                     response: [
                         "+",
                         ["*", 4, ["^", "y", 2]],
@@ -156,7 +156,7 @@ describe("matching patterns answer tests", async () => {
                     matches: [4, -9, -2],
                 },
                 "4y^2+3x+5": {
-                    correct: true,
+                    correct: true as const,
                     response: ["+", ["*", 4, ["^", "y", 2]], ["*", 3, "x"], 5],
                     matches: [4, 0, ["+", ["*", 3, "x"], 5]],
                 },
@@ -170,7 +170,8 @@ describe("matching patterns answer tests", async () => {
                 core,
             });
 
-            let resultsForVar = desiredResults[varName];
+            let resultsForVar =
+                desiredResults[varName as keyof typeof desiredResults];
             for (let expr in resultsForVar) {
                 await updateMathInputValue({
                     latex: expr,
@@ -186,7 +187,7 @@ describe("matching patterns answer tests", async () => {
                     true,
                 );
 
-                let res = resultsForVar[expr];
+                let res = resultsForVar[expr as keyof typeof resultsForVar];
 
                 if (res.correct) {
                     expect(

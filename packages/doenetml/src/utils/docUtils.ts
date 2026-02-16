@@ -58,16 +58,14 @@ export async function initializeCoreWorker({
         attemptNumber,
     });
 
-    if (result.success) {
-        documentStructureCallback?.({
-            activityId,
-            docId,
-            args: {
-                allPossibleVariants: result.allPossibleVariants,
-                baseComponentCounts: result.baseComponentCounts,
-            },
-        });
-    }
+    documentStructureCallback?.({
+        activityId,
+        docId,
+        args: {
+            allPossibleVariants: result.allPossibleVariants,
+            baseComponentCounts: result.baseComponentCounts,
+        },
+    });
 
     return result;
 }

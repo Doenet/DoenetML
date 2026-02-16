@@ -1,17 +1,17 @@
 export const currentVersion = "0.6";
 
-const phaseOutPlan = { 0.6: "summer 2025" };
+const phaseOutPlan: Record<number, string> = { 0.6: "summer 2025" };
 
-export function returnCurrentMinorVersionNumber() {
+export function returnCurrentMinorVersionNumber(): number {
     let versionPieces = currentVersion.match(/^(\d+)\.(\d+)/);
 
     return (
-        Math.round(Number(versionPieces[1]) * 10 + Number(versionPieces[2])) /
+        Math.round(Number(versionPieces![1]) * 10 + Number(versionPieces![2])) /
         10
     );
 }
 
-export function returnDeprecationMessage(removeInVersion) {
+export function returnDeprecationMessage(removeInVersion: number): string {
     let versionPhrase = `version ${removeInVersion}`;
     let currentMinorVersion = returnCurrentMinorVersionNumber();
 

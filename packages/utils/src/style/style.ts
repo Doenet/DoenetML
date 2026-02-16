@@ -1,4 +1,12 @@
-export let styleAttributes = {
+type StyleAttributes = Record<string, { componentType: string }>;
+
+type StyleDefinition = Record<string, any>;
+
+type StateVariableDefinitions = Record<string, any>;
+
+type StyleDefinitions = Record<string, StyleDefinition>;
+
+export let styleAttributes: StyleAttributes = {
     lineColor: { componentType: "text" },
     lineColorWord: { componentType: "text" },
     lineColorDarkMode: { componentType: "text" },
@@ -37,7 +45,7 @@ export let styleAttributes = {
     backgroundColorWordDarkMode: { componentType: "text" },
 };
 
-let defaultStyle = {
+let defaultStyle: StyleDefinition = {
     lineColor: "#648FFF",
     lineColorWord: "blue",
     lineColorDarkMode: "#648FFF",
@@ -70,7 +78,7 @@ let defaultStyle = {
     highContrastColorWordDarkMode: "blue",
 };
 
-function returnDefaultStyleDefinitions() {
+function returnDefaultStyleDefinitions(): StyleDefinitions {
     return {
         1: {
             lineColor: "#648FFF",
@@ -267,8 +275,8 @@ function returnDefaultStyleDefinitions() {
     };
 }
 
-export function returnStyleDefinitionStateVariables() {
-    let stateVariableDefinitions = {};
+export function returnStyleDefinitionStateVariables(): StateVariableDefinitions {
+    let stateVariableDefinitions: StateVariableDefinitions = {};
 
     stateVariableDefinitions.setupChildren = {
         returnDependencies: () => ({
@@ -278,7 +286,7 @@ export function returnStyleDefinitionStateVariables() {
                 proceedIfAllChildrenNotMatched: true,
             },
         }),
-        definition({ dependencyValues }) {
+        definition({ dependencyValues }: { dependencyValues: any }) {
             return {
                 setValue: { setupChildren: dependencyValues.setupChildren },
             };
@@ -287,8 +295,8 @@ export function returnStyleDefinitionStateVariables() {
 
     stateVariableDefinitions.styleDefinitions = {
         stateVariablesDeterminingDependencies: ["setupChildren"],
-        returnDependencies({ stateValues }) {
-            let dependencies = {
+        returnDependencies({ stateValues }: { stateValues: any }) {
+            let dependencies: Record<string, any> = {
                 ancestorWithStyle: {
                     dependencyType: "ancestor",
                     variableNames: ["styleDefinitions"],
@@ -313,10 +321,10 @@ export function returnStyleDefinitionStateVariables() {
 
             return dependencies;
         },
-        definition({ dependencyValues }) {
-            const styleDefinitions = {};
+        definition({ dependencyValues }: { dependencyValues: any }) {
+            const styleDefinitions: StyleDefinitions = {};
 
-            let startingStateVariableDefinitions;
+            let startingStateVariableDefinitions: StyleDefinitions | undefined;
 
             if (dependencyValues.ancestorWithStyle) {
                 startingStateVariableDefinitions =
@@ -336,7 +344,7 @@ export function returnStyleDefinitionStateVariables() {
                 );
             }
 
-            const styleDefinitionChildren = [];
+            const styleDefinitionChildren = [] as any[];
             for (let child of dependencyValues.styleDefinitionSetupChildren) {
                 if (child.componentType === "setup") {
                     styleDefinitionChildren.push(
@@ -447,7 +455,7 @@ export function returnStyleDefinitionStateVariables() {
     return stateVariableDefinitions;
 }
 
-export function returnSelectedStyleStateVariableDefinition() {
+export function returnSelectedStyleStateVariableDefinition(): StateVariableDefinitions {
     return {
         selectedStyle: {
             forRenderer: true,
@@ -462,7 +470,11 @@ export function returnSelectedStyleStateVariableDefinition() {
                     variableNames: ["styleDefinitions"],
                 },
             }),
-            definition: function ({ dependencyValues }) {
+            definition: function ({
+                dependencyValues,
+            }: {
+                dependencyValues: any;
+            }) {
                 let styleDefinitions =
                     dependencyValues.ancestorWithStyle.stateValues
                         .styleDefinitions;
@@ -482,7 +494,7 @@ export function returnSelectedStyleStateVariableDefinition() {
     };
 }
 
-export function returnTextStyleDescriptionDefinitions() {
+export function returnTextStyleDescriptionDefinitions(): StateVariableDefinitions {
     return {
         textColor: {
             public: true,
@@ -500,7 +512,11 @@ export function returnTextStyleDescriptionDefinitions() {
                     variableNames: ["theme"],
                 },
             }),
-            definition: function ({ dependencyValues }) {
+            definition: function ({
+                dependencyValues,
+            }: {
+                dependencyValues: any;
+            }) {
                 let selectedStyle = dependencyValues.selectedStyle;
 
                 let textColorWord;
@@ -530,7 +546,11 @@ export function returnTextStyleDescriptionDefinitions() {
                     variableNames: ["theme"],
                 },
             }),
-            definition: function ({ dependencyValues }) {
+            definition: function ({
+                dependencyValues,
+            }: {
+                dependencyValues: any;
+            }) {
                 let selectedStyle = dependencyValues.selectedStyle;
 
                 let backgroundColorWord;
@@ -564,7 +584,11 @@ export function returnTextStyleDescriptionDefinitions() {
                     variableName: "backgroundColor",
                 },
             }),
-            definition: function ({ dependencyValues }) {
+            definition: function ({
+                dependencyValues,
+            }: {
+                dependencyValues: any;
+            }) {
                 let textStyleDescription = dependencyValues.textColor;
 
                 if (dependencyValues.backgroundColor !== "none") {
@@ -577,7 +601,10 @@ export function returnTextStyleDescriptionDefinitions() {
     };
 }
 
-export function textRendererStyle(darkMode, selectedStyle) {
+export function textRendererStyle(
+    darkMode: "dark" | "light",
+    selectedStyle: any,
+): { color: string; backgroundColor?: string } {
     let textColor =
         darkMode === "dark"
             ? selectedStyle.textColorDarkMode
@@ -586,7 +613,9 @@ export function textRendererStyle(darkMode, selectedStyle) {
         darkMode === "dark"
             ? selectedStyle.backgroundColorDarkMode
             : selectedStyle.backgroundColor;
-    let style = { color: textColor };
+    let style: { color: string; backgroundColor?: string } = {
+        color: textColor,
+    };
     if (backgroundColor) {
         style.backgroundColor = backgroundColor;
     }
