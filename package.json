@@ -119,7 +119,7 @@
         "copy-to-clipboard": "^3.3.3",
         "crypto-js": "^4.2.0",
         "cssesc": "^3.0.0",
-        "cypress": "^15.7.1",
+        "cypress": "^15.10.0",
         "cypress-axe": "^1.7.0",
         "cypress-parallel": "^0.15.0",
         "cypress-plugin-tab": "^1.0.5",
