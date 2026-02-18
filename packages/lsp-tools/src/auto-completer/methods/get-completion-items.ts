@@ -1,7 +1,6 @@
 import { DoenetSourceObject, RowCol } from "../../doenet-source-object";
 import type { CompletionItem, Range } from "vscode-languageserver/browser";
 import { CompletionItemKind } from "vscode-languageserver/browser";
-import { showCursor } from "@doenet/parser";
 import { AutoCompleter } from "../index";
 
 /**

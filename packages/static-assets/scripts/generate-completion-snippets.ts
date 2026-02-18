@@ -1,7 +1,7 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 
-import { CompletionSnippet } from "../src/completion-snippets.js";
+import type { CompletionSnippet } from "../src/completion-snippets.js";
 
 const COMPLETION_SNIPPETS: Record<string, CompletionSnippet> = {
     "multiple-choice-answer": {
@@ -54,4 +54,4 @@ const out = JSON.stringify(COMPLETION_SNIPPETS, null, 4) + "\n";
 
 console.log("Writing", out.length / 1024, "KB to", file);
 
-fs.writeFile(file, out, "utf-8");
+await fs.writeFile(file, out, "utf-8");

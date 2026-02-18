@@ -218,14 +218,12 @@ describe("Doenet Language Server", async () => {
 
         // Look for any items that might be snippets (they should have textEdit)
         const itemsWithTextEdit = completions.filter((item) => item.textEdit);
-        // Note: Whether snippets appear depends on whether COMPLETION_SNIPPETS
-        // is populated in the running environment
-        if (itemsWithTextEdit.length > 0) {
-            // Verify snippet items have the expected structure
-            itemsWithTextEdit.forEach((item) => {
-                expect(item.textEdit).toHaveProperty("newText");
-                expect(item.textEdit).toHaveProperty("range");
-            });
-        }
+        // Since snippets are a supported feature, require at least one such item
+        expect(itemsWithTextEdit.length).toBeGreaterThan(0);
+        // Verify snippet items have the expected structure
+        itemsWithTextEdit.forEach((item) => {
+            expect(item.textEdit).toHaveProperty("newText");
+            expect(item.textEdit).toHaveProperty("range");
+        });
     });
 });
