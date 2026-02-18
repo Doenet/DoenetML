@@ -14,10 +14,10 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
     const openAutocomplete = (timeoutMs = 8000): Cypress.Chainable<void> => {
         const start = Date.now();
 
-        const attempt = (): Cypress.Chainable<void> => {
+        const attempt = (): Cypress.Chainable<any> => {
             return cy.get("body").then(($body) => {
                 if ($body.find(".cm-tooltip-autocomplete").length > 0) {
-                    return cy.wrap(undefined) as Cypress.Chainable<void>;
+                    return;
                 }
 
                 if (Date.now() - start > timeoutMs) {
@@ -27,16 +27,13 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
                 }
 
                 cy.get(".cm-content").type("{ctrl} ", { force: true });
-                return cy
-                    .wait(250)
-                    .then(() => undefined)
-                    .then(attempt) as Cypress.Chainable<void>;
-            }) as Cypress.Chainable<void>;
+                return cy.wait(250).then(attempt);
+            });
         };
 
         return cy.then(attempt).then(() => {
             cy.get(".cm-tooltip-autocomplete").should("be.visible");
-        });
+        }) as Cypress.Chainable<void>;
     };
 
     it("completes element names in a blank document", () => {
