@@ -1,0 +1,12 @@
+{
+    "multiple-choice-answer": {
+        "element": "answer",
+        "snippet": "<answer name=\"mcq\" inline=\"false\" shuffleOrder=\"false\">\n  <choice credit=\"1\"></choice>\n  <choice></choice>\n  <choice></choice>\n  <choice></choice>\n  <choice></choice>\n</answer>",
+        "description": "Multiple choice answer template"
+    },
+    "table-with-tabular": {
+        "element": "table",
+        "snippet": "<table>\n  <title></title>\n  <tabular>\n    <row header>\n      <cell></cell>\n      <cell></cell>\n    </row>\n    <row>\n      <cell></cell>\n      <cell></cell>\n    </row>\n  </tabular>\n</table>",
+        "description": "Table with tabular template"
+    }
+}
