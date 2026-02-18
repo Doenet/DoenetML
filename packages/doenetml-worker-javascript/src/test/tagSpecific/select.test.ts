@@ -10,7 +10,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Select tag tests", async () => {
+describe("Select tag tests @group2", async () => {
     async function test_values_separately({
         doenetML,
         select_name,

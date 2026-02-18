@@ -1,6 +1,6 @@
 import { cesc, widthsBySize } from "@doenet/utils";
 
-describe("Video Tag Tests", function () {
+describe("Video Tag Tests", { tags: ["@group2"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

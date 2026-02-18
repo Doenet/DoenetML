@@ -7,7 +7,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("BestFitLine tag tests", async () => {
+describe("BestFitLine tag tests @group3", async () => {
     it("fit line to 4 points", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

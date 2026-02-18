@@ -10,7 +10,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Boolean Operator tag tests", async () => {
+describe("Boolean Operator tag tests @group3", async () => {
     it("not", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

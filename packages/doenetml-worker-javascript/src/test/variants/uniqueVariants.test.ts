@@ -13,7 +13,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Unique variant tests", async () => {
+describe("Unique variant tests @group1", async () => {
     it("single select", async () => {
         let values = ["u", "v", "w", "x", "y", "z"];
         let doenetML = `

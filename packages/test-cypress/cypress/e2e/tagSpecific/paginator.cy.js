@@ -1,7 +1,7 @@
 import me from "math-expressions";
 import { cesc } from "@doenet/utils";
 
-describe("Paginator Tag Tests", function () {
+describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

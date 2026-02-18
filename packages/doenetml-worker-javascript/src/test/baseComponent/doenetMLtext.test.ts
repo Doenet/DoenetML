@@ -5,7 +5,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("DoenetML text tests", async () => {
+describe("DoenetML text tests @group2", async () => {
     it("doenetML state variable", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

@@ -13,7 +13,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Angle tag tests", async () => {
+describe("Angle tag tests @group4", async () => {
     it("angle determined by three points, 45-45-90 triangle", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

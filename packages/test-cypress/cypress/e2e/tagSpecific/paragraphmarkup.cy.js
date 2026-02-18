@@ -1,6 +1,6 @@
 import { cesc } from "@doenet/utils";
 
-describe("Paragraph Markup Tag Tests", function () {
+describe("Paragraph Markup Tag Tests", { tags: ["@group4"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

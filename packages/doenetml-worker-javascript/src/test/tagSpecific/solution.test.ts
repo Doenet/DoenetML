@@ -33,7 +33,7 @@ async function closeSolution({
     });
 }
 
-describe("Solution tag tests", async () => {
+describe("Solution tag tests @group4", async () => {
     it("solution isn't created before opening", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

@@ -5,7 +5,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("ref tag tests", async () => {
+describe("ref tag tests @group4", async () => {
     it("reference to internal component", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

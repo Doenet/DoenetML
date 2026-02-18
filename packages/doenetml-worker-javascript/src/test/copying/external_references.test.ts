@@ -14,7 +14,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("External References Tests", async () => {
+describe("External References Tests @group1", async () => {
     it("can retrieve and expand external DoenetML", async () => {
         const doenetMLs = {
             abc: `<section name="s"><title>My section</title><p name="p">Hello</p></section>`,

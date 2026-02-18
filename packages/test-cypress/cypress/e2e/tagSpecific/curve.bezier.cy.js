@@ -1,6 +1,6 @@
 import { cesc } from "@doenet/utils";
 
-describe("Curve Tag Bezier Tests", function () {
+describe("Curve Tag Bezier Tests", { tags: ["@group2"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

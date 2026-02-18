@@ -1,6 +1,6 @@
 import { cesc } from "@doenet/utils";
 
-describe("Specifying single variant document tests", function () {
+describe("Specifying single variant document tests", { tags: ["@group3"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

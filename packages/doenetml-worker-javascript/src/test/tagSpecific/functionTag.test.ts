@@ -19,7 +19,7 @@ function constantFromAst(tree) {
     return me.fromAst(tree).evaluate_to_constant();
 }
 
-describe("Function tag tests", async () => {
+describe("Function tag tests @group4", async () => {
     it("function with nothing", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

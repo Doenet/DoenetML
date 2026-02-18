@@ -6,7 +6,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Shuffle tag tests", async () => {
+describe("Shuffle tag tests @group1", async () => {
     it("consistent order for n elements for given variant", async () => {
         const doenetML = `
   <p>m: <mathInput prefill="1" name="m" /></p>

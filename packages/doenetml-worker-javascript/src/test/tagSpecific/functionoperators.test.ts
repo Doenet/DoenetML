@@ -8,7 +8,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Function Operator tag tests", async () => {
+describe("Function Operator tag tests @group1", async () => {
     async function test_function_operator({
         symbolic,
         f1Markup,

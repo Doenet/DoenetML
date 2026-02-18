@@ -7,7 +7,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Label tests", async () => {
+describe("Label tests @group3", async () => {
     async function test_labelIsName_preserved_shadowed_or_no_link(
         core: PublicDoenetMLCore,
         resolvePathToNodeIdx: ResolvePathToNodeIdx,

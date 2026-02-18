@@ -142,7 +142,7 @@ async function run_tests({
     }
 }
 
-describe("factor polynomial tests", async () => {
+describe("factor polynomial tests @group1", async () => {
     it("factor x^2-1", async () => {
         let factoredString = "(x-1)(x+1)";
 

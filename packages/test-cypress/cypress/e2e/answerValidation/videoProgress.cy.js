@@ -1,6 +1,6 @@
 import { cesc } from "@doenet/utils";
 
-describe("Video progress tests", function () {
+describe("Video progress tests", { tags: ["@group3"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

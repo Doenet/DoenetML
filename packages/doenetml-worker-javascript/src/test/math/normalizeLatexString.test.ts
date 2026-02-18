@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { normalizeLatexString } from "../../utils/math";
 
-describe("normalizeLatexString unicode substitutions", () => {
+describe("normalizeLatexString unicode substitutions @group4", () => {
     it("converts Greek letter alpha", () => {
         const input = "α + β";
         const output = normalizeLatexString(input);

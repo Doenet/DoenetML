@@ -30,7 +30,7 @@ async function changeSpreadsheetText({
     });
 }
 
-describe("Spreadsheet tag tests", async () => {
+describe("Spreadsheet tag tests @group1", async () => {
     it("empty spreadsheet", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

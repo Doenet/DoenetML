@@ -16,7 +16,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Vector Tag Tests", function () {
+describe("Vector Tag Tests @group4", function () {
     function check_vec_htd({
         componentIdx,
         h,

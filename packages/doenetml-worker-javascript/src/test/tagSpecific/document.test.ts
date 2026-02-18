@@ -6,7 +6,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Document tag tests", async () => {
+describe("Document tag tests @group4", async () => {
     it("get 1 for document credit with nothing", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

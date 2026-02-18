@@ -7,7 +7,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("IntervalList tag tests", async () => {
+describe("IntervalList tag tests @group4", async () => {
     async function test_intervalList({
         core,
         pName,

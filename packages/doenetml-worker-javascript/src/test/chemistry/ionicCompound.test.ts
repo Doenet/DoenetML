@@ -6,7 +6,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Ionic Compounds tests", async () => {
+describe("Ionic Compounds tests @group3", async () => {
     it("answer compounds from atom and ions", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

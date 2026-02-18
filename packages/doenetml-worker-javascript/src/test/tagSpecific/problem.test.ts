@@ -13,7 +13,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Problem tag tests", async () => {
+describe("Problem tag tests @group2", async () => {
     async function test_section_credit(
         core: PublicDoenetMLCore,
         resolvePathToNodeIdx: ResolvePathToNodeIdx,

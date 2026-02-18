@@ -7,7 +7,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Math operator tests", async () => {
+describe("Math operator tests @group2", async () => {
     it("sum", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

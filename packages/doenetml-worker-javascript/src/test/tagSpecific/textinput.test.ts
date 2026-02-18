@@ -16,7 +16,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("TextInput tag tests", async () => {
+describe("TextInput tag tests @group1", async () => {
     it("textInput references", async () => {
         // A fairly involved test
         // to check for bugs that have shown up only after multiple manipulations
