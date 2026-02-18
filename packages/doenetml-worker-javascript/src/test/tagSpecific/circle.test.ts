@@ -85,7 +85,7 @@ function check_point_approx({
     );
 }
 
-describe("Circle tag tests", async () => {
+describe("Circle tag tests @group3", async () => {
     async function test_circle_defined_by_center_and_radius({
         core,
         resolvePathToNodeIdx,

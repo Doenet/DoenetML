@@ -10,7 +10,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("BooleanList tag tests", async () => {
+describe("BooleanList tag tests @group3", async () => {
     async function test_booleanList({
         core,
         resolvePathToNodeIdx,

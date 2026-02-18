@@ -139,7 +139,7 @@ async function run_tests({
 // we can handle components that change type
 // (due to the multiple conditionalContents that are copied)
 
-describe("factor polynomial tests, old algorithm", async () => {
+describe("factor polynomial tests, old algorithm @group3", async () => {
     it("factor x^2-1", async () => {
         let polyString = "x^2-1";
 

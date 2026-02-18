@@ -18,6 +18,8 @@ import "./commands";
 import "cypress-plugin-tab";
 import "cypress-axe";
 import "wick-a11y";
+import { register as registerCypressGrep } from "@cypress/grep";
+registerCypressGrep();
 
 Cypress.Commands.overwrite("injectAxe", () => {
     // 1. Read the axe-core source file directly from node_modules

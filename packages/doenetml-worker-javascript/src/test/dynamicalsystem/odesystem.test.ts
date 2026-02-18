@@ -11,7 +11,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("odeSystem Tag Tests", async () => {
+describe("odeSystem Tag Tests @group4", async () => {
     it("1D linear system", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

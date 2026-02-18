@@ -5,7 +5,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Error Tests", async () => {
+describe("Error Tests @group2", async () => {
     it("Mismatched tags at base level, component without canDisplayChildErrors", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

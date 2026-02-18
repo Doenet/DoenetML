@@ -12,7 +12,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Base component property tests", async () => {
+describe("Base component property tests @group4", async () => {
     async function test_change_fixed_attribute(
         core: PublicDoenetMLCore,
         resolvePathToNodeIdx: ResolvePathToNodeIdx,

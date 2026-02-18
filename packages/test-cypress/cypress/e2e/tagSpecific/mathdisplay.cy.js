@@ -1,7 +1,7 @@
 import { cesc } from "@doenet/utils";
 import { toMathJaxString } from "../../../src/util/mathDisplay";
 
-describe("Math Display Tag Tests", function () {
+describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

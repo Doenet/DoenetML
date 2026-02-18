@@ -8,7 +8,7 @@ function nInDOM(n) {
     }
 }
 
-describe("Circle Tag Tests", function () {
+describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

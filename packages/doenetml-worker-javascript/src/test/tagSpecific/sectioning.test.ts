@@ -7,7 +7,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Sectioning tag tests", async () => {
+describe("Sectioning tag tests @group3", async () => {
     async function test_section_credit(
         core: PublicDoenetMLCore,
         resolvePathToNodeIdx: ResolvePathToNodeIdx,

@@ -1,6 +1,6 @@
 import { cesc } from "@doenet/utils";
 
-describe("Error Tests", function () {
+describe("Error Tests", { tags: ["@group2"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

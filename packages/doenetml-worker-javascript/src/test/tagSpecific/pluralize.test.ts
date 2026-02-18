@@ -6,7 +6,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Pluralize tag tests", async () => {
+describe("Pluralize tag tests @group4", async () => {
     it("number followed by noun", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

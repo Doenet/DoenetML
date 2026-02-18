@@ -7,7 +7,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("PointList tag tests", async () => {
+describe("PointList tag tests @group1", async () => {
     async function test_pointList({
         core,
         name,

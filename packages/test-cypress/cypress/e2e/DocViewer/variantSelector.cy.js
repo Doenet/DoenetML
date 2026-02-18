@@ -1,4 +1,4 @@
-describe("Variant Selector Tests", function () {
+describe("Variant Selector Tests", { tags: ["@group5"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

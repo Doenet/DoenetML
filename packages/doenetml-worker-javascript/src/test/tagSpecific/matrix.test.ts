@@ -20,7 +20,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Matrix tag tests", async () => {
+describe("Matrix tag tests @group3", async () => {
     async function test_matrix({
         matrixML,
         initialValues,

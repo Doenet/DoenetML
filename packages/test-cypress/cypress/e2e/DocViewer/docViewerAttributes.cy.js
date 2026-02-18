@@ -1,6 +1,6 @@
 import { cesc, deepCompare } from "@doenet/utils";
 
-describe("DocViewer Attribute Tests", function () {
+describe("DocViewer Attribute Tests", { tags: ["@group5"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

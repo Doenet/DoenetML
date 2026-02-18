@@ -1,6 +1,6 @@
 import { cesc } from "@doenet/utils";
 
-describe("TextInput Tag Tests", function () {
+describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

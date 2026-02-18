@@ -12,7 +12,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Evaluate tag tests", async () => {
+describe("Evaluate tag tests @group2", async () => {
     it("evaluate numeric and symbolic", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

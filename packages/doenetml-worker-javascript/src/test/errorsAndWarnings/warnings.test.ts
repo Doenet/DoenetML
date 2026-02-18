@@ -10,7 +10,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Warning Tests", async () => {
+describe("Warning Tests @group4", async () => {
     // TODO: re-enable these test once deprecations are working again. See issue #484.
     it.skip("Deprecated attributes", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({

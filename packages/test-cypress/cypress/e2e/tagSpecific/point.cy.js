@@ -1,7 +1,7 @@
 import me from "math-expressions";
 import { cesc } from "@doenet/utils";
 
-describe("Point Tag Tests", function () {
+describe("Point Tag Tests", { tags: ["@group4"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

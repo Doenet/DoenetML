@@ -20,7 +20,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("callAction tag tests", async () => {
+describe("callAction tag tests @group4", async () => {
     async function test_resample(
         core: PublicDoenetMLCore,
         resolvePathToNodeIdx: ResolvePathToNodeIdx,

@@ -1,6 +1,6 @@
 import { cesc } from "@doenet/utils";
 
-describe("Select Tag Tests", function () {
+describe("Select Tag Tests", { tags: ["@group5"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

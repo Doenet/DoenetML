@@ -14,7 +14,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("MathInput tag tests", async () => {
+describe("MathInput tag tests @group2", async () => {
     it("mathInput references", async () => {
         // A fairly involved test
         // to check for bugs that have shown up after multiple manipulations

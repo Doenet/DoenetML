@@ -159,7 +159,7 @@ async function testPolygonCopiedTwice({
     }
 }
 
-describe("Polygon tag tests", async () => {
+describe("Polygon tag tests @group2", async () => {
     it("Polygon vertices and copied points", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

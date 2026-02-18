@@ -6,7 +6,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("function answer validation tests", async () => {
+describe("function answer validation tests @group4", async () => {
     it("simple function of input", async () => {
         let responseCredits = {
             "": 0,

@@ -1,7 +1,7 @@
 import { cesc } from "@doenet/utils";
 import { removeSpaces, toMathJaxString } from "../../../src/util/mathDisplay";
 
-describe("Sectioning Tag Tests", function () {
+describe("Sectioning Tag Tests", { tags: ["@group4"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("/");

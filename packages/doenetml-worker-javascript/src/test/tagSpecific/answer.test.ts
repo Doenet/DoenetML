@@ -1060,7 +1060,7 @@ async function test_answer_multiple_inputs({
     }
 }
 
-describe("Answer tag tests", async () => {
+describe("Answer tag tests @group4", async () => {
     it("answer sugar from one string", async () => {
         const doenetML = `<answer name="answer1">x+y</answer>`;
 

@@ -9,7 +9,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("FunctionIterates tag tests", async () => {
+describe("FunctionIterates tag tests @group2", async () => {
     // TODO: test forceNumeric and forceSymbolic?
 
     it("1D user-defined function", async () => {

@@ -106,7 +106,7 @@ async function run_two_response_tests({
     }
 }
 
-describe("Allow error in numbers validation tests", async () => {
+describe("Allow error in numbers validation tests @group4", async () => {
     it("expression with single number", async () => {
         const doenetML = `
     <answer name="ans">

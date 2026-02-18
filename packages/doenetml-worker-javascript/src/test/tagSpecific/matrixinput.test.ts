@@ -14,7 +14,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("MathInput tag tests", async () => {
+describe("MathInput tag tests @group3", async () => {
     it("no arguments, copy matrixInput", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

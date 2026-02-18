@@ -1,6 +1,6 @@
 import { toMathJaxString } from "../../../src/util/mathDisplay";
 
-describe("Save and Load State Tests", function () {
+describe("Save and Load State Tests", { tags: ["@group4"] }, function () {
     let savedState = null;
 
     function setUpStateListeners() {

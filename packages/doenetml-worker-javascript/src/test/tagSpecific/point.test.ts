@@ -17,7 +17,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Point tag tests", async () => {
+describe("Point tag tests @group4", async () => {
     async function test_points_copy_y(
         core: PublicDoenetMLCore,
         resolvePathToNodeIdx: ResolvePathToNodeIdx,

@@ -1,7 +1,7 @@
 import { cesc } from "@doenet/utils";
 import { toMathJaxString } from "../../../src/util/mathDisplay";
 
-describe("Render commas tests", function () {
+describe("Render commas tests", { tags: ["@group3"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("");

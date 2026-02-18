@@ -1,4 +1,4 @@
-describe("Basic accessibility tests", function () {
+describe("Basic accessibility tests", { tags: ["@group5"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
         cy.visit("");

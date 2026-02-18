@@ -7,7 +7,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-describe("Parameterized curve tag tests", async () => {
+describe("Parameterized curve tag tests @group4", async () => {
     async function test_curve({
         core,
         resolvePathToNodeIdx,

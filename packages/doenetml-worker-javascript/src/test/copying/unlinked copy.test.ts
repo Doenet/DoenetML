@@ -280,7 +280,7 @@ async function test_unlinked_copy_overwrites_attributes({
     // expect(stateVariables[await resolvePathToNodeIdx("g3.B")].stateValues.styleNumber).eqls(4);
 }
 
-describe("Unlinked Copying Tests", async () => {
+describe("Unlinked Copying Tests @group4", async () => {
     it("copy no link, base test", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
