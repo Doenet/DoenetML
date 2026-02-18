@@ -1,12 +1,7 @@
-import React from "react";
 import { CodeMirror } from "../../src/CodeMirror";
 
 /**
  * Component tests for the CodeMirror editor.
- *
- * Note: These tests demonstrate the component testing setup using Cypress.
- * To properly run these tests, ensure cy.mount() is available through the
- * Cypress support file configuration for React component testing.
  */
 describe("CodeMirror Component", () => {
     it("shows initial content", () => {
