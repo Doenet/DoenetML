@@ -1,5 +1,6 @@
 import { DoenetSourceObject, RowCol } from "../doenet-source-object";
 import { doenetSchema } from "@doenet/static-assets/schema";
+import { COMPLETION_SNIPPETS } from "@doenet/static-assets/completion-snippets";
 import { DastAttributeV6, DastElementV6 } from "@doenet/parser";
 import { getCompletionItems } from "./methods/get-completion-items";
 import { getSchemaViolations } from "./methods/get-schema-violations";
@@ -11,6 +12,14 @@ type ElementSchema = {
     attributes: { name: string; values?: string[] }[];
     children: string[];
     acceptsStringChildren: boolean;
+};
+
+type ProcessedSnippet = {
+    key: string;
+    element: string;
+    normalizedElement: string;
+    snippet: string;
+    description: string;
 };
 
 /**
@@ -34,6 +43,10 @@ export class AutoCompleter {
         string,
         Map<string, { correctCase: Set<string>; lowerCase: Set<string> } | null>
     > = new Map();
+    /**
+     * Processed snippets indexed by element (normalized to schema capitalization) for quick lookup.
+     */
+    snippetsByNormalizedElement: Map<string, ProcessedSnippet[]> = new Map();
 
     constructor(
         source?: string,
@@ -90,6 +103,7 @@ export class AutoCompleter {
                 ),
             ]),
         );
+        this._initializeSnippets();
     }
 
     /**
@@ -223,5 +237,76 @@ export class AutoCompleter {
         return (
             this.nodeAttributeMap.get(elementName)?.get(attributeName) || null
         );
+    }
+
+    /**
+     * Initialize snippets map after schema is set.
+     * Processes all snippets and indexes them by their normalized element name for quick lookup.
+     */
+    private _initializeSnippets() {
+        this.snippetsByNormalizedElement.clear();
+
+        Object.entries(COMPLETION_SNIPPETS).forEach(([key, snippet]) => {
+            const rawSnippet = snippet.snippet ?? "";
+            const trimmedSnippet = rawSnippet.trimStart();
+            const normalizedElement = this.normalizeElementName(
+                snippet.element,
+            );
+            if (normalizedElement === "UNKNOWN_NAME") {
+                // Skip snippets for unknown elements
+                console.warn(
+                    `Skipping snippet "${key}": invalid element name "${snippet.element}".`,
+                );
+                return;
+            }
+
+            const processed: ProcessedSnippet = {
+                key,
+                element: snippet.element,
+                normalizedElement,
+                snippet: trimmedSnippet,
+                description: snippet.description,
+            };
+
+            if (!this.snippetsByNormalizedElement.has(normalizedElement)) {
+                this.snippetsByNormalizedElement.set(normalizedElement, []);
+            }
+            this.snippetsByNormalizedElement
+                .get(normalizedElement)!
+                .push(processed);
+        });
+    }
+
+    /**
+     * Get snippets allowed for a given set of allowed element names.
+     * Filters snippets by:
+     * 1. Whether their element is in the allowed elements set
+     * 2. Whether their key starts with the typed prefix
+     *
+     * @param allowedElements - Set of allowed element names
+     * @param typedPrefix - The text typed after `<` (used for prefix filtering)
+     * @returns Array of ProcessedSnippets that match the criteria
+     */
+    _getSnippetsForElements(
+        allowedElements: Set<string>,
+        typedPrefix: string = "",
+    ): ProcessedSnippet[] {
+        const results: ProcessedSnippet[] = [];
+
+        // Iterate through allowed elements and collect their snippets
+        for (const elementName of allowedElements) {
+            const snippets =
+                this.snippetsByNormalizedElement.get(elementName) || [];
+            results.push(...snippets);
+        }
+
+        // Filter by typed prefix on snippet key if prefix is provided
+        if (typedPrefix) {
+            const prefixLower = typedPrefix.toLowerCase();
+            return results.filter((s) =>
+                s.key.toLowerCase().startsWith(prefixLower),
+            );
+        }
+        return results;
     }
 }

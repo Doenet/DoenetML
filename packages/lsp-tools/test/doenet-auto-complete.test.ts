@@ -328,4 +328,165 @@ describe("AutoCompleter", () => {
             });
         }
     });
+
+    describe("Snippet completions", () => {
+        it("Includes snippets after top-level `<`", () => {
+            let source: string;
+            let autoCompleter: AutoCompleter;
+
+            source = `<`;
+            autoCompleter = new AutoCompleter(source, schema.elements);
+
+            // Manually inject test snippets directly into the snippet map
+            // "aa" is the only top-level element, so snippets for "aa" should appear
+            const testSnippets = {
+                aa: [
+                    {
+                        key: "test-snippet-aa",
+                        element: "aa",
+                        normalizedElement: "aa",
+                        snippet: "<aa>test snippet</aa>",
+                        description: "Test snippet for aa element",
+                    },
+                ],
+            };
+            autoCompleter.snippetsByNormalizedElement = new Map(
+                Object.entries(testSnippets),
+            );
+
+            let offset = source.indexOf("<") + 1;
+            let items = autoCompleter.getCompletionItems(offset);
+
+            // Should have both schema items (aa) and snippet items
+            // CompletionItemKind.Snippet = 15
+            const snippetItems = items.filter((item) => item.kind === 15);
+
+            expect(snippetItems.length).toBeGreaterThan(0);
+            expect(
+                snippetItems.some((item) => item.label === "test-snippet-aa"),
+            ).toBe(true);
+        });
+
+        it("Filters snippets by typed prefix", () => {
+            let source: string;
+            let autoCompleter: AutoCompleter;
+
+            source = `<ta`;
+            autoCompleter = new AutoCompleter(source, schema.elements);
+
+            // Manually inject test snippets
+            const testSnippets = {
+                aa: [
+                    {
+                        key: "test-aa-snippet",
+                        element: "aa",
+                        normalizedElement: "aa",
+                        snippet: "<aa>test</aa>",
+                        description: "Test snippet for aa",
+                    },
+                ],
+            };
+            autoCompleter.snippetsByNormalizedElement = new Map(
+                Object.entries(testSnippets) as [string, any[]][],
+            );
+
+            let offset = source.indexOf("<ta") + 3;
+            let items = autoCompleter.getCompletionItems(offset);
+
+            // The prefix "ta" doesn't match any snippet key, so no snippets should appear
+            // Even though "aa" is an allowed element
+            const snippetItems = items.filter((item) => item.kind === 15); // CompletionItemKind.Snippet = 15
+            // Since no snippet key starts with "ta", expect empty results
+            expect(snippetItems.length).toBe(0);
+
+            // Now test with a matching prefix
+            source = `<te`;
+            autoCompleter = new AutoCompleter(source, schema.elements);
+            autoCompleter.snippetsByNormalizedElement = new Map(
+                Object.entries(testSnippets) as [string, any[]][],
+            );
+
+            offset = source.indexOf("<te") + 3;
+            items = autoCompleter.getCompletionItems(offset);
+
+            const matchingSnippets = items.filter((item) => item.kind === 15);
+            expect(matchingSnippets.length).toBeGreaterThan(0);
+            expect(
+                matchingSnippets.some(
+                    (item) => item.label === "test-aa-snippet",
+                ),
+            ).toBe(true);
+        });
+
+        it("Snippet items include textEdit with proper range", () => {
+            let source: string;
+            let autoCompleter: AutoCompleter;
+
+            source = `<`;
+            autoCompleter = new AutoCompleter(source, schema.elements);
+
+            // Manually inject test snippet for "aa" (the top-level element)
+            const testSnippets = {
+                aa: [
+                    {
+                        key: "test-snippet",
+                        element: "aa",
+                        normalizedElement: "aa",
+                        snippet: "<aa>snippet</aa>",
+                        description: "Test",
+                    },
+                ],
+            };
+            autoCompleter.snippetsByNormalizedElement = new Map(
+                Object.entries(testSnippets) as [string, any[]][],
+            );
+
+            let offset = source.indexOf("<") + 1;
+            let items = autoCompleter.getCompletionItems(offset);
+
+            const snippetItem = items.find(
+                (item) => item.label === "test-snippet",
+            );
+            expect(snippetItem).toBeDefined();
+            expect(snippetItem?.textEdit).toBeDefined();
+            expect(snippetItem?.textEdit?.newText).toBe("<aa>snippet</aa>");
+            expect(
+                snippetItem?.textEdit && "range" in snippetItem.textEdit,
+            ).toBe(true);
+            expect(snippetItem?.filterText).toBe("test-snippet");
+        });
+
+        it("Snippet items indent multiline text", () => {
+            let source: string;
+            let autoCompleter: AutoCompleter;
+
+            source = "  <";
+            autoCompleter = new AutoCompleter(source, schema.elements);
+
+            const testSnippets = {
+                aa: [
+                    {
+                        key: "test-multiline",
+                        element: "aa",
+                        normalizedElement: "aa",
+                        snippet: "<aa>\n<bb></bb>\n</aa>",
+                        description: "Test",
+                    },
+                ],
+            };
+            autoCompleter.snippetsByNormalizedElement = new Map(
+                Object.entries(testSnippets) as [string, any[]][],
+            );
+
+            const offset = source.indexOf("<") + 1;
+            const items = autoCompleter.getCompletionItems(offset);
+
+            const snippetItem = items.find(
+                (item) => item.label === "test-multiline",
+            );
+            expect(snippetItem?.textEdit?.newText).toBe(
+                "<aa>\n  <bb></bb>\n  </aa>",
+            );
+        });
+    });
 });

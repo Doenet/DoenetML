@@ -6,7 +6,8 @@ import { CompletionSnippet } from "../src/completion-snippets.js";
 const COMPLETION_SNIPPETS: Record<string, CompletionSnippet> = {
     "multiple-choice-answer": {
         element: "answer",
-        snippet: `<answer name="mcq" inline="false" shuffleOrder="false">
+        snippet: `
+<answer name="mcq" inline="false" shuffleOrder="false">
   <choice credit="1"></choice>
   <choice></choice>
   <choice></choice>
@@ -17,7 +18,8 @@ const COMPLETION_SNIPPETS: Record<string, CompletionSnippet> = {
     },
     "table-with-tabular": {
         element: "table",
-        snippet: `<table>
+        snippet: `
+<table>
   <title></title>
   <tabular>
     <row header>
@@ -31,6 +33,11 @@ const COMPLETION_SNIPPETS: Record<string, CompletionSnippet> = {
   </tabular>
 </table>`,
         description: "Table with tabular template",
+    },
+    "just-some-text": {
+        element: "string",
+        snippet: `Hello, this is just some text with no DoenetML elements.`,
+        description: "Just some text",
     },
 };
 
