@@ -96,7 +96,7 @@ export default class NumberComponent extends InlineComponent {
                 nComponents,
                 stateIdInfo,
             }) => ({
-                success: !componentAttributes.convertBoolean,
+                success: !componentAttributes.convertBoolean?.value,
                 newChildren: [
                     {
                         type: "serialized",
