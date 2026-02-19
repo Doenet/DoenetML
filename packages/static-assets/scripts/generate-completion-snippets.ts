@@ -16,10 +16,35 @@ const COMPLETION_SNIPPETS: Record<string, CompletionSnippet> = {
 </answer>`,
         description: "Multiple choice answer template",
     },
+    "multiple-choice-select-multiple-answer": {
+        element: "answer",
+        snippet: `
+<answer name="mcq" selectMultiple inline="false" shuffleOrder="false">
+  <choice credit="1"></choice>
+  <choice credit="1"></choice>
+  <choice></choice>
+  <choice></choice>
+  <choice></choice>
+</answer>`,
+        description: "Multiple choice select-multiple answer template",
+    },
+    "if-at-(immediate-feedback-assessment-technique)-answer": {
+        element: "answer",
+        snippet: `
+<answer name="ifat" disableWrongChoices creditByAttempt="1 0.7 0.5" inline="false" shuffleOrder="false">
+  <choice credit="1"></choice>
+  <choice></choice>
+  <choice></choice>
+  <choice></choice>
+  <choice></choice>
+</answer>`,
+        description:
+            "IF-AT (Immediate Feedback Assessment Technique) answer template",
+    },
     "table-with-tabular": {
         element: "table",
         snippet: `
-<table>
+<table name="table1">
   <title></title>
   <tabular>
     <row header>
@@ -33,11 +58,6 @@ const COMPLETION_SNIPPETS: Record<string, CompletionSnippet> = {
   </tabular>
 </table>`,
         description: "Table with tabular template",
-    },
-    "just-some-text": {
-        element: "string",
-        snippet: `Hello, this is just some text with no DoenetML elements.`,
-        description: "Just some text",
     },
 };
 
