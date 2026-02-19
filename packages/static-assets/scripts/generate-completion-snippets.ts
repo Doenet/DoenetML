@@ -8,6 +8,7 @@ const COMPLETION_SNIPPETS: Record<string, CompletionSnippet> = {
         element: "answer",
         snippet: `
 <answer name="mcq" inline="false" shuffleOrder="false">
+  <label></label>
   <choice credit="1"></choice>
   <choice></choice>
   <choice></choice>
@@ -20,6 +21,7 @@ const COMPLETION_SNIPPETS: Record<string, CompletionSnippet> = {
         element: "answer",
         snippet: `
 <answer name="mcq" selectMultiple inline="false" shuffleOrder="false">
+  <label></label>
   <choice credit="1"></choice>
   <choice credit="1"></choice>
   <choice></choice>
@@ -32,6 +34,7 @@ const COMPLETION_SNIPPETS: Record<string, CompletionSnippet> = {
         element: "answer",
         snippet: `
 <answer name="ifat" disableWrongChoices creditByAttempt="1 0.7 0.5" disableAfterCorrect shuffleOrder="false">
+  <label></label>
   <choice credit="1"></choice>
   <choice></choice>
   <choice></choice>
