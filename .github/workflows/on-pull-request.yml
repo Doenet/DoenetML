@@ -187,7 +187,7 @@ jobs:
                   echo "=== Server processes ===" && ps aux | grep "node\|npm" || true
 
             - name: Cypress run ${{ matrix.test-group }}
-              run: npm run test:${{ matrix.test-group }} -w packages/test-cypress
+              run: npm run test:${{ matrix.test-group }}
               env:
                   CYPRESS_SKIP_YOUTUBE_TESTS: true
 
