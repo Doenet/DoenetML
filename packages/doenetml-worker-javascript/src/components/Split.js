@@ -46,7 +46,8 @@ export default class Split extends CompositeComponent {
             nComponents,
             stateIdInfo,
         }) {
-            let type = componentAttributes.type;
+            // Note: this currently only works for text, but could be extended to other types
+            let type = componentAttributes.type?.value;
             if (!["text"].includes(type)) {
                 type = "text";
             }
