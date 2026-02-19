@@ -11,7 +11,7 @@
     },
     "if-at-(immediate-feedback-assessment-technique)-answer": {
         "element": "answer",
-        "snippet": "\n<answer name=\"ifat\" disableWrongChoices creditByAttempt=\"1 0.7 0.5\" inline=\"false\" shuffleOrder=\"false\">\n  <choice credit=\"1\"></choice>\n  <choice></choice>\n  <choice></choice>\n  <choice></choice>\n  <choice></choice>\n</answer>",
+        "snippet": "\n<answer name=\"ifat\" disableWrongChoices creditByAttempt=\"1 0.7 0.5\" disableAfterCorrect shuffleOrder=\"false\">\n  <choice credit=\"1\"></choice>\n  <choice></choice>\n  <choice></choice>\n  <choice></choice>\n  <choice></choice>\n</answer>",
         "description": "IF-AT (Immediate Feedback Assessment Technique) answer template"
     },
     "pretzel-06": {

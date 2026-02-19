@@ -31,7 +31,7 @@ const COMPLETION_SNIPPETS: Record<string, CompletionSnippet> = {
     "if-at-(immediate-feedback-assessment-technique)-answer": {
         element: "answer",
         snippet: `
-<answer name="ifat" disableWrongChoices creditByAttempt="1 0.7 0.5" inline="false" shuffleOrder="false">
+<answer name="ifat" disableWrongChoices creditByAttempt="1 0.7 0.5" disableAfterCorrect shuffleOrder="false">
   <choice credit="1"></choice>
   <choice></choice>
   <choice></choice>
