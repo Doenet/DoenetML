@@ -2276,6 +2276,146 @@ describe("Number tag tests @group3", async () => {
         ).eqls(NaN);
     });
 
+    it("convertBoolean", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <p><boolean name="b1">true</boolean></p>
+  <p><boolean name="b2">false</boolean></p>
+  <p><number name="n1" convertBoolean>$b1</number></p>
+  <p><number name="n2" convertBoolean>$b2</number></p>
+  <p><number name="n3" convertBoolean="false">$b1</number></p>
+  <p><number name="n4" convertBoolean="false">$b2</number></p>
+  <p><number name="n5">$b1</number></p>
+  <p><number name="n6">$b2</number></p>
+  `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n1")].stateValues.value,
+        ).eq(1);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n2")].stateValues.value,
+        ).eq(0);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n3")].stateValues.value,
+        ).eqls(NaN);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n4")].stateValues.value,
+        ).eqls(NaN);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n5")].stateValues.value,
+        ).eqls(NaN);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n6")].stateValues.value,
+        ).eqls(NaN);
+    });
+
+    it("can invert without convertBoolean", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  
+  <p><number name="n0">5</number></p>
+  <p><number name="n1">$n0+1</number></p>
+  <p><number name="n2">$n0+2</number></p>
+  <p><number name="n3" convertBoolean>$n0+3</number></p>
+  <p><number name="n4" convertBoolean>$n0+4</number></p>
+  <p><number name="n5" convertBoolean="false">$n0+5</number></p>
+  <p><number name="n6" convertBoolean="false">$n0+6</number></p>
+  <p><mathInput name="mi1">$n1</mathInput></p>
+  <p><mathInput name="mi2">$n2</mathInput></p>
+  <p><mathInput name="mi3">$n3</mathInput></p>
+  <p><mathInput name="mi4">$n4</mathInput></p>
+  <p><mathInput name="mi5">$n5</mathInput></p>
+  <p><mathInput name="mi6">$n6</mathInput></p>
+  `,
+        });
+
+        async function check_values(n0: number) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n0")].stateValues
+                    .value,
+            ).eq(n0);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n1")].stateValues
+                    .value,
+            ).eq(n0 + 1);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n2")].stateValues
+                    .value,
+            ).eq(n0 + 2);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n3")].stateValues
+                    .value,
+            ).eqls(n0 + 3);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n4")].stateValues
+                    .value,
+            ).eqls(n0 + 4);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n5")].stateValues
+                    .value,
+            ).eqls(n0 + 5);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n6")].stateValues
+                    .value,
+            ).eqls(n0 + 6);
+        }
+
+        await check_values(5);
+
+        // Without convertBoolean, should be able to invert
+        await updateMathInputValue({
+            latex: "10",
+            componentIdx: await resolvePathToNodeIdx("mi1"),
+            core,
+        });
+        await check_values(9);
+
+        await updateMathInputValue({
+            latex: "100",
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+        await check_values(98);
+
+        // With convertBoolean, should not be able to invert
+        await updateMathInputValue({
+            latex: "1000",
+            componentIdx: await resolvePathToNodeIdx("mi3"),
+            core,
+        });
+        await check_values(98);
+
+        await updateMathInputValue({
+            latex: "10000",
+            componentIdx: await resolvePathToNodeIdx("mi4"),
+            core,
+        });
+        await check_values(98);
+
+        // With convertBoolean="false", should be able to invert
+        await updateMathInputValue({
+            latex: "1000",
+            componentIdx: await resolvePathToNodeIdx("mi5"),
+            core,
+        });
+        await check_values(995);
+
+        await updateMathInputValue({
+            latex: "10000",
+            componentIdx: await resolvePathToNodeIdx("mi6"),
+            core,
+        });
+        await check_values(9994);
+    });
+
     it("number to the power of 1/[odd integer] gives real number", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
