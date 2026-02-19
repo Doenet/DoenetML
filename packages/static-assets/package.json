@@ -23,6 +23,9 @@
         "./entity-map": {
             "import": "./dist/entity-map.js"
         },
+        "./completion-snippets": {
+            "import": "./dist/completion-snippets.js"
+        },
         "./schema": {
             "import": "./dist/schema.js"
         },
@@ -33,7 +36,7 @@
     "scripts": {
         "test": "echo \"No tests \"",
         "build": "wireit",
-        "build:assets": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-entity-map.ts && vite-node ./scripts/generate-math-assets.ts",
+        "build:assets": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-entity-map.ts && vite-node ./scripts/generate-completion-snippets.ts && vite-node ./scripts/generate-math-assets.ts",
         "build:schema": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-relaxng-schema.ts && vite-node ./scripts/generate-entity-map.ts"
     },
     "wireit": {
@@ -44,7 +47,8 @@
                 "vite.config.ts",
                 "scripts/**/*.ts",
                 "src/**/*.json",
-                "tsconfig.json"
+                "tsconfig.json",
+                "package.json"
             ],
             "output": [
                 "dist/**/*.js",

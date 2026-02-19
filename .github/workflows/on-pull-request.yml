@@ -136,7 +136,15 @@ jobs:
             matrix:
                 node-version: [24.x]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
-                test-group: [group1, group2, group3, group4, group5]
+                test-group:
+                    [
+                        e2e-group1,
+                        e2e-group2,
+                        e2e-group3,
+                        e2e-group4,
+                        e2e-group5,
+                        codemirror-cypress,
+                    ]
         steps:
             - uses: actions/checkout@v3
             - name: Use Node.js ${{ matrix.node-version }}
@@ -163,21 +171,23 @@ jobs:
                   WIREIT_CACHE: "local"
 
             - name: Start preview server
+              if: matrix.test-group != 'codemirror-cypress'
               run: |
                   npm run preview --workspace packages/test-cypress > /tmp/preview-server.log 2>&1 &
                   echo $! > /tmp/preview-server.pid
 
             - name: Wait for server
+              if: matrix.test-group != 'codemirror-cypress'
               run: npx wait-on http://localhost:4173 --timeout 60000
 
             - name: Check server logs if wait-on fails
-              if: failure()
+              if: failure() && matrix.test-group != 'codemirror-cypress'
               run: |
                   echo "=== Preview Server Log ===" && cat /tmp/preview-server.log || true
                   echo "=== Server processes ===" && ps aux | grep "node\|npm" || true
 
             - name: Cypress run ${{ matrix.test-group }}
-              run: npm run test:${{ matrix.test-group }} -w packages/test-cypress
+              run: npm run test:${{ matrix.test-group }}
               env:
                   CYPRESS_SKIP_YOUTUBE_TESTS: true
 
@@ -235,7 +245,10 @@ jobs:
               uses: actions/download-artifact@v4
               with:
                   name: build-artifacts
-                  path: ./
+
+            - name: Debug Build Artifacts
+              run: |
+                  ls -la ./packages/*/.wireit/ || echo "No .wireit directory found"
 
             # with the wireit cache saved, this build step should be fast.
             - name: Build Docs

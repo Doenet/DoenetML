@@ -76,6 +76,15 @@ const lspSeverityToCmSeverity = {
     [LSPDiagnosticSeverity.Hint]: "info",
 } as const;
 
+type ExtendedCompletion = Completion & {
+    filterText: string;
+    sortText?: string;
+    _lspTextEditRange?: {
+        start: { line: number; character: number };
+        end: { line: number; character: number };
+    };
+};
+
 // One language server is shared across all plugin instances
 export const uniqueLanguageServerInstance = new LSP();
 
@@ -146,13 +155,13 @@ export class LSPPlugin implements PluginValue {
             })
             .filter(({ from, to }) => from != null && to != null)
             .sort((a, b) => {
-                switch (true) {
-                    case a.from < b.from:
-                        return -1;
-                    case a.from > b.from:
-                        return 1;
+                if (a.from < b.from) {
+                    return -1;
+                } else if (a.from > b.from) {
+                    return 1;
+                } else {
+                    return 0;
                 }
-                return 0;
             });
 
         const diagnosticTransaction = setDiagnostics(
@@ -192,6 +201,7 @@ export class LSPPlugin implements PluginValue {
                 triggerCharacter,
             },
         );
+
         if (!result) {
             return null;
         }
@@ -208,11 +218,7 @@ export class LSPPlugin implements PluginValue {
                 sortText,
                 filterText,
             }) => {
-                const completion: Completion & {
-                    filterText: string;
-                    sortText?: string;
-                    apply: string;
-                } = {
+                const completion: ExtendedCompletion = {
                     label,
                     detail,
                     apply: textEdit?.newText ?? label,
@@ -223,6 +229,10 @@ export class LSPPlugin implements PluginValue {
                 if (documentation) {
                     completion.info = formatContents(documentation);
                 }
+                // Store range info if present for custom apply logic later
+                if (textEdit && "range" in textEdit) {
+                    completion._lspTextEditRange = textEdit.range;
+                }
                 return completion;
             },
         );
@@ -231,29 +241,78 @@ export class LSPPlugin implements PluginValue {
         const token = context.matchBefore(match);
 
         if (token) {
-            pos = token.from;
-            const word = token.text.toLowerCase();
-            if (/^\w+$/.test(word)) {
+            let word = token.text;
+            let fromOffset = 0;
+            // Find the last '<' to handle cases where user types after a closing tag (e.g., "></doc>|<")
+            const lastLt = word.lastIndexOf("<");
+            if (lastLt >= 0) {
+                fromOffset = lastLt + 1;
+                word = word.slice(fromOffset);
+            }
+            pos = token.from + fromOffset;
+            const wordLower = word.toLowerCase();
+            if (wordLower && /^\w+$/.test(wordLower)) {
                 options = options
                     .filter(({ filterText }) =>
-                        filterText.toLowerCase().startsWith(word),
+                        filterText.toLowerCase().startsWith(wordLower),
                     )
-                    .sort(({ apply: a }, { apply: b }) => {
+                    .sort((optionA, optionB) => {
+                        // Use original apply text for comparison (important for snippets with custom apply functions)
+                        const aStr =
+                            typeof optionA.apply === "string"
+                                ? optionA.apply
+                                : "";
+                        const bStr =
+                            typeof optionB.apply === "string"
+                                ? optionB.apply
+                                : "";
                         switch (true) {
-                            case a.startsWith(token.text) &&
-                                !b.startsWith(token.text):
+                            case aStr.startsWith(word) &&
+                                !bStr.startsWith(word):
                                 return -1;
-                            case !a.startsWith(token.text) &&
-                                b.startsWith(token.text):
+                            case !aStr.startsWith(word) &&
+                                bStr.startsWith(word):
                                 return 1;
                         }
                         return 0;
                     });
             }
         }
+
+        const finalOptions = options.map((opt) => {
+            if (opt._lspTextEditRange) {
+                const startPos = normalizePos(opt._lspTextEditRange.start);
+                const endPos = normalizePos(opt._lspTextEditRange.end);
+                const rangeStart = startPos
+                    ? posToOffset(state.doc, startPos)
+                    : null;
+                const rangeEnd = endPos ? posToOffset(state.doc, endPos) : null;
+
+                if (rangeStart != null && rangeEnd != null) {
+                    const insertText =
+                        typeof opt.apply === "string" ? opt.apply : "";
+                    opt.apply = (
+                        view: EditorView,
+                        _completion: Completion,
+                        _from: number,
+                        _to: number,
+                    ) => {
+                        view.dispatch({
+                            changes: {
+                                from: rangeStart,
+                                to: rangeEnd,
+                                insert: insertText,
+                            },
+                        });
+                    };
+                }
+            }
+            return opt;
+        });
+
         return {
             from: pos,
-            options,
+            options: finalOptions,
         };
     }
 }
@@ -295,7 +354,33 @@ function offsetToPos(doc: Text, offset: number) {
     };
 }
 
-function toSet(chars: Set<string>) {
+/** Normalize position input to LSP { line, character } coordinates. */
+function normalizePos(
+    rangePos:
+        | { line: number; character: number }
+        | { line: number; column: number }
+        | null
+        | undefined,
+) {
+    if (!rangePos) {
+        return null;
+    }
+    if ("character" in rangePos) {
+        return rangePos;
+    }
+    if ("column" in rangePos) {
+        return {
+            line: rangePos.line - 1,
+            character: rangePos.column - 1,
+        };
+    }
+    return null;
+}
+
+/**
+ * Takes `chars`, a set of characters, and creates a regular expression string that captures anything in the set.
+ */
+function setToRegex(chars: Set<string>) {
     let preamble = "";
     let flat = Array.from(chars).join("");
     const words = /\w/.test(flat);
@@ -307,18 +392,20 @@ function toSet(chars: Set<string>) {
 }
 
 function prefixMatch(options: Completion[]) {
-    const first = new Set<string>();
-    const rest = new Set<string>();
+    const first: string[] = [];
+    const rest: string[] = [];
 
-    for (const { apply } of options) {
-        const [initial, ...restStr] = apply as string;
-        first.add(initial);
-        for (const char of restStr) {
-            rest.add(char);
+    for (const completion of options) {
+        const textToAnalyze = completion.apply;
+        if (typeof textToAnalyze !== "string" || textToAnalyze.length === 0) {
+            continue;
         }
+        first.push(textToAnalyze.charAt(0));
+        rest.push(...textToAnalyze.slice(1).split(""));
     }
 
-    const source = toSet(first) + toSet(rest) + "*$";
+    const source =
+        setToRegex(new Set(first)) + setToRegex(new Set(rest)) + "*$";
     return [new RegExp("^" + source), new RegExp(source)];
 }
 

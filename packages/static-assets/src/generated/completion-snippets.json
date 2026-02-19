@@ -1,0 +1,42 @@
+{
+    "multiple-choice-answer": {
+        "element": "answer",
+        "snippet": "\n<answer name=\"mcq\" inline=\"false\" shuffleOrder=\"false\">\n  <choice credit=\"1\"></choice>\n  <choice></choice>\n  <choice></choice>\n  <choice></choice>\n  <choice></choice>\n</answer>",
+        "description": "Multiple choice answer template"
+    },
+    "multiple-choice-select-multiple-answer": {
+        "element": "answer",
+        "snippet": "\n<answer name=\"mcq\" selectMultiple inline=\"false\" shuffleOrder=\"false\">\n  <choice credit=\"1\"></choice>\n  <choice credit=\"1\"></choice>\n  <choice></choice>\n  <choice></choice>\n  <choice></choice>\n</answer>",
+        "description": "Multiple choice select-multiple answer template"
+    },
+    "if-at-(immediate-feedback-assessment-technique)-answer": {
+        "element": "answer",
+        "snippet": "\n<answer name=\"ifat\" disableWrongChoices creditByAttempt=\"1 0.7 0.5\" disableAfterCorrect shuffleOrder=\"false\">\n  <choice credit=\"1\"></choice>\n  <choice></choice>\n  <choice></choice>\n  <choice></choice>\n  <choice></choice>\n</answer>",
+        "description": "IF-AT (Immediate Feedback Assessment Technique) answer template"
+    },
+    "pretzel-06": {
+        "element": "answer",
+        "snippet": "\n<pretzel name=\"pretzel\" maxNumColumns=\"2\">\n\n  <!-- problem 1 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 2 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 3 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 4 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 5 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 6 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n  \n</pretzel>",
+        "description": "Pretzel template with 6 problems"
+    },
+    "pretzel-08": {
+        "element": "answer",
+        "snippet": "\n<pretzel name=\"pretzel\" maxNumColumns=\"2\">\n\n  <!-- problem 1 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 2 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 3 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 4 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 5 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 6 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 7 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 8 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n  \n</pretzel>",
+        "description": "Pretzel template with 8 problems"
+    },
+    "pretzel-10": {
+        "element": "answer",
+        "snippet": "\n<pretzel name=\"pretzel\" maxNumColumns=\"2\">\n\n  <!-- problem 1 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 2 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 3 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 4 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 5 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 6 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 7 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 8 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 9 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 10 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n  \n</pretzel>",
+        "description": "Pretzel template with 10 problems"
+    },
+    "pretzel-12": {
+        "element": "answer",
+        "snippet": "\n<pretzel name=\"pretzel\" maxNumColumns=\"2\">\n\n  <!-- problem 1 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 2 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 3 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 4 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 5 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 6 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 7 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 8 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 9 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 10 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 11 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n\n  <!-- problem 12 -->\n  <problem>\n    <statement>\n      \n    </statement>\n    <answer>\n      \n    </answer>\n  </problem>\n  \n</pretzel>",
+        "description": "Pretzel template with 12 problems"
+    },
+    "table-with-tabular": {
+        "element": "table",
+        "snippet": "\n<table name=\"table\">\n  <title></title>\n  <tabular>\n    <row header>\n      <cell></cell>\n      <cell></cell>\n    </row>\n    <row>\n      <cell></cell>\n      <cell></cell>\n    </row>\n  </tabular>\n</table>",
+        "description": "Table with tabular template"
+    }
+}

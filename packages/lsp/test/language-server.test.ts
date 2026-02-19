@@ -5,7 +5,10 @@ import "@vitest/web-worker";
 import LSPWorker from "../src/index?worker";
 import util from "util";
 import { initWorker } from "./utils/init-message-connection";
-import type { Diagnostic } from "vscode-languageserver-protocol";
+import type {
+    CompletionItem,
+    Diagnostic,
+} from "vscode-languageserver-protocol";
 
 const origLog = console.log;
 console.log = (...args) => {
@@ -185,6 +188,42 @@ describe("Doenet Language Server", async () => {
                 },
             ],
             uri: "file:///test2.doenet",
+        });
+    });
+
+    it("completion items include snippet entries with textEdit", async () => {
+        const worker: Worker = new LSPWorker();
+        const lspConn = (await initWorker(worker)).lspConn;
+        await lspConn.textDocumentOpened({
+            textDocument: {
+                uri: "file:///test-snippet.doenet",
+                languageId: "doenet",
+                version: 1,
+                text: "<",
+            },
+        });
+        const completions = (await lspConn.getCompletion({
+            textDocument: {
+                uri: "file:///test-snippet.doenet",
+            },
+            position: {
+                line: 0,
+                character: 1,
+            },
+        })) as CompletionItem[];
+
+        // The test schema should have some elements
+        // Check that we get completion items back
+        expect(completions.length).toBeGreaterThan(0);
+
+        // Look for any items that might be snippets (they should have textEdit)
+        const itemsWithTextEdit = completions.filter((item) => item.textEdit);
+        // Since snippets are a supported feature, require at least one such item
+        expect(itemsWithTextEdit.length).toBeGreaterThan(0);
+        // Verify snippet items have the expected structure
+        itemsWithTextEdit.forEach((item) => {
+            expect(item.textEdit).toHaveProperty("newText");
+            expect(item.textEdit).toHaveProperty("range");
         });
     });
 });

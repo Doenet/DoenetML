@@ -1,11 +1,135 @@
-import { RowCol } from "../../doenet-source-object";
-import type { CompletionItem } from "vscode-languageserver/browser";
+import { DoenetSourceObject, RowCol } from "../../doenet-source-object";
+import type { CompletionItem, Range } from "vscode-languageserver/browser";
 import { CompletionItemKind } from "vscode-languageserver/browser";
-import { showCursor } from "@doenet/parser";
 import { AutoCompleter } from "../index";
 
 /**
- * Get a list of completion items at the given offset.
+ * Create an LSP Range from source offset positions.
+ * Converts character offset positions in the source string to an LSP Range
+ * with 0-based line and character positions suitable for textEdit operations.
+ *
+ * Note: DoenetSourceObject uses 1-based line/column positions, while LSP uses
+ * 0-based line/character positions. This function handles the conversion.
+ *
+ * @param sourceObj - The DoenetSourceObject to query position information
+ * @param startOffset - The starting character offset in the source string
+ * @param endOffset - The ending character offset in the source string
+ * @returns An LSP Range with 0-based line and character positions
+ */
+function createTextEditRange(
+    sourceObj: DoenetSourceObject,
+    startOffset: number,
+    endOffset: number,
+): Range {
+    const start = sourceObj.offsetToRowCol(startOffset);
+    const end = sourceObj.offsetToRowCol(endOffset);
+    return {
+        start: {
+            line: start.line - 1,
+            character: start.column - 1,
+        },
+        end: {
+            line: end.line - 1,
+            character: end.column - 1,
+        },
+    };
+}
+
+/**
+ * Format a multiline snippet by adding indentation to subsequent lines.
+ * The indentation matches the column position where the snippet starts,
+ * ensuring proper alignment of multiline snippet content.
+ *
+ * @param sourceObj - The DoenetSourceObject to query position information
+ * @param startOffset - The offset where the snippet will be inserted
+ * @param snippet - The snippet text to format
+ * @returns The snippet with indentation applied to lines after the first
+ */
+function formatSnippetWithIndent(
+    sourceObj: DoenetSourceObject,
+    startOffset: number,
+    snippet: string,
+): string {
+    if (!snippet.includes("\n")) {
+        return snippet;
+    }
+
+    const startPos = sourceObj.offsetToRowCol(startOffset);
+    const indentSize = Math.max(0, startPos.column - 1);
+    if (indentSize === 0) {
+        return snippet;
+    }
+
+    const indent = " ".repeat(indentSize);
+    const lines = snippet.split("\n");
+    for (let i = 1; i < lines.length; i += 1) {
+        lines[i] = indent + lines[i];
+    }
+    return lines.join("\n");
+}
+
+/**
+ * Create snippet completion items from an array of processed snippets.
+ * Each snippet is converted to a CompletionItem with a textEdit that replaces
+ * from startOffset to endOffset with the (properly indented) snippet text.
+ *
+ * @param sourceObj - The DoenetSourceObject for position calculations
+ * @param snippets - Array of processed snippets to convert to completion items
+ * @param startOffset - The starting offset for the textEdit range (typically the '<' position)
+ * @param endOffset - The ending offset for the textEdit range (typically the cursor position)
+ * @returns Array of CompletionItems representing the snippets
+ */
+function createSnippetCompletionItems(
+    sourceObj: DoenetSourceObject,
+    snippets: Array<{
+        key: string;
+        snippet: string;
+        description: string;
+    }>,
+    startOffset: number,
+    endOffset: number,
+): CompletionItem[] {
+    return snippets.map((snippet) => ({
+        label: snippet.key,
+        kind: CompletionItemKind.Snippet,
+        documentation: snippet.description,
+        textEdit: {
+            range: createTextEditRange(sourceObj, startOffset, endOffset),
+            newText: formatSnippetWithIndent(
+                sourceObj,
+                startOffset,
+                snippet.snippet,
+            ),
+        },
+        filterText: snippet.key,
+    }));
+}
+
+/**
+ * Get a list of completion items at the given offset in the source document.
+ *
+ * This function analyzes the cursor context to determine what type of completions
+ * are appropriate and returns a combination of:
+ * - Schema-based element completions (allowed elements based on parent/context)
+ * - Snippet completions (templates associated with allowed elements)
+ * - Attribute name completions (when inside an opening tag)
+ * - Attribute value completions (when editing attribute values)
+ * - Closing tag completions (when appropriate)
+ *
+ * The completion behavior varies depending on the cursor position context:
+ * - Root level after `<`: top-level elements and their snippets
+ * - Inside element body after `<`: allowed children and their snippets
+ * - While typing element name (`openTagName`): filtered schema elements and snippets
+ * - Inside opening tag (`openTag`): attribute names
+ * - After `=` in attribute: attribute value suggestions
+ * - After `</`: closing tag suggestion
+ *
+ * Snippet completions include textEdit ranges that replace from the `<` character
+ * to the cursor position, with multiline snippets properly indented based on the
+ * insertion column.
+ *
+ * @param offset - Either a numeric offset into the source string, or a RowCol position
+ * @returns Array of LSP CompletionItem objects suitable for the current context
  */
 export function getCompletionItems(
     this: AutoCompleter,
@@ -35,10 +159,21 @@ export function getCompletionItems(
     let cursorPosition = containingElement.cursorPosition;
 
     if (!containingNode && cursorPosition === "unknown" && prevChar === "<") {
-        return this.schemaTopAllowedElements.map((name) => ({
+        const schemaItems = this.schemaTopAllowedElements.map((name) => ({
             label: name,
             kind: CompletionItemKind.Property,
         }));
+
+        const allowedElementsSet = new Set(this.schemaTopAllowedElements);
+        const snippets = this._getSnippetsForElements(allowedElementsSet);
+        const snippetItems = createSnippetCompletionItems(
+            this.sourceObj,
+            snippets,
+            offset - 1,
+            offset,
+        );
+
+        return [...schemaItems, ...snippetItems];
     }
 
     if (!element && containingNode && containingNode.type === "text") {
@@ -47,10 +182,21 @@ export function getCompletionItems(
 
         // If the previous char is a `<`, we suggest all top-level elements.
         if (prevChar === "<") {
-            return this.schemaTopAllowedElements.map((name) => ({
+            const schemaItems = this.schemaTopAllowedElements.map((name) => ({
                 label: name,
                 kind: CompletionItemKind.Property,
             }));
+
+            const allowedElementsSet = new Set(this.schemaTopAllowedElements);
+            const snippets = this._getSnippetsForElements(allowedElementsSet);
+            const snippetItems = createSnippetCompletionItems(
+                this.sourceObj,
+                snippets,
+                offset - 1,
+                offset,
+            );
+
+            return [...schemaItems, ...snippetItems];
         }
 
         return [];
@@ -77,15 +223,29 @@ export function getCompletionItems(
         containingElement.node &&
         prevChar === "<"
     ) {
-        const allowedChildren = this._getAllowedChildren(
+        const allowedChildrenNames = this._getAllowedChildren(
             containingElement.node.name,
-        ).map((name) => ({
+        );
+        const allowedChildrenSet = new Set(allowedChildrenNames);
+
+        const schemaItems = allowedChildrenNames.map((name) => ({
             label: name,
             kind: CompletionItemKind.Property,
         }));
+
+        const snippets = this._getSnippetsForElements(allowedChildrenSet);
+        const snippetItems = createSnippetCompletionItems(
+            this.sourceObj,
+            snippets,
+            offset - 1,
+            offset,
+        );
+
+        const completionItems = [...schemaItems, ...snippetItems];
+
         if (closed) {
             // We're in the body of an element. Suggest all allowed children.
-            return allowedChildren;
+            return completionItems;
         }
         // We are the child of a non-closed tag. Suggest the close tag or allowed children
         return [
@@ -93,7 +253,7 @@ export function getCompletionItems(
                 label: `/${element.name}>`,
                 kind: CompletionItemKind.Property,
             },
-            ...allowedChildren,
+            ...completionItems,
         ];
     }
 
@@ -119,21 +279,41 @@ export function getCompletionItems(
         // We're in the open tag name. Suggest everything that starts with the current text.
         const currentText = element.name.toLowerCase();
         const parent = this.sourceObj.getParent(element);
+
+        let allowedElements: string[];
         if (!parent || parent.type === "root") {
-            return this.schemaTopAllowedElements
-                .filter((name) => name.toLowerCase().startsWith(currentText))
-                .map((name) => ({
-                    label: name,
-                    kind: CompletionItemKind.Property,
-                }));
+            allowedElements = this.schemaTopAllowedElements;
+        } else {
+            allowedElements = this._getAllowedChildren(parent.name);
         }
 
-        return this._getAllowedChildren(parent.name)
-            .filter((label) => label.toLowerCase().startsWith(currentText))
-            .map((label) => ({
-                label,
+        const schemaItems = allowedElements
+            .filter((name) => name.toLowerCase().startsWith(currentText))
+            .map((name) => ({
+                label: name,
                 kind: CompletionItemKind.Property,
             }));
+
+        const allowedElementsSet = new Set(allowedElements);
+        const snippets = this._getSnippetsForElements(
+            allowedElementsSet,
+            currentText,
+        );
+
+        // For openTagName context, we need to replace from the opening '<' to the cursor.
+        // Prefer element.position.start for accuracy; fallback estimates based on typed text.
+        const tagStartOffset =
+            element.position?.start.offset ??
+            Math.max(0, offset - currentText.length - 1);
+
+        const snippetItems = createSnippetCompletionItems(
+            this.sourceObj,
+            snippets,
+            tagStartOffset,
+            offset,
+        );
+
+        return [...schemaItems, ...snippetItems];
     }
 
     if (cursorPosition === "openTag" || cursorPosition === "attributeName") {
