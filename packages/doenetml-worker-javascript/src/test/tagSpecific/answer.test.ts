@@ -2675,7 +2675,7 @@ The animal is a <answer name="answer1" shuffleOrder preserveLastChoice>
         });
     });
 
-    it.only("answer with shuffled sugared choices, preserveLastChoice='false' does not preserve last choice", async () => {
+    it("answer with shuffled sugared choices, preserveLastChoice='false' does not preserve last choice", async () => {
         const doenetML = `
 The animal is a <answer name="answer1" shuffleOrder preserveLastChoice="false">
     <choice credit="0.5">cat</choice>
