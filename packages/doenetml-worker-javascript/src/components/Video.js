@@ -118,8 +118,10 @@ export default class Video extends BlockComponent {
                             dependencyValues.shortDescriptionChild.length - 1
                         ];
 
-                    shortDescription = shortDescriptionChild.stateValues.text;
-                } else {
+                    shortDescription =
+                        shortDescriptionChild.stateValues.text.trim();
+                }
+                if (shortDescription === "") {
                     warnings.push({
                         level: 1,
                         message: "Video must have a short description.",

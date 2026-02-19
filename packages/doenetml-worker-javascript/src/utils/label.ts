@@ -336,11 +336,27 @@ export function returnLabelStateVariableDefinitions() {
                             labelHasLatex: false,
                         },
                     };
+                } else if (labelChild.stateValues.hasLatex) {
+                    if (labelChild.stateValues.value === "\\(\\)") {
+                        return {
+                            setValue: {
+                                label: "",
+                                labelHasLatex: false,
+                            },
+                        };
+                    } else {
+                        return {
+                            setValue: {
+                                label: labelChild.stateValues.value,
+                                labelHasLatex: true,
+                            },
+                        };
+                    }
                 } else {
                     return {
                         setValue: {
-                            label: labelChild.stateValues.value,
-                            labelHasLatex: labelChild.stateValues.hasLatex,
+                            label: labelChild.stateValues.value.trim(),
+                            labelHasLatex: false,
                         },
                     };
                 }

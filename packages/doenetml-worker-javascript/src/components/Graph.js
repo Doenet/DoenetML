@@ -276,8 +276,10 @@ export default class Graph extends BlockComponent {
                             dependencyValues.shortDescriptionChild.length - 1
                         ];
 
-                    shortDescription = shortDescriptionChild.stateValues.text;
-                } else if (!dependencyValues.decorative) {
+                    shortDescription =
+                        shortDescriptionChild.stateValues.text.trim();
+                }
+                if (shortDescription === "" && !dependencyValues.decorative) {
                     warnings.push({
                         level: 1,
                         message:
