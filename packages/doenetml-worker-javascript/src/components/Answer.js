@@ -521,21 +521,17 @@ export default class Answer extends InlineComponent {
                         state: {},
                     };
                     if (componentAttributes.shuffleOrder?.value) {
-                        choiceInput.attributes = {
-                            shuffleOrder: {
-                                type: "primitive",
-                                name: "shuffleOrder",
-                                primitive: { type: "boolean", value: true },
-                            },
+                        choiceInput.attributes.shuffleOrder = {
+                            type: "primitive",
+                            name: "shuffleOrder",
+                            primitive: { type: "boolean", value: true },
                         };
                     }
                     if (componentAttributes.preserveLastChoice?.value) {
-                        choiceInput.attributes = {
-                            preserveLastChoice: {
-                                type: "primitive",
-                                name: "preserveLastChoice",
-                                primitive: { type: "boolean", value: true },
-                            },
+                        choiceInput.attributes.preserveLastChoice = {
+                            type: "primitive",
+                            name: "preserveLastChoice",
+                            primitive: { type: "boolean", value: true },
                         };
                     }
                     return {
