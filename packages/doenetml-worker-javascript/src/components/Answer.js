@@ -504,8 +504,8 @@ export default class Answer extends InlineComponent {
                 if (matchedChildren.length !== nChoicesFound) {
                     return { success: false };
                 } else {
-                    // wrap all choices in a choiceinput
-                    let choiceinput = {
+                    // wrap all choices in a choiceInput
+                    let choiceInput = {
                         type: "serialized",
                         componentType: "choiceInput",
                         componentIdx: nComponents++,
@@ -520,8 +520,8 @@ export default class Answer extends InlineComponent {
                         doenetAttributes: {},
                         state: {},
                     };
-                    if (componentAttributes.shuffleOrder) {
-                        choiceinput.attributes = {
+                    if (componentAttributes.shuffleOrder?.value) {
+                        choiceInput.attributes = {
                             shuffleOrder: {
                                 type: "primitive",
                                 name: "shuffleOrder",
@@ -529,8 +529,8 @@ export default class Answer extends InlineComponent {
                             },
                         };
                     }
-                    if (componentAttributes.preserveLastChoice) {
-                        choiceinput.attributes = {
+                    if (componentAttributes.preserveLastChoice?.value) {
+                        choiceInput.attributes = {
                             preserveLastChoice: {
                                 type: "primitive",
                                 name: "preserveLastChoice",
@@ -540,7 +540,7 @@ export default class Answer extends InlineComponent {
                     }
                     return {
                         success: true,
-                        newChildren: [choiceinput],
+                        newChildren: [choiceInput],
                         nComponents,
                     };
                 }

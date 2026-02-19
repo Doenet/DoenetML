@@ -12,6 +12,7 @@ import {
 } from "../utils/actions";
 import { latexToMathFactory, normalizeLatexString } from "../../utils/math";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { Expression } from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -63,12 +64,12 @@ async function test_math_answer({
     );
     expect(
         stateVariables[answerIdx].stateValues.currentResponses.map(
-            (x) => x.tree,
+            (x: Expression) => x.tree,
         ),
     ).eqls([currentResponse]);
     expect(
         stateVariables[answerIdx].stateValues.submittedResponses.map(
-            (x) => x.tree,
+            (x: Expression) => x.tree,
         ),
     ).eqls(submittedResponses);
     expect(stateVariables[mathInputIdx].stateValues.value.tree).eqls(
@@ -128,12 +129,12 @@ async function test_math_answer({
         );
         expect(
             stateVariables[answerIdx].stateValues.currentResponses.map(
-                (x) => x.tree,
+                (x: Expression) => x.tree,
             ),
         ).eqls([currentResponse]);
         expect(
             stateVariables[answerIdx].stateValues.submittedResponses.map(
-                (x) => x.tree,
+                (x: Expression) => x.tree,
             ),
         ).eqls(submittedResponses);
         expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(
@@ -167,12 +168,12 @@ async function test_math_answer({
         );
         expect(
             stateVariables[answerIdx].stateValues.currentResponses.map(
-                (x) => x.tree,
+                (x: Expression) => x.tree,
             ),
         ).eqls([currentResponse]);
         expect(
             stateVariables[answerIdx].stateValues.submittedResponses.map(
-                (x) => x.tree,
+                (x: Expression) => x.tree,
             ),
         ).eqls(submittedResponses);
         expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(
@@ -420,11 +421,17 @@ async function test_choice_answer({
         throw Error("Don't have choiceInput name");
     }
 
-    if (Object.keys(indexByName).length === 0) {
-        indexByName = {};
-        for (let [ind, val] of stateVariables[
-            choiceInputIdx
-        ].stateValues.choiceTexts.entries()) {
+    indexByName = { ...indexByName };
+
+    for (let [ind, val] of stateVariables[
+        choiceInputIdx
+    ].stateValues.choiceTexts.entries()) {
+        if (val in indexByName) {
+            expect(indexByName[val]).eq(
+                ind + 1,
+                `Expected choice ${val} to have index ${ind + 1}, got index ${indexByName[val]}`,
+            );
+        } else {
             indexByName[val] = ind + 1;
         }
     }
@@ -2662,7 +2669,34 @@ The animal is a <answer name="answer1" shuffleOrder preserveLastChoice>
                 { choices: ["monkey"], credit: 0 },
                 { choices: ["cat"], credit: 0.5 },
             ],
+            indexByName: {
+                monkey: 3,
+            },
         });
+    });
+
+    it.only("answer with shuffled sugared choices, preserveLastChoice='false' does not preserve last choice", async () => {
+        const doenetML = `
+The animal is a <answer name="answer1" shuffleOrder preserveLastChoice="false">
+    <choice credit="0.5">cat</choice>
+    <choice credit="1">dog</choice>
+    <choice>monkey</choice>
+    <choice>rabbit</choice>
+    <choice>squirrel</choice>
+    <choice>none of the above</choice>
+</answer>
+  `;
+
+        let { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
+        const answerIdx = await resolvePathToNodeIdx("answer1");
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const choiceInputIdx =
+            stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
+
+        expect(
+            stateVariables[choiceInputIdx].stateValues.choiceTexts[5],
+        ).not.eq("none of the above");
     });
 
     it("answer with choiceInput, fixed order", async () => {
@@ -2694,6 +2728,30 @@ The animal is a <answer name="answer1">
     it("answer with sugared choices, fixed order", async () => {
         const doenetML = `
 The animal is a <answer name="answer1">
+    <choice credit="0.5">cat</choice>
+    <choice credit="1">dog</choice>
+    <choice>monkey</choice>
+</answer>
+  `;
+
+        await test_choice_answer({
+            doenetML,
+            answers: [
+                { choices: ["dog"], credit: 1 },
+                { choices: ["monkey"], credit: 0 },
+                { choices: ["cat"], credit: 0.5 },
+            ],
+            indexByName: {
+                cat: 1,
+                dog: 2,
+                monkey: 3,
+            },
+        });
+    });
+
+    it("answer with sugared choices, fixed order specified with attribute", async () => {
+        const doenetML = `
+The animal is a <answer name="answer1" shuffleOrder="false">
     <choice credit="0.5">cat</choice>
     <choice credit="1">dog</choice>
     <choice>monkey</choice>
