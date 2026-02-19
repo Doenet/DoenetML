@@ -41,10 +41,402 @@ const COMPLETION_SNIPPETS: Record<string, CompletionSnippet> = {
         description:
             "IF-AT (Immediate Feedback Assessment Technique) answer template",
     },
+    "pretzel-06": {
+        element: "answer",
+        snippet: `
+<pretzel name="pretzel" maxNumColumns="2">
+
+  <!-- problem 1 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 2 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 3 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 4 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 5 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 6 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+  
+</pretzel>`,
+        description: "Pretzel template with 6 problems",
+    },
+    "pretzel-08": {
+        element: "answer",
+        snippet: `
+<pretzel name="pretzel" maxNumColumns="2">
+
+  <!-- problem 1 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 2 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 3 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 4 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 5 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 6 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 7 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 8 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+  
+</pretzel>`,
+        description: "Pretzel template with 8 problems",
+    },
+    "pretzel-10": {
+        element: "answer",
+        snippet: `
+<pretzel name="pretzel" maxNumColumns="2">
+
+  <!-- problem 1 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 2 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 3 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 4 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 5 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 6 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 7 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 8 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 9 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 10 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+  
+</pretzel>`,
+        description: "Pretzel template with 10 problems",
+    },
+    "pretzel-12": {
+        element: "answer",
+        snippet: `
+<pretzel name="pretzel" maxNumColumns="2">
+
+  <!-- problem 1 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 2 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 3 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 4 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 5 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 6 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 7 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 8 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 9 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 10 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 11 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+
+  <!-- problem 12 -->
+  <problem>
+    <statement>
+      
+    </statement>
+    <answer>
+      
+    </answer>
+  </problem>
+  
+</pretzel>`,
+        description: "Pretzel template with 12 problems",
+    },
     "table-with-tabular": {
         element: "table",
         snippet: `
-<table name="table1">
+<table name="table">
   <title></title>
   <tabular>
     <row header>
