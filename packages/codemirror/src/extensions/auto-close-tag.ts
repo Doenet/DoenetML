@@ -9,7 +9,7 @@ import { EditorView } from "@codemirror/view";
  *
  * @param doc - The CodeMirror document text
  * @param cursorOffset - The cursor offset in the document
- * @returns The tag name (lowercase) if an opening tag is detected, otherwise null
+ * @returns The tag name if an opening tag is detected, otherwise null
  *
  * @example
  * // Given "<matrix" with cursor at offset 7
@@ -54,7 +54,7 @@ export function getOpeningTagNameAtCursor(
         return null;
     }
 
-    const tagNameMatch = tagFragment.match(/^<\s*([^\s/>]+)/);
+    const tagNameMatch = tagFragment.match(/^<([a-zA-Z][^\s/>]*)/);
     if (!tagNameMatch) {
         return null;
     }
@@ -98,7 +98,6 @@ export function hasMatchingCloseTagAhead(
     tagName: string,
 ): boolean {
     const remainingText = doc.sliceString(cursorOffset);
-    const targetTag = tagName.toLowerCase();
     let depth = 1;
     let index = 0;
 
@@ -155,19 +154,19 @@ export function hasMatchingCloseTagAhead(
         const isCloseTag = remainingText.startsWith("</", ltIndex);
         const tagNameMatch = remainingText
             .slice(ltIndex)
-            .match(/^<\/?\s*([^\s/>]+)/);
+            .match(/^<\/?([a-zA-Z][^\s/>]*)/);
         if (!tagNameMatch) {
             index = ltIndex + 1;
             continue;
         }
 
-        const foundTagName = tagNameMatch[1].toLowerCase();
+        const foundTagName = tagNameMatch[1];
         const tagEnd = skipUntilTagEnd(ltIndex + 1);
         if (tagEnd === -1) {
             return false;
         }
 
-        if (foundTagName === targetTag) {
+        if (foundTagName === tagName) {
             if (isCloseTag) {
                 depth -= 1;
                 if (depth === 0) {
