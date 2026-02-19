@@ -849,8 +849,6 @@ export function DocViewer({
                 message_id: messageId,
             };
 
-            console.log(message);
-
             if (flags.messageParent && window.parent) {
                 window.parent.postMessage(message);
             } else {
@@ -981,8 +979,6 @@ export function DocViewer({
             attempt_number: attemptNumber,
             user_id: userId,
         };
-
-        console.log(message);
 
         if (flags.messageParent && window.parent) {
             window.parent.postMessage(message);
@@ -1178,8 +1174,6 @@ export function DocViewer({
             message_id: nanoid(),
             name: data.verb,
         };
-
-        console.log(message);
 
         if (flags.messageParent && window.parent) {
             window.parent.postMessage(message);

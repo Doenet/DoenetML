@@ -113,10 +113,11 @@ export default class Core {
 
         this.cid = cid;
 
-        this.errorWarnings = {};
-
-        this.errorWarnings.errors = [];
-        this.errorWarnings.warnings = [...preliminaryWarnings];
+        /** @type {{ errors: any[], warnings: any[] }} */
+        this.errorWarnings = {
+            errors: [],
+            warnings: [...preliminaryWarnings],
+        };
 
         this.numerics = new Numerics();
         // this.flags = new Proxy(flags, readOnlyProxyHandler); //components shouldn't modify flags
