@@ -546,7 +546,7 @@ export default class Answer extends InlineComponent {
                 }
             }
 
-            if (componentAttributes.handGraded && !foundAward) {
+            if (componentAttributes.handGraded?.value && !foundAward) {
                 mayNeedInput = true;
             }
 
