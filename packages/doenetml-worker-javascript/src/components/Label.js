@@ -131,6 +131,10 @@ export default class Label extends InlineComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
+                console.log(
+                    "definition of hasLatex for label",
+                    dependencyValues,
+                );
                 if (
                     dependencyValues.inlineChildren.length === 0 &&
                     dependencyValues.valueShadow !== null

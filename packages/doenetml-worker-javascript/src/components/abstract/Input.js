@@ -582,8 +582,10 @@ export default class Input extends InlineComponent {
                             dependencyValues.shortDescriptionChild.length - 1
                         ];
 
-                    shortDescription = shortDescriptionChild.stateValues.text;
-                } else if (!dependencyValues.label) {
+                    shortDescription =
+                        shortDescriptionChild.stateValues.text.trim();
+                }
+                if (shortDescription === "" && !dependencyValues.label) {
                     warnings.push({
                         level: 1,
                         message:
