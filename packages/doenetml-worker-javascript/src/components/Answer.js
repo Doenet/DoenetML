@@ -504,8 +504,8 @@ export default class Answer extends InlineComponent {
                 if (matchedChildren.length !== nChoicesFound) {
                     return { success: false };
                 } else {
-                    // wrap all choices in a choiceinput
-                    let choiceinput = {
+                    // wrap all choices in a choiceInput
+                    let choiceInput = {
                         type: "serialized",
                         componentType: "choiceInput",
                         componentIdx: nComponents++,
@@ -520,33 +520,29 @@ export default class Answer extends InlineComponent {
                         doenetAttributes: {},
                         state: {},
                     };
-                    if (componentAttributes.shuffleOrder) {
-                        choiceinput.attributes = {
-                            shuffleOrder: {
-                                type: "primitive",
-                                name: "shuffleOrder",
-                                primitive: { type: "boolean", value: true },
-                            },
+                    if (componentAttributes.shuffleOrder?.value) {
+                        choiceInput.attributes.shuffleOrder = {
+                            type: "primitive",
+                            name: "shuffleOrder",
+                            primitive: { type: "boolean", value: true },
                         };
                     }
-                    if (componentAttributes.preserveLastChoice) {
-                        choiceinput.attributes = {
-                            preserveLastChoice: {
-                                type: "primitive",
-                                name: "preserveLastChoice",
-                                primitive: { type: "boolean", value: true },
-                            },
+                    if (componentAttributes.preserveLastChoice?.value) {
+                        choiceInput.attributes.preserveLastChoice = {
+                            type: "primitive",
+                            name: "preserveLastChoice",
+                            primitive: { type: "boolean", value: true },
                         };
                     }
                     return {
                         success: true,
-                        newChildren: [choiceinput],
+                        newChildren: [choiceInput],
                         nComponents,
                     };
                 }
             }
 
-            if (componentAttributes.handGraded && !foundAward) {
+            if (componentAttributes.handGraded?.value && !foundAward) {
                 mayNeedInput = true;
             }
 
