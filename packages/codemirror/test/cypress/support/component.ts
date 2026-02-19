@@ -1,6 +1,12 @@
-/// <reference path="./component.d.ts" />
 // Cypress component support file for CodeMirror testing
-
 import { mount } from "cypress/react";
+
+declare global {
+    namespace Cypress {
+        interface Chainable {
+            mount: typeof mount;
+        }
+    }
+}
 
 Cypress.Commands.add("mount", mount);

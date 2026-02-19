@@ -8,7 +8,7 @@
     "exclude": [
         "./**/*.test.ts",
         "./**/*.stub.ts",
-        "./cypress/**",
+        "test/cypress/**",
         "./cypress.config.ts",
         "node_modules",
         "**/test/",

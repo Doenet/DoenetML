@@ -1,5 +1,5 @@
 import React from "react";
-import { CodeMirror } from "../../src/CodeMirror";
+import { CodeMirror } from "../../../src/CodeMirror";
 
 /**
  * Tests for the LSP autocomplete plugin (snippets and completions)

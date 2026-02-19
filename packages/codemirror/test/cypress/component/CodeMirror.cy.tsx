@@ -1,5 +1,5 @@
 import React from "react";
-import { CodeMirror } from "../../src/CodeMirror";
+import { CodeMirror } from "../../../src/CodeMirror";
 
 /**
  * Component tests for the CodeMirror editor.
