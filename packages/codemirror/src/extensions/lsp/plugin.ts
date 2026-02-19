@@ -83,7 +83,6 @@ type ExtendedCompletion = Completion & {
         start: { line: number; character: number };
         end: { line: number; character: number };
     };
-    _originalApplyText?: string;
 };
 
 // One language server is shared across all plugin instances
@@ -156,13 +155,13 @@ export class LSPPlugin implements PluginValue {
             })
             .filter(({ from, to }) => from != null && to != null)
             .sort((a, b) => {
-                switch (true) {
-                    case a.from < b.from:
-                        return -1;
-                    case a.from > b.from:
-                        return 1;
+                if (a.from < b.from) {
+                    return -1;
+                } else if (a.from > b.from) {
+                    return 1;
+                } else {
+                    return 0;
                 }
-                return 0;
             });
 
         const diagnosticTransaction = setDiagnostics(
@@ -233,11 +232,6 @@ export class LSPPlugin implements PluginValue {
                 // Store range info if present for custom apply logic later
                 if (textEdit && "range" in textEdit) {
                     completion._lspTextEditRange = textEdit.range;
-                    // Preserve the original apply text for prefixMatch (always a string at this point)
-                    completion._originalApplyText =
-                        typeof completion.apply === "string"
-                            ? completion.apply
-                            : undefined;
                 }
                 return completion;
             },
@@ -265,15 +259,13 @@ export class LSPPlugin implements PluginValue {
                     .sort((optionA, optionB) => {
                         // Use original apply text for comparison (important for snippets with custom apply functions)
                         const aStr =
-                            optionA._originalApplyText ??
-                            (typeof optionA.apply === "string"
+                            typeof optionA.apply === "string"
                                 ? optionA.apply
-                                : "");
+                                : "";
                         const bStr =
-                            optionB._originalApplyText ??
-                            (typeof optionB.apply === "string"
+                            typeof optionB.apply === "string"
                                 ? optionB.apply
-                                : "");
+                                : "";
                         switch (true) {
                             case aStr.startsWith(word) &&
                                 !bStr.startsWith(word):
@@ -289,29 +281,6 @@ export class LSPPlugin implements PluginValue {
 
         const finalOptions = options.map((opt) => {
             if (opt._lspTextEditRange) {
-                // Normalize position format (LSP uses 'character', but some internal code may use 'column')
-                const normalizePos = (
-                    rangePos:
-                        | { line: number; character: number }
-                        | { line: number; column: number }
-                        | null
-                        | undefined,
-                ) => {
-                    if (!rangePos) {
-                        return null;
-                    }
-                    if ("character" in rangePos) {
-                        return rangePos;
-                    }
-                    if ("column" in rangePos) {
-                        return {
-                            line: rangePos.line - 1,
-                            character: rangePos.column - 1,
-                        };
-                    }
-                    return null;
-                };
-
                 const startPos = normalizePos(opt._lspTextEditRange.start);
                 const endPos = normalizePos(opt._lspTextEditRange.end);
                 const rangeStart = startPos
@@ -385,7 +354,33 @@ function offsetToPos(doc: Text, offset: number) {
     };
 }
 
-function toSet(chars: Set<string>) {
+/** Normalize position input to LSP { line, character } coordinates. */
+function normalizePos(
+    rangePos:
+        | { line: number; character: number }
+        | { line: number; column: number }
+        | null
+        | undefined,
+) {
+    if (!rangePos) {
+        return null;
+    }
+    if ("character" in rangePos) {
+        return rangePos;
+    }
+    if ("column" in rangePos) {
+        return {
+            line: rangePos.line - 1,
+            character: rangePos.column - 1,
+        };
+    }
+    return null;
+}
+
+/**
+ * Takes `chars`, a set of characters, and creates a regular expression string that captures anything in the set.
+ */
+function setToRegex(chars: Set<string>) {
     let preamble = "";
     let flat = Array.from(chars).join("");
     const words = /\w/.test(flat);
@@ -397,23 +392,20 @@ function toSet(chars: Set<string>) {
 }
 
 function prefixMatch(options: Completion[]) {
-    const first = new Set<string>();
-    const rest = new Set<string>();
+    const first: string[] = [];
+    const rest: string[] = [];
 
     for (const completion of options) {
-        const item = completion as any;
-        // Use original text for prefix matching (snippets store their text here before apply becomes a function)
-        const textToAnalyze = item._originalApplyText ?? item.apply;
-        if (typeof textToAnalyze === "string") {
-            const [initial, ...restStr] = textToAnalyze;
-            first.add(initial);
-            for (const char of restStr) {
-                rest.add(char);
-            }
+        const textToAnalyze = completion.apply;
+        if (typeof textToAnalyze !== "string" || textToAnalyze.length === 0) {
+            continue;
         }
+        first.push(textToAnalyze.charAt(0));
+        rest.push(...textToAnalyze.slice(1).split(""));
     }
 
-    const source = toSet(first) + toSet(rest) + "*$";
+    const source =
+        setToRegex(new Set(first)) + setToRegex(new Set(rest)) + "*$";
     return [new RegExp("^" + source), new RegExp(source)];
 }
 
