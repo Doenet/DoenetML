@@ -105,7 +105,7 @@ describe("CodeMirror Auto-Close Tag Extension", () => {
             cy.get(".cm-line").should("have.text", "<matrix></matrix></text>");
         });
 
-        it("does insert when have a closing that that is already matched", () => {
+        it("does insert when have a closing tag that is already matched", () => {
             cy.mount(
                 <div style={{ height: "400px", width: "600px" }}>
                     <CodeMirror value="<tag text <tag>hi</tag>" />
@@ -146,17 +146,6 @@ describe("CodeMirror Auto-Close Tag Extension", () => {
 
             cy.get(".cm-content").click().type("{end}>", { force: true });
             cy.get(".cm-line").should("have.text", "<title/>");
-        });
-
-        it("handles nested same-name tags", () => {
-            cy.mount(
-                <div style={{ height: "400px", width: "600px" }}>
-                    <CodeMirror value="<tag><tag" />
-                </div>,
-            );
-
-            cy.get(".cm-content").click().type("{end}>", { force: true });
-            cy.get(".cm-line").should("have.text", "<tag><tag></tag>");
         });
 
         it("handles nested same-name tags", () => {
