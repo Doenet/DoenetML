@@ -79,10 +79,10 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
                 >
                     <div className="pretzelAnswerInput">
                         <div>
-                            <b>Answer</b>: {answer}
+                            <span>{input}</span>
                         </div>
                         <div>
-                            <span className="pretzelInput">{input}</span>
+                            <b>Answer</b>: {answer}
                         </div>
                     </div>
                     <div className="pretzelStatement">{statement}</div>
