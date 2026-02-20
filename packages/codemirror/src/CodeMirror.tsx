@@ -3,6 +3,7 @@ import { EditorSelection, EditorState, Extension } from "@codemirror/state";
 import ReactCodeMirror, { EditorView } from "@uiw/react-codemirror";
 import { syntaxHighlightingExtension } from "./extensions/syntax-highlighting";
 import { tabExtension } from "./extensions/tab";
+import { autoCloseTagExtension } from "./extensions/auto-close-tag";
 import {
     lspPlugin,
     uniqueLanguageServerInstance,
@@ -78,6 +79,7 @@ const CodeMirror = React.memo(function CodeMirror({
         ];
         if (!readOnly) {
             extensions.push(tabExtension);
+            extensions.push(autoCloseTagExtension);
             extensions.push(lspPlugin(documentId));
         } else {
             extensions.push(EditorState.readOnly.of(true));
