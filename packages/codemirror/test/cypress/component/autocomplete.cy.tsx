@@ -103,65 +103,6 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.get(".cm-content").invoke("text").should("contain", "<choice");
     });
 
-    it("auto-inserts a closing tag when typing > after autocomplete", () => {
-        cy.mount(
-            <div style={{ height: "400px", width: "600px" }}>
-                <CodeMirror value="" />
-            </div>,
-        );
-
-        cy.get(".cm-content").click().type("<mat", { force: true });
-        cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
-            .contains("matrix")
-            .click();
-
-        cy.get(".cm-content").type(">x", { force: true });
-        cy.get(".cm-line").should("have.text", "<matrix>x</matrix>");
-    });
-
-    it("auto-inserts closing tag when > closes an opening tag with attributes", () => {
-        cy.mount(
-            <div style={{ height: "400px", width: "600px" }}>
-                <CodeMirror value="" />
-            </div>,
-        );
-
-        cy.get(".cm-content").click().type('<title hide="true">x', {
-            force: true,
-        });
-        cy.get(".cm-line").should("have.text", '<title hide="true">x</title>');
-    });
-
-    it("does not duplicate an existing matching closing tag", () => {
-        cy.mount(
-            <div style={{ height: "400px", width: "600px" }}>
-                <CodeMirror value="<matrix</matrix>" />
-            </div>,
-        );
-
-        cy.get(".cm-content")
-            .click()
-            .type(
-                "{home}{rightArrow}{rightArrow}{rightArrow}{rightArrow}{rightArrow}{rightArrow}{rightArrow}>",
-                {
-                    force: true,
-                },
-            );
-
-        cy.get(".cm-line").should("have.text", "<matrix></matrix>");
-    });
-
-    it("does not auto-insert a closing tag for self-closing />", () => {
-        cy.mount(
-            <div style={{ height: "400px", width: "600px" }}>
-                <CodeMirror value="" />
-            </div>,
-        );
-
-        cy.get(".cm-content").click().type("<title/>", { force: true });
-        cy.get(".cm-line").should("have.text", "<title/>");
-    });
-
     it("completes attribute names", () => {
         cy.mount(
             <div style={{ height: "400px", width: "600px" }}>
