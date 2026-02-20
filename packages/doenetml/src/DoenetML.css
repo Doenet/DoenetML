@@ -107,6 +107,7 @@ html {
 .doenet-viewer {
     font-family: "Open Sans" !important;
     color: var(--canvasText);
+    overflow-x: auto;
 }
 .doenet-viewer h1 {
     font-size: 2em;
