@@ -1,125 +1,127 @@
-import { Text } from "@codemirror/state";
+import { EditorState } from "@codemirror/state";
+import { EditorView } from "@codemirror/view";
 import { describe, expect, it } from "vitest";
-import {
-    getOpeningTagNameAtCursor,
-    hasMatchingCloseTagAhead,
-} from "./auto-close-tag";
+import { autoCloseTagExtension, getAutoCloseTag } from "./auto-close-tag";
 
-describe("auto-close-tag helpers", () => {
-    describe("getOpeningTagNameAtCursor", () => {
-        it("detects a simple opening tag name", () => {
-            const doc = Text.of(["<matrix"]);
-            expect(getOpeningTagNameAtCursor(doc, 7)).toBe("matrix");
+/**
+ * Helper to simulate typing `>` at a cursor position and return the resulting document text.
+ */
+function typeClosingBracket(source: string, cursorPos: number): string {
+    const closeTag = getAutoCloseTag(source, cursorPos);
+    if (closeTag) {
+        return (
+            source.slice(0, cursorPos) +
+            ">" +
+            closeTag +
+            source.slice(cursorPos)
+        );
+    }
+    return source.slice(0, cursorPos) + ">" + source.slice(cursorPos);
+}
+
+describe("auto-close-tag extension", () => {
+    describe("basic auto-closing behavior", () => {
+        it("debug: check getAutoCloseTag directly", () => {
+            const result = getAutoCloseTag("<matrix", 7);
+            console.log("getAutoCloseTag result:", result);
+            expect(result).not.toBeNull();
         });
 
-        it("detects opening tag name with attributes", () => {
-            const line = '<title hide="true"';
-            const doc = Text.of([line]);
-            expect(getOpeningTagNameAtCursor(doc, line.length)).toBe("title");
+        it("inserts closing tag for simple opening tag", () => {
+            const result = typeClosingBracket("<matrix", 7);
+            expect(result).toBe("<matrix></matrix>");
         });
 
-        it("detects opening tag name with attributes with no value", () => {
-            const line = "<title hide";
-            const doc = Text.of([line]);
-            expect(getOpeningTagNameAtCursor(doc, line.length)).toBe("title");
+        it("inserts closing tag for tag with attributes", () => {
+            const source = '<title hide="true"';
+            const result = typeClosingBracket(source, source.length);
+            expect(result).toBe('<title hide="true"></title>');
         });
 
-        it("returns null for closing tags", () => {
-            const line = "</matrix";
-            const doc = Text.of([line]);
-            expect(getOpeningTagNameAtCursor(doc, line.length)).toBeNull();
+        it("inserts closing tag for tag with attribute without value", () => {
+            const source = "<title hide";
+            const result = typeClosingBracket(source, source.length);
+            expect(result).toBe("<title hide></title>");
         });
 
-        it("returns null for self-closing intent", () => {
-            const line = "<title/";
-            const doc = Text.of([line]);
-            expect(getOpeningTagNameAtCursor(doc, line.length)).toBeNull();
+        it("does not insert when close tag already exists", () => {
+            const source = "<matrix></matrix>";
+            const result = typeClosingBracket(source, 7);
+            expect(result).toBe("<matrix>></matrix>");
         });
 
-        it("returns null when cursor is in quoted attribute value", () => {
-            const line = '<title text="hello';
-            const doc = Text.of([line]);
-            expect(getOpeningTagNameAtCursor(doc, line.length)).toBeNull();
+        it("handles nested tags correctly", () => {
+            const source = "<outer><inner";
+            const result = typeClosingBracket(source, source.length);
+            expect(result).toBe("<outer><inner></inner>");
         });
 
-        it("uses the nearest opening tag before cursor", () => {
-            const line = "<a><b";
-            const doc = Text.of([line]);
-            expect(getOpeningTagNameAtCursor(doc, line.length)).toBe("b");
+        it("does not insert for self-closing tag intent", () => {
+            const source = "<title/";
+            const result = typeClosingBracket(source, source.length);
+            expect(result).toBe("<title/>");
+        });
+
+        it("handles nested same-name tags", () => {
+            const source = "<tag><tag";
+            const result = typeClosingBracket(source, source.length);
+            expect(result).toBe("<tag><tag></tag>");
         });
     });
 
-    describe("hasMatchingCloseTagAhead", () => {
-        it("returns true when close tag immediately follows cursor", () => {
-            const line = "<matrix></matrix>";
-            const doc = Text.of([line]);
-            const cursorOffset = "<matrix>".length;
-            expect(hasMatchingCloseTagAhead(doc, cursorOffset, "matrix")).toBe(
-                true,
-            );
+    describe("less-than as text operator", () => {
+        it("does not insert closing tag for less-than in text context", () => {
+            const source = "x < y ";
+            const result = typeClosingBracket(source, source.length - 1);
+            // Should just insert '>' without adding a closing tag
+            expect(result).toBe("x < y >");
         });
 
-        it("returns false when close tag does not match", () => {
-            const line = "<matrix></title>";
-            const doc = Text.of([line]);
-            const cursorOffset = "<matrix>".length;
-            expect(hasMatchingCloseTagAhead(doc, cursorOffset, "matrix")).toBe(
-                false,
-            );
+        it("does not treat less-than followed by space as tag opening", () => {
+            const source = "< tag";
+            const result = typeClosingBracket(source, 5);
+            expect(result).toBe("< tag>");
         });
 
-        it("returns true when close tag appears later in text", () => {
-            const line = "<matrix> x </matrix>";
-            const doc = Text.of([line]);
-            const cursorOffset = "<matrix>".length;
-            expect(hasMatchingCloseTagAhead(doc, cursorOffset, "matrix")).toBe(
-                true,
-            );
+        it("does not insert for less-than without valid tag name", () => {
+            const source = "x < 5";
+            const result = typeClosingBracket(source, 5);
+            expect(result).toBe("x < 5>");
         });
 
-        it("returns true when matching close tag appears later after text", () => {
-            const line = "<tag   additional text</tag>";
-            const doc = Text.of([line]);
-            const cursorOffset = "<tag".length;
-            expect(hasMatchingCloseTagAhead(doc, cursorOffset, "tag")).toBe(
-                true,
-            );
+        it("handles comparison operators in expressions", () => {
+            const source = "<p>value < 10";
+            const result = typeClosingBracket(source, 13);
+            expect(result).toBe("<p>value < 10>");
+        });
+    });
+
+    describe("case-sensitive tag matching", () => {
+        it("preserves exact case for uppercase tag", () => {
+            const source = "<TAG";
+            const result = typeClosingBracket(source, 4);
+            expect(result).toBe("<TAG></TAG>");
         });
 
-        it("returns true when matching close tag appears later after nested tags", () => {
-            const line = "<tag additional text <otherTag>hi</otherTag> </tag>";
-            const doc = Text.of([line]);
-            const cursorOffset = "<tag".length;
-            expect(hasMatchingCloseTagAhead(doc, cursorOffset, "tag")).toBe(
-                true,
-            );
+        it("preserves exact case for mixed-case tag", () => {
+            const source = "<MyComponent";
+            const result = typeClosingBracket(source, 12);
+            expect(result).toBe("<MyComponent></MyComponent>");
         });
 
-        it("matches the correct closing tag with nested same-name tags", () => {
-            const line = "<tag <tag>inner</tag> outer</tag>";
-            const doc = Text.of([line]);
-            const cursorOffset = "<tag".length;
-            expect(hasMatchingCloseTagAhead(doc, cursorOffset, "tag")).toBe(
-                true,
-            );
+        it("treats tags with different cases as different tags", () => {
+            const source = "<tag></Tag>";
+            // Typing '>' after '<tag' should insert '</tag>' because
+            // the existing '</Tag>' doesn't match (different case)
+            const result = typeClosingBracket(source, 4);
+            expect(result).toBe("<tag></tag></Tag>");
         });
 
-        it("ignores self-closing same-name tags while searching", () => {
-            const line = "<tag <tag/> text </tag>";
-            const doc = Text.of([line]);
-            const cursorOffset = "<tag".length;
-            expect(hasMatchingCloseTagAhead(doc, cursorOffset, "tag")).toBe(
-                true,
-            );
-        });
-
-        it("returns false when no matching close tag exists ahead", () => {
-            const line = "<tag <otherTag>hi</otherTag>";
-            const doc = Text.of([line]);
-            const cursorOffset = "<tag".length;
-            expect(hasMatchingCloseTagAhead(doc, cursorOffset, "tag")).toBe(
-                false,
-            );
+        it("matches closing tag only with exact case", () => {
+            const source = "<Matrix></matrix>";
+            // Should insert '</Matrix>' because '</matrix>' doesn't match
+            const result = typeClosingBracket(source, 7);
+            expect(result).toBe("<Matrix></Matrix></matrix>");
         });
     });
 });
