@@ -2,16 +2,6 @@ import { EditorView } from "@codemirror/view";
 import { DoenetSourceObject } from "@doenet/lsp-tools";
 import type { DastElement } from "@doenet/parser";
 
-// Singleton instance to reuse parser infrastructure across keystrokes
-let sourceObject: DoenetSourceObject | null = null;
-
-function getSourceObject(): DoenetSourceObject {
-    if (!sourceObject) {
-        sourceObject = new DoenetSourceObject();
-    }
-    return sourceObject;
-}
-
 /**
  * Checks if auto-closing should be triggered and returns the closing tag if so.
  *
@@ -27,7 +17,7 @@ export function getAutoCloseTag(
     const hypotheticalDoc =
         docText.slice(0, cursorPos) + ">" + docText.slice(cursorPos);
 
-    const source = getSourceObject();
+    const source = new DoenetSourceObject();
     source.setSource(hypotheticalDoc);
 
     // Get the element context at the position of the '>' we're inserting
