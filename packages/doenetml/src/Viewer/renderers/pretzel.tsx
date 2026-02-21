@@ -77,15 +77,15 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
                     className={`pretzel${gridIdx + 1} pretzelProblem`}
                     key={prob}
                 >
-                    <div className="pretzelAnswerInput">
+                    <div className="pretzelAnswer">
+                        <b>Answer</b>: {answer}
+                    </div>
+                    <div className="pretzelInputStatement">
                         <div>
                             <span>{input}</span>
                         </div>
-                        <div>
-                            <b>Answer</b>: {answer}
-                        </div>
+                        <div>{statement}</div>
                     </div>
-                    <div className="pretzelStatement">{statement}</div>
                 </div>
             );
 
