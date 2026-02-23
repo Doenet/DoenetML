@@ -88,13 +88,21 @@ export function renderDoenetViewerToContainer(
     delete localConfig.initializedCallback;
     delete localConfig.onInit;
 
-    const prefixForIds = localConfig.prefixForIds ?? prefixForIdsFromAttrs;
+    let prefixForIds = localConfig.prefixForIds ?? prefixForIdsFromAttrs;
     delete localConfig.prefixForIds;
 
     const shouldCoordinate =
         localConfig.enableParentCoordination ??
         enableParentCoordination ??
         false;
+
+    // Auto-generate unique prefix if not explicitly provided and not coordinating.
+    // Coordination enforces single document per iframe, so no collision risk.
+    // Uncoordinated documents might be multiple per page, so auto-generate to be safe.
+    // This handles: multiple viewers on same page, embedded pages, and future scenarios.
+    if (!prefixForIds && !shouldCoordinate) {
+        prefixForIds = `doenet_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    }
 
     // Helper function to render the viewer
     const renderViewer = (
@@ -133,7 +141,9 @@ export function renderDoenetViewerToContainer(
     }
 
     // Coordination path: register with parent, wait for grant, then render
-    const isInIframe = window.self !== window.top;
+    // Use frameElement to detect iframe, as window.self === window.top may be false
+    // in nested iframe scenarios (e.g., Cypress wraps test in iframe)
+    const isInIframe = window.frameElement !== null;
     if (!isInIframe) {
         // Not in iframe, just render immediately
         renderViewer();
@@ -387,7 +397,7 @@ export function initializeDoenetParentCoordinator(
                 window.setTimeout(() => {
                     awaitingInitialData = false;
                     tryGrantNext();
-                }, 100);
+                }, 300);
             }
             return;
         }
@@ -435,6 +445,7 @@ export function initializeDoenetParentCoordinator(
         }
 
         activeChild = nextChildId;
+        // Notify child that it has been granted
 
         // Set timeout to handle stuck iframes
         activeTimeoutId = window.setTimeout(() => {
@@ -470,6 +481,7 @@ export function initializeDoenetParentCoordinator(
                     window: iframeWindow,
                     domOrder: domOrder,
                 });
+                // Child registered
             }
 
             // Add to registration queue if not already there
@@ -478,6 +490,7 @@ export function initializeDoenetParentCoordinator(
                 iframeId !== activeChild
             ) {
                 registrationQueue.push(iframeId);
+                // Child queued
             }
 
             tryGrantNext();
@@ -487,6 +500,7 @@ export function initializeDoenetParentCoordinator(
             } else {
                 visibleSet.delete(iframeId);
             }
+            // Visibility updated
 
             // If strategy is viewport-first, re-evaluate queue
             if (strategy === "viewport-first") {
@@ -500,6 +514,7 @@ export function initializeDoenetParentCoordinator(
                     activeTimeoutId = null;
                 }
                 activeChild = null;
+                // Active child completed
             }
 
             // Remove from queue if somehow still there
@@ -507,6 +522,8 @@ export function initializeDoenetParentCoordinator(
             if (index !== -1) {
                 registrationQueue.splice(index, 1);
             }
+
+            // Completion processed
 
             tryGrantNext();
         }

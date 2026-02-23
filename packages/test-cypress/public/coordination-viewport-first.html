@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Coordination Viewport First</title>
+        <style>
+            body {
+                margin: 20px;
+                font-family: Arial, sans-serif;
+            }
+            .frame-row {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(320px, 1fr));
+                gap: 16px;
+            }
+            .iframe-wrapper {
+                border: 1px solid #ccc;
+                border-radius: 6px;
+                padding: 8px;
+                background: #fff;
+            }
+            .spacer {
+                height: 1400px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: #666;
+                font-size: 18px;
+                background: linear-gradient(to bottom, #f8f8f8, #efefef);
+                margin: 20px 0;
+            }
+            iframe {
+                width: 100%;
+                height: 300px;
+                border: 0;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Parent Coordination: viewport-first</h1>
+        <p>
+            Add <code>?start=bottom</code> to URL to auto-scroll before iframe
+            initialization.
+        </p>
+
+        <section>
+            <h2>Top Section</h2>
+            <div id="top-frames" class="frame-row">
+                <div class="iframe-wrapper">
+                    <h3>Document 1</h3>
+                    <iframe
+                        id="frame-1"
+                        src="/coordination-child.html"
+                        title="Document 1"
+                    ></iframe>
+                </div>
+                <div class="iframe-wrapper">
+                    <h3>Document 2</h3>
+                    <iframe
+                        id="frame-2"
+                        src="/coordination-child.html"
+                        title="Document 2"
+                    ></iframe>
+                </div>
+            </div>
+        </section>
+
+        <div class="spacer">Spacer 1</div>
+
+        <section>
+            <h2>Middle Section</h2>
+            <div id="middle-frames" class="frame-row">
+                <div class="iframe-wrapper">
+                    <h3>Document 3</h3>
+                    <iframe
+                        id="frame-3"
+                        src="/coordination-child.html"
+                        title="Document 3"
+                    ></iframe>
+                </div>
+                <div class="iframe-wrapper">
+                    <h3>Document 4</h3>
+                    <iframe
+                        id="frame-4"
+                        src="/coordination-child.html"
+                        title="Document 4"
+                    ></iframe>
+                </div>
+            </div>
+        </section>
+
+        <div class="spacer">Spacer 2</div>
+
+        <section>
+            <h2>Bottom Section</h2>
+            <div id="bottom-frames" class="frame-row">
+                <div class="iframe-wrapper">
+                    <h3>Document 5</h3>
+                    <iframe
+                        id="frame-5"
+                        src="/coordination-child.html"
+                        title="Document 5"
+                    ></iframe>
+                </div>
+                <div class="iframe-wrapper">
+                    <h3>Document 6</h3>
+                    <iframe
+                        id="frame-6"
+                        src="/coordination-child.html"
+                        title="Document 6"
+                    ></iframe>
+                </div>
+            </div>
+        </section>
+
+        <script type="module">
+            import {
+                injectStandaloneCss,
+                loadStandaloneScript,
+            } from "/standaloneBlobUrls.js";
+
+            async function main() {
+                await injectStandaloneCss();
+                await loadStandaloneScript();
+
+                const params = new URLSearchParams(window.location.search);
+                const startAtBottom = params.get("start") === "bottom";
+
+                const startCoordinatorAndFrames = () => {
+                    window.initializeDoenetParentCoordinator({
+                        strategy: "viewport-first",
+                        timeoutMs: 30000,
+                    });
+                };
+
+                if (!startAtBottom) {
+                    startCoordinatorAndFrames();
+                    return;
+                }
+
+                window.scrollTo(0, document.body.scrollHeight);
+                window.requestAnimationFrame(() => {
+                    startCoordinatorAndFrames();
+                });
+            }
+
+            void main();
+        </script>
+    </body>
+</html>

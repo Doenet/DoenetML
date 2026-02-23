@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Uncoordinated Same Page</title>
+        <style>
+            body {
+                margin: 20px;
+                font-family: Arial, sans-serif;
+            }
+            .viewer-grid {
+                display: grid;
+                grid-template-columns: repeat(3, minmax(260px, 1fr));
+                gap: 16px;
+            }
+            .viewer {
+                border: 1px solid #ccc;
+                border-radius: 6px;
+                padding: 8px;
+                min-height: 260px;
+            }
+        </style>
+    </head>
+    <body>
+        <h1>Uncoordinated Same Page</h1>
+
+        <div class="viewer-grid">
+            <div class="viewer doenetml-viewer" id="viewer-1">
+                <script type="text/doenetml">
+                    <p name="hello">Hello world</p>
+                    <p>Viewer 1</p>
+                    <graph>
+                        <point>(1,1)</point>
+                    </graph>
+                </script>
+            </div>
+
+            <div class="viewer doenetml-viewer" id="viewer-2">
+                <script type="text/doenetml">
+                    <p name="hello">Hello world</p>
+                    <p>Viewer 2</p>
+                    <graph>
+                        <point>(2,2)</point>
+                    </graph>
+                </script>
+            </div>
+
+            <div class="viewer doenetml-viewer" id="viewer-3">
+                <script type="text/doenetml">
+                    <p name="hello">Hello world</p>
+                    <p>Viewer 3</p>
+                    <graph>
+                        <point>(3,3)</point>
+                    </graph>
+                </script>
+            </div>
+        </div>
+
+        <script type="module">
+            import {
+                injectStandaloneCss,
+                loadStandaloneScript,
+            } from "/standaloneBlobUrls.js";
+
+            async function main() {
+                await injectStandaloneCss();
+                await loadStandaloneScript();
+
+                const containers = document.querySelectorAll(".doenetml-viewer");
+                containers.forEach((container) => {
+                    window.renderDoenetViewerToContainer(container);
+                });
+            }
+
+            void main();
+        </script>
+    </body>
+</html>

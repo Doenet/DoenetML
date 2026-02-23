@@ -4,6 +4,7 @@ import { viteStaticCopy } from "vite-plugin-static-copy";
 import path from "node:path";
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
+const __dirname = path.dirname(new URL(import.meta.url).pathname);
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -25,6 +26,17 @@ export default defineConfig({
                         "../fonts/*",
                     ),
                     dest: "fonts/",
+                },
+                {
+                    src: path.join(
+                        __dirname,
+                        "../standalone/dist/doenet-standalone.js",
+                    ),
+                    dest: "standalone/",
+                },
+                {
+                    src: path.join(__dirname, "../standalone/dist/style.css"),
+                    dest: "standalone/",
                 },
             ],
         }),

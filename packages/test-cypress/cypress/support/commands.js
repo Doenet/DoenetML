@@ -30,3 +30,29 @@ import { clear as idb_clear } from "idb-keyval";
 Cypress.Commands.add("clearIndexedDB", () => {
     return idb_clear();
 });
+
+/**
+ * Get the body element of an iframe, optionally waiting for a specific child element.
+ * @param {string} iframeSelector - CSS selector to find the iframe
+ * @param {string} [waitSelector=null] - Optional CSS selector for an element that must exist in the iframe before returning
+ * @returns The iframe body element wrapped for Cypress chaining
+ */
+Cypress.Commands.add("getIframeBody", (iframeSelector, waitSelector = null) => {
+    return cy
+        .get(iframeSelector, { log: false })
+        .should(($iframe) => {
+            const $body = $iframe.contents().find("body");
+
+            if ($body.length === 0) {
+                throw new Error("Iframe body is empty or not yet loaded");
+            }
+
+            if (waitSelector && $body.find(waitSelector).length === 0) {
+                throw new Error(
+                    `Element "${waitSelector}" not yet found in iframe`,
+                );
+            }
+        })
+        .its("0.contentDocument.body", { log: false })
+        .then(cy.wrap);
+});
