@@ -18,15 +18,31 @@ export { React, ReactDOM, DoenetViewer, DoenetEditor };
 
 export const version: string = STANDALONE_VERSION;
 
+type ViewerConfig = Record<string, any>;
+
+type CoordinatorOptions = {
+    strategy?: "dom-order" | "viewport-first";
+    timeoutMs?: number;
+};
+
 /**
- * Render DoenetViewer to a container element. If `doenetMLSource` is not provided,
- * it is assumed that `container` has a `<script type="text/doenetml">` child which
- * stores the source.
+ * Render a DoenetML viewer to a container element with optional parent coordination.
+ *
+ * @param container - DOM element to render the viewer into
+ * @param doenetMLSource - Optional DoenetML source code. If not provided, looks for a
+ *                         `<script type="text/doenetml">` child element in the container.
+ * @param config - Optional configuration including:
+ *                 - enableParentCoordination: Enable serialized initialization with parent coordinator
+ *                 - Other DoenetViewer configuration options
+ *
+ * When enableParentCoordination is true, the viewer will wait for initialization permission
+ * from a parent coordinator rather than initializing immediately. This enables serialized
+ * initialization when multiple DoenetML documents are loaded in iframes.
  */
 export function renderDoenetViewerToContainer(
     container: Element,
     doenetMLSource?: string,
-    config?: object,
+    config?: ViewerConfig,
 ) {
     if (!(container instanceof Element)) {
         throw new Error("Container must be an DOM element");
@@ -42,7 +58,8 @@ export function renderDoenetViewerToContainer(
         }
         doenetMLSource = doenetMLScript.innerHTML;
     }
-    // We read off all the flags from data attributes on the container element
+
+    // Read data attributes from the container element
     const attrs: Record<string, any> = {};
     for (const attr of container.attributes) {
         if (!attr.name.startsWith("data-doenet")) {
@@ -54,31 +71,179 @@ export function renderDoenetViewerToContainer(
         const value = normalizeBooleanAttr(attr.value);
         attrs[name] = value;
     }
-    const { addVirtualKeyboard, sendResizeEvents, ...flags } = attrs;
-    const resizeWatcher = new ResizeWatcher();
 
-    if (config && "flags" in config) {
-        Object.assign(flags, config.flags);
-        delete config.flags;
+    const {
+        addVirtualKeyboard,
+        sendResizeEvents,
+        enableParentCoordination,
+        prefixForIds: prefixForIdsFromAttrs,
+        ...flags
+    } = attrs;
+
+    const localConfig = { ...(config ?? {}) };
+    const configFlags = localConfig.flags ?? {};
+    const userInitializedCallback = localConfig.initializedCallback;
+    const userOnInit = localConfig.onInit;
+    delete localConfig.flags;
+    delete localConfig.initializedCallback;
+    delete localConfig.onInit;
+
+    const prefixForIds = localConfig.prefixForIds ?? prefixForIdsFromAttrs;
+    delete localConfig.prefixForIds;
+
+    const shouldCoordinate =
+        localConfig.enableParentCoordination ??
+        enableParentCoordination ??
+        false;
+
+    // Helper function to render the viewer
+    const renderViewer = (
+        initializedCallback:
+            | ((args: { activityId: string; docId: string }) => void)
+            | undefined = userInitializedCallback,
+    ) => {
+        const resizeWatcher = new ResizeWatcher();
+        ReactDOM.createRoot(container).render(
+            <DoenetViewer
+                {...localConfig}
+                prefixForIds={prefixForIds}
+                doenetML={doenetMLSource}
+                addVirtualKeyboard={addVirtualKeyboard}
+                flags={{ ...flags, ...configFlags }}
+                onInit={(r) => {
+                    if (sendResizeEvents) {
+                        resizeWatcher.watch(r);
+                    }
+                    userOnInit?.(r);
+                }}
+                initializedCallback={(args: {
+                    activityId: string;
+                    docId: string;
+                }) => {
+                    initializedCallback?.(args);
+                }}
+            />,
+        );
+    };
+
+    // Simple path: no coordination - render immediately
+    if (!shouldCoordinate) {
+        renderViewer();
+        return;
     }
 
-    ReactDOM.createRoot(container).render(
-        <DoenetViewer
-            doenetML={doenetMLSource}
-            addVirtualKeyboard={addVirtualKeyboard}
-            flags={flags}
-            onInit={(r) => {
-                if (sendResizeEvents) {
-                    resizeWatcher.watch(r);
+    // Coordination path: register with parent, wait for grant, then render
+    const isInIframe = window.self !== window.top;
+    if (!isInIframe) {
+        // Not in iframe, just render immediately
+        renderViewer();
+        return;
+    }
+
+    // Check if we can access parent (same origin)
+    try {
+        void window.parent.location.origin;
+    } catch {
+        // Cross-origin - can't coordinate
+        renderViewer();
+        return;
+    }
+
+    // Set up coordination with parent
+    const iframeId = `iframe_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
+    const parentOrigin = window.location.origin;
+    let observer: IntersectionObserver | null = null;
+    let initialVisibilityResolve: (() => void) | null = null;
+
+    const messageHandler = (event: MessageEvent) => {
+        if (event.origin !== parentOrigin) {
+            return;
+        }
+        const { type, iframeId: messageIframeId } = event.data || {};
+        if (type === "DOENET_GRANT" && messageIframeId === iframeId) {
+            window.removeEventListener("message", messageHandler);
+            if (observer) {
+                observer.disconnect();
+            }
+
+            // Wrap the initialized callback to send completion message
+            const wrappedInitializedCallback = (args: {
+                activityId: string;
+                docId: string;
+            }) => {
+                window.parent.postMessage(
+                    { type: "DOENET_COMPLETE", iframeId },
+                    parentOrigin,
+                );
+                userInitializedCallback?.(args);
+            };
+
+            // Render the viewer
+            renderViewer(wrappedInitializedCallback);
+        }
+    };
+
+    window.addEventListener("message", messageHandler);
+
+    // Set up IntersectionObserver to report visibility changes
+    // Capture initial callback before registering with parent
+    if (typeof IntersectionObserver !== "undefined") {
+        observer = new IntersectionObserver(
+            (entries) => {
+                for (const entry of entries) {
+                    const visible =
+                        entry.isIntersecting || entry.intersectionRatio > 0;
+
+                    // Capture initial callback only once
+                    if (initialVisibilityResolve) {
+                        initialVisibilityResolve();
+                        initialVisibilityResolve = null;
+                    }
+
+                    window.parent.postMessage(
+                        {
+                            type: "DOENET_VISIBILITY_CHANGED",
+                            iframeId,
+                            visible,
+                        },
+                        parentOrigin,
+                    );
                 }
-            }}
-            {...config}
-        />,
-    );
+            },
+            {
+                root: null,
+                rootMargin: "600px",
+                threshold: 0,
+            },
+        );
+        observer.observe(container);
+    }
+
+    // Register with parent after a delay to ensure parent listener is ready
+    // Also wait for initial IntersectionObserver callback to report visibility
+    // This handles the race condition where iframes load before coordinator is initialized
+    // The delay allows for various timing scenarios including CDN script loading
+    const registerPromise = new Promise<void>((resolve) => {
+        initialVisibilityResolve = resolve;
+        // Fallback timeout in case IntersectionObserver doesn't fire
+        window.setTimeout(resolve, 50);
+    });
+
+    registerPromise.then(() => {
+        window.setTimeout(() => {
+            window.parent.postMessage(
+                {
+                    type: "DOENET_REGISTER",
+                    iframeId,
+                },
+                parentOrigin,
+            );
+        }, 100);
+    });
 }
 
 /**
- * Render DoenetViewer to a container element. If `doenetMLSource` is not provided,
+ * Render DoenetEditor to a container element. If `doenetMLSource` is not provided,
  * it is assumed that `container` has a `<script type="text/doenetml">` child which
  * stores the source.
  */
@@ -142,8 +307,219 @@ function kebobCaseToCamelCase(str: string) {
     return str.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
 }
 
-// Expose renderDoenetViewerToContainer and renderDoenetEditorToContainer on the global object
+/**
+ * Initialize parent-window coordinator for serialized iframe initialization.
+ *
+ * Call this function in the parent window to manage initialization of DoenetML documents
+ * in child iframes. Child documents with enableParentCoordination enabled will wait for
+ * permission from this coordinator before rendering, enabling serialized initialization.
+ *
+ * @param options - Coordinator configuration:
+ *   - strategy: "dom-order" (default) to initialize iframes in DOM order,
+ *               "viewport-first" to prioritize visible iframes (then dom-order for rest)
+ *   - timeoutMs: Maximum wait time for an iframe to complete initialization (default: 30000ms)
+ *
+ * @example
+ * ```html
+ * <!-- Parent page with iframes -->
+ * <script src="doenet-standalone.js"></script>
+ * <script>
+ *   initializeDoenetParentCoordinator({
+ *     strategy: "viewport-first"
+ *   });
+ * </script>
+ * <iframe src="doc1.html"></iframe>
+ * <iframe src="doc2.html"></iframe>
+ * <iframe src="doc3.html"></iframe>
+ * ```
+ */
+export function initializeDoenetParentCoordinator(
+    options?: CoordinatorOptions,
+) {
+    const strategy = options?.strategy ?? "dom-order";
+    const timeoutMs = options?.timeoutMs ?? 30000;
+
+    type ChildInfo = {
+        window: Window;
+        domOrder: number;
+    };
+
+    const registeredChildren = new Map<string, ChildInfo>();
+    const registrationQueue: string[] = [];
+    const visibleSet = new Set<string>();
+    let activeChild: string | null = null;
+    let activeTimeoutId: number | null = null;
+
+    // Block granting temporarily to gather initial registrations
+    let awaitingInitialData = true;
+    let initialWaitScheduled = false;
+
+    // Helper function to find DOM order of an iframe by its window
+    const findDomOrder = (iframeWindow: Window): number => {
+        const iframes = document.querySelectorAll("iframe");
+        for (let i = 0; i < iframes.length; i++) {
+            if (iframes[i].contentWindow === iframeWindow) {
+                return i;
+            }
+        }
+        return -1;
+    };
+
+    // Helper to sort iframes by DOM order
+    const sortByDomOrder = (ids: string[]): string[] => {
+        return ids.slice().sort((idA, idB) => {
+            const orderA = registeredChildren.get(idA)?.domOrder ?? Infinity;
+            const orderB = registeredChildren.get(idB)?.domOrder ?? Infinity;
+            return orderA - orderB;
+        });
+    };
+
+    /**
+     * Attempts to grant initialization permission to the next iframe in queue.
+     * Applies initial wait delays to ensure all iframes register their DOM position,
+     * then selects next iframe based on strategy (viewport-first or dom-order).
+     */
+    const tryGrantNext = () => {
+        // Delay all grants until initial registrations are collected
+        if (awaitingInitialData) {
+            if (!initialWaitScheduled) {
+                initialWaitScheduled = true;
+                window.setTimeout(() => {
+                    awaitingInitialData = false;
+                    tryGrantNext();
+                }, 100);
+            }
+            return;
+        }
+
+        // Don't grant if someone is already active or queue is empty
+        if (activeChild !== null || registrationQueue.length === 0) {
+            return;
+        }
+
+        let nextChildId: string | null = null;
+
+        if (strategy === "viewport-first") {
+            // For viewport-first: prioritize visible iframes, sorted by DOM order
+            const visibleIds = registrationQueue.filter((id) => {
+                return visibleSet.has(id);
+            });
+
+            if (visibleIds.length > 0) {
+                const sortedVisible = sortByDomOrder(visibleIds);
+                nextChildId = sortedVisible[0];
+            }
+        }
+
+        // Fallback: select next by DOM order
+        if (!nextChildId) {
+            const sorted = sortByDomOrder(registrationQueue);
+            nextChildId = sorted[0] ?? null;
+        }
+
+        if (!nextChildId) {
+            return;
+        }
+
+        // Remove from queue
+        const queueIndex = registrationQueue.indexOf(nextChildId);
+        if (queueIndex !== -1) {
+            registrationQueue.splice(queueIndex, 1);
+        }
+
+        const childInfo = registeredChildren.get(nextChildId);
+        if (!childInfo) {
+            // Child info not found, try next
+            tryGrantNext();
+            return;
+        }
+
+        activeChild = nextChildId;
+
+        // Set timeout to handle stuck iframes
+        activeTimeoutId = window.setTimeout(() => {
+            if (activeChild === nextChildId) {
+                activeChild = null;
+                activeTimeoutId = null;
+                tryGrantNext();
+            }
+        }, timeoutMs);
+
+        childInfo.window.postMessage(
+            { type: "DOENET_GRANT", iframeId: nextChildId },
+            window.location.origin,
+        );
+    };
+
+    const handleMessage = (event: MessageEvent) => {
+        if (event.origin !== window.location.origin) {
+            return;
+        }
+
+        const { type, iframeId, visible } = event.data || {};
+        if (!iframeId) {
+            return;
+        }
+
+        if (type === "DOENET_REGISTER") {
+            // Store child info with document number and DOM order
+            if (!registeredChildren.has(iframeId)) {
+                const iframeWindow = event.source as Window;
+                const domOrder = findDomOrder(iframeWindow);
+                registeredChildren.set(iframeId, {
+                    window: iframeWindow,
+                    domOrder: domOrder,
+                });
+            }
+
+            // Add to registration queue if not already there
+            if (
+                !registrationQueue.includes(iframeId) &&
+                iframeId !== activeChild
+            ) {
+                registrationQueue.push(iframeId);
+            }
+
+            tryGrantNext();
+        } else if (type === "DOENET_VISIBILITY_CHANGED") {
+            if (visible) {
+                visibleSet.add(iframeId);
+            } else {
+                visibleSet.delete(iframeId);
+            }
+
+            // If strategy is viewport-first, re-evaluate queue
+            if (strategy === "viewport-first") {
+                tryGrantNext();
+            }
+        } else if (type === "DOENET_COMPLETE") {
+            // Clear timeout if this is the active child
+            if (activeChild === iframeId) {
+                if (activeTimeoutId !== null) {
+                    window.clearTimeout(activeTimeoutId);
+                    activeTimeoutId = null;
+                }
+                activeChild = null;
+            }
+
+            // Remove from queue if somehow still there
+            const index = registrationQueue.indexOf(iframeId);
+            if (index !== -1) {
+                registrationQueue.splice(index, 1);
+            }
+
+            tryGrantNext();
+        }
+    };
+
+    // Listen for coordination messages from child iframes
+    window.addEventListener("message", handleMessage);
+}
+
+// Expose all public functions on the global object for CDN usage
 // @ts-ignore
 window.renderDoenetViewerToContainer = renderDoenetViewerToContainer;
 // @ts-ignore
 window.renderDoenetEditorToContainer = renderDoenetEditorToContainer;
+// @ts-ignore
+window.initializeDoenetParentCoordinator = initializeDoenetParentCoordinator;
