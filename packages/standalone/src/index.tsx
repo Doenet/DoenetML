@@ -169,13 +169,13 @@ export function renderDoenetViewerToContainer(
 
     // Set up coordination with parent
     const iframeId = `iframe_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-    const parentOrigin = window.location.origin;
+    const childOrigin = window.location.origin;
     let observer: IntersectionObserver | null = null;
     let latestVisibility = false; // Track latest visibility state
     let isRegistered = false;
 
     const messageHandler = (event: MessageEvent) => {
-        if (event.origin !== parentOrigin) {
+        if (event.origin !== childOrigin) {
             return;
         }
         if (!event.data || typeof event.data !== "object") {
@@ -195,7 +195,7 @@ export function renderDoenetViewerToContainer(
             }) => {
                 window.parent.postMessage(
                     { type: "DOENET_COMPLETE", iframeId },
-                    parentOrigin,
+                    childOrigin,
                 );
                 userInitializedCallback?.(args);
             };
@@ -227,7 +227,7 @@ export function renderDoenetViewerToContainer(
                                 iframeId,
                                 visible,
                             },
-                            parentOrigin,
+                            childOrigin,
                         );
                     }
                 }
@@ -253,7 +253,7 @@ export function renderDoenetViewerToContainer(
                 iframeId,
                 visible: latestVisibility,
             },
-            parentOrigin,
+            childOrigin,
         );
     }, registrationDelayMs);
 }
