@@ -171,7 +171,10 @@ export function renderDoenetViewerToContainer(
         if (event.origin !== parentOrigin) {
             return;
         }
-        const { type, iframeId: messageIframeId } = event.data || {};
+        if (!event.data || typeof event.data !== "object") {
+            return;
+        }
+        const { type, iframeId: messageIframeId } = event.data;
         if (type === "DOENET_GRANT" && messageIframeId === iframeId) {
             window.removeEventListener("message", messageHandler);
             if (observer) {
@@ -476,8 +479,11 @@ export function initializeDoenetParentCoordinator(
         if (event.origin !== window.location.origin) {
             return;
         }
+        if (!event.data || typeof event.data !== "object") {
+            return;
+        }
 
-        const { type, iframeId, visible } = event.data || {};
+        const { type, iframeId, visible } = event.data;
         if (!iframeId) {
             return;
         }
