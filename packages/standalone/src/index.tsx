@@ -18,6 +18,8 @@ export { React, ReactDOM, DoenetViewer, DoenetEditor };
 
 export const version: string = STANDALONE_VERSION;
 
+const viewerRoots = new WeakMap<Element, ReactDOM.Root>();
+
 type ViewerConfig = Record<string, any>;
 
 type CoordinatorOptions = {
@@ -127,8 +129,18 @@ export function renderDoenetViewerToContainer(
             | ((args: { activityId: string; docId: string }) => void)
             | undefined = userInitializedCallback,
     ) => {
+        let root = viewerRoots.get(container);
+        if (!root) {
+            root = ReactDOM.createRoot(container);
+            viewerRoots.set(container, root);
+        } else {
+            console.warn(
+                "renderDoenetViewerToContainer called multiple times for the same container; reusing existing React root.",
+            );
+        }
+
         const resizeWatcher = new ResizeWatcher();
-        ReactDOM.createRoot(container).render(
+        root.render(
             <DoenetViewer
                 {...localConfig}
                 prefixForIds={prefixForIds}
@@ -493,6 +505,7 @@ export function initializeDoenetParentCoordinator(
         }
 
         const { type, iframeId, visible } = event.data;
+        const hasVisibleFlag = typeof visible === "boolean";
         if (!iframeId) {
             return;
         }
@@ -510,7 +523,7 @@ export function initializeDoenetParentCoordinator(
             }
 
             // Store initial visibility state from registration message
-            if (visible !== undefined) {
+            if (hasVisibleFlag) {
                 if (visible) {
                     visibleSet.add(iframeId);
                 } else {
@@ -529,6 +542,9 @@ export function initializeDoenetParentCoordinator(
 
             tryGrantNext();
         } else if (type === "DOENET_VISIBILITY_CHANGED") {
+            if (!hasVisibleFlag) {
+                return;
+            }
             if (visible) {
                 visibleSet.add(iframeId);
             } else {
@@ -563,8 +579,27 @@ export function initializeDoenetParentCoordinator(
         }
     };
 
+    const globalAny = window as any;
+    if (typeof globalAny.__doenetParentCoordinatorCleanup === "function") {
+        globalAny.__doenetParentCoordinatorCleanup();
+    }
+
+    const cleanup = () => {
+        window.removeEventListener("message", handleMessage);
+        if (activeTimeoutId !== null) {
+            window.clearTimeout(activeTimeoutId);
+            activeTimeoutId = null;
+        }
+        if (globalAny.__doenetParentCoordinatorCleanup === cleanup) {
+            globalAny.__doenetParentCoordinatorCleanup = null;
+        }
+    };
+
+    globalAny.__doenetParentCoordinatorCleanup = cleanup;
     // Listen for coordination messages from child iframes
     window.addEventListener("message", handleMessage);
+
+    return cleanup;
 }
 
 // Expose all public functions on the global object for CDN usage
