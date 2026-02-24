@@ -163,7 +163,9 @@ export function renderDoenetViewerToContainer(
     const iframeId = `iframe_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
     const parentOrigin = window.location.origin;
     let observer: IntersectionObserver | null = null;
-    let initialVisibilityResolve: (() => void) | null = null;
+    let initialVisibilityResolve: ((visible: boolean) => void) | null = null;
+    let latestVisibility = false; // Track latest visibility state
+    let isRegistered = false;
 
     const messageHandler = (event: MessageEvent) => {
         if (event.origin !== parentOrigin) {
@@ -196,7 +198,7 @@ export function renderDoenetViewerToContainer(
     window.addEventListener("message", messageHandler);
 
     // Set up IntersectionObserver to report visibility changes
-    // Capture initial callback before registering with parent
+    // Capture initial visibility state, track changes, then send updates after registration
     if (typeof IntersectionObserver !== "undefined") {
         observer = new IntersectionObserver(
             (entries) => {
@@ -204,20 +206,24 @@ export function renderDoenetViewerToContainer(
                     const visible =
                         entry.isIntersecting || entry.intersectionRatio > 0;
 
-                    // Capture initial callback only once
-                    if (initialVisibilityResolve) {
-                        initialVisibilityResolve();
-                        initialVisibilityResolve = null;
-                    }
+                    // Always update latest visibility state
+                    latestVisibility = visible;
 
-                    window.parent.postMessage(
-                        {
-                            type: "DOENET_VISIBILITY_CHANGED",
-                            iframeId,
-                            visible,
-                        },
-                        parentOrigin,
-                    );
+                    // Capture initial visibility state for registration message
+                    // Safe to call multiple times - only first call resolves the promise
+                    initialVisibilityResolve?.(visible);
+
+                    // Only send visibility updates after registration to ensure proper order
+                    if (isRegistered) {
+                        window.parent.postMessage(
+                            {
+                                type: "DOENET_VISIBILITY_CHANGED",
+                                iframeId,
+                                visible,
+                            },
+                            parentOrigin,
+                        );
+                    }
                 }
             },
             {
@@ -230,21 +236,25 @@ export function renderDoenetViewerToContainer(
     }
 
     // Register with parent after a delay to ensure parent listener is ready
-    // Also wait for initial IntersectionObserver callback to report visibility
+    // Also wait for initial IntersectionObserver callback to capture visibility
     // This handles the race condition where iframes load before coordinator is initialized
     // The delay allows for various timing scenarios including CDN script loading
-    const registerPromise = new Promise<void>((resolve) => {
+    const registerPromise = new Promise<boolean>((resolve) => {
         initialVisibilityResolve = resolve;
         // Fallback timeout in case IntersectionObserver doesn't fire
-        window.setTimeout(resolve, 50);
+        // Assume not visible if we can't determine
+        window.setTimeout(() => resolve(false), 50);
     });
 
-    registerPromise.then(() => {
+    registerPromise.then((initiallyVisible) => {
         window.setTimeout(() => {
+            isRegistered = true;
+            // Use latest visibility state in case it changed during the delay
             window.parent.postMessage(
                 {
                     type: "DOENET_REGISTER",
                     iframeId,
+                    visible: latestVisibility,
                 },
                 parentOrigin,
             );
@@ -482,6 +492,15 @@ export function initializeDoenetParentCoordinator(
                     domOrder: domOrder,
                 });
                 // Child registered
+            }
+
+            // Store initial visibility state from registration message
+            if (visible !== undefined) {
+                if (visible) {
+                    visibleSet.add(iframeId);
+                } else {
+                    visibleSet.delete(iframeId);
+                }
             }
 
             // Add to registration queue if not already there
