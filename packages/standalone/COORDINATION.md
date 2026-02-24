@@ -92,9 +92,9 @@ This ensures the parent is listening for `DOENET_REGISTER` messages when child f
 
 ## How It Works
 
-1. **Child Registration**: When a child iframe with `data-doenet-enable-parent-coordination="true"` loads, it registers with the parent. Visibility changes are reported separately.
+1. **Child Registration**: When a child iframe with `data-doenet-enable-parent-coordination="true"` loads, it registers with the parent after `registrationDelayMs` (default: 100ms). Visibility changes are reported separately.
 
-2. **Initial Wait**: The parent waits 100ms to collect registrations from all iframes. This ensures:
+2. **Initial Wait**: The parent waits `initialWaitMs` (default: 300ms) to collect registrations from all iframes. This ensures:
    - All DOM positions are captured
    - Selection logic can make informed decisions
 
@@ -109,21 +109,50 @@ This ensures the parent is listening for `DOENET_REGISTER` messages when child f
 ## Configuration Options
 
 ```javascript
+// Parent coordinator options
 initializeDoenetParentCoordinator({
     // Initialization strategy (default: "dom-order")
     strategy: "dom-order" | "viewport-first",
-    
+
     // Maximum time to wait for iframe to complete initialization (default: 30000ms)
     // If exceeded, automatically proceeds to next iframe
-    timeoutMs: 30000
+    timeoutMs: 30000,
+
+    // Time to wait for all iframes to register before granting (default: 300ms)
+    // Should be substantially larger (2-3x) than child registrationDelayMs
+    initialWaitMs: 300
 });
+
+// Child registration options (per iframe)
+// The source argument is optional; when omitted/undefined the DoenetML is read
+// from a <script type="text/doenetml"> child in the container.
+renderDoenetViewerToContainer(container, source, {
+    // Enable coordination (default: false)
+    enableParentCoordination: true,
+
+    // Delay before registering with parent (default: 100ms)
+    // Must be substantially smaller than parent's initialWaitMs
+    registrationDelayMs: 150,
+
+    // ...other DoenetViewer options
+});
+```
+
+These options can also be set via `data-doenet` attributes on the iframe child container:
+
+```html
+<div
+    class="doenetml-viewer"
+    data-doenet-enable-parent-coordination="true"
+    data-doenet-registration-delay-ms="150"
+></div>
 ```
 
 ## Edge Cases
 
 - **Unresponsive Iframe**: If an iframe fails to complete initialization, the parent waits up to `timeoutMs` before proceeding to the next iframe.
-- **Rapid Registration**: All registrations during the initial 100ms are captured and processed fairly.
-- **Late Registrations**: Iframes that register after the initial 100ms window will be queued and processed after currently-active iframe completes.
+- **Rapid Registration**: All registrations during the initial wait window are captured and processed fairly.
+- **Late Registrations**: Iframes that register after the initial wait window will be queued and processed after currently-active iframe completes.
 - **Visibility Changes**: When using viewport-first, visibility changes after registration are tracked and can cause re-prioritization of queued iframes.
 
 ## Backward Compatibility

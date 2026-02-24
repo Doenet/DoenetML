@@ -23,6 +23,7 @@ type ViewerConfig = Record<string, any>;
 type CoordinatorOptions = {
     strategy?: "dom-order" | "viewport-first";
     timeoutMs?: number;
+    initialWaitMs?: number;
 };
 
 /**
@@ -33,6 +34,9 @@ type CoordinatorOptions = {
  *                         `<script type="text/doenetml">` child element in the container.
  * @param config - Optional configuration including:
  *                 - enableParentCoordination: Enable serialized initialization with parent coordinator
+ *                 - registrationDelayMs: Delay before registering with parent coordinator (default: 100ms)
+ *                   Must be substantially smaller than parent's initialWaitMs to ensure registration
+ *                   completes before parent begins granting.
  *                 - Other DoenetViewer configuration options
  *
  * When enableParentCoordination is true, the viewer will wait for initialization permission
@@ -76,6 +80,7 @@ export function renderDoenetViewerToContainer(
         addVirtualKeyboard,
         sendResizeEvents,
         enableParentCoordination,
+        registrationDelayMs: registrationDelayMsFromAttrs,
         prefixForIds: prefixForIdsFromAttrs,
         ...flags
     } = attrs;
@@ -95,6 +100,9 @@ export function renderDoenetViewerToContainer(
         localConfig.enableParentCoordination ??
         enableParentCoordination ??
         false;
+
+    const registrationDelayMs =
+        localConfig.registrationDelayMs ?? registrationDelayMsFromAttrs ?? 100;
 
     // Auto-generate unique prefix if not explicitly provided and not coordinating.
     // Coordination enforces single document per iframe, so no collision risk.
@@ -163,7 +171,6 @@ export function renderDoenetViewerToContainer(
     const iframeId = `iframe_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
     const parentOrigin = window.location.origin;
     let observer: IntersectionObserver | null = null;
-    let initialVisibilityResolve: ((visible: boolean) => void) | null = null;
     let latestVisibility = false; // Track latest visibility state
     let isRegistered = false;
 
@@ -201,7 +208,7 @@ export function renderDoenetViewerToContainer(
     window.addEventListener("message", messageHandler);
 
     // Set up IntersectionObserver to report visibility changes
-    // Capture initial visibility state, track changes, then send updates after registration
+    // Updates latestVisibility in background, which is included in registration message
     if (typeof IntersectionObserver !== "undefined") {
         observer = new IntersectionObserver(
             (entries) => {
@@ -211,10 +218,6 @@ export function renderDoenetViewerToContainer(
 
                     // Always update latest visibility state
                     latestVisibility = visible;
-
-                    // Capture initial visibility state for registration message
-                    // Safe to call multiple times - only first call resolves the promise
-                    initialVisibilityResolve?.(visible);
 
                     // Only send visibility updates after registration to ensure proper order
                     if (isRegistered) {
@@ -239,30 +242,20 @@ export function renderDoenetViewerToContainer(
     }
 
     // Register with parent after a delay to ensure parent listener is ready
-    // Also wait for initial IntersectionObserver callback to capture visibility
+    // IntersectionObserver updates latestVisibility in the background
     // This handles the race condition where iframes load before coordinator is initialized
-    // The delay allows for various timing scenarios including CDN script loading
-    const registerPromise = new Promise<boolean>((resolve) => {
-        initialVisibilityResolve = resolve;
-        // Fallback timeout in case IntersectionObserver doesn't fire
-        // Assume not visible if we can't determine
-        window.setTimeout(() => resolve(false), 50);
-    });
-
-    registerPromise.then((initiallyVisible) => {
-        window.setTimeout(() => {
-            isRegistered = true;
-            // Use latest visibility state in case it changed during the delay
-            window.parent.postMessage(
-                {
-                    type: "DOENET_REGISTER",
-                    iframeId,
-                    visible: latestVisibility,
-                },
-                parentOrigin,
-            );
-        }, 100);
-    });
+    // registrationDelayMs should be substantially smaller than parent's initialWaitMs
+    window.setTimeout(() => {
+        isRegistered = true;
+        window.parent.postMessage(
+            {
+                type: "DOENET_REGISTER",
+                iframeId,
+                visible: latestVisibility,
+            },
+            parentOrigin,
+        );
+    }, registrationDelayMs);
 }
 
 /**
@@ -341,6 +334,9 @@ function kebobCaseToCamelCase(str: string) {
  *   - strategy: "dom-order" (default) to initialize iframes in DOM order,
  *               "viewport-first" to prioritize visible iframes (then dom-order for rest)
  *   - timeoutMs: Maximum wait time for an iframe to complete initialization (default: 30000ms)
+ *   - initialWaitMs: Time to wait for all iframes to register before granting (default: 300ms)
+ *     Should be substantially larger (2-3x) than child registrationDelayMs to ensure all
+ *     children have registered before granting begins.
  *
  * @example
  * ```html
@@ -361,6 +357,7 @@ export function initializeDoenetParentCoordinator(
 ) {
     const strategy = options?.strategy ?? "dom-order";
     const timeoutMs = options?.timeoutMs ?? 30000;
+    const initialWaitMs = options?.initialWaitMs ?? 300;
 
     type ChildInfo = {
         window: Window;
@@ -410,7 +407,7 @@ export function initializeDoenetParentCoordinator(
                 window.setTimeout(() => {
                     awaitingInitialData = false;
                     tryGrantNext();
-                }, 300);
+                }, initialWaitMs);
             }
             return;
         }
