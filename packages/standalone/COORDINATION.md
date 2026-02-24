@@ -83,7 +83,9 @@ initializeDoenetParentCoordinator({
 
 Perfect for pages where users may scroll to see content - visible content initializes first for a responsive feel.
 
-**Note**: Visibility is detected using an IntersectionObserver with a 600px rootMargin, meaning iframes are considered "visible" when they're within 600px of the viewport edges.
+**Note**: Visibility is detected using an IntersectionObserver with a rootMargin
+(default: 600px). Iframes are considered "visible" when they're within that margin
+of the viewport edges. This is configurable via `visibilityRootMargin`.
 
 ## Script Placement
 
@@ -134,6 +136,10 @@ renderDoenetViewerToContainer(container, source, {
     // Must be substantially smaller than parent's initialWaitMs
     registrationDelayMs: 150,
 
+    // IntersectionObserver rootMargin for visibility detection (default: "600px")
+    // Larger values treat near-viewport iframes as visible sooner
+    visibilityRootMargin: "400px",
+
     // ...other DoenetViewer options
 });
 ```
@@ -145,6 +151,7 @@ These options can also be set via `data-doenet` attributes on the iframe child c
     class="doenetml-viewer"
     data-doenet-enable-parent-coordination="true"
     data-doenet-registration-delay-ms="150"
+    data-doenet-visibility-root-margin="400px"
 ></div>
 ```
 

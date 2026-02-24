@@ -37,6 +37,8 @@ type CoordinatorOptions = {
  *                 - registrationDelayMs: Delay before registering with parent coordinator (default: 100ms)
  *                   Must be substantially smaller than parent's initialWaitMs to ensure registration
  *                   completes before parent begins granting.
+ *                 - visibilityRootMargin: IntersectionObserver rootMargin for visibility detection
+ *                   (default: "600px"). Larger values treat near-viewport iframes as visible sooner.
  *                 - Other DoenetViewer configuration options
  *
  * When enableParentCoordination is true, the viewer will wait for initialization permission
@@ -81,6 +83,7 @@ export function renderDoenetViewerToContainer(
         sendResizeEvents,
         enableParentCoordination,
         registrationDelayMs: registrationDelayMsFromAttrs,
+        visibilityRootMargin: visibilityRootMarginFromAttrs,
         prefixForIds: prefixForIdsFromAttrs,
         ...flags
     } = attrs;
@@ -95,6 +98,12 @@ export function renderDoenetViewerToContainer(
 
     let prefixForIds = localConfig.prefixForIds ?? prefixForIdsFromAttrs;
     delete localConfig.prefixForIds;
+
+    const visibilityRootMargin =
+        localConfig.visibilityRootMargin ??
+        visibilityRootMarginFromAttrs ??
+        "600px";
+    delete localConfig.visibilityRootMargin;
 
     const shouldCoordinate =
         localConfig.enableParentCoordination ??
@@ -234,7 +243,10 @@ export function renderDoenetViewerToContainer(
             },
             {
                 root: null,
-                rootMargin: "600px",
+                // Treat iframes as visible slightly before they enter the viewport
+                // to favor near-viewport content when using viewport-first.
+                // Defaults to "600px"; configurable via visibilityRootMargin.
+                rootMargin: visibilityRootMargin,
                 threshold: 0,
             },
         );
