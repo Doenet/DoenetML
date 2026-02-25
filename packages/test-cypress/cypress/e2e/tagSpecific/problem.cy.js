@@ -1191,38 +1191,66 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
     });
 
+    // Helper function to verify list item rendering with section numbers via CSS ::before
+    function verifyListItemSectionNumbers(
+        item1Id,
+        item2Id,
+        item1Text,
+        item2Text,
+    ) {
+        // Verify text content (no section numbers in text)
+        cy.get(`#${item1Id}`).should("have.text", item1Text);
+        cy.get(`#${item2Id}`).should("have.text", item2Text);
+
+        // Verify section numbers are rendered via CSS ::before pseudo-elements
+        cy.get(`#${item1Id}`).then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const before = win.getComputedStyle($el[0], "::before");
+            const content = before.getPropertyValue("content");
+            expect(content).to.equal('"1."');
+        });
+
+        cy.get(`#${item2Id}`).then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const before = win.getComputedStyle($el[0], "::before");
+            const content = before.getPropertyValue("content");
+            expect(content).to.equal('"2."');
+        });
+
+        // Introduction and conclusion should NOT have section numbers
+        cy.get("#intro").then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const before = win.getComputedStyle($el[0], "::before");
+            const content = before.getPropertyValue("content");
+            expect(content).to.be.oneOf(["none", '""', ""]);
+        });
+
+        cy.get("#conclusion").then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const before = win.getComputedStyle($el[0], "::before");
+            const content = before.getPropertyValue("content");
+            expect(content).to.be.oneOf(["none", '""', ""]);
+        });
+    }
+
     it("tasks render as list", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
                     doenetML: `
         <problem name="problem">
-            <introduction>List of tasks</introduction>
-            <task>Do this</task>
-            <task>Do that</task>
-            <conclusion>Finished</conclusion>
+            <introduction name="intro">List of tasks</introduction>
+            <task name="task1">Do this</task>
+            <task name="task2">Do that</task>
+            <conclusion name="conclusion">Finished</conclusion>
         </problem>
-
     `,
                 },
                 "*",
             );
         });
 
-        cy.get(cesc("#problem")).should(
-            "contain.text",
-            "Problem 1List of tasksDo thisDo thatFinished",
-        );
-
-        cy.get(cesc("#problem") + " ol > li:nth-child(1)").should(
-            "have.text",
-            "Do this",
-        );
-
-        cy.get(cesc("#problem") + " ol > li:nth-child(2)").should(
-            "have.text",
-            "Do that",
-        );
+        verifyListItemSectionNumbers("task1", "task2", "Do this", "Do that");
     });
 
     it("parts render as list", () => {
@@ -1231,32 +1259,18 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
                 {
                     doenetML: `
         <problem name="problem">
-            <introduction>List of parts</introduction>
-            <part>Do this</part>
-            <part>Do that</part>
-            <conclusion>Finished</conclusion>
+            <introduction name="intro">List of parts</introduction>
+            <part name="part1">Do this</part>
+            <part name="part2">Do that</part>
+            <conclusion name="conclusion">Finished</conclusion>
         </problem>
-
     `,
                 },
                 "*",
             );
         });
 
-        cy.get(cesc("#problem")).should(
-            "contain.text",
-            "Problem 1List of partsDo thisDo thatFinished",
-        );
-
-        cy.get(cesc("#problem") + " ol > li:nth-child(1)").should(
-            "have.text",
-            "Do this",
-        );
-
-        cy.get(cesc("#problem") + " ol > li:nth-child(2)").should(
-            "have.text",
-            "Do that",
-        );
+        verifyListItemSectionNumbers("part1", "part2", "Do this", "Do that");
     });
 
     it("problems render children as list", () => {
@@ -1264,11 +1278,11 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             win.postMessage(
                 {
                     doenetML: `
-        <problems name="problem">
-            <introduction>List of problems</introduction>
-            <part>Do this</part>
-            <part>Do that</part>
-            <conclusion>Finished</conclusion>
+        <problems name="problems">
+            <introduction name="intro">List of problems</introduction>
+            <problem name="problem1">Do this</problem>
+            <problem name="problem2">Do that</problem>
+            <conclusion name="conclusion">Finished</conclusion>
         </problems>
 
     `,
@@ -1277,18 +1291,10 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        cy.get(cesc("#problem")).should(
-            "contain.text",
-            "Problems 1List of problemsDo thisDo thatFinished",
-        );
-
-        cy.get(cesc("#problem") + " ol > li:nth-child(1)").should(
-            "have.text",
+        verifyListItemSectionNumbers(
+            "problem1",
+            "problem2",
             "Do this",
-        );
-
-        cy.get(cesc("#problem") + " ol > li:nth-child(2)").should(
-            "have.text",
             "Do that",
         );
     });
