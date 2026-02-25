@@ -1,5 +1,5 @@
 // @ts-nocheck
-import React, { useRef } from "react";
+import React, { useRef, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
     faCheck,
@@ -31,6 +31,16 @@ export default React.memo(function Section(props) {
 
     const ref = useRef(null);
 
+    // Determine if this section will have a title/heading
+    // Used for dependency tracking in useEffect
+    // Title exists if there's a titleChildName OR if there's SVs.title and it's not a list item
+    // (list items only use SVs.title as a fallback when titleChildName doesn't exist,
+    // but the logic at line ~233 prevents this: "} else if (!SVs.isListItem) { title = SVs.title; }")
+    const hasTitle = !!SVs.titleChildName || (!!SVs.title && !SVs.isListItem);
+
+    // Declare heading variable early (assigned later in the component)
+    let heading = null;
+
     // Helper function to generate CSS for section number ::before pseudo-element
     // Used for list-item sections to display hanging section numbers
     const getSectionNumberStyles = (hasHeading: boolean) => {
@@ -46,10 +56,11 @@ export default React.memo(function Section(props) {
             `;
         } else {
             // Without a heading, use absolute positioning to place number in hanging indent area
+            // Use same width as with-heading case to ensure period alignment
             return `
                 position: absolute;
                 left: ${BOX_PADDING};
-                right: calc(100% - ${LIST_ITEM_INDENT} + ${LIST_ITEM_SPACING});
+                width: calc(${LIST_ITEM_INDENT} - ${LIST_ITEM_SPACING});
                 text-align: right;
             `;
         }
@@ -113,6 +124,103 @@ export default React.memo(function Section(props) {
         }
     };
 
+    // Inject dynamic CSS for list-item section numbers into document head
+    // This prevents inline <style> tags from interfering with text content in tests
+    useEffect(() => {
+        if (!SVs.isListItem) {
+            return;
+        }
+
+        // Create a unique style element ID for this section
+        const styleId = `section-list-item-styles-${id}`;
+
+        // Remove any existing style element for this section
+        const existingStyle = document.getElementById(styleId);
+        if (existingStyle) {
+            existingStyle.remove();
+        }
+
+        // Create new style element
+        const styleElement = document.createElement("style");
+        styleElement.id = styleId;
+
+        // Build CSS rules based on section configuration
+        const cssRules = [];
+
+        // For non-boxed sections with heading wrapper
+        if (!SVs.collapsible && !SVs.boxed && hasTitle) {
+            cssRules.push(`
+                #${id}-heading-wrapper::before {
+                    content: "${SVs.sectionNumber}.";
+                    display: inline-block;
+                    width: calc(${LIST_ITEM_INDENT} - ${LIST_ITEM_SPACING});
+                    margin-left: calc(-1 * ${LIST_ITEM_INDENT});
+                    margin-right: ${LIST_ITEM_SPACING};
+                    text-align: right;
+                    flex-shrink: 0;
+                }
+            `);
+        }
+
+        // For non-boxed sections without heading
+        if (!SVs.collapsible && !SVs.boxed && !hasTitle) {
+            cssRules.push(`
+                #${id}::before {
+                    content: "${SVs.sectionNumber}.";
+                    position: absolute;
+                    left: -${LIST_ITEM_INDENT};
+                    width: calc(${LIST_ITEM_INDENT} - ${LIST_ITEM_SPACING});
+                    text-align: right;
+                }
+            `);
+        }
+
+        // For collapsible boxed sections
+        if (SVs.collapsible) {
+            const headingBoxClassName = `section-heading-${id}`;
+            cssRules.push(`
+                #${id} .${headingBoxClassName}::before {
+                    content: "${SVs.sectionNumber}.";
+                    text-align: right;
+                    ${getSectionNumberStyles(hasTitle)}
+                }
+            `);
+        }
+
+        // For static boxed sections
+        if (SVs.boxed && !SVs.collapsible) {
+            const headingBoxClassName = `section-heading-${id}`;
+            cssRules.push(`
+                #${id} .${headingBoxClassName}::before {
+                    content: "${SVs.sectionNumber}.";
+                    text-align: right;
+                    ${getSectionNumberStyles(hasTitle)}
+                }
+            `);
+        }
+
+        // Add CSS rules to style element and append to head
+        if (cssRules.length > 0) {
+            styleElement.textContent = cssRules.join("\n");
+            document.head.appendChild(styleElement);
+        }
+
+        // Cleanup: remove style element when component unmounts or dependencies change
+        return () => {
+            const style = document.getElementById(styleId);
+            if (style) {
+                style.remove();
+            }
+        };
+    }, [
+        SVs.isListItem,
+        SVs.sectionNumber,
+        SVs.collapsible,
+        SVs.boxed,
+        hasTitle,
+        id,
+    ]);
+
     useRecordVisibilityChanges(ref, callAction, actions);
 
     if (SVs.hidden) {
@@ -155,7 +263,6 @@ export default React.memo(function Section(props) {
         title = SVs.title;
     }
 
-    let heading = null;
     let headingId = id + "_title";
 
     if (SVs.collapsible) {
@@ -245,39 +352,7 @@ export default React.memo(function Section(props) {
         checkWorkComponent = <div>{checkWorkComponent}</div>;
     }
 
-    if (SVs.asList) {
-        // If `asList` is specified, then render all children,
-        // except for possibly a beginning introduction or ending conclusion,
-        // as a list.
-
-        children = children.filter((child) => child !== null);
-
-        const numChildren = children.length;
-        let firstInd = SVs.startsWithIntroduction ? 1 : 0;
-        let lastInd = SVs.endsWithConclusion
-            ? numChildren - 2
-            : numChildren - 1;
-
-        const newChildren = [];
-
-        if (SVs.startsWithIntroduction) {
-            newChildren.push(children[0]);
-        }
-
-        newChildren.push(
-            <ol key="list">
-                {children.slice(firstInd, lastInd + 1).map((child) => (
-                    <li key={child.key}>{child}</li>
-                ))}
-            </ol>,
-        );
-
-        if (SVs.endsWithConclusion) {
-            newChildren.push(children[numChildren - 1]);
-        }
-
-        children = newChildren;
-    } else if (SVs._compositeReplacementActiveRange) {
+    if (SVs._compositeReplacementActiveRange) {
         children = addCommasForCompositeRanges({
             children,
             compositeReplacementActiveRange:
@@ -302,17 +377,6 @@ export default React.memo(function Section(props) {
                         position: "relative",
                     }}
                 >
-                    <style>{`
-                        #${id}-heading-wrapper::before {
-                            content: "${SVs.sectionNumber}.";
-                            display: inline-block;
-                            width: calc(${LIST_ITEM_INDENT} - ${LIST_ITEM_SPACING});
-                            margin-left: calc(-1 * ${LIST_ITEM_INDENT});
-                            margin-right: ${LIST_ITEM_SPACING};
-                            text-align: right;
-                            flex-shrink: 0;
-                        }
-                    `}</style>
                     {heading}
                 </div>
             ) : (
@@ -350,15 +414,6 @@ export default React.memo(function Section(props) {
                     marginTop: "24px",
                 }}
             >
-                {SVs.isListItem && (
-                    <style>{`
-                        #${id} .${headingBoxClassName}::before {
-                            content: "${SVs.sectionNumber}.";
-                            text-align: right;
-                            ${getSectionNumberStyles(!!heading)}
-                        }
-                    `}</style>
-                )}
                 <div
                     className={headingBoxClassName}
                     style={headingBoxStyle}
@@ -414,15 +469,6 @@ export default React.memo(function Section(props) {
                     marginTop: "24px",
                 }}
             >
-                {SVs.isListItem && (
-                    <style>{`
-                        #${id} .${headingBoxClassName}::before {
-                            content: "${SVs.sectionNumber}.";
-                            text-align: right;
-                            ${getSectionNumberStyles(!!heading)}
-                        }
-                    `}</style>
-                )}
                 <div className={headingBoxClassName} style={headingBoxStyle}>
                     {heading ||
                         (SVs.isListItem ? (
@@ -452,26 +498,7 @@ export default React.memo(function Section(props) {
             marginLeft: LIST_ITEM_INDENT,
         };
 
-        const listItemContent = (
-            <>
-                {/* Only add ::before for section number if there's no heading
-                    (headings handle their own section numbers via wrapper) */}
-                {!heading && (
-                    <style>{`
-                        #${id}::before {
-                            content: "${SVs.sectionNumber}.";
-                            position: absolute;
-                            left: -${LIST_ITEM_INDENT};
-                            width: calc(${LIST_ITEM_INDENT} - ${LIST_ITEM_SPACING});
-                            text-align: right;
-                        }
-                    `}</style>
-                )}
-                {content}
-            </>
-        );
-
-        return renderContainer(listItemContent, containerStyle);
+        return renderContainer(content, containerStyle);
     }
 
     // Render all other sections (non-list-item or boxed sections)
