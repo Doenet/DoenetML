@@ -600,10 +600,12 @@ export class Derivative extends FunctionBaseOperator {
                                 for (let comp = 0; comp < nComponents; comp++) {
                                     let valComp = value.get_component(comp);
                                     for (let variable of dependencyValues.derivVariables) {
-                                        valComp = valComp.derivative(
-                                            variable.subscripts_to_strings()
-                                                .tree,
-                                        );
+                                        valComp = valComp
+                                            .normalize_applied_functions()
+                                            .derivative(
+                                                variable.subscripts_to_strings()
+                                                    .tree,
+                                            );
                                     }
                                     derivComps.push(valComp.tree);
                                 }
