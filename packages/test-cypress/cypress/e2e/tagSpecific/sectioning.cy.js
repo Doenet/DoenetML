@@ -780,7 +780,7 @@ describe("Sectioning Tag Tests", { tags: ["@group4"] }, function () {
             "decimal",
         );
 
-        cy.get(cesc("#exercises") + " li")
+        cy.get(cesc("#exercises") + " article")
             .eq(0)
             .should(
                 "contain.text",
@@ -849,7 +849,7 @@ describe("Sectioning Tag Tests", { tags: ["@group4"] }, function () {
             "decimal",
         );
 
-        cy.get(cesc("#exercises") + " li")
+        cy.get(cesc("#exercises") + " article")
             .eq(0)
             .should(
                 "contain.text",

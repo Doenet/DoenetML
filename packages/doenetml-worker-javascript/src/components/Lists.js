@@ -84,10 +84,10 @@ export class Ol extends BlockComponent {
                     attributeName: "level",
                     variableNames: ["value"],
                 },
-                sectionAncestorInAList: {
+                sectionAncestorIsListItem: {
                     dependencyType: "ancestor",
                     componentType: "_sectioningComponent",
-                    variableNames: ["inAList"],
+                    variableNames: ["isListItem"],
                 },
             }),
             definition({ dependencyValues }) {
@@ -98,8 +98,8 @@ export class Ol extends BlockComponent {
                         dependencyValues.ancestorLevel?.stateValues.level;
                     if (
                         !(ancestorLevel > 0) &&
-                        dependencyValues.sectionAncestorInAList?.stateValues
-                            .inAList
+                        dependencyValues.sectionAncestorIsListItem?.stateValues
+                            .isListItem
                     ) {
                         level = 2;
                     } else {
