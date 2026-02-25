@@ -699,6 +699,99 @@ describe("Function Operator tag tests @group1", async () => {
         ).be.true;
     });
 
+    it("derivative of inverse trig functions", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <function name="f1">arcsin(x)</function>
+    <function name="f1a">asin(x)</function>
+    <function name="f2">arccos(x)</function>
+    <function name="f2a">acos(x)</function>
+    <function name="f3">arctan(x)</function>
+    <function name="f3a">atan(x)</function>
+    <function name="f4">arccot(x)</function>
+    <function name="f4a">acot(x)</function>
+    <function name="f5">arcsec(x)</function>
+    <function name="f5a">asec(x)</function>
+    <function name="f6">arccsc(x)</function>
+    <function name="f6a">acsc(x)</function>
+    <derivative name="d1">$f1</derivative>
+    <derivative name="d1a">$f1a</derivative>
+    <derivative name="d2">$f2</derivative>
+    <derivative name="d2a">$f2a</derivative>
+    <derivative name="d3">$f3</derivative>
+    <derivative name="d3a">$f3a</derivative>
+    <derivative name="d4">$f4</derivative>
+    <derivative name="d4a">$f4a</derivative>
+    <derivative name="d5">$f5</derivative>
+    <derivative name="d5a">$f5a</derivative>
+    <derivative name="d6">$f6</derivative>
+    <derivative name="d6a">$f6a</derivative>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("d1")
+            ].stateValues.formula.equals(me.fromText("1/sqrt(1-x^2)")),
+        ).be.true;
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("d1a")
+            ].stateValues.formula.equals(me.fromText("1/sqrt(1-x^2)")),
+        ).be.true;
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("d2")
+            ].stateValues.formula.equals(me.fromText("-1/sqrt(1-x^2)")),
+        ).be.true;
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("d2a")
+            ].stateValues.formula.equals(me.fromText("-1/sqrt(1-x^2)")),
+        ).be.true;
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("d3")
+            ].stateValues.formula.equals(me.fromText("1/(1+x^2)")),
+        ).be.true;
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("d3a")
+            ].stateValues.formula.equals(me.fromText("1/(1+x^2)")),
+        ).be.true;
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("d4")
+            ].stateValues.formula.equals(me.fromText("-1/(1+x^2)")),
+        ).be.true;
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("d4a")
+            ].stateValues.formula.equals(me.fromText("-1/(1+x^2)")),
+        ).be.true;
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("d5")
+            ].stateValues.formula.equals(me.fromText("1/(x sqrt(x^2-1))")),
+        ).be.true;
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("d5a")
+            ].stateValues.formula.equals(me.fromText("1/(x sqrt(x^2-1))")),
+        ).be.true;
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("d6")
+            ].stateValues.formula.equals(me.fromText("-1/(x sqrt(x^2-1))")),
+        ).be.true;
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("d6a")
+            ].stateValues.formula.equals(me.fromText("-1/(x sqrt(x^2-1))")),
+        ).be.true;
+    });
+
     it("specifying derivative variables of a function", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
