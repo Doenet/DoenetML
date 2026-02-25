@@ -28,7 +28,7 @@ export default React.memo(function Section(props) {
     const LIST_ITEM_SPACING = "0.3em"; // Space between section number and following text
     const BOX_PADDING = "6px"; // Standard padding for boxed sections
     const EMPTY_HEADING_MIN_HEIGHT = "1.5em"; // Min height for empty heading box with section number
-    
+
     const ref = useRef(null);
 
     // Helper function to generate CSS for section number ::before pseudo-element
@@ -95,9 +95,12 @@ export default React.memo(function Section(props) {
     };
 
     // Helper function to render the container element based on containerTag
-    const renderContainer = (content: React.ReactNode, style: React.CSSProperties) => {
+    const renderContainer = (
+        content: React.ReactNode,
+        style: React.CSSProperties,
+    ) => {
         const props = { id, style, ref };
-        
+
         switch (SVs.containerTag) {
             case "aside":
                 return <aside {...props}>{content}</aside>;
@@ -291,7 +294,14 @@ export default React.memo(function Section(props) {
                 that positions the section number using ::before pseudo-element. This achieves
                 baseline alignment between the section number and the heading text. */}
             {SVs.isListItem && !SVs.collapsible && !SVs.boxed && heading ? (
-                <div id={`${id}-heading-wrapper`} style={{ display: "flex", alignItems: "baseline", position: "relative" }}>
+                <div
+                    id={`${id}-heading-wrapper`}
+                    style={{
+                        display: "flex",
+                        alignItems: "baseline",
+                        position: "relative",
+                    }}
+                >
                     <style>{`
                         #${id}-heading-wrapper::before {
                             content: "${SVs.sectionNumber}.";
@@ -305,7 +315,9 @@ export default React.memo(function Section(props) {
                     `}</style>
                     {heading}
                 </div>
-            ) : heading}
+            ) : (
+                heading
+            )}
             {children}
             {checkWorkComponent}
         </>
@@ -326,10 +338,10 @@ export default React.memo(function Section(props) {
                 </div>
             );
         }
-        
+
         const headingBoxStyle = getHeadingBoxStyle(true);
         const headingBoxClassName = `section-heading-${id}`;
-        
+
         content = (
             <div
                 style={{
@@ -368,22 +380,32 @@ export default React.memo(function Section(props) {
                         })
                     }
                 >
-                    {heading || (SVs.isListItem ? <span style={{ minHeight: EMPTY_HEADING_MIN_HEIGHT, display: "inline-block" }}>&nbsp;</span> : null)}
+                    {heading ||
+                        (SVs.isListItem ? (
+                            <span
+                                style={{
+                                    minHeight: EMPTY_HEADING_MIN_HEIGHT,
+                                    display: "inline-block",
+                                }}
+                            >
+                                &nbsp;
+                            </span>
+                        ) : null)}
                 </div>
                 {innerContent}
             </div>
         );
     } else if (SVs.boxed) {
         const headingBoxStyle = getHeadingBoxStyle(false);
-        
+
         const contentDivStyle = {
             display: "block",
             padding: BOX_PADDING,
             ...(SVs.isListItem && { paddingLeft: LIST_ITEM_INDENT }),
         };
-        
+
         const headingBoxClassName = `section-heading-${id}`;
-        
+
         content = (
             <div
                 style={{
@@ -402,7 +424,17 @@ export default React.memo(function Section(props) {
                     `}</style>
                 )}
                 <div className={headingBoxClassName} style={headingBoxStyle}>
-                    {heading || (SVs.isListItem ? <span style={{ minHeight: EMPTY_HEADING_MIN_HEIGHT, display: "inline-block" }}>&nbsp;</span> : null)}
+                    {heading ||
+                        (SVs.isListItem ? (
+                            <span
+                                style={{
+                                    minHeight: EMPTY_HEADING_MIN_HEIGHT,
+                                    display: "inline-block",
+                                }}
+                            >
+                                &nbsp;
+                            </span>
+                        ) : null)}
                 </div>
                 <div style={contentDivStyle}>
                     {children}
@@ -419,7 +451,7 @@ export default React.memo(function Section(props) {
             position: "relative",
             marginLeft: LIST_ITEM_INDENT,
         };
-        
+
         const listItemContent = (
             <>
                 {/* Only add ::before for section number if there's no heading
@@ -438,10 +470,10 @@ export default React.memo(function Section(props) {
                 {content}
             </>
         );
-        
+
         return renderContainer(listItemContent, containerStyle);
     }
-    
+
     // Render all other sections (non-list-item or boxed sections)
     return renderContainer(content, { margin: "12px 0" });
 });
