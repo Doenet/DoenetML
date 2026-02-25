@@ -1161,7 +1161,7 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
                     dependencyType: "stateVariable",
                     variableName: "isListItem",
                 },
-                countAmongSiblingsisListItem: {
+                countAmongSiblingsForListItem: {
                     dependencyType: "countAmongSiblings",
                     componentType: "_sectioningComponent",
                     includeInheritedComponentTypes: true,
@@ -1171,7 +1171,7 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
                 let enumeration = [];
                 if (dependencyValues.isListItem) {
                     enumeration.push(
-                        dependencyValues.countAmongSiblingsisListItem,
+                        dependencyValues.countAmongSiblingsForListItem,
                     );
                 } else {
                     if (
