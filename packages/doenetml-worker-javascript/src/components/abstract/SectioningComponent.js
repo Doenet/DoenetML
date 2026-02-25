@@ -84,8 +84,10 @@ export class SectioningComponent extends BlockComponent {
 
         attributes.asList = {
             createComponentOfType: "boolean",
-            createStateVariable: "asListPrelim",
+            createStateVariable: "asList",
             defaultValue: false,
+            public: true,
+            forRenderer: true,
         };
 
         attributes.level = {
@@ -173,64 +175,11 @@ export class SectioningComponent extends BlockComponent {
             returnScoredSectionStateVariableDefinition(),
         );
 
-        // Check if any children of the section are flagged with `forceList`
-        // (currently `<task>` and `<part>` children),
-        stateVariableDefinitions.haveForceListChildren = {
-            returnDependencies: () => ({
-                children: {
-                    dependencyType: "child",
-                    childGroups: ["anything"],
-                    variableNames: ["forceList"],
-                    variablesOptional: true,
-                },
-            }),
-            definition({ dependencyValues }) {
-                const haveForceListChildren =
-                    dependencyValues.children.findIndex(
-                        (child) => child.stateValues?.forceList,
-                    ) !== -1;
-
-                return { setValue: { haveForceListChildren } };
-            },
-        };
-
-        stateVariableDefinitions.asList = {
-            forRenderer: true,
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "boolean",
-            },
-            returnDependencies: () => ({
-                asListPrelim: {
-                    dependencyType: "stateVariable",
-                    variableName: "asListPrelim",
-                },
-                haveForceListChildren: {
-                    dependencyType: "stateVariable",
-                    variableName: "haveForceListChildren",
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        asList:
-                            dependencyValues.asListPrelim ||
-                            dependencyValues.haveForceListChildren,
-                    },
-                };
-            },
-        };
-
-        // forceList will be set for `<task>` and `<part>`.
-        stateVariableDefinitions.forceList = {
-            returnDependencies: () => ({}),
-            definition: () => ({ setValue: { forceList: false } }),
-        };
-
-        stateVariableDefinitions.inAList = {
+        // For most components, isListItem will be set to always be true for `<task>` and `<part>`.
+        stateVariableDefinitions.isListItem = {
             forRenderer: true,
             returnDependencies: () => ({
-                parentIsAsList: {
+                parentAsList: {
                     dependencyType: "parentStateVariable",
                     variableName: "asList",
                 },
@@ -238,14 +187,14 @@ export class SectioningComponent extends BlockComponent {
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        inAList: Boolean(dependencyValues.parentIsAsList),
+                        isListItem: Boolean(dependencyValues.parentAsList),
                     },
                 };
             },
         };
 
         stateVariableDefinitions.enumeration = {
-            stateVariablesDeterminingDependencies: ["inAList"],
+            stateVariablesDeterminingDependencies: ["isListItem"],
             additionalStateVariablesDefined: [
                 {
                     variableName: "sectionNumber",
@@ -253,18 +202,19 @@ export class SectioningComponent extends BlockComponent {
                     shadowingInstructions: {
                         createComponentOfType: "text",
                     },
+                    forRenderer: true,
                 },
             ],
             mustEvaluate: true, // must evaluate to make sure all counters are accounted for
             returnDependencies: ({ stateValues }) => {
                 let dependencies = {
-                    inAList: {
+                    isListItem: {
                         dependencyType: "stateVariable",
-                        variableName: "inAList",
+                        variableName: "isListItem",
                     },
                 };
 
-                if (stateValues.inAList) {
+                if (stateValues.isListItem) {
                     dependencies.countAmongSiblings = {
                         dependencyType: "countAmongSiblings",
                         componentType: "_sectioningComponent",
@@ -280,7 +230,7 @@ export class SectioningComponent extends BlockComponent {
                 return dependencies;
             },
             definition({ dependencyValues }) {
-                if (dependencyValues.inAList) {
+                if (dependencyValues.isListItem) {
                     let sectionNumber = dependencyValues.countAmongSiblings;
                     let enumeration = [sectionNumber];
                     return { setValue: { enumeration, sectionNumber } };
@@ -1189,6 +1139,7 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
                     shadowingInstructions: {
                         createComponentOfType: "text",
                     },
+                    forRenderer: true,
                 },
             ],
             returnDependencies: () => ({
@@ -1206,11 +1157,11 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
                     dependencyType: "stateVariable",
                     variableName: "includeParentNumber",
                 },
-                inAList: {
+                isListItem: {
                     dependencyType: "stateVariable",
-                    variableName: "inAList",
+                    variableName: "isListItem",
                 },
-                countAmongSiblingsInAList: {
+                countAmongSiblingsisListItem: {
                     dependencyType: "countAmongSiblings",
                     componentType: "_sectioningComponent",
                     includeInheritedComponentTypes: true,
@@ -1218,9 +1169,9 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
             }),
             definition({ dependencyValues }) {
                 let enumeration = [];
-                if (dependencyValues.inAList) {
+                if (dependencyValues.isListItem) {
                     enumeration.push(
-                        dependencyValues.countAmongSiblingsInAList,
+                        dependencyValues.countAmongSiblingsisListItem,
                     );
                 } else {
                     if (
@@ -1268,6 +1219,7 @@ export class UnnumberedSectioningComponent extends SectioningComponent {
                     shadowingInstructions: {
                         createComponentOfType: "text",
                     },
+                    forRenderer: true,
                 },
             ],
             returnDependencies: () => ({}),

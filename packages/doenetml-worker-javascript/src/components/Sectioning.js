@@ -233,8 +233,8 @@ export class Part extends SectioningComponentNumberWithSiblings {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        stateVariableDefinitions.forceList.definition = () => ({
-            setValue: { forceList: true },
+        stateVariableDefinitions.isListItem.definition = () => ({
+            setValue: { isListItem: true },
         });
 
         stateVariableDefinitions.containerTag.definition = () => ({
