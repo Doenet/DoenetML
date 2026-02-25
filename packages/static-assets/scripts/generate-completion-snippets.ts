@@ -454,6 +454,15 @@ const COMPLETION_SNIPPETS: Record<string, CompletionSnippet> = {
 </table>`,
         description: "Table with tabular template",
     },
+    "video-watched-credit": {
+        element: "video",
+        snippet: `
+<video name="video1" youtube="" ></video>
+<answer name="video1Watched" type="videoWatched" video="$video1" />
+
+`,
+        description: "Video that gives credit when watched",
+    },
 };
 
 const __dirname = path.dirname(new URL(import.meta.url).pathname);

@@ -1,17 +1,17 @@
 {
     "multiple-choice-answer": {
         "element": "answer",
-        "snippet": "\n<answer name=\"mcq\" inline=\"false\" shuffleOrder=\"false\">\n  <choice credit=\"1\"></choice>\n  <choice></choice>\n  <choice></choice>\n  <choice></choice>\n  <choice></choice>\n</answer>",
+        "snippet": "\n<answer name=\"mcq\" inline=\"false\" shuffleOrder=\"false\">\n  <label></label>\n  <choice credit=\"1\"></choice>\n  <choice></choice>\n  <choice></choice>\n  <choice></choice>\n  <choice></choice>\n</answer>",
         "description": "Multiple choice answer template"
     },
     "multiple-choice-select-multiple-answer": {
         "element": "answer",
-        "snippet": "\n<answer name=\"mcq\" selectMultiple inline=\"false\" shuffleOrder=\"false\">\n  <choice credit=\"1\"></choice>\n  <choice credit=\"1\"></choice>\n  <choice></choice>\n  <choice></choice>\n  <choice></choice>\n</answer>",
+        "snippet": "\n<answer name=\"mcq\" selectMultiple inline=\"false\" shuffleOrder=\"false\">\n  <label></label>\n  <choice credit=\"1\"></choice>\n  <choice credit=\"1\"></choice>\n  <choice></choice>\n  <choice></choice>\n  <choice></choice>\n</answer>",
         "description": "Multiple choice select-multiple answer template"
     },
     "if-at-(immediate-feedback-assessment-technique)-answer": {
         "element": "answer",
-        "snippet": "\n<answer name=\"ifat\" disableWrongChoices creditByAttempt=\"1 0.7 0.5\" disableAfterCorrect shuffleOrder=\"false\">\n  <choice credit=\"1\"></choice>\n  <choice></choice>\n  <choice></choice>\n  <choice></choice>\n  <choice></choice>\n</answer>",
+        "snippet": "\n<answer name=\"ifat\" disableWrongChoices creditByAttempt=\"1 0.7 0.5\" disableAfterCorrect shuffleOrder=\"false\">\n  <label></label>\n  <choice credit=\"1\"></choice>\n  <choice></choice>\n  <choice></choice>\n  <choice></choice>\n  <choice></choice>\n</answer>",
         "description": "IF-AT (Immediate Feedback Assessment Technique) answer template"
     },
     "pretzel-06": {
@@ -38,5 +38,10 @@
         "element": "table",
         "snippet": "\n<table name=\"table\">\n  <title></title>\n  <tabular>\n    <row header>\n      <cell></cell>\n      <cell></cell>\n    </row>\n    <row>\n      <cell></cell>\n      <cell></cell>\n    </row>\n  </tabular>\n</table>",
         "description": "Table with tabular template"
+    },
+    "video-credit achieved": {
+        "element": "video",
+        "snippet": "\n<video name=\"video1\" youtube=\"\" ></video>\n<p>Video credit achieved: \n  <number displayDecimals=\"1\">$video1.fractionWatched*100</number>%</p>\n<answer hide name=\"video1Credit\">\n  <award credit=\"$video1.fractionWatched\">\n    <when>true</when>\n  </award>\n</answer>\n<callAction triggerWith=\"$video1\" target=\"$video1Credit\" actionName=\"submitAnswer\" />\n",
+        "description": "Video with credit achieved template"
     }
 }
