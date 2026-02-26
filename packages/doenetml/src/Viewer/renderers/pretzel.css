@@ -41,16 +41,15 @@
         /* padding: 5px; */
     }
 
-    .pretzelAnswerInput {
-        display: flex;
-        justify-content: space-between;
-        /* border-bottom: 1px solid #333; */
-        background-color: #ddd;
+    .pretzelAnswer {
         padding: 10px;
+        background-color: #ddd;
     }
 
-    .pretzelStatement {
+    .pretzelInputStatement {
+        display: flex;
         padding: 10px;
+        gap: 10px;
     }
 
     .pretzelWrapper {
