@@ -1,4 +1,4 @@
-import me, { isTree } from "math-expressions";
+import me, { isTree, Expression } from "math-expressions";
 
 export function normalizeMathExpression({
     value,
@@ -6,13 +6,32 @@ export function normalizeMathExpression({
     expand = false,
     createVectors = false,
     createIntervals = false,
+    assumptions = null,
 }: {
     value: any;
     simplify?: string;
     expand?: boolean;
     createVectors?: boolean;
     createIntervals?: boolean;
+    assumptions?: Expression | null;
 }): any {
+    if (assumptions && assumptions.tree !== "\uFF3F") {
+        // long underscore
+
+        const assumptionsToAdd = [];
+        if (Array.isArray(assumptions.tree) && assumptions.tree[0] === "list") {
+            for (let i = 1; i < assumptions.tree.length; i++) {
+                assumptionsToAdd.push(me.fromAst(assumptions.tree[i]));
+            }
+        } else {
+            assumptionsToAdd.push(assumptions);
+        }
+
+        for (const assumption of assumptionsToAdd) {
+            me.add_assumption(assumption);
+        }
+    }
+
     if (createVectors) {
         value = value.tuples_to_vectors();
     }
@@ -23,14 +42,17 @@ export function normalizeMathExpression({
         value = value.expand();
     }
     if (simplify === "full") {
-        return value.simplify();
+        value = value.simplify();
     } else if (simplify === "numbers") {
-        return value.evaluate_numbers();
+        value = value.evaluate_numbers();
     } else if (simplify === "numberspreserveorder") {
-        return value.evaluate_numbers({ skip_ordering: true });
+        value = value.evaluate_numbers({ skip_ordering: true });
     } else if (simplify === "normalizeorder") {
-        return value.default_order();
+        value = value.default_order();
     }
+
+    me.clear_assumptions();
+
     return value;
 }
 

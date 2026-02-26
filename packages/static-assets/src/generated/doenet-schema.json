@@ -487,6 +487,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -588,6 +591,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -8788,6 +8796,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -8903,6 +8914,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -9339,6 +9355,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -9454,6 +9473,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -9890,6 +9914,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -9997,6 +10024,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -10433,6 +10465,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -10540,6 +10575,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -10976,6 +11016,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -11083,6 +11126,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -11519,6 +11567,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -11623,6 +11674,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -12047,6 +12103,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -12148,6 +12207,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -12569,6 +12633,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -12670,6 +12737,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -13096,6 +13168,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -13197,6 +13272,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -13623,6 +13703,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -13724,6 +13807,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -14150,6 +14238,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -14251,6 +14342,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -14677,6 +14773,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -14792,6 +14891,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -15228,6 +15332,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -15343,6 +15450,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -15779,6 +15891,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -15901,6 +16016,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -16342,6 +16462,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -16464,6 +16587,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -16905,6 +17033,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -17020,6 +17151,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -17456,6 +17592,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -17571,6 +17710,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -18007,6 +18151,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -18122,6 +18269,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -18558,6 +18710,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -18673,6 +18828,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -19109,6 +19269,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -19224,6 +19387,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -19660,6 +19828,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -19775,6 +19946,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -20211,6 +20387,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -20328,6 +20507,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -26613,6 +26797,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -26655,11 +26844,6 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -27164,6 +27348,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -27206,11 +27395,6 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -27715,6 +27899,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -27757,11 +27946,6 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -28266,6 +28450,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -28308,11 +28497,6 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -28838,6 +29022,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -28885,11 +29074,6 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -29394,6 +29578,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -29436,11 +29625,6 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -29945,6 +30129,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -29987,11 +30176,6 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -30496,6 +30680,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -30538,11 +30727,6 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -31047,6 +31231,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -31089,11 +31278,6 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -31598,6 +31782,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -31640,11 +31829,6 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -32149,6 +32333,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -32191,11 +32380,6 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -32700,6 +32884,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -32742,11 +32931,6 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -33251,6 +33435,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -33293,11 +33482,6 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -33802,6 +33986,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -33844,11 +34033,6 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -34353,6 +34537,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -34395,11 +34584,6 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -34904,6 +35088,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "includeParentNumber",
                     "type": "boolean",
                     "isArray": false
@@ -34946,11 +35135,6 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -35472,6 +35656,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "collapsible",
                     "type": "boolean",
                     "isArray": false
@@ -35514,11 +35703,6 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -36019,6 +36203,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -36056,11 +36245,6 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -36561,6 +36745,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -36598,11 +36787,6 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -40470,6 +40654,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -40571,6 +40758,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -47636,6 +47828,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -47737,6 +47932,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -49719,6 +49919,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -49815,6 +50018,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -61692,6 +61900,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -61788,6 +61999,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -68989,6 +69205,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -69115,6 +69334,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -70552,6 +70776,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -70671,6 +70898,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -77811,6 +78043,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -77922,6 +78157,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -81673,6 +81913,9 @@
                     ]
                 },
                 {
+                    "name": "assumptions"
+                },
+                {
                     "name": "draggable",
                     "values": [
                         "true",
@@ -81783,6 +82026,11 @@
                 {
                     "name": "displayBlanks",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "assumptions",
+                    "type": "math",
                     "isArray": false
                 },
                 {
@@ -84000,6 +84248,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "asList",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "hideFutureSections",
                     "type": "boolean",
                     "isArray": false
@@ -84042,11 +84295,6 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
-                    "isArray": false
-                },
-                {
-                    "name": "asList",
-                    "type": "boolean",
                     "isArray": false
                 },
                 {

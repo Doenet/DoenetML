@@ -160,6 +160,13 @@ export default class MathComponent extends InlineComponent {
             public: true,
         };
 
+        attributes.assumptions = {
+            createComponentOfType: "math",
+            createStateVariable: "assumptions",
+            defaultValue: me.fromAst("\uff3f"), // long underscore
+            public: true,
+        };
+
         attributes.draggable = {
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
@@ -619,12 +626,21 @@ export default class MathComponent extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "createIntervals",
                 },
+                assumptions: {
+                    dependencyType: "stateVariable",
+                    variableName: "assumptions",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 let value = dependencyValues.unnormalizedValue;
 
-                let { simplify, expand, createVectors, createIntervals } =
-                    dependencyValues;
+                let {
+                    simplify,
+                    expand,
+                    createVectors,
+                    createIntervals,
+                    assumptions,
+                } = dependencyValues;
 
                 value = normalizeMathExpression({
                     value,
@@ -632,6 +648,7 @@ export default class MathComponent extends InlineComponent {
                     expand,
                     createVectors,
                     createIntervals,
+                    assumptions,
                 });
 
                 return { setValue: { value } };

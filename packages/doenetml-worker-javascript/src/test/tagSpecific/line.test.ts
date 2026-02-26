@@ -1685,7 +1685,7 @@ describe("Line tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("l6")].stateValues.coeff0
                 .tree,
-        ).eqls(["^", "x", 2]);
+        ).eqls(["-", ["^", "x", 2]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("l6")].stateValues
                 .coeffvar1.tree,
@@ -1693,7 +1693,7 @@ describe("Line tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("l6")].stateValues
                 .coeffvar2.tree,
-        ).eq(-1);
+        ).eq(1);
 
         expect(
             stateVariables[

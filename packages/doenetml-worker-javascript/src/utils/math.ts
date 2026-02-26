@@ -11,6 +11,8 @@ export var appliedFunctionSymbolsDefault = [
     "log10",
     "sign",
     "sqrt",
+    "cbrt",
+    "nthroot",
     "erf",
     "cos",
     "cosh",
