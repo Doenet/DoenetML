@@ -138,7 +138,12 @@ export function EditorViewer({
         warnings: [],
     });
 
-    const warningsObjs = [...initialWarnings, ...errorsAndWarnings.warnings];
+    // TODO: move warnings that are level 2 to "info"
+    const warningsObjs = [
+        ...initialWarnings,
+        ...errorsAndWarnings.warnings,
+    ].filter((w) => w.level !== 2);
+
     const errorsObjs = [...initialErrors, ...errorsAndWarnings.errors];
 
     const [responses, setResponses] = useState<
