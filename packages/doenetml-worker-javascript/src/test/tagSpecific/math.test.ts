@@ -13075,4 +13075,73 @@ describe("Math tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("b")].stateValues.value,
         ).eq(true);
     });
+
+    it("simplify sqrt root of powers", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="m1">sqrt(x^2)</math>
+    <math name="m1a" simplify extend="$m1" />
+    <math name="m1b" simplify extend="$m1" assumptions="x > 0" />
+
+    <math name name="m2">sqrt(x^4)</math>
+    <math name="m2a" simplify extend="$m2" />
+    <math name="m2b" simplify extend="$m2" assumptions="x > 0" />
+
+    <math name="m3">sqrt(32 x^2 y^5)</math>
+    <math name="m3a" simplify extend="$m3" />
+    <math name="m3b" simplify extend="$m3" assumptions="x > 0 and y > 0" />
+    <math name="m3c" simplify extend="$m3" assumptions="x > 0, y > 0" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
+        ).eqls(["apply", "sqrt", ["^", "x", 2]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1a")].stateValues.value
+                .tree,
+        ).eqls(["apply", "abs", "x"]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1b")].stateValues.value
+                .tree,
+        ).eqls("x");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
+        ).eqls(["apply", "sqrt", ["^", "x", 4]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2a")].stateValues.value
+                .tree,
+        ).eqls(["^", "x", 2]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2b")].stateValues.value
+                .tree,
+        ).eqls(["^", "x", 2]);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m3")].stateValues.value
+                .tree,
+        ).eqls(["apply", "sqrt", ["*", 32, ["^", "x", 2], ["^", "y", 5]]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m3a")].stateValues.value
+                .tree,
+        ).eqls([
+            "*",
+            4,
+            ["^", "y", 2],
+            ["apply", "abs", "x"],
+            ["apply", "sqrt", ["*", 2, "y"]],
+        ]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m3b")].stateValues.value
+                .tree,
+        ).eqls(["*", 4, "x", ["^", "y", 2], ["apply", "sqrt", ["*", 2, "y"]]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m3c")].stateValues.value
+                .tree,
+        ).eqls(["*", 4, "x", ["^", "y", 2], ["apply", "sqrt", ["*", 2, "y"]]]);
+    });
 });
