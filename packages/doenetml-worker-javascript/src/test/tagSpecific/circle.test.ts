@@ -5943,7 +5943,7 @@ $c7.radius
             core,
         });
         await check_items({
-            area: ["*", "pi", ["^", "a", 2]],
+            area: ["*", ["^", "a", 2], "pi"],
             area2: NaN,
             circ: ["*", 2, "a", "pi"],
             circ2: NaN,

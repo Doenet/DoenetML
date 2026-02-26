@@ -3537,10 +3537,10 @@ describe("Evaluate tag tests @group2", async () => {
         ).eq("f(a+b, c) = a c² + b c²");
         expect(
             stateVariables[await resolvePathToNodeIdx("pg1")].stateValues.text,
-        ).eq("g(u, v+w) = v u² + w u²");
+        ).eq("g(u, v+w) = u² v + u² w");
         expect(
             stateVariables[await resolvePathToNodeIdx("pg2")].stateValues.text,
-        ).eq("g(a+b, c) = c a² + 2 a b c + c b²");
+        ).eq("g(a+b, c) = a² c + 2 a b c + b² c");
     });
 
     it("change variables of numeric function", async () => {

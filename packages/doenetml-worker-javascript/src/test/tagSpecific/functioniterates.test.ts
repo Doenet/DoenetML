@@ -39,11 +39,11 @@ describe("FunctionIterates tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("ls[2][1]")].stateValues
                 .text,
-        ).eq("f²(u) = 3 v a²");
+        ).eq("f²(u) = 3 a² v");
         expect(
             stateVariables[await resolvePathToNodeIdx("ls[3][1]")].stateValues
                 .text,
-        ).eq("f³(u) = 3 v a³");
+        ).eq("f³(u) = 3 a³ v");
 
         // change function, numIterates, and initial
         await updateMathInputValue({
