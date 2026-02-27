@@ -92363,6 +92363,18 @@
                         "string"
                     ]
                 },
+                "video": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "videoCreditLabel": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "labelIsName": {
                     "optional": true,
                     "type": [

@@ -230,6 +230,15 @@ export default class Answer extends InlineComponent {
             forRenderer: true,
         };
 
+        // Note: video and videoCreditLabel are not used in the component itself, only in the sugar.
+        // They are added here so that they will be in the schema.
+        attributes.video = {
+            createReferences: true,
+        };
+        attributes.videoCreditLabel = {
+            createComponentOfType: "text",
+        };
+
         Object.assign(attributes, returnLabelAttributes());
 
         return attributes;
@@ -634,6 +643,9 @@ export default class Answer extends InlineComponent {
             if (componentAttributes.type) {
                 type = componentAttributes.type.value;
                 if (!["math", "text", "boolean"].includes(type)) {
+                    if (type === "videoWatched") {
+                        return { success: false };
+                    }
                     warnings.push({
                         message: `Invalid type for answer: ${type}`,
                         level: 1,

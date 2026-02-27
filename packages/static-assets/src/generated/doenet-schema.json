@@ -56332,6 +56332,12 @@
                     "name": "description"
                 },
                 {
+                    "name": "video"
+                },
+                {
+                    "name": "videoCreditLabel"
+                },
+                {
                     "name": "labelIsName",
                     "values": [
                         "true",

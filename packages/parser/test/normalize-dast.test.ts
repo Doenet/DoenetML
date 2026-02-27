@@ -246,4 +246,17 @@ describe("Normalize dast", async () => {
             },
         ]);
     });
+
+    it("Adds error when answer type=videoWatched is missing video attribute", () => {
+        const source = `<answer type="videoWatched" />`;
+        const dast = lezerToDast(source);
+
+        expect(extractDastErrors(normalizeDocumentDast(dast))).toMatchObject([
+            {
+                message:
+                    "Answer with type videoWatched must have a video attribute",
+                type: "error",
+            },
+        ]);
+    });
 });
