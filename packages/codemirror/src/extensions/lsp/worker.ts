@@ -68,9 +68,16 @@ export class LSP {
         callback: (params: { uri: string; diagnostics: Diagnostic[] }) => void,
     ) {
         this.diagnosticsSubscribers.add(callback);
-        void this.init().then(() => {
-            this.ensureDiagnosticsHandlerRegistered();
-        });
+        this.init()
+            .then(() => {
+                this.ensureDiagnosticsHandlerRegistered();
+            })
+            .catch((error) => {
+                console.error(
+                    "Failed to initialize diagnostics handler",
+                    error,
+                );
+            });
         return () => {
             this.diagnosticsSubscribers.delete(callback);
         };
