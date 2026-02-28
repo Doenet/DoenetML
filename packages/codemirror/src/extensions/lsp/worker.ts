@@ -23,10 +23,26 @@ export class LSP {
     lspConn?: Awaited<ReturnType<typeof initWorker>>["lspConn"];
     workerConn?: Awaited<ReturnType<typeof initWorker>>["workerConn"];
     versionCounter: Record<string, number> = {};
+    diagnosticsSubscribers = new Set<
+        (params: { uri: string; diagnostics: Diagnostic[] }) => void
+    >();
+    diagnosticsHandlerRegistered = false;
     initPromise = withResolver<void>();
     initStatus: "uninitialized" | "initializing" | "initialized" =
         "uninitialized";
     completionTriggers: string[] = [];
+
+    ensureDiagnosticsHandlerRegistered() {
+        if (!this.lspConn || this.diagnosticsHandlerRegistered) {
+            return;
+        }
+        this.lspConn.onDiagnostics((params) => {
+            for (const subscriber of this.diagnosticsSubscribers) {
+                subscriber(params);
+            }
+        });
+        this.diagnosticsHandlerRegistered = true;
+    }
 
     async init() {
         if (this.lspConn) {
@@ -39,12 +55,25 @@ export class LSP {
             this.lspConn = lspConn;
             this.workerConn = workerConn;
             this.completionTriggers = this.lspConn.completionTriggers;
+            this.ensureDiagnosticsHandlerRegistered();
             this.initPromise.resolve();
             this.initStatus = "initialized";
         }
         if (this.initStatus === "initializing") {
             await this.initPromise.promise;
         }
+    }
+
+    onDiagnostics(
+        callback: (params: { uri: string; diagnostics: Diagnostic[] }) => void,
+    ) {
+        this.diagnosticsSubscribers.add(callback);
+        void this.init().then(() => {
+            this.ensureDiagnosticsHandlerRegistered();
+        });
+        return () => {
+            this.diagnosticsSubscribers.delete(callback);
+        };
     }
 
     async initDocument(uri: string, text: string) {
@@ -93,21 +122,6 @@ export class LSP {
                     text,
                 },
             ],
-        });
-    }
-
-    async getDiagnostics(uri: string): Promise<Diagnostic[]> {
-        await this.initPromise.promise;
-        return new Promise((resolve) => {
-            if (!this.lspConn) {
-                console.warn("Cannot get diagnostics without lspConn");
-                return [];
-            }
-            this.lspConn.onDiagnostics((params) => {
-                if (params.uri === uri) {
-                    resolve(params.diagnostics);
-                }
-            });
         });
     }
 

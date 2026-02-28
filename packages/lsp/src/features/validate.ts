@@ -42,10 +42,17 @@ export function addValidationSupport(
                 return;
             }
             info.additionalDiagnostics = additionalDiagnostics;
-            connection.sendDiagnostics({
-                uri: uri,
-                diagnostics: info.additionalDiagnostics,
-            });
+
+            const textDocument = documents.get(uri);
+            if (!textDocument) {
+                connection.sendDiagnostics({
+                    uri,
+                    diagnostics: info.additionalDiagnostics,
+                });
+                return;
+            }
+
+            void validateTextDocument(textDocument);
         },
     );
 

@@ -31,6 +31,7 @@ import {
     useTabStore,
 } from "@ariakit/react";
 import { setVariantsFromCallback } from "../utils/variants";
+import { DiagnosticSeverity } from "vscode-languageserver-protocol";
 
 export function EditorViewer({
     doenetML: initialDoenetML,
@@ -130,7 +131,7 @@ export function EditorViewer({
 
     const [infoPanelIsOpen, setInfoPanelIsOpen] = useState(false);
 
-    const [errorsAndWarnings, setErrorsAndWarningsCallback] = useState<{
+    const [errorsAndWarnings, setErrorsAndWarnings] = useState<{
         errors: ErrorRecord[];
         warnings: WarningRecord[];
     }>({
@@ -138,11 +139,37 @@ export function EditorViewer({
         warnings: [],
     });
 
-    // TODO: move warnings that are level 2 to "info"
-    const warningsObjs = [
-        ...initialWarnings,
-        ...errorsAndWarnings.warnings,
-    ].filter((w) => w.level !== 2);
+    /**
+     * When receive errors and warnings from the viewer,
+     * set them in state and to the LSP
+     */
+    function setErrorsAndWarningsCallback({
+        errors,
+        warnings,
+    }: {
+        errors: ErrorRecord[];
+        warnings: WarningRecord[];
+    }) {
+        // TODO: filtering out level 2 is a stopgap solution.
+        // Instead, we need to reformulate to include an info type
+        // @ts-expect-error level does not exist on WarningRecord
+        warnings = warnings.filter((w) => w.level !== 2);
+        setErrorsAndWarnings({
+            errors,
+            warnings,
+        });
+
+        lspRef.current?.lsp.sendAdditionalDiagnostics(
+            lspRef.current.documentUri,
+            warnings.map((w) => ({
+                message: w.message,
+                severity: DiagnosticSeverity.Warning,
+                range: w.position,
+            })),
+        );
+    }
+
+    const warningsObjs = [...initialWarnings, ...errorsAndWarnings.warnings];
 
     const errorsObjs = [...initialErrors, ...errorsAndWarnings.errors];
 
