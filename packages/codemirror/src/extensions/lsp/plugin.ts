@@ -334,10 +334,7 @@ export const lspPlugin = (documentId: string) => {
         ViewPlugin.define((view) => {
             plugin.view = view;
             plugin.unsubscribeDiagnostics =
-                uniqueLanguageServerInstance.onDiagnostics((params) => {
-                    if (params.uri !== plugin.uri) {
-                        return;
-                    }
+                uniqueLanguageServerInstance.onDiagnostics(plugin.uri, (params) => {
                     plugin.diagnostics = params.diagnostics;
                     plugin.processDiagnostics();
                 });

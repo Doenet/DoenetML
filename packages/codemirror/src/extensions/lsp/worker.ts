@@ -19,13 +19,17 @@ function withResolver<T>() {
 }
 
 export class LSP {
+    // Diagnostics subscribers are scoped by document URI.
+    // They are automatically removed when closeDocument(uri) is called.
+    private readonly diagnosticsSubscribersByUri = new Map<
+        string,
+        Set<(params: { uri: string; diagnostics: Diagnostic[] }) => void>
+    >();
+
     worker?: Worker;
     lspConn?: Awaited<ReturnType<typeof initWorker>>["lspConn"];
     workerConn?: Awaited<ReturnType<typeof initWorker>>["workerConn"];
     versionCounter: Record<string, number> = {};
-    diagnosticsSubscribers = new Set<
-        (params: { uri: string; diagnostics: Diagnostic[] }) => void
-    >();
     diagnosticsHandlerRegistered = false;
     initPromise = withResolver<void>();
     initStatus: "uninitialized" | "initializing" | "initialized" =
@@ -37,7 +41,13 @@ export class LSP {
             return;
         }
         this.lspConn.onDiagnostics((params) => {
-            for (const subscriber of this.diagnosticsSubscribers) {
+            const uriSubscribers = this.diagnosticsSubscribersByUri.get(
+                params.uri,
+            );
+            if (!uriSubscribers) {
+                return;
+            }
+            for (const subscriber of uriSubscribers) {
                 subscriber(params);
             }
         });
@@ -64,10 +74,23 @@ export class LSP {
         }
     }
 
+    /**
+     * Subscribe to diagnostics for a specific document URI.
+     *
+     * Returns an unsubscribe function for immediate/manual cleanup.
+     * Subscriptions are also automatically pruned when closeDocument(uri) is called.
+     */
     onDiagnostics(
+        uri: string,
         callback: (params: { uri: string; diagnostics: Diagnostic[] }) => void,
     ) {
-        this.diagnosticsSubscribers.add(callback);
+        const existing = this.diagnosticsSubscribersByUri.get(uri);
+        if (existing) {
+            existing.add(callback);
+        } else {
+            this.diagnosticsSubscribersByUri.set(uri, new Set([callback]));
+        }
+
         this.init()
             .then(() => {
                 this.ensureDiagnosticsHandlerRegistered();
@@ -78,8 +101,16 @@ export class LSP {
                     error,
                 );
             });
+
         return () => {
-            this.diagnosticsSubscribers.delete(callback);
+            const subscribers = this.diagnosticsSubscribersByUri.get(uri);
+            if (!subscribers) {
+                return;
+            }
+            subscribers.delete(callback);
+            if (subscribers.size === 0) {
+                this.diagnosticsSubscribersByUri.delete(uri);
+            }
         };
     }
 
@@ -111,6 +142,10 @@ export class LSP {
                 uri,
             },
         });
+
+        // Remove per-document state and URI-scoped diagnostics subscriptions.
+        delete this.versionCounter[uri];
+        this.diagnosticsSubscribersByUri.delete(uri);
     }
 
     async updateDocument(uri: string, text: string) {
