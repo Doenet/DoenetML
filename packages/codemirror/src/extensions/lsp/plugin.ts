@@ -334,10 +334,13 @@ export const lspPlugin = (documentId: string) => {
         ViewPlugin.define((view) => {
             plugin.view = view;
             plugin.unsubscribeDiagnostics =
-                uniqueLanguageServerInstance.onDiagnostics(plugin.uri, (params) => {
-                    plugin.diagnostics = params.diagnostics;
-                    plugin.processDiagnostics();
-                });
+                uniqueLanguageServerInstance.onDiagnostics(
+                    plugin.uri,
+                    (params) => {
+                        plugin.diagnostics = params.diagnostics;
+                        plugin.processDiagnostics();
+                    },
+                );
             plugin.setValue(view.state.doc.toString());
             return plugin;
         }),
