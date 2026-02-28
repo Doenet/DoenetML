@@ -31,7 +31,10 @@ import {
     useTabStore,
 } from "@ariakit/react";
 import { setVariantsFromCallback } from "../utils/variants";
-import { DiagnosticSeverity } from "vscode-languageserver-protocol";
+import {
+    Diagnostic,
+    DiagnosticSeverity,
+} from "vscode-languageserver-protocol";
 
 export function EditorViewer({
     doenetML: initialDoenetML,
@@ -159,13 +162,22 @@ export function EditorViewer({
             warnings,
         });
 
-        lspRef.current?.lsp.sendAdditionalDiagnostics(
-            lspRef.current.documentUri,
-            warnings.map((w) => ({
+        const additionalDiagnostics: Diagnostic[] = [
+            ...warnings.map((w) => ({
                 message: w.message,
                 severity: DiagnosticSeverity.Warning,
                 range: w.position,
             })),
+            ...errors.map((e) => ({
+                message: e.message,
+                severity: DiagnosticSeverity.Error,
+                range: e.position,
+            })),
+        ];
+
+        lspRef.current?.lsp.sendAdditionalDiagnostics(
+            lspRef.current.documentUri,
+            additionalDiagnostics,
         );
     }
 
