@@ -59,10 +59,13 @@ export function answerSugar(node: DastElement) {
             return;
         }
 
-        const videRef = videoChildren[0];
+        // Create a reference to the video macro, which we will use in the triggerWith attribute of the callAction element.
+        const videoRef = JSON.parse(JSON.stringify(videoChildren[0]));
 
-        // a reference to the fractionWatched property of the video
-        const videoFractionWatchedRef = JSON.parse(JSON.stringify(videRef));
+        // Create a reference to the fractionWatched property of the video, which we will use
+        // - in the credit attribute of the award element and
+        // - in the video credit message.
+        const videoFractionWatchedRef = JSON.parse(JSON.stringify(videoRef));
         videoFractionWatchedRef.path.push({
             type: "pathPart",
             name: "fractionWatched",
@@ -147,7 +150,9 @@ export function answerSugar(node: DastElement) {
                 credit: {
                     type: "attribute",
                     name: "credit",
-                    children: [videoFractionWatchedRef],
+                    children: [
+                        JSON.parse(JSON.stringify(videoFractionWatchedRef)),
+                    ],
                 },
             },
             children: [
@@ -214,7 +219,7 @@ export function answerSugar(node: DastElement) {
                 triggerWith: {
                     type: "attribute",
                     name: "triggerWith",
-                    children: [videRef],
+                    children: [videoRef],
                 },
                 target: {
                     type: "attribute",
