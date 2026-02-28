@@ -8,7 +8,6 @@ export function answerSugar(node: DastElement) {
 
     const typeAttr = node.attributes.type;
     if (!typeAttr) {
-        // If there is no type attribute, don't do anything. Just return.
         return;
     }
 
@@ -58,7 +57,7 @@ export function answerSugar(node: DastElement) {
 
         const videRef = videoChildren[0];
 
-        // add fractionWatched reference to the video macro and rename the attribute to credit
+        // a reference to the fractionWatched property of the video
         const videoFractionWatchedRef = JSON.parse(JSON.stringify(videRef));
         videoFractionWatchedRef.path.push({
             type: "pathPart",
@@ -66,22 +65,37 @@ export function answerSugar(node: DastElement) {
             index: [],
         });
 
-        let videoCreditLabel = "Video credit achieved";
+        let videoCreditLabel: DastElement;
         const videoCreditLabelAttr = node.attributes.videoCreditLabel;
         if (videoCreditLabelAttr) {
-            const videoCreditLabelChildren = videoCreditLabelAttr.children;
-            if (
-                videoCreditLabelChildren.length === 1 &&
-                videoCreditLabelChildren[0].type === "text"
-            ) {
-                videoCreditLabel = videoCreditLabelChildren[0].value;
-            }
+            videoCreditLabel = {
+                type: "element",
+                name: "text",
+                attributes: {},
+                children: [
+                    ...videoCreditLabelAttr.children,
+                    { type: "text", value: ": " },
+                ],
+                position: videoCreditLabelAttr.position,
+                source_doc: videoCreditLabelAttr.source_doc,
+            };
+        } else {
+            videoCreditLabel = {
+                type: "element",
+                name: "text",
+                attributes: {},
+                children: [
+                    {
+                        type: "text",
+                        value: "Video credit achieved: ",
+                    },
+                ],
+            };
         }
-        videoCreditLabel = videoCreditLabel + ": ";
 
         let answerNameAttr = node.attributes.name;
         if (!answerNameAttr) {
-            const uniqueName = `__answer${Math.floor(Math.random() * 1000000)}`;
+            const uniqueName = `__answer${Math.floor(Math.random() * 100000)}`;
             answerNameAttr = node.attributes.name = {
                 type: "attribute",
                 name: "name",
@@ -107,7 +121,7 @@ export function answerSugar(node: DastElement) {
             return;
         }
 
-        // force answer to be hidden
+        // Force answer to be hidden, as the only thing to be displayed is the video credit message.
         node.attributes.hide = {
             type: "attribute",
             name: "hide",
@@ -121,6 +135,7 @@ export function answerSugar(node: DastElement) {
 
         const answerName = answerNameAttr.children[0].value;
 
+        // Create an award that is always awarded, with credit equal to the fraction of the video watched.
         node.children.push({
             type: "element",
             name: "award",
@@ -141,15 +156,13 @@ export function answerSugar(node: DastElement) {
             ],
         });
 
+        // Create the message to be shown to the student, which is the video credit achieved.
         const videoCreditMessage: DastElement = {
             type: "element",
             name: "span",
             attributes: {},
             children: [
-                {
-                    type: "text",
-                    value: videoCreditLabel,
-                },
+                videoCreditLabel,
                 {
                     type: "element",
                     name: "number",
@@ -177,6 +190,8 @@ export function answerSugar(node: DastElement) {
             ],
         };
 
+        // Create a callAction element that will submit the answer. It will be triggered whenever a segment of the video is recorded as being watched.
+        // We explicitly mark the callAction as hidden so that a button does not get rendered even if the videoRef does not resolve to a valid target.
         const callActionElement: DastElement = {
             type: "element",
             name: "callAction",
@@ -214,8 +229,6 @@ export function answerSugar(node: DastElement) {
                         },
                     ],
                 },
-                // For updateValue to be hidden. Otherwise, if `videoRef` does not match a target,
-                // then a button would be rendered.
                 hide: {
                     type: "attribute",
                     name: "hide",
