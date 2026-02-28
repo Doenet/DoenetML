@@ -141,7 +141,7 @@ export function EditorViewer({
 
     /**
      * When receive errors and warnings from the viewer,
-     * set them in state and to the LSP
+     * set `errorsAndWarnings` state variable and send them to the LSP
      */
     function setErrorsAndWarningsCallback({
         errors,
