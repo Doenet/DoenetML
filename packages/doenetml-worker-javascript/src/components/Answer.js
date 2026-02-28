@@ -159,6 +159,7 @@ export default class Answer extends InlineComponent {
             createPrimitiveOfType: "string",
             createStateVariable: "type",
             defaultValue: null,
+            validValues: ["math", "text", "boolean", "videoWatched"],
         };
 
         attributes.selectMultiple = {
