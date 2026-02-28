@@ -11,6 +11,10 @@ export function answerSugar(node: DastElement) {
         return;
     }
 
+    // If an answer is of type videoWatched, then sugar in:
+    // 1. An award that awards credit based on the fraction of the video watched
+    // 2. A message that shows the video credit achieved
+    // 3. A callAction that submits the answer whenever a segment of the video is recorded as being watched.
     const typeChildren = typeAttr.children;
     if (
         typeChildren.length === 1 &&
