@@ -31,7 +31,10 @@ import {
     useTabStore,
 } from "@ariakit/react";
 import { setVariantsFromCallback } from "../utils/variants";
-import { Diagnostic, DiagnosticSeverity } from "vscode-languageserver-protocol";
+import {
+    Diagnostic,
+    DiagnosticSeverity,
+} from "vscode-languageserver-protocol/browser";
 
 export function EditorViewer({
     doenetML: initialDoenetML,
