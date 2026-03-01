@@ -46,7 +46,7 @@
     },
     "video-watched-credit": {
         "element": "video",
-        "snippet": "\n<video name=\"video1\" youtube=\"\" ></video>\n<answer name=\"video1Watched\" type=\"videoWatched\" video=\"$video1\" />\n\n",
+        "snippet": "\n<video name=\"video1\" youtube=\"\" >\n  <shortDescription></shortDescription>\n</video>\n<answer name=\"video1Watched\" type=\"videoWatched\" video=\"$video1\" />\n",
         "description": "Video that gives credit when watched"
     }
 }
