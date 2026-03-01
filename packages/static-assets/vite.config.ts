@@ -37,6 +37,8 @@ export default defineConfig({
                 "atom-database": "./src/atom-database.ts",
                 "entity-map": "./src/entity-map.ts",
                 "completion-snippets": "./src/completion-snippets.ts",
+                "completion-snippet-protocol":
+                    "./src/completion-snippet-protocol.ts",
                 "math-assets": "./src/math-assets.ts",
                 "relaxng-schema": "./src/relaxng-schema.ts",
                 schema: "./src/schema.ts",

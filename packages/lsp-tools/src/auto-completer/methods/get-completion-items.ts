@@ -1,6 +1,10 @@
 import { DoenetSourceObject, RowCol } from "../../doenet-source-object";
 import type { CompletionItem, Range } from "vscode-languageserver/browser";
 import { CompletionItemKind } from "vscode-languageserver/browser";
+import type {
+    CompletionSnippetCompletionItemData,
+    CompletionSnippetCursor,
+} from "@doenet/static-assets/completion-snippet-protocol";
 import { AutoCompleter } from "../index";
 
 /**
@@ -43,21 +47,21 @@ function createTextEditRange(
  * @param sourceObj - The DoenetSourceObject to query position information
  * @param startOffset - The offset where the snippet will be inserted
  * @param snippet - The snippet text to format
- * @returns The snippet with indentation applied to lines after the first
+ * @returns The formatted snippet plus the indentation width used
  */
 function formatSnippetWithIndent(
     sourceObj: DoenetSourceObject,
     startOffset: number,
     snippet: string,
-): string {
+): { formattedSnippet: string; indentSize: number } {
     if (!snippet.includes("\n")) {
-        return snippet;
+        return { formattedSnippet: snippet, indentSize: 0 };
     }
 
     const startPos = sourceObj.offsetToRowCol(startOffset);
     const indentSize = Math.max(0, startPos.column - 1);
     if (indentSize === 0) {
-        return snippet;
+        return { formattedSnippet: snippet, indentSize: 0 };
     }
 
     const indent = " ".repeat(indentSize);
@@ -65,7 +69,67 @@ function formatSnippetWithIndent(
     for (let i = 1; i < lines.length; i += 1) {
         lines[i] = indent + lines[i];
     }
-    return lines.join("\n");
+    return {
+        formattedSnippet: lines.join("\n"),
+        indentSize,
+    };
+}
+
+/**
+ * Shift an offset to account for indentation inserted after each newline.
+ */
+function adjustOffsetForIndent(
+    snippet: string,
+    offset: number,
+    indentSize: number,
+) {
+    if (indentSize <= 0 || !snippet.includes("\n")) {
+        return offset;
+    }
+
+    let adjustedOffset = offset;
+    for (let i = 0; i < snippet.length; i += 1) {
+        if (snippet[i] === "\n") {
+            const nextLineStart = i + 1;
+            if (offset >= nextLineStart) {
+                adjustedOffset += indentSize;
+            }
+        }
+    }
+
+    return adjustedOffset;
+}
+
+/**
+ * Shift snippet cursor offsets to account for inserted indentation.
+ */
+function adjustCursorForIndent(
+    snippet: string,
+    cursor: CompletionSnippetCursor,
+    indentSize: number,
+): CompletionSnippetCursor {
+    if ("caretOffset" in cursor) {
+        return {
+            caretOffset: adjustOffsetForIndent(
+                snippet,
+                cursor.caretOffset,
+                indentSize,
+            ),
+        };
+    }
+
+    return {
+        selectionStartOffset: adjustOffsetForIndent(
+            snippet,
+            cursor.selectionStartOffset,
+            indentSize,
+        ),
+        selectionEndOffset: adjustOffsetForIndent(
+            snippet,
+            cursor.selectionEndOffset,
+            indentSize,
+        ),
+    };
 }
 
 /**
@@ -85,24 +149,77 @@ function createSnippetCompletionItems(
         key: string;
         snippet: string;
         description: string;
+        cursor?: CompletionSnippetCursor;
     }>,
     startOffset: number,
     endOffset: number,
 ): CompletionItem[] {
-    return snippets.map((snippet) => ({
-        label: snippet.key,
-        kind: CompletionItemKind.Snippet,
-        documentation: snippet.description,
-        textEdit: {
-            range: createTextEditRange(sourceObj, startOffset, endOffset),
-            newText: formatSnippetWithIndent(
-                sourceObj,
-                startOffset,
-                snippet.snippet,
-            ),
-        },
-        filterText: snippet.key,
-    }));
+    return snippets.map((snippet) => {
+        const { formattedSnippet, indentSize } = formatSnippetWithIndent(
+            sourceObj,
+            startOffset,
+            snippet.snippet,
+        );
+        const adjustedCursor = snippet.cursor
+            ? adjustCursorForIndent(snippet.snippet, snippet.cursor, indentSize)
+            : undefined;
+        const completionData: CompletionSnippetCompletionItemData | undefined =
+            adjustedCursor
+                ? {
+                      snippetCursor: adjustedCursor,
+                  }
+                : undefined;
+
+        return {
+            label: snippet.key,
+            kind: CompletionItemKind.Snippet,
+            documentation: snippet.description,
+            textEdit: {
+                range: createTextEditRange(sourceObj, startOffset, endOffset),
+                newText: formattedSnippet,
+            },
+            filterText: snippet.key,
+            ...(completionData
+                ? {
+                      data: completionData,
+                  }
+                : {}),
+        };
+    });
+}
+
+/**
+ * Create schema element and snippet completion items for a set of allowed elements.
+ */
+function createElementAndSnippetCompletionItems(
+    autoCompleter: AutoCompleter,
+    allowedElementNames: string[],
+    startOffset: number,
+    endOffset: number,
+    typedPrefix = "",
+): CompletionItem[] {
+    const prefixLower = typedPrefix.toLowerCase();
+    const schemaItems = allowedElementNames
+        .filter((name) =>
+            prefixLower ? name.toLowerCase().startsWith(prefixLower) : true,
+        )
+        .map((name) => ({
+            label: name,
+            kind: CompletionItemKind.Property,
+        }));
+
+    const snippets = autoCompleter._getSnippetsForElements(
+        new Set(allowedElementNames),
+        typedPrefix,
+    );
+    const snippetItems = createSnippetCompletionItems(
+        autoCompleter.sourceObj,
+        snippets,
+        startOffset,
+        endOffset,
+    );
+
+    return [...schemaItems, ...snippetItems];
 }
 
 /**
@@ -159,21 +276,12 @@ export function getCompletionItems(
     let cursorPosition = containingElement.cursorPosition;
 
     if (!containingNode && cursorPosition === "unknown" && prevChar === "<") {
-        const schemaItems = this.schemaTopAllowedElements.map((name) => ({
-            label: name,
-            kind: CompletionItemKind.Property,
-        }));
-
-        const allowedElementsSet = new Set(this.schemaTopAllowedElements);
-        const snippets = this._getSnippetsForElements(allowedElementsSet);
-        const snippetItems = createSnippetCompletionItems(
-            this.sourceObj,
-            snippets,
+        return createElementAndSnippetCompletionItems(
+            this,
+            this.schemaTopAllowedElements,
             offset - 1,
             offset,
         );
-
-        return [...schemaItems, ...snippetItems];
     }
 
     if (!element && containingNode && containingNode.type === "text") {
@@ -182,21 +290,12 @@ export function getCompletionItems(
 
         // If the previous char is a `<`, we suggest all top-level elements.
         if (prevChar === "<") {
-            const schemaItems = this.schemaTopAllowedElements.map((name) => ({
-                label: name,
-                kind: CompletionItemKind.Property,
-            }));
-
-            const allowedElementsSet = new Set(this.schemaTopAllowedElements);
-            const snippets = this._getSnippetsForElements(allowedElementsSet);
-            const snippetItems = createSnippetCompletionItems(
-                this.sourceObj,
-                snippets,
+            return createElementAndSnippetCompletionItems(
+                this,
+                this.schemaTopAllowedElements,
                 offset - 1,
                 offset,
             );
-
-            return [...schemaItems, ...snippetItems];
         }
 
         return [];
@@ -226,22 +325,12 @@ export function getCompletionItems(
         const allowedChildrenNames = this._getAllowedChildren(
             containingElement.node.name,
         );
-        const allowedChildrenSet = new Set(allowedChildrenNames);
-
-        const schemaItems = allowedChildrenNames.map((name) => ({
-            label: name,
-            kind: CompletionItemKind.Property,
-        }));
-
-        const snippets = this._getSnippetsForElements(allowedChildrenSet);
-        const snippetItems = createSnippetCompletionItems(
-            this.sourceObj,
-            snippets,
+        const completionItems = createElementAndSnippetCompletionItems(
+            this,
+            allowedChildrenNames,
             offset - 1,
             offset,
         );
-
-        const completionItems = [...schemaItems, ...snippetItems];
 
         if (closed) {
             // We're in the body of an element. Suggest all allowed children.
@@ -287,33 +376,19 @@ export function getCompletionItems(
             allowedElements = this._getAllowedChildren(parent.name);
         }
 
-        const schemaItems = allowedElements
-            .filter((name) => name.toLowerCase().startsWith(currentText))
-            .map((name) => ({
-                label: name,
-                kind: CompletionItemKind.Property,
-            }));
-
-        const allowedElementsSet = new Set(allowedElements);
-        const snippets = this._getSnippetsForElements(
-            allowedElementsSet,
-            currentText,
-        );
-
         // For openTagName context, we need to replace from the opening '<' to the cursor.
         // Prefer element.position.start for accuracy; fallback estimates based on typed text.
         const tagStartOffset =
             element.position?.start.offset ??
             Math.max(0, offset - currentText.length - 1);
 
-        const snippetItems = createSnippetCompletionItems(
-            this.sourceObj,
-            snippets,
+        return createElementAndSnippetCompletionItems(
+            this,
+            allowedElements,
             tagStartOffset,
             offset,
+            currentText,
         );
-
-        return [...schemaItems, ...snippetItems];
     }
 
     if (cursorPosition === "openTag" || cursorPosition === "attributeName") {
