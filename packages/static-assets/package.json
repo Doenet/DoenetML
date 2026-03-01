@@ -26,6 +26,9 @@
         "./completion-snippets": {
             "import": "./dist/completion-snippets.js"
         },
+        "./completion-snippet-protocol": {
+            "import": "./dist/completion-snippet-protocol.js"
+        },
         "./schema": {
             "import": "./dist/schema.js"
         },

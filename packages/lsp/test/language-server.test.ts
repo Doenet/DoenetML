@@ -225,5 +225,16 @@ describe("Doenet Language Server", async () => {
             expect(item.textEdit).toHaveProperty("newText");
             expect(item.textEdit).toHaveProperty("range");
         });
+
+        const markerSnippet = itemsWithTextEdit.find(
+            (item) => item.label === "multiple-choice-answer",
+        );
+        expect(markerSnippet).toBeDefined();
+        expect(markerSnippet?.data).toEqual({
+            snippetCursor: {
+                selectionStartOffset: expect.any(Number),
+                selectionEndOffset: expect.any(Number),
+            },
+        });
     });
 });

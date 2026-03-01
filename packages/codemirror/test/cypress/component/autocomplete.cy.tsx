@@ -101,6 +101,13 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
             .click();
         cy.get(".cm-content").invoke("text").should("contain", "<answer");
         cy.get(".cm-content").invoke("text").should("contain", "<choice");
+
+        // The snippet should leave "mcq" selected so typing replaces it.
+        cy.get(".cm-content").type("quiz", { force: true });
+        cy.get(".cm-content").invoke("text").should("contain", 'name="quiz"');
+        cy.get(".cm-content")
+            .invoke("text")
+            .should("not.contain", 'name="mcq"');
     });
 
     it("completes attribute names", () => {
