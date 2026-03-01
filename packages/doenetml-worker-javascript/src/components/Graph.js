@@ -210,6 +210,14 @@ export default class Graph extends BlockComponent {
                 componentTypes: ["yLabel"],
             },
             {
+                group: "shortDescriptions",
+                componentTypes: ["shortDescription"],
+            },
+            {
+                group: "descriptions",
+                componentTypes: ["description"],
+            },
+            {
                 group: "graphical",
                 componentTypes: [
                     "_graphical",
@@ -230,14 +238,6 @@ export default class Graph extends BlockComponent {
             {
                 group: "graphs",
                 componentTypes: ["graph"],
-            },
-            {
-                group: "shortDescriptions",
-                componentTypes: ["shortDescription"],
-            },
-            {
-                group: "descriptions",
-                componentTypes: ["description"],
             },
         ];
     }

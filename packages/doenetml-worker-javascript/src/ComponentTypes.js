@@ -170,6 +170,7 @@ import Pretzel from "./components/Pretzel";
 import PretzelArranger from "./components/PretzelArranger";
 import Cascade from "./components/Cascade";
 import DynamicChildren from "./components/DynamicChildren";
+import ShortDescription from "./components/ShortDescription";
 
 //Extended
 import * as ComponentSize from "./components/abstract/ComponentSize";
@@ -367,6 +368,7 @@ const componentTypeArray = [
     PretzelArranger,
     Cascade,
     DynamicChildren,
+    ShortDescription,
 
     BaseComponent,
     InlineComponent,
