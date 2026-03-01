@@ -92299,7 +92299,10 @@
                 "type": {
                     "optional": true,
                     "type": [
-                        "string"
+                        "math",
+                        "text",
+                        "boolean",
+                        "videoWatched"
                     ]
                 },
                 "selectMultiple": {
@@ -92358,6 +92361,18 @@
                     ]
                 },
                 "description": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "video": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "videoCreditLabel": {
                     "optional": true,
                     "type": [
                         "string"

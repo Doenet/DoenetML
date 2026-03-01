@@ -1466,7 +1466,9 @@ describe("Answer tag tests @group4", async () => {
         let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
+        expect(errorWarnings.warnings.filter((w) => w.level !== 2).length).eq(
+            1,
+        );
 
         expect(errorWarnings.warnings[0].message).contain(
             "Invalid type for answer: bad",
