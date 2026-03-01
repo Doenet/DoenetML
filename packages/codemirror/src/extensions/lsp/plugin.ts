@@ -395,8 +395,8 @@ function normalizePos(rangePos: PositionLike | null | undefined) {
  * or `null` when the positions cannot be resolved in the current document.
  */
 function getValidDiagnosticOffsets(doc: Text, range: RangeLike) {
-    const startPos = normalizePos(range.start);
-    const endPos = normalizePos(range.end);
+    const startPos = normalizePos(range?.start);
+    const endPos = normalizePos(range?.end);
     if (!startPos || !endPos) {
         return null;
     }
