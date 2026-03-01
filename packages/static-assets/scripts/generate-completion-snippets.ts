@@ -44,6 +44,14 @@ const COMPLETION_SNIPPETS: Record<string, CompletionSnippet> = {
         description:
             "IF-AT (Immediate Feedback Assessment Technique) answer template",
     },
+    "answer-labeled": {
+        element: "answer",
+        snippet: `
+<answer name="answer1">
+  <label></label>
+</answer>`,
+        description: "answer with label (for accessibility)",
+    },
     "pretzel-06": {
         element: "answer",
         snippet: `
