@@ -102,14 +102,14 @@ export function answerSugar(node: DastElement) {
 
         let answerNameAttr = node.attributes.name;
         if (!answerNameAttr) {
-            const uniqueName = `__answer${Math.floor(Math.random() * 100000)}`;
+            const ansName = `__answer${node.position?.start.offset || "unknown"}`;
             answerNameAttr = node.attributes.name = {
                 type: "attribute",
                 name: "name",
                 children: [
                     {
                         type: "text",
-                        value: uniqueName,
+                        value: ansName,
                     },
                 ],
             };
