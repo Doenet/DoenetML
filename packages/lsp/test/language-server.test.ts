@@ -195,6 +195,26 @@ describe("Doenet Language Server", async () => {
         const worker: Worker = new LSPWorker();
         const { lspConn, workerConn } = await initWorker(worker);
         const uri = "file:///test-merge.doenet";
+        const perWaitTimeoutMs = 1500;
+
+        const waitForDiagnosticsEvent = async (timeoutMs: number) => {
+            return (await Promise.race([
+                new Promise((resolve) => {
+                    lspConn.onDiagnostics((params) => {
+                        resolve(params);
+                    });
+                }),
+                new Promise((_, reject) => {
+                    setTimeout(() => {
+                        reject(
+                            new Error(
+                                `Timed out after ${timeoutMs}ms waiting for publishDiagnostics event`,
+                            ),
+                        );
+                    }, timeoutMs);
+                }),
+            ])) as { uri: string; diagnostics: Diagnostic[] };
+        };
 
         await lspConn.textDocumentOpened({
             textDocument: {
@@ -206,11 +226,7 @@ describe("Doenet Language Server", async () => {
         });
 
         // First, verify we receive the existing validation diagnostic.
-        const initialDiags = (await new Promise((resolve) => {
-            lspConn.onDiagnostics((params) => {
-                resolve(params);
-            });
-        })) as { uri: string; diagnostics: Diagnostic[] };
+        const initialDiags = await waitForDiagnosticsEvent(perWaitTimeoutMs);
 
         expect(initialDiags.uri).toBe(uri);
         expect(initialDiags.diagnostics.length).toBeGreaterThan(0);
@@ -233,11 +249,7 @@ describe("Doenet Language Server", async () => {
         // Diagnostics may be published multiple times; loop until we receive merged diagnostics.
         let mergedDiagnostics: Diagnostic[] = [];
         for (let loop = 0; loop < 10; loop++) {
-            const nextDiags = (await new Promise((resolve) => {
-                lspConn.onDiagnostics((params) => {
-                    resolve(params);
-                });
-            })) as { uri: string; diagnostics: Diagnostic[] };
+            const nextDiags = await waitForDiagnosticsEvent(perWaitTimeoutMs);
 
             if (nextDiags.uri !== uri) {
                 continue;
@@ -253,6 +265,12 @@ describe("Doenet Language Server", async () => {
                 mergedDiagnostics = nextDiags.diagnostics;
                 break;
             }
+        }
+
+        if (mergedDiagnostics.length === 0) {
+            throw new Error(
+                "Did not observe merged diagnostics (external + existing) within expected diagnostic publish window",
+            );
         }
 
         expect(mergedDiagnostics.length).toBeGreaterThan(1);
