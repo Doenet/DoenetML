@@ -841,4 +841,32 @@ describe("Warning Tests @group4", async () => {
             expect(warning!.message).toContain(warningMsg);
         }
     });
+
+    it("Warning if short description contains math", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+    <graph><shortDescription>Note that <math>y=x</math></shortDescription></graph>
+    <graph><shortDescription>Note that <m>y=x</m></shortDescription></graph>
+    <graph><shortDescription>Note that y=x</shortDescription></graph>
+    `,
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).eq(2);
+
+        const expectedWarningByLine: Record<string, string> = {
+            2: "Short descriptions should not contain math components",
+            3: "Short descriptions should not contain math components",
+        };
+
+        for (const lineNum in expectedWarningByLine) {
+            const expectedWarning = expectedWarningByLine[lineNum];
+            const warning = errorWarnings.warnings.find(
+                (warning) => warning.position.start.line === parseInt(lineNum),
+            );
+            expect(warning!.message).toContain(expectedWarning);
+        }
+    });
 });
