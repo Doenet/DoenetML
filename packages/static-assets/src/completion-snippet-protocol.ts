@@ -22,14 +22,24 @@ export function isCompletionSnippetCursor(
         return false;
     }
 
-    if ("caretOffset" in value) {
-        return isNonNegativeInteger(value.caretOffset);
+    const hasCaretOffset = "caretOffset" in value;
+    const hasSelectionStartOffset = "selectionStartOffset" in value;
+    const hasSelectionEndOffset = "selectionEndOffset" in value;
+
+    if (hasCaretOffset) {
+        return (
+            !hasSelectionStartOffset &&
+            !hasSelectionEndOffset &&
+            isNonNegativeInteger(value.caretOffset)
+        );
     }
 
-    if ("selectionStartOffset" in value && "selectionEndOffset" in value) {
+    if (hasSelectionStartOffset && hasSelectionEndOffset) {
         return (
+            !hasCaretOffset &&
             isNonNegativeInteger(value.selectionStartOffset) &&
-            isNonNegativeInteger(value.selectionEndOffset)
+            isNonNegativeInteger(value.selectionEndOffset) &&
+            value.selectionStartOffset <= value.selectionEndOffset
         );
     }
 
