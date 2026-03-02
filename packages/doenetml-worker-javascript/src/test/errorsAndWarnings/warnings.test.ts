@@ -830,7 +830,8 @@ describe("Warning Tests @group4", async () => {
         expect(errorWarnings.errors.length).eq(0);
         expect(errorWarnings.warnings.length).eq(6);
 
-        const warningMsg = "must have a short description or a label";
+        const warningMsg =
+            "<mathInput> must have a short description or a label";
 
         const warningsOnLines = [2, 3, 4, 7, 8, 10];
 
