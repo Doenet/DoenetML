@@ -626,12 +626,12 @@ async function test_matrix_answer({
     );
     expect(
         stateVariables[answerIdx].stateValues.currentResponses.map(
-            (x) => x.tree,
+            (x: Expression) => x.tree,
         ),
     ).eqls([currentResponse]);
     expect(
         stateVariables[answerIdx].stateValues.submittedResponses.map(
-            (x) => x.tree,
+            (x: Expression) => x.tree,
         ),
     ).eqls(submittedResponses);
     expect(stateVariables[matrixInputIdx].stateValues.value.tree).eqls(
@@ -689,12 +689,12 @@ async function test_matrix_answer({
         );
         expect(
             stateVariables[answerIdx].stateValues.currentResponses.map(
-                (x) => x.tree,
+                (x: Expression) => x.tree,
             ),
         ).eqls([currentResponse]);
         expect(
             stateVariables[answerIdx].stateValues.submittedResponses.map(
-                (x) => x.tree,
+                (x: Expression) => x.tree,
             ),
         ).eqls(submittedResponses);
         expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(
@@ -728,12 +728,12 @@ async function test_matrix_answer({
         );
         expect(
             stateVariables[answerIdx].stateValues.currentResponses.map(
-                (x) => x.tree,
+                (x: Expression) => x.tree,
             ),
         ).eqls([currentResponse]);
         expect(
             stateVariables[answerIdx].stateValues.submittedResponses.map(
-                (x) => x.tree,
+                (x: Expression) => x.tree,
             ),
         ).eqls(submittedResponses);
         expect(stateVariables[answerIdx].stateValues.numSubmissions).eq(
@@ -781,12 +781,12 @@ async function test_action_answer({
     );
     expect(
         stateVariables[answerIdx].stateValues.currentResponses.map(
-            (x) => x.tree,
+            (x: Expression) => x.tree,
         ),
     ).eqls(currentResponses);
     expect(
         stateVariables[answerIdx].stateValues.submittedResponses.map(
-            (x) => x.tree,
+            (x: Expression) => x.tree,
         ),
     ).eqls(submittedResponses);
 
@@ -830,12 +830,12 @@ async function test_action_answer({
         );
         expect(
             stateVariables[answerIdx].stateValues.currentResponses.map(
-                (x) => x.tree,
+                (x: Expression) => x.tree,
             ),
         ).eqls(currentResponses);
         expect(
             stateVariables[answerIdx].stateValues.submittedResponses.map(
-                (x) => x.tree,
+                (x: Expression) => x.tree,
             ),
         ).eqls(submittedResponses);
         // submit
@@ -850,12 +850,12 @@ async function test_action_answer({
         );
         expect(
             stateVariables[answerIdx].stateValues.currentResponses.map(
-                (x) => x.tree,
+                (x: Expression) => x.tree,
             ),
         ).eqls(currentResponses);
         expect(
             stateVariables[answerIdx].stateValues.submittedResponses.map(
-                (x) => x.tree,
+                (x: Expression) => x.tree,
             ),
         ).eqls(submittedResponses);
     }
@@ -946,13 +946,15 @@ async function test_answer_multiple_inputs({
         1e-14,
     );
     expect(
-        stateVariables[answerIdx].stateValues.currentResponses.map((x, i) =>
-            inputs[i].type === "math" ? x.tree : x,
+        stateVariables[answerIdx].stateValues.currentResponses.map(
+            (x: Expression, i: number) =>
+                inputs[i].type === "math" ? x.tree : x,
         ),
     ).eqls(currentResponses);
     expect(
-        stateVariables[answerIdx].stateValues.submittedResponses.map((x, i) =>
-            inputs[i].type === "math" ? x.tree : x,
+        stateVariables[answerIdx].stateValues.submittedResponses.map(
+            (x: Expression, i: number) =>
+                inputs[i].type === "math" ? x.tree : x,
         ),
     ).eqls(submittedResponses);
     if (inputs.every((x) => x.type !== "number")) {
@@ -3532,7 +3534,7 @@ Enter any letter:
                 true,
             );
 
-            let indexByName = {};
+            let indexByName: Record<string, number> = {};
             for (let [ind, val] of stateVariables[
                 await resolvePathToNodeIdx("ci")
             ].stateValues.choiceTexts.entries()) {
@@ -4757,7 +4759,7 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls(["\uff3f"]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans1")].stateValues
@@ -4774,7 +4776,7 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls(["\uff3f"]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
@@ -4800,7 +4802,7 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans1")].stateValues
@@ -4817,7 +4819,7 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
@@ -4842,12 +4844,12 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.submittedResponses.map((x) => x.tree),
+            ].stateValues.submittedResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
@@ -4860,12 +4862,12 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.submittedResponses.map((x) => x.tree),
+            ].stateValues.submittedResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
 
         // type incorrect answer into second blank
@@ -4887,12 +4889,12 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.submittedResponses.map((x) => x.tree),
+            ].stateValues.submittedResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
@@ -4905,12 +4907,12 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.submittedResponses.map((x) => x.tree),
+            ].stateValues.submittedResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
 
         // submit first answer
@@ -4931,12 +4933,12 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.submittedResponses.map((x) => x.tree),
+            ].stateValues.submittedResponses.map((x: Expression) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
@@ -4949,12 +4951,12 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.submittedResponses.map((x) => x.tree),
+            ].stateValues.submittedResponses.map((x: Expression) => x.tree),
         ).eqls(["x"]);
     });
 
@@ -4987,7 +4989,7 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls(["\uff3f"]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans1")].stateValues
@@ -5004,7 +5006,7 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls(["\uff3f"]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
@@ -5030,7 +5032,7 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans1")].stateValues
@@ -5047,7 +5049,7 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls(["\uff3f"]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
@@ -5072,12 +5074,12 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.submittedResponses.map((x) => x.tree),
+            ].stateValues.submittedResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
@@ -5090,7 +5092,7 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls(["\uff3f"]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
@@ -5116,12 +5118,12 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.submittedResponses.map((x) => x.tree),
+            ].stateValues.submittedResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
@@ -5134,7 +5136,7 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
@@ -5159,12 +5161,12 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.submittedResponses.map((x) => x.tree),
+            ].stateValues.submittedResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
@@ -5177,12 +5179,12 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.submittedResponses.map((x) => x.tree),
+            ].stateValues.submittedResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
 
         // type incorrect answer into second blank
@@ -5204,12 +5206,12 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.submittedResponses.map((x) => x.tree),
+            ].stateValues.submittedResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
@@ -5222,12 +5224,12 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.submittedResponses.map((x) => x.tree),
+            ].stateValues.submittedResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
 
         // submit second answer
@@ -5248,12 +5250,12 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.submittedResponses.map((x) => x.tree),
+            ].stateValues.submittedResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
@@ -5266,12 +5268,12 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.submittedResponses.map((x) => x.tree),
+            ].stateValues.submittedResponses.map((x: Expression) => x.tree),
         ).eqls(["x"]);
 
         // type incorrect answer into first blank
@@ -5293,12 +5295,12 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.submittedResponses.map((x) => x.tree),
+            ].stateValues.submittedResponses.map((x: Expression) => x.tree),
         ).eqls([["+", "x", "y"]]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
@@ -5311,12 +5313,12 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.submittedResponses.map((x) => x.tree),
+            ].stateValues.submittedResponses.map((x: Expression) => x.tree),
         ).eqls(["x"]);
 
         // submit first answer
@@ -5337,12 +5339,12 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans1")
-            ].stateValues.submittedResponses.map((x) => x.tree),
+            ].stateValues.submittedResponses.map((x: Expression) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
@@ -5355,12 +5357,12 @@ Enter any letter:
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.currentResponses.map((x) => x.tree),
+            ].stateValues.currentResponses.map((x: Expression) => x.tree),
         ).eqls(["x"]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("ans2")
-            ].stateValues.submittedResponses.map((x) => x.tree),
+            ].stateValues.submittedResponses.map((x: Expression) => x.tree),
         ).eqls(["x"]);
     });
 
@@ -5375,7 +5377,10 @@ Enter any letter:
   `,
         });
 
-        function check_have_getter(stateVarObj, have_getter = true) {
+        function check_have_getter(
+            stateVarObj: Record<string, any>,
+            have_getter = true,
+        ) {
             expect(
                 Boolean(
                     //@ts-ignore
@@ -5385,7 +5390,7 @@ Enter any letter:
             ).eq(have_getter);
         }
 
-        let components = core.core!.components || {};
+        let components: Record<string, any> = core.core!.components || {};
 
         const ansIdx = await resolvePathToNodeIdx("ans");
         const mathInputIdx =
@@ -5395,7 +5400,7 @@ Enter any letter:
         expect(components[ansIdx].stateValues.creditAchieved).eq(0);
         expect(
             (await components[ansIdx].stateValues.currentResponses).map(
-                (x) => x.tree,
+                (x: Expression) => x.tree,
             ),
         ).eqls(["\uff3f"]);
         expect(await components[ansIdx].stateValues.submittedResponses).eqls(
@@ -5432,8 +5437,8 @@ Enter any letter:
         expect(components[ansIdx].stateValues.justSubmitted).eq(false);
         expect(components[ansIdx].stateValues.creditAchieved).eq(0);
         expect(
-            (await components[ansIdx].stateValues.currentResponses).map((x) =>
-                cleanLatex(x.toLatex()),
+            (await components[ansIdx].stateValues.currentResponses).map(
+                (x: Expression) => cleanLatex(x.toLatex()),
             ),
         ).eqls(["x^{2}-2x+3"]);
         expect(await components[ansIdx].stateValues.submittedResponses).eqls(
@@ -5466,13 +5471,13 @@ Enter any letter:
         expect(components[ansIdx].stateValues.justSubmitted).eq(true);
         expect(components[ansIdx].stateValues.creditAchieved).eq(1);
         expect(
-            (await components[ansIdx].stateValues.currentResponses).map((x) =>
-                cleanLatex(x.toLatex()),
+            (await components[ansIdx].stateValues.currentResponses).map(
+                (x: Expression) => cleanLatex(x.toLatex()),
             ),
         ).eqls(["x^{2}-2x+3"]);
         expect(
-            (await components[ansIdx].stateValues.submittedResponses).map((x) =>
-                cleanLatex(x.toLatex()),
+            (await components[ansIdx].stateValues.submittedResponses).map(
+                (x: Expression) => cleanLatex(x.toLatex()),
             ),
         ).eqls(["x^{2}-2x+3"]);
 
@@ -5521,13 +5526,13 @@ Enter any letter:
         expect(components[ansIdx].stateValues.justSubmitted).eq(false);
         expect(components[ansIdx].stateValues.creditAchieved).eq(1);
         expect(
-            (await components[ansIdx].stateValues.currentResponses).map((x) =>
-                cleanLatex(x.toLatex()),
+            (await components[ansIdx].stateValues.currentResponses).map(
+                (x: Expression) => cleanLatex(x.toLatex()),
             ),
         ).eqls(["x^{2}-2x-3"]);
         expect(
-            (await components[ansIdx].stateValues.submittedResponses).map((x) =>
-                cleanLatex(x.toLatex()),
+            (await components[ansIdx].stateValues.submittedResponses).map(
+                (x: Expression) => cleanLatex(x.toLatex()),
             ),
         ).eqls(["x^{2}-2x+3"]);
         expect(await components[award1Idx].stateValues.creditAchieved).eq(1);
@@ -5557,13 +5562,13 @@ Enter any letter:
         expect(components[ansIdx].stateValues.justSubmitted).eq(true);
         expect(components[ansIdx].stateValues.creditAchieved).eq(0.5);
         expect(
-            (await components[ansIdx].stateValues.currentResponses).map((x) =>
-                cleanLatex(x.toLatex()),
+            (await components[ansIdx].stateValues.currentResponses).map(
+                (x: Expression) => cleanLatex(x.toLatex()),
             ),
         ).eqls(["x^{2}-2x-3"]);
         expect(
-            (await components[ansIdx].stateValues.submittedResponses).map((x) =>
-                cleanLatex(x.toLatex()),
+            (await components[ansIdx].stateValues.submittedResponses).map(
+                (x: Expression) => cleanLatex(x.toLatex()),
             ),
         ).eqls(["x^{2}-2x-3"]);
 
@@ -6835,7 +6840,7 @@ What is the derivative of <function name="f">x^2</function>?
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let indexByName = {};
+        let indexByName: Record<string, number> = {};
         for (let [ind, val] of stateVariables[
             await resolvePathToNodeIdx("ci")
         ].stateValues.choiceTexts.entries()) {
@@ -7675,7 +7680,7 @@ What is the derivative of <function name="f">x^2</function>?
             stateVariables[
                 await resolvePathToNodeIdx("ans")
             ].activeChildren.map((x) => x.componentType),
-        ).eqls(["mathInput", "award", "label"]);
+        ).eqls(["mathInput", "label", "award"]);
 
         const mathInputIdx =
             stateVariables[await resolvePathToNodeIdx("ans")].activeChildren[0]
@@ -8161,12 +8166,12 @@ What is the derivative of <function name="f">x^2</function>?
             );
             expect(
                 stateVariables[answerIdx].stateValues.currentResponses.map(
-                    (x: any) => x.tree,
+                    (x: Expression) => x.tree,
                 ),
             ).eqls(currentResponses);
             expect(
                 stateVariables[answerIdx].stateValues.submittedResponses.map(
-                    (x: any) => x.tree,
+                    (x: Expression) => x.tree,
                 ),
             ).eqls(submittedResponses);
         }
@@ -8236,12 +8241,12 @@ What is the derivative of <function name="f">x^2</function>?
             );
             expect(
                 stateVariables[answerIdx].stateValues.currentResponses.map(
-                    (x: any) => x.tree,
+                    (x: Expression) => x.tree,
                 ),
             ).eqls(currentResponses);
             expect(
                 stateVariables[answerIdx].stateValues.submittedResponses.map(
-                    (x: any) => x.tree,
+                    (x: Expression) => x.tree,
                 ),
             ).eqls(submittedResponses);
             expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
@@ -8367,12 +8372,12 @@ What is the derivative of <function name="f">x^2</function>?
             );
             expect(
                 stateVariables[answerIdx].stateValues.currentResponses.map(
-                    (x: any) => x.tree,
+                    (x: Expression) => x.tree,
                 ),
             ).eqls(currentResponses);
             expect(
                 stateVariables[answerIdx].stateValues.submittedResponses.map(
-                    (x: any) => x.tree,
+                    (x: Expression) => x.tree,
                 ),
             ).eqls(submittedResponses);
         }
@@ -8429,12 +8434,12 @@ What is the derivative of <function name="f">x^2</function>?
             );
             expect(
                 stateVariables[answerIdx].stateValues.currentResponses.map(
-                    (x: any) => x.tree,
+                    (x: Expression) => x.tree,
                 ),
             ).eqls(currentResponses);
             expect(
                 stateVariables[answerIdx].stateValues.submittedResponses.map(
-                    (x: any) => x.tree,
+                    (x: Expression) => x.tree,
                 ),
             ).eqls(submittedResponses);
         }
@@ -8492,12 +8497,12 @@ What is the derivative of <function name="f">x^2</function>?
             );
             expect(
                 stateVariables[answerIdx].stateValues.currentResponses.map(
-                    (x: any) => x.tree,
+                    (x: Expression) => x.tree,
                 ),
             ).eqls(currentResponses);
             expect(
                 stateVariables[answerIdx].stateValues.submittedResponses.map(
-                    (x: any) => x.tree,
+                    (x: Expression) => x.tree,
                 ),
             ).eqls(submittedResponses);
             expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(
