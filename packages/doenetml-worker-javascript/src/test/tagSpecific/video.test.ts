@@ -49,7 +49,7 @@ describe("Video tag tests @group1", async () => {
     `,
         });
 
-        let expectedSizes = {
+        let expectedSizes: Record<string, string> = {
             v: "full",
             vtiny: "tiny",
             vsmall: "small",
@@ -158,5 +158,47 @@ describe("Video tag tests @group1", async () => {
             stateVariables[await resolvePathToNodeIdx("vinvalid")].stateValues
                 .displayMode,
         ).eq("block");
+    });
+
+    it("warning if no short description specified", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+<video name="video1" />
+            `,
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).eq(1);
+
+        expect(errorWarnings.warnings[0].message).contain(
+            `<video> must have a short description`,
+        );
+        expect(errorWarnings.warnings[0].position.start.line).eq(2);
+        expect(errorWarnings.warnings[0].position.start.column).eq(1);
+        expect(errorWarnings.warnings[0].position.end.line).eq(2);
+        expect(errorWarnings.warnings[0].position.end.column).eq(24);
+    });
+
+    it("upgrade warning to error if no short description specified", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+<video name="video1" />
+            `,
+            flags: { upgradeAccessibilityWarningsToErrors: true },
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(1);
+
+        expect(errorWarnings.errors[0].message).contain(
+            `<video> must have a short description`,
+        );
+        expect(errorWarnings.errors[0].position.start.line).eq(2);
+        expect(errorWarnings.errors[0].position.start.column).eq(1);
+        expect(errorWarnings.errors[0].position.end.line).eq(2);
+        expect(errorWarnings.errors[0].position.end.column).eq(24);
     });
 });

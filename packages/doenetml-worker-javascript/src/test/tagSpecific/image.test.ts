@@ -71,7 +71,7 @@ describe("Image tag tests @group3", async () => {
     `,
         });
 
-        let expectedSizes = {
+        let expectedSizes: Record<string, string> = {
             i: "medium",
             itiny: "tiny",
             ismall: "small",
