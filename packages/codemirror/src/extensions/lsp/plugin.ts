@@ -52,6 +52,10 @@ import {
     CompletionContext,
     Completion,
 } from "@codemirror/autocomplete";
+import {
+    getSnippetCursorFromCompletionItemData,
+    type CompletionSnippetCursor,
+} from "@doenet/static-assets/completion-snippet-protocol";
 import type {
     MarkupContent,
     MarkedString,
@@ -92,6 +96,7 @@ type ExtendedCompletion = Completion & {
         start: { line: number; character: number };
         end: { line: number; character: number };
     };
+    _snippetCursor?: CompletionSnippetCursor;
 };
 
 // One language server is shared across all plugin instances
@@ -228,6 +233,7 @@ export class LSPPlugin implements PluginValue {
                 documentation,
                 sortText,
                 filterText,
+                data,
             }) => {
                 const completion: ExtendedCompletion = {
                     label,
@@ -243,6 +249,11 @@ export class LSPPlugin implements PluginValue {
                 // Store range info if present for custom apply logic later
                 if (textEdit && "range" in textEdit) {
                     completion._lspTextEditRange = textEdit.range;
+                }
+                const snippetCursor =
+                    getSnippetCursorFromCompletionItemData(data);
+                if (snippetCursor) {
+                    completion._snippetCursor = snippetCursor;
                 }
                 return completion;
             },
@@ -294,26 +305,34 @@ export class LSPPlugin implements PluginValue {
             if (opt._lspTextEditRange) {
                 const startPos = normalizePos(opt._lspTextEditRange.start);
                 const endPos = normalizePos(opt._lspTextEditRange.end);
-                const rangeStart = startPos
-                    ? posToOffset(state.doc, startPos)
-                    : null;
-                const rangeEnd = endPos ? posToOffset(state.doc, endPos) : null;
-
-                if (rangeStart != null && rangeEnd != null) {
+                if (startPos && endPos) {
                     const insertText =
                         typeof opt.apply === "string" ? opt.apply : "";
                     opt.apply = (
                         view: EditorView,
                         _completion: Completion,
-                        _from: number,
-                        _to: number,
+                        from: number,
+                        to: number,
                     ) => {
+                        const rangeStart = posToOffset(
+                            view.state.doc,
+                            startPos,
+                        );
+                        const rangeEnd = posToOffset(view.state.doc, endPos);
+                        const replaceFrom = rangeStart ?? from;
+                        const replaceTo = rangeEnd ?? to;
+                        const selection = getSelectionFromSnippetCursor(
+                            opt._snippetCursor,
+                            replaceFrom,
+                            insertText.length,
+                        );
                         view.dispatch({
                             changes: {
-                                from: rangeStart,
-                                to: rangeEnd,
+                                from: replaceFrom,
+                                to: replaceTo,
                                 insert: insertText,
                             },
+                            ...(selection ? { selection } : {}),
                         });
                     };
                 }
@@ -448,6 +467,43 @@ function prefixMatch(options: Completion[]) {
     const source =
         setToRegex(new Set(first)) + setToRegex(new Set(rest)) + "*$";
     return [new RegExp("^" + source), new RegExp(source)];
+}
+
+/**
+ * Build an editor selection from snippet cursor metadata and insertion bounds.
+ */
+function getSelectionFromSnippetCursor(
+    snippetCursor: CompletionSnippetCursor | undefined,
+    insertStart: number,
+    insertTextLength: number,
+) {
+    if (!snippetCursor) {
+        return null;
+    }
+
+    if ("caretOffset" in snippetCursor) {
+        if (snippetCursor.caretOffset > insertTextLength) {
+            return null;
+        }
+        const position = insertStart + snippetCursor.caretOffset;
+        return {
+            anchor: position,
+            head: position,
+        };
+    }
+
+    if (
+        snippetCursor.selectionStartOffset > insertTextLength ||
+        snippetCursor.selectionEndOffset > insertTextLength ||
+        snippetCursor.selectionStartOffset > snippetCursor.selectionEndOffset
+    ) {
+        return null;
+    }
+
+    return {
+        anchor: insertStart + snippetCursor.selectionStartOffset,
+        head: insertStart + snippetCursor.selectionEndOffset,
+    };
 }
 
 function formatContents(

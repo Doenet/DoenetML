@@ -246,4 +246,80 @@ describe("Normalize dast", async () => {
             },
         ]);
     });
+
+    it("Adds error when answer type=videoWatched is missing video attribute", () => {
+        const source = `<answer type="videoWatched" />`;
+        const dast = lezerToDast(source);
+
+        expect(extractDastErrors(normalizeDocumentDast(dast))).toMatchObject([
+            {
+                message:
+                    "Answer with type videoWatched must have a video attribute",
+                type: "error",
+            },
+        ]);
+    });
+
+    it("Sugars answer type=videoWatched with an award referencing the video", () => {
+        const source = `<answer type="videoWatched" video="$v" />`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        function findElementByName(node: any, name: string): any {
+            if (node?.type === "element" && node.name === name) {
+                return node;
+            }
+            if (!Array.isArray(node?.children)) {
+                return undefined;
+            }
+            for (const child of node.children) {
+                const found = findElementByName(child, name);
+                if (found) {
+                    return found;
+                }
+            }
+            return undefined;
+        }
+
+        const answerElement = findElementByName(normalized, "answer");
+        expect(answerElement).toBeDefined();
+
+        const awardElement = answerElement.children.find(
+            (child: any) => child.type === "element" && child.name === "award",
+        );
+        expect(awardElement).toBeDefined();
+
+        expect(awardElement).toMatchObject({
+            attributes: {
+                credit: {
+                    children: [
+                        {
+                            type: "macro",
+                            path: [{ name: "v" }, { name: "fractionWatched" }],
+                        },
+                    ],
+                },
+            },
+            children: [
+                {
+                    type: "element",
+                    name: "when",
+                    children: [{ type: "text", value: "true" }],
+                },
+            ],
+        });
+    });
+
+    it("Adds error when answer type=videoWatched has non-reference video attribute", () => {
+        const source = `<answer type="videoWatched" video="myVideo" />`;
+        const dast = lezerToDast(source);
+
+        expect(extractDastErrors(normalizeDocumentDast(dast))).toMatchObject([
+            {
+                message:
+                    "Answer with type videoWatched must have video attribute that is a reference",
+                type: "error",
+            },
+        ]);
+    });
 });

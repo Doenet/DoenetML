@@ -1,6 +1,7 @@
 import { DoenetSourceObject, RowCol } from "../doenet-source-object";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import { COMPLETION_SNIPPETS } from "@doenet/static-assets/completion-snippets";
+import type { CompletionSnippetCursor } from "@doenet/static-assets/completion-snippet-protocol";
 import { DastAttributeV6, DastElementV6 } from "@doenet/parser";
 import { getCompletionItems } from "./methods/get-completion-items";
 import { getSchemaViolations } from "./methods/get-schema-violations";
@@ -20,7 +21,33 @@ type ProcessedSnippet = {
     normalizedElement: string;
     snippet: string;
     description: string;
+    cursor?: CompletionSnippetCursor;
 };
+
+/**
+ * Shift snippet cursor offsets after trimming leading whitespace.
+ */
+function adjustCursorForTrimStart(
+    cursor: CompletionSnippetCursor,
+    trimmedCharacters: number,
+): CompletionSnippetCursor {
+    if ("caretOffset" in cursor) {
+        return {
+            caretOffset: Math.max(0, cursor.caretOffset - trimmedCharacters),
+        };
+    }
+
+    return {
+        selectionStartOffset: Math.max(
+            0,
+            cursor.selectionStartOffset - trimmedCharacters,
+        ),
+        selectionEndOffset: Math.max(
+            0,
+            cursor.selectionEndOffset - trimmedCharacters,
+        ),
+    };
+}
 
 /**
  * A class to make auto-completion queries on DoenetML source.
@@ -249,6 +276,7 @@ export class AutoCompleter {
         Object.entries(COMPLETION_SNIPPETS).forEach(([key, snippet]) => {
             const rawSnippet = snippet.snippet ?? "";
             const trimmedSnippet = rawSnippet.trimStart();
+            const trimmedCharacters = rawSnippet.length - trimmedSnippet.length;
             const normalizedElement = this.normalizeElementName(
                 snippet.element,
             );
@@ -266,6 +294,12 @@ export class AutoCompleter {
                 normalizedElement,
                 snippet: trimmedSnippet,
                 description: snippet.description,
+                cursor: snippet.cursor
+                    ? adjustCursorForTrimStart(
+                          snippet.cursor,
+                          trimmedCharacters,
+                      )
+                    : undefined,
             };
 
             if (!this.snippetsByNormalizedElement.has(normalizedElement)) {
