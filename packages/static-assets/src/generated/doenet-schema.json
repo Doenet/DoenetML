@@ -5,7 +5,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -799,274 +798,10 @@
             "acceptsStringChildren": true
         },
         {
-            "name": "shortDescription",
-            "children": [
-                "title",
-                "rightHandSide",
-                "shortDescription",
-                "xLabel",
-                "yLabel",
-                "topic",
-                "br",
-                "m",
-                "me",
-                "men",
-                "md",
-                "mdn",
-                "mrow",
-                "not",
-                "and",
-                "or",
-                "xor",
-                "isInteger",
-                "isNumber",
-                "isBetween",
-                "sum",
-                "product",
-                "clampNumber",
-                "wrapNumberPeriodic",
-                "round",
-                "setSmallToZero",
-                "convertSetToList",
-                "ceil",
-                "floor",
-                "abs",
-                "sign",
-                "mean",
-                "median",
-                "variance",
-                "standardDeviation",
-                "count",
-                "min",
-                "max",
-                "mod",
-                "gcd",
-                "lcm",
-                "extractMath",
-                "clampFunction",
-                "wrapFunctionPeriodic",
-                "derivative",
-                "extractMathOperator",
-                "em",
-                "alert",
-                "q",
-                "sq",
-                "term",
-                "c",
-                "tag",
-                "tage",
-                "tagc",
-                "attr",
-                "ndash",
-                "mdash",
-                "nbsp",
-                "ellipsis",
-                "lq",
-                "rq",
-                "lsq",
-                "rsq",
-                "odeSystem",
-                "equilibriumPoint",
-                "equilibriumLine",
-                "atom",
-                "ion",
-                "ionicCompound",
-                "electronConfiguration",
-                "h",
-                "idx",
-                "span",
-                "displayDoenetML",
-                "matrixInput",
-                "text",
-                "textList",
-                "boolean",
-                "booleanList",
-                "math",
-                "mathList",
-                "tupleList",
-                "numberList",
-                "collect",
-                "ref",
-                "point",
-                "coords",
-                "line",
-                "bezierControls",
-                "vector",
-                "angle",
-                "answer",
-                "when",
-                "mathInput",
-                "textInput",
-                "booleanInput",
-                "choiceInput",
-                "choice",
-                "number",
-                "integer",
-                "function",
-                "piecewiseFunction",
-                "interval",
-                "sequence",
-                "cell",
-                "repeat",
-                "repeatForSequence",
-                "intersection",
-                "conditionalContent",
-                "asList",
-                "selectFromSequence",
-                "select",
-                "group",
-                "evaluate",
-                "selectRandomNumbers",
-                "sampleRandomNumbers",
-                "selectPrimeNumbers",
-                "samplePrimeNumbers",
-                "substitute",
-                "periodicSet",
-                "intComma",
-                "pluralize",
-                "lorem",
-                "updateValue",
-                "callAction",
-                "triggerSet",
-                "functionIterates",
-                "module",
-                "footnote",
-                "endpoint",
-                "sort",
-                "shuffle",
-                "solveEquations",
-                "subsetOfReals",
-                "split",
-                "bestFitLine",
-                "hasSameFactoring",
-                "label",
-                "matchesPattern",
-                "matrix",
-                "latex",
-                "pointList",
-                "intervalList",
-                "vectorList"
-            ],
-            "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "hide",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "disabled",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "fixed",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "fixLocation",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "styleNumber"
-                },
-                {
-                    "name": "isResponse",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "extend"
-                },
-                {
-                    "name": "copy"
-                }
-            ],
-            "properties": [
-                {
-                    "name": "hide",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "modifyIndirectly",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "styleNumber",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "permid",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "doenetML",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "value",
-                    "type": "shortDescription",
-                    "isArray": false
-                },
-                {
-                    "name": "text",
-                    "type": "text",
-                    "isArray": false
-                }
-            ],
-            "top": true,
-            "acceptsStringChildren": true
-        },
-        {
             "name": "description",
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -1491,7 +1226,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -1829,7 +1563,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -2167,7 +1900,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -2592,7 +2324,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -3017,7 +2748,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -4007,7 +3737,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -4354,7 +4083,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -4704,7 +4432,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -5034,7 +4761,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -5364,7 +5090,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -6063,7 +5788,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -22843,7 +22567,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -23101,7 +22824,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -23359,7 +23081,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -23617,7 +23338,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -23875,7 +23595,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -24133,7 +23852,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -24391,7 +24109,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -24649,7 +24366,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -24907,7 +24623,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -25165,7 +24880,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -26325,7 +26039,6 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -26876,7 +26589,6 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -27427,7 +27139,6 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -27978,7 +27689,6 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -28529,7 +28239,6 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -29106,7 +28815,6 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -29657,7 +29365,6 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -30208,7 +29915,6 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -30759,7 +30465,6 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -31310,7 +31015,6 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -31861,7 +31565,6 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -32412,7 +32115,6 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -32963,7 +32665,6 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -33514,7 +33215,6 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -34065,7 +33765,6 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -34616,7 +34315,6 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -35167,7 +34865,6 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -35735,7 +35432,6 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -36277,7 +35973,6 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -37067,7 +36762,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -42035,7 +41729,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -42892,7 +42585,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -43317,7 +43009,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -43742,7 +43433,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -44080,7 +43770,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -44438,7 +44127,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -45251,7 +44939,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -45563,7 +45250,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -45881,7 +45567,6 @@
                 "styleDefinition",
                 "feedbackDefinition",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "statement",
@@ -46787,7 +46472,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -48907,7 +48591,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -58994,7 +58677,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -60087,6 +59769,8 @@
                 "xLabel",
                 "conditionalContent",
                 "yLabel",
+                "shortDescription",
+                "description",
                 "rightHandSide",
                 "sum",
                 "product",
@@ -60216,9 +59900,7 @@
                 "triggerSet",
                 "booleanInput",
                 "textInput",
-                "graph",
-                "shortDescription",
-                "description"
+                "graph"
             ],
             "attributes": [
                 {
@@ -62228,7 +61910,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -63401,7 +63082,6 @@
                 "intervalList",
                 "vectorList",
                 "title",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -64395,7 +64075,6 @@
                 "title",
                 "conditionalContent",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -64732,7 +64411,6 @@
                 "caption",
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -65267,7 +64945,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -65595,7 +65272,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -67542,7 +67218,6 @@
                 "case",
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -67867,7 +67542,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -68551,7 +68225,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -70227,7 +69900,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -71160,8 +70832,8 @@
         {
             "name": "image",
             "children": [
-                "shortDescription",
                 "conditionalContent",
+                "shortDescription",
                 "description"
             ],
             "attributes": [
@@ -71423,8 +71095,8 @@
         {
             "name": "video",
             "children": [
-                "shortDescription",
                 "conditionalContent",
+                "shortDescription",
                 "description"
             ],
             "attributes": [
@@ -71639,7 +71311,6 @@
                 "title",
                 "conditionalContent",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -72714,7 +72385,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -73050,7 +72720,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -73388,7 +73057,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -74681,7 +74349,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -75007,7 +74674,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -75328,7 +74994,6 @@
                 "feedbackDefinition",
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -75645,7 +75310,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -75908,7 +75572,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -76673,7 +76336,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -77024,7 +76686,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -78438,7 +78099,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -79650,7 +79310,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -81023,7 +80682,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "xLabel",
                 "yLabel",
                 "topic",
@@ -82885,7 +82543,6 @@
             "children": [
                 "title",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -83778,7 +83435,6 @@
                 "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
-                "shortDescription",
                 "description",
                 "xLabel",
                 "yLabel",
@@ -84331,6 +83987,362 @@
                 }
             ],
             "top": true,
+            "acceptsStringChildren": true
+        },
+        {
+            "name": "shortDescription",
+            "children": [
+                "rightHandSide",
+                "xLabel",
+                "yLabel",
+                "topic",
+                "m",
+                "me",
+                "men",
+                "mrow",
+                "not",
+                "and",
+                "or",
+                "xor",
+                "isInteger",
+                "isNumber",
+                "isBetween",
+                "sum",
+                "product",
+                "clampNumber",
+                "wrapNumberPeriodic",
+                "round",
+                "setSmallToZero",
+                "convertSetToList",
+                "ceil",
+                "floor",
+                "abs",
+                "sign",
+                "mean",
+                "median",
+                "variance",
+                "standardDeviation",
+                "count",
+                "min",
+                "max",
+                "mod",
+                "gcd",
+                "lcm",
+                "extractMath",
+                "extractMathOperator",
+                "atom",
+                "ion",
+                "electronConfiguration",
+                "h",
+                "text",
+                "textList",
+                "boolean",
+                "booleanList",
+                "math",
+                "mathList",
+                "tupleList",
+                "numberList",
+                "coords",
+                "when",
+                "choice",
+                "number",
+                "integer",
+                "interval",
+                "sequence",
+                "cell",
+                "conditionalContent",
+                "selectFromSequence",
+                "evaluate",
+                "selectRandomNumbers",
+                "sampleRandomNumbers",
+                "selectPrimeNumbers",
+                "samplePrimeNumbers",
+                "substitute",
+                "periodicSet",
+                "intComma",
+                "pluralize",
+                "lorem",
+                "subsetOfReals",
+                "hasSameFactoring",
+                "label",
+                "matchesPattern",
+                "matrix",
+                "latex",
+                "intervalList",
+                "ndash",
+                "mdash",
+                "nbsp",
+                "ellipsis",
+                "lq",
+                "rq",
+                "lsq",
+                "rsq",
+                "em",
+                "alert",
+                "q",
+                "sq",
+                "term",
+                "c",
+                "tag",
+                "tage",
+                "tagc",
+                "attr"
+            ],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "hide",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "disabled",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixed",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
+                    "name": "draggable",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "layer"
+                },
+                {
+                    "name": "isLatex",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "anchor"
+                },
+                {
+                    "name": "positionFromAnchor",
+                    "values": [
+                        "upperright",
+                        "upperleft",
+                        "lowerright",
+                        "lowerleft",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right",
+                        "center"
+                    ]
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "draggable",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "layer",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "isLatex",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "positionFromAnchor",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "textColor",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "backgroundColor",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "textStyleDescription",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "anchor",
+                    "type": "point",
+                    "isArray": false
+                },
+                {
+                    "name": "text",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "math",
+                    "type": "math",
+                    "isArray": false
+                },
+                {
+                    "name": "number",
+                    "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "numWords",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "words",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numCharacters",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "characters",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "numListItems",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "list",
+                    "type": "text",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "text",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "valueOriginal",
+                    "type": "shortDescription",
+                    "isArray": false
+                },
+                {
+                    "name": "value",
+                    "type": "shortDescription",
+                    "isArray": false
+                }
+            ],
+            "top": false,
             "acceptsStringChildren": true
         },
         {
