@@ -7707,12 +7707,6 @@ What is the derivative of <function name="f">x^2</function>?
         expect(errorWarnings.errors[6].position.start.line).eq(13);
         expect(errorWarnings.errors[6].position.end.line).eq(13);
 
-        expect(errorWarnings.errors[4].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
-        );
-        expect(errorWarnings.errors[4].position.start.line).eq(11);
-        expect(errorWarnings.errors[4].position.end.line).eq(11);
-
         expect(errorWarnings.errors[7].message).contain(
             `an <answer> creating an input must have a short description or a label`,
         );
