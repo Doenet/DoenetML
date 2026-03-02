@@ -875,6 +875,27 @@ describe("BooleanInput tag tests @group1", async () => {
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
     });
 
+    it("upgrade warning to error if no short description or label", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+                <booleanInput />
+                <booleanInput><shortDescription>hello</shortDescription></booleanInput>
+                <booleanInput><label>hello</label></booleanInput>
+            `,
+            flags: { upgradeAccessibilityWarningsToErrors: true },
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(1);
+
+        expect(errorWarnings.errors[0].message).contain(
+            `<booleanInput> must have a short description or a label`,
+        );
+        expect(errorWarnings.errors[0].position.start.line).eq(2);
+        expect(errorWarnings.errors[0].position.end.line).eq(2);
+    });
+
     it("with description", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

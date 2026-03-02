@@ -7379,6 +7379,51 @@ What is the derivative of <function name="f">x^2</function>?
         expect(errorWarnings.warnings[3].position.end.line).eq(9);
     });
 
+    it("upgrade warning to error if no short description or label when generates input", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+                <answer>x</answer>
+                <answer type="text">hello</answer>
+                <answer type="boolean">true</answer>
+                <answer>
+                    <choice credit="1">cat</choice>
+                    <choice>dog</choice>
+                    <choice>monkey</choice>
+                </answer>
+                <point name="P" /><answer><award><when>$P.x > 0</when></award></answer>
+            `,
+            flags: { upgradeAccessibilityWarningsToErrors: true },
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(4);
+
+        expect(errorWarnings.errors[0].message).contain(
+            `an <answer> creating an input must have a short description or a label`,
+        );
+        expect(errorWarnings.errors[0].position.start.line).eq(2);
+        expect(errorWarnings.errors[0].position.end.line).eq(2);
+
+        expect(errorWarnings.errors[1].message).contain(
+            `an <answer> creating an input must have a short description or a label`,
+        );
+        expect(errorWarnings.errors[1].position.start.line).eq(3);
+        expect(errorWarnings.errors[1].position.end.line).eq(3);
+
+        expect(errorWarnings.errors[2].message).contain(
+            `an <answer> creating an input must have a short description or a label`,
+        );
+        expect(errorWarnings.errors[2].position.start.line).eq(4);
+        expect(errorWarnings.errors[2].position.end.line).eq(4);
+
+        expect(errorWarnings.errors[3].message).contain(
+            `an <answer> creating an input must have a short description or a label`,
+        );
+        expect(errorWarnings.errors[3].position.start.line).eq(5);
+        expect(errorWarnings.errors[3].position.end.line).eq(9);
+    });
+
     it("with no inputs, a label is optional", async () => {
         let { core } = await createTestCore({
             doenetML: `

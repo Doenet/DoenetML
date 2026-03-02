@@ -3945,6 +3945,36 @@ describe("ChoiceInput tag tests @group4", async () => {
         expect(errorWarnings.warnings[0].position.end.line).eq(5);
     });
 
+    it("upgrade warning to error if no short description or label", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+                <choiceInput>
+                    <choice>apple</choice>
+                    <choice>banana</choice>
+                </choiceInput>
+                <choiceInput><shortDescription>hello</shortDescription>
+                    <choice>apple</choice>
+                    <choice>banana</choice>
+                </choiceInput>
+                <choiceInput><label>hello</label>
+                    <choice>apple</choice>
+                    <choice>banana</choice>
+                </choiceInput>
+            `,
+            flags: { upgradeAccessibilityWarningsToErrors: true },
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(1);
+
+        expect(errorWarnings.errors[0].message).contain(
+            `<choiceInput> must have a short description or a label`,
+        );
+        expect(errorWarnings.errors[0].position.start.line).eq(2);
+        expect(errorWarnings.errors[0].position.end.line).eq(5);
+    });
+
     it("with description", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

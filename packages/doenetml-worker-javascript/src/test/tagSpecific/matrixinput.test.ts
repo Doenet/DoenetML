@@ -2414,4 +2414,25 @@ describe("MathInput tag tests @group3", async () => {
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
     });
+
+    it("upgrade warning to error if no short description or label", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+                <matrixInput />
+                <matrixInput><shortDescription>hello</shortDescription></matrixInput>
+                <matrixInput><label>hello</label></matrixInput>
+            `,
+            flags: { upgradeAccessibilityWarningsToErrors: true },
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(1);
+
+        expect(errorWarnings.errors[0].message).contain(
+            `<matrixInput> must have a short description or a label`,
+        );
+        expect(errorWarnings.errors[0].position.start.line).eq(2);
+        expect(errorWarnings.errors[0].position.end.line).eq(2);
+    });
 });

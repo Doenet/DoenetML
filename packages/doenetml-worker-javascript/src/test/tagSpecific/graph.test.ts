@@ -1400,6 +1400,27 @@ describe("Graph tag tests @group2", async () => {
         expect(errorWarnings.warnings[0].position.end.column).eq(24);
     });
 
+    it("upgrade warning to error if no short description specified and decorative is not set", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+<graph name="graph1" />
+            `,
+            flags: { upgradeAccessibilityWarningsToErrors: true },
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(1);
+
+        expect(errorWarnings.errors[0].message).contain(
+            `<graph> must either have a short description or be specified as decorative`,
+        );
+        expect(errorWarnings.errors[0].position.start.line).eq(2);
+        expect(errorWarnings.errors[0].position.start.column).eq(1);
+        expect(errorWarnings.errors[0].position.end.line).eq(2);
+        expect(errorWarnings.errors[0].position.end.column).eq(24);
+    });
+
     it("with description", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
