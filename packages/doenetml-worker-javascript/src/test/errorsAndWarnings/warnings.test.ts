@@ -789,15 +789,15 @@ describe("Warning Tests @group4", async () => {
         expect(errorWarnings.warnings.length).eq(9);
 
         const expectedWarningByLine: Record<string, string> = {
-            2: "Graph must either have a short description or be specified as decorative",
-            3: "Graph must either have a short description or be specified as decorative",
-            4: "Graph must either have a short description or be specified as decorative",
-            7: "Image must either have a short description or be specified as decorative",
-            8: "Image must either have a short description or be specified as decorative",
-            9: "Image must either have a short description or be specified as decorative",
-            12: "Video must have a short description",
-            13: "Video must have a short description",
-            14: "Video must have a short description",
+            2: "<graph> must either have a short description or be specified as decorative",
+            3: "<graph> must either have a short description or be specified as decorative",
+            4: "<graph> must either have a short description or be specified as decorative",
+            7: "<image> must either have a short description or be specified as decorative",
+            8: "<image> must either have a short description or be specified as decorative",
+            9: "<image> must either have a short description or be specified as decorative",
+            12: "<video> must have a short description",
+            13: "<video> must have a short description",
+            14: "<video> must have a short description",
         };
 
         for (const lineNum in expectedWarningByLine) {

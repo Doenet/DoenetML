@@ -35,6 +35,7 @@ export type DoenetMLFlags = {
     allowSaveEvents: boolean;
     messageParent: boolean;
     autoSubmit: boolean;
+    upgradeAccessibilityWarningsToErrors: boolean;
 };
 
 type DoenetMLFlagsSubset = Partial<DoenetMLFlags>;
@@ -52,6 +53,7 @@ export const defaultFlags: DoenetMLFlags = {
     allowSaveEvents: true,
     messageParent: false,
     autoSubmit: false,
+    upgradeAccessibilityWarningsToErrors: false,
 };
 
 /**
@@ -329,6 +331,7 @@ export function DoenetEditor({
     initialErrors = [],
     initialWarnings = [],
     fetchExternalDoenetML,
+    upgradeAccessibilityWarningsToErrors = false,
 }: {
     doenetML: string;
     activityId?: string;
@@ -356,6 +359,7 @@ export function DoenetEditor({
     initialErrors?: ErrorRecord[];
     initialWarnings?: WarningRecord[];
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
+    upgradeAccessibilityWarningsToErrors?: boolean;
 }) {
     useEffect(() => {
         // Add a YouTube iframe api to the document header if it doesn't exist
@@ -395,6 +399,9 @@ export function DoenetEditor({
             initialErrors={initialErrors}
             initialWarnings={initialWarnings}
             fetchExternalDoenetML={fetchExternalDoenetML}
+            upgradeAccessibilityWarningsToErrors={
+                upgradeAccessibilityWarningsToErrors
+            }
         />
     );
 

@@ -66,7 +66,7 @@ export default class Image extends BlockComponent {
             public: true,
         };
         attributes.decorative = {
-            createComponentOfType: "boolean",
+            createPrimitiveOfType: "boolean",
             createStateVariable: "decorative",
             defaultValue: false,
             public: true,
@@ -179,7 +179,7 @@ export default class Image extends BlockComponent {
                     warnings.push({
                         level: 1,
                         message:
-                            "Image must either have a short description or be specified as decorative.",
+                            "For accessibility, <image> must either have a short description or be specified as decorative.",
                     });
                 }
 

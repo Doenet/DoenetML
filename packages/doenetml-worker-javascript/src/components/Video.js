@@ -124,7 +124,8 @@ export default class Video extends BlockComponent {
                 if (shortDescription === "") {
                     warnings.push({
                         level: 1,
-                        message: "Video must have a short description.",
+                        message:
+                            "For accessibility, <video> must have a short description.",
                     });
                 }
 

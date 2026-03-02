@@ -189,7 +189,7 @@ export default class Graph extends BlockComponent {
         };
 
         attributes.decorative = {
-            createComponentOfType: "boolean",
+            createPrimitiveOfType: "boolean",
             createStateVariable: "decorative",
             defaultValue: false,
             public: true,
@@ -283,7 +283,7 @@ export default class Graph extends BlockComponent {
                     warnings.push({
                         level: 1,
                         message:
-                            "Graph must either have a short description or be specified as decorative.",
+                            "For accessibility, <graph> must either have a short description or be specified as decorative.",
                     });
                 }
 
