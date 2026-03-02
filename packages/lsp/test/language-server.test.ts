@@ -191,6 +191,97 @@ describe("Doenet Language Server", async () => {
         });
     });
 
+    it("merges external diagnostics with existing diagnostics", async () => {
+        const worker: Worker = new LSPWorker();
+        const { lspConn, workerConn } = await initWorker(worker);
+        const uri = "file:///test-merge.doenet";
+        const perWaitTimeoutMs = 1500;
+
+        const waitForDiagnosticsEvent = async (timeoutMs: number) => {
+            return (await Promise.race([
+                new Promise((resolve) => {
+                    lspConn.onDiagnostics((params) => {
+                        resolve(params);
+                    });
+                }),
+                new Promise((_, reject) => {
+                    setTimeout(() => {
+                        reject(
+                            new Error(
+                                `Timed out after ${timeoutMs}ms waiting for publishDiagnostics event`,
+                            ),
+                        );
+                    }, timeoutMs);
+                }),
+            ])) as { uri: string; diagnostics: Diagnostic[] };
+        };
+
+        await lspConn.textDocumentOpened({
+            textDocument: {
+                uri,
+                languageId: "doenet",
+                version: 1,
+                text: "<graph xxx />",
+            },
+        });
+
+        // First, verify we receive the existing validation diagnostic.
+        const initialDiags = await waitForDiagnosticsEvent(perWaitTimeoutMs);
+
+        expect(initialDiags.uri).toBe(uri);
+        expect(initialDiags.diagnostics.length).toBeGreaterThan(0);
+
+        const externalMessage = "This is an external diagnostic for merge";
+        const externalDiagnostic: Diagnostic = {
+            message: externalMessage,
+            range: {
+                start: { character: 1, line: 0 },
+                end: { character: 2, line: 0 },
+            },
+            severity: 1,
+        };
+
+        workerConn.sendRequest("doenet/setAdditionalDiagnostics", {
+            uri,
+            additionalDiagnostics: [externalDiagnostic],
+        });
+
+        // Diagnostics may be published multiple times; loop until we receive merged diagnostics.
+        let mergedDiagnostics: Diagnostic[] = [];
+        for (let loop = 0; loop < 10; loop++) {
+            const nextDiags = await waitForDiagnosticsEvent(perWaitTimeoutMs);
+
+            if (nextDiags.uri !== uri) {
+                continue;
+            }
+
+            const hasExternal = nextDiags.diagnostics.some(
+                (diag) => diag.message === externalMessage,
+            );
+            const hasNonExternal = nextDiags.diagnostics.some(
+                (diag) => diag.message !== externalMessage,
+            );
+            if (hasExternal && hasNonExternal) {
+                mergedDiagnostics = nextDiags.diagnostics;
+                break;
+            }
+        }
+
+        if (mergedDiagnostics.length === 0) {
+            throw new Error(
+                "Did not observe merged diagnostics (external + existing) within expected diagnostic publish window",
+            );
+        }
+
+        expect(mergedDiagnostics.length).toBeGreaterThan(1);
+        expect(
+            mergedDiagnostics.some((diag) => diag.message === externalMessage),
+        ).toBe(true);
+        expect(
+            mergedDiagnostics.some((diag) => diag.message !== externalMessage),
+        ).toBe(true);
+    });
+
     it("completion items include snippet entries with textEdit", async () => {
         const worker: Worker = new LSPWorker();
         const lspConn = (await initWorker(worker)).lspConn;

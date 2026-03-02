@@ -19,14 +19,40 @@ function withResolver<T>() {
 }
 
 export class LSP {
+    // Diagnostics subscribers are scoped by document URI.
+    // They are automatically removed when closeDocument(uri) is called.
+    private readonly diagnosticsSubscribersByUri = new Map<
+        string,
+        Set<(params: { uri: string; diagnostics: Diagnostic[] }) => void>
+    >();
+
     worker?: Worker;
     lspConn?: Awaited<ReturnType<typeof initWorker>>["lspConn"];
     workerConn?: Awaited<ReturnType<typeof initWorker>>["workerConn"];
     versionCounter: Record<string, number> = {};
+    diagnosticsHandlerRegistered = false;
     initPromise = withResolver<void>();
     initStatus: "uninitialized" | "initializing" | "initialized" =
         "uninitialized";
     completionTriggers: string[] = [];
+
+    ensureDiagnosticsHandlerRegistered() {
+        if (!this.lspConn || this.diagnosticsHandlerRegistered) {
+            return;
+        }
+        this.lspConn.onDiagnostics((params) => {
+            const uriSubscribers = this.diagnosticsSubscribersByUri.get(
+                params.uri,
+            );
+            if (!uriSubscribers) {
+                return;
+            }
+            for (const subscriber of uriSubscribers) {
+                subscriber(params);
+            }
+        });
+        this.diagnosticsHandlerRegistered = true;
+    }
 
     async init() {
         if (this.lspConn) {
@@ -39,12 +65,53 @@ export class LSP {
             this.lspConn = lspConn;
             this.workerConn = workerConn;
             this.completionTriggers = this.lspConn.completionTriggers;
+            this.ensureDiagnosticsHandlerRegistered();
             this.initPromise.resolve();
             this.initStatus = "initialized";
         }
         if (this.initStatus === "initializing") {
             await this.initPromise.promise;
         }
+    }
+
+    /**
+     * Subscribe to diagnostics for a specific document URI.
+     *
+     * Returns an unsubscribe function for immediate/manual cleanup.
+     * Subscriptions are also automatically pruned when closeDocument(uri) is called.
+     */
+    onDiagnostics(
+        uri: string,
+        callback: (params: { uri: string; diagnostics: Diagnostic[] }) => void,
+    ) {
+        const existing = this.diagnosticsSubscribersByUri.get(uri);
+        if (existing) {
+            existing.add(callback);
+        } else {
+            this.diagnosticsSubscribersByUri.set(uri, new Set([callback]));
+        }
+
+        this.init()
+            .then(() => {
+                this.ensureDiagnosticsHandlerRegistered();
+            })
+            .catch((error) => {
+                console.error(
+                    "Failed to initialize diagnostics handler",
+                    error,
+                );
+            });
+
+        return () => {
+            const subscribers = this.diagnosticsSubscribersByUri.get(uri);
+            if (!subscribers) {
+                return;
+            }
+            subscribers.delete(callback);
+            if (subscribers.size === 0) {
+                this.diagnosticsSubscribersByUri.delete(uri);
+            }
+        };
     }
 
     async initDocument(uri: string, text: string) {
@@ -75,6 +142,10 @@ export class LSP {
                 uri,
             },
         });
+
+        // Remove per-document state and URI-scoped diagnostics subscriptions.
+        delete this.versionCounter[uri];
+        this.diagnosticsSubscribersByUri.delete(uri);
     }
 
     async updateDocument(uri: string, text: string) {
@@ -93,21 +164,6 @@ export class LSP {
                     text,
                 },
             ],
-        });
-    }
-
-    async getDiagnostics(uri: string): Promise<Diagnostic[]> {
-        await this.initPromise.promise;
-        return new Promise((resolve) => {
-            if (!this.lspConn) {
-                console.warn("Cannot get diagnostics without lspConn");
-                return [];
-            }
-            this.lspConn.onDiagnostics((params) => {
-                if (params.uri === uri) {
-                    resolve(params.diagnostics);
-                }
-            });
         });
     }
 

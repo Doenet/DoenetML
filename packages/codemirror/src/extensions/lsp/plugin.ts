@@ -80,6 +80,15 @@ const lspSeverityToCmSeverity = {
     [LSPDiagnosticSeverity.Hint]: "info",
 } as const;
 
+type PositionLike =
+    | { line: number; character: number }
+    | { line: number; column: number };
+
+type RangeLike = {
+    start: PositionLike;
+    end: PositionLike;
+};
+
 type ExtendedCompletion = Completion & {
     filterText: string;
     sortText?: string;
@@ -98,8 +107,8 @@ export class LSPPlugin implements PluginValue {
     uri: string = "";
     value: string = "";
     diagnostics: LSPDiagnostic[] = [];
-    diagnosticsPromise?: Promise<LSPDiagnostic[]>;
     view?: EditorView;
+    unsubscribeDiagnostics?: () => void;
 
     constructor(documentId: string) {
         this.documentId = documentId;
@@ -118,56 +127,58 @@ export class LSPPlugin implements PluginValue {
             return;
         }
         await uniqueLanguageServerInstance.updateDocument(this.uri, value);
-        this.pollForDiagnostics();
         this.value = value;
     }
 
-    async pollForDiagnostics() {
-        this.diagnosticsPromise = uniqueLanguageServerInstance.getDiagnostics(
-            this.uri,
-        );
-        this.diagnostics = await this.diagnosticsPromise;
-        this.processDiagnostics();
+    destroy() {
+        this.unsubscribeDiagnostics?.();
     }
 
     processDiagnostics() {
         if (!this.view) {
             return;
         }
-        const diagnostics: CodeMirrorDiagnostic[] = this.diagnostics
-            .map(({ range, message, severity }) => {
-                const cmSeverity = lspSeverityToCmSeverity[severity!];
-                return {
-                    from: posToOffset(this.view!.state.doc, range.start)!,
-                    to: posToOffset(this.view!.state.doc, range.end)!,
-                    severity: cmSeverity,
-                    message,
-                    renderMessage: () => {
-                        const div = document.createElement("div");
-                        // We use renderToString so that we don't have to clean up any
-                        // react listeners, etc. when the dom element is deleted by codemirror.
-                        div.innerHTML = `<div class="cm-lint-tooltip"><h4 class="${
-                            "heading " + cmSeverity
-                        }">${
-                            lspDiagnosticToName[severity!]
-                        }</h4><div class="cm-lint-body">${micromark(
-                            message,
-                        )}</div>
+        const diagnostics: CodeMirrorDiagnostic[] = [];
+        for (const { range, message, severity } of this.diagnostics) {
+            const cmSeverity = lspSeverityToCmSeverity[severity!] ?? "info";
+            const offsets = getValidDiagnosticOffsets(
+                this.view.state.doc,
+                range as RangeLike,
+            );
+            if (!offsets) {
+                continue;
+            }
+            const { from, to } = offsets;
+
+            diagnostics.push({
+                from,
+                to,
+                severity: cmSeverity,
+                message,
+                renderMessage: () => {
+                    const div = document.createElement("div");
+                    // We use renderToString so that we don't have to clean up any
+                    // react listeners, etc. when the dom element is deleted by codemirror.
+                    div.innerHTML = `<div class="cm-lint-tooltip"><h4 class="${
+                        "heading " + cmSeverity
+                    }">${
+                        lspDiagnosticToName[severity!] ?? "Info"
+                    }</h4><div class="cm-lint-body">${micromark(message)}</div>
                             </div>`;
-                        return div.firstChild as HTMLElement;
-                    },
-                };
-            })
-            .filter(({ from, to }) => from != null && to != null)
-            .sort((a, b) => {
-                if (a.from < b.from) {
-                    return -1;
-                } else if (a.from > b.from) {
-                    return 1;
-                } else {
-                    return 0;
-                }
+                    return div.firstChild as HTMLElement;
+                },
             });
+        }
+
+        diagnostics.sort((a, b) => {
+            if (a.from < b.from) {
+                return -1;
+            } else if (a.from > b.from) {
+                return 1;
+            } else {
+                return 0;
+            }
+        });
 
         const diagnosticTransaction = setDiagnostics(
             this.view.state,
@@ -341,6 +352,14 @@ export const lspPlugin = (documentId: string) => {
     return [
         ViewPlugin.define((view) => {
             plugin.view = view;
+            plugin.unsubscribeDiagnostics =
+                uniqueLanguageServerInstance.onDiagnostics(
+                    plugin.uri,
+                    (params) => {
+                        plugin.diagnostics = params.diagnostics;
+                        plugin.processDiagnostics();
+                    },
+                );
             plugin.setValue(view.state.doc.toString());
             return plugin;
         }),
@@ -374,13 +393,7 @@ function offsetToPos(doc: Text, offset: number) {
 }
 
 /** Normalize position input to LSP { line, character } coordinates. */
-function normalizePos(
-    rangePos:
-        | { line: number; character: number }
-        | { line: number; column: number }
-        | null
-        | undefined,
-) {
+function normalizePos(rangePos: PositionLike | null | undefined) {
     if (!rangePos) {
         return null;
     }
@@ -394,6 +407,34 @@ function normalizePos(
         };
     }
     return null;
+}
+
+/**
+ * Normalize a diagnostic range and return a valid CodeMirror offset range,
+ * or `null` when the positions cannot be resolved in the current document.
+ */
+function getValidDiagnosticOffsets(doc: Text, range: RangeLike) {
+    const startPos = normalizePos(range?.start);
+    const endPos = normalizePos(range?.end);
+    if (!startPos || !endPos) {
+        return null;
+    }
+
+    const startOffset = posToOffset(doc, startPos);
+    const endOffset = posToOffset(doc, endPos);
+    if (
+        startOffset == null ||
+        endOffset == null ||
+        !Number.isFinite(startOffset) ||
+        !Number.isFinite(endOffset)
+    ) {
+        return null;
+    }
+
+    return {
+        from: Math.min(startOffset, endOffset),
+        to: Math.max(startOffset, endOffset),
+    };
 }
 
 /**
