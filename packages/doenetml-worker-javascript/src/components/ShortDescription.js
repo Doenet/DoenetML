@@ -5,6 +5,8 @@ export default class ShortDescription extends TextComponent {
     static componentType = "shortDescription";
     static rendererType = "text";
 
+    static inSchemaOnlyInheritAs = [];
+
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -50,4 +52,7 @@ export default class ShortDescription extends TextComponent {
 
         return stateVariableDefinitions;
     }
+
+    // short description should not adapt into anything
+    static adapters = [];
 }
