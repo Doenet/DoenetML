@@ -19,11 +19,6 @@ export class RightHandSide extends MathComponent {
     static rendererType = "math";
 }
 
-export class ShortDescription extends TextOrInline {
-    static componentType = "shortDescription";
-    static rendererType = "containerInline";
-}
-
 export class Description extends Div {
     static componentType = "description";
     static rendererType = "containerBlock";

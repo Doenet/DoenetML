@@ -31,6 +31,8 @@ export default class Input extends InlineComponent {
     static returnStateVariableDefinitions() {
         const stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        let componentClass = this;
+
         const labelDefinitions = returnLabelStateVariableDefinitions();
         Object.assign(stateVariableDefinitions, labelDefinitions);
 
@@ -572,6 +574,14 @@ export default class Input extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "label",
                 },
+                answerAncestor: {
+                    dependencyType: "stateVariable",
+                    variableName: "answerAncestor",
+                },
+                createdFromSugar: {
+                    dependencyType: "doenetAttribute",
+                    attributeName: "createdFromSugar",
+                },
             }),
             definition({ dependencyValues }) {
                 let shortDescription = "";
@@ -586,10 +596,15 @@ export default class Input extends InlineComponent {
                         shortDescriptionChild.stateValues.text.trim();
                 }
                 if (shortDescription === "" && !dependencyValues.label) {
+                    let objectNeedingLabel =
+                        dependencyValues.createdFromSugar &&
+                        dependencyValues.answerAncestor
+                            ? `an <answer> creating an input`
+                            : `<${componentClass.componentType}>`;
+
                     warnings.push({
                         level: 1,
-                        message:
-                            "Input (or answer producing an input) must have a short description or a label.",
+                        message: `For accessibility, ${objectNeedingLabel} must have a short description or a label.`,
                     });
                 }
 
