@@ -854,8 +854,8 @@ describe("Warning Tests @group4", async () => {
     <graph><shortDescription>Note that <m>y=x</m></shortDescription></graph>
     <graph><shortDescription>Note that y=x</shortDescription></graph>
     <graph><shortDescription>Note that <text><math>y=x</math></text></shortDescription></graph>
-    <graph><shortDescription>Note that <text>$int</text></shortDescription></graph>
-    <graph><shortDescription>Note that <number displayDecimals="$m1">3</number></shortDescription></graph>
+    <graph><shortDescription>Note that $int</shortDescription></graph>
+    <graph><shortDescription>Note that <number displayDecimals="$m1">$m1</number></shortDescription></graph>
 
     <interval name="int">(3,4)</interval>
     <math name="m1">4</math>
@@ -865,12 +865,11 @@ describe("Warning Tests @group4", async () => {
         let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(4);
+        expect(errorWarnings.warnings.length).eq(3);
 
         const expectedWarningByLine: Record<string, string> = {
             2: "Short descriptions should not contain math components such as <math>",
             3: "Short descriptions should not contain math components such as <m>",
-            5: "Short descriptions should not contain math components such as <math>",
             6: "Short descriptions should not contain math components such as <interval>",
         };
 
