@@ -17,6 +17,8 @@ import { keyboardSlice } from "./state/slices/keyboard";
 import { setVariantsFromCallback } from "./utils/variants";
 import { defaultFlags } from "./flags";
 import type { DoenetMLFlags } from "./flags";
+export type { DoenetMLFlags } from "./flags";
+export { defaultFlags } from "./flags";
 
 export const version: string = DOENETML_VERSION;
 
