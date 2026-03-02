@@ -1,4 +1,5 @@
 import { FlatElement, NormalizedNode } from "@doenet/doenetml-worker";
+import { hasNonBlankShortDescription } from "./shortDescriptionLabelUtils";
 
 /**
  * Returns an accessibility warning for components that require a short
@@ -33,28 +34,8 @@ export function getDecorativeShortDescriptionWarning(
     }
 
     // If not decorative, then graph must contain a non-blank short description
-
-    for (const child of node.children) {
-        if (typeof child === "string") {
-            continue;
-        }
-        const childNode = nodes[child];
-        if (childNode.type === "element") {
-            if (childNode.name === "shortDescription") {
-                // If short description contains any non-whitespace text or any non-text children,
-                // then it is considered non-blank
-                if (
-                    childNode.children.some(
-                        (grandChild) =>
-                            typeof grandChild !== "string" ||
-                            grandChild.trim() !== "",
-                    )
-                ) {
-                    // Graph has a non-blank short description, so no accessibility warning
-                    return null;
-                }
-            }
-        }
+    if (hasNonBlankShortDescription(node, nodes)) {
+        return null;
     }
 
     if (allowDecorative) {

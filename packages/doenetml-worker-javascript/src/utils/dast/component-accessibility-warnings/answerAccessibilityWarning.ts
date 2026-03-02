@@ -1,4 +1,5 @@
 import { FlatElement, NormalizedNode } from "@doenet/doenetml-worker";
+import { hasNonBlankShortDescriptionOrLabel } from "./shortDescriptionLabelUtils";
 
 /**
  * Returns an accessibility warning for an `answer` when it is determined to
@@ -68,24 +69,12 @@ export function getAnswerAccessibilityWarning(
                     // Found an award child that doesn't have a when child, so answer will have a sugared input and needs a short description or label for that input to be accessible
                     foundAwardWithoutWhen = true;
                 }
-            } else if (
-                childNode.name === "shortDescription" ||
-                childNode.name === "label"
-            ) {
-                // If short description or label contains any non-whitespace text or any non-text children,
-                // then it is considered non-blank
-                if (
-                    childNode.children.some(
-                        (grandChild) =>
-                            typeof grandChild !== "string" ||
-                            grandChild.trim() !== "",
-                    )
-                ) {
-                    // Input has a non-blank short description or label, so no accessibility warning
-                    return null;
-                }
             }
         }
+    }
+
+    if (hasNonBlankShortDescriptionOrLabel(node, nodes)) {
+        return null;
     }
 
     if (foundChoiceChild || foundNonAwardChild || foundAwardWithoutWhen) {
