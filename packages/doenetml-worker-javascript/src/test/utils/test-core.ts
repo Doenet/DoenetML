@@ -20,6 +20,8 @@ import {
     normalizeDocumentDast,
 } from "@doenet/parser";
 import { resolvePathImmediatelyToNodeIdx } from "@doenet/debug-hooks";
+import { defaultFlags } from "@doenet/doenetml/flags";
+import type { DoenetMLFlags } from "@doenet/doenetml/flags";
 
 import util from "util";
 
@@ -28,41 +30,7 @@ console.log = (...args) => {
     origLog(...args.map((x) => util.inspect(x, false, 10, true)));
 };
 
-type DoenetMLFlags = {
-    showCorrectness: boolean;
-    readOnly: boolean;
-    solutionDisplayMode:
-        | "button"
-        | "buttonRequirePermission"
-        | "displayed"
-        | "none";
-    showFeedback: boolean;
-    showHints: boolean;
-    allowLoadState: boolean;
-    allowSaveState: boolean;
-    saveRendererState: boolean;
-    allowLocalState: boolean;
-    allowSaveEvents: boolean;
-    messageParent: boolean;
-    autoSubmit: boolean;
-};
-
 type DoenetMLFlagsSubset = Partial<DoenetMLFlags>;
-
-const defaultFlags: DoenetMLFlags = {
-    showCorrectness: true,
-    readOnly: false,
-    solutionDisplayMode: "button",
-    showFeedback: true,
-    showHints: true,
-    allowLoadState: true,
-    allowSaveState: true,
-    saveRendererState: false,
-    allowLocalState: false,
-    allowSaveEvents: true,
-    messageParent: false,
-    autoSubmit: false,
-};
 
 export type ResolvePathToNodeIdx = Awaited<
     ReturnType<typeof createTestCore>

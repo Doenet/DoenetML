@@ -52,6 +52,7 @@ export default defineConfig({
         lib: {
             entry: {
                 index: "./src/index.ts",
+                flags: "./src/flags.ts",
                 "doenetml-inline-worker": "./src/doenetml-inline-worker.ts",
             },
             formats: ["es"],

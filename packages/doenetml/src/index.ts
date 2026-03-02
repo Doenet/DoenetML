@@ -1,4 +1,6 @@
 export { DoenetViewer, DoenetEditor } from "./doenetml";
+export { defaultFlags } from "./flags";
+export type { DoenetMLFlags } from "./flags";
 
 export {
     mathjaxConfig,

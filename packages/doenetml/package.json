@@ -18,6 +18,10 @@
             "import": "./dist/index.js",
             "require": "./dist/index.js"
         },
+        "./flags": {
+            "import": "./dist/flags.js",
+            "require": "./dist/flags.js"
+        },
         "./*": {
             "import": "./dist/*",
             "require": "./dist/*"
