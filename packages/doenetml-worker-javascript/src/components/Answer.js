@@ -328,11 +328,13 @@ export default class Answer extends InlineComponent {
             let foundResponse = false;
             let foundAward = false;
 
-            const labelDescriptionChildren = matchedChildren.filter(
+            const descriptionChildren = matchedChildren.filter(
                 (child) =>
-                    componentIsSpecifiedType(child, "label") ||
                     componentIsSpecifiedType(child, "description") ||
                     componentIsSpecifiedType(child, "shortDescription"),
+            );
+            const labelChildren = matchedChildren.filter((child) =>
+                componentIsSpecifiedType(child, "label"),
             );
             matchedChildren = matchedChildren.filter(
                 (child) =>
@@ -522,10 +524,7 @@ export default class Answer extends InlineComponent {
                         stateId: stateIdInfo
                             ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
                             : undefined,
-                        children: [
-                            ...labelDescriptionChildren,
-                            ...matchedChildren,
-                        ],
+                        children: [...descriptionChildren, ...matchedChildren],
                         attributes: {},
                         doenetAttributes: {},
                         state: {},
@@ -546,7 +545,7 @@ export default class Answer extends InlineComponent {
                     }
                     return {
                         success: true,
-                        newChildren: [choiceInput],
+                        newChildren: [...labelChildren, choiceInput],
                         nComponents,
                     };
                 }
@@ -585,7 +584,7 @@ export default class Answer extends InlineComponent {
             }
 
             let childrenToWrap = [],
-                childrenToNotWrapBegin = [],
+                childrenToNotWrapBegin = labelChildren,
                 childrenToNotWrapEnd = [];
 
             if (childIsWrappable.filter((x) => !x).length === 0) {
@@ -595,9 +594,8 @@ export default class Answer extends InlineComponent {
                     // started with non-wrappable, find first wrappable child
                     let firstWrappableInd = childIsWrappable.indexOf(true);
                     if (firstWrappableInd !== -1) {
-                        childrenToNotWrapBegin = matchedChildren.slice(
-                            0,
-                            firstWrappableInd,
+                        childrenToNotWrapBegin.push(
+                            ...matchedChildren.slice(0, firstWrappableInd),
                         );
                         matchedChildren =
                             matchedChildren.slice(firstWrappableInd);
@@ -704,7 +702,7 @@ export default class Answer extends InlineComponent {
                         stateId: stateIdInfo
                             ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
                             : undefined,
-                        children: labelDescriptionChildren,
+                        children: descriptionChildren,
                         attributes: {},
                         doenetAttributes: {},
                         state: {},
@@ -712,7 +710,7 @@ export default class Answer extends InlineComponent {
                     ...newChildren,
                 ];
             } else {
-                newChildren = [...labelDescriptionChildren, ...newChildren];
+                newChildren = [...descriptionChildren, ...newChildren];
             }
 
             return {

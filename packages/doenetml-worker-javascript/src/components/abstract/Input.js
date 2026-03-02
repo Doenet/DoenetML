@@ -33,7 +33,9 @@ export default class Input extends InlineComponent {
 
         let componentClass = this;
 
-        const labelDefinitions = returnLabelStateVariableDefinitions();
+        const labelDefinitions = returnLabelStateVariableDefinitions({
+            getLabelFromParentIfSugared: true,
+        });
         Object.assign(stateVariableDefinitions, labelDefinitions);
 
         // how many values an input returns

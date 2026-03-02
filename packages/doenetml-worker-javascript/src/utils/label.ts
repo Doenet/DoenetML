@@ -211,7 +211,9 @@ export function returnWrapNonLabelsDescriptionsSugarFunction({
 }
 
 // TODO: lots of work if want to convert state variable definitions to Typescript
-export function returnLabelStateVariableDefinitions() {
+export function returnLabelStateVariableDefinitions({
+    getLabelFromParentIfSugared = false,
+}: { getLabelFromParentIfSugared?: boolean } = {}) {
     let stateVariableDefinitions: Record<string, any> = {};
 
     stateVariableDefinitions.componentNameAndShadowSourceNames = {
@@ -285,37 +287,60 @@ export function returnLabelStateVariableDefinitions() {
                 forRenderer: true,
             },
         ],
-        returnDependencies: () => ({
-            labelChild: {
-                dependencyType: "child",
-                childGroups: ["labels"],
-                variableNames: ["value", "hasLatex", "hidden"],
-                dontRecurseToShadows: true,
-            },
-            // Note: assuming component has a labelIsName attribute
-            // that creates an attribute component and state variable
-            labelIsName: {
-                dependencyType: "stateVariable",
-                variableName: "labelIsName",
-            },
-            labelIsNameAttr: {
-                dependencyType: "attributeComponent",
-                attributeName: "labelIsName",
-                dontRecurseToShadows: true,
-            },
-            componentNameAndShadowSourceNames: {
-                dependencyType: "stateVariable",
-                variableName: "componentNameAndShadowSourceNames",
-            },
-            shadowSource: {
-                dependencyType: "shadowSource",
-                variableNames: ["label", "labelHasLatex"],
-            },
-            unlinkedCopySource: {
-                dependencyType: "unlinkedCopySource",
-                variableNames: ["label", "labelHasLatex"],
-            },
-        }),
+        returnDependencies: () => {
+            const dependencies: Record<string, any> = {
+                labelChild: {
+                    dependencyType: "child",
+                    childGroups: ["labels"],
+                    variableNames: ["value", "hasLatex", "hidden"],
+                    dontRecurseToShadows: true,
+                },
+                // Note: assuming component has a labelIsName attribute
+                // that creates an attribute component and state variable
+                labelIsName: {
+                    dependencyType: "stateVariable",
+                    variableName: "labelIsName",
+                },
+                labelIsNameAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "labelIsName",
+                    dontRecurseToShadows: true,
+                },
+                componentNameAndShadowSourceNames: {
+                    dependencyType: "stateVariable",
+                    variableName: "componentNameAndShadowSourceNames",
+                },
+                shadowSource: {
+                    dependencyType: "shadowSource",
+                    variableNames: ["label", "labelHasLatex"],
+                },
+                unlinkedCopySource: {
+                    dependencyType: "unlinkedCopySource",
+                    variableNames: ["label", "labelHasLatex"],
+                },
+                getLabelFromParentIfSugared: {
+                    dependencyType: "value",
+                    value: getLabelFromParentIfSugared,
+                },
+            };
+
+            if (getLabelFromParentIfSugared) {
+                dependencies.createdFromSugar = {
+                    dependencyType: "doenetAttribute",
+                    attributeName: "createdFromSugar",
+                };
+                dependencies.parentLabel = {
+                    dependencyType: "parentStateVariable",
+                    variableName: "label",
+                };
+                dependencies.parentLabelHasLatex = {
+                    dependencyType: "parentStateVariable",
+                    variableName: "labelHasLatex",
+                };
+            }
+
+            return dependencies;
+        },
         definition({
             dependencyValues,
             essentialValues,
@@ -447,6 +472,17 @@ export function returnLabelStateVariableDefinitions() {
                             dependencyValues.unlinkedCopySource.stateValues
                                 .labelHasLatex,
                         ),
+                    },
+                };
+            } else if (
+                dependencyValues.getLabelFromParentIfSugared &&
+                dependencyValues.createdFromSugar &&
+                dependencyValues.parentLabel
+            ) {
+                return {
+                    setValue: {
+                        label: dependencyValues.parentLabel,
+                        labelHasLatex: dependencyValues.parentLabelHasLatex,
                     },
                 };
             } else {
