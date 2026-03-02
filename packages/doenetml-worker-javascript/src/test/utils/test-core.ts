@@ -20,8 +20,8 @@ import {
     normalizeDocumentDast,
 } from "@doenet/parser";
 import { resolvePathImmediatelyToNodeIdx } from "@doenet/debug-hooks";
-import { defaultFlags } from "@doenet/doenetml/flags";
-import type { DoenetMLFlags } from "@doenet/doenetml/flags";
+import { defaultFlags } from "../../../../doenetml/src/flags";
+import type { DoenetMLFlags } from "../../../../doenetml/src/flags";
 
 import util from "util";
 
