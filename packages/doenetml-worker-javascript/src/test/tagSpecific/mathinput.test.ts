@@ -11941,9 +11941,7 @@ describe("MathInput tag tests @group2", async () => {
             } else {
                 let nums = math.tree
                     .slice(1)
-                    .map((v: Tree) =>
-                        me.fromAst(v).evaluate_to_constant(),
-                    );
+                    .map((v: Tree) => me.fromAst(v).evaluate_to_constant());
 
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p20")]
