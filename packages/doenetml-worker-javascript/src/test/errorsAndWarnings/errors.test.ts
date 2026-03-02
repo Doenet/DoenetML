@@ -585,4 +585,87 @@ a />
             expect(errorWarnings.errors[i].position.end.column).eq(6);
         }
     });
+
+    it("Upgrade warning to error if missing or blank short description in graph, image, video", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+    <graph name="g1"></graph>
+    <graph name="g2"><shortDescription></shortDescription></graph>
+    <graph name="g3"><shortDescription>   </shortDescription></graph>
+    <graph name="g4"><shortDescription>Valid short description</shortDescription></graph>
+
+    <image name="i1"></image>
+    <image name="i2"><shortDescription></shortDescription></image>
+    <image name="i3"><shortDescription>   </shortDescription></image>
+    <image name="i4"><shortDescription>Valid short description</shortDescription></image>
+
+    <video name="v1"></video>
+    <video name="v2"><shortDescription></shortDescription></video>
+    <video name="v3"><shortDescription>   </shortDescription></video>
+    <video name="v4"><shortDescription>Valid short description</shortDescription></video>
+
+    `,
+            flags: { upgradeAccessibilityWarningsToErrors: true },
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(9);
+
+        const expectedErrorByLine: Record<string, string> = {
+            2: "<graph> must either have a short description or be specified as decorative",
+            3: "<graph> must either have a short description or be specified as decorative",
+            4: "<graph> must either have a short description or be specified as decorative",
+            7: "<image> must either have a short description or be specified as decorative",
+            8: "<image> must either have a short description or be specified as decorative",
+            9: "<image> must either have a short description or be specified as decorative",
+            12: "<video> must have a short description",
+            13: "<video> must have a short description",
+            14: "<video> must have a short description",
+        };
+
+        for (const lineNum in expectedErrorByLine) {
+            const expectedError = expectedErrorByLine[lineNum];
+            const error = errorWarnings.errors.find(
+                (error) => error.position.start.line === parseInt(lineNum),
+            );
+            expect(error!.message).toContain(expectedError);
+        }
+    });
+
+    it("Upgrade warning to error if missing or blank short description and label in input", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+    <mathInput></mathInput>
+    <mathInput><shortDescription></shortDescription></mathInput>
+    <mathInput><shortDescription>   </shortDescription></mathInput>
+    <mathInput><shortDescription>Valid short description</shortDescription></mathInput>
+
+    <mathInput><label></label></mathInput>
+    <mathInput><label>   </label></mathInput>
+    <mathInput><label>Valid text label</label></mathInput>
+    <mathInput><label><m>x</m></label></mathInput>
+
+    <mathInput labelIsName></mathInput>
+    <mathInput name="namedA" labelIsName></mathInput>
+    <mathInput name="namedB" labelIsName="false"></mathInput>
+    `,
+            flags: { upgradeAccessibilityWarningsToErrors: true },
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(7);
+
+        const errorMsg = "<mathInput> must have a short description or a label";
+
+        const errorsOnLines = [2, 3, 4, 7, 8, 12, 14];
+
+        for (const lineNum of errorsOnLines) {
+            const error = errorWarnings.errors.find(
+                (error) => error.position.start.line === lineNum,
+            );
+            expect(error!.message).toContain(errorMsg);
+        }
+    });
 });

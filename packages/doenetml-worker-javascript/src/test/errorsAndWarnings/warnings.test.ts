@@ -789,15 +789,15 @@ describe("Warning Tests @group4", async () => {
         expect(errorWarnings.warnings.length).eq(9);
 
         const expectedWarningByLine: Record<string, string> = {
-            2: "Graph must either have a short description or be specified as decorative",
-            3: "Graph must either have a short description or be specified as decorative",
-            4: "Graph must either have a short description or be specified as decorative",
-            7: "Image must either have a short description or be specified as decorative",
-            8: "Image must either have a short description or be specified as decorative",
-            9: "Image must either have a short description or be specified as decorative",
-            12: "Video must have a short description",
-            13: "Video must have a short description",
-            14: "Video must have a short description",
+            2: "<graph> must either have a short description or be specified as decorative",
+            3: "<graph> must either have a short description or be specified as decorative",
+            4: "<graph> must either have a short description or be specified as decorative",
+            7: "<image> must either have a short description or be specified as decorative",
+            8: "<image> must either have a short description or be specified as decorative",
+            9: "<image> must either have a short description or be specified as decorative",
+            12: "<video> must have a short description",
+            13: "<video> must have a short description",
+            14: "<video> must have a short description",
         };
 
         for (const lineNum in expectedWarningByLine) {
@@ -822,18 +822,22 @@ describe("Warning Tests @group4", async () => {
     <mathInput><label>Valid text label</label></mathInput>
     <mathInput><label><m>   </m></label></mathInput>
     <mathInput><label><m>x</m></label></mathInput>
+
+    <mathInput labelIsName></mathInput>
+    <mathInput name="namedA" labelIsName></mathInput>
+    <mathInput name="namedB" labelIsName="false"></mathInput>
     `,
         });
 
         let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(6);
+        expect(errorWarnings.warnings.length).eq(8);
 
         const warningMsg =
             "<mathInput> must have a short description or a label";
 
-        const warningsOnLines = [2, 3, 4, 7, 8, 10];
+        const warningsOnLines = [2, 3, 4, 7, 8, 10, 13, 15];
 
         for (const lineNum of warningsOnLines) {
             const warning = errorWarnings.warnings.find(

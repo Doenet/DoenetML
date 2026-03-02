@@ -60,6 +60,7 @@ export function EditorViewer({
     initialErrors = [],
     initialWarnings = [],
     fetchExternalDoenetML,
+    upgradeAccessibilityWarningsToErrors = false,
 }: {
     doenetML: string;
     activityId?: string;
@@ -84,6 +85,7 @@ export function EditorViewer({
     initialErrors?: ErrorRecord[];
     initialWarnings?: WarningRecord[];
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
+    upgradeAccessibilityWarningsToErrors?: boolean;
 }) {
     //Win, Mac or Linux
     let platform = "Linux";
@@ -601,6 +603,7 @@ export function EditorViewer({
                         allowSaveEvents: true,
                         messageParent: false,
                         readOnly: false,
+                        upgradeAccessibilityWarningsToErrors,
                     }}
                     activityId={activityId}
                     key={viewerResetNum}

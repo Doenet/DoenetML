@@ -10314,7 +10314,6 @@ export default class Core {
                 componentType: "_error",
                 componentIdx: this._components.length,
                 state: { message },
-                doenetAttributes: { createUniqueName: true },
                 position: composite.position,
                 sourceDoc: composite.sourceDoc,
                 children: [],

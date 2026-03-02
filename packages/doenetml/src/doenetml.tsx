@@ -15,44 +15,14 @@ import { Provider as ReduxProvider } from "react-redux";
 import { store, useAppDispatch } from "./state";
 import { keyboardSlice } from "./state/slices/keyboard";
 import { setVariantsFromCallback } from "./utils/variants";
+import { defaultFlags } from "./flags";
+import type { DoenetMLFlags } from "./flags";
+export type { DoenetMLFlags } from "./flags";
+export { defaultFlags } from "./flags";
 
 export const version: string = DOENETML_VERSION;
 
-export type DoenetMLFlags = {
-    showCorrectness: boolean;
-    readOnly: boolean;
-    solutionDisplayMode:
-        | "button"
-        | "buttonRequirePermission"
-        | "displayed"
-        | "none";
-    showFeedback: boolean;
-    showHints: boolean;
-    allowLoadState: boolean;
-    allowSaveState: boolean;
-    saveRendererState: boolean;
-    allowLocalState: boolean;
-    allowSaveEvents: boolean;
-    messageParent: boolean;
-    autoSubmit: boolean;
-};
-
 type DoenetMLFlagsSubset = Partial<DoenetMLFlags>;
-
-export const defaultFlags: DoenetMLFlags = {
-    showCorrectness: true,
-    readOnly: false,
-    solutionDisplayMode: "button",
-    showFeedback: true,
-    showHints: true,
-    allowLoadState: true,
-    allowSaveState: true,
-    saveRendererState: false,
-    allowLocalState: false,
-    allowSaveEvents: true,
-    messageParent: false,
-    autoSubmit: false,
-};
 
 /**
  * A context that is used to keep track of the currently focused math input. This is used
@@ -329,6 +299,7 @@ export function DoenetEditor({
     initialErrors = [],
     initialWarnings = [],
     fetchExternalDoenetML,
+    upgradeAccessibilityWarningsToErrors = false,
 }: {
     doenetML: string;
     activityId?: string;
@@ -356,6 +327,7 @@ export function DoenetEditor({
     initialErrors?: ErrorRecord[];
     initialWarnings?: WarningRecord[];
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
+    upgradeAccessibilityWarningsToErrors?: boolean;
 }) {
     useEffect(() => {
         // Add a YouTube iframe api to the document header if it doesn't exist
@@ -395,6 +367,9 @@ export function DoenetEditor({
             initialErrors={initialErrors}
             initialWarnings={initialWarnings}
             fetchExternalDoenetML={fetchExternalDoenetML}
+            upgradeAccessibilityWarningsToErrors={
+                upgradeAccessibilityWarningsToErrors
+            }
         />
     );
 

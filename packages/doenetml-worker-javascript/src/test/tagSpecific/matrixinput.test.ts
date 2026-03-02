@@ -353,7 +353,7 @@ describe("MathInput tag tests @group3", async () => {
                         stateVariables[boundValueIdx].stateValues.value.tree;
                     expect(vectorAst).eqls([
                         boundValueFormat,
-                        ...ast[2].slice(1).map((v) => v[1]),
+                        ...ast[2].slice(1).map((v: any) => v[1]),
                     ]);
                 } else if (
                     boundValueFormat === "tupleTrans" ||
@@ -2400,18 +2400,55 @@ describe("MathInput tag tests @group3", async () => {
                 <matrixInput />
                 <matrixInput><shortDescription>hello</shortDescription></matrixInput>
                 <matrixInput><label>hello</label></matrixInput>
+                <matrixInput name="enterSomething" labelIsName />
+                <matrixInput labelIsName />
             `,
         });
 
         let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
+        expect(errorWarnings.warnings.length).eq(2);
 
         expect(errorWarnings.warnings[0].message).contain(
             `<matrixInput> must have a short description or a label`,
         );
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
+
+        expect(errorWarnings.warnings[1].message).contain(
+            `<matrixInput> must have a short description or a label`,
+        );
+        expect(errorWarnings.warnings[1].position.start.line).eq(6);
+        expect(errorWarnings.warnings[1].position.end.line).eq(6);
+    });
+
+    it("upgrade warning to error if no short description or label", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+                <matrixInput />
+                <matrixInput><shortDescription>hello</shortDescription></matrixInput>
+                <matrixInput><label>hello</label></matrixInput>
+                <matrixInput name="enterSomething" labelIsName />
+                <matrixInput labelIsName />
+            `,
+            flags: { upgradeAccessibilityWarningsToErrors: true },
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(2);
+
+        expect(errorWarnings.errors[0].message).contain(
+            `<matrixInput> must have a short description or a label`,
+        );
+        expect(errorWarnings.errors[0].position.start.line).eq(2);
+        expect(errorWarnings.errors[0].position.end.line).eq(2);
+
+        expect(errorWarnings.errors[1].message).contain(
+            `<matrixInput> must have a short description or a label`,
+        );
+        expect(errorWarnings.errors[1].position.start.line).eq(6);
+        expect(errorWarnings.errors[1].position.end.line).eq(6);
     });
 });

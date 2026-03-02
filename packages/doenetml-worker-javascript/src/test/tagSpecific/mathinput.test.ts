@@ -8,7 +8,7 @@ import {
     updateMathInputValue,
     updateMathInputValueToImmediateValue,
 } from "../utils/actions";
-import me from "math-expressions";
+import me, { Expression, Tree } from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -6786,12 +6786,12 @@ describe("MathInput tag tests @group2", async () => {
         ).eq(1);
         expect(
             stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: Expression) => x.tree,
             ),
         ).eqls([1, 2]);
         expect(
             stateVariables[await resolvePathToNodeIdx("B")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: Expression) => x.tree,
             ),
         ).eqls([1, 3]);
 
@@ -6816,12 +6816,12 @@ describe("MathInput tag tests @group2", async () => {
         ).eq(-7);
         expect(
             stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: Expression) => x.tree,
             ),
         ).eqls([-7, 2]);
         expect(
             stateVariables[await resolvePathToNodeIdx("B")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: Expression) => x.tree,
             ),
         ).eqls([-7, 3]);
 
@@ -6850,12 +6850,12 @@ describe("MathInput tag tests @group2", async () => {
         ).eq(4);
         expect(
             stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: Expression) => x.tree,
             ),
         ).eqls([4, -8]);
         expect(
             stateVariables[await resolvePathToNodeIdx("B")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: Expression) => x.tree,
             ),
         ).eqls([4, 3]);
 
@@ -6883,12 +6883,12 @@ describe("MathInput tag tests @group2", async () => {
         ).eq(5);
         expect(
             stateVariables[await resolvePathToNodeIdx("A")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: Expression) => x.tree,
             ),
         ).eqls([5, -8]);
         expect(
             stateVariables[await resolvePathToNodeIdx("B")].stateValues.xs.map(
-                (x) => x.tree,
+                (x: Expression) => x.tree,
             ),
         ).eqls([5, 1.3]);
     });
@@ -11773,13 +11773,13 @@ describe("MathInput tag tests @group2", async () => {
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx("mi")
-                    ].stateValues.vector.map((v) => v.tree),
+                    ].stateValues.vector.map((v: Expression) => v.tree),
                 ).eqls([math.tree]);
             } else {
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx("mi")
-                    ].stateValues.vector.map((v) => v.tree),
+                    ].stateValues.vector.map((v: Expression) => v.tree),
                 ).eqls(math.tree.slice(1));
             }
 
@@ -11832,7 +11832,9 @@ describe("MathInput tag tests @group2", async () => {
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx("mi")
-                    ].stateValues.matrix.map((v) => v.map((x) => x.tree)),
+                    ].stateValues.matrix.map((v: Expression[]) =>
+                        v.map((x: Expression) => x.tree),
+                    ),
                 ).eqls([[math.tree]]);
             } else {
                 expect(
@@ -11844,8 +11846,10 @@ describe("MathInput tag tests @group2", async () => {
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx("mi")
-                    ].stateValues.matrix.map((v) => v.map((x) => x.tree)),
-                ).eqls(math.tree.slice(1).map((v) => [v]));
+                    ].stateValues.matrix.map((v: Expression[]) =>
+                        v.map((x: Expression) => x.tree),
+                    ),
+                ).eqls(math.tree.slice(1).map((v: Tree) => [v]));
             }
 
             if (i === 1) {
@@ -11895,13 +11899,13 @@ describe("MathInput tag tests @group2", async () => {
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx("mi")
-                    ].stateValues.list.map((v) => v.tree),
+                    ].stateValues.list.map((v: Expression) => v.tree),
                 ).eqls([math.tree]);
             } else {
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx("mi")
-                    ].stateValues.list.map((v) => v.tree),
+                    ].stateValues.list.map((v: Expression) => v.tree),
                 ).eqls(math.tree.slice(1));
             }
 
@@ -11913,13 +11917,13 @@ describe("MathInput tag tests @group2", async () => {
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx("ml")
-                    ].stateValues.maths.map((v) => v.tree),
+                    ].stateValues.maths.map((v: Expression) => v.tree),
                 ).eqls([math.tree]);
             } else {
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx("ml")
-                    ].stateValues.maths.map((v) => v.tree),
+                    ].stateValues.maths.map((v: Expression) => v.tree),
                 ).eqls(math.tree.slice(1));
             }
 
@@ -11937,7 +11941,7 @@ describe("MathInput tag tests @group2", async () => {
             } else {
                 let nums = math.tree
                     .slice(1)
-                    .map((v) => me.fromAst(v).evaluate_to_constant());
+                    .map((v: Tree) => me.fromAst(v).evaluate_to_constant());
 
                 expect(
                     stateVariables[await resolvePathToNodeIdx("p20")]
@@ -12042,19 +12046,56 @@ describe("MathInput tag tests @group2", async () => {
                 <mathInput />
                 <mathInput><shortDescription>hello</shortDescription></mathInput>
                 <mathInput><label>hello</label></mathInput>
+                <mathInput name="enterSomething" labelIsName />
+                <mathInput labelIsName />
             `,
         });
 
         let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
+        expect(errorWarnings.warnings.length).eq(2);
 
         expect(errorWarnings.warnings[0].message).contain(
             `<mathInput> must have a short description or a label`,
         );
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
+
+        expect(errorWarnings.warnings[1].message).contain(
+            `<mathInput> must have a short description or a label`,
+        );
+        expect(errorWarnings.warnings[1].position.start.line).eq(6);
+        expect(errorWarnings.warnings[1].position.end.line).eq(6);
+    });
+
+    it("upgrade warning to error if no short description or label", async () => {
+        let { core } = await createTestCore({
+            doenetML: `
+                <mathInput />
+                <mathInput><shortDescription>hello</shortDescription></mathInput>
+                <mathInput><label>hello</label></mathInput>
+                <mathInput name="enterSomething" labelIsName />
+                <mathInput labelIsName />
+            `,
+            flags: { upgradeAccessibilityWarningsToErrors: true },
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(2);
+
+        expect(errorWarnings.errors[0].message).contain(
+            `<mathInput> must have a short description or a label`,
+        );
+        expect(errorWarnings.errors[0].position.start.line).eq(2);
+        expect(errorWarnings.errors[0].position.end.line).eq(2);
+
+        expect(errorWarnings.errors[1].message).contain(
+            `<mathInput> must have a short description or a label`,
+        );
+        expect(errorWarnings.errors[1].position.start.line).eq(6);
+        expect(errorWarnings.errors[1].position.end.line).eq(6);
     });
 
     it("with description", async () => {
