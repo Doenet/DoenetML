@@ -7346,6 +7346,9 @@ What is the derivative of <function name="f">x^2</function>?
         <award>y</award>
     </answer>
     <answer name="enterZ" labelIsName>z</answer>
+    <p name="pans1">ans1 label: $ans1.label</p>
+    <p name="pans2">ans2 label: $ans2.label</p>
+    <p name="penterZ">enterZ label: $enterZ.label</p>
      `,
         });
 
@@ -7388,6 +7391,19 @@ What is the derivative of <function name="f">x^2</function>?
         expect(stateVariables[mathInput3Idx].stateValues.labelHasLatex).eq(
             false,
         );
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pans1")].stateValues
+                .text,
+        ).eq("ans1 label: Enter x:");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pans2")].stateValues
+                .text,
+        ).eq("ans2 label: Enter y:");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("penterZ")].stateValues
+                .text,
+        ).eq("enterZ label: enter z");
     });
 
     it("answer label is not applied to explicit input", async () => {
@@ -7404,6 +7420,9 @@ What is the derivative of <function name="f">x^2</function>?
         <award>y</award>
     </answer>
     <answer name="enterZ" labelIsName><mathInput name="mi3" />z</answer>
+    <p name="pans1">ans1 label: $ans1.label</p>
+    <p name="pans2">ans2 label: $ans2.label</p>
+    <p name="penterZ">enterZ label: $enterZ.label</p>
      `,
         });
 
@@ -7438,6 +7457,19 @@ What is the derivative of <function name="f">x^2</function>?
         expect(stateVariables[mathInput3Idx].stateValues.labelHasLatex).eq(
             false,
         );
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pans1")].stateValues
+                .text,
+        ).eq("ans1 label: Enter x:");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pans2")].stateValues
+                .text,
+        ).eq("ans2 label: Enter y:");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("penterZ")].stateValues
+                .text,
+        ).eq("enterZ label: enter z");
     });
 
     it("warning if no short description or label when generates input", async () => {
@@ -7537,7 +7569,7 @@ What is the derivative of <function name="f">x^2</function>?
         ).eq(1);
     });
 
-    it("description and label added to sugared input", async () => {
+    it("description, not label, added to sugared input", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p><answer name="ans">
@@ -7556,22 +7588,20 @@ What is the derivative of <function name="f">x^2</function>?
         expect(
             stateVariables[await resolvePathToNodeIdx("ans")].activeChildren
                 .length,
-        ).eq(2);
+        ).eq(3);
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("ans")].activeChildren[0]
-                .componentType,
-        ).eq("mathInput");
+            stateVariables[
+                await resolvePathToNodeIdx("ans")
+            ].activeChildren.map((x) => x.componentType),
+        ).eqls(["mathInput", "award", "label"]);
 
         const mathInputIdx =
             stateVariables[await resolvePathToNodeIdx("ans")].activeChildren[0]
                 .componentIdx;
 
-        expect(stateVariables[mathInputIdx].activeChildren.length).eq(2);
+        expect(stateVariables[mathInputIdx].activeChildren.length).eq(1);
         expect(stateVariables[mathInputIdx].activeChildren[0].componentType).eq(
-            "label",
-        );
-        expect(stateVariables[mathInputIdx].activeChildren[1].componentType).eq(
             "description",
         );
     });
@@ -7601,7 +7631,7 @@ What is the derivative of <function name="f">x^2</function>?
             stateVariables[
                 await resolvePathToNodeIdx("ans")
             ].activeChildren.map((child) => child.componentType),
-        ).eqls(["label", "description", "award"]);
+        ).eqls(["description", "label", "award"]);
     });
 
     it("color correctness set on sugared inputs", async () => {
