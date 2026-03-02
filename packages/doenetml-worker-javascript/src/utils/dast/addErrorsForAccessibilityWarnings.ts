@@ -5,9 +5,9 @@ import {
     NormalizedRoot,
     UntaggedContent,
 } from "@doenet/doenetml-worker";
-import { getDecorativeShortDescriptionWarning } from "./component-accessiblity-warnings/decorativeShortDescriptionWarning";
-import { getInputAccessibilityWarning } from "./component-accessiblity-warnings/inputAccessibilityWarning";
-import { getAnswerAccessibilityWarning } from "./component-accessiblity-warnings/answerAccessibilityWarning";
+import { getDecorativeShortDescriptionWarning } from "./component-accessibility-warnings/decorativeShortDescriptionWarning";
+import { getInputAccessibilityWarning } from "./component-accessibility-warnings/inputAccessibilityWarning";
+import { getAnswerAccessibilityWarning } from "./component-accessibility-warnings/answerAccessibilityWarning";
 
 /**
  * Recursively traverses a normalized DAST and inserts generated error nodes for
