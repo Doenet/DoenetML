@@ -3041,6 +3041,87 @@ The animal is a <answer name="answer1">
         });
     });
 
+    it("answer with choices sugars choiceInput even with label", async () => {
+        const doenetML = `
+The animal is a <answer name="answer1">
+    <label>Which animal is a canine?</label>
+    <choice credit="0.5">cat</choice>
+    <choice credit="1">dog</choice>
+    <choice>monkey</choice>
+</answer>
+  `;
+
+        await test_choice_answer({
+            doenetML,
+            answers: [
+                { choices: ["dog"], credit: 1 },
+                { choices: ["monkey"], credit: 0 },
+                { choices: ["cat"], credit: 0.5 },
+            ],
+            indexByName: {
+                cat: 1,
+                dog: 2,
+                monkey: 3,
+            },
+        });
+
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        const stateVariables = await core.returnAllStateVariables();
+        const answerIdx = await resolvePathToNodeIdx("answer1");
+        const choiceInputIdx =
+            stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
+
+        expect(stateVariables[choiceInputIdx].componentType).eq("choiceInput");
+        expect(stateVariables[choiceInputIdx].stateValues.label).eq(
+            "Which animal is a canine?",
+        );
+        expect(stateVariables[answerIdx].stateValues.label).eq(
+            "Which animal is a canine?",
+        );
+    });
+
+    it("answer with choices sugars choiceInput even with short description", async () => {
+        const doenetML = `
+The animal is a <answer name="answer1">
+    <shortDescription>Which animal is a canine?</shortDescription>
+    <choice credit="0.5">cat</choice>
+    <choice credit="1">dog</choice>
+    <choice>monkey</choice>
+</answer>
+  `;
+
+        await test_choice_answer({
+            doenetML,
+            answers: [
+                { choices: ["dog"], credit: 1 },
+                { choices: ["monkey"], credit: 0 },
+                { choices: ["cat"], credit: 0.5 },
+            ],
+            indexByName: {
+                cat: 1,
+                dog: 2,
+                monkey: 3,
+            },
+        });
+
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        const stateVariables = await core.returnAllStateVariables();
+        const answerIdx = await resolvePathToNodeIdx("answer1");
+        const choiceInputIdx =
+            stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
+
+        expect(stateVariables[choiceInputIdx].componentType).eq("choiceInput");
+        expect(stateVariables[choiceInputIdx].stateValues.shortDescription).eq(
+            "Which animal is a canine?",
+        );
+    });
+
     it("answer, any letter", async () => {
         const doenetML = `
 Enter any letter:
