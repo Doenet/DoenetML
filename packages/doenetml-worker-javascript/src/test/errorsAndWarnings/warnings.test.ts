@@ -822,18 +822,22 @@ describe("Warning Tests @group4", async () => {
     <mathInput><label>Valid text label</label></mathInput>
     <mathInput><label><m>   </m></label></mathInput>
     <mathInput><label><m>x</m></label></mathInput>
+
+    <mathInput labelIsName></mathInput>
+    <mathInput name="namedA" labelIsName></mathInput>
+    <mathInput name="namedB" labelIsName="false"></mathInput>
     `,
         });
 
         let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(6);
+        expect(errorWarnings.warnings.length).eq(8);
 
         const warningMsg =
             "<mathInput> must have a short description or a label";
 
-        const warningsOnLines = [2, 3, 4, 7, 8, 10];
+        const warningsOnLines = [2, 3, 4, 7, 8, 10, 13, 15];
 
         for (const lineNum of warningsOnLines) {
             const warning = errorWarnings.warnings.find(

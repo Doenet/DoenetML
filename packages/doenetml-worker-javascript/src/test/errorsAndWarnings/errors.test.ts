@@ -645,17 +645,21 @@ a />
     <mathInput><label>   </label></mathInput>
     <mathInput><label>Valid text label</label></mathInput>
     <mathInput><label><m>x</m></label></mathInput>
+
+    <mathInput labelIsName></mathInput>
+    <mathInput name="namedA" labelIsName></mathInput>
+    <mathInput name="namedB" labelIsName="false"></mathInput>
     `,
             flags: { upgradeAccessibilityWarningsToErrors: true },
         });
 
         let errorWarnings = core.core!.errorWarnings;
 
-        expect(errorWarnings.errors.length).eq(5);
+        expect(errorWarnings.errors.length).eq(7);
 
         const errorMsg = "<mathInput> must have a short description or a label";
 
-        const errorsOnLines = [2, 3, 4, 7, 8];
+        const errorsOnLines = [2, 3, 4, 7, 8, 12, 14];
 
         for (const lineNum of errorsOnLines) {
             const error = errorWarnings.errors.find(
