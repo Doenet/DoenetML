@@ -1553,7 +1553,9 @@ describe("ChoiceInput tag tests @group4", async () => {
             stateVariables[await resolvePathToNodeIdx("ci")].stateValues
                 .choiceTexts;
         expect([...choiceTexts].sort()).eqls([...originalChoices].sort());
-        const order = choiceTexts.map((v) => originalChoices.indexOf(v));
+        const order = choiceTexts.map((v: string) =>
+            originalChoices.indexOf(v),
+        );
 
         async function check_items(selectedIndices: number[]) {
             let selectedValues = selectedIndices.map((v) => choiceTexts[v - 1]);
@@ -1784,7 +1786,7 @@ describe("ChoiceInput tag tests @group4", async () => {
             requestedVariantIndex: 1,
         });
 
-        let orders = {};
+        let orders: Record<string, any> = {};
 
         let m = 1,
             n = 6;
