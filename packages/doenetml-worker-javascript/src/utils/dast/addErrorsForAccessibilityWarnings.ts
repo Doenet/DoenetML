@@ -19,10 +19,12 @@ import { getAnswerAccessibilityWarning } from "./component-accessibility-warning
 export function addErrorsForAccessibilityWarnings(
     normalized_root: NormalizedRoot,
 ): NormalizedRoot {
-    const { newChildren: newComponents, newNodes } =
+    const newNodes = [...normalized_root.nodes];
+
+    const { newChildren: newComponents } =
         addErrorsForAccessibilityWarningsToComponents(
             normalized_root.children,
-            normalized_root.nodes,
+            newNodes,
         );
     return {
         ...normalized_root,
@@ -42,9 +44,8 @@ export function addErrorsForAccessibilityWarnings(
 function addErrorsForAccessibilityWarningsToComponents(
     children: UntaggedContent[],
     nodes: NormalizedNode[],
-): { newChildren: UntaggedContent[]; newNodes: NormalizedNode[] } {
+): { newChildren: UntaggedContent[] } {
     const newChildren: UntaggedContent[] = [];
-    let newNodes: NormalizedNode[] = [...nodes];
 
     for (const child of children) {
         newChildren.push(child);
@@ -57,13 +58,10 @@ function addErrorsForAccessibilityWarningsToComponents(
             continue;
         }
 
-        const accessibilityWarning = getAccessibilityWarning(
-            component,
-            newNodes,
-        );
+        const accessibilityWarning = getAccessibilityWarning(component, nodes);
 
         if (accessibilityWarning) {
-            const newIdx = newNodes.length;
+            const newIdx = nodes.length;
             const errorNode: FlatError = {
                 idx: newIdx,
                 type: "error",
@@ -73,21 +71,20 @@ function addErrorsForAccessibilityWarningsToComponents(
                 position: component.position,
                 sourceDoc: component.sourceDoc,
             };
-            newNodes.push(errorNode);
+            nodes.push(errorNode);
             newChildren.push(newIdx);
         }
-        const { newChildren: newGrandChildren, newNodes: updatedNodes } =
+        const { newChildren: newGrandChildren } =
             addErrorsForAccessibilityWarningsToComponents(
                 component.children,
-                newNodes,
+                nodes,
             );
 
         component = { ...component, children: newGrandChildren };
-        newNodes = updatedNodes;
-        newNodes[child] = component;
+        nodes[child] = component;
     }
 
-    return { newChildren, newNodes };
+    return { newChildren };
 }
 
 /**
