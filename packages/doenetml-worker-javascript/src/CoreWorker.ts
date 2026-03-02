@@ -137,7 +137,7 @@ export class PublicDoenetMLCore {
 
         let componentInfoObjects = createComponentInfoObjects();
 
-        if (this.flags.upgradeAccessibilityWarningsToErrors) {
+        if (this.flags.upgradeAccessibilityWarningsToErrors === true) {
             normalizedRoot = addErrorsForAccessibilityWarnings(normalizedRoot);
         }
 

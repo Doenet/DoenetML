@@ -7346,13 +7346,16 @@ What is the derivative of <function name="f">x^2</function>?
                     <choice>monkey</choice>
                 </answer>
                 <point name="P" /><answer><award><when>$P.x > 0</when></award></answer>
+                <answer><math>x</math></answer>
+                <answer><award>x</award></answer>
+                <answer><award><math>x</math></award></answer>
             `,
         });
 
         let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(4);
+        expect(errorWarnings.warnings.length).eq(7);
 
         expect(errorWarnings.warnings[0].message).contain(
             `an <answer> creating an input must have a short description or a label`,
@@ -7377,6 +7380,24 @@ What is the derivative of <function name="f">x^2</function>?
         );
         expect(errorWarnings.warnings[3].position.start.line).eq(5);
         expect(errorWarnings.warnings[3].position.end.line).eq(9);
+
+        expect(errorWarnings.warnings[4].message).contain(
+            `an <answer> creating an input must have a short description or a label`,
+        );
+        expect(errorWarnings.warnings[4].position.start.line).eq(11);
+        expect(errorWarnings.warnings[4].position.end.line).eq(11);
+
+        expect(errorWarnings.warnings[5].message).contain(
+            `an <answer> creating an input must have a short description or a label`,
+        );
+        expect(errorWarnings.warnings[5].position.start.line).eq(12);
+        expect(errorWarnings.warnings[5].position.end.line).eq(12);
+
+        expect(errorWarnings.warnings[6].message).contain(
+            `an <answer> creating an input must have a short description or a label`,
+        );
+        expect(errorWarnings.warnings[6].position.start.line).eq(13);
+        expect(errorWarnings.warnings[6].position.end.line).eq(13);
     });
 
     it("upgrade warning to error if no short description or label when generates input", async () => {
@@ -7391,13 +7412,16 @@ What is the derivative of <function name="f">x^2</function>?
                     <choice>monkey</choice>
                 </answer>
                 <point name="P" /><answer><award><when>$P.x > 0</when></award></answer>
+                <answer><math>x</math></answer>
+                <answer><award>x</award></answer>
+                <answer><award><math>x</math></award></answer>
             `,
             flags: { upgradeAccessibilityWarningsToErrors: true },
         });
 
         let errorWarnings = core.core!.errorWarnings;
 
-        expect(errorWarnings.errors.length).eq(4);
+        expect(errorWarnings.errors.length).eq(7);
 
         expect(errorWarnings.errors[0].message).contain(
             `an <answer> creating an input must have a short description or a label`,
@@ -7422,6 +7446,30 @@ What is the derivative of <function name="f">x^2</function>?
         );
         expect(errorWarnings.errors[3].position.start.line).eq(5);
         expect(errorWarnings.errors[3].position.end.line).eq(9);
+
+        expect(errorWarnings.errors[4].message).contain(
+            `an <answer> creating an input must have a short description or a label`,
+        );
+        expect(errorWarnings.errors[4].position.start.line).eq(11);
+        expect(errorWarnings.errors[4].position.end.line).eq(11);
+
+        expect(errorWarnings.errors[5].message).contain(
+            `an <answer> creating an input must have a short description or a label`,
+        );
+        expect(errorWarnings.errors[5].position.start.line).eq(12);
+        expect(errorWarnings.errors[5].position.end.line).eq(12);
+
+        expect(errorWarnings.errors[6].message).contain(
+            `an <answer> creating an input must have a short description or a label`,
+        );
+        expect(errorWarnings.errors[6].position.start.line).eq(13);
+        expect(errorWarnings.errors[6].position.end.line).eq(13);
+
+        expect(errorWarnings.errors[4].message).contain(
+            `an <answer> creating an input must have a short description or a label`,
+        );
+        expect(errorWarnings.errors[4].position.start.line).eq(11);
+        expect(errorWarnings.errors[4].position.end.line).eq(11);
     });
 
     it("with no inputs, a label is optional", async () => {
