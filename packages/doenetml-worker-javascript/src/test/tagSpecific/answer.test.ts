@@ -7334,6 +7334,112 @@ What is the derivative of <function name="f">x^2</function>?
         ).eqls([true, false, true]);
     });
 
+    it("answer label is applied to sugared input and retained by answer", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <answer name="ans1">
+        <label>Enter x:</label>
+        <award>x</award>
+    </answer>
+    <answer name="ans2">
+        <label>Enter <m>y</m>:</label>
+        <award>y</award>
+    </answer>
+    <answer name="enterZ" labelIsName>z</answer>
+     `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ans1")].stateValues
+                .label,
+        ).eq("Enter x:");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
+                .label,
+        ).eq("Enter \\(y\\):");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("enterZ")].stateValues
+                .label,
+        ).eq("enter z");
+
+        const mathInput1Idx =
+            stateVariables[await resolvePathToNodeIdx("ans1")].stateValues
+                .inputChildren[0].componentIdx;
+        const mathInput2Idx =
+            stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
+                .inputChildren[0].componentIdx;
+        const mathInput3Idx =
+            stateVariables[await resolvePathToNodeIdx("enterZ")].stateValues
+                .inputChildren[0].componentIdx;
+
+        expect(stateVariables[mathInput1Idx].stateValues.label).eq("Enter x:");
+        expect(stateVariables[mathInput1Idx].stateValues.labelHasLatex).eq(
+            false,
+        );
+        expect(stateVariables[mathInput2Idx].stateValues.label).eq(
+            "Enter \\(y\\):",
+        );
+        expect(stateVariables[mathInput2Idx].stateValues.labelHasLatex).eq(
+            true,
+        );
+        expect(stateVariables[mathInput3Idx].stateValues.label).eq("enter z");
+        expect(stateVariables[mathInput3Idx].stateValues.labelHasLatex).eq(
+            false,
+        );
+    });
+
+    it("answer label is not applied to explicit input", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <answer name="ans1">
+        <mathInput name="mi1" />
+        <label>Enter x:</label>
+        <award>x</award>
+    </answer>
+    <answer name="ans2">
+        <mathInput name="mi2" />
+        <label>Enter <m>y</m>:</label>
+        <award>y</award>
+    </answer>
+    <answer name="enterZ" labelIsName><mathInput name="mi3" />z</answer>
+     `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ans1")].stateValues
+                .label,
+        ).eq("Enter x:");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
+                .label,
+        ).eq("Enter \\(y\\):");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("enterZ")].stateValues
+                .label,
+        ).eq("enter z");
+
+        const mathInput1Idx = await resolvePathToNodeIdx("mi1");
+        const mathInput2Idx = await resolvePathToNodeIdx("mi2");
+        const mathInput3Idx = await resolvePathToNodeIdx("mi3");
+
+        expect(stateVariables[mathInput1Idx].stateValues.label).eq("");
+        expect(stateVariables[mathInput1Idx].stateValues.labelHasLatex).eq(
+            false,
+        );
+        expect(stateVariables[mathInput2Idx].stateValues.label).eq("");
+        expect(stateVariables[mathInput2Idx].stateValues.labelHasLatex).eq(
+            false,
+        );
+        expect(stateVariables[mathInput3Idx].stateValues.label).eq("");
+        expect(stateVariables[mathInput3Idx].stateValues.labelHasLatex).eq(
+            false,
+        );
+    });
+
     it("warning if no short description or label when generates input", async () => {
         let { core } = await createTestCore({
             doenetML: `
