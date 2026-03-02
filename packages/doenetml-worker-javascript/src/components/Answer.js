@@ -330,14 +330,12 @@ export default class Answer extends InlineComponent {
 
             const labelDescriptionChildren = matchedChildren.filter(
                 (child) =>
-                    componentIsSpecifiedType(child, "label") ||
                     componentIsSpecifiedType(child, "description") ||
                     componentIsSpecifiedType(child, "shortDescription"),
             );
             matchedChildren = matchedChildren.filter(
                 (child) =>
                     !(
-                        componentIsSpecifiedType(child, "label") ||
                         componentIsSpecifiedType(child, "description") ||
                         componentIsSpecifiedType(child, "shortDescription")
                     ),
@@ -495,6 +493,8 @@ export default class Answer extends InlineComponent {
                     // have a composite without specified componentType
                     childIsWrappable.push(true);
                     mayNeedInput = true;
+                } else if (child.componentType === "label") {
+                    childIsWrappable.push(false);
                 } else {
                     // wrap anything else as it isn't matched by a child group?
                     childIsWrappable.push(true);
