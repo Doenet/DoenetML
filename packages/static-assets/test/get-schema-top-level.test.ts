@@ -25,7 +25,7 @@ describe("generated schema top-level elements", () => {
         expect(topElements).toEqual(expectedTopElements);
     });
 
-    it("includes styleDefinition and feedbackDefinition as a top-level element", () => {
+    it("includes styleDefinition and feedbackDefinition as top-level elements", () => {
         const schema = getSchema();
         const elementsByName = Object.fromEntries(
             schema.elements.map((element) => [element.name, element]),
@@ -37,5 +37,15 @@ describe("generated schema top-level elements", () => {
             "feedbackDefinition",
         );
         expect(elementsByName.feedbackDefinition.top).toBe(true);
+    });
+
+    it("does not include when as a top-level element", () => {
+        const schema = getSchema();
+        const elementsByName = Object.fromEntries(
+            schema.elements.map((element) => [element.name, element]),
+        );
+
+        expect(elementsByName.document.children).not.toContain("when");
+        expect(elementsByName.when.top).toBe(false);
     });
 });
