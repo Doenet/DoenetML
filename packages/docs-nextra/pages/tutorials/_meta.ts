@@ -28,6 +28,9 @@ export default {
     vsCodeExtension: {
         title: "📘  Author in VS Code",
     },
+    convertFromWebwork: {
+        title: "📘  Convert from WeBWorK",
+    },
     sampleProject1: {
         title: "📘 Sample Project 1",
         display: "hidden",
