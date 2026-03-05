@@ -12,6 +12,10 @@ import nearestColor from "nearest-color";
  * 3) Be localization-ready by producing stable translation keys
  *    (`color.*` and `cssColor.*`) and optional translated output.
  *
+ * Translation key strategy:
+ * - Nearest-palette result => `color.<canonicalName>`
+ * - Preserved CSS named color => `cssColor.<cssNamedKeyword>`
+ *
  * High-level flow:
  * - If input is a CSS named color and preservation is enabled:
  *   return it directly as the English/localized word (`named-css`).
@@ -33,16 +37,12 @@ export interface ResolveColorWordOptions {
 }
 
 export interface ResolvedColorWord {
+    // Translation key for i18n lookup (for example `color.blue` or `cssColor.rebeccapurple`).
     key?: string;
     englishWord: string;
     localizedWord: string;
     source: ColorWordSource;
 }
-
-// Translation key strategy for future repo-wide i18n:
-// - `color.<canonicalName>` for nearest-palette matches
-// - `cssColor.<cssNamedKeyword>` for preserved CSS named colors
-// This keeps backward-compatible English words while enabling localized lookup.
 
 /**
  * Canonical color families used by style descriptions.
@@ -50,7 +50,7 @@ export interface ResolvedColorWord {
  * These keys are the stable "public" families for descriptions and translation keys.
  * Example: `color.blue`, `color.red`.
  */
-const canonicalColorHexByKey: Record<string, string> = {
+const canonicalColorHexByKey = {
     black: "#000000",
     white: "#ffffff",
     gray: "#808080",
@@ -63,120 +63,107 @@ const canonicalColorHexByKey: Record<string, string> = {
     purple: "#800080",
     pink: "#ffc0cb",
     brown: "#a52a2a",
+} as const;
+
+export type CanonicalColorKey = keyof typeof canonicalColorHexByKey;
+
+type AnchorDefinition = {
+    hex: string;
+    canonical: CanonicalColorKey;
 };
 
 /**
- * Matching anchors used by nearest-color.
+ * Canonical family anchors derived directly from `canonicalColorHexByKey`.
  *
- * We include additional anchors (e.g. `blueCustom`, `purpleCustom`, `*Light`, `*Dark`)
- * to improve classification behavior while keeping output canonicalized.
+ * This keeps canonical family definitions in one place and avoids duplication.
  */
-const matchColorHexByName: Record<string, string> = {
-    black: canonicalColorHexByKey.black,
-    white: canonicalColorHexByKey.white,
-    silver: "#c0c0c0",
-    grayDark: "#4d4d4d",
-    gray: canonicalColorHexByKey.gray,
-    grayCustom: "#757575",
-    grayLight: "#c8c8c8",
-    grayLighter: "#dcdcdc",
-    maroon: "#800000",
-    redLight: "#f08080",
-    red: canonicalColorHexByKey.red,
-    redCustom: "#D4042D",
-    redDark: "#8b0000",
-    orangeLight: "#ffa07a",
-    orange: canonicalColorHexByKey.orange,
-    orangeCustom: "#F19143",
-    orangeDark: "#ff8c00",
-    yellowLight: "#ffffe0",
-    yellow: canonicalColorHexByKey.yellow,
-    yellowDark: "#bdb76b",
-    yellowgreen: "#9acd32",
-    olive: "#808000",
-    lime: "#00ff00",
-    greenLight: "#90ee90",
-    green: canonicalColorHexByKey.green,
-    greenCustom: "#2ca02c",
-    greenDark: "#006400",
-    teal: "#008080",
-    aqua: "#00ffff",
-    cyanLight: "#e0ffff",
-    cyan: canonicalColorHexByKey.cyan,
-    cyanDark: "#008b8b",
-    navy: "#000080",
-    blueCustom: "#648FFF",
-    blueLight: "#add8e6",
-    blue: canonicalColorHexByKey.blue,
-    blueDark: "#00008b",
-    fuchsia: "#ff00ff",
-    purpleCustom: "#644CD6",
-    purpleLight: "#dda0dd",
-    purple: canonicalColorHexByKey.purple,
-    purpleDark: "#8b008b",
-    hotpink: "#ff69b4",
-    pink: canonicalColorHexByKey.pink,
-    pinkDark: "#ff1493",
-    brownLight: "#deb887",
-    brown: canonicalColorHexByKey.brown,
-    brownDark: "#8b4513",
+const canonicalAnchorDefinitions = Object.fromEntries(
+    Object.entries(canonicalColorHexByKey).map(([canonical, hex]) => [
+        canonical,
+        { hex, canonical },
+    ]),
+) as Record<CanonicalColorKey, AnchorDefinition>;
+
+/**
+ * Additional non-canonical anchors used by nearest-color.
+ *
+ * Together with `canonicalAnchorDefinitions`, this forms the full matching set.
+ *
+ * Each anchor has:
+ * - `hex`: comparison point used by nearest-color
+ * - `canonical`: the output family key (`color.<canonical>`)
+ *
+ * Includes:
+ * - custom project palette anchors (`*Custom`)
+ * - light/dark anchors (`*Light`, `*Dark`)
+ * - selected HTML named-color anchors (e.g. `silver`, `maroon`, `fuchsia`)
+ */
+const extraAnchorDefinitions: Record<string, AnchorDefinition> = {
+    silver: { hex: "#c0c0c0", canonical: "gray" },
+    grayDark: { hex: "#4d4d4d", canonical: "gray" },
+    grayCustom: { hex: "#757575", canonical: "gray" },
+    grayLight: { hex: "#c8c8c8", canonical: "gray" },
+    grayLighter: { hex: "#dcdcdc", canonical: "gray" },
+    maroon: { hex: "#800000", canonical: "red" },
+    redLight: { hex: "#f08080", canonical: "red" },
+    redCustom: { hex: "#D4042D", canonical: "red" },
+    redDark: { hex: "#8b0000", canonical: "red" },
+    orangeLight: { hex: "#ffa07a", canonical: "orange" },
+    orangeCustom: { hex: "#F19143", canonical: "orange" },
+    orangeDark: { hex: "#ff8c00", canonical: "orange" },
+    yellowLight: { hex: "#ffffe0", canonical: "yellow" },
+    yellowDark: { hex: "#bdb76b", canonical: "yellow" },
+    yellowgreen: { hex: "#9acd32", canonical: "green" },
+    olive: { hex: "#808000", canonical: "green" },
+    lime: { hex: "#00ff00", canonical: "green" },
+    greenLight: { hex: "#90ee90", canonical: "green" },
+    greenCustom: { hex: "#2ca02c", canonical: "green" },
+    greenDark: { hex: "#006400", canonical: "green" },
+    teal: { hex: "#008080", canonical: "green" },
+    aqua: { hex: "#00ffff", canonical: "cyan" },
+    cyanLight: { hex: "#e0ffff", canonical: "cyan" },
+    cyanDark: { hex: "#008b8b", canonical: "cyan" },
+    navy: { hex: "#000080", canonical: "blue" },
+    blueCustom: { hex: "#648FFF", canonical: "blue" },
+    blueLight: { hex: "#add8e6", canonical: "blue" },
+    blueDark: { hex: "#00008b", canonical: "blue" },
+    fuchsia: { hex: "#ff00ff", canonical: "purple" },
+    purpleCustom: { hex: "#644CD6", canonical: "purple" },
+    purpleLight: { hex: "#dda0dd", canonical: "purple" },
+    purpleDark: { hex: "#8b008b", canonical: "purple" },
+    hotpink: { hex: "#ff69b4", canonical: "pink" },
+    pinkDark: { hex: "#ff1493", canonical: "pink" },
+    brownLight: { hex: "#deb887", canonical: "brown" },
+    brownDark: { hex: "#8b4513", canonical: "brown" },
 };
 
 /**
- * Maps each matching anchor name to the canonical output family.
- *
- * This decouples matching accuracy from output vocabulary.
+ * Full numeric matching anchor set (canonical + extra anchors).
  */
-const canonicalKeyByMatchName: Record<string, string> = {
-    black: "black",
-    white: "white",
-    silver: "gray",
-    grayDark: "gray",
-    gray: "gray",
-    grayCustom: "gray",
-    grayLight: "gray",
-    grayLighter: "gray",
-    maroon: "red",
-    redLight: "red",
-    red: "red",
-    redCustom: "red",
-    redDark: "red",
-    orangeLight: "orange",
-    orange: "orange",
-    orangeCustom: "orange",
-    orangeDark: "orange",
-    yellowLight: "yellow",
-    yellow: "yellow",
-    yellowDark: "yellow",
-    yellowgreen: "green",
-    olive: "green",
-    lime: "green",
-    greenLight: "green",
-    green: "green",
-    greenCustom: "green",
-    greenDark: "green",
-    teal: "green",
-    aqua: "cyan",
-    cyanLight: "cyan",
-    cyan: "cyan",
-    cyanDark: "cyan",
-    navy: "blue",
-    blueCustom: "blue",
-    blueLight: "blue",
-    blue: "blue",
-    blueDark: "blue",
-    fuchsia: "purple",
-    purpleCustom: "purple",
-    purpleLight: "purple",
-    purple: "purple",
-    purpleDark: "purple",
-    hotpink: "pink",
-    pink: "pink",
-    pinkDark: "pink",
-    brownLight: "brown",
-    brown: "brown",
-    brownDark: "brown",
+const anchorDefinitions: Record<string, AnchorDefinition> = {
+    ...canonicalAnchorDefinitions,
+    ...extraAnchorDefinitions,
 };
+
+/**
+ * Derived map for nearest-color: anchor name -> hex value.
+ */
+const matchColorHexByName = Object.fromEntries(
+    Object.entries(anchorDefinitions).map(([name, definition]) => [
+        name,
+        definition.hex,
+    ]),
+) as Record<string, string>;
+
+/**
+ * Derived map for canonicalization: anchor name -> canonical family key.
+ */
+const canonicalKeyByMatchName = Object.fromEntries(
+    Object.entries(anchorDefinitions).map(([name, definition]) => [
+        name,
+        definition.canonical,
+    ]),
+) as Record<string, CanonicalColorKey>;
 
 const nearestCanonicalColor = nearestColor.from(matchColorHexByName);
 
@@ -190,10 +177,6 @@ const cssNamedColorSet = new Set<string>([
     "transparent",
     "currentcolor",
 ]);
-
-function hasOwn(object: object, property: string) {
-    return Object.prototype.hasOwnProperty.call(object, property);
-}
 
 function isCssNamedColorKeyword(colorValue: string): boolean {
     return cssNamedColorSet.has(colorValue.trim().toLowerCase());
@@ -248,7 +231,7 @@ export function resolveColorWord(
             ? canonicalKeyByMatchName[nearest.name]
             : undefined;
 
-        if (!canonicalName || !hasOwn(canonicalColorHexByKey, canonicalName)) {
+        if (!canonicalName) {
             throw Error("No nearest canonical color resolved");
         }
 

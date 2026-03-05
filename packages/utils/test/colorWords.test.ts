@@ -65,7 +65,7 @@ describe("color words", () => {
         }
     });
 
-    it("maps missing HTML 4.01 colors to closest canonical names", () => {
+    it("maps missing HTML 4.01 colors to configured canonical names", () => {
         const html4MissingHexByCanonicalName: Record<string, string[]> = {
             gray: ["#c0c0c0"],
             red: ["#800000"],
