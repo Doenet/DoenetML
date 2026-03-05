@@ -1,6 +1,46 @@
+import { colorValueToWord } from "./colorWords";
+
 type StyleAttributes = Record<string, { componentType: string }>;
 
-type StyleDefinition = Record<string, any>;
+type StyleDefinitionValue = string | number;
+
+type StyleDefinitionKey =
+    | "lineColor"
+    | "lineColorWord"
+    | "lineColorDarkMode"
+    | "lineColorWordDarkMode"
+    | "lineOpacity"
+    | "lineWidth"
+    | "lineWidthWord"
+    | "lineStyle"
+    | "lineStyleWord"
+    | "markerColor"
+    | "markerColorWord"
+    | "markerColorDarkMode"
+    | "markerColorWordDarkMode"
+    | "markerOpacity"
+    | "markerStyle"
+    | "markerStyleWord"
+    | "markerSize"
+    | "fillColor"
+    | "fillColorWord"
+    | "fillColorDarkMode"
+    | "fillColorWordDarkMode"
+    | "fillOpacity"
+    | "textColor"
+    | "textColorWord"
+    | "textColorDarkMode"
+    | "textColorWordDarkMode"
+    | "highContrastColor"
+    | "highContrastColorWord"
+    | "highContrastColorDarkMode"
+    | "highContrastColorWordDarkMode"
+    | "backgroundColor"
+    | "backgroundColorWord"
+    | "backgroundColorDarkMode"
+    | "backgroundColorWordDarkMode";
+
+type StyleDefinition = Partial<Record<StyleDefinitionKey, StyleDefinitionValue>>;
 
 type StateVariableDefinitions = Record<string, any>;
 
@@ -363,9 +403,9 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                 "fill",
                 "text",
                 "background",
-            ];
-            const widthItems = ["line"];
-            const lineStyleItems = ["line"];
+            ] as const;
+            const widthItems = ["line"] as const;
+            const lineStyleItems = ["line"] as const;
 
             for (const child of styleDefinitionChildren) {
                 const styleNumber = child.stateValues.styleNumber;
@@ -384,16 +424,24 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                 );
 
                 for (const item of coloredItems) {
-                    const colorKey = `${item}Color`;
-                    const colorWordKey = `${colorKey}Word`;
-                    const darkKey = `${colorKey}DarkMode`;
-                    const darkWordKey = `${colorWordKey}DarkMode`;
+                    const colorKey = `${item}Color` as StyleDefinitionKey;
+                    const colorWordKey = `${colorKey}Word` as StyleDefinitionKey;
+                    const darkKey = `${colorKey}DarkMode` as StyleDefinitionKey;
+                    const darkWordKey =
+                        `${colorWordKey}DarkMode` as StyleDefinitionKey;
 
                     if (colorKey in theNewDef && !(colorWordKey in theNewDef)) {
-                        theNewDef[colorWordKey] = theNewDef[colorKey];
+                        const colorValue = theNewDef[colorKey];
+                        if (typeof colorValue === "string") {
+                            theNewDef[colorWordKey] =
+                                colorValueToWord(colorValue);
+                        }
                     }
                     if (darkKey in theNewDef && !(darkWordKey in theNewDef)) {
-                        theNewDef[darkWordKey] = theNewDef[darkKey];
+                        const darkValue = theNewDef[darkKey];
+                        if (typeof darkValue === "string") {
+                            theNewDef[darkWordKey] = colorValueToWord(darkValue);
+                        }
                     }
                     if (colorKey in theNewDef && !(darkKey in theNewDef)) {
                         theNewDef[darkKey] = theNewDef[colorKey];
@@ -402,13 +450,18 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                 }
 
                 for (const item of widthItems) {
-                    const widthKey = `${item}Width`;
-                    const widthWordKey = `${widthKey}Word`;
+                    const widthKey = `${item}Width` as StyleDefinitionKey;
+                    const widthWordKey = `${widthKey}Word` as StyleDefinitionKey;
 
                     if (widthKey in theNewDef && !(widthWordKey in theNewDef)) {
-                        if (theNewDef[widthKey] >= 4) {
+                        const widthValue = theNewDef[widthKey];
+                        if (typeof widthValue !== "number") {
+                            continue;
+                        }
+
+                        if (widthValue >= 4) {
                             theNewDef[widthWordKey] = "thick";
-                        } else if (theNewDef[widthKey] <= 1) {
+                        } else if (widthValue <= 1) {
                             theNewDef[widthWordKey] = "thin";
                         } else {
                             theNewDef[widthWordKey] = "";
@@ -417,13 +470,15 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                 }
 
                 for (const item of lineStyleItems) {
-                    const styleKey = `${item}Style`;
-                    const styleWordKey = `${styleKey}Word`;
+                    const styleKey = `${item}Style` as StyleDefinitionKey;
+                    const styleWordKey = `${styleKey}Word` as StyleDefinitionKey;
 
                     if (styleKey in theNewDef && !(styleWordKey in theNewDef)) {
-                        if (theNewDef[styleKey] === "dashed") {
+                        const lineStyle = theNewDef[styleKey];
+
+                        if (lineStyle === "dashed") {
                             theNewDef[styleWordKey] = "dashed";
-                        } else if (theNewDef[styleKey] === "dotted") {
+                        } else if (lineStyle === "dotted") {
                             theNewDef[styleWordKey] = "dotted";
                         } else {
                             theNewDef[styleWordKey] = "";
@@ -435,10 +490,14 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                     "markerStyle" in theNewDef &&
                     !("markerStyleWord" in theNewDef)
                 ) {
-                    theNewDef.markerStyleWord = theNewDef.markerStyle;
+                    if (typeof theNewDef.markerStyle === "string") {
+                        theNewDef.markerStyleWord = theNewDef.markerStyle;
+                    }
+
                     if (theNewDef.markerStyleWord === "circle") {
                         theNewDef.markerStyleWord = "point";
                     } else if (
+                        typeof theNewDef.markerStyleWord === "string" &&
                         theNewDef.markerStyleWord.slice(0, 8) === "triangle"
                     ) {
                         theNewDef.markerStyleWord = "triangle";
