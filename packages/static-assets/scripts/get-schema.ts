@@ -51,13 +51,6 @@ type ComponentClass = {
      */
     inSchemaOnlyInheritAs?: string[];
 
-    /**
-     * If `true`, then this component can be a top-level component in the schema.
-     * If `false`, then this component is explicitly prevented from being a top-level component in the schema.
-     * If not set, then the component will be treated as a top-level component as long as `inSchemaOnlyInheritAs` is not set
-     * (as if `inSchemaOnlyInheritAs` is not set, the component will be treated as inheriting from "_base", which is a top-level component)
-     */
-    allowInSchemaAtTop?: boolean;
     getAdapterComponentType: (...args: any[]) => string;
     numAdapters: number;
     /**
@@ -260,12 +253,13 @@ export function getSchema() {
         }
     }
 
+    const { children: documentChildren } = determineChildren(
+        componentClasses["document"],
+    );
+
     const elements: SchemaElement[] = [];
 
     for (const type in componentClasses) {
-        let children: string[] = [];
-        let acceptsStringChildren = false;
-
         const attributes: SchemaAttribute[] = [];
 
         const cClass = componentClasses[type];
@@ -295,54 +289,7 @@ export function getSchema() {
             }
         }
 
-        const childGroups = cClass.returnChildGroups();
-
-        for (const groupObj of childGroups) {
-            // one can add a excludeFromSchema to a child group
-            // to keep it from showing up in the schema
-            if (!groupObj.excludeFromSchema) {
-                for (const type2 of groupObj.componentTypes) {
-                    if (type2 in inheritedOrAdaptedTypes) {
-                        children.push(...inheritedOrAdaptedTypes[type2]);
-                    }
-                    if (
-                        type2 === "string" ||
-                        type2 === "_base" ||
-                        type2 === "_inline"
-                    ) {
-                        acceptsStringChildren = true;
-                    }
-                }
-            }
-        }
-
-        // The static variable additionalSchemaChildren on a component class
-        // can be used to add children to the schema that wouldn't show up otherwise.
-        // Two uses are:
-        // 1. to include children that are accepted by sugar but are not in a child group
-        //    because the sugar moves them to no longer be children
-        // 2. to add composite children to the schema even though they should be expanded,
-        //    (as adding a composite child to a child group will prevent it from being expanded)
-        if (cClass.additionalSchemaChildren) {
-            for (const type2 of cClass.additionalSchemaChildren) {
-                if (type2 in inheritedOrAdaptedTypes) {
-                    if (cClass.additionalSchemaChildrenDoNotInherit) {
-                        children.push(type2);
-                    } else {
-                        children.push(...inheritedOrAdaptedTypes[type2]);
-                    }
-                }
-                if (
-                    type2 === "string" ||
-                    type2 === "_base" ||
-                    type2 === "_inline"
-                ) {
-                    acceptsStringChildren = true;
-                }
-            }
-        }
-
-        children = [...new Set(children)];
+        const { children, acceptsStringChildren } = determineChildren(cClass);
 
         const {
             stateVariableDescriptions,
@@ -435,12 +382,69 @@ export function getSchema() {
             children,
             attributes,
             properties,
-            top: cClass.allowInSchemaAtTop ?? !cClass.inSchemaOnlyInheritAs,
+            top:
+                cClass.componentType === "document" ||
+                documentChildren.includes(cClass.componentType),
             acceptsStringChildren,
         });
     }
 
     return { elements };
+
+    function determineChildren(cClass: ComponentClass) {
+        let children: string[] = [];
+        let acceptsStringChildren = false;
+
+        const childGroups = cClass.returnChildGroups();
+
+        for (const groupObj of childGroups) {
+            // one can add a excludeFromSchema to a child group
+            // to keep it from showing up in the schema
+            if (!groupObj.excludeFromSchema) {
+                for (const type2 of groupObj.componentTypes) {
+                    if (type2 in inheritedOrAdaptedTypes) {
+                        children.push(...inheritedOrAdaptedTypes[type2]);
+                    }
+                    if (
+                        type2 === "string" ||
+                        type2 === "_base" ||
+                        type2 === "_inline"
+                    ) {
+                        acceptsStringChildren = true;
+                    }
+                }
+            }
+        }
+
+        // The static variable additionalSchemaChildren on a component class
+        // can be used to add children to the schema that wouldn't show up otherwise.
+        // Two uses are:
+        // 1. to include children that are accepted by sugar but are not in a child group
+        //    because the sugar moves them to no longer be children
+        // 2. to add composite children to the schema even though they should be expanded,
+        //    (as adding a composite child to a child group will prevent it from being expanded)
+        if (cClass.additionalSchemaChildren) {
+            for (const type2 of cClass.additionalSchemaChildren) {
+                if (type2 in inheritedOrAdaptedTypes) {
+                    if (cClass.additionalSchemaChildrenDoNotInherit) {
+                        children.push(type2);
+                    } else {
+                        children.push(...inheritedOrAdaptedTypes[type2]);
+                    }
+                }
+                if (
+                    type2 === "string" ||
+                    type2 === "_base" ||
+                    type2 === "_inline"
+                ) {
+                    acceptsStringChildren = true;
+                }
+            }
+        }
+
+        children = [...new Set(children)];
+        return { children, acceptsStringChildren };
+    }
 }
 
 function propFromDescription({
