@@ -40,7 +40,9 @@ type StyleDefinitionKey =
     | "backgroundColorDarkMode"
     | "backgroundColorWordDarkMode";
 
-type StyleDefinition = Partial<Record<StyleDefinitionKey, StyleDefinitionValue>>;
+type StyleDefinition = Partial<
+    Record<StyleDefinitionKey, StyleDefinitionValue>
+>;
 
 type StateVariableDefinitions = Record<string, any>;
 
@@ -425,7 +427,8 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
 
                 for (const item of coloredItems) {
                     const colorKey = `${item}Color` as StyleDefinitionKey;
-                    const colorWordKey = `${colorKey}Word` as StyleDefinitionKey;
+                    const colorWordKey =
+                        `${colorKey}Word` as StyleDefinitionKey;
                     const darkKey = `${colorKey}DarkMode` as StyleDefinitionKey;
                     const darkWordKey =
                         `${colorWordKey}DarkMode` as StyleDefinitionKey;
@@ -440,7 +443,8 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                     if (darkKey in theNewDef && !(darkWordKey in theNewDef)) {
                         const darkValue = theNewDef[darkKey];
                         if (typeof darkValue === "string") {
-                            theNewDef[darkWordKey] = colorValueToWord(darkValue);
+                            theNewDef[darkWordKey] =
+                                colorValueToWord(darkValue);
                         }
                     }
                     if (colorKey in theNewDef && !(darkKey in theNewDef)) {
@@ -451,7 +455,8 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
 
                 for (const item of widthItems) {
                     const widthKey = `${item}Width` as StyleDefinitionKey;
-                    const widthWordKey = `${widthKey}Word` as StyleDefinitionKey;
+                    const widthWordKey =
+                        `${widthKey}Word` as StyleDefinitionKey;
 
                     if (widthKey in theNewDef && !(widthWordKey in theNewDef)) {
                         const widthValue = theNewDef[widthKey];
@@ -471,7 +476,8 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
 
                 for (const item of lineStyleItems) {
                     const styleKey = `${item}Style` as StyleDefinitionKey;
-                    const styleWordKey = `${styleKey}Word` as StyleDefinitionKey;
+                    const styleWordKey =
+                        `${styleKey}Word` as StyleDefinitionKey;
 
                     if (styleKey in theNewDef && !(styleWordKey in theNewDef)) {
                         const lineStyle = theNewDef[styleKey];
