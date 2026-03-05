@@ -100,6 +100,7 @@
         "electronConfiguration",
         "orbitalDiagram",
         "orbitalDiagramInput",
+        "feedbackDefinition",
         "styleDefinition",
         "sideBySide",
         "sbsGroup",
@@ -223,6 +224,7 @@
         "eigenDecomposition",
         "latex",
         "blockQuote",
+        "stickyGroup",
         "pretzel",
         "cascade",
         "pointList",
@@ -570,9 +572,6 @@
                 },
                 {
                     "ref": "answer"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -2083,9 +2082,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -2813,9 +2809,6 @@
                     "ref": "answer"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -3457,9 +3450,6 @@
                 },
                 {
                     "ref": "answer"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -4279,9 +4269,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -5187,9 +5174,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -6093,9 +6077,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -6699,9 +6680,6 @@
                 },
                 {
                     "ref": "coords"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "choice"
@@ -7640,9 +7618,6 @@
                     "ref": "answer"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -8406,9 +8381,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -9095,9 +9067,6 @@
                     "ref": "answer"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -9730,9 +9699,6 @@
                     "ref": "answer"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -10363,9 +10329,6 @@
                 },
                 {
                     "ref": "answer"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -11420,9 +11383,6 @@
                     "ref": "answer"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -12106,9 +12066,6 @@
                 },
                 {
                     "ref": "booleanList"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "hasSameFactoring"
@@ -34646,9 +34603,6 @@
                     "ref": "answer"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -35201,9 +35155,6 @@
                 },
                 {
                     "ref": "answer"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -35760,9 +35711,6 @@
                     "ref": "answer"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -36315,9 +36263,6 @@
                 },
                 {
                     "ref": "answer"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -36874,9 +36819,6 @@
                     "ref": "answer"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -37429,9 +37371,6 @@
                 },
                 {
                     "ref": "answer"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -37988,9 +37927,6 @@
                     "ref": "answer"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -38543,9 +38479,6 @@
                 },
                 {
                     "ref": "answer"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -39102,9 +39035,6 @@
                     "ref": "answer"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -39657,9 +39587,6 @@
                 },
                 {
                     "ref": "answer"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -41521,9 +41448,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -42569,9 +42493,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -43621,9 +43542,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -44669,9 +44587,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -45742,9 +45657,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -46797,9 +46709,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -47845,9 +47754,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -48897,9 +48803,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -49945,9 +49848,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -50997,9 +50897,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -52045,9 +51942,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -53097,9 +52991,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -54145,9 +54036,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -55197,9 +55085,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -56247,9 +56132,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -57295,9 +57177,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -58367,9 +58246,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -59416,9 +59292,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -60458,9 +60331,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -61715,9 +61585,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -68660,9 +68527,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -69234,9 +69098,6 @@
                     "ref": "coords"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "choice"
                 },
                 {
@@ -69754,9 +69615,6 @@
                 },
                 {
                     "ref": "coords"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "choice"
@@ -70420,9 +70278,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -71328,9 +71183,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -72175,9 +72027,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -72980,9 +72829,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -73813,9 +73659,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -75021,9 +74864,6 @@
                     "ref": "answer"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -75738,9 +75578,6 @@
                 },
                 {
                     "ref": "answer"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -76654,9 +76491,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -77233,9 +77067,6 @@
                     "ref": "coords"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "choice"
                 },
                 {
@@ -77770,9 +77601,6 @@
                     "ref": "coords"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "choice"
                 },
                 {
@@ -78296,9 +78124,6 @@
                 },
                 {
                     "ref": "answer"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -78980,9 +78805,6 @@
                 },
                 {
                     "ref": "booleanList"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "hasSameFactoring"
@@ -81917,9 +81739,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -91957,9 +91776,6 @@
                     "ref": "booleanList"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -93401,9 +93217,6 @@
                     "ref": "booleanList"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -94538,9 +94351,6 @@
                 },
                 {
                     "ref": "coords"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "choice"
@@ -96218,9 +96028,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -96989,9 +96796,6 @@
                     "ref": "booleanList"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "hasSameFactoring"
                 },
                 {
@@ -97553,9 +97357,6 @@
                 },
                 {
                     "ref": "booleanList"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "hasSameFactoring"
@@ -98292,9 +98093,6 @@
                 },
                 {
                     "ref": "numberList"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "choice"
@@ -101164,9 +100962,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -102039,9 +101834,6 @@
                 },
                 {
                     "ref": "booleanList"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "choice"
@@ -103136,9 +102928,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "textInput"
@@ -104544,9 +104333,6 @@
                     "ref": "answer"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -105290,9 +105076,6 @@
                     "ref": "answer"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -105888,9 +105671,6 @@
                 },
                 {
                     "ref": "coords"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "choice"
@@ -106564,9 +106344,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -107402,9 +107179,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -110548,9 +110322,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -111177,9 +110948,6 @@
                 },
                 {
                     "ref": "answer"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -112438,9 +112206,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -114869,9 +114634,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -116821,9 +116583,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -117394,9 +117153,6 @@
                 },
                 {
                     "ref": "coords"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "choice"
@@ -117970,9 +117726,6 @@
                 },
                 {
                     "ref": "coords"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "choice"
@@ -118791,9 +118544,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -119591,9 +119341,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -120405,9 +120152,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -122362,9 +122106,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -123142,9 +122883,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -123940,9 +123678,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -124568,9 +124303,6 @@
                     "ref": "answer"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -125128,9 +124860,6 @@
                 },
                 {
                     "ref": "answer"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -126711,9 +126440,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -127519,9 +127245,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -129840,9 +129563,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -131704,9 +131424,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -133637,9 +133354,6 @@
                 },
                 {
                     "ref": "answer"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -135733,9 +135447,6 @@
                     "ref": "coords"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "choice"
                 },
                 {
@@ -136594,9 +136305,6 @@
                 },
                 {
                     "ref": "award"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "mathInput"
@@ -138348,9 +138056,6 @@
                     "ref": "award"
                 },
                 {
-                    "ref": "when"
-                },
-                {
                     "ref": "mathInput"
                 },
                 {
@@ -139005,9 +138710,6 @@
                 },
                 {
                     "ref": "coords"
-                },
-                {
-                    "ref": "when"
                 },
                 {
                     "ref": "choice"

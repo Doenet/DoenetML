@@ -181,4 +181,7 @@ export default class When extends BooleanComponent {
 
         return stateVariableDefinitions;
     }
+
+    // "when" does not adapt to "text", even though boolean does
+    static adapters = [];
 }

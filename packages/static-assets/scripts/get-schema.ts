@@ -50,7 +50,6 @@ type ComponentClass = {
      * (It is assumed, but not checked, that the component actually does inherit from those types.)
      */
     inSchemaOnlyInheritAs?: string[];
-
     getAdapterComponentType: (...args: any[]) => string;
     numAdapters: number;
     /**

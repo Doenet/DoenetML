@@ -7,7 +7,6 @@ export class StyleDefinition extends BaseComponent {
     static rendererType = undefined;
 
     static inSchemaOnlyInheritAs = [];
-    static allowInSchemaAtTop = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
