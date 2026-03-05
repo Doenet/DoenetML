@@ -50,6 +50,14 @@ type ComponentClass = {
      * (It is assumed, but not checked, that the component actually does inherit from those types.)
      */
     inSchemaOnlyInheritAs?: string[];
+
+    /**
+     * If `true`, then this component can be a top-level component in the schema.
+     * If `false`, then this component is explicitly prevented from being a top-level component in the schema.
+     * If not set, then the component will be treated as a top-level component as long as `inSchemaOnlyInheritAs` is not set
+     * (as if `inSchemaOnlyInheritAs` is not set, the component will be treated as inheriting from "_base", which is a top-level component)
+     */
+    allowInSchemaAtTop?: boolean;
     getAdapterComponentType: (...args: any[]) => string;
     numAdapters: number;
     /**
@@ -427,7 +435,7 @@ export function getSchema() {
             children,
             attributes,
             properties,
-            top: !cClass.inSchemaOnlyInheritAs,
+            top: cClass.allowInSchemaAtTop ?? !cClass.inSchemaOnlyInheritAs,
             acceptsStringChildren,
         });
     }
