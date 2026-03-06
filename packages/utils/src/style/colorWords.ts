@@ -6,7 +6,7 @@ import nearestColor from "nearest-color";
  *
  * Objectives:
  * 1) Keep backward compatibility for authored CSS named colors
- *    (e.g. "rebeccapurple", "LightBlue"): preserve the exact supplied word.
+ *    (e.g. "rebeccapurple", "LightBlue"): preserve the (trimmed) supplied word.
  * 2) Convert non-named color strings (hex/rgb) into a stable canonical color key
  *    suitable for consistent descriptions.
  * 3) Be localization-ready by producing stable translation keys
