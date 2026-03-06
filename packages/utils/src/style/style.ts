@@ -133,6 +133,14 @@ const coloredItemsForWords = [
     "background",
 ] as const;
 
+const childStyleDefinitionColorItems = [
+    "marker",
+    "line",
+    "fill",
+    "text",
+    "background",
+] as const;
+
 /**
  * Adds missing color-word fields (light and dark mode) derived from color values.
  * Existing word values are preserved.
@@ -169,6 +177,40 @@ function addMissingColorWordsToStyleDefinitions(
     }
 
     return styleDefinitions;
+}
+
+/**
+ * Clones the baseline default style and enriches it with any missing color words.
+ */
+function cloneDefaultStyleWithMissingColorWords(): StyleDefinition {
+    return addMissingColorWordsToStyleDefinition(
+        Object.assign({}, defaultStyle),
+    );
+}
+
+/**
+ * For selected color items, adds missing dark-mode color values (mirroring light mode)
+ * and color-word fields without overwriting authored word overrides.
+ */
+function addMissingChildStyleColorFields(
+    styleDef: StyleDefinition,
+    colorItems: readonly string[],
+): StyleDefinition {
+    for (const item of colorItems) {
+        const colorKey = `${item}Color` as StyleDefinitionKey;
+        const colorWordKey = `${colorKey}Word` as StyleDefinitionKey;
+        const darkKey = `${colorKey}DarkMode` as StyleDefinitionKey;
+        const darkWordKey = `${colorWordKey}DarkMode` as StyleDefinitionKey;
+
+        if (colorKey in styleDef && !(darkKey in styleDef)) {
+            styleDef[darkKey] = styleDef[colorKey];
+            if (colorWordKey in styleDef && !(darkWordKey in styleDef)) {
+                styleDef[darkWordKey] = styleDef[colorWordKey];
+            }
+        }
+    }
+
+    return addMissingColorWordsToStyleDefinition(styleDef);
 }
 
 /**
@@ -402,13 +444,6 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                 }
             }
 
-            const coloredItems = [
-                "marker",
-                "line",
-                "fill",
-                "text",
-                "background",
-            ] as const;
             const widthItems = ["line"] as const;
             const lineStyleItems = ["line"] as const;
 
@@ -418,9 +453,7 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
 
                 if (!styleDef) {
                     styleDef = styleDefinitions[styleNumber] =
-                        addMissingColorWordsToStyleDefinition(
-                            Object.assign({}, defaultStyle),
-                        );
+                        cloneDefaultStyleWithMissingColorWords();
                 }
 
                 const theNewDef = Object.assign(
@@ -428,33 +461,10 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                     child.stateValues.styleDefinition,
                 );
 
-                for (const item of coloredItems) {
-                    const colorKey = `${item}Color` as StyleDefinitionKey;
-                    const colorWordKey =
-                        `${colorKey}Word` as StyleDefinitionKey;
-                    const darkKey = `${colorKey}DarkMode` as StyleDefinitionKey;
-                    const darkWordKey =
-                        `${colorWordKey}DarkMode` as StyleDefinitionKey;
-
-                    if (colorKey in theNewDef && !(colorWordKey in theNewDef)) {
-                        const colorValue = theNewDef[colorKey];
-                        if (typeof colorValue === "string") {
-                            theNewDef[colorWordKey] =
-                                colorValueToWord(colorValue);
-                        }
-                    }
-                    if (darkKey in theNewDef && !(darkWordKey in theNewDef)) {
-                        const darkValue = theNewDef[darkKey];
-                        if (typeof darkValue === "string") {
-                            theNewDef[darkWordKey] =
-                                colorValueToWord(darkValue);
-                        }
-                    }
-                    if (colorKey in theNewDef && !(darkKey in theNewDef)) {
-                        theNewDef[darkKey] = theNewDef[colorKey];
-                        theNewDef[darkWordKey] = theNewDef[colorWordKey];
-                    }
-                }
+                addMissingChildStyleColorFields(
+                    theNewDef,
+                    childStyleDefinitionColorItems,
+                );
 
                 for (const item of widthItems) {
                     const widthKey = `${item}Width` as StyleDefinitionKey;
@@ -557,9 +567,7 @@ export function returnSelectedStyleStateVariableDefinition(): StateVariableDefin
                     styleDefinitions[dependencyValues.styleNumber];
 
                 if (selectedStyle === undefined) {
-                    selectedStyle = addMissingColorWordsToStyleDefinition(
-                        Object.assign({}, defaultStyle),
-                    );
+                    selectedStyle = cloneDefaultStyleWithMissingColorWords();
                 }
                 return { setValue: { selectedStyle } };
             },
