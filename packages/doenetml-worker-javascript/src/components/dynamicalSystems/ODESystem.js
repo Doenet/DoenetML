@@ -221,7 +221,7 @@ export default class ODESystem extends InlineComponent {
                         message:
                             "Variables of <odeSystem> must be different than independent variable.",
                     };
-                    if (globalDependencyValues.variables.position) {
+                    if (globalDependencyValues.variables?.position) {
                         warning.position =
                             globalDependencyValues.variables.position;
                     }
