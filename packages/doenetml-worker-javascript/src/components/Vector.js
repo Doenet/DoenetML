@@ -628,11 +628,16 @@ export default class Vector extends GraphicalComponent {
                     if (dependencyValues.headAttr !== null) {
                         // if overprescribed by specifying head, tail, and displacement
                         // we ignore head
-                        warnings.push({
+                        const warning = {
+                            type: "warning",
                             message:
                                 "Vector is prescribed by head, tail, and displacement.  Ignoring specified head.",
-                            level: 1,
-                        });
+                        };
+                        if (dependencyValues.headAttr.position) {
+                            warning.position =
+                                dependencyValues.headAttr.position;
+                        }
+                        warnings.push(warning);
                     }
                     return {
                         setValue: { basedOnHead: false },

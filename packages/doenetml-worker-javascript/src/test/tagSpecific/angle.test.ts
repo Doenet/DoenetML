@@ -1541,8 +1541,8 @@ describe("Angle tag tests @group4", async () => {
             "Invalid point in through of <angle>",
         );
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.start.column).eq(3);
+        expect(errorWarnings.warnings[0].position.start.column).eq(21);
         expect(errorWarnings.warnings[0].position.end.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.column).eq(52);
+        expect(errorWarnings.warnings[0].position.end.column).eq(49);
     });
 });

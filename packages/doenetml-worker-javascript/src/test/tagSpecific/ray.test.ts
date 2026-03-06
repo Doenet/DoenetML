@@ -3804,9 +3804,9 @@ describe("Ray Tag Tests @group1", function () {
             "Ray is prescribed by through, endpoint, and direction.  Ignoring specified through",
         );
         expect(errorWarnings.warnings[0].position.start.line).eq(3);
-        expect(errorWarnings.warnings[0].position.start.column).eq(5);
+        expect(errorWarnings.warnings[0].position.start.column).eq(10);
         expect(errorWarnings.warnings[0].position.end.line).eq(3);
-        expect(errorWarnings.warnings[0].position.end.column).eq(75);
+        expect(errorWarnings.warnings[0].position.end.column).eq(25);
 
         expect(errorWarnings.warnings[1].message).contain(
             "numDimensions mismatch in ray",

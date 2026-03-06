@@ -3341,6 +3341,12 @@ class Dependency {
                     componentObj.componentIdx = componentIdx;
                 }
 
+                if (depComponent.position) {
+                    componentObj.position = JSON.parse(
+                        JSON.stringify(depComponent.position),
+                    );
+                }
+
                 let originalVarNames;
                 if (this.originalVariablesByComponent) {
                     originalVarNames =

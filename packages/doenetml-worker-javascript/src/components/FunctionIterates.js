@@ -85,9 +85,13 @@ export default class FunctionIterates extends InlineComponent {
                         numOutputs.toString() +
                         (numOutputs === 1 ? " output" : " outputs");
                     let warning = {
+                        type: "warning",
                         message: `Function iterates are possible only if the number of inputs of the function is equal to the number of outputs. This function has ${numInputsPhrase} and ${numOutputsPhrase}.`,
-                        level: 1,
                     };
+                    if (dependencyValues.functionAttr.position) {
+                        warning.position =
+                            dependencyValues.functionAttr.position;
+                    }
                     return {
                         setValue: { numDimensions: 0 },
                         sendWarnings: [warning],

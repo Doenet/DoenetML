@@ -54,11 +54,17 @@ export default class ConditionalContent extends CompositeComponent {
                     // If the condition attribute was not moved to a case child via sugar,
                     // then warn that it is not used on conditionalContent
 
-                    warnings.push({
+                    const warning = {
+                        type: "warning",
                         message:
                             "Attribute `condition` is ignored on a <conditionalContent> component with case or else children.",
-                        level: 1,
-                    });
+                    };
+                    if (dependencyValues.conditionAttribute.position) {
+                        warning.position =
+                            dependencyValues.conditionAttribute.position;
+                    }
+
+                    warnings.push(warning);
                 }
 
                 return {

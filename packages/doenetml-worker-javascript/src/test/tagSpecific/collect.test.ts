@@ -2517,9 +2517,9 @@ describe("Collect tag tests @group4", async () => {
             "Cannot collect components of type <abc> as it is an invalid component type",
         );
         expect(errorWarnings.warnings[2].position.start.line).eq(4);
-        expect(errorWarnings.warnings[2].position.start.column).eq(5);
+        expect(errorWarnings.warnings[2].position.start.column).eq(24);
         expect(errorWarnings.warnings[2].position.end.line).eq(4);
-        expect(errorWarnings.warnings[2].position.end.column).eq(46);
+        expect(errorWarnings.warnings[2].position.end.column).eq(43);
     });
 
     it("allChildrenOrdered consistent with dynamic collect and adapters", async () => {

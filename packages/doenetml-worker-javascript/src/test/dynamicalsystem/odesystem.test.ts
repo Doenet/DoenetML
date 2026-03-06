@@ -914,7 +914,6 @@ describe("odeSystem Tag Tests @group4", async () => {
     it("warnings", async () => {
         let { core } = await createTestCore({
             doenetML: `
-<text>a</text>
 <odeSystem variables="y" independentVariable="y">
   <rightHandSide>5y</rightHandSide>
 </odeSystem>
@@ -942,37 +941,33 @@ describe("odeSystem Tag Tests @group4", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             `Invalid value of a variable: sin(x)`,
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].position.start.line).eq(7);
+        expect(errorWarnings.warnings[0].position.start.line).eq(6);
         expect(errorWarnings.warnings[0].position.start.column).eq(26);
-        expect(errorWarnings.warnings[0].position.end.line).eq(7);
+        expect(errorWarnings.warnings[0].position.end.line).eq(6);
         expect(errorWarnings.warnings[0].position.end.column).eq(54);
 
         expect(errorWarnings.warnings[1].message).contain(
             `Variables of <odeSystem> must be different than independent variable`,
         );
-        expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].position.start.line).eq(3);
-        expect(errorWarnings.warnings[1].position.start.column).eq(1);
-        expect(errorWarnings.warnings[1].position.end.line).eq(5);
-        expect(errorWarnings.warnings[1].position.end.column).eq(13);
+        expect(errorWarnings.warnings[1].position.start.line).eq(2);
+        expect(errorWarnings.warnings[1].position.start.column).eq(12);
+        expect(errorWarnings.warnings[1].position.end.line).eq(2);
+        expect(errorWarnings.warnings[1].position.end.column).eq(25);
 
         expect(errorWarnings.warnings[2].message).contain(
             `Invalid value of a variable: sin(y)`,
         );
-        expect(errorWarnings.warnings[2].level).eq(1);
-        expect(errorWarnings.warnings[2].position.start.line).eq(11);
+        expect(errorWarnings.warnings[2].position.start.line).eq(10);
         expect(errorWarnings.warnings[2].position.start.column).eq(12);
-        expect(errorWarnings.warnings[2].position.end.line).eq(11);
+        expect(errorWarnings.warnings[2].position.end.line).eq(10);
         expect(errorWarnings.warnings[2].position.end.column).eq(30);
 
         expect(errorWarnings.warnings[3].message).contain(
             `Can't define ODE RHS functions with duplicate dependent variable names`,
         );
-        expect(errorWarnings.warnings[3].level).eq(1);
-        expect(errorWarnings.warnings[3].position.start.line).eq(15);
+        expect(errorWarnings.warnings[3].position.start.line).eq(14);
         expect(errorWarnings.warnings[3].position.start.column).eq(1);
-        expect(errorWarnings.warnings[3].position.end.line).eq(18);
+        expect(errorWarnings.warnings[3].position.end.line).eq(17);
         expect(errorWarnings.warnings[3].position.end.column).eq(13);
     });
 });

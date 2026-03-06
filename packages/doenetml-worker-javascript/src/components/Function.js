@@ -454,7 +454,7 @@ export default class Function extends InlineComponent {
                     },
                 },
             }),
-            arrayDefinitionByKey({ globalDependencyValues, componentIdx }) {
+            arrayDefinitionByKey({ globalDependencyValues }) {
                 if (globalDependencyValues.domainAttr !== null) {
                     let numInputs = globalDependencyValues.numInputs;
                     let specifiedDomain =
@@ -464,6 +464,7 @@ export default class Function extends InlineComponent {
                         );
                     if (specifiedDomain.length !== numInputs) {
                         let warning = {
+                            type: "warning",
                             message: `Insufficient dimensions for domain for function. Domain has ${
                                 specifiedDomain.length
                             } interval${
@@ -471,8 +472,11 @@ export default class Function extends InlineComponent {
                             } but the function has ${numInputs} input${
                                 numInputs === 1 ? "" : "s"
                             }.`,
-                            level: 1,
                         };
+                        if (globalDependencyValues.domainAttr.position) {
+                            warning.position =
+                                globalDependencyValues.domainAttr.position;
+                        }
                         let infDomain = me.fromAst([
                             "interval",
                             ["tuple", -Infinity, Infinity],
@@ -493,9 +497,13 @@ export default class Function extends InlineComponent {
                         )
                     ) {
                         let warning = {
+                            type: "warning",
                             message: `Invalid format for domain for function.`,
-                            level: 1,
                         };
+                        if (globalDependencyValues.domainAttr.position) {
+                            warning.position =
+                                globalDependencyValues.domainAttr.position;
+                        }
                         let infDomain = me.fromAst([
                             "interval",
                             ["tuple", -Infinity, Infinity],
