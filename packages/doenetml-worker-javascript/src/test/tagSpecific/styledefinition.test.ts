@@ -95,4 +95,34 @@ describe("Style definition tag tests @group4", async () => {
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("The brown point.");
     });
+
+    it("obtain color word from hex value", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<styleDefinition styleNumber="1" markerColor="#dd7f14" />
+<point name="P" />
+<p name="p">The $P.styleDescription point.</p>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("The orange point.");
+    });
+
+    it("override color word from hex value", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<styleDefinition styleNumber="1" markerColor="#dd7f14" markerColorWord="orangish" />
+<point name="P" />
+<p name="p">The $P.styleDescription point.</p>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("The orangish point.");
+    });
 });
