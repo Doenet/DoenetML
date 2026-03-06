@@ -40,6 +40,12 @@
             ]
         }
     },
-    "dependencies": {},
-    "devDependencies": {}
+    "dependencies": {
+        "color-name": "^1.1.4",
+        "nearest-color": "^0.4.4"
+    },
+    "devDependencies": {
+        "@types/color-name": "^2.0.0",
+        "@types/nearest-color": "^0.4.1"
+    }
 }

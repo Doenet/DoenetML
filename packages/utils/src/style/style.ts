@@ -1,11 +1,61 @@
+import { colorValueToWord } from "./colorWords";
+
+/**
+ * Style helpers and state-variable definitions shared by renderable components.
+ *
+ * This module maintains default style presets, merges style definitions from
+ * setup children, and provides text-friendly style descriptions.
+ */
+
 type StyleAttributes = Record<string, { componentType: string }>;
 
-type StyleDefinition = Record<string, any>;
+type StyleDefinitionValue = string | number;
+
+type StyleDefinitionKey =
+    | "lineColor"
+    | "lineColorWord"
+    | "lineColorDarkMode"
+    | "lineColorWordDarkMode"
+    | "lineOpacity"
+    | "lineWidth"
+    | "lineWidthWord"
+    | "lineStyle"
+    | "lineStyleWord"
+    | "markerColor"
+    | "markerColorWord"
+    | "markerColorDarkMode"
+    | "markerColorWordDarkMode"
+    | "markerOpacity"
+    | "markerStyle"
+    | "markerStyleWord"
+    | "markerSize"
+    | "fillColor"
+    | "fillColorWord"
+    | "fillColorDarkMode"
+    | "fillColorWordDarkMode"
+    | "fillOpacity"
+    | "textColor"
+    | "textColorWord"
+    | "textColorDarkMode"
+    | "textColorWordDarkMode"
+    | "highContrastColor"
+    | "highContrastColorWord"
+    | "highContrastColorDarkMode"
+    | "highContrastColorWordDarkMode"
+    | "backgroundColor"
+    | "backgroundColorWord"
+    | "backgroundColorDarkMode"
+    | "backgroundColorWordDarkMode";
+
+type StyleDefinition = Partial<
+    Record<StyleDefinitionKey, StyleDefinitionValue>
+>;
 
 type StateVariableDefinitions = Record<string, any>;
 
 type StyleDefinitions = Record<string, StyleDefinition>;
 
+/** Public style attributes that can be applied to components. */
 export let styleAttributes: StyleAttributes = {
     lineColor: { componentType: "text" },
     lineColorWord: { componentType: "text" },
@@ -45,236 +95,273 @@ export let styleAttributes: StyleAttributes = {
     backgroundColorWordDarkMode: { componentType: "text" },
 };
 
+/**
+ * Baseline style used when a style number references no explicit definition.
+ *
+ * Color words are intentionally omitted here and injected on demand so there is
+ * one source of truth for color values.
+ */
 let defaultStyle: StyleDefinition = {
     lineColor: "#648FFF",
-    lineColorWord: "blue",
     lineColorDarkMode: "#648FFF",
-    lineColorWordDarkMode: "blue",
     lineOpacity: 0.7,
     lineWidth: 4,
     lineWidthWord: "thick",
     lineStyle: "solid",
     lineStyleWord: "",
     markerColor: "#648FFF",
-    markerColorWord: "blue",
     markerColorDarkMode: "#648FFF",
-    markerColorWordDarkMode: "blue",
     markerOpacity: 0.7,
     markerStyle: "circle",
     markerStyleWord: "point",
     markerSize: 5,
     fillColor: "#648FFF",
-    fillColorWord: "blue",
     fillColorDarkMode: "#648FFF",
-    fillColorWordDarkMode: "blue",
     fillOpacity: 0.3,
     textColor: "black",
-    textColorWord: "black",
     textColorDarkMode: "white",
-    textColorWordDarkMode: "white",
     highContrastColor: "#2963FF",
-    highContrastColorWord: "blue",
     highContrastColorDarkMode: "#2963FF",
-    highContrastColorWordDarkMode: "blue",
 };
 
+const coloredItemsForWords = [
+    "line",
+    "marker",
+    "fill",
+    "text",
+    "highContrast",
+    "background",
+] as const;
+
+const childStyleDefinitionColorItems = [
+    "marker",
+    "line",
+    "fill",
+    "text",
+    "background",
+] as const;
+
+/**
+ * Adds missing color-word fields (light and dark mode) derived from color values.
+ * Existing word values are preserved.
+ */
+function addMissingColorWordsToStyleDefinition(
+    styleDef: StyleDefinition,
+): StyleDefinition {
+    for (const item of coloredItemsForWords) {
+        const colorKey = `${item}Color` as StyleDefinitionKey;
+        const colorWordKey = `${colorKey}Word` as StyleDefinitionKey;
+        const darkKey = `${colorKey}DarkMode` as StyleDefinitionKey;
+        const darkWordKey = `${colorWordKey}DarkMode` as StyleDefinitionKey;
+
+        const colorValue = styleDef[colorKey];
+        if (!(colorWordKey in styleDef) && typeof colorValue === "string") {
+            styleDef[colorWordKey] = colorValueToWord(colorValue);
+        }
+
+        const darkColorValue = styleDef[darkKey];
+        if (!(darkWordKey in styleDef) && typeof darkColorValue === "string") {
+            styleDef[darkWordKey] = colorValueToWord(darkColorValue);
+        }
+    }
+
+    return styleDef;
+}
+
+/** Applies missing color-word enrichment to an entire style-definition map. */
+function addMissingColorWordsToStyleDefinitions(
+    styleDefinitions: StyleDefinitions,
+): StyleDefinitions {
+    for (const styleDef of Object.values(styleDefinitions)) {
+        addMissingColorWordsToStyleDefinition(styleDef);
+    }
+
+    return styleDefinitions;
+}
+
+/**
+ * Clones the baseline default style and enriches it with any missing color words.
+ */
+function cloneDefaultStyleWithMissingColorWords(): StyleDefinition {
+    return addMissingColorWordsToStyleDefinition(
+        Object.assign({}, defaultStyle),
+    );
+}
+
+/**
+ * For selected color items, adds missing dark-mode color values (mirroring light mode)
+ * and color-word fields without overwriting authored word overrides.
+ */
+function addMissingChildStyleColorFields(
+    styleDef: StyleDefinition,
+    colorItems: readonly string[],
+): StyleDefinition {
+    for (const item of colorItems) {
+        const colorKey = `${item}Color` as StyleDefinitionKey;
+        const colorWordKey = `${colorKey}Word` as StyleDefinitionKey;
+        const darkKey = `${colorKey}DarkMode` as StyleDefinitionKey;
+        const darkWordKey = `${colorWordKey}DarkMode` as StyleDefinitionKey;
+
+        if (colorKey in styleDef && !(darkKey in styleDef)) {
+            styleDef[darkKey] = styleDef[colorKey];
+            if (colorWordKey in styleDef && !(darkWordKey in styleDef)) {
+                styleDef[darkWordKey] = styleDef[colorWordKey];
+            }
+        }
+    }
+
+    return addMissingColorWordsToStyleDefinition(styleDef);
+}
+
+/**
+ * Returns built-in style presets used when no ancestor style definitions exist.
+ *
+ * Preset color-word fields are injected in a second pass from the corresponding
+ * color values.
+ */
 function returnDefaultStyleDefinitions(): StyleDefinitions {
-    return {
+    return addMissingColorWordsToStyleDefinitions({
         1: {
             lineColor: "#648FFF",
-            lineColorWord: "blue",
             lineColorDarkMode: "#648FFF",
-            lineColorWordDarkMode: "blue",
             lineOpacity: 0.7,
             lineWidth: 4,
             lineWidthWord: "thick",
             lineStyle: "solid",
             lineStyleWord: "",
             markerColor: "#648FFF",
-            markerColorWord: "blue",
             markerColorDarkMode: "#648FFF",
-            markerColorWordDarkMode: "blue",
             markerOpacity: 0.7,
             markerStyle: "circle",
             markerStyleWord: "point",
             markerSize: 5,
             fillColor: "#648FFF",
-            fillColorWord: "blue",
             fillColorDarkMode: "#648FFF",
-            fillColorWordDarkMode: "blue",
             fillOpacity: 0.3,
             textColor: "black",
-            textColorWord: "black",
             textColorDarkMode: "white",
-            textColorWordDarkMode: "white",
             highContrastColor: "#2963FF",
-            highContrastColorWord: "blue",
             highContrastColorDarkMode: "#2963FF",
-            highContrastColorWordDarkMode: "blue",
         },
         2: {
             lineColor: "#D4042D",
-            lineColorWord: "red",
             lineColorDarkMode: "#D4042D",
-            lineColorWordDarkMode: "red",
             lineOpacity: 0.7,
             lineWidth: 2,
             lineWidthWord: "",
             lineStyle: "solid",
             lineStyleWord: "",
             markerColor: "#D4042D",
-            markerColorWord: "red",
             markerColorDarkMode: "#D4042D",
-            markerColorWordDarkMode: "red",
             markerOpacity: 0.7,
             markerStyle: "square",
             markerStyleWord: "square",
             markerSize: 5,
             fillColor: "#D4042D",
-            fillColorWord: "red",
             fillColorDarkMode: "#D4042D",
-            fillColorWordDarkMode: "red",
             fillOpacity: 0.3,
             textColor: "#D4042D",
-            textColorWord: "red",
             textColorDarkMode: "#D4042D",
-            textColorWordDarkMode: "red",
             highContrastColor: "#D4042D",
-            highContrastColorWord: "red",
             highContrastColorDarkMode: "#D4042D",
-            highContrastColorWordDarkMode: "red",
         },
         3: {
             lineColor: "#F19143",
-            lineColorWord: "orange",
             lineColorDarkMode: "#F19143",
-            lineColorWordDarkMode: "orange",
             lineOpacity: 0.7,
             lineWidth: 3,
             lineWidthWord: "",
             lineStyle: "solid",
             lineStyleWord: "",
             markerColor: "#F19143",
-            markerColorWord: "orange",
             markerColorDarkMode: "#F19143",
-            markerColorWordDarkMode: "orange",
             markerOpacity: 0.7,
             markerStyle: "triangle",
             markerStyleWord: "triangle",
             markerSize: 5,
             fillColor: "#F19143",
-            fillColorWord: "orange",
             fillColorDarkMode: "#F19143",
-            fillColorWordDarkMode: "orange",
             fillOpacity: 0.3,
             textColor: "#BE5A0E",
-            textColorWord: "orange",
             textColorDarkMode: "#BE5A0E",
-            textColorWordDarkMode: "orange",
             highContrastColor: "#BE5A0E",
-            highContrastColorWord: "orange",
             highContrastColorDarkMode: "#BE5A0E",
-            highContrastColorWordDarkMode: "orange",
         },
         4: {
             lineColor: "#644CD6",
-            lineColorWord: "purple",
             lineColorDarkMode: "#644CD6",
-            lineColorWordDarkMode: "purple",
             lineOpacity: 0.7,
             lineWidth: 2,
             lineWidthWord: "",
             lineStyle: "solid",
             lineStyleWord: "",
             markerColor: "#644CD6",
-            markerColorWord: "purple",
             markerColorDarkMode: "#644CD6",
-            markerColorWordDarkMode: "purple",
             markerOpacity: 0.7,
             markerStyle: "diamond",
             markerStyleWord: "diamond",
             markerSize: 5,
             fillColor: "#644CD6",
-            fillColorWord: "purple",
             fillColorDarkMode: "#644CD6",
-            fillColorWordDarkMode: "purple",
             fillOpacity: 0.3,
             textColor: "#644CD6",
-            textColorWord: "purple",
             textColorDarkMode: "#644CD6",
-            textColorWordDarkMode: "purple",
             highContrastColor: "#644CD6",
-            highContrastColorWord: "purple",
             highContrastColorDarkMode: "#644CD6",
-            highContrastColorWordDarkMode: "purple",
         },
         5: {
             lineColor: "black",
-            lineColorWord: "black",
             lineColorDarkMode: "white",
-            lineColorWordDarkMode: "white",
             lineOpacity: 1,
             lineWidth: 1,
             lineWidthWord: "thin",
             lineStyle: "solid",
             lineStyleWord: "",
             markerColor: "black",
-            markerColorWord: "black",
             markerColorDarkMode: "white",
-            markerColorWordDarkMode: "white",
             markerOpacity: 1,
             markerStyle: "circle",
             markerStyleWord: "point",
             markerSize: 5,
             fillColor: "black",
-            fillColorWord: "black",
             fillColorDarkMode: "white",
-            fillColorWordDarkMode: "white",
             fillOpacity: 0.7,
             textColor: "black",
-            textColorWord: "black",
             textColorDarkMode: "white",
-            textColorWordDarkMode: "white",
             highContrastColor: "black",
-            highContrastColorWord: "black",
             highContrastColorDarkMode: "black",
-            highContrastColorWordDarkMode: "black",
         },
         6: {
             lineColor: "gray",
-            lineColorWord: "gray",
             lineColorDarkMode: "gray",
-            lineColorWordDarkMode: "gray",
             lineOpacity: 0.7,
             lineWidth: 1,
             lineWidthWord: "thin",
             lineStyle: "dotted",
             lineStyleWord: "dotted",
             markerColor: "gray",
-            markerColorWord: "gray",
             markerColorDarkMode: "gray",
-            markerColorWordDarkMode: "gray",
             markerOpacity: 0.7,
             markerStyle: "circle",
             markerStyleWord: "point",
             markerSize: 5,
             fillColor: "gray",
-            fillColorWord: "gray",
             fillColorDarkMode: "gray",
-            fillColorWordDarkMode: "gray",
             fillOpacity: 0.3,
             textColor: "#757575",
-            textColorWord: "gray",
             textColorDarkMode: "#757575",
-            textColorWordDarkMode: "gray",
             highContrastColor: "#757575",
-            highContrastColorWord: "gray",
             highContrastColorDarkMode: "#757575",
-            highContrastColorWordDarkMode: "gray",
         },
-    };
+    });
 }
 
+/**
+ * State-variable definitions that construct merged `styleDefinitions` from:
+ * - ancestor defaults,
+ * - local styleDefinition children,
+ * - setup descendants.
+ */
 export function returnStyleDefinitionStateVariables(): StateVariableDefinitions {
     let stateVariableDefinitions: StateVariableDefinitions = {};
 
@@ -357,25 +444,16 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                 }
             }
 
-            const coloredItems = [
-                "marker",
-                "line",
-                "fill",
-                "text",
-                "background",
-            ];
-            const widthItems = ["line"];
-            const lineStyleItems = ["line"];
+            const widthItems = ["line"] as const;
+            const lineStyleItems = ["line"] as const;
 
             for (const child of styleDefinitionChildren) {
                 const styleNumber = child.stateValues.styleNumber;
                 let styleDef = styleDefinitions[styleNumber];
 
                 if (!styleDef) {
-                    styleDef = styleDefinitions[styleNumber] = Object.assign(
-                        {},
-                        defaultStyle,
-                    );
+                    styleDef = styleDefinitions[styleNumber] =
+                        cloneDefaultStyleWithMissingColorWords();
                 }
 
                 const theNewDef = Object.assign(
@@ -383,32 +461,25 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                     child.stateValues.styleDefinition,
                 );
 
-                for (const item of coloredItems) {
-                    const colorKey = `${item}Color`;
-                    const colorWordKey = `${colorKey}Word`;
-                    const darkKey = `${colorKey}DarkMode`;
-                    const darkWordKey = `${colorWordKey}DarkMode`;
-
-                    if (colorKey in theNewDef && !(colorWordKey in theNewDef)) {
-                        theNewDef[colorWordKey] = theNewDef[colorKey];
-                    }
-                    if (darkKey in theNewDef && !(darkWordKey in theNewDef)) {
-                        theNewDef[darkWordKey] = theNewDef[darkKey];
-                    }
-                    if (colorKey in theNewDef && !(darkKey in theNewDef)) {
-                        theNewDef[darkKey] = theNewDef[colorKey];
-                        theNewDef[darkWordKey] = theNewDef[colorWordKey];
-                    }
-                }
+                addMissingChildStyleColorFields(
+                    theNewDef,
+                    childStyleDefinitionColorItems,
+                );
 
                 for (const item of widthItems) {
-                    const widthKey = `${item}Width`;
-                    const widthWordKey = `${widthKey}Word`;
+                    const widthKey = `${item}Width` as StyleDefinitionKey;
+                    const widthWordKey =
+                        `${widthKey}Word` as StyleDefinitionKey;
 
                     if (widthKey in theNewDef && !(widthWordKey in theNewDef)) {
-                        if (theNewDef[widthKey] >= 4) {
+                        const widthValue = theNewDef[widthKey];
+                        if (typeof widthValue !== "number") {
+                            continue;
+                        }
+
+                        if (widthValue >= 4) {
                             theNewDef[widthWordKey] = "thick";
-                        } else if (theNewDef[widthKey] <= 1) {
+                        } else if (widthValue <= 1) {
                             theNewDef[widthWordKey] = "thin";
                         } else {
                             theNewDef[widthWordKey] = "";
@@ -417,13 +488,16 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                 }
 
                 for (const item of lineStyleItems) {
-                    const styleKey = `${item}Style`;
-                    const styleWordKey = `${styleKey}Word`;
+                    const styleKey = `${item}Style` as StyleDefinitionKey;
+                    const styleWordKey =
+                        `${styleKey}Word` as StyleDefinitionKey;
 
                     if (styleKey in theNewDef && !(styleWordKey in theNewDef)) {
-                        if (theNewDef[styleKey] === "dashed") {
+                        const lineStyle = theNewDef[styleKey];
+
+                        if (lineStyle === "dashed") {
                             theNewDef[styleWordKey] = "dashed";
-                        } else if (theNewDef[styleKey] === "dotted") {
+                        } else if (lineStyle === "dotted") {
                             theNewDef[styleWordKey] = "dotted";
                         } else {
                             theNewDef[styleWordKey] = "";
@@ -435,10 +509,14 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                     "markerStyle" in theNewDef &&
                     !("markerStyleWord" in theNewDef)
                 ) {
-                    theNewDef.markerStyleWord = theNewDef.markerStyle;
+                    if (typeof theNewDef.markerStyle === "string") {
+                        theNewDef.markerStyleWord = theNewDef.markerStyle;
+                    }
+
                     if (theNewDef.markerStyleWord === "circle") {
                         theNewDef.markerStyleWord = "point";
                     } else if (
+                        typeof theNewDef.markerStyleWord === "string" &&
                         theNewDef.markerStyleWord.slice(0, 8) === "triangle"
                     ) {
                         theNewDef.markerStyleWord = "triangle";
@@ -455,6 +533,9 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
     return stateVariableDefinitions;
 }
 
+/**
+ * State-variable definition that resolves the currently selected style object.
+ */
 export function returnSelectedStyleStateVariableDefinition(): StateVariableDefinitions {
     return {
         selectedStyle: {
@@ -486,7 +567,7 @@ export function returnSelectedStyleStateVariableDefinition(): StateVariableDefin
                     styleDefinitions[dependencyValues.styleNumber];
 
                 if (selectedStyle === undefined) {
-                    selectedStyle = defaultStyle;
+                    selectedStyle = cloneDefaultStyleWithMissingColorWords();
                 }
                 return { setValue: { selectedStyle } };
             },
@@ -494,6 +575,10 @@ export function returnSelectedStyleStateVariableDefinition(): StateVariableDefin
     };
 }
 
+/**
+ * State-variable definitions used to produce human-readable text style strings
+ * (e.g. text color and optional background color description).
+ */
 export function returnTextStyleDescriptionDefinitions(): StateVariableDefinitions {
     return {
         textColor: {
@@ -601,6 +686,9 @@ export function returnTextStyleDescriptionDefinitions(): StateVariableDefinition
     };
 }
 
+/**
+ * Produces renderer-ready text style CSS properties based on active theme mode.
+ */
 export function textRendererStyle(
     darkMode: "dark" | "light",
     selectedStyle: any,
