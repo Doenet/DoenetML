@@ -653,10 +653,10 @@ describe("Warning Tests @group4", async () => {
         expect(errorWarnings.warnings[0].message).contain(
             "Insufficient dimensions for domain for function.",
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(3);
-        expect(errorWarnings.warnings[0].position.start.column).eq(4);
-        expect(errorWarnings.warnings[0].position.end.line).eq(3);
-        expect(errorWarnings.warnings[0].position.end.column).eq(11);
+        expect(errorWarnings.warnings[0].position.start.line).eq(2);
+        expect(errorWarnings.warnings[0].position.start.column).eq(20);
+        expect(errorWarnings.warnings[0].position.end.line).eq(2);
+        expect(errorWarnings.warnings[0].position.end.column).eq(34);
 
         expect(errorWarnings.warnings[1].message).contain(
             "Invalid format for attribute domain of <function>",

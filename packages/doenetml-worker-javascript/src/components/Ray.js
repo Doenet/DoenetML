@@ -233,11 +233,16 @@ export default class Ray extends GraphicalComponent {
                     if (dependencyValues.throughAttr !== null) {
                         // if overprescribed by specifying through, endpoint, and direction
                         // we ignore through
-                        warnings.push({
+                        const warning = {
+                            type: "warning",
                             message:
                                 "Ray is prescribed by through, endpoint, and direction.  Ignoring specified through.",
-                            level: 1,
-                        });
+                        };
+                        if (dependencyValues.throughAttr.position) {
+                            warning.position =
+                                dependencyValues.throughAttr.position;
+                        }
+                        warnings.push(warning);
                     }
                     return {
                         setValue: { basedOnThrough: false },

@@ -429,6 +429,10 @@ export default class Angle extends GraphicalComponent {
                         message: "Invalid point in through of <angle>",
                         level: 1,
                     });
+                    if (globalDependencyValues.throughAttr.position) {
+                        warnings[warnings.length - 1].position =
+                            globalDependencyValues.throughAttr.position;
+                    }
                 }
 
                 if (numPointsSpecified === 0) {

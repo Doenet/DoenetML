@@ -44,10 +44,15 @@ export default class ConstrainToInterior extends ConstraintComponent {
 
                 for (let child of dependencyValues.graphicalChildren) {
                     if (!child.stateValues.nearestPoint) {
-                        warnings.push({
+                        const warning = {
+                            type: "warning",
                             message: `Cannot constrain to interior of a <${child.componentType}> as it doesn't have a nearestPoint state variable.`,
-                            level: 1,
-                        });
+                        };
+                        if (child.position) {
+                            warning.position = child.position;
+                        }
+
+                        warnings.push(warning);
                         continue;
                     }
                     let fs = { nearestPoint: child.stateValues.nearestPoint };

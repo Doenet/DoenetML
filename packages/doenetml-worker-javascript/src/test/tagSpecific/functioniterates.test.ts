@@ -401,9 +401,9 @@ describe("FunctionIterates tag tests @group2", async () => {
             "Function iterates are possible only if the number of inputs of the function is equal to the number of outputs. This function has 2 inputs and 1 output",
         );
         expect(errorWarnings.warnings[0].position.start.line).eq(4);
-        expect(errorWarnings.warnings[0].position.start.column).eq(3);
+        expect(errorWarnings.warnings[0].position.start.column).eq(21);
         expect(errorWarnings.warnings[0].position.end.line).eq(4);
-        expect(errorWarnings.warnings[0].position.end.column).eq(85);
+        expect(errorWarnings.warnings[0].position.end.column).eq(34);
     });
 
     it("change dimensions", async () => {

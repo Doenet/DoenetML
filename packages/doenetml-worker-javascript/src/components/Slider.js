@@ -627,10 +627,15 @@ export default class Slider extends BaseComponent {
                         markers = [...dependencyValues.items];
                     } else if (markerType !== dependencyValues.type) {
                         //Note: no markers when they don't match and not init
-                        warnings.push({
+                        const warning = {
+                            type: "warning",
                             message: "Markers type doesn't match slider type.",
-                            level: 1,
-                        });
+                        };
+                        if (dependencyValues.markersChild[0].position) {
+                            warning.position =
+                                dependencyValues.markersChild[0].position;
+                        }
+                        warnings.push(warning);
                         markers = [];
                     } else {
                         markers =

@@ -5419,54 +5419,53 @@ describe("Function tag tests @group4", async () => {
             `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 1 input.`,
         );
         expect(errorWarnings.warnings[0].position.start.line).eq(3);
-        expect(errorWarnings.warnings[0].position.start.column).eq(5);
+        expect(errorWarnings.warnings[0].position.start.column).eq(25);
         expect(errorWarnings.warnings[0].position.end.line).eq(3);
-        expect(errorWarnings.warnings[0].position.end.column).eq(48);
+        expect(errorWarnings.warnings[0].position.end.column).eq(35);
 
         expect(errorWarnings.warnings[1].message).contain(
             `Invalid format for domain for function`,
         );
         expect(errorWarnings.warnings[1].position.start.line).eq(4);
-        expect(errorWarnings.warnings[1].position.start.column).eq(5);
+        expect(errorWarnings.warnings[1].position.start.column).eq(25);
         expect(errorWarnings.warnings[1].position.end.line).eq(4);
-        expect(errorWarnings.warnings[1].position.end.column).eq(54);
+        expect(errorWarnings.warnings[1].position.end.column).eq(41);
 
         expect(errorWarnings.warnings[2].message).contain(
             `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 1 input.`,
         );
         expect(errorWarnings.warnings[2].position.start.line).eq(5);
-        expect(errorWarnings.warnings[2].position.start.column).eq(5);
+        expect(errorWarnings.warnings[2].position.start.column).eq(25);
         expect(errorWarnings.warnings[2].position.end.line).eq(5);
-        expect(errorWarnings.warnings[2].position.end.column).eq(47);
+        expect(errorWarnings.warnings[2].position.end.column).eq(34);
 
         expect(errorWarnings.warnings[3].message).contain(
             `Insufficient dimensions for domain for function. Domain has 1 interval but the function has 2 inputs.`,
         );
         expect(errorWarnings.warnings[3].position.start.line).eq(14);
-        expect(errorWarnings.warnings[3].position.start.column).eq(5);
+        expect(errorWarnings.warnings[3].position.start.column).eq(39);
         expect(errorWarnings.warnings[3].position.end.line).eq(14);
-        expect(errorWarnings.warnings[3].position.end.column).eq(68);
+        expect(errorWarnings.warnings[3].position.end.column).eq(53);
 
         expect(errorWarnings.warnings[4].message).contain(
             `Invalid format for domain for function`,
         );
         expect(errorWarnings.warnings[4].position.start.line).eq(16);
-        expect(errorWarnings.warnings[4].position.start.column).eq(5);
+        expect(errorWarnings.warnings[4].position.start.column).eq(39);
         expect(errorWarnings.warnings[4].position.end.line).eq(16);
-        expect(errorWarnings.warnings[4].position.end.column).eq(76);
+        expect(errorWarnings.warnings[4].position.end.column).eq(61);
 
         expect(errorWarnings.warnings[5].message).contain(
             `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 2 inputs.`,
         );
         expect(errorWarnings.warnings[5].position.start.line).eq(17);
-        expect(errorWarnings.warnings[5].position.start.column).eq(5);
+        expect(errorWarnings.warnings[5].position.start.column).eq(39);
         expect(errorWarnings.warnings[5].position.end.line).eq(17);
-        expect(errorWarnings.warnings[5].position.end.column).eq(63);
+        expect(errorWarnings.warnings[5].position.end.column).eq(48);
 
-        // TODO: fix this error message
-        // expect(errorWarnings.warnings[6].message).contain(
-        //     `Invalid format for attribute domain of <function>`,
-        // );
+        expect(errorWarnings.warnings[6].message).contain(
+            `Invalid format for attribute domain of <function>`,
+        );
         expect(errorWarnings.warnings[6].position.start.line).eq(3);
         expect(errorWarnings.warnings[6].position.start.column).eq(25);
         expect(errorWarnings.warnings[6].position.end.line).eq(3);
