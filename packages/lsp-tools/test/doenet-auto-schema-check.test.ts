@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import util from "util";
+import { doenetSchema } from "@doenet/static-assets/schema";
 
 import { AutoCompleter } from "../src";
 
@@ -359,5 +360,13 @@ describe("AutoCompleter", () => {
         source = `<b  foo />`;
         autoCompleter = new AutoCompleter(source, schema.elements);
         expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot("[]");
+    });
+
+    it("allows styleDefinition and feedbackDefinition at the root with Doenet schema", () => {
+        const source = `<styleDefinition /><feedbackDefinition />`;
+        const autoCompleter = new AutoCompleter(source, doenetSchema.elements);
+
+        const diagnostics = autoCompleter.getSchemaViolations();
+        expect(diagnostics).toMatchInlineSnapshot("[]");
     });
 });

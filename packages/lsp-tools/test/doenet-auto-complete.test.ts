@@ -230,6 +230,18 @@ describe("AutoCompleter", () => {
             `);
         }
     });
+
+    it("Includes styleDefinition and feedbackDefinition in top-level completions from Doenet schema", () => {
+        const source = `<`;
+        const autoCompleter = new AutoCompleter(source, doenetSchema.elements);
+
+        const items = autoCompleter.getCompletionItems(source.indexOf("<") + 1);
+        const labels = items.map((item) => item.label);
+
+        expect(labels).toContain("styleDefinition");
+        expect(labels).toContain("feedbackDefinition");
+    });
+
     it("Can suggest completions after a `<a` when a comes at the end of the string", () => {
         let source: string;
         let autoCompleter: AutoCompleter;

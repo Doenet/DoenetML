@@ -252,40 +252,9 @@ export function getSchema() {
         }
     }
 
-    const elements: SchemaElement[] = [];
-
-    for (const type in componentClasses) {
+    function determineChildren(cClass: ComponentClass) {
         let children: string[] = [];
         let acceptsStringChildren = false;
-
-        const attributes: SchemaAttribute[] = [];
-
-        const cClass = componentClasses[type];
-
-        const attrObj = cClass.createAttributesObject();
-
-        for (const attrName in attrObj) {
-            const attrDef = attrObj[attrName];
-
-            // one can add a excludeFromSchema to an attribute definition
-            // to keep it from showing up in the schema
-            if (!attrDef.excludeFromSchema) {
-                const attrSpec: { name: string; values?: unknown[] } = {
-                    name: attrName,
-                };
-
-                if (attrDef.validValues) {
-                    attrSpec.values = attrDef.validValues;
-                } else if (
-                    attrDef.createPrimitiveOfType === "boolean" ||
-                    attrDef.createComponentOfType === "boolean"
-                ) {
-                    attrSpec.values = ["true", "false"];
-                }
-
-                attributes.push(attrSpec);
-            }
-        }
 
         const childGroups = cClass.returnChildGroups();
 
@@ -335,6 +304,48 @@ export function getSchema() {
         }
 
         children = [...new Set(children)];
+        return { children, acceptsStringChildren };
+    }
+
+    const { children: documentChildren } = determineChildren(
+        componentClasses["document"],
+    );
+
+    const documentChildrenSet = new Set(documentChildren);
+
+    const elements: SchemaElement[] = [];
+
+    for (const type in componentClasses) {
+        const attributes: SchemaAttribute[] = [];
+
+        const cClass = componentClasses[type];
+
+        const attrObj = cClass.createAttributesObject();
+
+        for (const attrName in attrObj) {
+            const attrDef = attrObj[attrName];
+
+            // one can add a excludeFromSchema to an attribute definition
+            // to keep it from showing up in the schema
+            if (!attrDef.excludeFromSchema) {
+                const attrSpec: { name: string; values?: unknown[] } = {
+                    name: attrName,
+                };
+
+                if (attrDef.validValues) {
+                    attrSpec.values = attrDef.validValues;
+                } else if (
+                    attrDef.createPrimitiveOfType === "boolean" ||
+                    attrDef.createComponentOfType === "boolean"
+                ) {
+                    attrSpec.values = ["true", "false"];
+                }
+
+                attributes.push(attrSpec);
+            }
+        }
+
+        const { children, acceptsStringChildren } = determineChildren(cClass);
 
         const {
             stateVariableDescriptions,
@@ -427,7 +438,9 @@ export function getSchema() {
             children,
             attributes,
             properties,
-            top: !cClass.inSchemaOnlyInheritAs,
+            top:
+                cClass.componentType === "document" ||
+                documentChildrenSet.has(cClass.componentType),
             acceptsStringChildren,
         });
     }
