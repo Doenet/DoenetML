@@ -9511,12 +9511,29 @@ export default class Core {
         for (let errorInfo of errorComponentsToAdd) {
             let sourceComponent = this._components[errorInfo.componentIdx];
             let parent;
-            if (sourceComponent?.parentIdx > 0) {
-                parent = this._components[sourceComponent.parentIdx];
+
+            while (sourceComponent?.parentIdx > 0) {
+                const candidateParent =
+                    this._components[sourceComponent.parentIdx];
+
+                if (!candidateParent) {
+                    break;
+                }
+
+                if (candidateParent.constructor.canDisplayChildErrors) {
+                    parent = candidateParent;
+                    break;
+                }
+
+                sourceComponent = candidateParent;
             }
+
             if (!parent) {
-                parent = this.document;
+                if (this.document?.constructor.canDisplayChildErrors) {
+                    parent = this.document;
+                }
             }
+
             if (!parent) {
                 continue;
             }
