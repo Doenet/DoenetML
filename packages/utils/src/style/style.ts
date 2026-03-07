@@ -368,6 +368,10 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                     dependencyType: "ancestor",
                     variableNames: ["styleDefinitions"],
                 },
+                upgradeAccessibilityWarningsToErrors: {
+                    dependencyType: "flag",
+                    flagName: "upgradeAccessibilityWarningsToErrors",
+                },
                 styleDefinitionSetupChildren: {
                     dependencyType: "child",
                     childGroups: ["styleDefinitions", "setups"],
@@ -589,6 +593,15 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
 
             const warnings =
                 contrastWarningsForStyleDefinitions(styleDefinitions);
+
+            if (dependencyValues.upgradeAccessibilityWarningsToErrors) {
+                const errors = warnings.map((warning) => ({
+                    ...warning,
+                    type: "error",
+                }));
+
+                return { setValue: { styleDefinitions }, sendErrors: errors };
+            }
 
             return { setValue: { styleDefinitions }, sendWarnings: warnings };
         },
