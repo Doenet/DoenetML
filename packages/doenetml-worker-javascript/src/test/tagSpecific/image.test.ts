@@ -331,6 +331,7 @@ describe("Image tag tests @group3", async () => {
         let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(1);
+        expect(errorWarnings.warnings.length).eq(0);
 
         expect(errorWarnings.errors[0].message).contain(
             `<image> must either have a short description or be specified as decorative`,

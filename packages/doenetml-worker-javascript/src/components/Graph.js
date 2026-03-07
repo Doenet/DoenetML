@@ -1,6 +1,7 @@
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
 import {
+    accessibilityWarningsResult,
     orderedPercentWidthMidpoints,
     orderedWidthMidpoints,
     widthsBySize,
@@ -262,6 +263,10 @@ export default class Graph extends BlockComponent {
                     childGroups: ["shortDescriptions"],
                     variableNames: ["text"],
                 },
+                upgradeAccessibilityWarningsToErrors: {
+                    dependencyType: "flag",
+                    flagName: "upgradeAccessibilityWarningsToErrors",
+                },
                 decorative: {
                     dependencyType: "stateVariable",
                     variableName: "decorative",
@@ -287,10 +292,12 @@ export default class Graph extends BlockComponent {
                     });
                 }
 
-                return {
+                return accessibilityWarningsResult({
                     setValue: { shortDescription },
-                    sendWarnings: warnings,
-                };
+                    warnings,
+                    upgradeWarningsToErrors:
+                        dependencyValues.upgradeAccessibilityWarningsToErrors,
+                });
             },
         };
 

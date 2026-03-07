@@ -1,5 +1,6 @@
 import BlockComponent from "./abstract/BlockComponent";
 import {
+    accessibilityWarningsResult,
     orderedPercentWidthMidpoints,
     orderedWidthMidpoints,
     widthsBySize,
@@ -108,6 +109,10 @@ export default class Video extends BlockComponent {
                     childGroups: ["shortDescriptions"],
                     variableNames: ["text"],
                 },
+                upgradeAccessibilityWarningsToErrors: {
+                    dependencyType: "flag",
+                    flagName: "upgradeAccessibilityWarningsToErrors",
+                },
             }),
             definition({ dependencyValues }) {
                 let shortDescription = "";
@@ -129,10 +134,12 @@ export default class Video extends BlockComponent {
                     });
                 }
 
-                return {
+                return accessibilityWarningsResult({
                     setValue: { shortDescription },
-                    sendWarnings: warnings,
-                };
+                    warnings,
+                    upgradeWarningsToErrors:
+                        dependencyValues.upgradeAccessibilityWarningsToErrors,
+                });
             },
         };
 

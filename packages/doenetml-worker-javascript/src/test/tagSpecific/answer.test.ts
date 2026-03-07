@@ -7664,6 +7664,7 @@ What is the derivative of <function name="f">x^2</function>?
         let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(9);
+        expect(errorWarnings.warnings.length).eq(0);
 
         expect(errorWarnings.errors[0].message).contain(
             `an <answer> creating an input must have a short description or a label`,
@@ -7718,6 +7719,41 @@ What is the derivative of <function name="f">x^2</function>?
         );
         expect(errorWarnings.errors[8].position.start.line).eq(16);
         expect(errorWarnings.errors[8].position.end.line).eq(16);
+    });
+
+    it("regression: upgraded input accessibility error climbs to displayable ancestor", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+                <p name="container">
+                    <answer name="ans">x</answer>
+                </p>
+            `,
+            flags: { upgradeAccessibilityWarningsToErrors: true },
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const answerIdx = await resolvePathToNodeIdx("ans");
+
+        const errorWarnings = core.core!.errorWarnings;
+        expect(errorWarnings.errors.length).eq(1);
+        expect(errorWarnings.warnings.length).eq(0);
+        expect(errorWarnings.errors[0].message).contain(
+            `an <answer> creating an input must have a short description or a label`,
+        );
+
+        const renderedError = Object.values(stateVariables).find(
+            (component: any) =>
+                component.componentType === "_error" &&
+                component.stateValues?.message?.includes(
+                    `an <answer> creating an input must have a short description or a label`,
+                ),
+        );
+        expect(renderedError).not.eq(undefined);
+
+        const answerChildComponentTypes = stateVariables[
+            answerIdx
+        ].activeChildren.map((child: any) => child.componentType);
+        expect(answerChildComponentTypes.includes("_error")).eq(false);
     });
 
     it("with no inputs, a label is optional", async () => {

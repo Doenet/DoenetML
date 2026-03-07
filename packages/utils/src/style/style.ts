@@ -1,4 +1,5 @@
 import { colorValueToWord } from "./colorWords";
+import { accessibilityWarningsResult } from "../errors/errorWarning";
 import {
     getStyleValueNumber,
     getStyleValueString,
@@ -368,6 +369,10 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                     dependencyType: "ancestor",
                     variableNames: ["styleDefinitions"],
                 },
+                upgradeAccessibilityWarningsToErrors: {
+                    dependencyType: "flag",
+                    flagName: "upgradeAccessibilityWarningsToErrors",
+                },
                 styleDefinitionSetupChildren: {
                     dependencyType: "child",
                     childGroups: ["styleDefinitions", "setups"],
@@ -590,7 +595,12 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
             const warnings =
                 contrastWarningsForStyleDefinitions(styleDefinitions);
 
-            return { setValue: { styleDefinitions }, sendWarnings: warnings };
+            return accessibilityWarningsResult({
+                setValue: { styleDefinitions },
+                warnings,
+                upgradeWarningsToErrors:
+                    dependencyValues.upgradeAccessibilityWarningsToErrors,
+            });
         },
     };
 

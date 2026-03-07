@@ -573,17 +573,14 @@ a />
 
         let errorWarnings = core.core!.errorWarnings;
 
-        // TODO: do we care that this error appears twice? Ideally it should appear only once.
-        expect(errorWarnings.errors.length).eq(2);
+        expect(errorWarnings.errors.length).eq(1);
         expect(errorWarnings.warnings.length).eq(0);
 
-        for (let i = 0; i < 2; i++) {
-            expect(errorWarnings.errors[i].message).contain("no closing tag");
-            expect(errorWarnings.errors[i].position.start.line).eq(3);
-            expect(errorWarnings.errors[i].position.start.column).eq(3);
-            expect(errorWarnings.errors[i].position.end.line).eq(3);
-            expect(errorWarnings.errors[i].position.end.column).eq(6);
-        }
+        expect(errorWarnings.errors[0].message).contain("no closing tag");
+        expect(errorWarnings.errors[0].position.start.line).eq(3);
+        expect(errorWarnings.errors[0].position.start.column).eq(3);
+        expect(errorWarnings.errors[0].position.end.line).eq(3);
+        expect(errorWarnings.errors[0].position.end.column).eq(6);
     });
 
     it("Upgrade warning to error if missing or blank short description in graph, image, video", async () => {
@@ -611,6 +608,7 @@ a />
         let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(9);
+        expect(errorWarnings.warnings.length).eq(0);
 
         const expectedErrorByLine: Record<string, string> = {
             2: "<graph> must either have a short description or be specified as decorative",
@@ -644,6 +642,7 @@ a />
     <mathInput><label></label></mathInput>
     <mathInput><label>   </label></mathInput>
     <mathInput><label>Valid text label</label></mathInput>
+    <mathInput><label><m>   </m></label></mathInput>
     <mathInput><label><m>x</m></label></mathInput>
 
     <mathInput labelIsName></mathInput>
@@ -655,11 +654,38 @@ a />
 
         let errorWarnings = core.core!.errorWarnings;
 
-        expect(errorWarnings.errors.length).eq(7);
+        expect(errorWarnings.errors.length).eq(8);
+        expect(errorWarnings.warnings.length).eq(0);
 
         const errorMsg = "<mathInput> must have a short description or a label";
 
-        const errorsOnLines = [2, 3, 4, 7, 8, 12, 14];
+        const errorsOnLines = [2, 3, 4, 7, 8, 10, 13, 15];
+
+        for (const lineNum of errorsOnLines) {
+            const error = errorWarnings.errors.find(
+                (error) => error.position.start.line === lineNum,
+            );
+            expect(error!.message).toContain(errorMsg);
+        }
+    });
+
+    it("upgraded warning errors follow references", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<textInput name="ti1"><label>$ti1</label></textInput>
+<textInput name="ti2" prefill="my label"><label>$ti2</label></textInput>
+`,
+            flags: { upgradeAccessibilityWarningsToErrors: true },
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(1);
+        expect(errorWarnings.warnings.length).eq(0);
+
+        const errorMsg = "<textInput> must have a short description or a label";
+
+        const errorsOnLines = [2];
 
         for (const lineNum of errorsOnLines) {
             const error = errorWarnings.errors.find(

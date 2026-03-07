@@ -14,7 +14,6 @@ import {
     RootNames,
 } from "@doenet/doenetml-worker";
 import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormalizedDast";
-import { addErrorsForAccessibilityWarnings } from "./utils/dast/addErrorsForAccessibilityWarnings";
 
 // Type signatures for callbacks
 export type UpdateRenderersCallback = (arg: {
@@ -136,10 +135,6 @@ export class PublicDoenetMLCore {
         this.calculateRootNames = calculateRootNames;
 
         let componentInfoObjects = createComponentInfoObjects();
-
-        if (this.flags.upgradeAccessibilityWarningsToErrors === true) {
-            normalizedRoot = addErrorsForAccessibilityWarnings(normalizedRoot);
-        }
 
         const {
             document: root,

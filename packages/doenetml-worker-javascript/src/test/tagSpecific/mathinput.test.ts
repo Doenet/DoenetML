@@ -12084,6 +12084,7 @@ describe("MathInput tag tests @group2", async () => {
         let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(2);
+        expect(errorWarnings.warnings.length).eq(0);
 
         expect(errorWarnings.errors[0].message).contain(
             `<mathInput> must have a short description or a label`,

@@ -243,6 +243,7 @@ export default class Core {
         this._components[this.nComponentsInit - 1] = undefined;
         this.componentsToRender = {};
         this.componentsWithChangedChildrenToRender = new Set([]);
+        this.errorComponentsToAdd = [];
 
         this.stateVariableChangeTriggers = {};
         this.actionsChangedToActions = {};
@@ -475,28 +476,30 @@ export default class Core {
         return { errorWarnings: this.errorWarnings };
     }
 
+    /**
+     * Add an error or warning to `this.errorWarnings`, deduplicating by
+     * message + location (+ level for warnings).
+     *
+     * @returns {boolean} `true` if a new entry was added, `false` if deduped.
+     */
     addErrorWarning({ type, message, position, sourceDoc, level }) {
+        const sameLocation = (pointA, pointB) =>
+            (pointA?.offset ?? undefined) === (pointB?.offset ?? undefined) &&
+            (pointA?.line ?? undefined) === (pointB?.line ?? undefined) &&
+            (pointA?.column ?? undefined) === (pointB?.column ?? undefined);
+
+        const haveSamePosition = (warningPosition, newPosition) => {
+            if (warningPosition === undefined || newPosition === undefined) {
+                return warningPosition === newPosition;
+            }
+
+            return (
+                sameLocation(warningPosition.start, newPosition.start) &&
+                sameLocation(warningPosition.end, newPosition.end)
+            );
+        };
+
         if (type === "warning") {
-            const sameLocation = (pointA, pointB) =>
-                (pointA?.offset ?? undefined) ===
-                    (pointB?.offset ?? undefined) &&
-                (pointA?.line ?? undefined) === (pointB?.line ?? undefined) &&
-                (pointA?.column ?? undefined) === (pointB?.column ?? undefined);
-
-            const haveSamePosition = (warningPosition, newPosition) => {
-                if (
-                    warningPosition === undefined ||
-                    newPosition === undefined
-                ) {
-                    return warningPosition === newPosition;
-                }
-
-                return (
-                    sameLocation(warningPosition.start, newPosition.start) &&
-                    sameLocation(warningPosition.end, newPosition.end)
-                );
-            };
-
             const alreadyHaveWarning = this.errorWarnings.warnings.some(
                 (warning) =>
                     warning.message === message &&
@@ -506,7 +509,7 @@ export default class Core {
             );
 
             if (alreadyHaveWarning) {
-                return;
+                return false;
             }
 
             this.errorWarnings.warnings.push({
@@ -517,6 +520,17 @@ export default class Core {
                 level,
             });
         } else if (type === "error") {
+            const alreadyHaveError = this.errorWarnings.errors.some(
+                (error) =>
+                    error.message === message &&
+                    error.sourceDoc === sourceDoc &&
+                    haveSamePosition(error.position, position),
+            );
+
+            if (alreadyHaveError) {
+                return false;
+            }
+
             this.errorWarnings.errors.push({
                 type,
                 message,
@@ -527,6 +541,28 @@ export default class Core {
             throw Error("Invalid error or warning: type not specified");
         }
         this.newErrorWarning = true;
+        return true;
+    }
+
+    /**
+     * Find the nearest available source position/sourceDoc for a component,
+     * walking up ancestors when the component itself has no position.
+     */
+    getSourceLocationForComponent(component) {
+        let position = component.position;
+        let sourceDoc = component.sourceDoc;
+        let comp = component;
+
+        while (position === undefined) {
+            if (!(comp.parentIdx > 0)) {
+                break;
+            }
+            comp = this._components[comp.parentIdx];
+            position = comp.position;
+            sourceDoc = comp.sourceDoc;
+        }
+
+        return { position, sourceDoc };
     }
 
     async addComponents({
@@ -618,12 +654,26 @@ export default class Core {
                 }
             }
 
+            await this.addQueuedErrorComponentsFromStateVariables();
+
             // calculate any replacement changes on composites touched
             await this.replacementChangesFromCompositesToUpdate();
 
             let results = await this.initializeRenderedComponentInstruction(
                 this.document,
             );
+
+            if (this.errorComponentsToAdd.length > 0) {
+                await this.addQueuedErrorComponentsFromStateVariables();
+
+                // Adding queued _error components can touch composites and alter
+                // what needs to be rendered from the document root.
+                await this.replacementChangesFromCompositesToUpdate();
+
+                results = await this.initializeRenderedComponentInstruction(
+                    this.document,
+                );
+            }
 
             this.documentRendererInstructions = results.componentToRender;
 
@@ -7923,26 +7973,43 @@ export default class Core {
             }
         }
 
-        if (result.sendWarnings) {
-            let position = component.position;
-            let sourceDoc = component.sourceDoc;
-            let comp = component;
-            while (position === undefined) {
-                if (!(comp.parentIdx > 0)) {
-                    break;
+        if (result.sendWarnings || result.sendErrors) {
+            const { position, sourceDoc } =
+                this.getSourceLocationForComponent(component);
+
+            if (result.sendWarnings) {
+                for (let warning of result.sendWarnings) {
+                    this.addErrorWarning({
+                        type: "warning",
+                        position,
+                        sourceDoc,
+                        ...warning,
+                    });
                 }
-                comp = this._components[comp.parentIdx];
-                position = comp.position;
-                sourceDoc = comp.sourceDoc;
             }
 
-            for (let warning of result.sendWarnings) {
-                this.addErrorWarning({
-                    type: "warning",
-                    position,
-                    sourceDoc,
-                    ...warning,
-                });
+            if (result.sendErrors) {
+                for (let error of result.sendErrors) {
+                    const message = error.message;
+                    const errorPosition = error.position ?? position;
+                    const errorSourceDoc = error.sourceDoc ?? sourceDoc;
+
+                    const addedError = this.addErrorWarning({
+                        type: "error",
+                        message,
+                        position: errorPosition,
+                        sourceDoc: errorSourceDoc,
+                    });
+
+                    if (addedError && this.initialAddPhase) {
+                        this.errorComponentsToAdd.push({
+                            componentIdx: component.componentIdx,
+                            message,
+                            position: errorPosition,
+                            sourceDoc: errorSourceDoc,
+                        });
+                    }
+                }
             }
         }
 
@@ -9425,6 +9492,120 @@ export default class Core {
             deletedComponents,
             addedComponents,
         };
+    }
+
+    /**
+     * Create and insert `_error` siblings requested by state-variable definitions
+     * during initial document construction.
+     */
+    async addQueuedErrorComponentsFromStateVariables() {
+        if (!this.errorComponentsToAdd?.length) {
+            return;
+        }
+
+        const errorComponentsToAdd = this.errorComponentsToAdd;
+        this.errorComponentsToAdd = [];
+
+        const numberInsertedAfterSource = {};
+
+        for (let errorInfo of errorComponentsToAdd) {
+            let sourceComponent = this._components[errorInfo.componentIdx];
+            let parent;
+
+            while (sourceComponent?.parentIdx > 0) {
+                const candidateParent =
+                    this._components[sourceComponent.parentIdx];
+
+                if (!candidateParent) {
+                    break;
+                }
+
+                if (candidateParent.constructor.canDisplayChildErrors) {
+                    parent = candidateParent;
+                    break;
+                }
+
+                sourceComponent = candidateParent;
+            }
+
+            if (!parent) {
+                if (this.document?.constructor.canDisplayChildErrors) {
+                    parent = this.document;
+                }
+            }
+
+            if (!parent) {
+                continue;
+            }
+
+            let indexOfDefiningChildren = parent.definingChildren.length;
+
+            if (sourceComponent?.parentIdx === parent.componentIdx) {
+                const sourceInd = parent.definingChildren.findIndex(
+                    (child) =>
+                        typeof child === "object" &&
+                        child.componentIdx === sourceComponent.componentIdx,
+                );
+
+                if (sourceInd !== -1) {
+                    const numberAlreadyInserted =
+                        numberInsertedAfterSource[
+                            sourceComponent.componentIdx
+                        ] ?? 0;
+                    indexOfDefiningChildren =
+                        sourceInd + 1 + numberAlreadyInserted;
+                    numberInsertedAfterSource[sourceComponent.componentIdx] =
+                        numberAlreadyInserted + 1;
+                }
+            }
+
+            let serializedErrorComponents = [
+                {
+                    type: "serialized",
+                    componentType: "_error",
+                    componentIdx: this._components.length,
+                    state: { message: errorInfo.message },
+                    position: errorInfo.position,
+                    sourceDoc: errorInfo.sourceDoc,
+                    children: [],
+                    attributes: {},
+                    doenetAttributes: {},
+                },
+            ];
+
+            this._components[this._components.length] = undefined;
+
+            let ancestors = [
+                {
+                    componentIdx: parent.componentIdx,
+                    componentClass: parent.constructor,
+                },
+                ...parent.ancestors,
+            ];
+
+            this.parameterStack.push(parent.sharedParameters, false);
+            let createResult;
+            try {
+                createResult = await this.createIsolatedComponents({
+                    serializedComponents: serializedErrorComponents,
+                    ancestors,
+                });
+            } finally {
+                this.parameterStack.pop();
+            }
+
+            let addResults = await this.addChildrenAndRecurseToShadows({
+                parent,
+                indexOfDefiningChildren,
+                newChildren: createResult.components,
+            });
+
+            if (!addResults.success) {
+                throw Error(
+                    "Couldn't add error component from state variable evaluation.",
+                );
+            }
+        }
     }
 
     async processNewDefiningChildren({

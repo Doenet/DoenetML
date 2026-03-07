@@ -898,6 +898,7 @@ describe("BooleanInput tag tests @group1", async () => {
         let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(2);
+        expect(errorWarnings.warnings.length).eq(0);
 
         expect(errorWarnings.errors[0].message).contain(
             `<booleanInput> must have a short description or a label`,
