@@ -360,7 +360,7 @@ function contrastWarningsForStyleDefinition(
 
     const textColor = getStyleValueString(styleDef, "textColor");
     const backgroundColor =
-        getStyleValueString(styleDef, "backgroundColor") ||
+        getStyleValueString(styleDef, "backgroundColor") ??
         CANVAS_LIGHT_MODE_COLOR;
 
     if (textColor) {

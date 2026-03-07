@@ -477,6 +477,12 @@ export default class Core {
 
     addErrorWarning({ type, message, position, sourceDoc, level }) {
         if (type === "warning") {
+            const sameLocation = (pointA, pointB) =>
+                (pointA?.offset ?? undefined) ===
+                    (pointB?.offset ?? undefined) &&
+                (pointA?.line ?? undefined) === (pointB?.line ?? undefined) &&
+                (pointA?.column ?? undefined) === (pointB?.column ?? undefined);
+
             const haveSamePosition = (warningPosition, newPosition) => {
                 if (
                     warningPosition === undefined ||
@@ -486,8 +492,8 @@ export default class Core {
                 }
 
                 return (
-                    JSON.stringify(warningPosition) ===
-                    JSON.stringify(newPosition)
+                    sameLocation(warningPosition.start, newPosition.start) &&
+                    sameLocation(warningPosition.end, newPosition.end)
                 );
             };
 
