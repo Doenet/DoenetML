@@ -1,4 +1,18 @@
 import { colorValueToWord } from "./colorWords";
+import {
+    getStyleValueNumber,
+    getStyleValueString,
+    normalizeStyleDefinitionValues,
+    normalizeStyleDefinitionsValues,
+    setStyleValue,
+    unwrapStyleDefinition,
+    type RawStyleDefinition,
+    type StyleAttributes,
+    type StyleDefinition,
+    type StyleDefinitionKey,
+    type StyleDefinitions,
+} from "./styleDefinitionHelpers";
+import { contrastWarningsForStyleDefinitions } from "./styleContrastWarnings";
 
 /**
  * Style helpers and state-variable definitions shared by renderable components.
@@ -7,53 +21,7 @@ import { colorValueToWord } from "./colorWords";
  * setup children, and provides text-friendly style descriptions.
  */
 
-type StyleAttributes = Record<string, { componentType: string }>;
-
-type StyleDefinitionValue = string | number;
-
-type StyleDefinitionKey =
-    | "lineColor"
-    | "lineColorWord"
-    | "lineColorDarkMode"
-    | "lineColorWordDarkMode"
-    | "lineOpacity"
-    | "lineWidth"
-    | "lineWidthWord"
-    | "lineStyle"
-    | "lineStyleWord"
-    | "markerColor"
-    | "markerColorWord"
-    | "markerColorDarkMode"
-    | "markerColorWordDarkMode"
-    | "markerOpacity"
-    | "markerStyle"
-    | "markerStyleWord"
-    | "markerSize"
-    | "fillColor"
-    | "fillColorWord"
-    | "fillColorDarkMode"
-    | "fillColorWordDarkMode"
-    | "fillOpacity"
-    | "textColor"
-    | "textColorWord"
-    | "textColorDarkMode"
-    | "textColorWordDarkMode"
-    | "highContrastColor"
-    | "highContrastColorWord"
-    | "highContrastColorDarkMode"
-    | "highContrastColorWordDarkMode"
-    | "backgroundColor"
-    | "backgroundColorWord"
-    | "backgroundColorDarkMode"
-    | "backgroundColorWordDarkMode";
-
-type StyleDefinition = Partial<
-    Record<StyleDefinitionKey, StyleDefinitionValue>
->;
-
 type StateVariableDefinitions = Record<string, any>;
-
-type StyleDefinitions = Record<string, StyleDefinition>;
 
 /** Public style attributes that can be applied to components. */
 export let styleAttributes: StyleAttributes = {
@@ -101,7 +69,7 @@ export let styleAttributes: StyleAttributes = {
  * Color words are intentionally omitted here and injected on demand so there is
  * one source of truth for color values.
  */
-let defaultStyle: StyleDefinition = {
+let defaultStyle: RawStyleDefinition = {
     lineColor: "#648FFF",
     lineColorDarkMode: "#648FFF",
     lineOpacity: 0.7,
@@ -133,14 +101,6 @@ const coloredItemsForWords = [
     "background",
 ] as const;
 
-const childStyleDefinitionColorItems = [
-    "marker",
-    "line",
-    "fill",
-    "text",
-    "background",
-] as const;
-
 /**
  * Adds missing color-word fields (light and dark mode) derived from color values.
  * Existing word values are preserved.
@@ -154,14 +114,18 @@ function addMissingColorWordsToStyleDefinition(
         const darkKey = `${colorKey}DarkMode` as StyleDefinitionKey;
         const darkWordKey = `${colorWordKey}DarkMode` as StyleDefinitionKey;
 
-        const colorValue = styleDef[colorKey];
-        if (!(colorWordKey in styleDef) && typeof colorValue === "string") {
-            styleDef[colorWordKey] = colorValueToWord(colorValue);
+        const colorValue = getStyleValueString(styleDef, colorKey);
+        if (!(colorWordKey in styleDef) && colorValue) {
+            setStyleValue(styleDef, colorWordKey, colorValueToWord(colorValue));
         }
 
-        const darkColorValue = styleDef[darkKey];
-        if (!(darkWordKey in styleDef) && typeof darkColorValue === "string") {
-            styleDef[darkWordKey] = colorValueToWord(darkColorValue);
+        const darkColorValue = getStyleValueString(styleDef, darkKey);
+        if (!(darkWordKey in styleDef) && darkColorValue) {
+            setStyleValue(
+                styleDef,
+                darkWordKey,
+                colorValueToWord(darkColorValue),
+            );
         }
     }
 
@@ -184,7 +148,7 @@ function addMissingColorWordsToStyleDefinitions(
  */
 function cloneDefaultStyleWithMissingColorWords(): StyleDefinition {
     return addMissingColorWordsToStyleDefinition(
-        Object.assign({}, defaultStyle),
+        normalizeStyleDefinitionValues(Object.assign({}, defaultStyle)),
     );
 }
 
@@ -194,18 +158,31 @@ function cloneDefaultStyleWithMissingColorWords(): StyleDefinition {
  */
 function addMissingChildStyleColorFields(
     styleDef: StyleDefinition,
-    colorItems: readonly string[],
 ): StyleDefinition {
-    for (const item of colorItems) {
+    for (const item of coloredItemsForWords) {
         const colorKey = `${item}Color` as StyleDefinitionKey;
         const colorWordKey = `${colorKey}Word` as StyleDefinitionKey;
         const darkKey = `${colorKey}DarkMode` as StyleDefinitionKey;
         const darkWordKey = `${colorWordKey}DarkMode` as StyleDefinitionKey;
 
         if (colorKey in styleDef && !(darkKey in styleDef)) {
-            styleDef[darkKey] = styleDef[colorKey];
+            const colorValue = styleDef[colorKey]?.style;
+            if (colorValue !== undefined) {
+                const colorPosition = styleDef[colorKey]?.position;
+                setStyleValue(styleDef, darkKey, colorValue, colorPosition);
+            }
+
             if (colorWordKey in styleDef && !(darkWordKey in styleDef)) {
-                styleDef[darkWordKey] = styleDef[colorWordKey];
+                const wordValue = styleDef[colorWordKey]?.style;
+                if (typeof wordValue === "string") {
+                    const wordPosition = styleDef[colorWordKey]?.position;
+                    setStyleValue(
+                        styleDef,
+                        darkWordKey,
+                        wordValue,
+                        wordPosition,
+                    );
+                }
             }
         }
     }
@@ -220,140 +197,142 @@ function addMissingChildStyleColorFields(
  * color values.
  */
 function returnDefaultStyleDefinitions(): StyleDefinitions {
-    return addMissingColorWordsToStyleDefinitions({
-        1: {
-            lineColor: "#648FFF",
-            lineColorDarkMode: "#648FFF",
-            lineOpacity: 0.7,
-            lineWidth: 4,
-            lineWidthWord: "thick",
-            lineStyle: "solid",
-            lineStyleWord: "",
-            markerColor: "#648FFF",
-            markerColorDarkMode: "#648FFF",
-            markerOpacity: 0.7,
-            markerStyle: "circle",
-            markerStyleWord: "point",
-            markerSize: 5,
-            fillColor: "#648FFF",
-            fillColorDarkMode: "#648FFF",
-            fillOpacity: 0.3,
-            textColor: "black",
-            textColorDarkMode: "white",
-            highContrastColor: "#2963FF",
-            highContrastColorDarkMode: "#2963FF",
-        },
-        2: {
-            lineColor: "#D4042D",
-            lineColorDarkMode: "#D4042D",
-            lineOpacity: 0.7,
-            lineWidth: 2,
-            lineWidthWord: "",
-            lineStyle: "solid",
-            lineStyleWord: "",
-            markerColor: "#D4042D",
-            markerColorDarkMode: "#D4042D",
-            markerOpacity: 0.7,
-            markerStyle: "square",
-            markerStyleWord: "square",
-            markerSize: 5,
-            fillColor: "#D4042D",
-            fillColorDarkMode: "#D4042D",
-            fillOpacity: 0.3,
-            textColor: "#D4042D",
-            textColorDarkMode: "#D4042D",
-            highContrastColor: "#D4042D",
-            highContrastColorDarkMode: "#D4042D",
-        },
-        3: {
-            lineColor: "#F19143",
-            lineColorDarkMode: "#F19143",
-            lineOpacity: 0.7,
-            lineWidth: 3,
-            lineWidthWord: "",
-            lineStyle: "solid",
-            lineStyleWord: "",
-            markerColor: "#F19143",
-            markerColorDarkMode: "#F19143",
-            markerOpacity: 0.7,
-            markerStyle: "triangle",
-            markerStyleWord: "triangle",
-            markerSize: 5,
-            fillColor: "#F19143",
-            fillColorDarkMode: "#F19143",
-            fillOpacity: 0.3,
-            textColor: "#BE5A0E",
-            textColorDarkMode: "#BE5A0E",
-            highContrastColor: "#BE5A0E",
-            highContrastColorDarkMode: "#BE5A0E",
-        },
-        4: {
-            lineColor: "#644CD6",
-            lineColorDarkMode: "#644CD6",
-            lineOpacity: 0.7,
-            lineWidth: 2,
-            lineWidthWord: "",
-            lineStyle: "solid",
-            lineStyleWord: "",
-            markerColor: "#644CD6",
-            markerColorDarkMode: "#644CD6",
-            markerOpacity: 0.7,
-            markerStyle: "diamond",
-            markerStyleWord: "diamond",
-            markerSize: 5,
-            fillColor: "#644CD6",
-            fillColorDarkMode: "#644CD6",
-            fillOpacity: 0.3,
-            textColor: "#644CD6",
-            textColorDarkMode: "#644CD6",
-            highContrastColor: "#644CD6",
-            highContrastColorDarkMode: "#644CD6",
-        },
-        5: {
-            lineColor: "black",
-            lineColorDarkMode: "white",
-            lineOpacity: 1,
-            lineWidth: 1,
-            lineWidthWord: "thin",
-            lineStyle: "solid",
-            lineStyleWord: "",
-            markerColor: "black",
-            markerColorDarkMode: "white",
-            markerOpacity: 1,
-            markerStyle: "circle",
-            markerStyleWord: "point",
-            markerSize: 5,
-            fillColor: "black",
-            fillColorDarkMode: "white",
-            fillOpacity: 0.7,
-            textColor: "black",
-            textColorDarkMode: "white",
-            highContrastColor: "black",
-            highContrastColorDarkMode: "black",
-        },
-        6: {
-            lineColor: "gray",
-            lineColorDarkMode: "gray",
-            lineOpacity: 0.7,
-            lineWidth: 1,
-            lineWidthWord: "thin",
-            lineStyle: "dotted",
-            lineStyleWord: "dotted",
-            markerColor: "gray",
-            markerColorDarkMode: "gray",
-            markerOpacity: 0.7,
-            markerStyle: "circle",
-            markerStyleWord: "point",
-            markerSize: 5,
-            fillColor: "gray",
-            fillColorDarkMode: "gray",
-            fillOpacity: 0.3,
-            textColor: "#757575",
-            textColorDarkMode: "#757575",
-            highContrastColor: "#757575",
-            highContrastColorDarkMode: "#757575",
-        },
-    });
+    return addMissingColorWordsToStyleDefinitions(
+        normalizeStyleDefinitionsValues({
+            1: {
+                lineColor: "#648FFF",
+                lineColorDarkMode: "#648FFF",
+                lineOpacity: 0.7,
+                lineWidth: 4,
+                lineWidthWord: "thick",
+                lineStyle: "solid",
+                lineStyleWord: "",
+                markerColor: "#648FFF",
+                markerColorDarkMode: "#648FFF",
+                markerOpacity: 0.7,
+                markerStyle: "circle",
+                markerStyleWord: "point",
+                markerSize: 5,
+                fillColor: "#648FFF",
+                fillColorDarkMode: "#648FFF",
+                fillOpacity: 0.3,
+                textColor: "black",
+                textColorDarkMode: "white",
+                highContrastColor: "#2963FF",
+                highContrastColorDarkMode: "#2963FF",
+            },
+            2: {
+                lineColor: "#D4042D",
+                lineColorDarkMode: "#D4042D",
+                lineOpacity: 0.7,
+                lineWidth: 2,
+                lineWidthWord: "",
+                lineStyle: "solid",
+                lineStyleWord: "",
+                markerColor: "#D4042D",
+                markerColorDarkMode: "#D4042D",
+                markerOpacity: 0.7,
+                markerStyle: "square",
+                markerStyleWord: "square",
+                markerSize: 5,
+                fillColor: "#D4042D",
+                fillColorDarkMode: "#D4042D",
+                fillOpacity: 0.3,
+                textColor: "#D4042D",
+                textColorDarkMode: "#D4042D",
+                highContrastColor: "#D4042D",
+                highContrastColorDarkMode: "#D4042D",
+            },
+            3: {
+                lineColor: "#F19143",
+                lineColorDarkMode: "#F19143",
+                lineOpacity: 0.7,
+                lineWidth: 3,
+                lineWidthWord: "",
+                lineStyle: "solid",
+                lineStyleWord: "",
+                markerColor: "#F19143",
+                markerColorDarkMode: "#F19143",
+                markerOpacity: 0.7,
+                markerStyle: "triangle",
+                markerStyleWord: "triangle",
+                markerSize: 5,
+                fillColor: "#F19143",
+                fillColorDarkMode: "#F19143",
+                fillOpacity: 0.3,
+                textColor: "#BE5A0E",
+                textColorDarkMode: "#BE5A0E",
+                highContrastColor: "#BE5A0E",
+                highContrastColorDarkMode: "#BE5A0E",
+            },
+            4: {
+                lineColor: "#644CD6",
+                lineColorDarkMode: "#644CD6",
+                lineOpacity: 0.7,
+                lineWidth: 2,
+                lineWidthWord: "",
+                lineStyle: "solid",
+                lineStyleWord: "",
+                markerColor: "#644CD6",
+                markerColorDarkMode: "#644CD6",
+                markerOpacity: 0.7,
+                markerStyle: "diamond",
+                markerStyleWord: "diamond",
+                markerSize: 5,
+                fillColor: "#644CD6",
+                fillColorDarkMode: "#644CD6",
+                fillOpacity: 0.3,
+                textColor: "#644CD6",
+                textColorDarkMode: "#644CD6",
+                highContrastColor: "#644CD6",
+                highContrastColorDarkMode: "#644CD6",
+            },
+            5: {
+                lineColor: "black",
+                lineColorDarkMode: "white",
+                lineOpacity: 1,
+                lineWidth: 1,
+                lineWidthWord: "thin",
+                lineStyle: "solid",
+                lineStyleWord: "",
+                markerColor: "black",
+                markerColorDarkMode: "white",
+                markerOpacity: 1,
+                markerStyle: "circle",
+                markerStyleWord: "point",
+                markerSize: 5,
+                fillColor: "black",
+                fillColorDarkMode: "white",
+                fillOpacity: 0.7,
+                textColor: "black",
+                textColorDarkMode: "white",
+                highContrastColor: "black",
+                highContrastColorDarkMode: "black",
+            },
+            6: {
+                lineColor: "gray",
+                lineColorDarkMode: "gray",
+                lineOpacity: 0.7,
+                lineWidth: 1,
+                lineWidthWord: "thin",
+                lineStyle: "dotted",
+                lineStyleWord: "dotted",
+                markerColor: "gray",
+                markerColorDarkMode: "gray",
+                markerOpacity: 0.7,
+                markerStyle: "circle",
+                markerStyleWord: "point",
+                markerSize: 5,
+                fillColor: "gray",
+                fillColorDarkMode: "gray",
+                fillOpacity: 0.3,
+                textColor: "#757575",
+                textColorDarkMode: "#757575",
+                highContrastColor: "#757575",
+                highContrastColorDarkMode: "#757575",
+            },
+        }),
+    );
 }
 
 /**
@@ -381,6 +360,7 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
     };
 
     stateVariableDefinitions.styleDefinitions = {
+        mustEvaluate: true,
         stateVariablesDeterminingDependencies: ["setupChildren"],
         returnDependencies({ stateValues }: { stateValues: any }) {
             let dependencies: Record<string, any> = {
@@ -425,9 +405,11 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
             }
 
             for (const styleNumber in startingStateVariableDefinitions) {
-                styleDefinitions[styleNumber] = Object.assign(
-                    {},
-                    startingStateVariableDefinitions[styleNumber],
+                styleDefinitions[styleNumber] = normalizeStyleDefinitionValues(
+                    Object.assign(
+                        {},
+                        startingStateVariableDefinitions[styleNumber],
+                    ),
                 );
             }
 
@@ -456,15 +438,25 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                         cloneDefaultStyleWithMissingColorWords();
                 }
 
-                const theNewDef = Object.assign(
-                    {},
-                    child.stateValues.styleDefinition,
+                const theNewDef = normalizeStyleDefinitionValues(
+                    Object.assign({}, child.stateValues.styleDefinition),
                 );
 
-                addMissingChildStyleColorFields(
-                    theNewDef,
-                    childStyleDefinitionColorItems,
-                );
+                if (child.position) {
+                    for (const key in theNewDef) {
+                        const typedKey = key as StyleDefinitionKey;
+                        const value = theNewDef[typedKey];
+                        if (!value) {
+                            continue;
+                        }
+
+                        if (value.position === undefined) {
+                            value.position = child.position;
+                        }
+                    }
+                }
+
+                addMissingChildStyleColorFields(theNewDef);
 
                 for (const item of widthItems) {
                     const widthKey = `${item}Width` as StyleDefinitionKey;
@@ -472,17 +464,37 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                         `${widthKey}Word` as StyleDefinitionKey;
 
                     if (widthKey in theNewDef && !(widthWordKey in theNewDef)) {
-                        const widthValue = theNewDef[widthKey];
-                        if (typeof widthValue !== "number") {
+                        const widthValue = getStyleValueNumber(
+                            theNewDef,
+                            widthKey,
+                        );
+                        if (widthValue === undefined) {
                             continue;
                         }
 
+                        const widthPosition = theNewDef[widthKey]?.position;
+
                         if (widthValue >= 4) {
-                            theNewDef[widthWordKey] = "thick";
+                            setStyleValue(
+                                theNewDef,
+                                widthWordKey,
+                                "thick",
+                                widthPosition,
+                            );
                         } else if (widthValue <= 1) {
-                            theNewDef[widthWordKey] = "thin";
+                            setStyleValue(
+                                theNewDef,
+                                widthWordKey,
+                                "thin",
+                                widthPosition,
+                            );
                         } else {
-                            theNewDef[widthWordKey] = "";
+                            setStyleValue(
+                                theNewDef,
+                                widthWordKey,
+                                "",
+                                widthPosition,
+                            );
                         }
                     }
                 }
@@ -493,14 +505,37 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                         `${styleKey}Word` as StyleDefinitionKey;
 
                     if (styleKey in theNewDef && !(styleWordKey in theNewDef)) {
-                        const lineStyle = theNewDef[styleKey];
+                        const lineStyle = getStyleValueString(
+                            theNewDef,
+                            styleKey,
+                        );
+                        if (!lineStyle) {
+                            continue;
+                        }
+
+                        const lineStylePosition = theNewDef[styleKey]?.position;
 
                         if (lineStyle === "dashed") {
-                            theNewDef[styleWordKey] = "dashed";
+                            setStyleValue(
+                                theNewDef,
+                                styleWordKey,
+                                "dashed",
+                                lineStylePosition,
+                            );
                         } else if (lineStyle === "dotted") {
-                            theNewDef[styleWordKey] = "dotted";
+                            setStyleValue(
+                                theNewDef,
+                                styleWordKey,
+                                "dotted",
+                                lineStylePosition,
+                            );
                         } else {
-                            theNewDef[styleWordKey] = "";
+                            setStyleValue(
+                                theNewDef,
+                                styleWordKey,
+                                "",
+                                lineStylePosition,
+                            );
                         }
                     }
                 }
@@ -509,24 +544,53 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                     "markerStyle" in theNewDef &&
                     !("markerStyleWord" in theNewDef)
                 ) {
-                    if (typeof theNewDef.markerStyle === "string") {
-                        theNewDef.markerStyleWord = theNewDef.markerStyle;
+                    const markerStyle = getStyleValueString(
+                        theNewDef,
+                        "markerStyle",
+                    );
+                    const markerStylePosition = theNewDef.markerStyle?.position;
+
+                    if (markerStyle) {
+                        setStyleValue(
+                            theNewDef,
+                            "markerStyleWord",
+                            markerStyle,
+                            markerStylePosition,
+                        );
                     }
 
-                    if (theNewDef.markerStyleWord === "circle") {
-                        theNewDef.markerStyleWord = "point";
+                    const markerStyleWord = getStyleValueString(
+                        theNewDef,
+                        "markerStyleWord",
+                    );
+
+                    if (markerStyleWord === "circle") {
+                        setStyleValue(
+                            theNewDef,
+                            "markerStyleWord",
+                            "point",
+                            markerStylePosition,
+                        );
                     } else if (
-                        typeof theNewDef.markerStyleWord === "string" &&
-                        theNewDef.markerStyleWord.slice(0, 8) === "triangle"
+                        markerStyleWord &&
+                        markerStyleWord.slice(0, 8) === "triangle"
                     ) {
-                        theNewDef.markerStyleWord = "triangle";
+                        setStyleValue(
+                            theNewDef,
+                            "markerStyleWord",
+                            "triangle",
+                            markerStylePosition,
+                        );
                     }
                 }
 
                 Object.assign(styleDef, theNewDef);
             }
 
-            return { setValue: { styleDefinitions } };
+            const warnings =
+                contrastWarningsForStyleDefinitions(styleDefinitions);
+
+            return { setValue: { styleDefinitions }, sendWarnings: warnings };
         },
     };
 
@@ -569,7 +633,12 @@ export function returnSelectedStyleStateVariableDefinition(): StateVariableDefin
                 if (selectedStyle === undefined) {
                     selectedStyle = cloneDefaultStyleWithMissingColorWords();
                 }
-                return { setValue: { selectedStyle } };
+
+                return {
+                    setValue: {
+                        selectedStyle: unwrapStyleDefinition(selectedStyle),
+                    },
+                };
             },
         },
     };
