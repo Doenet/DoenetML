@@ -478,11 +478,17 @@ export default class Core {
     addErrorWarning({ type, message, position, sourceDoc, level }) {
         if (type === "warning") {
             const haveSamePosition = (warningPosition, newPosition) => {
-                if (warningPosition === undefined || newPosition === undefined) {
+                if (
+                    warningPosition === undefined ||
+                    newPosition === undefined
+                ) {
                     return warningPosition === newPosition;
                 }
 
-                return JSON.stringify(warningPosition) === JSON.stringify(newPosition);
+                return (
+                    JSON.stringify(warningPosition) ===
+                    JSON.stringify(newPosition)
+                );
             };
 
             const alreadyHaveWarning = this.errorWarnings.warnings.some(
