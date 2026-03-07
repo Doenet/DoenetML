@@ -158,6 +158,10 @@ export default class Image extends BlockComponent {
                     childGroups: ["shortDescriptions"],
                     variableNames: ["text"],
                 },
+                upgradeAccessibilityWarningsToErrors: {
+                    dependencyType: "flag",
+                    flagName: "upgradeAccessibilityWarningsToErrors",
+                },
                 decorative: {
                     dependencyType: "stateVariable",
                     variableName: "decorative",
@@ -185,7 +189,14 @@ export default class Image extends BlockComponent {
 
                 return {
                     setValue: { shortDescription },
-                    sendWarnings: warnings,
+                    ...(dependencyValues.upgradeAccessibilityWarningsToErrors
+                        ? {
+                              sendErrors: warnings.map((warning) => ({
+                                  ...warning,
+                                  type: "error",
+                              })),
+                          }
+                        : { sendWarnings: warnings }),
                 };
             },
         };

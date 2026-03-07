@@ -7664,6 +7664,7 @@ What is the derivative of <function name="f">x^2</function>?
         let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(9);
+        expect(errorWarnings.warnings.length).eq(0);
 
         expect(errorWarnings.errors[0].message).contain(
             `an <answer> creating an input must have a short description or a label`,

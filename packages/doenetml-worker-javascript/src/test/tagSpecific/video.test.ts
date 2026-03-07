@@ -192,6 +192,7 @@ describe("Video tag tests @group1", async () => {
         let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(1);
+        expect(errorWarnings.warnings.length).eq(0);
 
         expect(errorWarnings.errors[0].message).contain(
             `<video> must have a short description`,

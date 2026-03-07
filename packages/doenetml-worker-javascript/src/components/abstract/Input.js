@@ -571,6 +571,10 @@ export default class Input extends InlineComponent {
                     childGroups: ["shortDescriptions"],
                     variableNames: ["text"],
                 },
+                upgradeAccessibilityWarningsToErrors: {
+                    dependencyType: "flag",
+                    flagName: "upgradeAccessibilityWarningsToErrors",
+                },
 
                 label: {
                     dependencyType: "stateVariable",
@@ -612,7 +616,14 @@ export default class Input extends InlineComponent {
 
                 return {
                     setValue: { shortDescription },
-                    sendWarnings: warnings,
+                    ...(dependencyValues.upgradeAccessibilityWarningsToErrors
+                        ? {
+                              sendErrors: warnings.map((warning) => ({
+                                  ...warning,
+                                  type: "error",
+                              })),
+                          }
+                        : { sendWarnings: warnings }),
                 };
             },
         };

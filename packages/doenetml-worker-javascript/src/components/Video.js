@@ -108,6 +108,10 @@ export default class Video extends BlockComponent {
                     childGroups: ["shortDescriptions"],
                     variableNames: ["text"],
                 },
+                upgradeAccessibilityWarningsToErrors: {
+                    dependencyType: "flag",
+                    flagName: "upgradeAccessibilityWarningsToErrors",
+                },
             }),
             definition({ dependencyValues }) {
                 let shortDescription = "";
@@ -131,7 +135,14 @@ export default class Video extends BlockComponent {
 
                 return {
                     setValue: { shortDescription },
-                    sendWarnings: warnings,
+                    ...(dependencyValues.upgradeAccessibilityWarningsToErrors
+                        ? {
+                              sendErrors: warnings.map((warning) => ({
+                                  ...warning,
+                                  type: "error",
+                              })),
+                          }
+                        : { sendWarnings: warnings }),
                 };
             },
         };
