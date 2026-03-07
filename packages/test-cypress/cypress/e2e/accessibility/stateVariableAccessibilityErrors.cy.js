@@ -19,14 +19,25 @@ describe(
             });
         }
 
-        function expectAccessibilityErrorInErrorList(messagePart) {
-            cy.window().then((win) => {
+        function expectAccessibilityErrorInErrorList(
+            messagePart,
+            expectedCount = 1,
+        ) {
+            cy.window().should((win) => {
+                expect(win.returnErrorWarnings1).to.be.a("function");
                 const errorWarnings = win.returnErrorWarnings1();
-                expect(
-                    errorWarnings.errors.some((x) =>
-                        x.message.includes(messagePart),
-                    ),
-                ).eq(true);
+                const matchingErrors = errorWarnings.errors.filter((x) =>
+                    x.message.includes(messagePart),
+                );
+                expect(matchingErrors.length).eq(expectedCount);
+            });
+        }
+
+        function expectTotalAccessibilityErrorsInErrorList(expectedCount) {
+            cy.window().should((win) => {
+                expect(win.returnErrorWarnings1).to.be.a("function");
+                const errorWarnings = win.returnErrorWarnings1();
+                expect(errorWarnings.errors.length).eq(expectedCount);
             });
         }
 
@@ -42,7 +53,8 @@ describe(
             const messagePart =
                 "<graph> must either have a short description or be specified as decorative";
 
-            expectAccessibilityErrorInErrorList(messagePart);
+            expectTotalAccessibilityErrorsInErrorList(1);
+            expectAccessibilityErrorInErrorList(messagePart, 1);
             cy.get(".doenet-viewer").contains(messagePart);
         });
 
@@ -60,11 +72,25 @@ describe(
             const booleanInputMessage =
                 "<booleanInput> must have a short description or a label";
 
-            expectAccessibilityErrorInErrorList(textInputMessage);
-            expectAccessibilityErrorInErrorList(booleanInputMessage);
+            expectTotalAccessibilityErrorsInErrorList(2);
+            expectAccessibilityErrorInErrorList(textInputMessage, 1);
+            expectAccessibilityErrorInErrorList(booleanInputMessage, 1);
 
             cy.get(".doenet-viewer").contains(textInputMessage);
             cy.get(".doenet-viewer").contains(booleanInputMessage);
+        });
+
+        it("renders _error for answer accessibility upgraded error", () => {
+            postDoenetMLWithUpgradeFlag(`
+<answer>x</answer>
+`);
+
+            const answerMessage =
+                "an <answer> creating an input must have a short description or a label";
+
+            expectTotalAccessibilityErrorsInErrorList(1);
+            expectAccessibilityErrorInErrorList(answerMessage, 1);
+            cy.get(".doenet-viewer").contains(answerMessage);
         });
     },
 );
