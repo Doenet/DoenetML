@@ -48,12 +48,22 @@ export class StyleDefinition extends BaseComponent {
 
                 for (let styleAttr in styleAttributes) {
                     if (dependencyValues[styleAttr] !== null) {
-                        styleDefinition[styleAttr] =
+                        const value =
                             dependencyValues[styleAttr].stateValues.value;
 
-                        if (typeof styleDefinition[styleAttr] === "string") {
-                            styleDefinition[styleAttr] =
-                                styleDefinition[styleAttr].toLowerCase();
+                        if (typeof value === "string") {
+                            styleDefinition[styleAttr] = {
+                                style: value.toLowerCase(),
+                            };
+                        } else {
+                            styleDefinition[styleAttr] = {
+                                style: value,
+                            };
+                        }
+
+                        if (dependencyValues[styleAttr].position) {
+                            styleDefinition[styleAttr].position =
+                                dependencyValues[styleAttr].position;
                         }
                     }
                 }

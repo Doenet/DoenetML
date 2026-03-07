@@ -135,7 +135,7 @@ describe("Warning Tests @group4", async () => {
         let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(2);
+        expect(errorWarnings.warnings.length).eq(1);
 
         expect(errorWarnings.warnings[0].message).contain(
             "Cannot define an angle between 3 lines",
@@ -145,15 +145,6 @@ describe("Warning Tests @group4", async () => {
         expect(errorWarnings.warnings[0].position.start.column).eq(3);
         expect(errorWarnings.warnings[0].position.end.line).eq(6);
         expect(errorWarnings.warnings[0].position.end.column).eq(52);
-
-        expect(errorWarnings.warnings[1].message).contain(
-            "Cannot define an angle between 3 lines",
-        );
-        expect(errorWarnings.warnings[1].level).eq(2);
-        expect(errorWarnings.warnings[1].position.start.line).eq(6);
-        expect(errorWarnings.warnings[1].position.start.column).eq(3);
-        expect(errorWarnings.warnings[1].position.end.line).eq(6);
-        expect(errorWarnings.warnings[1].position.end.column).eq(52);
     });
 
     it("From state variable inverse definitions", async () => {
@@ -376,7 +367,7 @@ describe("Warning Tests @group4", async () => {
         ).eq("sin(x)");
 
         expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(17);
+        expect(errorWarnings.warnings.length).eq(15);
 
         expect(errorWarnings.warnings[5].message).contain(
             "Invalid value try1 for attribute format",
@@ -384,59 +375,49 @@ describe("Warning Tests @group4", async () => {
         expect(errorWarnings.warnings[5].position.start.line).eq(4);
 
         expect(errorWarnings.warnings[6].message).contain(
-            "Invalid value new2 for attribute format",
+            "Invalid value try2 for attribute format",
         );
-        expect(errorWarnings.warnings[6].position.start.line).eq(7);
+        expect(errorWarnings.warnings[6].position.start.line).eq(5);
 
         expect(errorWarnings.warnings[7].message).contain(
             "Invalid value try2 for attribute format",
         );
-        expect(errorWarnings.warnings[7].position.start.line).eq(5);
+        expect(errorWarnings.warnings[7].position.start.line).eq(9);
 
         expect(errorWarnings.warnings[8].message).contain(
-            "Invalid value try2 for attribute format",
-        );
-        expect(errorWarnings.warnings[8].position.start.line).eq(9);
-
-        expect(errorWarnings.warnings[9].message).contain(
             "Invalid value try3 for attribute format",
         );
-        expect(errorWarnings.warnings[9].position.start.line).eq(6);
+        expect(errorWarnings.warnings[8].position.start.line).eq(6);
 
-        expect(errorWarnings.warnings[10].message).contain(
-            "Invalid value new2 for attribute format",
-        );
-        expect(errorWarnings.warnings[10].position.start.line).eq(7);
-
-        expect(errorWarnings.warnings[11].message).contain(
+        expect(errorWarnings.warnings[9].message).contain(
             "Invalid value try4 for attribute format",
         );
-        expect(errorWarnings.warnings[11].position.start.line).eq(7);
+        expect(errorWarnings.warnings[9].position.start.line).eq(7);
 
-        expect(errorWarnings.warnings[12].message).contain(
+        expect(errorWarnings.warnings[10].message).contain(
             "Invalid value try5 for attribute format",
         );
-        expect(errorWarnings.warnings[12].position.start.line).eq(8);
+        expect(errorWarnings.warnings[10].position.start.line).eq(8);
+
+        expect(errorWarnings.warnings[11].message).contain(
+            "Invalid value try6 for attribute format",
+        );
+        expect(errorWarnings.warnings[11].position.start.line).eq(5);
+
+        expect(errorWarnings.warnings[12].message).contain(
+            "Invalid value try6 for attribute format",
+        );
+        expect(errorWarnings.warnings[12].position.start.line).eq(9);
 
         expect(errorWarnings.warnings[13].message).contain(
-            "Invalid value try6 for attribute format",
-        );
-        expect(errorWarnings.warnings[13].position.start.line).eq(5);
-
-        expect(errorWarnings.warnings[14].message).contain(
-            "Invalid value try6 for attribute format",
-        );
-        expect(errorWarnings.warnings[14].position.start.line).eq(9);
-
-        expect(errorWarnings.warnings[15].message).contain(
             "Invalid value try7 for attribute format",
         );
-        expect(errorWarnings.warnings[15].position.start.line).eq(10);
+        expect(errorWarnings.warnings[13].position.start.line).eq(10);
 
-        expect(errorWarnings.warnings[16].message).contain(
+        expect(errorWarnings.warnings[14].message).contain(
             "Invalid value try8 for attribute format",
         );
-        expect(errorWarnings.warnings[16].position.start.line).eq(11);
+        expect(errorWarnings.warnings[14].position.start.line).eq(11);
     });
 
     it("From action", async () => {
