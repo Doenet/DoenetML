@@ -17,6 +17,7 @@ export function CypressTest() {
         allowLocalState: boolean;
         allowSaveEvents: boolean;
         autoSubmit: boolean;
+        upgradeAccessibilityWarningsToErrors: boolean;
         render: boolean;
         darkMode: "light" | "dark";
         showEditor: boolean;
@@ -36,6 +37,7 @@ export function CypressTest() {
         allowLocalState: false,
         allowSaveEvents: false,
         autoSubmit: false,
+        upgradeAccessibilityWarningsToErrors: false,
         render: true,
         darkMode: "light",
         showEditor: false,
@@ -101,6 +103,10 @@ export function CypressTest() {
         testSettings.allowSaveEvents,
     );
     const [autoSubmit, setAutoSubmit] = useState(testSettings.autoSubmit);
+    const [
+        upgradeAccessibilityWarningsToErrors,
+        setUpgradeAccessibilityWarningsToErrors,
+    ] = useState(testSettings.upgradeAccessibilityWarningsToErrors);
     const [render, setRender] = useState(testSettings.render);
 
     const [showEditor, setShowEditor] = useState(testSettings.showEditor);
@@ -145,6 +151,16 @@ export function CypressTest() {
 
         if (e.data.answerResponseCounts !== undefined) {
             newAnswerResponseCounts = e.data.answerResponseCounts;
+        }
+
+        if (e.data.flags?.upgradeAccessibilityWarningsToErrors !== undefined) {
+            const value = Boolean(
+                e.data.flags.upgradeAccessibilityWarningsToErrors,
+            );
+            testSettings.upgradeAccessibilityWarningsToErrors = value;
+            localStorage.setItem("test settings", JSON.stringify(testSettings));
+            setUpgradeAccessibilityWarningsToErrors(value);
+            setUpdateNumber((was: number) => was + 1);
         }
 
         // don't do anything if receive a message from another source (like the youtube player)
@@ -595,6 +611,7 @@ export function CypressTest() {
                     allowLocalState,
                     allowSaveEvents,
                     autoSubmit,
+                    upgradeAccessibilityWarningsToErrors,
                 }}
                 attemptNumber={attemptNumber}
                 requestedVariantIndex={requestedVariantIndex.current}
