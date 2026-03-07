@@ -663,6 +663,18 @@ export default class Core {
                 this.document,
             );
 
+            if (this.errorComponentsToAdd.length > 0) {
+                await this.addQueuedErrorComponentsFromStateVariables();
+
+                // Adding queued _error components can touch composites and alter
+                // what needs to be rendered from the document root.
+                await this.replacementChangesFromCompositesToUpdate();
+
+                results = await this.initializeRenderedComponentInstruction(
+                    this.document,
+                );
+            }
+
             this.documentRendererInstructions = results.componentToRender;
 
             let updateInstructions = [
