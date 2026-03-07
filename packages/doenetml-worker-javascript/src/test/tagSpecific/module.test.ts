@@ -528,12 +528,10 @@ describe("Module tag tests @group1", async () => {
 
         let errorWarnings = core.core!.errorWarnings;
         expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(2);
-        for (let i = 0; i < 2; i++) {
-            expect(errorWarnings.warnings[i].message).contain(
-                `The component <boolean name="disabled"> cannot be used as an attribute for a module because the <module> component type already has a "disabled" attribute defined`,
-            );
-        }
+        expect(errorWarnings.warnings.length).eq(1);
+        expect(errorWarnings.warnings[0].message).contain(
+            `The component <boolean name="disabled"> cannot be used as an attribute for a module because the <module> component type already has a "disabled" attribute defined`,
+        );
     });
 
     it("copy module and overwrite attribute values", async () => {

@@ -5711,7 +5711,7 @@ describe("Point tag tests @group4", async () => {
         let errorWarnings = core.core!.errorWarnings;
 
         expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(3);
+        expect(errorWarnings.warnings.length).eq(2);
 
         expect(errorWarnings.warnings[0].message).contain(
             "Cannot attract to a <legend> as it doesn't have a nearestPoint state variable",
@@ -5722,20 +5722,12 @@ describe("Point tag tests @group4", async () => {
         expect(errorWarnings.warnings[0].position.end.column).eq(19);
 
         expect(errorWarnings.warnings[1].message).contain(
-            "Cannot attract to a <legend> as it doesn't have a nearestPoint state variable",
-        );
-        expect(errorWarnings.warnings[1].position.start.line).eq(5);
-        expect(errorWarnings.warnings[1].position.start.column).eq(16);
-        expect(errorWarnings.warnings[1].position.end.line).eq(5);
-        expect(errorWarnings.warnings[1].position.end.column).eq(19);
-
-        expect(errorWarnings.warnings[2].message).contain(
             "Cannot constrain to a <legend> as it doesn't have a nearestPoint state variable",
         );
-        expect(errorWarnings.warnings[2].position.start.line).eq(11);
-        expect(errorWarnings.warnings[2].position.start.column).eq(18);
-        expect(errorWarnings.warnings[2].position.end.line).eq(11);
-        expect(errorWarnings.warnings[2].position.end.column).eq(21);
+        expect(errorWarnings.warnings[1].position.start.line).eq(11);
+        expect(errorWarnings.warnings[1].position.start.column).eq(18);
+        expect(errorWarnings.warnings[1].position.end.line).eq(11);
+        expect(errorWarnings.warnings[1].position.end.column).eq(21);
     });
 
     it("copy point with no arguments, specify individual coordinates", async () => {
