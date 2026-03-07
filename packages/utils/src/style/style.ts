@@ -1,4 +1,5 @@
 import { colorValueToWord } from "./colorWords";
+import { accessibilityWarningsResult } from "../errors/errorWarning";
 import {
     getStyleValueNumber,
     getStyleValueString,
@@ -594,16 +595,12 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
             const warnings =
                 contrastWarningsForStyleDefinitions(styleDefinitions);
 
-            if (dependencyValues.upgradeAccessibilityWarningsToErrors) {
-                const errors = warnings.map((warning) => ({
-                    ...warning,
-                    type: "error",
-                }));
-
-                return { setValue: { styleDefinitions }, sendErrors: errors };
-            }
-
-            return { setValue: { styleDefinitions }, sendWarnings: warnings };
+            return accessibilityWarningsResult({
+                setValue: { styleDefinitions },
+                warnings,
+                upgradeWarningsToErrors:
+                    dependencyValues.upgradeAccessibilityWarningsToErrors,
+            });
         },
     };
 

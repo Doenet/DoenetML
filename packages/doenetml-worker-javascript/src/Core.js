@@ -476,6 +476,12 @@ export default class Core {
         return { errorWarnings: this.errorWarnings };
     }
 
+    /**
+     * Add an error or warning to `this.errorWarnings`, deduplicating by
+     * message + location (+ level for warnings).
+     *
+     * @returns {boolean} `true` if a new entry was added, `false` if deduped.
+     */
     addErrorWarning({ type, message, position, sourceDoc, level }) {
         const sameLocation = (pointA, pointB) =>
             (pointA?.offset ?? undefined) === (pointB?.offset ?? undefined) &&
@@ -536,6 +542,27 @@ export default class Core {
         }
         this.newErrorWarning = true;
         return true;
+    }
+
+    /**
+     * Find the nearest available source position/sourceDoc for a component,
+     * walking up ancestors when the component itself has no position.
+     */
+    getSourceLocationForComponent(component) {
+        let position = component.position;
+        let sourceDoc = component.sourceDoc;
+        let comp = component;
+
+        while (position === undefined) {
+            if (!(comp.parentIdx > 0)) {
+                break;
+            }
+            comp = this._components[comp.parentIdx];
+            position = comp.position;
+            sourceDoc = comp.sourceDoc;
+        }
+
+        return { position, sourceDoc };
     }
 
     async addComponents({
@@ -7935,17 +7962,8 @@ export default class Core {
         }
 
         if (result.sendWarnings || result.sendErrors) {
-            let position = component.position;
-            let sourceDoc = component.sourceDoc;
-            let comp = component;
-            while (position === undefined) {
-                if (!(comp.parentIdx > 0)) {
-                    break;
-                }
-                comp = this._components[comp.parentIdx];
-                position = comp.position;
-                sourceDoc = comp.sourceDoc;
-            }
+            const { position, sourceDoc } =
+                this.getSourceLocationForComponent(component);
 
             if (result.sendWarnings) {
                 for (let warning of result.sendWarnings) {
@@ -9464,6 +9482,10 @@ export default class Core {
         };
     }
 
+    /**
+     * Create and insert `_error` siblings requested by state-variable definitions
+     * during initial document construction.
+     */
     async addQueuedErrorComponentsFromStateVariables() {
         if (!this.errorComponentsToAdd?.length) {
             return;

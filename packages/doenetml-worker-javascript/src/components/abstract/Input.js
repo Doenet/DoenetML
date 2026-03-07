@@ -2,6 +2,7 @@ import {
     returnLabelAttributes,
     returnLabelStateVariableDefinitions,
 } from "../../utils/label";
+import { accessibilityWarningsResult } from "@doenet/utils";
 import InlineComponent from "./InlineComponent";
 
 export default class Input extends InlineComponent {
@@ -614,17 +615,12 @@ export default class Input extends InlineComponent {
                     });
                 }
 
-                return {
+                return accessibilityWarningsResult({
                     setValue: { shortDescription },
-                    ...(dependencyValues.upgradeAccessibilityWarningsToErrors
-                        ? {
-                              sendErrors: warnings.map((warning) => ({
-                                  ...warning,
-                                  type: "error",
-                              })),
-                          }
-                        : { sendWarnings: warnings }),
-                };
+                    warnings,
+                    upgradeWarningsToErrors:
+                        dependencyValues.upgradeAccessibilityWarningsToErrors,
+                });
             },
         };
 

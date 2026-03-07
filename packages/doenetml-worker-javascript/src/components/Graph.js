@@ -1,6 +1,7 @@
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
 import {
+    accessibilityWarningsResult,
     orderedPercentWidthMidpoints,
     orderedWidthMidpoints,
     widthsBySize,
@@ -291,17 +292,12 @@ export default class Graph extends BlockComponent {
                     });
                 }
 
-                return {
+                return accessibilityWarningsResult({
                     setValue: { shortDescription },
-                    ...(dependencyValues.upgradeAccessibilityWarningsToErrors
-                        ? {
-                              sendErrors: warnings.map((warning) => ({
-                                  ...warning,
-                                  type: "error",
-                              })),
-                          }
-                        : { sendWarnings: warnings }),
-                };
+                    warnings,
+                    upgradeWarningsToErrors:
+                        dependencyValues.upgradeAccessibilityWarningsToErrors,
+                });
             },
         };
 
