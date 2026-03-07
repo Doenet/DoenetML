@@ -668,4 +668,30 @@ a />
             expect(error!.message).toContain(errorMsg);
         }
     });
+
+    it("upgraded warning errors follow references", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<textInput name="ti1"><label>$ti1</label></textInput>
+<textInput name="ti2" prefill="my label"><label>$ti2</label></textInput>
+`,
+            flags: { upgradeAccessibilityWarningsToErrors: true },
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(1);
+        expect(errorWarnings.warnings.length).eq(0);
+
+        const errorMsg = "<textInput> must have a short description or a label";
+
+        const errorsOnLines = [2];
+
+        for (const lineNum of errorsOnLines) {
+            const error = errorWarnings.errors.find(
+                (error) => error.position.start.line === lineNum,
+            );
+            expect(error!.message).toContain(errorMsg);
+        }
+    });
 });

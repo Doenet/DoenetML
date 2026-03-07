@@ -1,5 +1,3 @@
-import { cesc } from "@doenet/utils";
-
 describe("Error Tests", { tags: ["@group2"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -30,7 +28,7 @@ describe("Error Tests", { tags: ["@group2"] }, function () {
             );
         });
 
-        cy.get(cesc("#text1")).should("contain.text", "hello!");
+        cy.get("#text1").should("contain.text", "hello!");
 
         cy.get("#a1").should("contain.text", "Invalid component type: <a>");
         cy.get("#a1").should("contain.text", "lines 5–6");
@@ -41,15 +39,17 @@ describe("Error Tests", { tags: ["@group2"] }, function () {
         );
         cy.get("#a1").should("contain.text", "line 5");
 
-        cy.get(cesc("#point1")).should("contain.text", "was not closed");
-        cy.get(cesc("#point1")).should(
-            "contain.text",
-            "a `>` appears to be missing",
-        );
-        cy.get(cesc("#point1")).should("contain.text", "lines 10–11");
+        cy.get("#point1").should("contain.text", "was not closed");
+        cy.get("#point1").should("contain.text", "a `>` appears to be missing");
+        cy.get("#point1").should("contain.text", "lines 10–11");
 
-        cy.get(cesc("#point2")).should("have.text", "(1,2)");
-        cy.get(cesc("#text2")).should("have.text", "afterwards");
+        cy.get("#point2").should("have.text", "(1,2)");
+        cy.get("#text2").should("have.text", "afterwards");
+
+        cy.get(".doenet-viewer").should(
+            "contain.text",
+            "document contains errors",
+        );
 
         cy.window().then(async (win) => {
             let errorWarnings = win.returnErrorWarnings1();
@@ -78,6 +78,79 @@ describe("Error Tests", { tags: ["@group2"] }, function () {
             expect(errorWarnings.errors[2].position.start.column).eq(3);
             expect(errorWarnings.errors[2].position.end.line).eq(10);
             expect(errorWarnings.errors[2].position.end.column).eq(9);
+        });
+    });
+
+    it("Display 'document contains errors' message only on initial error", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+                <textInput name="ti" prefill="my label"><label>$ti</label></textInput>
+`,
+                    flags: { upgradeAccessibilityWarningsToErrors: true },
+                },
+                "*",
+            );
+
+            cy.log("No errors to start");
+
+            cy.get("#ti").should("have.text", "my label");
+            cy.window().then(async (win) => {
+                let errorWarnings = win.returnErrorWarnings1();
+
+                expect(errorWarnings.errors.length).eq(0);
+                expect(errorWarnings.warnings.length).eq(0);
+            });
+
+            cy.get(".doenet-viewer").should(
+                "not.contain.text",
+                "document contains errors",
+            );
+
+            cy.log("remove label to cause error");
+
+            cy.get("#ti_input").clear().blur();
+            cy.get("#ti").should("not.have.text", "my label");
+
+            cy.window().then(async (win) => {
+                let errorWarnings = win.returnErrorWarnings1();
+
+                expect(errorWarnings.errors.length).eq(1);
+                expect(errorWarnings.warnings.length).eq(0);
+
+                expect(errorWarnings.errors[0].message).contain(
+                    "<textInput> must have a short description or a label",
+                );
+            });
+
+            cy.log(
+                "No message about document contains errors because error is not initial",
+            );
+            cy.get(".doenet-viewer").should(
+                "not.contain.text",
+                "document contains errors",
+            );
+        });
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+                <textInput name="ti" prefill=""><label>$ti</label></textInput>
+`,
+                    flags: { upgradeAccessibilityWarningsToErrors: true },
+                },
+                "*",
+            );
+
+            cy.log(
+                "Show document contains errors message because error is initial",
+            );
+            cy.get(".doenet-viewer").should(
+                "contain.text",
+                "document contains errors",
+            );
         });
     });
 });
