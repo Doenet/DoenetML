@@ -150,6 +150,7 @@ export function DocViewer({
         errors: any[];
         warnings: any[];
     }>({ errors: [], warnings: [] });
+    const [hasInitialError, setHasInitialError] = useState(false);
 
     const actionsBeforeCoreCreated = useRef<
         {
@@ -749,6 +750,9 @@ export function DocViewer({
         if (newErrorWarnings) {
             errorWarnings.current = newErrorWarnings;
             setErrorsAndWarningsCallback?.(errorWarnings.current);
+            if (init && newErrorWarnings.errors.length > 0) {
+                setHasInitialError(true);
+            }
         }
 
         if (
@@ -1014,6 +1018,7 @@ export function DocViewer({
 
     async function startCore() {
         let thisCoreWorker = coreWorker.current;
+        setHasInitialError(false);
 
         if (coreCreated.current || !thisCoreWorker) {
             //Kill the current core if it exists
@@ -1082,11 +1087,15 @@ export function DocViewer({
 
             if (dastResult.errorWarnings) {
                 errorWarnings.current = dastResult.errorWarnings;
+                if (errorWarnings.current.errors.length > 0) {
+                    setHasInitialError(true);
+                }
                 setErrorsAndWarningsCallback?.(errorWarnings.current);
             }
         } else {
             setIsInErrorState?.(true);
             setErrMsg(dastResult.errMsg);
+            setHasInitialError(true);
         }
 
         coreCreated.current = true;
@@ -1384,7 +1393,7 @@ export function DocViewer({
     }
 
     let errorOverview = null;
-    if (documentRenderer && errorWarnings.current?.errors.length > 0) {
+    if (documentRenderer && hasInitialError) {
         let errorStyle = {
             backgroundColor: "#ff9999",
             textAlign: "center" as const,
