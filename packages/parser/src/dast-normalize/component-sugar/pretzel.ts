@@ -3,6 +3,7 @@ import { DastElement } from "../../types";
 /**
  * 1. For each `<problem>` child, replace each direct `<answer>` child with `<givenAnswer>`.
  * 2. Wrap the resulting children in a single `<_pretzelArranger>` child.
+ * 3. Forward `mode` to the arranger so mode-specific ordering can be computed.
  */
 export function pretzelSugar(node: DastElement) {
     if (node.name !== "pretzel") {

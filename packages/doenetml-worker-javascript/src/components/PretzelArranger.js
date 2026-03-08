@@ -26,9 +26,40 @@ function normalizePretzelMode(mode) {
     return mode?.toLowerCase() === "circuit" ? "circuit" : "pretzel";
 }
 
+/**
+ * Return the subset of 1-based problem indices that are permuted for a mode.
+ * In circuit mode, the first problem stays fixed and only the tail is permuted.
+ */
+function getProblemIndicesToPermute({ numProblems, mode }) {
+    const start = mode === "circuit" ? 2 : 1;
+    return [...Array(Math.max(numProblems - start + 1, 0)).keys()].map(
+        (x) => x + start,
+    );
+}
+
+/**
+ * Build full problem order from permuted indices for a mode.
+ */
+function buildProblemOrderFromPermutedIndices({
+    permutedIndices,
+    numProblems,
+    mode,
+}) {
+    if (mode === "circuit") {
+        return numProblems === 0 ? [] : [1, ...permutedIndices];
+    }
+
+    return permutedIndices;
+}
+
+/**
+ * Count order permutations available for the selected mode.
+ */
 function determineNumberOfPermutations({ numProblems, mode }) {
-    const numProblemsToPermute =
-        mode === "circuit" ? numProblems - 1 : numProblems;
+    const numProblemsToPermute = getProblemIndicesToPermute({
+        numProblems,
+        mode,
+    }).length;
 
     let numberOfPermutations = 1;
     for (let i = 2; i <= numProblemsToPermute; i++) {
@@ -38,37 +69,26 @@ function determineNumberOfPermutations({ numProblems, mode }) {
     return numberOfPermutations;
 }
 
+/**
+ * Shuffle problem order in a mode-aware way using the variant RNG.
+ */
 function shuffleProblemOrder({ numProblems, variantRng, mode }) {
-    if (mode === "circuit") {
-        if (numProblems === 0) {
-            return [];
-        }
+    const problemIndices = getProblemIndicesToPermute({ numProblems, mode });
 
-        const shuffledTail = [...Array(numProblems - 1).keys()].map(
-            (x) => x + 2,
-        );
-
-        for (let i = shuffledTail.length - 1; i > 0; i--) {
-            const rand = variantRng();
-            const j = Math.floor(rand * (i + 1));
-            [shuffledTail[i], shuffledTail[j]] = [
-                shuffledTail[j],
-                shuffledTail[i],
-            ];
-        }
-
-        return [1, ...shuffledTail];
-    }
-
-    const problemOrder = [...Array(numProblems).keys()].map((x) => x + 1);
-
-    for (let i = numProblems - 1; i > 0; i--) {
+    for (let i = problemIndices.length - 1; i > 0; i--) {
         const rand = variantRng();
         const j = Math.floor(rand * (i + 1));
-        [problemOrder[i], problemOrder[j]] = [problemOrder[j], problemOrder[i]];
+        [problemIndices[i], problemIndices[j]] = [
+            problemIndices[j],
+            problemIndices[i],
+        ];
     }
 
-    return problemOrder;
+    return buildProblemOrderFromPermutedIndices({
+        permutedIndices: problemIndices,
+        numProblems,
+        mode,
+    });
 }
 
 export default class PretzelArranger extends CompositeComponent {
@@ -388,6 +408,11 @@ export default class PretzelArranger extends CompositeComponent {
                 }
 
                 if (!validProblems) {
+                    // Deliberately keep user-facing diagnostics in terms of
+                    // public authoring syntax only. Even though parser sugar
+                    // can normalize `<answer>` into internal `givenAnswer`
+                    // nodes, we avoid mentioning `givenAnswer` in warnings so
+                    // we don't advertise a legacy form planned for deprecation.
                     warnings.push({
                         message:
                             "Invalid pretzel: each <problem> must contain one <statement> and one <answer>.",
@@ -471,14 +496,13 @@ export default class PretzelArranger extends CompositeComponent {
         for (let i = 0; i < numProblems; i++) {
             const problemIdx = problemOrder[i] - 1;
             const thisStatement = statements[problemIdx];
-            let correspondingAnswer = null;
 
             const answerIdx = getCorrespondingAnswerIdx({
                 problemIdx,
                 numProblems,
                 distractorSet,
             });
-            correspondingAnswer = givenAnswers[answerIdx];
+            const correspondingAnswer = givenAnswers[answerIdx];
 
             if (correspondingAnswer === null) {
                 replacements.push({
@@ -698,26 +722,18 @@ export default class PretzelArranger extends CompositeComponent {
         let indicesForEachDescendant = indicesForEachOption;
 
         // choose a permutation based on permutations index
-        let permutedIndices;
-        if (mode === "circuit") {
-            const tailIndices = [...Array(numProblems - 1).keys()].map(
-                (x) => x + 2,
-            );
-            const permutedTail = enumeratePermutations({
-                values: tailIndices,
-                maxNumber: permutationsIndex,
-            })[permutationsIndex - 1];
-            permutedIndices = numProblems === 0 ? [] : [1, ...permutedTail];
-        } else {
-            let indicesToPermute = [...Array(numProblems).keys()].map(
-                (x) => x + 1,
-            );
-
-            permutedIndices = enumeratePermutations({
+        const indicesToPermute = getProblemIndicesToPermute({
+            numProblems,
+            mode,
+        });
+        const permutedIndices = buildProblemOrderFromPermutedIndices({
+            permutedIndices: enumeratePermutations({
                 values: indicesToPermute,
                 maxNumber: permutationsIndex,
-            })[permutationsIndex - 1];
-        }
+            })[permutationsIndex - 1],
+            numProblems,
+            mode,
+        });
 
         // for each descendant, get unique variant corresponding
         // to the selected variant number and include that as a subvariant

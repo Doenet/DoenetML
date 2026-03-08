@@ -15,6 +15,27 @@ function parseNumericResponse(response) {
 }
 
 /**
+ * Return true if a response represents the distractor marker `x`.
+ */
+function isDistractorResponse(response) {
+    return response.trim().toLowerCase() === "x";
+}
+
+/**
+ * Compute response offset modulo the number of effective (non-distractor) problems.
+ */
+function calculateResponseOffset({
+    numericResponse,
+    effectiveProblemNum,
+    numEffectiveProblems,
+}) {
+    return (
+        (numericResponse - effectiveProblemNum + numEffectiveProblems) %
+        numEffectiveProblems
+    );
+}
+
+/**
  * Compute pretzel credit from current responses.
  *
  * Non-distractor responses must share a consistent offset modulo the number of
@@ -30,15 +51,8 @@ function calculatePretzelCredit({
     const numProblems = problemOrder.length;
     const numEffectiveProblems = numProblems - distractorSet.size;
 
-    // Note: if all problems are distractors (numEffectiveProblems === 0),
-    // award full credit iff every response is X.
-
     if (numEffectiveProblems === 0) {
-        return currentResponses.every(
-            (response) => response.trim().toLowerCase() === "x",
-        )
-            ? 1
-            : 0;
+        return currentResponses.every(isDistractorResponse) ? 1 : 0;
     }
 
     const problemNumToEffectiveProblemNum = Array(numProblems).fill(null);
@@ -51,13 +65,22 @@ function calculatePretzelCredit({
     }
 
     const offsets = [];
+        const expectedOffset =
+                mode === "circuit"
+                        ? // Circuit mode enforces a +1 step modulo the number of
+                            // effective problems; when there is exactly one effective
+                            // problem, +1 wraps to offset 0.
+                            numEffectiveProblems === 1
+                                ? 0
+                                : 1
+                        : null;
 
     for (let i = 0; i < numProblems; i++) {
         const problemNum = problemOrder[i];
         const response = currentResponses[i] ?? "";
 
         if (distractorSet.has(problemNum)) {
-            if (response.trim().toLowerCase() !== "x") {
+            if (!isDistractorResponse(response)) {
                 return 0;
             }
             continue;
@@ -69,22 +92,20 @@ function calculatePretzelCredit({
         }
 
         const effectiveProblemNum = problemNumToEffectiveProblemNum[problemNum];
+        const offset = calculateResponseOffset({
+            numericResponse,
+            effectiveProblemNum,
+            numEffectiveProblems,
+        });
 
         if (mode === "circuit") {
-            const expectedOffset = 1 % numEffectiveProblems;
-            const offset =
-                (numericResponse - effectiveProblemNum + numEffectiveProblems) %
-                numEffectiveProblems;
             if (offset !== expectedOffset) {
                 return 0;
             }
             continue;
         }
 
-        offsets.push(
-            (numericResponse - effectiveProblemNum + numEffectiveProblems) %
-                numEffectiveProblems,
-        );
+        offsets.push(offset);
     }
 
     if (mode === "circuit") {

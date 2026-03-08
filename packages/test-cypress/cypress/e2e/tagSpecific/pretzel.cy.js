@@ -5,7 +5,11 @@ describe("Pretzel Tag Tests", { tags: ["@group5"] }, function () {
     const pretzelButtonSelector = cesc("#pretzel1_button");
     const creditSelector = cesc("#ca");
     const pretzelRowsSelector = `${pretzelSelector} [data-test="pretzel-problem-row"]`;
+    const pretzelRowInputSelector = '[data-test="pretzel-row-input"] input';
 
+    /**
+     * Build a small pretzel activity, optionally in a specific mode.
+     */
     function createPretzelDoenetML(mode) {
         const modeAttribute = mode ? ` mode="${mode}"` : "";
         return `
@@ -37,6 +41,9 @@ describe("Pretzel Tag Tests", { tags: ["@group5"] }, function () {
      `;
     }
 
+    /**
+     * Enable local state persistence in the test runner controls.
+     */
     function enableLocalState() {
         cy.get("#testRunner_toggleControls").click();
         cy.get("#testRunner_allowLocalState").click();
@@ -44,6 +51,9 @@ describe("Pretzel Tag Tests", { tags: ["@group5"] }, function () {
         cy.get("#testRunner_toggleControls").click();
     }
 
+    /**
+     * Load DoenetML into the iframe runner, with optional requested variant.
+     */
     function postDoenetML(doenetML, requestedVariantIndex) {
         cy.window().then(async (win) => {
             const message = { doenetML };
@@ -54,6 +64,9 @@ describe("Pretzel Tag Tests", { tags: ["@group5"] }, function () {
         });
     }
 
+    /**
+     * Return the state variable object for `pretzel1`.
+     */
     function getPretzelState() {
         return cy.window().then(async (win) => {
             const stateVariables = await win.returnAllStateVariables1();
@@ -61,6 +74,9 @@ describe("Pretzel Tag Tests", { tags: ["@group5"] }, function () {
         });
     }
 
+    /**
+     * Wait until the pretzel component exists and state variables are available.
+     */
     function waitForPretzelLoaded() {
         cy.get(pretzelSelector).should("exist");
         cy.waitUntil(() =>
@@ -71,6 +87,9 @@ describe("Pretzel Tag Tests", { tags: ["@group5"] }, function () {
         );
     }
 
+    /**
+     * Get rendered statement text from a single pretzel row element.
+     */
     function statementTextFromRow(row) {
         return Cypress.$(row)
             .find('[data-test="pretzel-row-statement"]')
@@ -94,7 +113,7 @@ describe("Pretzel Tag Tests", { tags: ["@group5"] }, function () {
 
             const valueToEnter = statementTextFromRow($row);
             cy.wrap($row)
-                .find('[data-test="pretzel-row-input"] input')
+                .find(pretzelRowInputSelector)
                 .clear()
                 .type(valueToEnter);
         });
@@ -104,7 +123,7 @@ describe("Pretzel Tag Tests", { tags: ["@group5"] }, function () {
         cy.get(pretzelRowsSelector).each(($row) => {
             const expectedValue = statementTextFromRow($row);
             cy.wrap($row)
-                .find('[data-test="pretzel-row-input"] input')
+                .find(pretzelRowInputSelector)
                 .should("have.value", expectedValue);
         });
     }
@@ -125,7 +144,7 @@ describe("Pretzel Tag Tests", { tags: ["@group5"] }, function () {
     function assertFirstInputFixedToOne() {
         cy.get(pretzelRowsSelector)
             .first()
-            .find('[data-test="pretzel-row-input"] input')
+            .find(pretzelRowInputSelector)
             .should("be.disabled")
             .and("have.value", "1");
     }
@@ -142,13 +161,13 @@ describe("Pretzel Tag Tests", { tags: ["@group5"] }, function () {
                     currentValue === fallbackValue ? "99" : fallbackValue;
 
                 cy.wrap($row)
-                    .find('[data-test="pretzel-row-input"] input')
+                    .find(pretzelRowInputSelector)
                     .clear()
                     .type(incorrectValue);
                 submitAndAssert({ credit: 0, buttonText: "Incorrect" });
 
                 cy.wrap($row)
-                    .find('[data-test="pretzel-row-input"] input')
+                    .find(pretzelRowInputSelector)
                     .clear()
                     .type(currentValue);
                 submitAndAssert({ credit: 1, buttonText: "Correct" });

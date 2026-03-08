@@ -7,7 +7,7 @@ vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
 describe("Pretzel tag tests @group1", async () => {
-    it("basic pretzel, with answer or givenAnswer", async () => {
+    it("basic pretzel", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <pretzel name="p">
@@ -17,7 +17,7 @@ describe("Pretzel tag tests @group1", async () => {
         </problem>
         <problem>
             <statement name="s2"><p>What is 1+2?</p></statement>
-            <givenAnswer name="a2"><p>3</p></givenAnswer>
+            <answer name="a2"><p>3</p></answer>
         </problem>
         <problem>
             <statement name="s3"><p>What is 1+3?</p></statement>
@@ -369,7 +369,7 @@ describe("Pretzel tag tests @group1", async () => {
         expect(await enterResponsesAndSubmit(["X", "9", "X"])).eq(0);
     });
 
-    it("pretzel givenAnswer can include title", async () => {
+    it("pretzel supports titled alternate answer content", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <pretzel name="p">
@@ -379,7 +379,7 @@ describe("Pretzel tag tests @group1", async () => {
         </problem>
         <problem>
             <statement name="s2"><p>What is 1+2?</p></statement>
-            <givenAnswer name="a2"><title>Hint title</title><p>3</p></givenAnswer>
+            <answer name="a2"><title>Hint title</title><p>3</p></answer>
         </problem>
         <problem>
             <statement name="s3"><p>What is 1+3?</p></statement>
