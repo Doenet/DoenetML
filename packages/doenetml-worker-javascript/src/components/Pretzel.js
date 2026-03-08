@@ -1,17 +1,38 @@
 import BlockScoredComponent from "./abstract/BlockScoredComponent";
 
 /**
- * Parse a text response as a finite number.
- * Returns `null` for blank or non-numeric responses.
+ * Parse a text response as a finite integer.
+ * Returns `null` for blank or non-integer responses.
  */
-function parseNumericResponse(response) {
+function parseIntegerResponse(response) {
     const trimmedResponse = response.trim();
     if (trimmedResponse === "") {
         return null;
     }
 
     const numberResponse = Number(trimmedResponse);
-    return Number.isFinite(numberResponse) ? numberResponse : null;
+    return Number.isInteger(numberResponse) ? numberResponse : null;
+}
+
+/**
+ * Return true if a response represents the distractor marker `x`.
+ */
+function isDistractorResponse(response) {
+    return response.trim().toLowerCase() === "x";
+}
+
+/**
+ * Compute response offset modulo the number of effective (non-distractor) problems.
+ */
+function calculateResponseOffset({
+    numericResponse,
+    effectiveProblemNum,
+    numEffectiveProblems,
+}) {
+    return (
+        (numericResponse - effectiveProblemNum + numEffectiveProblems) %
+        numEffectiveProblems
+    );
 }
 
 /**
@@ -24,13 +45,15 @@ function calculatePretzelCredit({
     problemOrder,
     currentResponses,
     distractors,
+    mode,
 }) {
     const distractorSet = new Set(distractors);
     const numProblems = problemOrder.length;
     const numEffectiveProblems = numProblems - distractorSet.size;
 
-    // Note: if all problems are distractors (numEffectiveProblems === 0),
-    // award full credit iff every response is X.
+    if (numEffectiveProblems === 0) {
+        return currentResponses.every(isDistractorResponse) ? 1 : 0;
+    }
 
     const problemNumToEffectiveProblemNum = Array(numProblems).fill(null);
     let effectiveProblemNum = 0;
@@ -42,28 +65,51 @@ function calculatePretzelCredit({
     }
 
     const offsets = [];
+    const expectedOffset =
+        mode === "circuit"
+            ? // Circuit mode enforces a +1 step modulo the number of
+              // effective problems; when there is exactly one effective
+              // problem, +1 wraps to offset 0.
+              numEffectiveProblems === 1
+                ? 0
+                : 1
+            : null;
 
     for (let i = 0; i < numProblems; i++) {
         const problemNum = problemOrder[i];
         const response = currentResponses[i] ?? "";
 
         if (distractorSet.has(problemNum)) {
-            if (response.trim().toLowerCase() !== "x") {
+            if (!isDistractorResponse(response)) {
                 return 0;
             }
             continue;
         }
 
-        const numericResponse = parseNumericResponse(response);
+        const numericResponse = parseIntegerResponse(response);
         if (numericResponse === null) {
             return 0;
         }
 
         const effectiveProblemNum = problemNumToEffectiveProblemNum[problemNum];
-        offsets.push(
-            (numericResponse - effectiveProblemNum + numEffectiveProblems) %
-                numEffectiveProblems,
-        );
+        const offset = calculateResponseOffset({
+            numericResponse,
+            effectiveProblemNum,
+            numEffectiveProblems,
+        });
+
+        if (mode === "circuit") {
+            if (offset !== expectedOffset) {
+                return 0;
+            }
+            continue;
+        }
+
+        offsets.push(offset);
+    }
+
+    if (mode === "circuit") {
+        return 1;
     }
 
     const offset0 = offsets[0];
@@ -84,7 +130,6 @@ export default class Pretzel extends BlockScoredComponent {
 
     static componentType = "pretzel";
     static renderChildren = true;
-    static canDisplayChildErrors = true;
 
     static additionalSchemaChildren = ["problem"];
     static additionalSchemaChildrenDoNotInherit = true;
@@ -99,6 +144,16 @@ export default class Pretzel extends BlockScoredComponent {
             public: true,
             forRenderer: true,
             clamp: [1, 4],
+        };
+
+        attributes.mode = {
+            createPrimitiveOfType: "string",
+            createStateVariable: "mode",
+            defaultValue: "pretzel",
+            public: true,
+            forRenderer: true,
+            toLowerCase: true,
+            validValues: ["pretzel", "circuit"],
         };
 
         return attributes;
@@ -261,6 +316,10 @@ export default class Pretzel extends BlockScoredComponent {
                     dependencyType: "stateVariable",
                     variableName: "distractors",
                 },
+                mode: {
+                    dependencyType: "stateVariable",
+                    variableName: "mode",
+                },
             }),
             definition({ dependencyValues }) {
                 const problemOrder = dependencyValues.problemOrder.map(
@@ -273,6 +332,7 @@ export default class Pretzel extends BlockScoredComponent {
                             problemOrder,
                             currentResponses: dependencyValues.currentResponses,
                             distractors: dependencyValues.distractors,
+                            mode: dependencyValues.mode,
                         }),
                     },
                 };

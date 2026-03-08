@@ -83176,6 +83176,13 @@
                 },
                 {
                     "name": "maxNumColumns"
+                },
+                {
+                    "name": "mode",
+                    "values": [
+                        "pretzel",
+                        "circuit"
+                    ]
                 }
             ],
             "properties": [
@@ -83257,6 +83264,11 @@
                 {
                     "name": "maxNumColumns",
                     "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "mode",
+                    "type": "text",
                     "isArray": false
                 },
                 {

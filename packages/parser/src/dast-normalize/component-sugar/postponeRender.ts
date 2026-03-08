@@ -9,8 +9,10 @@ import { DastElement, DastElementContent } from "../../types";
 export function postponeRenderSugar(node: DastElement) {
     if (!["solution", "givenAnswer", "aside", "proof"].includes(node.name)) {
         // This should be unreachable
+        // Deliberately omit `givenAnswer` from user-facing text: it is a
+        // legacy/internal form and we do not want to advertise it in errors.
         throw Error(
-            "Postpone render sugar can only be applied to a `<solution>`, `<givenAnswer>`, `<aside>`, or `<proof>`",
+            "Postpone render sugar can only be applied to a `<solution>`, `<aside>`, or `<proof>`",
         );
     }
 
