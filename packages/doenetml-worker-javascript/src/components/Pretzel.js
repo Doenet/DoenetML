@@ -1,5 +1,78 @@
 import BlockScoredComponent from "./abstract/BlockScoredComponent";
 
+/**
+ * Parse a text response as a finite number.
+ * Returns `null` for blank or non-numeric responses.
+ */
+function parseNumericResponse(response) {
+    const trimmedResponse = response.trim();
+    if (trimmedResponse === "") {
+        return null;
+    }
+
+    const numberResponse = Number(trimmedResponse);
+    return Number.isFinite(numberResponse) ? numberResponse : null;
+}
+
+/**
+ * Compute pretzel credit from current responses.
+ *
+ * Non-distractor responses must share a consistent offset modulo the number of
+ * non-distractor problems, and all distractor responses must be `x`.
+ */
+function calculatePretzelCredit({
+    problemOrder,
+    currentResponses,
+    distractors,
+}) {
+    const distractorSet = new Set(distractors);
+    const numProblems = problemOrder.length;
+    const numEffectiveProblems = numProblems - distractorSet.size;
+
+    if (numEffectiveProblems <= 0) {
+        return 0;
+    }
+
+    const problemNumToEffectiveProblemNum = Array(numProblems).fill(null);
+    let effectiveProblemNum = 0;
+    for (let problemNum = 0; problemNum < numProblems; problemNum++) {
+        if (!distractorSet.has(problemNum)) {
+            problemNumToEffectiveProblemNum[problemNum] = effectiveProblemNum;
+            effectiveProblemNum++;
+        }
+    }
+
+    const offsets = [];
+
+    for (let i = 0; i < numProblems; i++) {
+        const problemNum = problemOrder[i];
+        const response = currentResponses[i] ?? "";
+
+        if (distractorSet.has(problemNum)) {
+            if (response.trim().toLowerCase() !== "x") {
+                return 0;
+            }
+            continue;
+        }
+
+        const numericResponse = parseNumericResponse(response);
+        if (numericResponse === null) {
+            return 0;
+        }
+
+        const effectiveProblemNum = problemNumToEffectiveProblemNum[problemNum];
+        offsets.push(
+            (numericResponse - effectiveProblemNum + numEffectiveProblems) %
+                numEffectiveProblems,
+        );
+    }
+
+    const offset0 = offsets[0];
+    const sameOffsets = offsets.every((offset) => offset === offset0);
+
+    return sameOffsets ? 1 : 0;
+}
+
 export default class Pretzel extends BlockScoredComponent {
     constructor(args) {
         super(args);
@@ -71,8 +144,9 @@ export default class Pretzel extends BlockScoredComponent {
             },
         };
 
-        // TODO: this is a workaround to get to a state variable of the pretzel arranger.
-        // We should create a more straightforward way to get that variable.
+        // TODO: temporary dependency bridge to read arranger state through the
+        // first textInput replacement; replace with direct composite-state
+        // dependency once available.
         stateVariableDefinitions.problemOrder = {
             stateVariablesDeterminingDependencies: ["textInputs"],
             additionalStateVariablesDefined: ["distractors"],
@@ -194,62 +268,13 @@ export default class Pretzel extends BlockScoredComponent {
                     (p) => p - 1,
                 );
 
-                const numProblems = problemOrder.length;
-                const numDistractors = dependencyValues.distractors.length;
-                const numEffectiveProblems = numProblems - numDistractors;
-
-                const problemNumToEffectiveProblemNum = [];
-                let numDistractorsSeen = 0;
-                for (let i = 0; i < numProblems; i++) {
-                    if (dependencyValues.distractors.includes(i)) {
-                        numDistractorsSeen++;
-                        problemNumToEffectiveProblemNum[i] = null;
-                    } else {
-                        problemNumToEffectiveProblemNum[i] =
-                            i - numDistractorsSeen;
-                    }
-                }
-
-                const distractorResponses = [];
-                const offsets = [];
-
-                for (let i = 0; i < numProblems; i++) {
-                    if (
-                        dependencyValues.distractors.includes(problemOrder[i])
-                    ) {
-                        distractorResponses.push(
-                            dependencyValues.currentResponses[i]
-                                .toLowerCase()
-                                .trim(),
-                        );
-                    } else {
-                        const response = dependencyValues.currentResponses[i];
-
-                        offsets.push(
-                            ((response.trim() === "" ? NaN : Number(response)) -
-                                problemNumToEffectiveProblemNum[
-                                    problemOrder[i]
-                                ] +
-                                numEffectiveProblems) %
-                                numEffectiveProblems,
-                        );
-                    }
-                }
-
-                const offset0 = offsets[0];
-
-                const sameOffsets = offsets
-                    .slice(1)
-                    .every((offset) => offset === offset0);
-
-                const allDistractorsCorrect = distractorResponses.every(
-                    (response) => response === "x",
-                );
-
                 return {
                     setValue: {
-                        creditAchievedIfSubmit:
-                            sameOffsets && allDistractorsCorrect ? 1 : 0,
+                        creditAchievedIfSubmit: calculatePretzelCredit({
+                            problemOrder,
+                            currentResponses: dependencyValues.currentResponses,
+                            distractors: dependencyValues.distractors,
+                        }),
                     },
                 };
             },

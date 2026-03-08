@@ -113,7 +113,7 @@ describe("Pretzel tag tests @group1", async () => {
         expect(errorWarnings.warnings.length).eq(1);
 
         expect(errorWarnings.warnings[0].message).contain(
-            "Invalid pretzel as a problem is missing a <statement> or an <answer>",
+            "Invalid pretzel: each <problem> must contain one <statement> and one <answer> or <givenAnswer>.",
         );
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(5);
@@ -212,7 +212,7 @@ describe("Pretzel tag tests @group1", async () => {
             <statement name="ds3"><p>What is 2-12?</p></statement>
             <answer name="da3"><p>8</p></answer>
         </problem>
-        <problem isDistractor isDistractor>
+        <problem isDistractor>
             <statement name="ds4"><p>What is 2-13?</p></statement>
             <answer name="da4"><p>9</p></answer>
         </problem>
@@ -241,7 +241,6 @@ describe("Pretzel tag tests @group1", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         for (const [name, text] of Object.entries(textMapping)) {
-            console.log({ name, text });
             expect(
                 stateVariables[
                     stateVariables[await resolvePathToNodeIdx(name)]
@@ -253,15 +252,16 @@ describe("Pretzel tag tests @group1", async () => {
         const pretzel = stateVariables[await resolvePathToNodeIdx("p")];
         const problemOrder = pretzel.stateValues.problemOrder;
         const distractors = pretzel.stateValues.distractors;
+        const numProblems = problemOrder.length;
 
         // make sure pretzel is still correct even if add an offset to the numbers
         for (const offset of [0, 1, 11]) {
             let numDistractorsEncountered = 0;
 
             // clear out distractors to make sure, on repeats, don't get problem right
-            // until all 8 are entered
+            // until all responses are entered
 
-            for (let i = 1; i <= 8; i++) {
+            for (let i = 1; i <= numProblems; i++) {
                 const isDistractor = distractors.includes(i - 1);
                 if (isDistractor) {
                     const idx = problemOrder.indexOf(i);
@@ -275,7 +275,7 @@ describe("Pretzel tag tests @group1", async () => {
                 }
             }
 
-            for (let i = 1; i <= 8; i++) {
+            for (let i = 1; i <= numProblems; i++) {
                 const idx = problemOrder.indexOf(i);
                 const input = pretzel.activeChildren[idx * 3 + 1];
 
@@ -287,13 +287,6 @@ describe("Pretzel tag tests @group1", async () => {
                 } else {
                     response = `${offset + i - numDistractorsEncountered}`;
                 }
-
-                console.log({
-                    response,
-                    isDistractor,
-                    i,
-                    numDistractorsEncountered,
-                });
 
                 await updateTextInputValue({
                     text: response,
@@ -311,11 +304,11 @@ describe("Pretzel tag tests @group1", async () => {
                     true,
                 );
 
-                // when i==8, then all answer correspond, so it should be correct
+                // when all responses correspond, it should be correct
                 expect(
                     stateVariables[pretzel.componentIdx].stateValues
                         .creditAchieved,
-                ).eq(i === 8 ? 1 : 0);
+                ).eq(i === numProblems ? 1 : 0);
             }
         }
     });

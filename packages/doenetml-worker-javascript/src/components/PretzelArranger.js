@@ -2,6 +2,26 @@ import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import CompositeComponent from "./abstract/CompositeComponent";
 
+/**
+ * Determine which given answer should pair with a displayed problem.
+ * Distractor problems pair with their own answers; non-distractors pair with
+ * the previous non-distractor answer, wrapping around.
+ */
+function getCorrespondingAnswerIdx({ problemIdx, numProblems, distractorSet }) {
+    if (distractorSet.has(problemIdx)) {
+        return problemIdx;
+    }
+
+    let answerIdx = (problemIdx - 1 + numProblems) % numProblems;
+    let numIndicesChecked = 0;
+    while (distractorSet.has(answerIdx) && numIndicesChecked < numProblems) {
+        answerIdx = (answerIdx - 1 + numProblems) % numProblems;
+        numIndicesChecked++;
+    }
+
+    return answerIdx;
+}
+
 export default class PretzelArranger extends CompositeComponent {
     static componentType = "_pretzelArranger";
 
@@ -114,6 +134,14 @@ export default class PretzelArranger extends CompositeComponent {
                             warnings.push({
                                 message:
                                     "Ignoring indices specified for pretzel as some indices out of range.",
+                                level: 2,
+                            });
+                        } else if (
+                            new Set(desiredProblemOrder).size !== numProblems
+                        ) {
+                            warnings.push({
+                                message:
+                                    "Ignoring indices specified for pretzel as some indices are repeated.",
                                 level: 2,
                             });
                         } else {
@@ -236,14 +264,23 @@ export default class PretzelArranger extends CompositeComponent {
                         if (child.componentType === "statement") {
                             lastStatement = child;
                         } else if (child.componentType === "givenAnswer") {
-                            lastGivenAnswer = child.children[0];
-                            lastGivenAnswer.componentType = "span";
-                            // copy componentIdx and name from `givenAnswer`
-                            // so references to it will response to the answer
-                            lastGivenAnswer.componentIdx = child.componentIdx;
-                            if (child.attributes.name) {
-                                lastGivenAnswer.attributes.name =
-                                    child.attributes.name;
+                            if (child.children[0]) {
+                                lastGivenAnswer = {
+                                    ...child.children[0],
+                                    componentType: "span",
+                                    attributes: {
+                                        ...child.children[0].attributes,
+                                    },
+                                };
+
+                                // copy componentIdx and name from `givenAnswer`
+                                // so references resolve to the givenAnswer content
+                                lastGivenAnswer.componentIdx =
+                                    child.componentIdx;
+                                if (child.attributes.name) {
+                                    lastGivenAnswer.attributes.name =
+                                        child.attributes.name;
+                                }
                             }
                         }
                     }
@@ -262,7 +299,7 @@ export default class PretzelArranger extends CompositeComponent {
                 if (!validProblems) {
                     warnings.push({
                         message:
-                            "Invalid pretzel as a problem is missing a <statement> or an <answer>",
+                            "Invalid pretzel: each <problem> must contain one <statement> and one <answer> or <givenAnswer>.",
                         level: 1,
                     });
                 }
@@ -326,24 +363,16 @@ export default class PretzelArranger extends CompositeComponent {
         const statements = await component.stateValues.statements;
         const givenAnswers = await component.stateValues.givenAnswers;
         const distractors = await component.stateValues.distractors;
+        const distractorSet = new Set(distractors);
 
         for (let i = 0; i < numProblems; i++) {
             const problemIdx = problemOrder[i] - 1;
             const thisStatement = statements[problemIdx];
-
-            let answerIdx;
-
-            if (distractors.includes(problemIdx)) {
-                // if we are a distractor, then match with the distractor's answer
-                answerIdx = problemIdx;
-            } else {
-                // if we are not a distractor, then match with the previous non-distractor answer
-                answerIdx = (problemIdx - 1 + numProblems) % numProblems;
-                while (distractors.includes(answerIdx)) {
-                    answerIdx = (answerIdx - 1 + numProblems) % numProblems;
-                }
-            }
-
+            const answerIdx = getCorrespondingAnswerIdx({
+                problemIdx,
+                numProblems,
+                distractorSet,
+            });
             let correspondingAnswer = givenAnswers[answerIdx];
 
             if (correspondingAnswer === null) {
