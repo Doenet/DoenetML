@@ -1,17 +1,17 @@
 import BlockScoredComponent from "./abstract/BlockScoredComponent";
 
 /**
- * Parse a text response as a finite number.
- * Returns `null` for blank or non-numeric responses.
+ * Parse a text response as a finite integer.
+ * Returns `null` for blank or non-integer responses.
  */
-function parseNumericResponse(response) {
+function parseIntegerResponse(response) {
     const trimmedResponse = response.trim();
     if (trimmedResponse === "") {
         return null;
     }
 
     const numberResponse = Number(trimmedResponse);
-    return Number.isFinite(numberResponse) ? numberResponse : null;
+    return Number.isInteger(numberResponse) ? numberResponse : null;
 }
 
 /**
@@ -65,15 +65,15 @@ function calculatePretzelCredit({
     }
 
     const offsets = [];
-        const expectedOffset =
-                mode === "circuit"
-                        ? // Circuit mode enforces a +1 step modulo the number of
-                            // effective problems; when there is exactly one effective
-                            // problem, +1 wraps to offset 0.
-                            numEffectiveProblems === 1
-                                ? 0
-                                : 1
-                        : null;
+    const expectedOffset =
+        mode === "circuit"
+            ? // Circuit mode enforces a +1 step modulo the number of
+              // effective problems; when there is exactly one effective
+              // problem, +1 wraps to offset 0.
+              numEffectiveProblems === 1
+                ? 0
+                : 1
+            : null;
 
     for (let i = 0; i < numProblems; i++) {
         const problemNum = problemOrder[i];
@@ -86,7 +86,7 @@ function calculatePretzelCredit({
             continue;
         }
 
-        const numericResponse = parseNumericResponse(response);
+        const numericResponse = parseIntegerResponse(response);
         if (numericResponse === null) {
             return 0;
         }
