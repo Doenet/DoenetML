@@ -129,6 +129,7 @@ export default {
     polygon: { title: "polygon" },
     polyline: { title: "polyline" },
     pre: { title: "pre" },
+    pretzel: { title: "pretzel" },
     problem: { title: "problem" },
     product: { title: "product" },
     proof: { title: "proof" },
