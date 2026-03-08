@@ -6,6 +6,93 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
+const PRETZEL_CHILD_STRIDE = 3;
+const ANSWER_CHILD_OFFSET = 0;
+const INPUT_CHILD_OFFSET = 1;
+
+function expectSingleChildString({
+    children,
+    expected,
+}: {
+    children: any;
+    expected: string;
+}) {
+    return expect(children).eqls([expected]);
+}
+
+async function expectNamedChildText({
+    stateVariables,
+    resolvePathToNodeIdx,
+    name,
+    expected,
+}: {
+    stateVariables: Record<number, any>;
+    resolvePathToNodeIdx: (name: string) => Promise<number>;
+    name: string;
+    expected: string;
+}) {
+    expect(
+        stateVariables[
+            stateVariables[await resolvePathToNodeIdx(name)].activeChildren[0]
+                .componentIdx
+        ].stateValues.text,
+    ).eq(expected);
+}
+
+async function expectNamedChildrenTextMap({
+    stateVariables,
+    resolvePathToNodeIdx,
+    textByName,
+}: {
+    stateVariables: Record<number, any>;
+    resolvePathToNodeIdx: (name: string) => Promise<number>;
+    textByName: Record<string, string>;
+}) {
+    for (const [name, text] of Object.entries(textByName)) {
+        await expectNamedChildText({
+            stateVariables,
+            resolvePathToNodeIdx,
+            name,
+            expected: text,
+        });
+    }
+}
+
+async function expectNamedSingleStringChildren({
+    stateVariables,
+    resolvePathToNodeIdx,
+    textByName,
+}: {
+    stateVariables: Record<number, any>;
+    resolvePathToNodeIdx: (name: string) => Promise<number>;
+    textByName: Record<string, string>;
+}) {
+    for (const [name, text] of Object.entries(textByName)) {
+        expectSingleChildString({
+            children:
+                stateVariables[await resolvePathToNodeIdx(name)].activeChildren,
+            expected: text,
+        });
+    }
+}
+
+function getPretzelChild({
+    pretzel,
+    problemOrder,
+    problemNumber,
+    childOffset,
+}: {
+    pretzel: any;
+    problemOrder: number[];
+    problemNumber: number;
+    childOffset: number;
+}) {
+    const indexInOrder = problemOrder.indexOf(problemNumber);
+    return pretzel.activeChildren[
+        indexInOrder * PRETZEL_CHILD_STRIDE + childOffset
+    ];
+}
+
 describe("Pretzel tag tests @group1", async () => {
     it("basic pretzel", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
@@ -13,19 +100,19 @@ describe("Pretzel tag tests @group1", async () => {
     <pretzel name="p">
         <problem>
             <statement name="s1"><p>What is 1+1?</p></statement>
-            <answer name="a1"><p>2</p></answer>
+            <answer name="a1">2</answer>
         </problem>
         <problem>
             <statement name="s2"><p>What is 1+2?</p></statement>
-            <answer name="a2"><p>3</p></answer>
+            <answer name="a2">3</answer>
         </problem>
         <problem>
             <statement name="s3"><p>What is 1+3?</p></statement>
-            <answer name="a3"><p>4</p></answer>
+            <answer name="a3">4</answer>
         </problem>
         <problem>
             <statement name="s4"><p>What is 1+4?</p></statement>
-            <answer name="a4"><p>5</p></answer>
+            <answer name="a4">5</answer>
         </problem>
     </pretzel>
     `,
@@ -33,25 +120,29 @@ describe("Pretzel tag tests @group1", async () => {
 
         const textMapping = {
             s1: "What is 1+1?",
-            a1: "2",
             s2: "What is 1+2?",
-            a2: "3",
             s3: "What is 1+3?",
-            a3: "4",
             s4: "What is 1+4?",
-            a4: "5",
         };
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        for (const [name, text] of Object.entries(textMapping)) {
-            expect(
-                stateVariables[
-                    stateVariables[await resolvePathToNodeIdx(name)]
-                        .activeChildren[0].componentIdx
-                ].stateValues.text,
-            ).eq(text);
-        }
+        await expectNamedChildrenTextMap({
+            stateVariables,
+            resolvePathToNodeIdx,
+            textByName: textMapping,
+        });
+
+        await expectNamedSingleStringChildren({
+            stateVariables,
+            resolvePathToNodeIdx,
+            textByName: {
+                a1: "2",
+                a2: "3",
+                a3: "4",
+                a4: "5",
+            },
+        });
 
         const pretzel = stateVariables[await resolvePathToNodeIdx("p")];
         const problemOrder = pretzel.stateValues.problemOrder;
@@ -59,8 +150,12 @@ describe("Pretzel tag tests @group1", async () => {
         // make sure pretzel is still correct even if add an offset to the numbers
         for (const offset of [0, 1, 11]) {
             for (let i = 1; i <= 4; i++) {
-                const idx = problemOrder.indexOf(i);
-                const input = pretzel.activeChildren[idx * 3 + 1];
+                const input = getPretzelChild({
+                    pretzel,
+                    problemOrder,
+                    problemNumber: i,
+                    childOffset: INPUT_CHILD_OFFSET,
+                });
 
                 await updateTextInputValue({
                     text: `${offset + i}`,
@@ -94,14 +189,14 @@ describe("Pretzel tag tests @group1", async () => {
         <problem>
         </problem>
         <problem>
-            <answer name="a2"><p>3</p></answer>
+            <answer name="a2">3</answer>
         </problem>
         <problem>
             <statement name="s3"><p>What is 1+3?</p></statement>
         </problem>
         <problem>
             <statement name="s4"><p>What is 1+4?</p></statement>
-            <answer name="a4"><p>5</p></answer>
+            <answer name="a4">5</answer>
         </problem>
     </pretzel>
     `,
@@ -121,30 +216,23 @@ describe("Pretzel tag tests @group1", async () => {
         expect(errorWarnings.warnings[0].position.end.column).eq(15);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(
-            stateVariables[
-                stateVariables[await resolvePathToNodeIdx("a2")]
-                    .activeChildren[0].componentIdx
-            ].stateValues.text,
-        ).eq("3");
-        expect(
-            stateVariables[
-                stateVariables[await resolvePathToNodeIdx("s3")]
-                    .activeChildren[0].componentIdx
-            ].stateValues.text,
-        ).eq("What is 1+3?");
-        expect(
-            stateVariables[
-                stateVariables[await resolvePathToNodeIdx("s4")]
-                    .activeChildren[0].componentIdx
-            ].stateValues.text,
-        ).eq("What is 1+4?");
-        expect(
-            stateVariables[
-                stateVariables[await resolvePathToNodeIdx("a4")]
-                    .activeChildren[0].componentIdx
-            ].stateValues.text,
-        ).eq("5");
+        await expectNamedChildrenTextMap({
+            stateVariables,
+            resolvePathToNodeIdx,
+            textByName: {
+                s3: "What is 1+3?",
+                s4: "What is 1+4?",
+            },
+        });
+
+        await expectNamedSingleStringChildren({
+            stateVariables,
+            resolvePathToNodeIdx,
+            textByName: {
+                a2: "3",
+                a4: "5",
+            },
+        });
 
         const pretzel = stateVariables[await resolvePathToNodeIdx("p")];
         const problemOrder = pretzel.stateValues.problemOrder;
@@ -152,8 +240,12 @@ describe("Pretzel tag tests @group1", async () => {
         // make sure pretzel is still correct even if add an offset to the numbers
         for (const offset of [0, 1, 11]) {
             for (let i = 1; i <= 4; i++) {
-                const idx = problemOrder.indexOf(i);
-                const input = pretzel.activeChildren[idx * 3 + 1];
+                const input = getPretzelChild({
+                    pretzel,
+                    problemOrder,
+                    problemNumber: i,
+                    childOffset: INPUT_CHILD_OFFSET,
+                });
 
                 await updateTextInputValue({
                     text: `${offset + i}`,
@@ -186,68 +278,72 @@ describe("Pretzel tag tests @group1", async () => {
     <pretzel name="p">
         <problem>
             <statement name="s1"><p>What is 1+1?</p></statement>
-            <answer name="a1"><p>2</p></answer>
+            <answer name="a1">2</answer>
         </problem>
         <problem isDistractor>
             <statement name="ds1"><p>What is 2-10?</p></statement>
-            <answer name="da1"><p>6</p></answer>
+            <answer name="da1">6</answer>
         </problem>
         <problem>
             <statement name="s2"><p>What is 1+2?</p></statement>
-            <answer name="a2"><p>3</p></answer>
+            <answer name="a2">3</answer>
         </problem>
         <problem isDistractor>
             <statement name="ds2"><p>What is 2-11?</p></statement>
-            <answer name="da2"><p>7</p></answer>
+            <answer name="da2">7</answer>
         </problem>
         <problem>
             <statement name="s3"><p>What is 1+3?</p></statement>
-            <answer name="a3"><p>4</p></answer>
+            <answer name="a3">4</answer>
         </problem>
         <problem>
             <statement name="s4"><p>What is 1+4?</p></statement>
-            <answer name="a4"><p>5</p></answer>
+            <answer name="a4">5</answer>
         </problem>
         <problem isDistractor>
             <statement name="ds3"><p>What is 2-12?</p></statement>
-            <answer name="da3"><p>8</p></answer>
+            <answer name="da3">8</answer>
         </problem>
         <problem isDistractor>
             <statement name="ds4"><p>What is 2-13?</p></statement>
-            <answer name="da4"><p>9</p></answer>
+            <answer name="da4">9</answer>
         </problem>
     </pretzel>
     `,
         });
         const textMapping = {
             s1: "What is 1+1?",
-            a1: "2",
             s2: "What is 1+2?",
-            a2: "3",
             s3: "What is 1+3?",
-            a3: "4",
             s4: "What is 1+4?",
-            a4: "5",
             ds1: "What is 2-10?",
-            da1: "6",
             ds2: "What is 2-11?",
-            da2: "7",
             ds3: "What is 2-12?",
-            da3: "8",
             ds4: "What is 2-13?",
-            da4: "9",
         };
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        for (const [name, text] of Object.entries(textMapping)) {
-            expect(
-                stateVariables[
-                    stateVariables[await resolvePathToNodeIdx(name)]
-                        .activeChildren[0].componentIdx
-                ].stateValues.text,
-            ).eq(text);
-        }
+        await expectNamedChildrenTextMap({
+            stateVariables,
+            resolvePathToNodeIdx,
+            textByName: textMapping,
+        });
+
+        await expectNamedSingleStringChildren({
+            stateVariables,
+            resolvePathToNodeIdx,
+            textByName: {
+                a1: "2",
+                a2: "3",
+                a3: "4",
+                a4: "5",
+                da1: "6",
+                da2: "7",
+                da3: "8",
+                da4: "9",
+            },
+        });
 
         const pretzel = stateVariables[await resolvePathToNodeIdx("p")];
         const problemOrder = pretzel.stateValues.problemOrder;
@@ -264,8 +360,12 @@ describe("Pretzel tag tests @group1", async () => {
             for (let i = 1; i <= numProblems; i++) {
                 const isDistractor = distractors.includes(i - 1);
                 if (isDistractor) {
-                    const idx = problemOrder.indexOf(i);
-                    const input = pretzel.activeChildren[idx * 3 + 1];
+                    const input = getPretzelChild({
+                        pretzel,
+                        problemOrder,
+                        problemNumber: i,
+                        childOffset: INPUT_CHILD_OFFSET,
+                    });
 
                     await updateTextInputValue({
                         text: ``,
@@ -276,8 +376,12 @@ describe("Pretzel tag tests @group1", async () => {
             }
 
             for (let i = 1; i <= numProblems; i++) {
-                const idx = problemOrder.indexOf(i);
-                const input = pretzel.activeChildren[idx * 3 + 1];
+                const input = getPretzelChild({
+                    pretzel,
+                    problemOrder,
+                    problemNumber: i,
+                    childOffset: INPUT_CHILD_OFFSET,
+                });
 
                 const isDistractor = distractors.includes(i - 1);
                 let response;
@@ -319,15 +423,15 @@ describe("Pretzel tag tests @group1", async () => {
     <pretzel name="p">
         <problem isDistractor>
             <statement><p>Distractor 1</p></statement>
-            <answer><p>one</p></answer>
+            <answer>one</answer>
         </problem>
         <problem isDistractor>
             <statement><p>Distractor 2</p></statement>
-            <answer><p>two</p></answer>
+            <answer>two</answer>
         </problem>
         <problem isDistractor>
             <statement><p>Distractor 3</p></statement>
-            <answer><p>three</p></answer>
+            <answer>three</answer>
         </problem>
     </pretzel>
     `,
@@ -345,8 +449,12 @@ describe("Pretzel tag tests @group1", async () => {
             responsesByProblemNum: string[],
         ) {
             for (let i = 1; i <= numProblems; i++) {
-                const idx = problemOrder.indexOf(i);
-                const input = pretzel.activeChildren[idx * 3 + 1];
+                const input = getPretzelChild({
+                    pretzel,
+                    problemOrder,
+                    problemNumber: i,
+                    childOffset: INPUT_CHILD_OFFSET,
+                });
 
                 await updateTextInputValue({
                     text: responsesByProblemNum[i - 1],
@@ -377,15 +485,15 @@ describe("Pretzel tag tests @group1", async () => {
             <statement><p>S1</p></statement>
             <answer>
                 <label>Ignore label 1</label>
-                <p>Keep 1a</p>
-                <p>Keep 1b</p>
+                <text>Keep 1a</text>
+                <text>Keep 1b</text>
             </answer>
         </problem>
         <problem>
             <statement><p>S2</p></statement>
             <answer>
                 <shortDescription>Ignore short description 2</shortDescription>
-                <p>Keep 2</p>
+                <text>Keep 2</text>
             </answer>
         </problem>
         <problem>
@@ -393,8 +501,8 @@ describe("Pretzel tag tests @group1", async () => {
             <answer>
                 <label>Ignore label 3</label>
                 <shortDescription>Ignore short description 3</shortDescription>
-                <p>Keep 3a</p>
-                <p>Keep 3b</p>
+                <text>Keep 3a</text>
+                <text>Keep 3b</text>
             </answer>
         </problem>
     </pretzel>
@@ -422,7 +530,14 @@ describe("Pretzel tag tests @group1", async () => {
             const answerIdx = (problemIdx - 1 + numProblems) % numProblems;
 
             const displayedAnswer =
-                stateVariables[pretzel.activeChildren[i * 3].componentIdx];
+                stateVariables[
+                    getPretzelChild({
+                        pretzel,
+                        problemOrder,
+                        problemNumber: problemOrder[i],
+                        childOffset: ANSWER_CHILD_OFFSET,
+                    }).componentIdx
+                ];
             const displayedAnswerChildComponents =
                 displayedAnswer.activeChildren
                     .map((child) => stateVariables[child.componentIdx] ?? child)
@@ -442,7 +557,10 @@ describe("Pretzel tag tests @group1", async () => {
             ).not.toContain("shortDescription");
 
             const displayedAnswerText = displayedAnswerChildComponents
-                .map((child) => child.stateValues?.text)
+                .map(
+                    (child) =>
+                        child.stateValues?.text ?? child.stateValues?.value,
+                )
                 .filter((text) => typeof text === "string")
                 .join(" ");
             for (const expectedText of expectedAnswerTextsByIndex[answerIdx]) {
@@ -459,10 +577,10 @@ describe("Pretzel tag tests @group1", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <pretzel name="p" mode="circuit">
-        <problem><statement><p>P1</p></statement><answer><p>A1</p></answer></problem>
-        <problem><statement><p>P2</p></statement><answer><p>A2</p></answer></problem>
-        <problem><statement><p>P3</p></statement><answer><p>A3</p></answer></problem>
-        <problem><statement><p>P4</p></statement><answer><p>A4</p></answer></problem>
+        <problem><statement><p>P1</p></statement><answer>A1</answer></problem>
+        <problem><statement><p>P2</p></statement><answer>A2</answer></problem>
+        <problem><statement><p>P3</p></statement><answer>A3</answer></problem>
+        <problem><statement><p>P4</p></statement><answer>A4</answer></problem>
     </pretzel>
     `,
                 requestedVariantIndex: variantIndex,
@@ -485,19 +603,19 @@ describe("Pretzel tag tests @group1", async () => {
     <pretzel name="p" mode="circuit">
         <problem>
             <statement><p>P1</p></statement>
-            <answer><p>A1</p></answer>
+            <answer>A1</answer>
         </problem>
         <problem>
             <statement><p>P2</p></statement>
-            <answer><p>A2</p></answer>
+            <answer>A2</answer>
         </problem>
         <problem isDistractor>
             <statement><p>P3 distractor</p></statement>
-            <answer><p>AD</p></answer>
+            <answer>AD</answer>
         </problem>
         <problem>
             <statement><p>P4</p></statement>
-            <answer><p>A4</p></answer>
+            <answer>A4</answer>
         </problem>
     </pretzel>
     `,
@@ -523,8 +641,12 @@ describe("Pretzel tag tests @group1", async () => {
         }
 
         for (let i = 1; i <= problemOrder.length; i++) {
-            const idx = problemOrder.indexOf(i);
-            const input = pretzel.activeChildren[idx * 3 + 1];
+            const input = getPretzelChild({
+                pretzel,
+                problemOrder,
+                problemNumber: i,
+                childOffset: INPUT_CHILD_OFFSET,
+            });
             const problemNum = i - 1;
 
             const response = distractorSet.has(problemNum)
@@ -548,8 +670,12 @@ describe("Pretzel tag tests @group1", async () => {
             stateVariables[pretzel.componentIdx].stateValues.creditAchieved,
         ).eq(1);
 
-        const secondProblemInput =
-            pretzel.activeChildren[problemOrder.indexOf(2) * 3 + 1];
+        const secondProblemInput = getPretzelChild({
+            pretzel,
+            problemOrder,
+            problemNumber: 2,
+            childOffset: INPUT_CHILD_OFFSET,
+        });
         await updateTextInputValue({
             text: "3",
             componentIdx: secondProblemInput.componentIdx,
@@ -570,9 +696,9 @@ describe("Pretzel tag tests @group1", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <pretzel name="p" mode="circuit">
-        <problem><statement><p>P1</p></statement><answer><p>A1</p></answer></problem>
-        <problem><statement><p>P2</p></statement><answer><p>A2</p></answer></problem>
-        <problem><statement><p>P3</p></statement><answer><p>A3</p></answer></problem>
+        <problem><statement><p>P1</p></statement><answer>A1</answer></problem>
+        <problem><statement><p>P2</p></statement><answer>A2</answer></problem>
+        <problem><statement><p>P3</p></statement><answer>A3</answer></problem>
     </pretzel>
     `,
         });
@@ -593,11 +719,11 @@ describe("Pretzel tag tests @group1", async () => {
     <pretzel name="p" mode="circuit">
         <problem isDistractor>
             <statement><p>Bad first distractor</p></statement>
-            <answer><p>AD1</p></answer>
+            <answer>AD1</answer>
         </problem>
         <problem>
             <statement><p>P2</p></statement>
-            <answer><p>A2</p></answer>
+            <answer>A2</answer>
         </problem>
     </pretzel>
     `,
