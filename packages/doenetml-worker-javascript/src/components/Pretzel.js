@@ -32,10 +32,6 @@ function calculatePretzelCredit({
     // Note: if all problems are distractors (numEffectiveProblems === 0),
     // award full credit iff every response is X.
 
-    if (numEffectiveProblems < 0) {
-        return 0;
-    }
-
     const problemNumToEffectiveProblemNum = Array(numProblems).fill(null);
     let effectiveProblemNum = 0;
     for (let problemNum = 0; problemNum < numProblems; problemNum++) {

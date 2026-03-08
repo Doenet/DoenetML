@@ -264,11 +264,16 @@ export default class PretzelArranger extends CompositeComponent {
                         if (child.componentType === "statement") {
                             lastStatement = child;
                         } else if (child.componentType === "givenAnswer") {
-                            const givenAnswerContent = child.children[0];
+                            const givenAnswerContent = child.children.find(
+                                (grandchild) =>
+                                    grandchild.componentType ===
+                                    "_postponeRenderContainer",
+                            );
 
                             // `givenAnswer` is transformed by `postponeRenderSugar`
-                            // in parser normalization so that its first child is
-                            // `_postponeRenderContainer`. Pretzel reuses that
+                            // in parser normalization so that one child is
+                            // `_postponeRenderContainer` (and there can also be
+                            // one or more `<title>` children). Pretzel reuses that
                             // same component shape, then intentionally unwraps
                             // it here by cloning the child content and retagging
                             // as `span` for pretzel replacements.

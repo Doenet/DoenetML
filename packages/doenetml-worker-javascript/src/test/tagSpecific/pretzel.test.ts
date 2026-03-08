@@ -368,4 +368,58 @@ describe("Pretzel tag tests @group1", async () => {
         expect(await enterResponsesAndSubmit(["X", "X", "X"])).eq(1);
         expect(await enterResponsesAndSubmit(["X", "9", "X"])).eq(0);
     });
+
+    it("pretzel givenAnswer can include title", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pretzel name="p">
+        <problem>
+            <statement name="s1"><p>What is 1+1?</p></statement>
+            <answer name="a1"><p>2</p></answer>
+        </problem>
+        <problem>
+            <statement name="s2"><p>What is 1+2?</p></statement>
+            <givenAnswer name="a2"><title>Hint title</title><p>3</p></givenAnswer>
+        </problem>
+        <problem>
+            <statement name="s3"><p>What is 1+3?</p></statement>
+            <answer name="a3"><p>4</p></answer>
+        </problem>
+    </pretzel>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        const a2 = stateVariables[await resolvePathToNodeIdx("a2")];
+        expect(a2.activeChildren.length).eq(1);
+        const a2Child = stateVariables[a2.activeChildren[0].componentIdx];
+        expect(a2Child.componentType).eq("p");
+        expect(a2Child.stateValues.text).eq("3");
+
+        const pretzel = stateVariables[await resolvePathToNodeIdx("p")];
+        const problemOrder = pretzel.stateValues.problemOrder;
+
+        for (let i = 1; i <= 3; i++) {
+            const idx = problemOrder.indexOf(i);
+            const input = pretzel.activeChildren[idx * 3 + 1];
+
+            await updateTextInputValue({
+                text: `${i}`,
+                componentIdx: input.componentIdx,
+                core,
+            });
+
+            await submitAnswer({
+                componentIdx: pretzel.componentIdx,
+                core,
+            });
+
+            stateVariables = await core.returnAllStateVariables(false, true);
+        }
+
+        expect(
+            stateVariables[pretzel.componentIdx].stateValues.creditAchieved,
+        ).eq(1);
+    });
 });
