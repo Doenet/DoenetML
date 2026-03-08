@@ -1,0 +1,170 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { AttrDisplay, PropDisplay } from "../../components"
+
+
+# ` <pretzel>{:dn}`
+
+` <pretzel>{:dn}` is a response component that lets students match statements to answers by entering a sequence.
+
+In the simplest case (default mode and no distractors), students can start with any problem and enter `1` in that box.
+Then they find that problem's answer and enter `2` in the box under the matching statement, continue to `3`, and so on until all problems are used. The answer to the last problem should point back to the answer above the box where they started.
+
+If the pretzel contains any distractor, neither the statement nor the answer of that box should match any other problem. In particular, a distractor's answer should not be the correct answer to its own statement or to any other statement in the pretzel. Assuming that the student did not choose a distractor to start and did not make any mistakes, they will loop back to their initial problem without encountering any distractors. The boxes that remain are distractors and should be filled with an `X`. If a student starts with a distractor or enters a distractor due to a mistake, they should discover that there are no matching answers to the question. This indicates that the question is a distractor and should be marked with an `X`. If they arrived at that question from matching a previous answer, that should indicate to the student that they made a mistake when arriving at the previous answer.
+
+Each ` <problem>{:dn}` in a pretzel should contain one ` <statement>{:dn}` and one ` <answer>{:dn}`.
+
+
+## Attributes and Properties
+ <AttrDisplay name='pretzel'/>
+ <PropDisplay name='pretzel'/>
+
+
+---
+
+### Example: Basic pretzel workflow
+
+
+```doenet-editor-horiz
+<pretzel>
+  <problem>
+    <statement>What is <m>1+1</m>?</statement>
+    <answer><m>2</m></answer>
+  </problem>
+  <problem>
+    <statement>What is <m>1+2</m>?</statement>
+    <answer><m>3</m></answer>
+  </problem>
+  <problem>
+    <statement>What is <m>1+3</m>?</statement>
+    <answer><m>4</m></answer>
+  </problem>
+  <problem>
+    <statement>What is <m>1+4</m>?</statement>
+    <answer><m>5</m></answer>
+  </problem>
+</pretzel>
+```
+
+Students may begin at any non-distractor box with `1`.
+In default pretzel mode, any consistent cyclic shift is accepted.
+
+
+---
+
+### Attribute Example: ` <problem isDistractor>{:dn}`
+
+
+```doenet-editor-horiz
+<pretzel>
+  <problem>
+    <statement>What is <m>2+2</m>?</statement>
+    <answer><m>4</m></answer>
+  </problem>
+
+  <problem isDistractor>
+    <statement>What is <m>100-3</m>?</statement>
+    <answer><m>11</m></answer>
+  </problem>
+
+  <problem>
+    <statement>What is <m>3+3</m>?</statement>
+    <answer><m>6</m></answer>
+  </problem>
+  <problem>
+    <statement>What is <m>4+4</m>?</statement>
+    <answer><m>8</m></answer>
+  </problem>
+</pretzel>
+```
+
+If a problem has `isDistractor`, students must enter `X` in that box.
+A distractor answer should not correctly answer its own statement or any other statement in the pretzel.
+A student will enter numbers only for non-distractor problems.
+
+
+---
+
+### Attribute Example: `mode` (default `pretzel`)
+
+
+```doenet-editor-horiz
+<pretzel mode="pretzel">
+  <problem>
+    <statement>What is <m>4+1</m>?</statement>
+    <answer><m>5</m></answer>
+  </problem>
+  <problem>
+    <statement>What is <m>4+2</m>?</statement>
+    <answer><m>6</m></answer>
+  </problem>
+  <problem>
+    <statement>What is <m>4+3</m>?</statement>
+    <answer><m>7</m></answer>
+  </problem>
+  <problem>
+    <statement>What is <m>4+4</m>?</statement>
+    <answer><m>8</m></answer>
+  </problem>
+</pretzel>
+```
+
+`mode` defaults to `pretzel` if omitted.
+In this mode, students can start anywhere and any consistent cyclic numbering pattern is accepted.
+
+
+---
+
+### Attribute Example: `mode="circuit"`
+
+
+```doenet-editor-horiz
+<pretzel mode="circuit">
+  <problem>
+    <statement>What is <m>9-3</m>?</statement>
+    <answer><m>6</m></answer>
+  </problem>
+  <problem>
+    <statement>Simplify <m>2x+3x</m>.</statement>
+    <answer><m>5x</m></answer>
+  </problem>
+  <problem>
+    <statement>What is <m>3\cdot 4</m>?</statement>
+    <answer><m>12</m></answer>
+  </problem>
+  <problem>
+    <statement>Factor <m>x^2-9</m>.</statement>
+    <answer><m>(x-3)(x+3)</m></answer>
+  </problem>
+</pretzel>
+```
+
+In `circuit` mode, the first problem is fixed in the first position.
+The first input is prefilled with `1` and disabled.
+In `circuit` mode, the first `<problem>{:dn}` cannot be a distractor; making it a distractor will produce an error.
+
+
+---
+
+### Attribute Example: `maxNumColumns`
+
+
+```doenet-example
+<p>Two columns (default):</p>
+<pretzel maxNumColumns="2">
+  <problem><statement>What is <m>8\div 2</m>?</statement><answer><m>4</m></answer></problem>
+  <problem><statement>Factor <m>x^2+5x+6</m>.</statement><answer><m>(x+2)(x+3)</m></answer></problem>
+  <problem><statement>How many sides does a triangle have?</statement><answer>3</answer></problem>
+  <problem><statement>What is <m>15-7</m>?</statement><answer><m>8</m></answer></problem>
+</pretzel>
+
+<p>One column:</p>
+<pretzel maxNumColumns="1">
+  <problem><statement>What is <m>6+9</m>?</statement><answer><m>15</m></answer></problem>
+  <problem><statement>Simplify <m>4y-y</m>.</statement><answer><m>3y</m></answer></problem>
+  <problem><statement>What is <m>7\cdot 5</m>?</statement><answer><m>35</m></answer></problem>
+  <problem><statement>How many days are in a week?</statement><answer>7</answer></problem>
+</pretzel>
+```
+
+`maxNumColumns` controls the maximum number of displayed columns for the pretzel layout.
