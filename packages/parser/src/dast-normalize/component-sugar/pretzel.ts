@@ -1,8 +1,8 @@
 import { DastElement } from "../../types";
 
 /**
- * 1. For each `<problem>` child, replaces its `<answer>` children with `<givenAnswers>`.
- * 2. Wrap all children into a `<_pretzelArranger>`
+ * 1. For each `<problem>` child, replace each direct `<answer>` child with `<givenAnswer>`.
+ * 2. Wrap the resulting children in a single `<_pretzelArranger>` child.
  */
 export function pretzelSugar(node: DastElement) {
     if (node.name !== "pretzel") {

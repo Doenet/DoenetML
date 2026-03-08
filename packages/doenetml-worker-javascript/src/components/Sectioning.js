@@ -173,6 +173,11 @@ export class Problem extends SectioningComponentNumberWithSiblings {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.aggregateScores.defaultValue = true;
+
+        attributes.isDistractor = {
+            createPrimitiveOfType: "boolean",
+        };
+
         return attributes;
     }
 

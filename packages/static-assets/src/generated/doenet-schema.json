@@ -29720,6 +29720,13 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "isDistractor",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 }
             ],
             "properties": [
@@ -30265,6 +30272,13 @@
                 },
                 {
                     "name": "includeParentNumber",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "isDistractor",
                     "values": [
                         "true",
                         "false"
@@ -30818,6 +30832,13 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "isDistractor",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 }
             ],
             "properties": [
@@ -31363,6 +31384,13 @@
                 },
                 {
                     "name": "includeParentNumber",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "isDistractor",
                     "values": [
                         "true",
                         "false"

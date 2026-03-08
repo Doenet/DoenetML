@@ -2,6 +2,26 @@ import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import CompositeComponent from "./abstract/CompositeComponent";
 
+/**
+ * Determine which given answer should pair with a displayed problem.
+ * Distractor problems pair with their own answers; non-distractors pair with
+ * the previous non-distractor answer, wrapping around.
+ */
+function getCorrespondingAnswerIdx({ problemIdx, numProblems, distractorSet }) {
+    if (distractorSet.has(problemIdx)) {
+        return problemIdx;
+    }
+
+    let answerIdx = (problemIdx - 1 + numProblems) % numProblems;
+    let numIndicesChecked = 0;
+    while (distractorSet.has(answerIdx) && numIndicesChecked < numProblems) {
+        answerIdx = (answerIdx - 1 + numProblems) % numProblems;
+        numIndicesChecked++;
+    }
+
+    return answerIdx;
+}
+
 export default class PretzelArranger extends CompositeComponent {
     static componentType = "_pretzelArranger";
 
@@ -116,6 +136,14 @@ export default class PretzelArranger extends CompositeComponent {
                                     "Ignoring indices specified for pretzel as some indices out of range.",
                                 level: 2,
                             });
+                        } else if (
+                            new Set(desiredProblemOrder).size !== numProblems
+                        ) {
+                            warnings.push({
+                                message:
+                                    "Ignoring indices specified for pretzel as some indices are repeated.",
+                                level: 2,
+                            });
                         } else {
                             return {
                                 setValue: {
@@ -209,7 +237,11 @@ export default class PretzelArranger extends CompositeComponent {
         };
 
         stateVariableDefinitions.statements = {
-            additionalStateVariablesDefined: ["givenAnswers", "validProblems"],
+            additionalStateVariablesDefined: [
+                "givenAnswers",
+                "validProblems",
+                "distractors",
+            ],
             returnDependencies: () => ({
                 serializedProblemChildren: {
                     dependencyType: "stateVariable",
@@ -219,23 +251,49 @@ export default class PretzelArranger extends CompositeComponent {
             definition({ dependencyValues }) {
                 const statements = [];
                 const givenAnswers = [];
+                const distractors = [];
                 let validProblems = true;
                 const warnings = [];
-                for (const problem of dependencyValues.serializedProblemChildren) {
+                for (const [
+                    idx,
+                    problem,
+                ] of dependencyValues.serializedProblemChildren.entries()) {
                     let lastStatement = null;
                     let lastGivenAnswer = null;
                     for (const child of problem.children) {
                         if (child.componentType === "statement") {
                             lastStatement = child;
                         } else if (child.componentType === "givenAnswer") {
-                            lastGivenAnswer = child.children[0];
-                            lastGivenAnswer.componentType = "span";
-                            // copy componentIdx and name from `givenAnswer`
-                            // so references to it will response to the answer
-                            lastGivenAnswer.componentIdx = child.componentIdx;
-                            if (child.attributes.name) {
-                                lastGivenAnswer.attributes.name =
-                                    child.attributes.name;
+                            const givenAnswerContent = child.children.find(
+                                (grandchild) =>
+                                    grandchild.componentType ===
+                                    "_postponeRenderContainer",
+                            );
+
+                            // `givenAnswer` is transformed by `postponeRenderSugar`
+                            // in parser normalization so that one child is
+                            // `_postponeRenderContainer` (and there can also be
+                            // one or more `<title>` children). Pretzel reuses that
+                            // same component shape, then intentionally unwraps
+                            // it here by cloning the child content and retagging
+                            // as `span` for pretzel replacements.
+                            if (givenAnswerContent) {
+                                lastGivenAnswer = {
+                                    ...givenAnswerContent,
+                                    componentType: "span",
+                                    attributes: {
+                                        ...givenAnswerContent.attributes,
+                                    },
+                                };
+
+                                // copy componentIdx and name from `givenAnswer`
+                                // so references resolve to the givenAnswer content
+                                lastGivenAnswer.componentIdx =
+                                    child.componentIdx;
+                                if (child.attributes.name) {
+                                    lastGivenAnswer.attributes.name =
+                                        child.attributes.name;
+                                }
                             }
                         }
                     }
@@ -245,18 +303,27 @@ export default class PretzelArranger extends CompositeComponent {
                     }
                     statements.push(lastStatement);
                     givenAnswers.push(lastGivenAnswer);
+
+                    if (problem.attributes.isDistractor?.primitive.value) {
+                        distractors.push(idx);
+                    }
                 }
 
                 if (!validProblems) {
                     warnings.push({
                         message:
-                            "Invalid pretzel as a problem is missing a <statement> or an <answer>",
+                            "Invalid pretzel: each <problem> must contain one <statement> and one <answer> or <givenAnswer>.",
                         level: 1,
                     });
                 }
 
                 return {
-                    setValue: { statements, givenAnswers, validProblems },
+                    setValue: {
+                        statements,
+                        givenAnswers,
+                        validProblems,
+                        distractors,
+                    },
                     sendWarnings: warnings,
                 };
             },
@@ -308,14 +375,20 @@ export default class PretzelArranger extends CompositeComponent {
         const problemOrder = await component.stateValues.problemOrder;
         const statements = await component.stateValues.statements;
         const givenAnswers = await component.stateValues.givenAnswers;
+        const distractors = await component.stateValues.distractors;
+        const distractorSet = new Set(distractors);
 
         for (let i = 0; i < numProblems; i++) {
             const problemIdx = problemOrder[i] - 1;
             const thisStatement = statements[problemIdx];
-            const prevAnswer =
-                givenAnswers[(problemIdx - 1 + numProblems) % numProblems];
+            const answerIdx = getCorrespondingAnswerIdx({
+                problemIdx,
+                numProblems,
+                distractorSet,
+            });
+            let correspondingAnswer = givenAnswers[answerIdx];
 
-            if (prevAnswer === null) {
+            if (correspondingAnswer === null) {
                 replacements.push({
                     type: "serialized",
                     componentType: "span",
@@ -327,7 +400,7 @@ export default class PretzelArranger extends CompositeComponent {
                     children: [],
                 });
             } else {
-                replacements.push(prevAnswer);
+                replacements.push(correspondingAnswer);
             }
             replacements.push({
                 type: "serialized",
@@ -368,7 +441,7 @@ export default class PretzelArranger extends CompositeComponent {
                                 componentIdx: nComponents++,
                                 stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                                 state: {
-                                    value: "Enter number in sequence for this answer",
+                                    value: "Enter number in sequence for this answer or X if it is a distractor",
                                 },
                                 children: [],
                                 attributes: {},
