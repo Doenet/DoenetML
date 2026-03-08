@@ -312,4 +312,60 @@ describe("Pretzel tag tests @group1", async () => {
             }
         }
     });
+
+    it("pretzel with all distractors requires all X", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pretzel name="p">
+        <problem isDistractor>
+            <statement><p>Distractor 1</p></statement>
+            <answer><p>one</p></answer>
+        </problem>
+        <problem isDistractor>
+            <statement><p>Distractor 2</p></statement>
+            <answer><p>two</p></answer>
+        </problem>
+        <problem isDistractor>
+            <statement><p>Distractor 3</p></statement>
+            <answer><p>three</p></answer>
+        </problem>
+    </pretzel>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const pretzel = stateVariables[await resolvePathToNodeIdx("p")];
+        const problemOrder = pretzel.stateValues.problemOrder;
+        const distractors = pretzel.stateValues.distractors;
+        const numProblems = problemOrder.length;
+
+        expect(distractors.length).eq(numProblems);
+
+        async function enterResponsesAndSubmit(
+            responsesByProblemNum: string[],
+        ) {
+            for (let i = 1; i <= numProblems; i++) {
+                const idx = problemOrder.indexOf(i);
+                const input = pretzel.activeChildren[idx * 3 + 1];
+
+                await updateTextInputValue({
+                    text: responsesByProblemNum[i - 1],
+                    componentIdx: input.componentIdx,
+                    core,
+                });
+            }
+
+            await submitAnswer({
+                componentIdx: pretzel.componentIdx,
+                core,
+            });
+
+            stateVariables = await core.returnAllStateVariables(false, true);
+            return stateVariables[pretzel.componentIdx].stateValues
+                .creditAchieved;
+        }
+
+        expect(await enterResponsesAndSubmit(["X", "X", "X"])).eq(1);
+        expect(await enterResponsesAndSubmit(["X", "9", "X"])).eq(0);
+    });
 });

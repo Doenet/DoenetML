@@ -2,7 +2,9 @@ import { DastElement, DastElementContent } from "../../types";
 
 /**
  * Wrap all children other than `<title>`s into a `<_postponeRenderContainer>`
- * so that the content is not created when a document is loaded, speeding up initial render time.
+ * so content of components like `<solution>` and `<givenAnswer>` is not
+ * added to the DOM until opened, speeding up initial render time,
+ * and making sure student don't have access to the content until they open the section..
  */
 export function postponeRenderSugar(node: DastElement) {
     if (!["solution", "givenAnswer", "aside", "proof"].includes(node.name)) {

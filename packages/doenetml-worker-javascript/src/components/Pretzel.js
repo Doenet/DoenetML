@@ -29,7 +29,10 @@ function calculatePretzelCredit({
     const numProblems = problemOrder.length;
     const numEffectiveProblems = numProblems - distractorSet.size;
 
-    if (numEffectiveProblems <= 0) {
+    // Note: if all problems are distractors (numEffectiveProblems === 0),
+    // award full credit iff every response is X.
+
+    if (numEffectiveProblems < 0) {
         return 0;
     }
 

@@ -264,12 +264,20 @@ export default class PretzelArranger extends CompositeComponent {
                         if (child.componentType === "statement") {
                             lastStatement = child;
                         } else if (child.componentType === "givenAnswer") {
-                            if (child.children[0]) {
+                            const givenAnswerContent = child.children[0];
+
+                            // `givenAnswer` is transformed by `postponeRenderSugar`
+                            // in parser normalization so that its first child is
+                            // `_postponeRenderContainer`. Pretzel reuses that
+                            // same component shape, then intentionally unwraps
+                            // it here by cloning the child content and retagging
+                            // as `span` for pretzel replacements.
+                            if (givenAnswerContent) {
                                 lastGivenAnswer = {
-                                    ...child.children[0],
+                                    ...givenAnswerContent,
                                     componentType: "span",
                                     attributes: {
-                                        ...child.children[0].attributes,
+                                        ...givenAnswerContent.attributes,
                                     },
                                 };
 
@@ -428,7 +436,7 @@ export default class PretzelArranger extends CompositeComponent {
                                 componentIdx: nComponents++,
                                 stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                                 state: {
-                                    value: "Enter number in sequence for this answer",
+                                    value: "Enter number in sequence for this answer or X if it is a distractor",
                                 },
                                 children: [],
                                 attributes: {},
