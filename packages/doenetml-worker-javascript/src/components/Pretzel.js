@@ -75,6 +75,7 @@ export default class Pretzel extends BlockScoredComponent {
         // We should create a more straightforward way to get that variable.
         stateVariableDefinitions.problemOrder = {
             stateVariablesDeterminingDependencies: ["textInputs"],
+            additionalStateVariablesDefined: ["distractors"],
             returnDependencies({ stateValues }) {
                 if (stateValues.textInputs.length > 0) {
                     return {
@@ -83,6 +84,12 @@ export default class Pretzel extends BlockScoredComponent {
                             replacementIdx:
                                 stateValues.textInputs[0].componentIdx,
                             variableName: "problemOrder",
+                        },
+                        distractors: {
+                            dependencyType: "sourceCompositeStateVariable",
+                            replacementIdx:
+                                stateValues.textInputs[0].componentIdx,
+                            variableName: "distractors",
                         },
                     };
                 } else {
@@ -93,6 +100,7 @@ export default class Pretzel extends BlockScoredComponent {
                 return {
                     setValue: {
                         problemOrder: dependencyValues.problemOrder ?? [],
+                        distractors: dependencyValues.distractors ?? [],
                     },
                 };
             },
@@ -176,6 +184,10 @@ export default class Pretzel extends BlockScoredComponent {
                     dependencyType: "stateVariable",
                     variableName: "currentResponses",
                 },
+                distractors: {
+                    dependencyType: "stateVariable",
+                    variableName: "distractors",
+                },
             }),
             definition({ dependencyValues }) {
                 const problemOrder = dependencyValues.problemOrder.map(
@@ -183,14 +195,46 @@ export default class Pretzel extends BlockScoredComponent {
                 );
 
                 const numProblems = problemOrder.length;
+                const numDistractors = dependencyValues.distractors.length;
+                const numEffectiveProblems = numProblems - numDistractors;
 
-                const offsets = dependencyValues.currentResponses.map(
-                    (resp, i) =>
-                        ((resp.trim() === "" ? NaN : Number(resp)) -
-                            dependencyValues.problemOrder[i] +
-                            numProblems) %
-                        numProblems,
-                );
+                const problemNumToEffectiveProblemNum = [];
+                let numDistractorsSeen = 0;
+                for (let i = 0; i < numProblems; i++) {
+                    if (dependencyValues.distractors.includes(i)) {
+                        numDistractorsSeen++;
+                        problemNumToEffectiveProblemNum[i] = null;
+                    } else {
+                        problemNumToEffectiveProblemNum[i] =
+                            i - numDistractorsSeen;
+                    }
+                }
+
+                const distractorResponses = [];
+                const offsets = [];
+
+                for (let i = 0; i < numProblems; i++) {
+                    if (
+                        dependencyValues.distractors.includes(problemOrder[i])
+                    ) {
+                        distractorResponses.push(
+                            dependencyValues.currentResponses[i]
+                                .toLowerCase()
+                                .trim(),
+                        );
+                    } else {
+                        const response = dependencyValues.currentResponses[i];
+
+                        offsets.push(
+                            ((response.trim() === "" ? NaN : Number(response)) -
+                                problemNumToEffectiveProblemNum[
+                                    problemOrder[i]
+                                ] +
+                                numEffectiveProblems) %
+                                numEffectiveProblems,
+                        );
+                    }
+                }
 
                 const offset0 = offsets[0];
 
@@ -198,8 +242,15 @@ export default class Pretzel extends BlockScoredComponent {
                     .slice(1)
                     .every((offset) => offset === offset0);
 
+                const allDistractorsCorrect = distractorResponses.every(
+                    (response) => response === "x",
+                );
+
                 return {
-                    setValue: { creditAchievedIfSubmit: sameOffsets ? 1 : 0 },
+                    setValue: {
+                        creditAchievedIfSubmit:
+                            sameOffsets && allDistractorsCorrect ? 1 : 0,
+                    },
                 };
             },
         };

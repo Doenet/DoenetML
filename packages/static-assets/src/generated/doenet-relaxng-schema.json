@@ -47302,6 +47302,13 @@
                         "true",
                         "false"
                     ]
+                },
+                "isDistractor": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
                 }
             },
             "children": [
@@ -48344,6 +48351,13 @@
                     ]
                 },
                 "includeParentNumber": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "isDistractor": {
                     "optional": true,
                     "type": [
                         "true",
@@ -49396,6 +49410,13 @@
                         "true",
                         "false"
                     ]
+                },
+                "isDistractor": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
                 }
             },
             "children": [
@@ -50438,6 +50459,13 @@
                     ]
                 },
                 "includeParentNumber": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "isDistractor": {
                     "optional": true,
                     "type": [
                         "true",

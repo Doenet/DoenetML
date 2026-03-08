@@ -209,7 +209,11 @@ export default class PretzelArranger extends CompositeComponent {
         };
 
         stateVariableDefinitions.statements = {
-            additionalStateVariablesDefined: ["givenAnswers", "validProblems"],
+            additionalStateVariablesDefined: [
+                "givenAnswers",
+                "validProblems",
+                "distractors",
+            ],
             returnDependencies: () => ({
                 serializedProblemChildren: {
                     dependencyType: "stateVariable",
@@ -219,9 +223,13 @@ export default class PretzelArranger extends CompositeComponent {
             definition({ dependencyValues }) {
                 const statements = [];
                 const givenAnswers = [];
+                const distractors = [];
                 let validProblems = true;
                 const warnings = [];
-                for (const problem of dependencyValues.serializedProblemChildren) {
+                for (const [
+                    idx,
+                    problem,
+                ] of dependencyValues.serializedProblemChildren.entries()) {
                     let lastStatement = null;
                     let lastGivenAnswer = null;
                     for (const child of problem.children) {
@@ -245,6 +253,10 @@ export default class PretzelArranger extends CompositeComponent {
                     }
                     statements.push(lastStatement);
                     givenAnswers.push(lastGivenAnswer);
+
+                    if (problem.attributes.isDistractor?.primitive.value) {
+                        distractors.push(idx);
+                    }
                 }
 
                 if (!validProblems) {
@@ -256,7 +268,12 @@ export default class PretzelArranger extends CompositeComponent {
                 }
 
                 return {
-                    setValue: { statements, givenAnswers, validProblems },
+                    setValue: {
+                        statements,
+                        givenAnswers,
+                        validProblems,
+                        distractors,
+                    },
                     sendWarnings: warnings,
                 };
             },
@@ -308,14 +325,28 @@ export default class PretzelArranger extends CompositeComponent {
         const problemOrder = await component.stateValues.problemOrder;
         const statements = await component.stateValues.statements;
         const givenAnswers = await component.stateValues.givenAnswers;
+        const distractors = await component.stateValues.distractors;
 
         for (let i = 0; i < numProblems; i++) {
             const problemIdx = problemOrder[i] - 1;
             const thisStatement = statements[problemIdx];
-            const prevAnswer =
-                givenAnswers[(problemIdx - 1 + numProblems) % numProblems];
 
-            if (prevAnswer === null) {
+            let answerIdx;
+
+            if (distractors.includes(problemIdx)) {
+                // if we are a distractor, then match with the distractor's answer
+                answerIdx = problemIdx;
+            } else {
+                // if we are not a distractor, then match with the previous non-distractor answer
+                answerIdx = (problemIdx - 1 + numProblems) % numProblems;
+                while (distractors.includes(answerIdx)) {
+                    answerIdx = (answerIdx - 1 + numProblems) % numProblems;
+                }
+            }
+
+            let correspondingAnswer = givenAnswers[answerIdx];
+
+            if (correspondingAnswer === null) {
                 replacements.push({
                     type: "serialized",
                     componentType: "span",
@@ -327,7 +358,7 @@ export default class PretzelArranger extends CompositeComponent {
                     children: [],
                 });
             } else {
-                replacements.push(prevAnswer);
+                replacements.push(correspondingAnswer);
             }
             replacements.push({
                 type: "serialized",
