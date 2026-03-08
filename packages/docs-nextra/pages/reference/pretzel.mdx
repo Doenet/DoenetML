@@ -3,16 +3,16 @@ import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
 import { AttrDisplay, PropDisplay } from "../../components"
 
 
-# `<pretzel>{:dn}`
+# ` <pretzel>{:dn}`
 
-`<pretzel>{:dn}` is a response component that lets students match statements to answers by entering a sequence.
+` <pretzel>{:dn}` is a response component that lets students match statements to answers by entering a sequence.
 
 In the simplest case (default mode and no distractors), students can start with any problem and enter `1` in that box.
 Then they find that problem's answer and enter `2` in the box under the matching statement, continue to `3`, and so on until all problems are used. The answer to the last problem should point back to the answer above the box where they started.
 
 If the pretzel contains any distractor, neither the statement nor the answer of that box should match any other problem. In particular, a distractor's answer should not be the correct answer to its own statement or to any other statement in the pretzel. Assuming that the student did not choose a distractor to start and did not make any mistakes, they will loop back to their initial problem without encountering any distractors. The boxes that remain are distractors and should be filled with an `X`. If a student starts with a distractor or enters a distractor due to a mistake, they should discover that there are no matching answers to the question. This indicates that the question is a distractor and should be marked with an `X`. If they arrived at that question from matching a previous answer, that should indicate to the student that they made a mistake when arriving at the previous answer.
 
-Each `<problem>{:dn}` in a pretzel should contain one `<statement>{:dn}` and one `<answer>{:dn}`.
+Each ` <problem>{:dn}` in a pretzel should contain one ` <statement>{:dn}` and one ` <answer>{:dn}`.
 
 
 ## Attributes and Properties
@@ -52,7 +52,7 @@ In default pretzel mode, any consistent cyclic shift is accepted.
 
 ---
 
-### Attribute Example: `<problem isDistractor>{:dn}`
+### Attribute Example: ` <problem isDistractor>{:dn}`
 
 
 ```doenet-editor-horiz
@@ -141,6 +141,7 @@ In this mode, students can start anywhere and any consistent cyclic numbering pa
 
 In `circuit` mode, the first problem is fixed in the first position.
 The first input is prefilled with `1` and disabled.
+In `circuit` mode, the first `<problem>{:dn}` cannot be a distractor; making it a distractor will produce an error.
 
 
 ---
