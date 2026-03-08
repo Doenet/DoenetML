@@ -113,7 +113,7 @@ describe("Pretzel tag tests @group1", async () => {
         expect(errorWarnings.warnings.length).eq(1);
 
         expect(errorWarnings.warnings[0].message).contain(
-            "Invalid pretzel: each <problem> must contain one <statement> and one <answer> or <givenAnswer>.",
+            "Invalid pretzel: each <problem> must contain one <statement> and one <answer>.",
         );
         expect(errorWarnings.warnings[0].position.start.line).eq(2);
         expect(errorWarnings.warnings[0].position.start.column).eq(5);
@@ -421,5 +421,167 @@ describe("Pretzel tag tests @group1", async () => {
         expect(
             stateVariables[pretzel.componentIdx].stateValues.creditAchieved,
         ).eq(1);
+    });
+
+    it("pretzel circuit mode keeps first problem fixed", async () => {
+        for (let variantIndex = 1; variantIndex <= 6; variantIndex++) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <pretzel name="p" mode="circuit">
+        <problem><statement><p>P1</p></statement><answer><p>A1</p></answer></problem>
+        <problem><statement><p>P2</p></statement><answer><p>A2</p></answer></problem>
+        <problem><statement><p>P3</p></statement><answer><p>A3</p></answer></problem>
+        <problem><statement><p>P4</p></statement><answer><p>A4</p></answer></problem>
+    </pretzel>
+    `,
+                requestedVariantIndex: variantIndex,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const pretzel = stateVariables[await resolvePathToNodeIdx("p")];
+
+            expect(pretzel.stateValues.mode).eq("circuit");
+            expect(pretzel.stateValues.problemOrder[0]).eq(1);
+        }
+    });
+
+    it("pretzel circuit mode uses fixed offset 1 and X distractors", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pretzel name="p" mode="circuit">
+        <problem>
+            <statement><p>P1</p></statement>
+            <answer><p>A1</p></answer>
+        </problem>
+        <problem>
+            <statement><p>P2</p></statement>
+            <answer><p>A2</p></answer>
+        </problem>
+        <problem isDistractor>
+            <statement><p>P3 distractor</p></statement>
+            <answer><p>AD</p></answer>
+        </problem>
+        <problem>
+            <statement><p>P4</p></statement>
+            <answer><p>A4</p></answer>
+        </problem>
+    </pretzel>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const pretzel = stateVariables[await resolvePathToNodeIdx("p")];
+        const problemOrder = pretzel.stateValues.problemOrder;
+        const distractors = pretzel.stateValues.distractors;
+
+        const distractorSet = new Set(distractors);
+        const effectiveProblemNumbers = new Map<number, number>();
+        let effectiveProblemNum = 0;
+        for (
+            let problemNum = 0;
+            problemNum < problemOrder.length;
+            problemNum++
+        ) {
+            if (!distractorSet.has(problemNum)) {
+                effectiveProblemNumbers.set(problemNum, effectiveProblemNum);
+                effectiveProblemNum++;
+            }
+        }
+
+        for (let i = 1; i <= problemOrder.length; i++) {
+            const idx = problemOrder.indexOf(i);
+            const input = pretzel.activeChildren[idx * 3 + 1];
+            const problemNum = i - 1;
+
+            const response = distractorSet.has(problemNum)
+                ? "X"
+                : `${effectiveProblemNumbers.get(problemNum)! + 1}`;
+
+            await updateTextInputValue({
+                text: response,
+                componentIdx: input.componentIdx,
+                core,
+            });
+        }
+
+        await submitAnswer({
+            componentIdx: pretzel.componentIdx,
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[pretzel.componentIdx].stateValues.creditAchieved,
+        ).eq(1);
+
+        const secondProblemInput =
+            pretzel.activeChildren[problemOrder.indexOf(2) * 3 + 1];
+        await updateTextInputValue({
+            text: "3",
+            componentIdx: secondProblemInput.componentIdx,
+            core,
+        });
+        await submitAnswer({
+            componentIdx: pretzel.componentIdx,
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[pretzel.componentIdx].stateValues.creditAchieved,
+        ).eq(0);
+    });
+
+    it("pretzel circuit mode pre-fills and disables first input", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pretzel name="p" mode="circuit">
+        <problem><statement><p>P1</p></statement><answer><p>A1</p></answer></problem>
+        <problem><statement><p>P2</p></statement><answer><p>A2</p></answer></problem>
+        <problem><statement><p>P3</p></statement><answer><p>A3</p></answer></problem>
+    </pretzel>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const pretzel = stateVariables[await resolvePathToNodeIdx("p")];
+        const firstInput =
+            stateVariables[pretzel.activeChildren[1].componentIdx];
+
+        expect(firstInput.componentType).eq("textInput");
+        expect(firstInput.stateValues.value).eq("1");
+        expect(firstInput.stateValues.disabled).eq(true);
+    });
+
+    it("pretzel circuit mode errors when first problem is distractor", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pretzel name="p" mode="circuit">
+        <problem isDistractor>
+            <statement><p>Bad first distractor</p></statement>
+            <answer><p>AD1</p></answer>
+        </problem>
+        <problem>
+            <statement><p>P2</p></statement>
+            <answer><p>A2</p></answer>
+        </problem>
+    </pretzel>
+    `,
+        });
+
+        const errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(1);
+        expect(errorWarnings.errors[0].message).contain(
+            'Invalid pretzel: in mode="circuit", the first <problem> cannot be a distractor.',
+        );
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const pretzel = stateVariables[await resolvePathToNodeIdx("p")];
+        expect(pretzel.stateValues.numProblems).eq(2);
+        expect(pretzel.activeChildren.length).eq(6);
     });
 });

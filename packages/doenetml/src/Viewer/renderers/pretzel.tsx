@@ -76,15 +76,23 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
                 <div
                     className={`pretzel${gridIdx + 1} pretzelProblem`}
                     key={prob}
+                    data-test="pretzel-problem-row"
+                    data-row-index={prob}
                 >
-                    <div className="pretzelAnswer">
+                    <div
+                        className="pretzelAnswer"
+                        data-test="pretzel-row-answer"
+                    >
                         <b>Answer</b>: {answer}
                     </div>
-                    <div className="pretzelInputStatement">
-                        <div>
+                    <div
+                        className="pretzelInputStatement"
+                        data-test="pretzel-row-input-statement"
+                    >
+                        <div data-test="pretzel-row-input">
                             <span>{input}</span>
                         </div>
-                        <div>{statement}</div>
+                        <div data-test="pretzel-row-statement">{statement}</div>
                     </div>
                 </div>
             );
@@ -118,7 +126,7 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
     );
 
     return (
-        <span id={id} style={{ marginBottom: "4px" }}>
+        <span id={id} style={{ marginBottom: "4px" }} data-test="pretzel-root">
             {problemGrids}
             {checkWorkComponent}
             {answerResponseButton}

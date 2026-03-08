@@ -137234,6 +137234,13 @@
                     "type": [
                         "string"
                     ]
+                },
+                "mode": {
+                    "optional": true,
+                    "type": [
+                        "pretzel",
+                        "circuit"
+                    ]
                 }
             },
             "children": [
@@ -137321,6 +137328,11 @@
                 {
                     "name": "maxNumColumns",
                     "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "mode",
+                    "type": "text",
                     "isArray": false
                 },
                 {

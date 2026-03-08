@@ -24,6 +24,7 @@ function calculatePretzelCredit({
     problemOrder,
     currentResponses,
     distractors,
+    mode,
 }) {
     const distractorSet = new Set(distractors);
     const numProblems = problemOrder.length;
@@ -31,6 +32,14 @@ function calculatePretzelCredit({
 
     // Note: if all problems are distractors (numEffectiveProblems === 0),
     // award full credit iff every response is X.
+
+    if (numEffectiveProblems === 0) {
+        return currentResponses.every(
+            (response) => response.trim().toLowerCase() === "x",
+        )
+            ? 1
+            : 0;
+    }
 
     const problemNumToEffectiveProblemNum = Array(numProblems).fill(null);
     let effectiveProblemNum = 0;
@@ -60,10 +69,26 @@ function calculatePretzelCredit({
         }
 
         const effectiveProblemNum = problemNumToEffectiveProblemNum[problemNum];
+
+        if (mode === "circuit") {
+            const expectedOffset = 1 % numEffectiveProblems;
+            const offset =
+                (numericResponse - effectiveProblemNum + numEffectiveProblems) %
+                numEffectiveProblems;
+            if (offset !== expectedOffset) {
+                return 0;
+            }
+            continue;
+        }
+
         offsets.push(
             (numericResponse - effectiveProblemNum + numEffectiveProblems) %
                 numEffectiveProblems,
         );
+    }
+
+    if (mode === "circuit") {
+        return 1;
     }
 
     const offset0 = offsets[0];
@@ -84,7 +109,6 @@ export default class Pretzel extends BlockScoredComponent {
 
     static componentType = "pretzel";
     static renderChildren = true;
-    static canDisplayChildErrors = true;
 
     static additionalSchemaChildren = ["problem"];
     static additionalSchemaChildrenDoNotInherit = true;
@@ -99,6 +123,16 @@ export default class Pretzel extends BlockScoredComponent {
             public: true,
             forRenderer: true,
             clamp: [1, 4],
+        };
+
+        attributes.mode = {
+            createPrimitiveOfType: "string",
+            createStateVariable: "mode",
+            defaultValue: "pretzel",
+            public: true,
+            forRenderer: true,
+            toLowerCase: true,
+            validValues: ["pretzel", "circuit"],
         };
 
         return attributes;
@@ -261,6 +295,10 @@ export default class Pretzel extends BlockScoredComponent {
                     dependencyType: "stateVariable",
                     variableName: "distractors",
                 },
+                mode: {
+                    dependencyType: "stateVariable",
+                    variableName: "mode",
+                },
             }),
             definition({ dependencyValues }) {
                 const problemOrder = dependencyValues.problemOrder.map(
@@ -273,6 +311,7 @@ export default class Pretzel extends BlockScoredComponent {
                             problemOrder,
                             currentResponses: dependencyValues.currentResponses,
                             distractors: dependencyValues.distractors,
+                            mode: dependencyValues.mode,
                         }),
                     },
                 };

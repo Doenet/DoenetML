@@ -28,7 +28,9 @@ export function pretzelSugar(node: DastElement) {
             type: "element",
             name: "_pretzelArranger",
             children: node.children,
-            attributes: {},
+            attributes: node.attributes.mode
+                ? { mode: node.attributes.mode }
+                : {},
             source_doc: node.source_doc,
             position: node.position,
         },
