@@ -382,6 +382,15 @@ export default class PretzelArranger extends CompositeComponent {
                                     attributes: {
                                         ...givenAnswerContent.attributes,
                                     },
+                                    children: (
+                                        givenAnswerContent.children ?? []
+                                    ).filter(
+                                        (grandchild) =>
+                                            grandchild.componentType !==
+                                                "label" &&
+                                            grandchild.componentType !==
+                                                "shortDescription",
+                                    ),
                                 };
 
                                 // copy componentIdx and name from `givenAnswer`
