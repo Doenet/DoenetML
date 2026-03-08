@@ -369,58 +369,89 @@ describe("Pretzel tag tests @group1", async () => {
         expect(await enterResponsesAndSubmit(["X", "9", "X"])).eq(0);
     });
 
-    it("pretzel supports titled alternate answer content", async () => {
+    it("pretzel filters label and shortDescription from displayed answers", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <pretzel name="p">
         <problem>
-            <statement name="s1"><p>What is 1+1?</p></statement>
-            <answer name="a1"><p>2</p></answer>
+            <statement><p>S1</p></statement>
+            <answer>
+                <label>Ignore label 1</label>
+                <p>Keep 1a</p>
+                <p>Keep 1b</p>
+            </answer>
         </problem>
         <problem>
-            <statement name="s2"><p>What is 1+2?</p></statement>
-            <answer name="a2"><title>Hint title</title><p>3</p></answer>
+            <statement><p>S2</p></statement>
+            <answer>
+                <shortDescription>Ignore short description 2</shortDescription>
+                <p>Keep 2</p>
+            </answer>
         </problem>
         <problem>
-            <statement name="s3"><p>What is 1+3?</p></statement>
-            <answer name="a3"><p>4</p></answer>
+            <statement><p>S3</p></statement>
+            <answer>
+                <label>Ignore label 3</label>
+                <shortDescription>Ignore short description 3</shortDescription>
+                <p>Keep 3a</p>
+                <p>Keep 3b</p>
+            </answer>
         </problem>
     </pretzel>
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(false, true);
+        const expectedAnswerTextsByIndex = [
+            ["Keep 1a", "Keep 1b"],
+            ["Keep 2"],
+            ["Keep 3a", "Keep 3b"],
+        ];
+        const ignoredTextsByIndex = [
+            ["Ignore label 1"],
+            ["Ignore short description 2"],
+            ["Ignore label 3", "Ignore short description 3"],
+        ];
 
-        const a2 = stateVariables[await resolvePathToNodeIdx("a2")];
-        expect(a2.activeChildren.length).eq(1);
-        const a2Child = stateVariables[a2.activeChildren[0].componentIdx];
-        expect(a2Child.componentType).eq("p");
-        expect(a2Child.stateValues.text).eq("3");
-
+        const stateVariables = await core.returnAllStateVariables(false, true);
         const pretzel = stateVariables[await resolvePathToNodeIdx("p")];
         const problemOrder = pretzel.stateValues.problemOrder;
+        const numProblems = problemOrder.length;
 
-        for (let i = 1; i <= 3; i++) {
-            const idx = problemOrder.indexOf(i);
-            const input = pretzel.activeChildren[idx * 3 + 1];
+        for (let i = 0; i < numProblems; i++) {
+            const problemIdx = problemOrder[i] - 1;
+            const answerIdx = (problemIdx - 1 + numProblems) % numProblems;
 
-            await updateTextInputValue({
-                text: `${i}`,
-                componentIdx: input.componentIdx,
-                core,
-            });
+            const displayedAnswer =
+                stateVariables[pretzel.activeChildren[i * 3].componentIdx];
+            const displayedAnswerChildComponents =
+                displayedAnswer.activeChildren
+                    .map((child) => stateVariables[child.componentIdx] ?? child)
+                    .filter(
+                        (child) => child && child.componentType !== "_error",
+                    );
 
-            await submitAnswer({
-                componentIdx: pretzel.componentIdx,
-                core,
-            });
+            expect(
+                displayedAnswerChildComponents.map(
+                    (child) => child.componentType,
+                ),
+            ).not.toContain("label");
+            expect(
+                displayedAnswerChildComponents.map(
+                    (child) => child.componentType,
+                ),
+            ).not.toContain("shortDescription");
 
-            stateVariables = await core.returnAllStateVariables(false, true);
+            const displayedAnswerText = displayedAnswerChildComponents
+                .map((child) => child.stateValues?.text)
+                .filter((text) => typeof text === "string")
+                .join(" ");
+            for (const expectedText of expectedAnswerTextsByIndex[answerIdx]) {
+                expect(displayedAnswerText).contain(expectedText);
+            }
+            for (const ignoredText of ignoredTextsByIndex[answerIdx]) {
+                expect(displayedAnswerText).not.contain(ignoredText);
+            }
         }
-
-        expect(
-            stateVariables[pretzel.componentIdx].stateValues.creditAchieved,
-        ).eq(1);
     });
 
     it("pretzel circuit mode keeps first problem fixed", async () => {
