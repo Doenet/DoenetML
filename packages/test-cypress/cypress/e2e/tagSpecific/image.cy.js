@@ -1,4 +1,5 @@
 import { cesc, widthsBySize } from "@doenet/utils";
+import { assertCenteredWhenDescriptionOpens } from "./utils/mediaAlignment";
 
 describe("Image Tag Tests", { tags: ["@group1"] }, function () {
     beforeEach(() => {
@@ -390,6 +391,32 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
             "not.have.attr",
             "open",
         );
+    });
+
+    it("keeps non-inline image centered when description opens", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <image name="image" source="./Doenet_Logo_Frontpage.png" width="300px" horizontalAlign="center">
+        <shortDescription>An image</shortDescription>
+        <description>
+            <p>The Doenet logo.</p>
+        </description>
+    </image>
+    `,
+                },
+                "*",
+            );
+        });
+
+        assertCenteredWhenDescriptionOpens({
+            containerSelector: "#image-container",
+            mediaSelector: "#image",
+            detailsSelector: "#image-container [data-test='Description']",
+            summarySelector:
+                "#image-container [data-test='Description Summary']",
+        });
     });
 
     it("with description, inline", () => {

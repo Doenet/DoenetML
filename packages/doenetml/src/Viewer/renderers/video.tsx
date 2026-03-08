@@ -436,6 +436,7 @@ export default React.memo(function Video(props) {
 
     let outerStyle = {};
     let innerStyle = {};
+    let mediaContainerStyle = {};
 
     if (SVs.displayMode === "inline") {
         outerStyle = {
@@ -452,6 +453,14 @@ export default React.memo(function Video(props) {
             display: "flex",
             justifyContent: SVs.horizontalAlign,
             margin: "12px 0",
+        };
+        innerStyle = {
+            width: "100%",
+        };
+        mediaContainerStyle = {
+            display: "flex",
+            justifyContent: SVs.horizontalAlign,
+            width: "100%",
         };
     }
 
@@ -534,7 +543,11 @@ export default React.memo(function Video(props) {
             className="video"
         >
             <div style={innerStyle}>
-                {videoTag}
+                {SVs.displayMode === "inline" ? (
+                    videoTag
+                ) : (
+                    <div style={mediaContainerStyle}>{videoTag}</div>
+                )}
                 {description}
             </div>
         </div>

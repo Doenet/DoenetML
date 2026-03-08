@@ -1,4 +1,5 @@
 import { cesc, widthsBySize } from "@doenet/utils";
+import { assertCenteredWhenDescriptionOpens } from "./utils/mediaAlignment";
 
 describe("Video Tag Tests", { tags: ["@group2"] }, function () {
     beforeEach(() => {
@@ -503,6 +504,32 @@ describe("Video Tag Tests", { tags: ["@group2"] }, function () {
             "not.have.attr",
             "open",
         );
+    });
+
+    it("keeps non-inline video centered when description opens", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <video name="video" source="https://jsoncompare.org/LearningContainer/SampleFiles/Video/MP4/Sample-MP4-Video-File-for-Testing.mp4" width="300px" horizontalAlign="center">
+        <shortDescription>A video</shortDescription>
+        <description>
+            <p>An earth video.</p>
+        </description>
+    </video>
+    `,
+                },
+                "*",
+            );
+        });
+
+        assertCenteredWhenDescriptionOpens({
+            containerSelector: "#video-container",
+            mediaSelector: "#video",
+            detailsSelector: "#video-container [data-test='Description']",
+            summarySelector:
+                "#video-container [data-test='Description Summary']",
+        });
     });
 
     it("with description, inline", () => {
