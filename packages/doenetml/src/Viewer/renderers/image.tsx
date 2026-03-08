@@ -539,6 +539,7 @@ export default React.memo(function Image(props) {
     let outerStyle = {};
     let innerStyle = {};
     let mediaContainerStyle = {};
+    let mediaColumnStyle = {};
 
     if (SVs.displayMode === "inline") {
         outerStyle = {
@@ -563,6 +564,12 @@ export default React.memo(function Image(props) {
             display: "flex",
             justifyContent: SVs.horizontalAlign,
             width: "100%",
+        };
+        mediaColumnStyle = {
+            display: "flex",
+            flexDirection: "column",
+            width: sizeToCSS(SVs.width),
+            maxWidth: "100%",
         };
     }
 
@@ -640,7 +647,13 @@ export default React.memo(function Image(props) {
                         )}
                     </div>
                 )}
-                {description}
+                {SVs.displayMode === "inline" || !description ? (
+                    description
+                ) : (
+                    <div style={mediaContainerStyle}>
+                        <div style={mediaColumnStyle}>{description}</div>
+                    </div>
+                )}
             </div>
         </div>
     );
