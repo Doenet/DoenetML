@@ -11,8 +11,78 @@ vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
 describe("Cascade tag tests @group4", async () => {
+    type CascadeCompletionTuple = readonly [number, number, number];
+
     async function getStateVariables(core: any) {
         return core.returnAllStateVariables(false, true);
+    }
+
+    function getMathInputIdx(stateVariables: any, answerIdx: number) {
+        return stateVariables[answerIdx].stateValues.inputChildren[0]
+            .componentIdx;
+    }
+
+    async function submitMathAnswer({
+        core,
+        mathInputIdx,
+        answerIdx,
+        latex,
+    }: {
+        core: any;
+        mathInputIdx: number;
+        answerIdx: number;
+        latex: string;
+    }) {
+        await updateMathInputValue({
+            latex,
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+    }
+
+    async function runMathAnswerSequence<T>({
+        core,
+        steps,
+        assertState,
+    }: {
+        core: any;
+        steps: {
+            latex: string;
+            mathInputIdx: number;
+            answerIdx: number;
+            expected: T;
+        }[];
+        assertState: (expected: T) => Promise<void>;
+    }) {
+        for (const step of steps) {
+            await submitMathAnswer({
+                core,
+                latex: step.latex,
+                mathInputIdx: step.mathInputIdx,
+                answerIdx: step.answerIdx,
+            });
+            await assertState(step.expected);
+        }
+    }
+
+    async function submitChoiceAnswer({
+        core,
+        choiceInputIdx,
+        answerIdx,
+        selectedIndices,
+    }: {
+        core: any;
+        choiceInputIdx: number;
+        answerIdx: number;
+        selectedIndices: number[];
+    }) {
+        await updateSelectedIndices({
+            componentIdx: choiceInputIdx,
+            selectedIndices,
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
     }
 
     it("basic cascade", async () => {
@@ -48,192 +118,147 @@ describe("Cascade tag tests @group4", async () => {
   `,
         });
 
-        async function check_values(numCompleted: number) {
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
+        const wIdx = await resolvePathToNodeIdx("w");
+        const pNumCompletedIdx = await resolvePathToNodeIdx("pNumCompleted");
+        const section1Idx = await resolvePathToNodeIdx("section1");
+        const section1p1Idx = await resolvePathToNodeIdx("section1.p1");
+        const section1p2Idx = await resolvePathToNodeIdx("section1.p2");
+        const section2Idx = await resolvePathToNodeIdx("section2");
+        const section2pIdx = await resolvePathToNodeIdx("section2.p");
+        const section3Idx = await resolvePathToNodeIdx("section3");
+        const section3pIdx = await resolvePathToNodeIdx("section3.p");
 
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w")].stateValues
-                    .title,
-            ).eq("My cascade");
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w")].stateValues
-                    .numCompleted,
-            ).eq(numCompleted);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("pNumCompleted")]
-                    .stateValues.text,
-            ).eq(`numCompleted: ${numCompleted}`);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1")]
-                    .stateValues.hideChildren,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1")]
-                    .stateValues.titleColor,
-            ).eq(
-                stateVariables[await resolvePathToNodeIdx("section1")]
-                    .stateValues.creditAchieved < 1
+        async function check_values(numCompleted: number) {
+            const stateVariables = await getStateVariables(core);
+
+            expect(stateVariables[wIdx].stateValues.title).eq("My cascade");
+            expect(stateVariables[wIdx].stateValues.numCompleted).eq(
+                numCompleted,
+            );
+            expect(stateVariables[pNumCompletedIdx].stateValues.text).eq(
+                `numCompleted: ${numCompleted}`,
+            );
+            expect(stateVariables[section1Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section1Idx].stateValues.hideChildren).eq(
+                false,
+            );
+            expect(stateVariables[section1Idx].stateValues.titleColor).eq(
+                stateVariables[section1Idx].stateValues.creditAchieved < 1
                     ? "var(--mainGray)"
                     : "var(--lightGreen)",
             );
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1.p1")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1.p2")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2")]
-                    .stateValues.hideChildren,
-            ).eq(numCompleted < 1);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2")]
-                    .stateValues.titleColor,
-            ).eq(
-                stateVariables[await resolvePathToNodeIdx("section2")]
-                    .stateValues.creditAchieved < 1
+            expect(stateVariables[section1p1Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section1p2Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section2Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section2Idx].stateValues.hideChildren).eq(
+                numCompleted < 1,
+            );
+            expect(stateVariables[section2Idx].stateValues.titleColor).eq(
+                stateVariables[section2Idx].stateValues.creditAchieved < 1
                     ? "var(--mainGray)"
                     : "var(--lightGreen)",
             );
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2.p")]
-                    .stateValues.hidden,
-            ).eq(numCompleted < 1);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section3")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section3")]
-                    .stateValues.hideChildren,
-            ).eq(numCompleted < 2);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section3")]
-                    .stateValues.titleColor,
-            ).eq(
-                stateVariables[await resolvePathToNodeIdx("section3")]
-                    .stateValues.creditAchieved < 1
+            expect(stateVariables[section2pIdx].stateValues.hidden).eq(
+                numCompleted < 1,
+            );
+            expect(stateVariables[section3Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section3Idx].stateValues.hideChildren).eq(
+                numCompleted < 2,
+            );
+            expect(stateVariables[section3Idx].stateValues.titleColor).eq(
+                stateVariables[section3Idx].stateValues.creditAchieved < 1
                     ? "var(--mainGray)"
                     : "var(--lightGreen)",
             );
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section3.p")]
-                    .stateValues.hidden,
-            ).eq(numCompleted < 2);
+            expect(stateVariables[section3pIdx].stateValues.hidden).eq(
+                numCompleted < 2,
+            );
         }
 
-        const stateVariables = await core.returnAllStateVariables(false, true);
+        const stateVariables = await getStateVariables(core);
         const answer11Idx = await resolvePathToNodeIdx("section1.p1.ans");
-        const mathInput11Idx =
-            stateVariables[answer11Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput11Idx = getMathInputIdx(stateVariables, answer11Idx);
         const answer12Idx = await resolvePathToNodeIdx("section1.p2.ans");
-        const mathInput12Idx =
-            stateVariables[answer12Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput12Idx = getMathInputIdx(stateVariables, answer12Idx);
         const answer2Idx = await resolvePathToNodeIdx("section2.p.ans");
-        const mathInput2Idx =
-            stateVariables[answer2Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput2Idx = getMathInputIdx(stateVariables, answer2Idx);
         const answer3Idx = await resolvePathToNodeIdx("section3.p.ans");
-        const mathInput3Idx =
-            stateVariables[answer3Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput3Idx = getMathInputIdx(stateVariables, answer3Idx);
 
         await check_values(0);
 
-        await updateMathInputValue({
-            latex: "2",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(0);
+        const answerSequence: {
+            latex: string;
+            mathInputIdx: number;
+            answerIdx: number;
+            numCompleted: number;
+        }[] = [
+            {
+                latex: "2",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                numCompleted: 0,
+            },
+            {
+                latex: "0",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                numCompleted: 1,
+            },
+            {
+                latex: "3",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                numCompleted: 0,
+            },
+            {
+                latex: "2",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                numCompleted: 1,
+            },
+            {
+                latex: "7",
+                mathInputIdx: mathInput2Idx,
+                answerIdx: answer2Idx,
+                numCompleted: 2,
+            },
+            {
+                latex: "-1",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                numCompleted: 0,
+            },
+            {
+                latex: "0",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                numCompleted: 2,
+            },
+            {
+                latex: "-1",
+                mathInputIdx: mathInput3Idx,
+                answerIdx: answer3Idx,
+                numCompleted: 3,
+            },
+            {
+                latex: "11",
+                mathInputIdx: mathInput2Idx,
+                answerIdx: answer2Idx,
+                numCompleted: 1,
+            },
+            {
+                latex: "7",
+                mathInputIdx: mathInput2Idx,
+                answerIdx: answer2Idx,
+                numCompleted: 3,
+            },
+        ];
 
-        await updateMathInputValue({
-            latex: "0",
-            componentIdx: mathInput12Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(1);
-
-        await updateMathInputValue({
-            latex: "3",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(0);
-
-        await updateMathInputValue({
-            latex: "2",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(1);
-
-        await updateMathInputValue({
-            latex: "7",
-            componentIdx: mathInput2Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer2Idx, core });
-        await check_values(2);
-
-        await updateMathInputValue({
-            latex: "-1",
-            componentIdx: mathInput12Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(0);
-
-        await updateMathInputValue({
-            latex: "0",
-            componentIdx: mathInput12Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(2);
-
-        await updateMathInputValue({
-            latex: "-1",
-            componentIdx: mathInput3Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer3Idx, core });
-        await check_values(3);
-
-        await updateMathInputValue({
-            latex: "11",
-            componentIdx: mathInput2Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer2Idx, core });
-        await check_values(1);
-
-        await updateMathInputValue({
-            latex: "7",
-            componentIdx: mathInput2Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer2Idx, core });
-        await check_values(3);
+        for (const step of answerSequence) {
+            await submitMathAnswer({ core, ...step });
+            await check_values(step.numCompleted);
+        }
     });
 
     it("hideFutureSections", async () => {
@@ -269,165 +294,136 @@ describe("Cascade tag tests @group4", async () => {
   `,
         });
 
-        async function check_values(numCompleted: number) {
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
+        const wIdx = await resolvePathToNodeIdx("w");
+        const pNumCompletedIdx = await resolvePathToNodeIdx("pNumCompleted");
+        const section1Idx = await resolvePathToNodeIdx("section1");
+        const section1p1Idx = await resolvePathToNodeIdx("section1.p1");
+        const section1p2Idx = await resolvePathToNodeIdx("section1.p2");
+        const section2Idx = await resolvePathToNodeIdx("section2");
+        const section2pIdx = await resolvePathToNodeIdx("section2.p");
+        const section3Idx = await resolvePathToNodeIdx("section3");
+        const section3pIdx = await resolvePathToNodeIdx("section3.p");
 
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w")].stateValues
-                    .title,
-            ).eq("My cascade");
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w")].stateValues
-                    .numCompleted,
-            ).eq(numCompleted);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("pNumCompleted")]
-                    .stateValues.text,
-            ).eq(`numCompleted: ${numCompleted}`);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1")]
-                    .stateValues.hideChildren,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1.p1")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1.p2")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2")]
-                    .stateValues.hidden,
-            ).eq(numCompleted < 1);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2")]
-                    .stateValues.hideChildren,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2.p")]
-                    .stateValues.hidden,
-            ).eq(numCompleted < 1);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section3")]
-                    .stateValues.hidden,
-            ).eq(numCompleted < 2);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section3")]
-                    .stateValues.hideChildren,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section3.p")]
-                    .stateValues.hidden,
-            ).eq(numCompleted < 2);
+        async function check_values(numCompleted: number) {
+            const stateVariables = await getStateVariables(core);
+
+            expect(stateVariables[wIdx].stateValues.title).eq("My cascade");
+            expect(stateVariables[wIdx].stateValues.numCompleted).eq(
+                numCompleted,
+            );
+            expect(stateVariables[pNumCompletedIdx].stateValues.text).eq(
+                `numCompleted: ${numCompleted}`,
+            );
+            expect(stateVariables[section1Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section1Idx].stateValues.hideChildren).eq(
+                false,
+            );
+            expect(stateVariables[section1p1Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section1p2Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section2Idx].stateValues.hidden).eq(
+                numCompleted < 1,
+            );
+            expect(stateVariables[section2Idx].stateValues.hideChildren).eq(
+                false,
+            );
+            expect(stateVariables[section2pIdx].stateValues.hidden).eq(
+                numCompleted < 1,
+            );
+            expect(stateVariables[section3Idx].stateValues.hidden).eq(
+                numCompleted < 2,
+            );
+            expect(stateVariables[section3Idx].stateValues.hideChildren).eq(
+                false,
+            );
+            expect(stateVariables[section3pIdx].stateValues.hidden).eq(
+                numCompleted < 2,
+            );
         }
 
-        const stateVariables = await core.returnAllStateVariables(false, true);
+        const stateVariables = await getStateVariables(core);
         const answer11Idx = await resolvePathToNodeIdx("section1.p1.ans");
-        const mathInput11Idx =
-            stateVariables[answer11Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput11Idx = getMathInputIdx(stateVariables, answer11Idx);
         const answer12Idx = await resolvePathToNodeIdx("section1.p2.ans");
-        const mathInput12Idx =
-            stateVariables[answer12Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput12Idx = getMathInputIdx(stateVariables, answer12Idx);
         const answer2Idx = await resolvePathToNodeIdx("section2.p.ans");
-        const mathInput2Idx =
-            stateVariables[answer2Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput2Idx = getMathInputIdx(stateVariables, answer2Idx);
         const answer3Idx = await resolvePathToNodeIdx("section3.p.ans");
-        const mathInput3Idx =
-            stateVariables[answer3Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput3Idx = getMathInputIdx(stateVariables, answer3Idx);
 
         await check_values(0);
 
-        await updateMathInputValue({
-            latex: "2",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(0);
+        const answerSequence: {
+            latex: string;
+            mathInputIdx: number;
+            answerIdx: number;
+            numCompleted: number;
+        }[] = [
+            {
+                latex: "2",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                numCompleted: 0,
+            },
+            {
+                latex: "0",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                numCompleted: 1,
+            },
+            {
+                latex: "3",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                numCompleted: 0,
+            },
+            {
+                latex: "2",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                numCompleted: 1,
+            },
+            {
+                latex: "7",
+                mathInputIdx: mathInput2Idx,
+                answerIdx: answer2Idx,
+                numCompleted: 2,
+            },
+            {
+                latex: "-1",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                numCompleted: 0,
+            },
+            {
+                latex: "0",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                numCompleted: 2,
+            },
+            {
+                latex: "-1",
+                mathInputIdx: mathInput3Idx,
+                answerIdx: answer3Idx,
+                numCompleted: 3,
+            },
+            {
+                latex: "11",
+                mathInputIdx: mathInput2Idx,
+                answerIdx: answer2Idx,
+                numCompleted: 1,
+            },
+            {
+                latex: "7",
+                mathInputIdx: mathInput2Idx,
+                answerIdx: answer2Idx,
+                numCompleted: 3,
+            },
+        ];
 
-        await updateMathInputValue({
-            latex: "0",
-            componentIdx: mathInput12Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(1);
-
-        await updateMathInputValue({
-            latex: "3",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(0);
-
-        await updateMathInputValue({
-            latex: "2",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(1);
-
-        await updateMathInputValue({
-            latex: "7",
-            componentIdx: mathInput2Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer2Idx, core });
-        await check_values(2);
-
-        await updateMathInputValue({
-            latex: "-1",
-            componentIdx: mathInput12Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(0);
-
-        await updateMathInputValue({
-            latex: "0",
-            componentIdx: mathInput12Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(2);
-
-        await updateMathInputValue({
-            latex: "-1",
-            componentIdx: mathInput3Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer3Idx, core });
-        await check_values(3);
-
-        await updateMathInputValue({
-            latex: "11",
-            componentIdx: mathInput2Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer2Idx, core });
-        await check_values(1);
-
-        await updateMathInputValue({
-            latex: "7",
-            componentIdx: mathInput2Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer2Idx, core });
-        await check_values(3);
+        for (const step of answerSequence) {
+            await submitMathAnswer({ core, ...step });
+            await check_values(step.numCompleted);
+        }
     });
 
     it("cascade in cascade", async () => {
@@ -462,200 +458,159 @@ describe("Cascade tag tests @group4", async () => {
   `,
         });
 
+        const w1Idx = await resolvePathToNodeIdx("w1");
+        const w2Idx = await resolvePathToNodeIdx("w2");
+        const w3Idx = await resolvePathToNodeIdx("w3");
+        const section1Idx = await resolvePathToNodeIdx("section1");
+        const section1p1Idx = await resolvePathToNodeIdx("section1.p1");
+        const section1p2Idx = await resolvePathToNodeIdx("section1.p2");
+        const section1p3Idx = await resolvePathToNodeIdx("section1.p3");
+        const section2Idx = await resolvePathToNodeIdx("section2");
+        const section2p1Idx = await resolvePathToNodeIdx("section2.p1");
+        const section2p2Idx = await resolvePathToNodeIdx("section2.p2");
+
         async function check_values(
             numCompleted1: number,
             numCompleted2: number,
             numCompleted3: number,
         ) {
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
+            const stateVariables = await getStateVariables(core);
+
+            expect(stateVariables[w1Idx].stateValues.title).eq("My cascade");
+            expect(stateVariables[w1Idx].stateValues.numCompleted).eq(
+                numCompleted1,
             );
 
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w1")].stateValues
-                    .title,
-            ).eq("My cascade");
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w1")].stateValues
-                    .numCompleted,
-            ).eq(numCompleted1);
+            expect(stateVariables[w2Idx].stateValues.title).eq("");
+            expect(stateVariables[w2Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[w2Idx].stateValues.numCompleted).eq(
+                numCompleted2,
+            );
 
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w2")].stateValues
-                    .title,
-            ).eq("");
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w2")].stateValues
-                    .hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w2")].stateValues
-                    .numCompleted,
-            ).eq(numCompleted2);
+            expect(stateVariables[w3Idx].stateValues.title).eq("");
+            expect(stateVariables[w3Idx].stateValues.hidden).eq(
+                numCompleted1 < 1,
+            );
+            expect(stateVariables[w3Idx].stateValues.numCompleted).eq(
+                numCompleted3,
+            );
 
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w3")].stateValues
-                    .title,
-            ).eq("");
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w3")].stateValues
-                    .hidden,
-            ).eq(numCompleted1 < 1);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w3")].stateValues
-                    .numCompleted,
-            ).eq(numCompleted3);
-
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1")]
-                    .stateValues.hideChildren,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1.p1")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1.p2")]
-                    .stateValues.hidden,
-            ).eq(numCompleted2 < 1);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1.p3")]
-                    .stateValues.hidden,
-            ).eq(numCompleted2 < 1);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2")]
-                    .stateValues.hideChildren,
-            ).eq(numCompleted1 < 1);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2.p1")]
-                    .stateValues.hidden,
-            ).eq(numCompleted1 < 1);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2.p2")]
-                    .stateValues.hidden,
-            ).eq(numCompleted1 < 1 || numCompleted3 < 1);
+            expect(stateVariables[section1Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section1Idx].stateValues.hideChildren).eq(
+                false,
+            );
+            expect(stateVariables[section1p1Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section1p2Idx].stateValues.hidden).eq(
+                numCompleted2 < 1,
+            );
+            expect(stateVariables[section1p3Idx].stateValues.hidden).eq(
+                numCompleted2 < 1,
+            );
+            expect(stateVariables[section2Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section2Idx].stateValues.hideChildren).eq(
+                numCompleted1 < 1,
+            );
+            expect(stateVariables[section2p1Idx].stateValues.hidden).eq(
+                numCompleted1 < 1,
+            );
+            expect(stateVariables[section2p2Idx].stateValues.hidden).eq(
+                numCompleted1 < 1 || numCompleted3 < 1,
+            );
         }
 
-        const stateVariables = await core.returnAllStateVariables(false, true);
+        const stateVariables = await getStateVariables(core);
         const answer11Idx = await resolvePathToNodeIdx("section1.p1.ans");
-        const mathInput11Idx =
-            stateVariables[answer11Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput11Idx = getMathInputIdx(stateVariables, answer11Idx);
         const answer12Idx = await resolvePathToNodeIdx("section1.p2.ans");
-        const mathInput12Idx =
-            stateVariables[answer12Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput12Idx = getMathInputIdx(stateVariables, answer12Idx);
         const answer13Idx = await resolvePathToNodeIdx("section1.p3.ans");
-        const mathInput13Idx =
-            stateVariables[answer13Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput13Idx = getMathInputIdx(stateVariables, answer13Idx);
         const answer21Idx = await resolvePathToNodeIdx("section2.p1.ans");
-        const mathInput21Idx =
-            stateVariables[answer21Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput21Idx = getMathInputIdx(stateVariables, answer21Idx);
         const answer22Idx = await resolvePathToNodeIdx("section2.p2.ans");
-        const mathInput22Idx =
-            stateVariables[answer22Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput22Idx = getMathInputIdx(stateVariables, answer22Idx);
 
         await check_values(0, 0, 0);
 
-        await updateMathInputValue({
-            latex: "2",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(0, 1, 0);
+        const answerSequence: {
+            latex: string;
+            mathInputIdx: number;
+            answerIdx: number;
+            expected: CascadeCompletionTuple;
+        }[] = [
+            {
+                latex: "2",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                expected: [0, 1, 0] as const,
+            },
+            {
+                latex: "0",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                expected: [0, 1, 0] as const,
+            },
+            {
+                latex: "4",
+                mathInputIdx: mathInput13Idx,
+                answerIdx: answer13Idx,
+                expected: [1, 2, 0] as const,
+            },
+            {
+                latex: "3",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                expected: [0, 0, 0] as const,
+            },
+            {
+                latex: "2",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                expected: [1, 2, 0] as const,
+            },
+            {
+                latex: "7",
+                mathInputIdx: mathInput21Idx,
+                answerIdx: answer21Idx,
+                expected: [1, 2, 1] as const,
+            },
+            {
+                latex: "-1",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                expected: [0, 1, 1] as const,
+            },
+            {
+                latex: "0",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                expected: [1, 2, 1] as const,
+            },
+            {
+                latex: "-1",
+                mathInputIdx: mathInput22Idx,
+                answerIdx: answer22Idx,
+                expected: [2, 2, 2] as const,
+            },
+            {
+                latex: "11",
+                mathInputIdx: mathInput13Idx,
+                answerIdx: answer13Idx,
+                expected: [0, 1, 2] as const,
+            },
+            {
+                latex: "4",
+                mathInputIdx: mathInput13Idx,
+                answerIdx: answer13Idx,
+                expected: [2, 2, 2] as const,
+            },
+        ];
 
-        await updateMathInputValue({
-            latex: "0",
-            componentIdx: mathInput12Idx,
+        await runMathAnswerSequence({
             core,
+            steps: answerSequence,
+            assertState: async ([c1, c2, c3]) => check_values(c1, c2, c3),
         });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(0, 1, 0);
-
-        await updateMathInputValue({
-            latex: "4",
-            componentIdx: mathInput13Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer13Idx, core });
-        await check_values(1, 2, 0);
-
-        await updateMathInputValue({
-            latex: "3",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(0, 0, 0);
-
-        await updateMathInputValue({
-            latex: "2",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(1, 2, 0);
-
-        await updateMathInputValue({
-            latex: "7",
-            componentIdx: mathInput21Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer21Idx, core });
-        await check_values(1, 2, 1);
-
-        await updateMathInputValue({
-            latex: "-1",
-            componentIdx: mathInput12Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(0, 1, 1);
-
-        await updateMathInputValue({
-            latex: "0",
-            componentIdx: mathInput12Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(1, 2, 1);
-
-        await updateMathInputValue({
-            latex: "-1",
-            componentIdx: mathInput22Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer22Idx, core });
-        await check_values(2, 2, 2);
-
-        await updateMathInputValue({
-            latex: "11",
-            componentIdx: mathInput13Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer13Idx, core });
-        await check_values(0, 1, 2);
-
-        await updateMathInputValue({
-            latex: "4",
-            componentIdx: mathInput13Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer13Idx, core });
-        await check_values(2, 2, 2);
     });
 
     it("cascade in cascade, reveal all", async () => {
@@ -690,200 +645,149 @@ describe("Cascade tag tests @group4", async () => {
   `,
         });
 
+        const w1Idx = await resolvePathToNodeIdx("w1");
+        const w2Idx = await resolvePathToNodeIdx("w2");
+        const w3Idx = await resolvePathToNodeIdx("w3");
+        const section1Idx = await resolvePathToNodeIdx("section1");
+        const section1p1Idx = await resolvePathToNodeIdx("section1.p1");
+        const section1p2Idx = await resolvePathToNodeIdx("section1.p2");
+        const section1p3Idx = await resolvePathToNodeIdx("section1.p3");
+        const section2Idx = await resolvePathToNodeIdx("section2");
+        const section2p1Idx = await resolvePathToNodeIdx("section2.p1");
+        const section2p2Idx = await resolvePathToNodeIdx("section2.p2");
+
         async function check_values(
             numCompleted1: number,
             numCompleted2: number,
             numCompleted3: number,
         ) {
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
+            const stateVariables = await getStateVariables(core);
+
+            expect(stateVariables[w1Idx].stateValues.title).eq("My cascade");
+            expect(stateVariables[w1Idx].stateValues.numCompleted).eq(
+                numCompleted1,
             );
 
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w1")].stateValues
-                    .title,
-            ).eq("My cascade");
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w1")].stateValues
-                    .numCompleted,
-            ).eq(numCompleted1);
+            expect(stateVariables[w2Idx].stateValues.title).eq("");
+            expect(stateVariables[w2Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[w2Idx].stateValues.numCompleted).eq(
+                numCompleted2,
+            );
 
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w2")].stateValues
-                    .title,
-            ).eq("");
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w2")].stateValues
-                    .hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w2")].stateValues
-                    .numCompleted,
-            ).eq(numCompleted2);
+            expect(stateVariables[w3Idx].stateValues.title).eq("");
+            expect(stateVariables[w3Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[w3Idx].stateValues.numCompleted).eq(
+                numCompleted3,
+            );
 
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w3")].stateValues
-                    .title,
-            ).eq("");
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w3")].stateValues
-                    .hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w3")].stateValues
-                    .numCompleted,
-            ).eq(numCompleted3);
-
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1")]
-                    .stateValues.hideChildren,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1.p1")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1.p2")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1.p3")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2")]
-                    .stateValues.hideChildren,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2.p1")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2.p2")]
-                    .stateValues.hidden,
-            ).eq(false);
+            expect(stateVariables[section1Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section1Idx].stateValues.hideChildren).eq(
+                false,
+            );
+            expect(stateVariables[section1p1Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section1p2Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section1p3Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section2Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section2Idx].stateValues.hideChildren).eq(
+                false,
+            );
+            expect(stateVariables[section2p1Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section2p2Idx].stateValues.hidden).eq(false);
         }
 
-        const stateVariables = await core.returnAllStateVariables(false, true);
+        const stateVariables = await getStateVariables(core);
         const answer11Idx = await resolvePathToNodeIdx("section1.p1.ans");
-        const mathInput11Idx =
-            stateVariables[answer11Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput11Idx = getMathInputIdx(stateVariables, answer11Idx);
         const answer12Idx = await resolvePathToNodeIdx("section1.p2.ans");
-        const mathInput12Idx =
-            stateVariables[answer12Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput12Idx = getMathInputIdx(stateVariables, answer12Idx);
         const answer13Idx = await resolvePathToNodeIdx("section1.p3.ans");
-        const mathInput13Idx =
-            stateVariables[answer13Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput13Idx = getMathInputIdx(stateVariables, answer13Idx);
         const answer21Idx = await resolvePathToNodeIdx("section2.p1.ans");
-        const mathInput21Idx =
-            stateVariables[answer21Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput21Idx = getMathInputIdx(stateVariables, answer21Idx);
         const answer22Idx = await resolvePathToNodeIdx("section2.p2.ans");
-        const mathInput22Idx =
-            stateVariables[answer22Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput22Idx = getMathInputIdx(stateVariables, answer22Idx);
 
         await check_values(0, 0, 0);
 
-        await updateMathInputValue({
-            latex: "2",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(0, 1, 0);
+        const answerSequence: {
+            latex: string;
+            mathInputIdx: number;
+            answerIdx: number;
+            expected: CascadeCompletionTuple;
+        }[] = [
+            {
+                latex: "2",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                expected: [0, 1, 0] as const,
+            },
+            {
+                latex: "0",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                expected: [0, 1, 0] as const,
+            },
+            {
+                latex: "4",
+                mathInputIdx: mathInput13Idx,
+                answerIdx: answer13Idx,
+                expected: [1, 2, 0] as const,
+            },
+            {
+                latex: "3",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                expected: [0, 0, 0] as const,
+            },
+            {
+                latex: "2",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                expected: [1, 2, 0] as const,
+            },
+            {
+                latex: "7",
+                mathInputIdx: mathInput21Idx,
+                answerIdx: answer21Idx,
+                expected: [1, 2, 1] as const,
+            },
+            {
+                latex: "-1",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                expected: [0, 1, 1] as const,
+            },
+            {
+                latex: "0",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                expected: [1, 2, 1] as const,
+            },
+            {
+                latex: "-1",
+                mathInputIdx: mathInput22Idx,
+                answerIdx: answer22Idx,
+                expected: [2, 2, 2] as const,
+            },
+            {
+                latex: "11",
+                mathInputIdx: mathInput13Idx,
+                answerIdx: answer13Idx,
+                expected: [0, 1, 2] as const,
+            },
+            {
+                latex: "4",
+                mathInputIdx: mathInput13Idx,
+                answerIdx: answer13Idx,
+                expected: [2, 2, 2] as const,
+            },
+        ];
 
-        await updateMathInputValue({
-            latex: "0",
-            componentIdx: mathInput12Idx,
+        await runMathAnswerSequence({
             core,
+            steps: answerSequence,
+            assertState: async ([c1, c2, c3]) => check_values(c1, c2, c3),
         });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(0, 1, 0);
-
-        await updateMathInputValue({
-            latex: "4",
-            componentIdx: mathInput13Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer13Idx, core });
-        await check_values(1, 2, 0);
-
-        await updateMathInputValue({
-            latex: "3",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(0, 0, 0);
-
-        await updateMathInputValue({
-            latex: "2",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(1, 2, 0);
-
-        await updateMathInputValue({
-            latex: "7",
-            componentIdx: mathInput21Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer21Idx, core });
-        await check_values(1, 2, 1);
-
-        await updateMathInputValue({
-            latex: "-1",
-            componentIdx: mathInput12Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(0, 1, 1);
-
-        await updateMathInputValue({
-            latex: "0",
-            componentIdx: mathInput12Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(1, 2, 1);
-
-        await updateMathInputValue({
-            latex: "-1",
-            componentIdx: mathInput22Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer22Idx, core });
-        await check_values(2, 2, 2);
-
-        await updateMathInputValue({
-            latex: "11",
-            componentIdx: mathInput13Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer13Idx, core });
-        await check_values(0, 1, 2);
-
-        await updateMathInputValue({
-            latex: "4",
-            componentIdx: mathInput13Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer13Idx, core });
-        await check_values(2, 2, 2);
     });
 
     it("change cascade colors", async () => {
@@ -919,6 +823,16 @@ describe("Cascade tag tests @group4", async () => {
   `,
         });
 
+        const wIdx = await resolvePathToNodeIdx("w");
+        const pNumCompletedIdx = await resolvePathToNodeIdx("pNumCompleted");
+        const section1Idx = await resolvePathToNodeIdx("section1");
+        const section1p1Idx = await resolvePathToNodeIdx("section1.p1");
+        const section1p2Idx = await resolvePathToNodeIdx("section1.p2");
+        const section2Idx = await resolvePathToNodeIdx("section2");
+        const section2pIdx = await resolvePathToNodeIdx("section2.p");
+        const section3Idx = await resolvePathToNodeIdx("section3");
+        const section3pIdx = await resolvePathToNodeIdx("section3.p");
+
         function colorFromCredit(credit: number) {
             if (credit === 1) {
                 return "blue";
@@ -930,191 +844,132 @@ describe("Cascade tag tests @group4", async () => {
         }
 
         async function check_values(numCompleted: number) {
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
+            const stateVariables = await getStateVariables(core);
 
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w")].stateValues
-                    .title,
-            ).eq("My cascade");
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w")].stateValues
-                    .numCompleted,
-            ).eq(numCompleted);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("pNumCompleted")]
-                    .stateValues.text,
-            ).eq(`numCompleted: ${numCompleted}`);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1")]
-                    .stateValues.hideChildren,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1")]
-                    .stateValues.titleColor,
-            ).eq(
+            expect(stateVariables[wIdx].stateValues.title).eq("My cascade");
+            expect(stateVariables[wIdx].stateValues.numCompleted).eq(
+                numCompleted,
+            );
+            expect(stateVariables[pNumCompletedIdx].stateValues.text).eq(
+                `numCompleted: ${numCompleted}`,
+            );
+            expect(stateVariables[section1Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section1Idx].stateValues.hideChildren).eq(
+                false,
+            );
+            expect(stateVariables[section1Idx].stateValues.titleColor).eq(
                 colorFromCredit(
-                    stateVariables[await resolvePathToNodeIdx("section1")]
-                        .stateValues.creditAchieved,
+                    stateVariables[section1Idx].stateValues.creditAchieved,
                 ),
             );
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1.p1")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1.p2")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2")]
-                    .stateValues.hideChildren,
-            ).eq(numCompleted < 1);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2")]
-                    .stateValues.titleColor,
-            ).eq(
+            expect(stateVariables[section1p1Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section1p2Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section2Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section2Idx].stateValues.hideChildren).eq(
+                numCompleted < 1,
+            );
+            expect(stateVariables[section2Idx].stateValues.titleColor).eq(
                 colorFromCredit(
-                    stateVariables[await resolvePathToNodeIdx("section2")]
-                        .stateValues.creditAchieved,
+                    stateVariables[section2Idx].stateValues.creditAchieved,
                 ),
             );
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2.p")]
-                    .stateValues.hidden,
-            ).eq(numCompleted < 1);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section3")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section3")]
-                    .stateValues.hideChildren,
-            ).eq(numCompleted < 2);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section3")]
-                    .stateValues.titleColor,
-            ).eq(
+            expect(stateVariables[section2pIdx].stateValues.hidden).eq(
+                numCompleted < 1,
+            );
+            expect(stateVariables[section3Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section3Idx].stateValues.hideChildren).eq(
+                numCompleted < 2,
+            );
+            expect(stateVariables[section3Idx].stateValues.titleColor).eq(
                 colorFromCredit(
-                    stateVariables[await resolvePathToNodeIdx("section3")]
-                        .stateValues.creditAchieved,
+                    stateVariables[section3Idx].stateValues.creditAchieved,
                 ),
             );
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section3.p")]
-                    .stateValues.hidden,
-            ).eq(numCompleted < 2);
+            expect(stateVariables[section3pIdx].stateValues.hidden).eq(
+                numCompleted < 2,
+            );
         }
 
-        const stateVariables = await core.returnAllStateVariables(false, true);
+        const stateVariables = await getStateVariables(core);
         const answer11Idx = await resolvePathToNodeIdx("section1.p1.ans");
-        const mathInput11Idx =
-            stateVariables[answer11Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput11Idx = getMathInputIdx(stateVariables, answer11Idx);
         const answer12Idx = await resolvePathToNodeIdx("section1.p2.ans");
-        const mathInput12Idx =
-            stateVariables[answer12Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput12Idx = getMathInputIdx(stateVariables, answer12Idx);
         const answer2Idx = await resolvePathToNodeIdx("section2.p.ans");
-        const mathInput2Idx =
-            stateVariables[answer2Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput2Idx = getMathInputIdx(stateVariables, answer2Idx);
         const answer3Idx = await resolvePathToNodeIdx("section3.p.ans");
-        const mathInput3Idx =
-            stateVariables[answer3Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput3Idx = getMathInputIdx(stateVariables, answer3Idx);
 
         await check_values(0);
 
-        await updateMathInputValue({
-            latex: "2",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(0);
+        const answerSequence = [
+            {
+                latex: "2",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                expected: 0,
+            },
+            {
+                latex: "0",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                expected: 1,
+            },
+            {
+                latex: "3",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                expected: 0,
+            },
+            {
+                latex: "2",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                expected: 1,
+            },
+            {
+                latex: "7",
+                mathInputIdx: mathInput2Idx,
+                answerIdx: answer2Idx,
+                expected: 2,
+            },
+            {
+                latex: "-1",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                expected: 0,
+            },
+            {
+                latex: "0",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                expected: 2,
+            },
+            {
+                latex: "-1",
+                mathInputIdx: mathInput3Idx,
+                answerIdx: answer3Idx,
+                expected: 3,
+            },
+            {
+                latex: "11",
+                mathInputIdx: mathInput2Idx,
+                answerIdx: answer2Idx,
+                expected: 1,
+            },
+            {
+                latex: "7",
+                mathInputIdx: mathInput2Idx,
+                answerIdx: answer2Idx,
+                expected: 3,
+            },
+        ];
 
-        await updateMathInputValue({
-            latex: "0",
-            componentIdx: mathInput12Idx,
+        await runMathAnswerSequence({
             core,
+            steps: answerSequence,
+            assertState: check_values,
         });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(1);
-
-        await updateMathInputValue({
-            latex: "3",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(0);
-
-        await updateMathInputValue({
-            latex: "2",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(1);
-
-        await updateMathInputValue({
-            latex: "7",
-            componentIdx: mathInput2Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer2Idx, core });
-        await check_values(2);
-
-        await updateMathInputValue({
-            latex: "-1",
-            componentIdx: mathInput12Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(0);
-
-        await updateMathInputValue({
-            latex: "0",
-            componentIdx: mathInput12Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(2);
-
-        await updateMathInputValue({
-            latex: "-1",
-            componentIdx: mathInput3Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer3Idx, core });
-        await check_values(3);
-
-        await updateMathInputValue({
-            latex: "11",
-            componentIdx: mathInput2Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer2Idx, core });
-        await check_values(1);
-
-        await updateMathInputValue({
-            latex: "7",
-            componentIdx: mathInput2Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer2Idx, core });
-        await check_values(3);
     });
 
     it("continuation messages inside sections", async () => {
@@ -1154,207 +1009,156 @@ describe("Cascade tag tests @group4", async () => {
   `,
         });
 
+        const wIdx = await resolvePathToNodeIdx("w");
+        const pNumCompletedIdx = await resolvePathToNodeIdx("pNumCompleted");
+        const section1Idx = await resolvePathToNodeIdx("section1");
+        const section1p1Idx = await resolvePathToNodeIdx("section1.p1");
+        const section1p2Idx = await resolvePathToNodeIdx("section1.p2");
+        const section1cmIdx = await resolvePathToNodeIdx("section1.cm");
+        const section2Idx = await resolvePathToNodeIdx("section2");
+        const section2pIdx = await resolvePathToNodeIdx("section2.p");
+        const section2cmIdx = await resolvePathToNodeIdx("section2.cm");
+        const section3Idx = await resolvePathToNodeIdx("section3");
+        const section3pIdx = await resolvePathToNodeIdx("section3.p");
+        const section3cmIdx = await resolvePathToNodeIdx("section3.cm");
+
         async function check_values(numCompleted: number) {
-            const stateVariables = await core.returnAllStateVariables(
+            const stateVariables = await getStateVariables(core);
+
+            expect(stateVariables[wIdx].stateValues.title).eq("My cascade");
+            expect(stateVariables[wIdx].stateValues.numCompleted).eq(
+                numCompleted,
+            );
+            expect(stateVariables[pNumCompletedIdx].stateValues.text).eq(
+                `numCompleted: ${numCompleted}`,
+            );
+            expect(stateVariables[section1Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section1Idx].stateValues.hideChildren).eq(
                 false,
-                true,
             );
-
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w")].stateValues
-                    .title,
-            ).eq("My cascade");
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w")].stateValues
-                    .numCompleted,
-            ).eq(numCompleted);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("pNumCompleted")]
-                    .stateValues.text,
-            ).eq(`numCompleted: ${numCompleted}`);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1")]
-                    .stateValues.hideChildren,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1")]
-                    .stateValues.titleColor,
-            ).eq(
-                stateVariables[await resolvePathToNodeIdx("section1")]
-                    .stateValues.creditAchieved < 1
+            expect(stateVariables[section1Idx].stateValues.titleColor).eq(
+                stateVariables[section1Idx].stateValues.creditAchieved < 1
                     ? "var(--mainGray)"
                     : "var(--lightGreen)",
             );
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1.p1")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1.p2")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section1.cm")]
-                    .stateValues.hidden,
-            ).eq(true);
+            expect(stateVariables[section1p1Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section1p2Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section1cmIdx].stateValues.hidden).eq(true);
 
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2")]
-                    .stateValues.hideChildren,
-            ).eq(numCompleted < 1);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2")]
-                    .stateValues.titleColor,
-            ).eq(
-                stateVariables[await resolvePathToNodeIdx("section2")]
-                    .stateValues.creditAchieved < 1
+            expect(stateVariables[section2Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section2Idx].stateValues.hideChildren).eq(
+                numCompleted < 1,
+            );
+            expect(stateVariables[section2Idx].stateValues.titleColor).eq(
+                stateVariables[section2Idx].stateValues.creditAchieved < 1
                     ? "var(--mainGray)"
                     : "var(--lightGreen)",
             );
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2.p")]
-                    .stateValues.hidden,
-            ).eq(numCompleted < 1);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section2.cm")]
-                    .stateValues.hidden,
-            ).eq(numCompleted >= 1);
+            expect(stateVariables[section2pIdx].stateValues.hidden).eq(
+                numCompleted < 1,
+            );
+            expect(stateVariables[section2cmIdx].stateValues.hidden).eq(
+                numCompleted >= 1,
+            );
 
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section3")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section3")]
-                    .stateValues.hideChildren,
-            ).eq(numCompleted < 2);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section3")]
-                    .stateValues.titleColor,
-            ).eq(
-                stateVariables[await resolvePathToNodeIdx("section3")]
-                    .stateValues.creditAchieved < 1
+            expect(stateVariables[section3Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[section3Idx].stateValues.hideChildren).eq(
+                numCompleted < 2,
+            );
+            expect(stateVariables[section3Idx].stateValues.titleColor).eq(
+                stateVariables[section3Idx].stateValues.creditAchieved < 1
                     ? "var(--mainGray)"
                     : "var(--lightGreen)",
             );
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section3.p")]
-                    .stateValues.hidden,
-            ).eq(numCompleted < 2);
+            expect(stateVariables[section3pIdx].stateValues.hidden).eq(
+                numCompleted < 2,
+            );
 
-            expect(
-                stateVariables[await resolvePathToNodeIdx("section3.cm")]
-                    .stateValues.hidden,
-            ).eq(numCompleted >= 2);
+            expect(stateVariables[section3cmIdx].stateValues.hidden).eq(
+                numCompleted >= 2,
+            );
         }
 
-        const stateVariables = await core.returnAllStateVariables(false, true);
+        const stateVariables = await getStateVariables(core);
         const answer11Idx = await resolvePathToNodeIdx("section1.p1.ans");
-        const mathInput11Idx =
-            stateVariables[answer11Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput11Idx = getMathInputIdx(stateVariables, answer11Idx);
         const answer12Idx = await resolvePathToNodeIdx("section1.p2.ans");
-        const mathInput12Idx =
-            stateVariables[answer12Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput12Idx = getMathInputIdx(stateVariables, answer12Idx);
         const answer2Idx = await resolvePathToNodeIdx("section2.p.ans");
-        const mathInput2Idx =
-            stateVariables[answer2Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput2Idx = getMathInputIdx(stateVariables, answer2Idx);
         const answer3Idx = await resolvePathToNodeIdx("section3.p.ans");
-        const mathInput3Idx =
-            stateVariables[answer3Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput3Idx = getMathInputIdx(stateVariables, answer3Idx);
 
         await check_values(0);
 
-        await updateMathInputValue({
-            latex: "2",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(0);
+        const answerSequence = [
+            {
+                latex: "2",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                expected: 0,
+            },
+            {
+                latex: "0",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                expected: 1,
+            },
+            {
+                latex: "3",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                expected: 0,
+            },
+            {
+                latex: "2",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                expected: 1,
+            },
+            {
+                latex: "7",
+                mathInputIdx: mathInput2Idx,
+                answerIdx: answer2Idx,
+                expected: 2,
+            },
+            {
+                latex: "-1",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                expected: 0,
+            },
+            {
+                latex: "0",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                expected: 2,
+            },
+            {
+                latex: "-1",
+                mathInputIdx: mathInput3Idx,
+                answerIdx: answer3Idx,
+                expected: 3,
+            },
+            {
+                latex: "11",
+                mathInputIdx: mathInput2Idx,
+                answerIdx: answer2Idx,
+                expected: 1,
+            },
+            {
+                latex: "7",
+                mathInputIdx: mathInput2Idx,
+                answerIdx: answer2Idx,
+                expected: 3,
+            },
+        ];
 
-        await updateMathInputValue({
-            latex: "0",
-            componentIdx: mathInput12Idx,
+        await runMathAnswerSequence({
             core,
+            steps: answerSequence,
+            assertState: check_values,
         });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(1);
-
-        await updateMathInputValue({
-            latex: "3",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(0);
-
-        await updateMathInputValue({
-            latex: "2",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(1);
-
-        await updateMathInputValue({
-            latex: "7",
-            componentIdx: mathInput2Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer2Idx, core });
-        await check_values(2);
-
-        await updateMathInputValue({
-            latex: "-1",
-            componentIdx: mathInput12Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(0);
-
-        await updateMathInputValue({
-            latex: "0",
-            componentIdx: mathInput12Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(2);
-
-        await updateMathInputValue({
-            latex: "-1",
-            componentIdx: mathInput3Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer3Idx, core });
-        await check_values(3);
-
-        await updateMathInputValue({
-            latex: "11",
-            componentIdx: mathInput2Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer2Idx, core });
-        await check_values(1);
-
-        await updateMathInputValue({
-            latex: "7",
-            componentIdx: mathInput2Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer2Idx, core });
-        await check_values(3);
     });
 
     it("one continuation message inside cascade", async () => {
@@ -1380,144 +1184,117 @@ describe("Cascade tag tests @group4", async () => {
   `,
         });
 
+        const wIdx = await resolvePathToNodeIdx("w");
+        const div1Idx = await resolvePathToNodeIdx("div1");
+        const p1aIdx = await resolvePathToNodeIdx("div1.p1a");
+        const p1bIdx = await resolvePathToNodeIdx("div1.p1b");
+        const p2Idx = await resolvePathToNodeIdx("p2");
+        const p3Idx = await resolvePathToNodeIdx("p3");
+        const cmIdx = await resolvePathToNodeIdx("cm");
+
         async function check_values(numCompleted: number) {
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
+            const stateVariables = await getStateVariables(core);
+
+            expect(stateVariables[wIdx].stateValues.numCompleted).eq(
+                numCompleted,
+            );
+            expect(stateVariables[div1Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[p1aIdx].stateValues.hidden).eq(false);
+            expect(stateVariables[p1bIdx].stateValues.hidden).eq(false);
+
+            expect(stateVariables[p2Idx].stateValues.hidden).eq(
+                numCompleted < 1,
             );
 
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w")].stateValues
-                    .numCompleted,
-            ).eq(numCompleted);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("div1")].stateValues
-                    .hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("div1.p1a")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("div1.p1b")]
-                    .stateValues.hidden,
-            ).eq(false);
+            expect(stateVariables[p3Idx].stateValues.hidden).eq(
+                numCompleted < 2,
+            );
 
-            expect(
-                stateVariables[await resolvePathToNodeIdx("p2")].stateValues
-                    .hidden,
-            ).eq(numCompleted < 1);
-
-            expect(
-                stateVariables[await resolvePathToNodeIdx("p3")].stateValues
-                    .hidden,
-            ).eq(numCompleted < 2);
-
-            expect(
-                stateVariables[await resolvePathToNodeIdx("cm")].stateValues
-                    .hidden,
-            ).eq(numCompleted >= 2);
+            expect(stateVariables[cmIdx].stateValues.hidden).eq(
+                numCompleted >= 2,
+            );
         }
 
-        const stateVariables = await core.returnAllStateVariables(false, true);
+        const stateVariables = await getStateVariables(core);
         const answer11Idx = await resolvePathToNodeIdx("p1a.ans");
-        const mathInput11Idx =
-            stateVariables[answer11Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput11Idx = getMathInputIdx(stateVariables, answer11Idx);
         const answer12Idx = await resolvePathToNodeIdx("p1b.ans");
-        const mathInput12Idx =
-            stateVariables[answer12Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput12Idx = getMathInputIdx(stateVariables, answer12Idx);
         const answer2Idx = await resolvePathToNodeIdx("p2.ans");
-        const mathInput2Idx =
-            stateVariables[answer2Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput2Idx = getMathInputIdx(stateVariables, answer2Idx);
         const answer3Idx = await resolvePathToNodeIdx("p3.ans");
-        const mathInput3Idx =
-            stateVariables[answer3Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput3Idx = getMathInputIdx(stateVariables, answer3Idx);
 
         await check_values(0);
 
-        await updateMathInputValue({
-            latex: "2",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(0);
+        const answerSequence = [
+            {
+                latex: "2",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                expected: 0,
+            },
+            {
+                latex: "0",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                expected: 1,
+            },
+            {
+                latex: "3",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                expected: 0,
+            },
+            {
+                latex: "2",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                expected: 1,
+            },
+            {
+                latex: "7",
+                mathInputIdx: mathInput2Idx,
+                answerIdx: answer2Idx,
+                expected: 2,
+            },
+            {
+                latex: "-1",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                expected: 0,
+            },
+            {
+                latex: "0",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                expected: 2,
+            },
+            {
+                latex: "-1",
+                mathInputIdx: mathInput3Idx,
+                answerIdx: answer3Idx,
+                expected: 3,
+            },
+            {
+                latex: "11",
+                mathInputIdx: mathInput2Idx,
+                answerIdx: answer2Idx,
+                expected: 1,
+            },
+            {
+                latex: "7",
+                mathInputIdx: mathInput2Idx,
+                answerIdx: answer2Idx,
+                expected: 3,
+            },
+        ];
 
-        await updateMathInputValue({
-            latex: "0",
-            componentIdx: mathInput12Idx,
+        await runMathAnswerSequence({
             core,
+            steps: answerSequence,
+            assertState: check_values,
         });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(1);
-
-        await updateMathInputValue({
-            latex: "3",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(0);
-
-        await updateMathInputValue({
-            latex: "2",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(1);
-
-        await updateMathInputValue({
-            latex: "7",
-            componentIdx: mathInput2Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer2Idx, core });
-        await check_values(2);
-
-        await updateMathInputValue({
-            latex: "-1",
-            componentIdx: mathInput12Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(0);
-
-        await updateMathInputValue({
-            latex: "0",
-            componentIdx: mathInput12Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(2);
-
-        await updateMathInputValue({
-            latex: "-1",
-            componentIdx: mathInput3Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer3Idx, core });
-        await check_values(3);
-
-        await updateMathInputValue({
-            latex: "11",
-            componentIdx: mathInput2Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer2Idx, core });
-        await check_values(1);
-
-        await updateMathInputValue({
-            latex: "7",
-            componentIdx: mathInput2Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer2Idx, core });
-        await check_values(3);
     });
 
     it("multiple continuation messages inside cascade", async () => {
@@ -1547,156 +1324,125 @@ describe("Cascade tag tests @group4", async () => {
   `,
         });
 
+        const wIdx = await resolvePathToNodeIdx("w");
+        const div1Idx = await resolvePathToNodeIdx("div1");
+        const p1aIdx = await resolvePathToNodeIdx("div1.p1a");
+        const p1bIdx = await resolvePathToNodeIdx("div1.p1b");
+        const p2Idx = await resolvePathToNodeIdx("p2");
+        const p3Idx = await resolvePathToNodeIdx("p3");
+        const cm1Idx = await resolvePathToNodeIdx("cm1");
+        const cm2Idx = await resolvePathToNodeIdx("cm2");
+        const cm3Idx = await resolvePathToNodeIdx("cm3");
+        const cm4Idx = await resolvePathToNodeIdx("cm4");
+
         async function check_values(numCompleted: number) {
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
+            const stateVariables = await getStateVariables(core);
+
+            expect(stateVariables[wIdx].stateValues.numCompleted).eq(
+                numCompleted,
+            );
+            expect(stateVariables[div1Idx].stateValues.hidden).eq(false);
+            expect(stateVariables[p1aIdx].stateValues.hidden).eq(false);
+            expect(stateVariables[p1bIdx].stateValues.hidden).eq(false);
+
+            expect(stateVariables[p2Idx].stateValues.hidden).eq(
+                numCompleted < 1,
             );
 
-            expect(
-                stateVariables[await resolvePathToNodeIdx("w")].stateValues
-                    .numCompleted,
-            ).eq(numCompleted);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("div1")].stateValues
-                    .hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("div1.p1a")]
-                    .stateValues.hidden,
-            ).eq(false);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("div1.p1b")]
-                    .stateValues.hidden,
-            ).eq(false);
+            expect(stateVariables[p3Idx].stateValues.hidden).eq(
+                numCompleted < 2,
+            );
 
-            expect(
-                stateVariables[await resolvePathToNodeIdx("p2")].stateValues
-                    .hidden,
-            ).eq(numCompleted < 1);
-
-            expect(
-                stateVariables[await resolvePathToNodeIdx("p3")].stateValues
-                    .hidden,
-            ).eq(numCompleted < 2);
-
-            expect(
-                stateVariables[await resolvePathToNodeIdx("cm1")].stateValues
-                    .hidden,
-            ).eq(true);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("cm2")].stateValues
-                    .hidden,
-            ).eq(numCompleted > 0);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("cm3")].stateValues
-                    .hidden,
-            ).eq(numCompleted !== 1);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("cm4")].stateValues
-                    .hidden,
-            ).eq(true);
+            expect(stateVariables[cm1Idx].stateValues.hidden).eq(true);
+            expect(stateVariables[cm2Idx].stateValues.hidden).eq(
+                numCompleted > 0,
+            );
+            expect(stateVariables[cm3Idx].stateValues.hidden).eq(
+                numCompleted !== 1,
+            );
+            expect(stateVariables[cm4Idx].stateValues.hidden).eq(true);
         }
 
-        const stateVariables = await core.returnAllStateVariables(false, true);
+        const stateVariables = await getStateVariables(core);
         const answer11Idx = await resolvePathToNodeIdx("p1a.ans");
-        const mathInput11Idx =
-            stateVariables[answer11Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput11Idx = getMathInputIdx(stateVariables, answer11Idx);
         const answer12Idx = await resolvePathToNodeIdx("p1b.ans");
-        const mathInput12Idx =
-            stateVariables[answer12Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput12Idx = getMathInputIdx(stateVariables, answer12Idx);
         const answer2Idx = await resolvePathToNodeIdx("p2.ans");
-        const mathInput2Idx =
-            stateVariables[answer2Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput2Idx = getMathInputIdx(stateVariables, answer2Idx);
         const answer3Idx = await resolvePathToNodeIdx("p3.ans");
-        const mathInput3Idx =
-            stateVariables[answer3Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput3Idx = getMathInputIdx(stateVariables, answer3Idx);
 
         await check_values(0);
 
-        await updateMathInputValue({
-            latex: "2",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(0);
+        const answerSequence = [
+            {
+                latex: "2",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                expected: 0,
+            },
+            {
+                latex: "0",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                expected: 1,
+            },
+            {
+                latex: "3",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                expected: 0,
+            },
+            {
+                latex: "2",
+                mathInputIdx: mathInput11Idx,
+                answerIdx: answer11Idx,
+                expected: 1,
+            },
+            {
+                latex: "7",
+                mathInputIdx: mathInput2Idx,
+                answerIdx: answer2Idx,
+                expected: 2,
+            },
+            {
+                latex: "-1",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                expected: 0,
+            },
+            {
+                latex: "0",
+                mathInputIdx: mathInput12Idx,
+                answerIdx: answer12Idx,
+                expected: 2,
+            },
+            {
+                latex: "-1",
+                mathInputIdx: mathInput3Idx,
+                answerIdx: answer3Idx,
+                expected: 3,
+            },
+            {
+                latex: "11",
+                mathInputIdx: mathInput2Idx,
+                answerIdx: answer2Idx,
+                expected: 1,
+            },
+            {
+                latex: "7",
+                mathInputIdx: mathInput2Idx,
+                answerIdx: answer2Idx,
+                expected: 3,
+            },
+        ];
 
-        await updateMathInputValue({
-            latex: "0",
-            componentIdx: mathInput12Idx,
+        await runMathAnswerSequence({
             core,
+            steps: answerSequence,
+            assertState: check_values,
         });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(1);
-
-        await updateMathInputValue({
-            latex: "3",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(0);
-
-        await updateMathInputValue({
-            latex: "2",
-            componentIdx: mathInput11Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer11Idx, core });
-        await check_values(1);
-
-        await updateMathInputValue({
-            latex: "7",
-            componentIdx: mathInput2Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer2Idx, core });
-        await check_values(2);
-
-        await updateMathInputValue({
-            latex: "-1",
-            componentIdx: mathInput12Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(0);
-
-        await updateMathInputValue({
-            latex: "0",
-            componentIdx: mathInput12Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer12Idx, core });
-        await check_values(2);
-
-        await updateMathInputValue({
-            latex: "-1",
-            componentIdx: mathInput3Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer3Idx, core });
-        await check_values(3);
-
-        await updateMathInputValue({
-            latex: "11",
-            componentIdx: mathInput2Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer2Idx, core });
-        await check_values(1);
-
-        await updateMathInputValue({
-            latex: "7",
-            componentIdx: mathInput2Idx,
-            core,
-        });
-        await submitAnswer({ componentIdx: answer2Idx, core });
-        await check_values(3);
     });
 
     it("hide string children in sections", async () => {
@@ -1722,11 +1468,9 @@ describe("Cascade tag tests @group4", async () => {
   `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(false, true);
+        let stateVariables = await getStateVariables(core);
         const answer1Idx = await resolvePathToNodeIdx("section1.ans");
-        const mathInput1Idx =
-            stateVariables[answer1Idx].stateValues.inputChildren[0]
-                .componentIdx;
+        const mathInput1Idx = getMathInputIdx(stateVariables, answer1Idx);
 
         const section2Idx = await resolvePathToNodeIdx("section2");
         const answer2Idx = await resolvePathToNodeIdx("section2.ans");
@@ -1744,14 +1488,14 @@ describe("Cascade tag tests @group4", async () => {
             answer2Idx,
         ]);
 
-        await updateMathInputValue({
+        await submitMathAnswer({
             latex: "2",
-            componentIdx: mathInput1Idx,
+            mathInputIdx: mathInput1Idx,
+            answerIdx: answer1Idx,
             core,
         });
-        await submitAnswer({ componentIdx: answer1Idx, core });
 
-        stateVariables = await core.returnAllStateVariables(false, true);
+        stateVariables = await getStateVariables(core);
 
         // now string indices are rendered
         expect(
@@ -1821,80 +1565,65 @@ describe("Cascade tag tests @group4", async () => {
             doenetML,
         });
 
+        const ci1Idx = await resolvePathToNodeIdx("ci1");
+        const ci2Idx = await resolvePathToNodeIdx("ci2");
+        const ans1Idx = await resolvePathToNodeIdx("ans1");
+        const ans2Idx = await resolvePathToNodeIdx("ans2");
+
         async function check_items(
             justSubmitted: boolean[],
             creditAchieved: number[],
         ) {
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
+            const stateVariables = await getStateVariables(core);
 
-            expect(
-                stateVariables[await resolvePathToNodeIdx("ci1")].stateValues
-                    .justSubmitted,
-            ).eq(justSubmitted[0]);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("ans1")].stateValues
-                    .creditAchieved,
-            ).eq(creditAchieved[0]);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
-                    .hidden,
-            ).eq(creditAchieved[0] < 1);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("ci2")].stateValues
-                    .justSubmitted,
-            ).eq(justSubmitted[1]);
-            expect(
-                stateVariables[await resolvePathToNodeIdx("ans2")].stateValues
-                    .creditAchieved,
-            ).eq(creditAchieved[1]);
+            expect(stateVariables[ci1Idx].stateValues.justSubmitted).eq(
+                justSubmitted[0],
+            );
+            expect(stateVariables[ans1Idx].stateValues.creditAchieved).eq(
+                creditAchieved[0],
+            );
+            expect(stateVariables[ci2Idx].stateValues.hidden).eq(
+                creditAchieved[0] < 1,
+            );
+            expect(stateVariables[ci2Idx].stateValues.justSubmitted).eq(
+                justSubmitted[1],
+            );
+            expect(stateVariables[ans2Idx].stateValues.creditAchieved).eq(
+                creditAchieved[1],
+            );
         }
 
-        await updateSelectedIndices({
-            componentIdx: await resolvePathToNodeIdx("ci1"),
+        await submitChoiceAnswer({
+            choiceInputIdx: ci1Idx,
+            answerIdx: ans1Idx,
             selectedIndices: [1],
-            core,
-        });
-        await submitAnswer({
-            componentIdx: await resolvePathToNodeIdx("ans1"),
             core,
         });
 
         await check_items([true, false], [1, 0]);
 
-        await updateSelectedIndices({
-            componentIdx: await resolvePathToNodeIdx("ci1"),
+        await submitChoiceAnswer({
+            choiceInputIdx: ci1Idx,
+            answerIdx: ans1Idx,
             selectedIndices: [2],
-            core,
-        });
-        await submitAnswer({
-            componentIdx: await resolvePathToNodeIdx("ans1"),
             core,
         });
 
         await check_items([true, false], [0, 0]);
 
-        await updateSelectedIndices({
-            componentIdx: await resolvePathToNodeIdx("ci1"),
+        await submitChoiceAnswer({
+            choiceInputIdx: ci1Idx,
+            answerIdx: ans1Idx,
             selectedIndices: [1],
-            core,
-        });
-        await submitAnswer({
-            componentIdx: await resolvePathToNodeIdx("ans1"),
             core,
         });
 
         await check_items([true, false], [1, 0]);
 
-        await updateSelectedIndices({
-            componentIdx: await resolvePathToNodeIdx("ci2"),
+        await submitChoiceAnswer({
+            choiceInputIdx: ci2Idx,
+            answerIdx: ans2Idx,
             selectedIndices: [2],
-            core,
-        });
-        await submitAnswer({
-            componentIdx: await resolvePathToNodeIdx("ans2"),
             core,
         });
         await check_items([true, true], [1, 1]);
