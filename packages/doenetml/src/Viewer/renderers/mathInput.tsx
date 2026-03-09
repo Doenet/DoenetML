@@ -387,8 +387,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         keyboardCausedBlur.current = nextKeyboardCausedBlur;
 
         if (!keyboardCausedBlur.current) {
-            // If blur is genuine (not virtual-keyboard handoff), commit and mark as
-            // unfocused so preview can close unless popover interaction is active.
+            // If blur is genuine (not virtual-keyboard handoff), commit and mark as unfocused.
             callAction({
                 action: actions.updateValue,
                 baseVariableValue: rendererValue.current,
