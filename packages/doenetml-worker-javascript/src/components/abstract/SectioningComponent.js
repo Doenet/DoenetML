@@ -211,7 +211,7 @@ export class SectioningComponent extends BlockComponent {
                 let boxed = dependencyValues.boxedPreliminary;
                 if (
                     usedDefault.boxedPreliminary &&
-                    dependencyValues.parentBoxAll !== null &&
+                    typeof dependencyValues.parentBoxAll === "boolean" &&
                     !usedDefault.parentBoxAll
                 ) {
                     boxed = dependencyValues.parentBoxAll;
