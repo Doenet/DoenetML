@@ -36,6 +36,8 @@ const PREVIEW_UPDATE_DELAY_MS = 500;
  * value is non-blank, and either the input itself is focused or the user is
  * actively interacting with the preview (pointer/focus/wheel). While focused,
  * preview opening and content updates are debounced by `previewUpdateDelayMs`.
+ * Escape dismisses the preview until the next pending preview-content update
+ * (or until blur resets dismissal state).
  */
 function useMathInputPreview({
     id,
@@ -55,35 +57,13 @@ function useMathInputPreview({
     onEscapeFromPreview: () => void;
 }) {
     const [interactingWithPreview, setInteractingWithPreview] = useState(false);
+    const [escapeDismissed, setEscapeDismissed] = useState(false);
     const previewWheelTimeout = useRef<number | null>(null);
     const previewUpdateTimeout = useRef<number | null>(null);
     const [debouncedPreview, setDebouncedPreview] = useState({
         rawRendererValue,
         immediateValueLatex,
     });
-
-    const syncDebouncedPreview = (
-        nextRawRendererValue: string,
-        nextImmediateValueLatex: string,
-    ) => {
-        // Guard against setting equivalent state repeatedly.
-        // Keeping this idempotent prevents render churn in dev/strict mode,
-        // and avoids instability where math inputs can disappear from the DOM
-        // during hot/strict re-renders.
-        setDebouncedPreview((prev) => {
-            if (
-                prev.rawRendererValue === nextRawRendererValue &&
-                prev.immediateValueLatex === nextImmediateValueLatex
-            ) {
-                return prev;
-            }
-
-            return {
-                rawRendererValue: nextRawRendererValue,
-                immediateValueLatex: nextImmediateValueLatex,
-            };
-        });
-    };
 
     const previewRef = useRef<HTMLDivElement | null>(null);
     const previewPopover = Ariakit.usePopoverStore({
@@ -96,6 +76,7 @@ function useMathInputPreview({
     const shouldShowPreview =
         showPreview &&
         trimmedRawRendererValue !== "" &&
+        !escapeDismissed &&
         (focused || interactingWithPreview);
     const isPreviewOpen = Ariakit.useStoreState(previewPopover, "open");
 
@@ -113,6 +94,10 @@ function useMathInputPreview({
      * While focused, updates are delayed to avoid preview churn during typing.
      * On blur, updates are applied immediately so an open preview (e.g. after
      * focus transfer into the popover) does not display stale content.
+     *
+     * State writes are skipped when values are already in sync. This avoids
+     * unnecessary render churn, and ensures Escape-dismissed previews do not
+     * re-open unless there is a real pending preview-content change.
      */
     useEffect(() => {
         if (previewUpdateTimeout.current !== null) {
@@ -120,18 +105,43 @@ function useMathInputPreview({
             previewUpdateTimeout.current = null;
         }
 
+        const hasPendingPreviewUpdate =
+            debouncedPreview.rawRendererValue !== rawRendererValue ||
+            debouncedPreview.immediateValueLatex !== immediateValueLatex;
+
         if (!focused) {
-            // On blur, sync preview content immediately. In focus-transfer cases
+            setEscapeDismissed(false);
+            // On blur, set preview content immediately. In focus-transfer cases
             // (e.g., tabbing from input into the preview), the popover may stay
             // open and would otherwise show stale debounced content.
-            syncDebouncedPreview(rawRendererValue, immediateValueLatex);
+            if (hasPendingPreviewUpdate) {
+                setDebouncedPreview({
+                    rawRendererValue,
+                    immediateValueLatex,
+                });
+            }
         } else {
+            // Skip equivalent state writes to avoid unnecessary render churn.
+            if (!hasPendingPreviewUpdate) {
+                return;
+            }
+
             previewUpdateTimeout.current = window.setTimeout(() => {
-                syncDebouncedPreview(rawRendererValue, immediateValueLatex);
+                setEscapeDismissed(false);
+                setDebouncedPreview({
+                    rawRendererValue,
+                    immediateValueLatex,
+                });
                 previewUpdateTimeout.current = null;
             }, previewUpdateDelayMs);
         }
-    }, [rawRendererValue, immediateValueLatex, focused, previewUpdateDelayMs]);
+    }, [
+        rawRendererValue,
+        immediateValueLatex,
+        focused,
+        previewUpdateDelayMs,
+        debouncedPreview,
+    ]);
 
     const handlePreviewPointerDown = () => {
         setInteractingWithPreview(true);
@@ -154,6 +164,12 @@ function useMathInputPreview({
         }, 200);
     };
 
+    const dismissPreview = () => {
+        setInteractingWithPreview(false);
+        setEscapeDismissed(true);
+        previewPopover.hide();
+    };
+
     const handlePreviewKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
         const scrollAmount = 40;
         const target = e.currentTarget;
@@ -161,8 +177,7 @@ function useMathInputPreview({
         // Escape dismisses the preview and returns keyboard focus to the
         // associated math input so editing can continue immediately.
         if (e.key === "Escape") {
-            setInteractingWithPreview(false);
-            previewPopover.hide();
+            dismissPreview();
             onEscapeFromPreview();
             e.preventDefault();
             e.stopPropagation();
@@ -205,6 +220,7 @@ function useMathInputPreview({
         handlePreviewPointerLeave,
         handlePreviewWheel,
         handlePreviewKeyDown,
+        dismissPreview,
         debouncedImmediateValueLatex: debouncedPreview.immediateValueLatex,
     };
 }
@@ -312,8 +328,8 @@ export default function MathInput(props: UseDoenetRendererProps) {
     );
     const focusedMathInput = useContext(FocusedMathInputContext);
     const [mathField, setMathField] = useState<MathField | null>(null);
-    // The handles.enter of `EditableMathField` callback for some reason does not get updated when it changes.
-    // To work around this, we save the current mathField in a ref and use that in the callback.
+    // `EditableMathField`'s `handlers.enter` callback can hold stale captures.
+    // Keep the latest MathField instance in a ref for enter handling.
     const mathFieldRef = useRef<MathField | null>(null);
     mathFieldRef.current = mathField;
     const [focused, setFocused] = useState(false);
@@ -325,8 +341,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
 
     const rendererValue = useRef(SVs.rawRendererValue);
 
-    // Need to use ref for showCheckWork
-    // or handlePressEnter doesn't get the new value when the SV changes
+    // Keep this in a ref so `handlePressEnter` always sees current state.
     const showCheckWork = useRef(SVs.showCheckWork);
     showCheckWork.current = SVs.showCheckWork;
 
@@ -346,8 +361,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         rendererValue.current = SVs.rawRendererValue;
     }
 
-    // need to use a ref for validation state as handlePressEnter
-    // does not update to current values
+    // Keep this in a ref so `handlePressEnter` always sees current state.
     let validationState = useRef<
         "unvalidated" | "correct" | "incorrect" | "partialcorrect"
     >("unvalidated");
@@ -401,13 +415,11 @@ export default function MathInput(props: UseDoenetRendererProps) {
                 continue;
             }
             if (event.type === "accessed") {
-                // record the time the keyboard was accessed
+                // Record when the virtual keyboard was accessed.
                 lastKeyboardAccessTime.current = event.timestamp || 0;
 
-                // If there was a blur immediately preceding the keyboard access,
-                // we conclude that the blur was caused by the keyboard access.
-                // If not, we don't make any conclusions as there can be many subsequent keyboard accesses
-                // after the initial blur.
+                // If keyboard access immediately follows blur, treat that blur as
+                // keyboard-caused (handoff), not user intent to leave the field.
                 if (
                     Math.abs(
                         lastKeyboardAccessTime.current - lastBlurTime.current,
@@ -471,7 +483,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         keyboardCausedBlur.current = nextKeyboardCausedBlur;
 
         if (!keyboardCausedBlur.current) {
-            // If blur is genuine (not virtual-keyboard handoff), commit and mark as unfocused.
+            // For a genuine blur (not virtual-keyboard handoff), commit and unfocus.
             callAction({
                 action: actions.updateValue,
                 baseVariableValue: rendererValue.current,
@@ -487,8 +499,8 @@ export default function MathInput(props: UseDoenetRendererProps) {
     };
 
     const onChangeHandler = (text: string) => {
-        // whitespace differences and whether or not a single character exponent has braces
-        // do not count as a difference for changing raw renderer value
+        // Ignore whitespace and single-character exponent braces when deciding
+        // whether the raw renderer value has changed.
         if (
             text.replace(/\s/g, "").replace(/\^{(\w)}/g, "^$1") !==
             rendererValue.current
@@ -513,11 +525,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
 
     updateValidationState();
 
-    // const inputKey = this.componentIdx + '_input';
-
     let mathInputStyle: React.CSSProperties = {
-        /* Set each border attribute separately since the borderColor is updated during rerender (checking mathInput's disabled state)
-    Currently does not work with border: "var(--mainBorder)" */
+        /* Set border properties individually because border color is updated
+           during rerender (e.g., disabled/validation state). */
         borderColor: "var(--canvasText)",
         borderStyle: "solid",
         borderWidth: "2px",
@@ -530,7 +540,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         minWidth: `${SVs.minWidth > 0 ? SVs.minWidth : 0}px`,
     };
 
-    // XXX: should be done in CSS
+    // TODO: move this focus outline styling into CSS.
     if (focused) {
         mathInputStyle.outlineStyle = "solid";
     }
@@ -650,16 +660,25 @@ export default function MathInput(props: UseDoenetRendererProps) {
                                     textareaRef.current =
                                         document.createElement("textarea");
                                     textareaRef.current.disabled = SVs.disabled;
+                                    textareaRef.current.addEventListener(
+                                        "keydown",
+                                        (event) => {
+                                            if (event.key === "Escape") {
+                                                // Match preview Escape behavior: dismiss the
+                                                // popover until the next user interaction.
+                                                preview.dismissPreview();
+                                            }
+                                        },
+                                    );
                                     return textareaRef.current;
                                 },
-                            }} //more commands go here
+                            }}
                             onChange={(mField: any) => {
                                 onChangeHandler(mField.latex());
                             }}
                             onBlur={handleBlur}
                             onFocus={handleFocus}
                             mathquillDidMount={(mf: any) => {
-                                //console.log(">>> MathQuillMounted")
                                 setMathField(mf);
                             }}
                         />
