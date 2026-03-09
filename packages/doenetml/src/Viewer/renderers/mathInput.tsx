@@ -252,14 +252,13 @@ export default function MathInput(props: UseDoenetRendererProps) {
         // Capture pointer interaction in the popover so scrollbar drags don't close
         // the preview when the math input temporarily loses focus.
         setInteractingWithAnswerPreview(true);
+    };
 
-        const handlePointerUp = () => {
-            setInteractingWithAnswerPreview(false);
-        };
-
-        window.addEventListener("pointerup", handlePointerUp, {
-            once: true,
-        });
+    const handleAnswerPreviewPointerLeave = () => {
+        // Do not close immediately on pointerup after dragging the scrollbar.
+        // Keep the preview open while pointer is over the popover and close when
+        // pointer leaves (unless input has focus).
+        setInteractingWithAnswerPreview(false);
     };
 
     const handleAnswerPreviewWheel = () => {
@@ -448,6 +447,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                         autoFocusOnHide={false}
                         data-test="MathInput Answer Preview"
                         onPointerDownCapture={handleAnswerPreviewPointerDown}
+                        onPointerLeave={handleAnswerPreviewPointerLeave}
                         onWheelCapture={handleAnswerPreviewWheel}
                     >
                         <Ariakit.PopoverArrow />
