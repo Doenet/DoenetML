@@ -231,6 +231,13 @@ export default class Answer extends InlineComponent {
             forRenderer: true,
         };
 
+        attributes.showPreview = {
+            createComponentOfType: "boolean",
+            createStateVariable: "showPreview",
+            defaultValue: false,
+            public: true,
+        };
+
         // Note: video and videoCreditLabel are not used in the component itself, only in the sugar.
         // They are added here so that they will be in the schema.
         attributes.video = {

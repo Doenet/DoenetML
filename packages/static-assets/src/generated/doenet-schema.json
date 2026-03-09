@@ -55987,6 +55987,13 @@
                     "name": "description"
                 },
                 {
+                    "name": "showPreview",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "video"
                 },
                 {
@@ -56199,6 +56206,11 @@
                 {
                     "name": "description",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "showPreview",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -57367,7 +57379,7 @@
                     "name": "minWidth"
                 },
                 {
-                    "name": "showAnswerPreview",
+                    "name": "showPreview",
                     "values": [
                         "true",
                         "false"
@@ -57456,11 +57468,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "showAnswerPreview",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -57512,6 +57519,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "showPreview",
                     "type": "boolean",
                     "isArray": false
                 },

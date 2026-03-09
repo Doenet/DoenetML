@@ -74,7 +74,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
     // "Blank" is determined from rawRendererValue (not immediateValueLatex), since
     // immediateValueLatex can intentionally contain non-empty error placeholders.
     const shouldShowAnswerPreview =
-        SVs.showAnswerPreview &&
+        SVs.showPreview &&
         trimmedRawRendererValue !== "" &&
         (focused || interactingWithAnswerPreview);
     const isAnswerPreviewOpen = Ariakit.useStoreState(
@@ -436,7 +436,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                         />
                     </Ariakit.PopoverAnchor>
                 </label>
-                {SVs.showAnswerPreview ? (
+                {SVs.showPreview ? (
                     <Ariakit.Popover
                         store={answerPreviewPopover}
                         className="description-popover mathInputAnswerPreviewPopover"

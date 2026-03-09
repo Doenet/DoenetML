@@ -129,12 +129,10 @@ export default class MathInput extends Input {
             forRenderer: true,
         };
 
-        attributes.showAnswerPreview = {
+        attributes.showPreview = {
             createComponentOfType: "boolean",
-            createStateVariable: "showAnswerPreview",
+            createStateVariable: "showPreviewPreliminary",
             defaultValue: false,
-            public: true,
-            forRenderer: true,
         };
 
         return attributes;
@@ -187,6 +185,36 @@ export default class MathInput extends Input {
                 displaySmallAsZeroDefault: 0,
             }),
         );
+
+        stateVariableDefinitions.showPreview = {
+            forRenderer: true,
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            returnDependencies: () => ({
+                showPreviewPreliminary: {
+                    dependencyType: "stateVariable",
+                    variableName: "showPreviewPreliminary",
+                },
+                parentShowPreview: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "showPreview",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                let showPreview = dependencyValues.showPreviewPreliminary;
+                if (
+                    usedDefault.showPreviewPreliminary &&
+                    typeof dependencyValues.parentShowPreview === "boolean" &&
+                    !usedDefault.parentShowPreview
+                ) {
+                    showPreview = dependencyValues.parentShowPreview;
+                }
+
+                return { setValue: { showPreview } };
+            },
+        };
 
         stateVariableDefinitions.valueChanged = {
             public: true,
