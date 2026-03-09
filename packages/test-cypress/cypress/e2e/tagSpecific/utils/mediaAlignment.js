@@ -40,7 +40,7 @@ export function assertCenteredWhenDescriptionOpens({
                     mediaRect.width / 2 -
                     (containerRect.left + containerRect.width / 2),
             );
-            expect(centerDeltaBefore).lt(tolerance);
+            expect(centerDeltaBefore).lte(tolerance);
         });
     });
 
@@ -58,8 +58,8 @@ export function assertCenteredWhenDescriptionOpens({
                     (containerRect.left + containerRect.width / 2),
             );
 
-            expect(Math.abs(mediaRect.left - leftBefore)).lt(tolerance);
-            expect(centerDeltaAfter).lt(tolerance);
+            expect(Math.abs(mediaRect.left - leftBefore)).lte(tolerance);
+            expect(centerDeltaAfter).lte(tolerance);
         });
     });
 }

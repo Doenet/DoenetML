@@ -8,6 +8,7 @@ import useDoenetRenderer from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
+import { getNonInlineMediaLayoutStyles } from "./utils/nonInlineMediaLayout";
 import "./video.css";
 
 export default React.memo(function Video(props) {
@@ -450,25 +451,11 @@ export default React.memo(function Video(props) {
             alignItems: "start",
         };
     } else {
-        outerStyle = {
-            display: "flex",
-            justifyContent: SVs.horizontalAlign,
-            margin: "12px 0",
-        };
-        innerStyle = {
-            width: "100%",
-        };
-        mediaContainerStyle = {
-            display: "flex",
-            justifyContent: SVs.horizontalAlign,
-            width: "100%",
-        };
-        mediaColumnStyle = {
-            display: "flex",
-            flexDirection: "column",
-            width: sizeToCSS(SVs.width),
-            maxWidth: "100%",
-        };
+        ({ outerStyle, innerStyle, mediaContainerStyle, mediaColumnStyle } =
+            getNonInlineMediaLayoutStyles({
+                horizontalAlign: SVs.horizontalAlign,
+                mediaWidth: sizeToCSS(SVs.width),
+            }));
     }
 
     let videoStyle = {

@@ -7,6 +7,7 @@ import { useRecordVisibilityChanges } from "../../utils/visibility";
 import me from "math-expressions";
 import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
 import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
+import { getNonInlineMediaLayoutStyles } from "./utils/nonInlineMediaLayout";
 
 export default React.memo(function Image(props) {
     let { componentIdx, id, SVs, children, actions, callAction } =
@@ -552,25 +553,11 @@ export default React.memo(function Image(props) {
             alignItems: "start",
         };
     } else {
-        outerStyle = {
-            display: "flex",
-            justifyContent: SVs.horizontalAlign,
-            margin: "12px 0",
-        };
-        innerStyle = {
-            width: "100%",
-        };
-        mediaContainerStyle = {
-            display: "flex",
-            justifyContent: SVs.horizontalAlign,
-            width: "100%",
-        };
-        mediaColumnStyle = {
-            display: "flex",
-            flexDirection: "column",
-            width: sizeToCSS(SVs.width),
-            maxWidth: "100%",
-        };
+        ({ outerStyle, innerStyle, mediaContainerStyle, mediaColumnStyle } =
+            getNonInlineMediaLayoutStyles({
+                horizontalAlign: SVs.horizontalAlign,
+                mediaWidth: sizeToCSS(SVs.width),
+            }));
     }
 
     let imageStyle = {
