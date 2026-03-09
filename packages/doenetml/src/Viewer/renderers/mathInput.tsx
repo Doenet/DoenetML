@@ -27,6 +27,13 @@ import {
 } from "./utils/checkWork";
 import { addValidationStateToShortDescription } from "./utils/description";
 
+/**
+ * Encapsulates math input preview popover state and interaction behavior.
+ *
+ * The preview is shown only when preview is enabled, the current raw renderer
+ * value is non-blank, and either the input itself is focused or the user is
+ * actively interacting with the preview (pointer/focus/wheel).
+ */
 function useMathInputPreview({
     id,
     showPreview,
@@ -125,6 +132,13 @@ function useMathInputPreview({
 
 type MathInputPreviewState = ReturnType<typeof useMathInputPreview>;
 
+/**
+ * Renders the preview popover for a math input.
+ *
+ * The popover uses Ariakit positioning and forwards interaction handlers from
+ * `useMathInputPreview` so keyboard, pointer, and wheel interactions can keep
+ * the preview open while the user is engaging with it.
+ */
 function MathInputPreviewPopover({
     preview,
     showPreview,
@@ -172,6 +186,13 @@ function MathInputPreviewPopover({
     );
 }
 
+/**
+ * Computes blur-transition context used by `handleBlur`.
+ *
+ * Determines whether a blur was likely caused by the virtual keyboard handoff
+ * and whether focus moved into the preview region, which allows the input blur
+ * to be treated as non-final while preview interaction continues.
+ */
 function getBlurTransitionContext({
     relatedTarget,
     previewRef,
