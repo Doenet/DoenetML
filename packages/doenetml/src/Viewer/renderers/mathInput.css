@@ -8,3 +8,22 @@
 .doenet-viewer td.matrixCell div.mathInputWrapper {
     margin: 1px;
 }
+
+.doenet-viewer .mathInputPreviewPopover {
+    /* Allow as much width as possible while still fitting inside the viewport. */
+    max-width: calc(100vw - 16px);
+}
+
+.doenet-viewer .mathInputPreviewContent {
+    /* Long math expressions can be unbreakable, so use horizontal scrolling rather
+       than clipping or forcing wraps that distort MathJax rendering. */
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+}
+
+.doenet-viewer .mathInputPreviewContent:focus-visible {
+    outline: 2px solid var(--canvasText);
+    outline-offset: 2px;
+}

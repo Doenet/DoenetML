@@ -1,6 +1,27 @@
 import { cesc } from "@doenet/utils";
 import { toMathJaxString } from "../../../src/util/mathDisplay";
 
+function postDoenetML(doenetML) {
+    cy.window().then(async (win) => {
+        win.postMessage(
+            {
+                doenetML,
+            },
+            "*",
+        );
+    });
+}
+
+/**
+ * Posts DoenetML with a trailing lightweight math expression and waits for its
+ * MathJax-rendered text. This primes MathJax before tests type into mathInput,
+ * which helps avoid first-render timing flakes.
+ */
+function postDoenetMLWithMathJaxPrimed(doenetML) {
+    postDoenetML(`${doenetML}\n<p><m name="to-prime-mathjax">z</m></p>`);
+    cy.get("#to-prime-mathjax").should("have.text", toMathJaxString("z"));
+}
+
 describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -292,6 +313,218 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#mi textarea").focus();
         cy.get("#mi [data-test='Description']").should("not.be.visible");
         cy.get("#m").should("not.be.visible");
+    });
+
+    it("preview lifecycle with showPreview", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <p><mathInput name="mi" showPreview /></p>
+    <p><textInput name="ti" /></p>
+    `);
+
+        cy.get("#mi [data-test='MathInput Preview']").should("not.be.visible");
+
+        cy.get("#mi textarea").focus();
+        cy.get("#mi [data-test='MathInput Preview']").should("not.be.visible");
+
+        cy.get("#mi textarea").type("x+1", { force: true });
+
+        cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
+        cy.get("#mi-preview").should("contain.text", toMathJaxString("x+1"));
+
+        cy.get("#mi textarea").type("^2", { force: true });
+        cy.get("#mi-preview").should("contain.text", toMathJaxString("x+12"));
+
+        cy.get("#ti_input").focus();
+        cy.get("#mi [data-test='MathInput Preview']").should("not.be.visible");
+
+        cy.get("#mi textarea").focus();
+        cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
+        cy.get("#mi-preview").should("contain.text", toMathJaxString("x+12"));
+    });
+
+    it("debounces preview opening and updates while focused", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <p><mathInput name="mi" showPreview /></p>
+    <p><math name="iv" extend="$mi.immediateValue" /></p>
+    `);
+
+        cy.get("#mi textarea").focus().type("x", { force: true });
+        cy.get("#iv").should("have.text", toMathJaxString("x"));
+        cy.get("#mi [data-test='MathInput Preview']").should("not.be.visible");
+
+        cy.wait(600);
+        cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
+        cy.get("#mi-preview").should("contain.text", toMathJaxString("x"));
+
+        cy.get("#mi textarea").type("+1", { force: true });
+        cy.get("#iv").should("have.text", toMathJaxString("x+1"));
+        cy.get("#mi-preview").should(
+            "not.contain.text",
+            toMathJaxString("x+1"),
+        );
+
+        cy.wait(600);
+        cy.get("#mi-preview").should("contain.text", toMathJaxString("x+1"));
+    });
+
+    it("syncs preview immediately on blur when focus moves to preview", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <p><mathInput name="mi" showPreview /></p>
+    <p><textInput name="ti" /></p>
+    `);
+
+        cy.get("#mi textarea").type("x", { force: true });
+        cy.wait(600);
+        cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
+        cy.get("#mi-preview").should("contain.text", toMathJaxString("x"));
+
+        cy.get("#mi textarea").type("+1", { force: true });
+        cy.get("#mi-preview").focus();
+        cy.get("#mi-preview").should("be.focused");
+        cy.get("#mi-preview").should("contain.text", toMathJaxString("x+1"));
+    });
+
+    it("Escape closes preview and returns focus to math input", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <p><mathInput name="mi" showPreview /></p>
+    `);
+
+        cy.get("#mi textarea").type("x", { force: true });
+        cy.wait(600);
+        cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
+
+        cy.get("#mi-preview").focus();
+        cy.get("#mi-preview").should("be.focused");
+        cy.get("#mi-preview").type("{esc}", { force: true });
+
+        cy.get("#mi textarea").should("be.focused");
+        cy.get("#mi [data-test='MathInput Preview']").should("not.be.visible");
+
+        cy.wait(600);
+        cy.get("#mi [data-test='MathInput Preview']").should("not.be.visible");
+    });
+
+    it("Escape in math input closes preview until next interaction", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <p><mathInput name="mi" showPreview /></p>
+    <p><math name="iv" extend="$mi.immediateValue" /></p>
+    `);
+
+        cy.get("#mi textarea").focus().type("x", { force: true });
+        cy.wait(600);
+        cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
+
+        cy.get("#mi textarea").type("{esc}", { force: true });
+        cy.get("#mi textarea").should("be.focused");
+        cy.get("#mi [data-test='MathInput Preview']").should("not.be.visible");
+
+        cy.wait(600);
+        cy.get("#mi [data-test='MathInput Preview']").should("not.be.visible");
+
+        cy.get("#mi textarea").type("+1", { force: true });
+        cy.get("#iv").should("have.text", toMathJaxString("x+1"));
+        cy.get("#mi [data-test='MathInput Preview']").should("not.be.visible");
+        cy.wait(600);
+        cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
+        cy.get("#mi-preview").should("contain.text", toMathJaxString("x+1"));
+    });
+
+    it("aria-details adds preview id only while preview is open", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <mathInput name="mi" showPreview>
+      <shortDescription>Enter something</shortDescription>
+      <description>
+        <p>Preview description text</p>
+      </description>
+    </mathInput>
+    <p><textInput name="ti" /></p>
+        `);
+
+        cy.get("#mi .mq-editable-field").should(
+            "have.attr",
+            "aria-details",
+            "mi-description-content",
+        );
+
+        cy.get("#mi textarea").type("x", { force: true });
+        cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
+        cy.get("#mi .mq-editable-field")
+            .invoke("attr", "aria-details")
+            .should("eq", "mi-description-content mi-preview");
+
+        cy.get("#ti_input").focus();
+        cy.get("#mi [data-test='MathInput Preview']").should("not.be.visible");
+        cy.get("#mi .mq-editable-field").should(
+            "have.attr",
+            "aria-details",
+            "mi-description-content",
+        );
+    });
+
+    it("keeps preview open when focus moves into preview content", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <p><mathInput name="mi" showPreview /></p>
+    <p><textInput name="ti" /></p>
+    `);
+
+        cy.get("#mi textarea").type("x", { force: true });
+        cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
+
+        cy.get("#mi-preview").focus();
+        cy.get("#mi-preview").should("be.focused");
+        cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
+
+        cy.get("#ti_input").focus();
+        cy.get("#mi [data-test='MathInput Preview']").should("not.be.visible");
+    });
+
+    it("keeps preview open briefly during wheel interaction", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <p><mathInput name="mi" showPreview /></p>
+    <p><textInput name="ti" /></p>
+    `);
+
+        cy.get("#mi textarea").type("x+1", { force: true });
+        cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
+
+        cy.get("#mi [data-test='MathInput Preview']").trigger("wheel", {
+            force: true,
+        });
+
+        cy.get("#ti_input").focus();
+        cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
+
+        cy.wait(300);
+        cy.get("#mi [data-test='MathInput Preview']").should("not.be.visible");
+    });
+
+    it("inherits preview from answer showPreview", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <p>
+      <answer showPreview>
+        <mathInput name="mi" />
+      </answer>
+    </p>
+    <p><textInput name="ti" /></p>
+        `);
+
+        cy.get("#mi textarea").type("x", { force: true });
+        cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
+        cy.get("#mi-preview").should("contain.text", toMathJaxString("x"));
+
+        cy.get("#ti_input").focus();
+        cy.get("#mi [data-test='MathInput Preview']").should("not.be.visible");
+    });
+
+    it("does not show preview when showPreview is not set", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <p><mathInput name="mi" /></p>
+    <p><math name="iv" extend="$mi.immediateValue" /></p>
+    `);
+
+        cy.get("#mi textarea").type("x+1", { force: true });
+        cy.get("#iv").should("have.text", toMathJaxString("x+1"));
+        cy.get("#mi [data-test='MathInput Preview']").should("not.exist");
     });
 
     it("without description", () => {

@@ -91485,6 +91485,13 @@
                         "string"
                     ]
                 },
+                "showPreview": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "video": {
                     "optional": true,
                     "type": [
@@ -92010,6 +92017,11 @@
                 {
                     "name": "description",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "showPreview",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -93570,6 +93582,13 @@
                     "type": [
                         "string"
                     ]
+                },
+                "showPreview": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
                 }
             },
             "children": [
@@ -93963,6 +93982,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "showPreview",
                     "type": "boolean",
                     "isArray": false
                 },

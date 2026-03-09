@@ -55987,6 +55987,13 @@
                     "name": "description"
                 },
                 {
+                    "name": "showPreview",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "video"
                 },
                 {
@@ -56199,6 +56206,11 @@
                 {
                     "name": "description",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "showPreview",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -57365,6 +57377,13 @@
                 },
                 {
                     "name": "minWidth"
+                },
+                {
+                    "name": "showPreview",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 }
             ],
             "properties": [
@@ -57500,6 +57519,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "showPreview",
                     "type": "boolean",
                     "isArray": false
                 },

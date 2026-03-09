@@ -129,6 +129,12 @@ export default class MathInput extends Input {
             forRenderer: true,
         };
 
+        attributes.showPreview = {
+            createComponentOfType: "boolean",
+            createStateVariable: "showPreviewPreliminary",
+            defaultValue: false,
+        };
+
         return attributes;
     }
 
@@ -179,6 +185,36 @@ export default class MathInput extends Input {
                 displaySmallAsZeroDefault: 0,
             }),
         );
+
+        stateVariableDefinitions.showPreview = {
+            forRenderer: true,
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            returnDependencies: () => ({
+                showPreviewPreliminary: {
+                    dependencyType: "stateVariable",
+                    variableName: "showPreviewPreliminary",
+                },
+                parentShowPreview: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "showPreview",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                let showPreview = dependencyValues.showPreviewPreliminary;
+                if (
+                    usedDefault.showPreviewPreliminary &&
+                    typeof dependencyValues.parentShowPreview === "boolean" &&
+                    !usedDefault.parentShowPreview
+                ) {
+                    showPreview = dependencyValues.parentShowPreview;
+                }
+
+                return { setValue: { showPreview } };
+            },
+        };
 
         stateVariableDefinitions.valueChanged = {
             public: true,
@@ -461,6 +497,33 @@ export default class MathInput extends Input {
                 return {
                     success: true,
                     instructions,
+                };
+            },
+        };
+
+        stateVariableDefinitions.immediateValueLatex = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                immediateValue: {
+                    dependencyType: "stateVariable",
+                    variableName: "immediateValue",
+                },
+                showPreview: {
+                    dependencyType: "stateVariable",
+                    variableName: "showPreview",
+                },
+            }),
+            definition({ dependencyValues }) {
+                // If showPreview is false, then immediateValueLatex is not used.
+                // In that case, return blank string to avoid latex computation.
+                return {
+                    setValue: {
+                        immediateValueLatex: dependencyValues.showPreview
+                            ? dependencyValues.immediateValue.toLatex({
+                                  showBlanks: true,
+                              })
+                            : "",
+                    },
                 };
             },
         };
