@@ -2,6 +2,7 @@ import React, {
     useRef,
     useState,
     FocusEventHandler,
+    KeyboardEvent,
     useContext,
     useEffect,
 } from "react";
@@ -47,15 +48,16 @@ export default function MathInput(props: UseDoenetRendererProps) {
     // itself (for example dragging the horizontal scrollbar or using Shift+wheel).
     // Without this, blurring the math input immediately hides the popover and makes
     // long preview content difficult to inspect.
-    const [interactingWithAnswerPreview, setInteractingWithAnswerPreview] =
+    const [interactingWithPreview, setInteractingWithPreview] =
         useState(false);
     // Debounce wheel-interaction end so a sequence of wheel events is treated as one
     // continuous interaction.
-    const answerPreviewWheelTimeout = useRef<number | null>(null);
+    const previewWheelTimeout = useRef<number | null>(null);
+    const previewRef = useRef<HTMLDivElement | null>(null);
     const textareaRef = useRef<HTMLTextAreaElement | null>(null); // Ref to keep track of the mathInput's disabled state
     // The preview prefers to appear to the right, but Popover props configure
     // viewport-aware fallback to avoid clipping near screen edges.
-    const answerPreviewPopover = Ariakit.usePopoverStore({
+    const previewPopover = Ariakit.usePopoverStore({
         placement: "right",
     });
 
@@ -71,26 +73,27 @@ export default function MathInput(props: UseDoenetRendererProps) {
     showCheckWork.current = SVs.showCheckWork;
 
     const trimmedRawRendererValue = SVs.rawRendererValue?.trim() ?? "";
+    const previewId = `${id}-preview`;
     // "Blank" is determined from rawRendererValue (not immediateValueLatex), since
     // immediateValueLatex can intentionally contain non-empty error placeholders.
-    const shouldShowAnswerPreview =
+    const shouldShowPreview =
         SVs.showPreview &&
         trimmedRawRendererValue !== "" &&
-        (focused || interactingWithAnswerPreview);
-    const isAnswerPreviewOpen = Ariakit.useStoreState(
-        answerPreviewPopover,
+        (focused || interactingWithPreview);
+    const isPreviewOpen = Ariakit.useStoreState(
+        previewPopover,
         "open",
     );
 
     useEffect(() => {
         // Use idempotent show/hide calls to avoid update loops with Ariakit store
         // notifications (previously caused maximum update depth errors).
-        if (shouldShowAnswerPreview && !isAnswerPreviewOpen) {
-            answerPreviewPopover.show();
-        } else if (!shouldShowAnswerPreview && isAnswerPreviewOpen) {
-            answerPreviewPopover.hide();
+        if (shouldShowPreview && !isPreviewOpen) {
+            previewPopover.show();
+        } else if (!shouldShowPreview && isPreviewOpen) {
+            previewPopover.hide();
         }
-    }, [shouldShowAnswerPreview, isAnswerPreviewOpen]);
+    }, [shouldShowPreview, isPreviewOpen]);
 
     if (!ignoreUpdate) {
         rendererValue.current = SVs.rawRendererValue;
@@ -216,6 +219,10 @@ export default function MathInput(props: UseDoenetRendererProps) {
             Math.abs(lastKeyboardAccessTime.current - lastBlurTime.current) <
             100;
 
+        const focusMovedToPreview =
+            e.relatedTarget instanceof Node &&
+            previewRef.current?.contains(e.relatedTarget);
+
         if (!keyboardCausedBlur.current) {
             // If blur is genuine (not virtual-keyboard handoff), commit and mark as
             // unfocused so preview can close unless popover interaction is active.
@@ -224,6 +231,12 @@ export default function MathInput(props: UseDoenetRendererProps) {
                 baseVariableValue: rendererValue.current,
             });
             setFocused(false);
+
+            // Keep preview open when keyboard focus tabs from the input into the
+            // preview region.
+            if (focusMovedToPreview) {
+                setInteractingWithPreview(true);
+            }
         }
     };
 
@@ -248,38 +261,59 @@ export default function MathInput(props: UseDoenetRendererProps) {
         }
     };
 
-    const handleAnswerPreviewPointerDown = () => {
+    const handlePreviewPointerDown = () => {
         // Capture pointer interaction in the popover so scrollbar drags don't close
         // the preview when the math input temporarily loses focus.
-        setInteractingWithAnswerPreview(true);
+        setInteractingWithPreview(true);
     };
 
-    const handleAnswerPreviewPointerLeave = () => {
+    const handlePreviewPointerLeave = () => {
         // Do not close immediately on pointerup after dragging the scrollbar.
         // Keep the preview open while pointer is over the popover and close when
         // pointer leaves (unless input has focus).
-        setInteractingWithAnswerPreview(false);
+        setInteractingWithPreview(false);
     };
 
-    const handleAnswerPreviewWheel = () => {
+    const handlePreviewWheel = () => {
         // Preserve native wheel behavior (including Shift+wheel horizontal scroll),
         // but keep the popover visible for the duration of wheel activity.
-        setInteractingWithAnswerPreview(true);
+        setInteractingWithPreview(true);
 
-        if (answerPreviewWheelTimeout.current !== null) {
-            window.clearTimeout(answerPreviewWheelTimeout.current);
+        if (previewWheelTimeout.current !== null) {
+            window.clearTimeout(previewWheelTimeout.current);
         }
 
-        answerPreviewWheelTimeout.current = window.setTimeout(() => {
-            setInteractingWithAnswerPreview(false);
-            answerPreviewWheelTimeout.current = null;
+        previewWheelTimeout.current = window.setTimeout(() => {
+            setInteractingWithPreview(false);
+            previewWheelTimeout.current = null;
         }, 200);
+    };
+
+    const handlePreviewKeyDown = (
+        e: KeyboardEvent<HTMLDivElement>,
+    ) => {
+        const scrollAmount = 40;
+        const target = e.currentTarget;
+
+        if (e.key === "ArrowRight") {
+            target.scrollLeft += scrollAmount;
+            e.preventDefault();
+        } else if (e.key === "ArrowLeft") {
+            target.scrollLeft -= scrollAmount;
+            e.preventDefault();
+        } else if (e.key === "Home") {
+            target.scrollLeft = 0;
+            e.preventDefault();
+        } else if (e.key === "End") {
+            target.scrollLeft = target.scrollWidth;
+            e.preventDefault();
+        }
     };
 
     useEffect(() => {
         return () => {
-            if (answerPreviewWheelTimeout.current !== null) {
-                window.clearTimeout(answerPreviewWheelTimeout.current);
+            if (previewWheelTimeout.current !== null) {
+                window.clearTimeout(previewWheelTimeout.current);
             }
         };
     }, []);
@@ -362,6 +396,13 @@ export default function MathInput(props: UseDoenetRendererProps) {
         );
     }
 
+    const ariaDetailsIds = [
+        descriptionId,
+        isPreviewOpen ? previewId : undefined,
+    ]
+        .filter(Boolean)
+        .join(" ");
+
     if (SVs.colorCorrectness) {
         if (validationState.current === "correct") {
             mathInputStyle.borderColor = "var(--mainGreen)";
@@ -388,7 +429,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                 <label style={{ display: "inline-flex", maxWidth: "100%" }}>
                     {label}
                     <Ariakit.PopoverAnchor
-                        store={answerPreviewPopover}
+                        store={previewPopover}
                         className="mathInputWrapper"
                         style={{
                             cursor: mathInputWrapperCursor,
@@ -399,7 +440,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                             style={mathInputStyle}
                             latex={rendererValue.current}
                             ariaLabel={shortDescription}
-                            aria-details={descriptionId}
+                            aria-details={ariaDetailsIds || undefined}
                             config={{
                                 autoCommands:
                                     "alpha beta gamma delta epsilon zeta eta mu nu xi omega rho sigma tau phi chi psi omega iota kappa lambda Gamma Delta Xi Omega Sigma Phi Psi Omega Lambda sqrt pi Pi theta Theta integral infinity forall exists",
@@ -437,21 +478,30 @@ export default function MathInput(props: UseDoenetRendererProps) {
                 </label>
                 {SVs.showPreview ? (
                     <Ariakit.Popover
-                        store={answerPreviewPopover}
-                        className="description-popover mathInputAnswerPreviewPopover"
+                        store={previewPopover}
+                        className="description-popover mathInputPreviewPopover"
                         gutter={8}
                         flip="top bottom left"
                         fitViewport
                         overflowPadding={12}
                         autoFocusOnShow={false}
                         autoFocusOnHide={false}
-                        data-test="MathInput Answer Preview"
-                        onPointerDownCapture={handleAnswerPreviewPointerDown}
-                        onPointerLeave={handleAnswerPreviewPointerLeave}
-                        onWheelCapture={handleAnswerPreviewWheel}
+                        ref={previewRef}
+                        data-test="MathInput Preview"
+                        onPointerDownCapture={handlePreviewPointerDown}
+                        onPointerLeave={handlePreviewPointerLeave}
+                        onWheelCapture={handlePreviewWheel}
                     >
                         <Ariakit.PopoverArrow />
-                        <div className="mathInputAnswerPreviewContent">
+                        <div
+                            id={previewId}
+                            className="mathInputPreviewContent"
+                            tabIndex={0}
+                            aria-label="Preview"
+                            onFocus={() => setInteractingWithPreview(true)}
+                            onBlur={() => setInteractingWithPreview(false)}
+                            onKeyDown={handlePreviewKeyDown}
+                        >
                             <MathJax hideUntilTypeset={"first"} inline dynamic>
                                 {`\\(${SVs.immediateValueLatex}\\)`}
                             </MathJax>
