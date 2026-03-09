@@ -213,7 +213,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
     const focusedMathInput = useContext(FocusedMathInputContext);
     const [mathField, setMathField] = useState<MathField | null>(null);
     // The handles.enter of `EditableMathField` callback for some reason does not get updated when it changes.
-    // To work around this, we safe the current mathField in a ref and use that in the callback.
+    // To work around this, we save the current mathField in a ref and use that in the callback.
     const mathFieldRef = useRef<MathField | null>(null);
     mathFieldRef.current = mathField;
     const [focused, setFocused] = useState(false);

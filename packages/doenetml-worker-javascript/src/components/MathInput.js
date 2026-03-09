@@ -508,14 +508,21 @@ export default class MathInput extends Input {
                     dependencyType: "stateVariable",
                     variableName: "immediateValue",
                 },
+                showPreview: {
+                    dependencyType: "stateVariable",
+                    variableName: "showPreview",
+                },
             }),
             definition({ dependencyValues }) {
+                // If showPreview is false, them immediateValueLatex is not used.
+                // In that case,return blank string to avoid latex computation.
                 return {
                     setValue: {
-                        immediateValueLatex:
-                            dependencyValues.immediateValue.toLatex({
-                                showBlanks: true,
-                            }),
+                        immediateValueLatex: dependencyValues.showPreview
+                            ? dependencyValues.immediateValue.toLatex({
+                                  showBlanks: true,
+                              })
+                            : "",
                     },
                 };
             },
