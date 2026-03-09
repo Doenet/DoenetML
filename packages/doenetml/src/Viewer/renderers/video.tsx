@@ -8,6 +8,7 @@ import useDoenetRenderer from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
+import { getNonInlineMediaLayoutStyles } from "./utils/nonInlineMediaLayout";
 import "./video.css";
 
 export default React.memo(function Video(props) {
@@ -436,6 +437,8 @@ export default React.memo(function Video(props) {
 
     let outerStyle = {};
     let innerStyle = {};
+    let mediaContainerStyle = {};
+    let mediaColumnStyle = {};
 
     if (SVs.displayMode === "inline") {
         outerStyle = {
@@ -448,11 +451,11 @@ export default React.memo(function Video(props) {
             alignItems: "start",
         };
     } else {
-        outerStyle = {
-            display: "flex",
-            justifyContent: SVs.horizontalAlign,
-            margin: "12px 0",
-        };
+        ({ outerStyle, innerStyle, mediaContainerStyle, mediaColumnStyle } =
+            getNonInlineMediaLayoutStyles({
+                horizontalAlign: SVs.horizontalAlign,
+                mediaWidth: sizeToCSS(SVs.width),
+            }));
     }
 
     let videoStyle = {
@@ -534,8 +537,18 @@ export default React.memo(function Video(props) {
             className="video"
         >
             <div style={innerStyle}>
-                {videoTag}
-                {description}
+                {SVs.displayMode === "inline" ? (
+                    videoTag
+                ) : (
+                    <div style={mediaContainerStyle}>{videoTag}</div>
+                )}
+                {SVs.displayMode === "inline" || !description ? (
+                    description
+                ) : (
+                    <div style={mediaContainerStyle}>
+                        <div style={mediaColumnStyle}>{description}</div>
+                    </div>
+                )}
             </div>
         </div>
     );

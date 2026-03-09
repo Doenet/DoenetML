@@ -7,6 +7,7 @@ import { useRecordVisibilityChanges } from "../../utils/visibility";
 import me from "math-expressions";
 import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
 import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
+import { getNonInlineMediaLayoutStyles } from "./utils/nonInlineMediaLayout";
 
 export default React.memo(function Image(props) {
     let { componentIdx, id, SVs, children, actions, callAction } =
@@ -538,6 +539,8 @@ export default React.memo(function Image(props) {
 
     let outerStyle = {};
     let innerStyle = {};
+    let mediaContainerStyle = {};
+    let mediaColumnStyle = {};
 
     if (SVs.displayMode === "inline") {
         outerStyle = {
@@ -550,11 +553,11 @@ export default React.memo(function Image(props) {
             alignItems: "start",
         };
     } else {
-        outerStyle = {
-            display: "flex",
-            justifyContent: SVs.horizontalAlign,
-            margin: "12px 0",
-        };
+        ({ outerStyle, innerStyle, mediaContainerStyle, mediaColumnStyle } =
+            getNonInlineMediaLayoutStyles({
+                horizontalAlign: SVs.horizontalAlign,
+                mediaWidth: sizeToCSS(SVs.width),
+            }));
     }
 
     let imageStyle = {
@@ -600,20 +603,44 @@ export default React.memo(function Image(props) {
     return (
         <div style={outerStyle} ref={ref} id={`${id}-container`}>
             <div style={innerStyle}>
-                {urlOrSource ? (
-                    <img
-                        id={id}
-                        src={urlOrSource}
-                        style={imageStyle}
-                        alt={shortDescription}
-                        aria-details={descriptionId}
-                    />
+                {SVs.displayMode === "inline" ? (
+                    urlOrSource ? (
+                        <img
+                            id={id}
+                            src={urlOrSource}
+                            style={imageStyle}
+                            alt={shortDescription}
+                            aria-details={descriptionId}
+                        />
+                    ) : (
+                        <div id={id} style={imageStyle}>
+                            {SVs.shortDescription}
+                        </div>
+                    )
                 ) : (
-                    <div id={id} style={imageStyle}>
-                        {SVs.shortDescription}
+                    <div style={mediaContainerStyle}>
+                        {urlOrSource ? (
+                            <img
+                                id={id}
+                                src={urlOrSource}
+                                style={imageStyle}
+                                alt={shortDescription}
+                                aria-details={descriptionId}
+                            />
+                        ) : (
+                            <div id={id} style={imageStyle}>
+                                {SVs.shortDescription}
+                            </div>
+                        )}
                     </div>
                 )}
-                {description}
+                {SVs.displayMode === "inline" || !description ? (
+                    description
+                ) : (
+                    <div style={mediaContainerStyle}>
+                        <div style={mediaColumnStyle}>{description}</div>
+                    </div>
+                )}
             </div>
         </div>
     );
