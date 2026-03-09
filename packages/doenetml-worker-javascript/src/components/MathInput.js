@@ -514,8 +514,8 @@ export default class MathInput extends Input {
                 },
             }),
             definition({ dependencyValues }) {
-                // If showPreview is false, them immediateValueLatex is not used.
-                // In that case,return blank string to avoid latex computation.
+                // If showPreview is false, then immediateValueLatex is not used.
+                // In that case, return blank string to avoid latex computation.
                 return {
                     setValue: {
                         immediateValueLatex: dependencyValues.showPreview
