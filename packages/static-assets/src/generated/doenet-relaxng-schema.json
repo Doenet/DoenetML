@@ -93570,6 +93570,13 @@
                     "type": [
                         "string"
                     ]
+                },
+                "showAnswerPreview": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
                 }
             },
             "children": [
@@ -93909,6 +93916,11 @@
                 {
                     "name": "minWidth",
                     "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "showAnswerPreview",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {

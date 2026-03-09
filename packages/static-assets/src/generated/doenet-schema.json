@@ -57365,6 +57365,13 @@
                 },
                 {
                     "name": "minWidth"
+                },
+                {
+                    "name": "showAnswerPreview",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 }
             ],
             "properties": [
@@ -57446,6 +57453,11 @@
                 {
                     "name": "minWidth",
                     "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "showAnswerPreview",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {

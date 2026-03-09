@@ -129,6 +129,14 @@ export default class MathInput extends Input {
             forRenderer: true,
         };
 
+        attributes.showAnswerPreview = {
+            createComponentOfType: "boolean",
+            createStateVariable: "showAnswerPreview",
+            defaultValue: false,
+            public: true,
+            forRenderer: true,
+        };
+
         return attributes;
     }
 
@@ -461,6 +469,26 @@ export default class MathInput extends Input {
                 return {
                     success: true,
                     instructions,
+                };
+            },
+        };
+
+        stateVariableDefinitions.immediateValueLatex = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                immediateValue: {
+                    dependencyType: "stateVariable",
+                    variableName: "immediateValue",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        immediateValueLatex:
+                            dependencyValues.immediateValue.toLatex({
+                                showBlanks: true,
+                            }),
+                    },
                 };
             },
         };

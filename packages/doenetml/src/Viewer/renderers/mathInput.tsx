@@ -1,4 +1,10 @@
-import React, { useRef, useState, FocusEventHandler, useContext } from "react";
+import React, {
+    useRef,
+    useState,
+    FocusEventHandler,
+    useContext,
+    useEffect,
+} from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
@@ -6,6 +12,7 @@ import { MathField } from "./mathquill/types";
 import { EditableMathField } from "./mathquill/EditableMathField";
 import "./mathquill/mathquill.css";
 import { DescriptionPopover } from "./utils/Description";
+import * as Ariakit from "@ariakit/react";
 
 import { MathJax } from "better-react-mathjax";
 
@@ -35,8 +42,22 @@ export default function MathInput(props: UseDoenetRendererProps) {
     // To work around this, we safe the current mathField in a ref and use that in the callback.
     const mathFieldRef = useRef<MathField | null>(null);
     mathFieldRef.current = mathField;
-    const [focused, setFocused] = useState<boolean | null>(null);
+    const [focused, setFocused] = useState(false);
+    // Keep the preview open while the user is actively interacting with the popover
+    // itself (for example dragging the horizontal scrollbar or using Shift+wheel).
+    // Without this, blurring the math input immediately hides the popover and makes
+    // long preview content difficult to inspect.
+    const [interactingWithAnswerPreview, setInteractingWithAnswerPreview] =
+        useState(false);
+    // Debounce wheel-interaction end so a sequence of wheel events is treated as one
+    // continuous interaction.
+    const answerPreviewWheelTimeout = useRef<number | null>(null);
     const textareaRef = useRef<HTMLTextAreaElement | null>(null); // Ref to keep track of the mathInput's disabled state
+    // The preview prefers to appear to the right, but Popover props configure
+    // viewport-aware fallback to avoid clipping near screen edges.
+    const answerPreviewPopover = Ariakit.usePopoverStore({
+        placement: "right",
+    });
 
     const lastKeyboardAccessTime = useRef(0);
     const lastBlurTime = useRef(0);
@@ -48,6 +69,28 @@ export default function MathInput(props: UseDoenetRendererProps) {
     // or handlePressEnter doesn't get the new value when the SV changes
     const showCheckWork = useRef(SVs.showCheckWork);
     showCheckWork.current = SVs.showCheckWork;
+
+    const trimmedRawRendererValue = SVs.rawRendererValue?.trim() ?? "";
+    // "Blank" is determined from rawRendererValue (not immediateValueLatex), since
+    // immediateValueLatex can intentionally contain non-empty error placeholders.
+    const shouldShowAnswerPreview =
+        SVs.showAnswerPreview &&
+        trimmedRawRendererValue !== "" &&
+        (focused || interactingWithAnswerPreview);
+    const isAnswerPreviewOpen = Ariakit.useStoreState(
+        answerPreviewPopover,
+        "open",
+    );
+
+    useEffect(() => {
+        // Use idempotent show/hide calls to avoid update loops with Ariakit store
+        // notifications (previously caused maximum update depth errors).
+        if (shouldShowAnswerPreview && !isAnswerPreviewOpen) {
+            answerPreviewPopover.show();
+        } else if (!shouldShowAnswerPreview && isAnswerPreviewOpen) {
+            answerPreviewPopover.hide();
+        }
+    }, [shouldShowAnswerPreview, isAnswerPreviewOpen]);
 
     if (!ignoreUpdate) {
         rendererValue.current = SVs.rawRendererValue;
@@ -174,6 +217,8 @@ export default function MathInput(props: UseDoenetRendererProps) {
             100;
 
         if (!keyboardCausedBlur.current) {
+            // If blur is genuine (not virtual-keyboard handoff), commit and mark as
+            // unfocused so preview can close unless popover interaction is active.
             callAction({
                 action: actions.updateValue,
                 baseVariableValue: rendererValue.current,
@@ -202,6 +247,43 @@ export default function MathInput(props: UseDoenetRendererProps) {
             });
         }
     };
+
+    const handleAnswerPreviewPointerDown = () => {
+        // Capture pointer interaction in the popover so scrollbar drags don't close
+        // the preview when the math input temporarily loses focus.
+        setInteractingWithAnswerPreview(true);
+
+        const handlePointerUp = () => {
+            setInteractingWithAnswerPreview(false);
+        };
+
+        window.addEventListener("pointerup", handlePointerUp, {
+            once: true,
+        });
+    };
+
+    const handleAnswerPreviewWheel = () => {
+        // Preserve native wheel behavior (including Shift+wheel horizontal scroll),
+        // but keep the popover visible for the duration of wheel activity.
+        setInteractingWithAnswerPreview(true);
+
+        if (answerPreviewWheelTimeout.current !== null) {
+            window.clearTimeout(answerPreviewWheelTimeout.current);
+        }
+
+        answerPreviewWheelTimeout.current = window.setTimeout(() => {
+            setInteractingWithAnswerPreview(false);
+            answerPreviewWheelTimeout.current = null;
+        }, 200);
+    };
+
+    useEffect(() => {
+        return () => {
+            if (answerPreviewWheelTimeout.current !== null) {
+                window.clearTimeout(answerPreviewWheelTimeout.current);
+            }
+        };
+    }, []);
 
     if (SVs.hidden) {
         return null;
@@ -306,7 +388,8 @@ export default function MathInput(props: UseDoenetRendererProps) {
             >
                 <label style={{ display: "inline-flex", maxWidth: "100%" }}>
                     {label}
-                    <span
+                    <Ariakit.PopoverAnchor
+                        store={answerPreviewPopover}
                         className="mathInputWrapper"
                         style={{
                             cursor: mathInputWrapperCursor,
@@ -351,8 +434,30 @@ export default function MathInput(props: UseDoenetRendererProps) {
                                 setMathField(mf);
                             }}
                         />
-                    </span>
+                    </Ariakit.PopoverAnchor>
                 </label>
+                {SVs.showAnswerPreview ? (
+                    <Ariakit.Popover
+                        store={answerPreviewPopover}
+                        className="description-popover mathInputAnswerPreviewPopover"
+                        gutter={8}
+                        flip="top bottom left"
+                        fitViewport
+                        overflowPadding={12}
+                        autoFocusOnShow={false}
+                        autoFocusOnHide={false}
+                        data-test="MathInput Answer Preview"
+                        onPointerDownCapture={handleAnswerPreviewPointerDown}
+                        onWheelCapture={handleAnswerPreviewWheel}
+                    >
+                        <Ariakit.PopoverArrow />
+                        <div className="mathInputAnswerPreviewContent">
+                            <MathJax hideUntilTypeset={"first"} inline dynamic>
+                                {`\\(${SVs.immediateValueLatex}\\)`}
+                            </MathJax>
+                        </div>
+                    </Ariakit.Popover>
+                ) : null}
                 {checkWorkComponent}
                 {description}
             </span>
