@@ -1,6 +1,27 @@
 import { cesc } from "@doenet/utils";
 import { toMathJaxString } from "../../../src/util/mathDisplay";
 
+function postDoenetML(doenetML) {
+    cy.window().then(async (win) => {
+        win.postMessage(
+            {
+                doenetML,
+            },
+            "*",
+        );
+    });
+}
+
+/**
+ * Posts DoenetML with a trailing lightweight math expression and waits for its
+ * MathJax-rendered text. This primes MathJax before tests type into mathInput,
+ * which helps avoid first-render timing flakes.
+ */
+function postDoenetMLWithMathJaxPrimed(doenetML) {
+    postDoenetML(`${doenetML}\n<p><m name="to-prime-mathjax">z</m></p>`);
+    cy.get("#to-prime-mathjax").should("have.text", toMathJaxString("z"));
+}
+
 describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -295,20 +316,10 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
     });
 
     it("preview lifecycle with showPreview", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <p><m name="m">z</m></p>
+        postDoenetMLWithMathJaxPrimed(`
     <p><mathInput name="mi" showPreview /></p>
     <p><textInput name="ti" /></p>
-    `,
-                },
-                "*",
-            );
-        });
-
-        cy.get("#m").should("have.text", toMathJaxString("z"));
+    `);
 
         cy.get("#mi [data-test='MathInput Preview']").should("not.be.visible");
 
@@ -332,20 +343,10 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
     });
 
     it("debounces preview opening and updates while focused", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <p><m name="m">z</m></p>
+        postDoenetMLWithMathJaxPrimed(`
     <p><mathInput name="mi" showPreview /></p>
     <p><math name="iv" extend="$mi.immediateValue" /></p>
-    `,
-                },
-                "*",
-            );
-        });
-
-        cy.get("#m").should("have.text", toMathJaxString("z"));
+    `);
 
         cy.get("#mi textarea").focus().type("x", { force: true });
         cy.get("#iv").should("have.text", toMathJaxString("x"));
@@ -367,20 +368,10 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
     });
 
     it("syncs preview immediately on blur when focus moves to preview", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <p><m name="m">z</m></p>
+        postDoenetMLWithMathJaxPrimed(`
     <p><mathInput name="mi" showPreview /></p>
     <p><textInput name="ti" /></p>
-    `,
-                },
-                "*",
-            );
-        });
-
-        cy.get("#m").should("have.text", toMathJaxString("z"));
+    `);
 
         cy.get("#mi textarea").type("x", { force: true });
         cy.wait(600);
@@ -394,19 +385,9 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
     });
 
     it("Escape closes preview and returns focus to math input", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <p><m name="m">z</m></p>
+        postDoenetMLWithMathJaxPrimed(`
     <p><mathInput name="mi" showPreview /></p>
-    `,
-                },
-                "*",
-            );
-        });
-
-        cy.get("#m").should("have.text", toMathJaxString("z"));
+    `);
 
         cy.get("#mi textarea").type("x", { force: true });
         cy.wait(600);
@@ -424,20 +405,10 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
     });
 
     it("Escape in math input closes preview until next interaction", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <p><m name="m">z</m></p>
+        postDoenetMLWithMathJaxPrimed(`
     <p><mathInput name="mi" showPreview /></p>
     <p><math name="iv" extend="$mi.immediateValue" /></p>
-    `,
-                },
-                "*",
-            );
-        });
-
-        cy.get("#m").should("have.text", toMathJaxString("z"));
+    `);
 
         cy.get("#mi textarea").focus().type("x", { force: true });
         cy.wait(600);
@@ -459,11 +430,7 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
     });
 
     it("aria-details adds preview id only while preview is open", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <p><m name="m">z</m></p>
+        postDoenetMLWithMathJaxPrimed(`
     <mathInput name="mi" showPreview>
       <shortDescription>Enter something</shortDescription>
       <description>
@@ -471,13 +438,7 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
       </description>
     </mathInput>
     <p><textInput name="ti" /></p>
-    `,
-                },
-                "*",
-            );
-        });
-
-        cy.get("#m").should("have.text", toMathJaxString("z"));
+        `);
 
         cy.get("#mi .mq-editable-field").should(
             "have.attr",
@@ -501,20 +462,10 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
     });
 
     it("keeps preview open when focus moves into preview content", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <p><m name="m">z</m></p>
+        postDoenetMLWithMathJaxPrimed(`
     <p><mathInput name="mi" showPreview /></p>
     <p><textInput name="ti" /></p>
-    `,
-                },
-                "*",
-            );
-        });
-
-        cy.get("#m").should("have.text", toMathJaxString("z"));
+    `);
 
         cy.get("#mi textarea").type("x", { force: true });
         cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
@@ -528,20 +479,10 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
     });
 
     it("keeps preview open briefly during wheel interaction", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <p><m name="m">z</m></p>
+        postDoenetMLWithMathJaxPrimed(`
     <p><mathInput name="mi" showPreview /></p>
     <p><textInput name="ti" /></p>
-    `,
-                },
-                "*",
-            );
-        });
-
-        cy.get("#m").should("have.text", toMathJaxString("z"));
+    `);
 
         cy.get("#mi textarea").type("x+1", { force: true });
         cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
@@ -558,24 +499,14 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
     });
 
     it("inherits preview from answer showPreview", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <p><m name="m">z</m></p>
+        postDoenetMLWithMathJaxPrimed(`
     <p>
       <answer showPreview>
         <mathInput name="mi" />
       </answer>
     </p>
     <p><textInput name="ti" /></p>
-    `,
-                },
-                "*",
-            );
-        });
-
-        cy.get("#m").should("have.text", toMathJaxString("z"));
+        `);
 
         cy.get("#mi textarea").type("x", { force: true });
         cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
@@ -586,20 +517,10 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
     });
 
     it("does not show preview when showPreview is not set", () => {
-        cy.window().then(async (win) => {
-            win.postMessage(
-                {
-                    doenetML: `
-    <p><m name="m">z</m></p>
+        postDoenetMLWithMathJaxPrimed(`
     <p><mathInput name="mi" /></p>
     <p><math name="iv" extend="$mi.immediateValue" /></p>
-    `,
-                },
-                "*",
-            );
-        });
-
-        cy.get("#m").should("have.text", toMathJaxString("z"));
+    `);
 
         cy.get("#mi textarea").type("x+1", { force: true });
         cy.get("#iv").should("have.text", toMathJaxString("x+1"));
