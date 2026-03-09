@@ -41744,11 +41744,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeAutoName",
                     "type": "boolean",
                     "isArray": false
@@ -41821,6 +41816,11 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -42791,11 +42791,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeAutoName",
                     "type": "boolean",
                     "isArray": false
@@ -42868,6 +42863,11 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -43838,11 +43838,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeAutoName",
                     "type": "boolean",
                     "isArray": false
@@ -43915,6 +43910,11 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -44885,11 +44885,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeAutoName",
                     "type": "boolean",
                     "isArray": false
@@ -44962,6 +44957,11 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -45953,11 +45953,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeAutoName",
                     "type": "boolean",
                     "isArray": false
@@ -46035,6 +46030,11 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -47005,11 +47005,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeAutoName",
                     "type": "boolean",
                     "isArray": false
@@ -47082,6 +47077,11 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -48059,11 +48059,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeAutoName",
                     "type": "boolean",
                     "isArray": false
@@ -48136,6 +48131,11 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -49113,11 +49113,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeAutoName",
                     "type": "boolean",
                     "isArray": false
@@ -49190,6 +49185,11 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -50167,11 +50167,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeAutoName",
                     "type": "boolean",
                     "isArray": false
@@ -50244,6 +50239,11 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -51221,11 +51221,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeAutoName",
                     "type": "boolean",
                     "isArray": false
@@ -51298,6 +51293,11 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -52268,11 +52268,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeAutoName",
                     "type": "boolean",
                     "isArray": false
@@ -52345,6 +52340,11 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -53315,11 +53315,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeAutoName",
                     "type": "boolean",
                     "isArray": false
@@ -53392,6 +53387,11 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -54362,11 +54362,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeAutoName",
                     "type": "boolean",
                     "isArray": false
@@ -54439,6 +54434,11 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -55409,11 +55409,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeAutoName",
                     "type": "boolean",
                     "isArray": false
@@ -55486,6 +55481,11 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -56456,11 +56456,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeAutoName",
                     "type": "boolean",
                     "isArray": false
@@ -56533,6 +56528,11 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -57503,11 +57503,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeAutoName",
                     "type": "boolean",
                     "isArray": false
@@ -57580,6 +57575,11 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -58570,11 +58570,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeAutoName",
                     "type": "boolean",
                     "isArray": false
@@ -58647,6 +58642,11 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -59616,11 +59616,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeAutoName",
                     "type": "boolean",
                     "isArray": false
@@ -59688,6 +59683,11 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -60657,11 +60657,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeAutoName",
                     "type": "boolean",
                     "isArray": false
@@ -60729,6 +60724,11 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -137642,6 +137642,13 @@
                         "true",
                         "false"
                     ]
+                },
+                "boxAll": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
                 }
             },
             "children": [
@@ -138392,11 +138399,6 @@
                     "isArray": false
                 },
                 {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
                     "name": "includeAutoName",
                     "type": "boolean",
                     "isArray": false
@@ -138469,6 +138471,11 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "boxed",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {

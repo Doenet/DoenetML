@@ -24,6 +24,12 @@ export default class Cascade extends SectioningComponent {
             defaultValue: false,
         };
 
+        attributes.boxAll = {
+            createComponentOfType: "boolean",
+            createStateVariable: "boxAll",
+            defaultValue: false,
+        };
+
         return attributes;
     }
 

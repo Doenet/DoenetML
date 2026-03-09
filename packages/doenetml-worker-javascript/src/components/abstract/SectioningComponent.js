@@ -41,10 +41,8 @@ export class SectioningComponent extends BlockComponent {
 
         attributes.boxed = {
             createComponentOfType: "boolean",
-            createStateVariable: "boxed",
+            createStateVariable: "boxedPreliminary",
             defaultValue: false,
-            public: true,
-            forRenderer: true,
         };
 
         attributes.includeAutoName = {
@@ -190,6 +188,35 @@ export class SectioningComponent extends BlockComponent {
                         isListItem: Boolean(dependencyValues.parentAsList),
                     },
                 };
+            },
+        };
+
+        stateVariableDefinitions.boxed = {
+            forRenderer: true,
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            returnDependencies: () => ({
+                boxedPreliminary: {
+                    dependencyType: "stateVariable",
+                    variableName: "boxedPreliminary",
+                },
+                parentBoxAll: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "boxAll",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                let boxed = dependencyValues.boxedPreliminary;
+                if (
+                    usedDefault.boxedPreliminary &&
+                    typeof dependencyValues.parentBoxAll === "boolean" &&
+                    !usedDefault.parentBoxAll
+                ) {
+                    boxed = dependencyValues.parentBoxAll;
+                }
+                return { setValue: { boxed } };
             },
         };
 
