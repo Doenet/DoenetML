@@ -27,33 +27,72 @@ import {
 } from "./utils/checkWork";
 import { addValidationStateToShortDescription } from "./utils/description";
 
+const PREVIEW_UPDATE_DELAY_MS = 500;
+
 /**
  * Encapsulates math input preview popover state and interaction behavior.
  *
  * The preview is shown only when preview is enabled, the current raw renderer
  * value is non-blank, and either the input itself is focused or the user is
- * actively interacting with the preview (pointer/focus/wheel).
+ * actively interacting with the preview (pointer/focus/wheel). While focused,
+ * preview opening and content updates are debounced by `previewUpdateDelayMs`.
  */
 function useMathInputPreview({
     id,
     showPreview,
     rawRendererValue,
+    immediateValueLatex,
     focused,
+    previewUpdateDelayMs,
+    onEscapeFromPreview,
 }: {
     id: string;
     showPreview: boolean;
     rawRendererValue: string;
+    immediateValueLatex: string;
     focused: boolean;
+    previewUpdateDelayMs: number;
+    onEscapeFromPreview: () => void;
 }) {
     const [interactingWithPreview, setInteractingWithPreview] = useState(false);
     const previewWheelTimeout = useRef<number | null>(null);
+    const previewUpdateTimeout = useRef<number | null>(null);
+    const [debouncedPreview, setDebouncedPreview] = useState({
+        rawRendererValue,
+        immediateValueLatex,
+    });
+
+    const syncDebouncedPreview = (
+        nextRawRendererValue: string,
+        nextImmediateValueLatex: string,
+    ) => {
+        // Guard against setting equivalent state repeatedly.
+        // Keeping this idempotent prevents render churn in dev/strict mode,
+        // and avoids instability where math inputs can disappear from the DOM
+        // during hot/strict re-renders.
+        setDebouncedPreview((prev) => {
+            if (
+                prev.rawRendererValue === nextRawRendererValue &&
+                prev.immediateValueLatex === nextImmediateValueLatex
+            ) {
+                return prev;
+            }
+
+            return {
+                rawRendererValue: nextRawRendererValue,
+                immediateValueLatex: nextImmediateValueLatex,
+            };
+        });
+    };
+
     const previewRef = useRef<HTMLDivElement | null>(null);
     const previewPopover = Ariakit.usePopoverStore({
         placement: "right",
     });
 
     const previewId = `${id}-preview`;
-    const trimmedRawRendererValue = rawRendererValue?.trim() ?? "";
+    const trimmedRawRendererValue =
+        debouncedPreview.rawRendererValue?.trim() ?? "";
     const shouldShowPreview =
         showPreview &&
         trimmedRawRendererValue !== "" &&
@@ -67,6 +106,32 @@ function useMathInputPreview({
             previewPopover.hide();
         }
     }, [shouldShowPreview, isPreviewOpen]);
+
+    /**
+     * Keeps debounced preview content in sync with renderer state.
+     *
+     * While focused, updates are delayed to avoid preview churn during typing.
+     * On blur, updates are applied immediately so an open preview (e.g. after
+     * focus transfer into the popover) does not display stale content.
+     */
+    useEffect(() => {
+        if (previewUpdateTimeout.current !== null) {
+            window.clearTimeout(previewUpdateTimeout.current);
+            previewUpdateTimeout.current = null;
+        }
+
+        if (!focused) {
+            // On blur, sync preview content immediately. In focus-transfer cases
+            // (e.g., tabbing from input into the preview), the popover may stay
+            // open and would otherwise show stale debounced content.
+            syncDebouncedPreview(rawRendererValue, immediateValueLatex);
+        } else {
+            previewUpdateTimeout.current = window.setTimeout(() => {
+                syncDebouncedPreview(rawRendererValue, immediateValueLatex);
+                previewUpdateTimeout.current = null;
+            }, previewUpdateDelayMs);
+        }
+    }, [rawRendererValue, immediateValueLatex, focused, previewUpdateDelayMs]);
 
     const handlePreviewPointerDown = () => {
         setInteractingWithPreview(true);
@@ -93,7 +158,17 @@ function useMathInputPreview({
         const scrollAmount = 40;
         const target = e.currentTarget;
 
-        if (e.key === "ArrowRight") {
+        // Escape dismisses the preview and returns keyboard focus to the
+        // associated math input so editing can continue immediately.
+        if (e.key === "Escape") {
+            setInteractingWithPreview(false);
+            previewPopover.hide();
+            onEscapeFromPreview();
+            e.preventDefault();
+            e.stopPropagation();
+            // Arrow/Home/End keys provide keyboard-only horizontal navigation
+            // for long, non-wrapping MathJax expressions inside the preview.
+        } else if (e.key === "ArrowRight") {
             target.scrollLeft += scrollAmount;
             e.preventDefault();
         } else if (e.key === "ArrowLeft") {
@@ -113,6 +188,9 @@ function useMathInputPreview({
             if (previewWheelTimeout.current !== null) {
                 window.clearTimeout(previewWheelTimeout.current);
             }
+            if (previewUpdateTimeout.current !== null) {
+                window.clearTimeout(previewUpdateTimeout.current);
+            }
         };
     }, []);
 
@@ -127,6 +205,7 @@ function useMathInputPreview({
         handlePreviewPointerLeave,
         handlePreviewWheel,
         handlePreviewKeyDown,
+        debouncedImmediateValueLatex: debouncedPreview.immediateValueLatex,
     };
 }
 
@@ -255,7 +334,12 @@ export default function MathInput(props: UseDoenetRendererProps) {
         id,
         showPreview: SVs.showPreview,
         rawRendererValue: SVs.rawRendererValue,
+        immediateValueLatex: SVs.immediateValueLatex,
         focused,
+        previewUpdateDelayMs: PREVIEW_UPDATE_DELAY_MS,
+        onEscapeFromPreview: () => {
+            textareaRef.current?.focus();
+        },
     });
 
     if (!ignoreUpdate) {
@@ -584,7 +668,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                 <MathInputPreviewPopover
                     preview={preview}
                     showPreview={SVs.showPreview}
-                    immediateValueLatex={SVs.immediateValueLatex}
+                    immediateValueLatex={preview.debouncedImmediateValueLatex}
                 />
                 {checkWorkComponent}
                 {description}
