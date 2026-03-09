@@ -11,6 +11,10 @@ vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
 describe("Cascade tag tests @group4", async () => {
+    async function getStateVariables(core: any) {
+        return core.returnAllStateVariables(false, true);
+    }
+
     it("basic cascade", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -1754,6 +1758,42 @@ describe("Cascade tag tests @group4", async () => {
             stateVariables[section2Idx].stateValues.childIndicesToRender,
         ).eqls([0, 1, 2, 3, 4]);
         expect(stateVariables[section2Idx].stateValues.childrenToHide).eqls([]);
+    });
+
+    it("boxAll boxes only immediate section children", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<cascade boxAll>
+    <section name="section1">
+        <title>Section 1</title>
+        <p>Top-level section</p>
+        <section name="nestedSection">
+            <title>Nested Section</title>
+            <p>Nested section inside section1</p>
+        </section>
+    </section>
+    <section name="section2">
+        <title>Section 2</title>
+        <p>Another top-level section</p>
+    </section>
+    <section boxed="false" name="section3">
+        <title>Section 3</title>
+        <p>Explicitly unboxed top-level section</p>
+    </section>
+</cascade>
+    `,
+        });
+
+        const stateVariables = await getStateVariables(core);
+        const section1Idx = await resolvePathToNodeIdx("section1");
+        const section2Idx = await resolvePathToNodeIdx("section2");
+        const section3Idx = await resolvePathToNodeIdx("section3");
+        const nestedSectionIdx = await resolvePathToNodeIdx("nestedSection");
+
+        expect(stateVariables[section1Idx].stateValues.boxed).eq(true);
+        expect(stateVariables[section2Idx].stateValues.boxed).eq(true);
+        expect(stateVariables[section3Idx].stateValues.boxed).eq(false);
+        expect(stateVariables[nestedSectionIdx].stateValues.boxed).eq(false);
     });
 
     it("just submitted is not set to false in choice input inside cascade", async () => {
