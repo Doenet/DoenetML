@@ -165,6 +165,65 @@ describe("Graph prefigure mode tests", async () => {
         );
     });
 
+    it("mode=prefigure warns for unsupported graph axis label positions", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" mode="prefigure" xLabelPosition="left" yLabelPosition="bottom">
+  <xLabel>time</xLabel>
+  <yLabel>value</yLabel>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(`<axes axes="all">`);
+        expect(prefigureXML).toContain(`<xlabel alignment="nw">time</xlabel>`);
+        expect(prefigureXML).toContain(`<ylabel alignment="se">value</ylabel>`);
+
+        let errorWarnings = core.core!.errorWarnings;
+        expect(errorWarnings.errors.length).eq(0);
+        expect(
+            errorWarnings.warnings.some((x) =>
+                x.message.includes(
+                    'xLabelPosition="left" is not supported in prefigure mode',
+                ),
+            ),
+        ).eq(true);
+        expect(
+            errorWarnings.warnings.some((x) =>
+                x.message.includes(
+                    'yLabelPosition="bottom" is not supported in prefigure mode',
+                ),
+            ),
+        ).eq(true);
+    });
+
+    it("mode=prefigure maps graph axis labels with latex to m tags", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" mode="prefigure">
+  <xLabel><m>x^2</m></xLabel>
+  <yLabel><m>y_1</m></yLabel>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(`<axes axes="all">`);
+        expect(prefigureXML).toContain(`<xlabel alignment="nw"><m>`);
+        expect(prefigureXML).toContain(`<ylabel alignment="se"><m>`);
+        expect(prefigureXML).toContain(`x^2`);
+        expect(prefigureXML).toContain(`y_1`);
+    });
+
     it("mode=prefigure maps point marker style and marker attributes", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -236,6 +295,45 @@ describe("Graph prefigure mode tests", async () => {
         expect(prefigureXML).toContain(
             `p="(1,2)" style="box" size="16" fill="green" stroke="green" fill-opacity="0.4" stroke-opacity="0.4" thickness="3"`,
         );
+    });
+
+    it("mode=prefigure maps point label and labelPosition", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" mode="prefigure">
+  <point labelPosition="upperLeft">(1,2)<label>A</label></point>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(`p="(1,2)"`);
+        expect(prefigureXML).toContain(`alignment="nw"`);
+        expect(prefigureXML).toContain(`>A</point>`);
+    });
+
+    it("mode=prefigure maps point latex label to m tag", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" mode="prefigure">
+  <point labelPosition="top">(1,2)<label><m>x^2</m></label></point>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(`p="(1,2)"`);
+        expect(prefigureXML).toContain(`alignment="n"`);
+        expect(prefigureXML).toContain(`<m>`);
+        expect(prefigureXML).toContain(`x^2`);
     });
 
     it("nested graph inherits prefigure mode from parent", async () => {

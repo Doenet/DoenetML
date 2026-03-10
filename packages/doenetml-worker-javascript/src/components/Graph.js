@@ -29,6 +29,17 @@ const prefigurePointStyleByMarkerStyle = {
     "double-circle": "double-circle",
 };
 
+const prefigurePointAlignmentByLabelPosition = {
+    upperright: "ne",
+    upperleft: "nw",
+    lowerright: "se",
+    lowerleft: "sw",
+    top: "n",
+    bottom: "s",
+    left: "w",
+    right: "e",
+};
+
 function escapeXml(value) {
     return String(value)
         .replaceAll("&", "&amp;")
@@ -89,6 +100,68 @@ function warningMessageForDescendant(descendant) {
         return `<${descendant.componentType}> (${descendant.componentName})`;
     }
     return `<${descendant?.componentType ?? "unknown"}>`;
+}
+
+function normalizeKey(value) {
+    return String(value)
+        .toLowerCase()
+        .replaceAll(/[^a-z0-9]+/g, "");
+}
+
+function labelMarkup({ label, labelHasLatex }) {
+    if (typeof label !== "string") {
+        return null;
+    }
+
+    const text = label.trim();
+    if (!text) {
+        return null;
+    }
+
+    if (labelHasLatex) {
+        const openDelimiters = (text.match(/\\\(/g) ?? []).length;
+        const closeDelimiters = (text.match(/\\\)/g) ?? []).length;
+
+        if (openDelimiters > 0 && openDelimiters === closeDelimiters) {
+            return escapeXml(text)
+                .replaceAll("\\(", "<m>")
+                .replaceAll("\\)", "</m>");
+        }
+
+        return `<m>${escapeXml(text)}</m>`;
+    }
+
+    return escapeXml(text);
+}
+
+function pointLabelAttributes({ stateValues, warnings, warningPrefix }) {
+    const label = labelMarkup({
+        label: stateValues?.label,
+        labelHasLatex: stateValues?.labelHasLatex,
+    });
+
+    if (!label) {
+        return null;
+    }
+
+    const attrs = [];
+    const rawPosition = stateValues?.labelPosition;
+    if (rawPosition) {
+        const alignment =
+            prefigurePointAlignmentByLabelPosition[normalizeKey(rawPosition)];
+
+        if (alignment) {
+            attrs.push(`alignment="${escapeXml(alignment)}"`);
+        } else {
+            warnings.push({
+                type: "warning",
+                level: 1,
+                message: `${warningPrefix}: unsupported labelPosition '${rawPosition}' for point label; default PreFigure alignment used.`,
+            });
+        }
+    }
+
+    return { attrs, label };
 }
 
 function styleAttributes({ selectedStyle, warnings, warningPrefix }) {
@@ -213,8 +286,24 @@ function convertGraphicalDescendantToPrefigure({
                 warnings,
                 warningPrefix,
             });
+            const pointLabel = pointLabelAttributes({
+                stateValues: sv,
+                warnings,
+                warningPrefix,
+            });
 
-            body = `<point id="${escapeXml(handle)}" p="${escapeXml(p)}" ${pointAttrs.join(" ")} />`;
+            const attrs = [
+                `id="${escapeXml(handle)}"`,
+                `p="${escapeXml(p)}"`,
+                ...pointAttrs,
+                ...(pointLabel?.attrs ?? []),
+            ];
+
+            if (pointLabel?.label) {
+                body = `<point ${attrs.join(" ")}>${pointLabel.label}</point>`;
+            } else {
+                body = `<point ${attrs.join(" ")} />`;
+            }
         }
     } else if (descendant.componentType === "line") {
         const p1 = formatPoint(sv.numericalPoints?.[0]);
@@ -361,12 +450,65 @@ function createPrefigureXML({ dependencyValues, descendants, unsupported }) {
     let axesElement = "";
     const showXAxis = Boolean(dependencyValues.displayXAxis);
     const showYAxis = Boolean(dependencyValues.displayYAxis);
+    let axesMode = null;
     if (showXAxis && showYAxis) {
-        axesElement = `<axes axes="all" />`;
+        axesMode = "all";
     } else if (showXAxis) {
-        axesElement = `<axes axes="horizontal" />`;
+        axesMode = "horizontal";
     } else if (showYAxis) {
-        axesElement = `<axes axes="vertical" />`;
+        axesMode = "vertical";
+    }
+
+    if (axesMode) {
+        if (dependencyValues.xLabelPosition === "left") {
+            warnings.push({
+                type: "warning",
+                level: 1,
+                message:
+                    '<graph>: xLabelPosition="left" is not supported in prefigure mode; using right-position behavior.',
+            });
+        }
+
+        if (dependencyValues.yLabelPosition === "bottom") {
+            warnings.push({
+                type: "warning",
+                level: 1,
+                message:
+                    '<graph>: yLabelPosition="bottom" is not supported in prefigure mode; using top-position behavior.',
+            });
+        }
+
+        const axisLabelElements = [];
+
+        const xLabel = labelMarkup({
+            label: dependencyValues.xLabel,
+            labelHasLatex: dependencyValues.xLabelHasLatex,
+        });
+        if (xLabel && showXAxis) {
+            const xAlignment = "nw";
+
+            axisLabelElements.push(
+                `<xlabel alignment="${escapeXml(xAlignment)}">${xLabel}</xlabel>`,
+            );
+        }
+
+        const yLabel = labelMarkup({
+            label: dependencyValues.yLabel,
+            labelHasLatex: dependencyValues.yLabelHasLatex,
+        });
+        if (yLabel && showYAxis) {
+            const yAlignment = "se";
+
+            axisLabelElements.push(
+                `<ylabel alignment="${escapeXml(yAlignment)}">${yLabel}</ylabel>`,
+            );
+        }
+
+        if (axisLabelElements.length > 0) {
+            axesElement = `<axes axes="${axesMode}">${axisLabelElements.join("")}</axes>`;
+        } else {
+            axesElement = `<axes axes="${axesMode}" />`;
+        }
     }
 
     const xml = `<diagram dimensions="${escapeXml(dimensions)}"><coordinates bbox="${escapeXml(bbox)}">${axesElement}${elements.join("")}</coordinates></diagram>`;
@@ -946,10 +1088,40 @@ export default class Graph extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "displayYAxis",
                 },
+                xLabel: {
+                    dependencyType: "stateVariable",
+                    variableName: "xLabel",
+                },
+                xLabelHasLatex: {
+                    dependencyType: "stateVariable",
+                    variableName: "xLabelHasLatex",
+                },
+                xLabelPosition: {
+                    dependencyType: "stateVariable",
+                    variableName: "xLabelPosition",
+                },
+                yLabel: {
+                    dependencyType: "stateVariable",
+                    variableName: "yLabel",
+                },
+                yLabelHasLatex: {
+                    dependencyType: "stateVariable",
+                    variableName: "yLabelHasLatex",
+                },
+                yLabelPosition: {
+                    dependencyType: "stateVariable",
+                    variableName: "yLabelPosition",
+                },
                 pointDescendants: {
                     dependencyType: "descendant",
                     componentTypes: ["point"],
-                    variableNames: ["numericalXs", "selectedStyle"],
+                    variableNames: [
+                        "numericalXs",
+                        "selectedStyle",
+                        "label",
+                        "labelHasLatex",
+                        "labelPosition",
+                    ],
                 },
                 lineDescendants: {
                     dependencyType: "descendant",
