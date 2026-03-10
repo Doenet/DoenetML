@@ -19,6 +19,16 @@ const prefigureDashByLineStyle = {
     dotted: "dotted",
 };
 
+const prefigurePointStyleByMarkerStyle = {
+    circle: "circle",
+    square: "box",
+    box: "box",
+    diamond: "diamond",
+    cross: "cross",
+    plus: "plus",
+    "double-circle": "double-circle",
+};
+
 function escapeXml(value) {
     return String(value)
         .replaceAll("&", "&amp;")
@@ -126,6 +136,58 @@ function styleAttributes({ selectedStyle, warnings, warningPrefix }) {
     return attrs;
 }
 
+function pointStyleAttributes({ selectedStyle, warnings, warningPrefix }) {
+    const attrs = [];
+
+    const markerStyle = selectedStyle?.markerStyle;
+    if (markerStyle) {
+        const markerStyleString = String(markerStyle);
+        const mappedStyle = prefigurePointStyleByMarkerStyle[markerStyleString];
+
+        if (mappedStyle) {
+            attrs.push(`style="${escapeXml(mappedStyle)}"`);
+        } else if (markerStyleString.slice(0, 8) === "triangle") {
+            attrs.push('style="diamond"');
+            warnings.push({
+                type: "warning",
+                level: 1,
+                message: `${warningPrefix}: marker style '${markerStyleString}' mapped to PreFigure style 'diamond'.`,
+            });
+        } else {
+            warnings.push({
+                type: "warning",
+                level: 1,
+                message: `${warningPrefix}: marker style '${markerStyleString}' is unsupported by PreFigure; default style used.`,
+            });
+        }
+    }
+
+    const size = formatNumber(selectedStyle?.markerSize);
+    if (size !== null) {
+        attrs.push(`size="${escapeXml(size)}"`);
+    }
+
+    const color =
+        selectedStyle?.markerColor ?? selectedStyle?.markerColorWord ?? null;
+    if (color) {
+        attrs.push(`fill="${escapeXml(color)}"`);
+        attrs.push(`stroke="${escapeXml(color)}"`);
+    }
+
+    const opacity = formatNumber(selectedStyle?.markerOpacity);
+    if (opacity !== null) {
+        attrs.push(`fill-opacity="${escapeXml(opacity)}"`);
+        attrs.push(`stroke-opacity="${escapeXml(opacity)}"`);
+    }
+
+    const thickness = formatNumber(selectedStyle?.lineWidth);
+    if (thickness !== null) {
+        attrs.push(`thickness="${escapeXml(thickness)}"`);
+    }
+
+    return attrs;
+}
+
 function convertGraphicalDescendantToPrefigure({
     descendant,
     index,
@@ -146,7 +208,13 @@ function convertGraphicalDescendantToPrefigure({
     if (descendant.componentType === "point") {
         const p = formatPoint(sv.numericalXs);
         if (p !== null) {
-            body = `<point id="${escapeXml(handle)}" p="${escapeXml(p)}" ${styleAttrs.join(" ")} />`;
+            const pointAttrs = pointStyleAttributes({
+                selectedStyle: sv.selectedStyle,
+                warnings,
+                warningPrefix,
+            });
+
+            body = `<point id="${escapeXml(handle)}" p="${escapeXml(p)}" ${pointAttrs.join(" ")} />`;
         }
     } else if (descendant.componentType === "line") {
         const p1 = formatPoint(sv.numericalPoints?.[0]);
@@ -259,10 +327,9 @@ function createPrefigureXML({ dependencyValues, descendants, unsupported }) {
         });
     }
 
-    const bbox =
-        [xMin, yMin, xMax, yMax].some((x) => x === null)
-            ? "(-10,-10,10,10)"
-            : `(${xMin},${yMin},${xMax},${yMax})`;
+    const bbox = [xMin, yMin, xMax, yMax].some((x) => x === null)
+        ? "(-10,-10,10,10)"
+        : `(${xMin},${yMin},${xMax},${yMax})`;
 
     let dimensionWidth = width;
     if (dimensionWidth === null || dimensionWidth <= 0) {
@@ -911,7 +978,11 @@ export default class Graph extends BlockComponent {
                 circleDescendants: {
                     dependencyType: "descendant",
                     componentTypes: ["circle"],
-                    variableNames: ["numericalCenter", "numericalRadius", "selectedStyle"],
+                    variableNames: [
+                        "numericalCenter",
+                        "numericalRadius",
+                        "selectedStyle",
+                    ],
                 },
                 polylineDescendants: {
                     dependencyType: "descendant",

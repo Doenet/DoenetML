@@ -165,6 +165,79 @@ describe("Graph prefigure mode tests", async () => {
         );
     });
 
+    it("mode=prefigure maps point marker style and marker attributes", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<setup>
+  <styleDefinitions>
+    <styleDefinition styleNumber="7" markerStyle="square" markerSize="6" markerColor="green" markerOpacity="0.4" lineWidth="3" />
+  </styleDefinitions>
+</setup>
+<graph name="g" mode="prefigure">
+  <point styleNumber="7">(1,2)</point>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(
+            `p="(1,2)" style="box" size="6" fill="green" stroke="green" fill-opacity="0.4" stroke-opacity="0.4" thickness="3"`,
+        );
+    });
+
+    it("mode=prefigure maps triangle marker styles to diamond with warning", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<setup>
+  <styleDefinitions>
+    <styleDefinition styleNumber="7" markerStyle="triangleRight" markerColor="purple" />
+  </styleDefinitions>
+</setup>
+<graph name="g" mode="prefigure">
+  <point styleNumber="7">(1,2)</point>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(`style="diamond"`);
+
+        expect(prefigureXML).toContain(`p="(1,2)" style="diamond"`);
+    });
+
+    it("extended graph preserves point marker mapping in prefigure mode", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<setup>
+    <styleDefinitions>
+        <styleDefinition styleNumber="7" markerStyle="square" markerSize="16" markerColor="green" markerOpacity="0.4" lineWidth="3" />
+    </styleDefinitions>
+</setup>
+<graph name="g">
+    <point styleNumber="7">(1,2)</point>
+</graph>
+<graph name="gp" extend="$g" mode="prefigure" />
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("gp")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(
+            `p="(1,2)" style="box" size="16" fill="green" stroke="green" fill-opacity="0.4" stroke-opacity="0.4" thickness="3"`,
+        );
+    });
+
     it("nested graph inherits prefigure mode from parent", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
