@@ -197,6 +197,16 @@ export default class Graph extends BlockComponent {
             forRenderer: true,
         };
 
+        attributes.mode = {
+            createPrimitiveOfType: "string",
+            createStateVariable: "mode",
+            validValues: ["doenet", "prefigure"],
+            defaultValue: "doenet",
+            public: true,
+            toLowerCase: true,
+            forRenderer: true,
+        };
+
         return attributes;
     }
 
