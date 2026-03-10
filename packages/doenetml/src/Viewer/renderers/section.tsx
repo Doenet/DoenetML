@@ -17,6 +17,7 @@ import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
+import { cesc } from "@doenet/utils";
 
 export default React.memo(function Section(props) {
     let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
@@ -147,11 +148,13 @@ export default React.memo(function Section(props) {
 
         // Build CSS rules based on section configuration
         const cssRules = [];
+        const escapedId = cesc(id);
+        const escapedHeadingWrapperId = cesc(`${id}-heading-wrapper`);
 
         // For non-boxed sections with heading wrapper
         if (!SVs.collapsible && !SVs.boxed && hasTitle) {
             cssRules.push(`
-                #${id}-heading-wrapper::before {
+                #${escapedHeadingWrapperId}::before {
                     content: "${SVs.sectionNumber}.";
                     display: inline-block;
                     width: calc(${LIST_ITEM_INDENT} - ${LIST_ITEM_SPACING});
@@ -166,7 +169,7 @@ export default React.memo(function Section(props) {
         // For non-boxed sections without heading
         if (!SVs.collapsible && !SVs.boxed && !hasTitle) {
             cssRules.push(`
-                #${id}::before {
+                #${escapedId}::before {
                     content: "${SVs.sectionNumber}.";
                     display: inline-block;
                     width: calc(${LIST_ITEM_INDENT} - ${LIST_ITEM_SPACING});
@@ -181,8 +184,9 @@ export default React.memo(function Section(props) {
         // For collapsible boxed sections
         if (SVs.collapsible) {
             const headingBoxClassName = `section-heading-${id}`;
+            const escapedHeadingBoxClassName = cesc(headingBoxClassName);
             cssRules.push(`
-                #${id} .${headingBoxClassName}::before {
+                #${escapedId} .${escapedHeadingBoxClassName}::before {
                     content: "${SVs.sectionNumber}.";
                     text-align: right;
                     ${getSectionNumberStyles(hasTitle)}
@@ -193,8 +197,9 @@ export default React.memo(function Section(props) {
         // For static boxed sections
         if (SVs.boxed && !SVs.collapsible) {
             const headingBoxClassName = `section-heading-${id}`;
+            const escapedHeadingBoxClassName = cesc(headingBoxClassName);
             cssRules.push(`
-                #${id} .${headingBoxClassName}::before {
+                #${escapedId} .${escapedHeadingBoxClassName}::before {
                     content: "${SVs.sectionNumber}.";
                     text-align: right;
                     ${getSectionNumberStyles(hasTitle)}
