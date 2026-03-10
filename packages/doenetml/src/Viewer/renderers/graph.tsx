@@ -10,6 +10,7 @@ import JXG from "jsxgraph";
 import { cesc } from "@doenet/utils";
 import { JXGBoard, JXGObject } from "./jsxgraph-distrib/types";
 import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
+import Prefigure from "./prefigure";
 
 export const BoardContext = createContext<JXGBoard | null>();
 
@@ -34,13 +35,15 @@ export default React.memo(function Graph(props) {
     let previousYaxisWithLabel = useRef(null);
 
     let showNavigation = SVs.showNavigation && !SVs.fixAxes;
+    const graphRenderMode = SVs.effectiveMode ?? SVs.mode;
+    const isPrefigureMode = graphRenderMode === "prefigure";
 
     const ref = useRef(null);
 
     useRecordVisibilityChanges(ref, callAction, actions, SVs.haveGraphParent);
 
     useEffect(() => {
-        if (SVs.haveGraphParent) {
+        if (SVs.haveGraphParent || isPrefigureMode) {
             return;
         }
         return () => {
@@ -53,7 +56,7 @@ export default React.memo(function Graph(props) {
 
     //Draw Board after mounting component
     useEffect(() => {
-        if (SVs.haveGraphParent) {
+        if (SVs.haveGraphParent || isPrefigureMode) {
             return;
         }
 
@@ -179,7 +182,7 @@ export default React.memo(function Graph(props) {
     }, []);
 
     useEffect(() => {
-        if (board && showNavigation) {
+        if (board && showNavigation && !isPrefigureMode) {
             addNavigationButtons();
         }
     }, [board]);
@@ -198,6 +201,10 @@ export default React.memo(function Graph(props) {
                 {graphicalChildren}
             </>
         );
+    }
+
+    if (isPrefigureMode) {
+        return <Prefigure {...props} />;
     }
 
     const divStyle = {

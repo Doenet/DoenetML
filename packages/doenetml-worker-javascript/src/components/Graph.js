@@ -12,6 +12,301 @@ import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
+
+const prefigureDashByLineStyle = {
+    solid: null,
+    dashed: "dashed",
+    dotted: "dotted",
+};
+
+function escapeXml(value) {
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&apos;");
+}
+
+function asFiniteNumber(value) {
+    return Number.isFinite(value) ? Number(value) : null;
+}
+
+function formatNumber(value) {
+    const num = asFiniteNumber(value);
+    return num === null ? null : `${num}`;
+}
+
+function formatPoint(point) {
+    if (!Array.isArray(point) || point.length < 2) {
+        return null;
+    }
+
+    const x = formatNumber(point[0]);
+    const y = formatNumber(point[1]);
+
+    if (x === null || y === null) {
+        return null;
+    }
+
+    return `(${x},${y})`;
+}
+
+function sanitizeHandle(value) {
+    return String(value)
+        .toLowerCase()
+        .replaceAll(/[^a-z0-9_-]+/g, "-")
+        .replaceAll(/-+/g, "-")
+        .replaceAll(/^-|-$/g, "");
+}
+
+function createStableHandle(descendant, index, usedHandles) {
+    const stem = sanitizeHandle(
+        `${descendant.componentType}-${descendant.componentName ?? index}`,
+    );
+    let handle = stem || `graphical-${index}`;
+    let suffix = 1;
+    while (usedHandles.has(handle)) {
+        suffix += 1;
+        handle = `${stem}-${suffix}`;
+    }
+    usedHandles.add(handle);
+    return handle;
+}
+
+function warningMessageForDescendant(descendant) {
+    if (descendant?.componentName) {
+        return `<${descendant.componentType}> (${descendant.componentName})`;
+    }
+    return `<${descendant?.componentType ?? "unknown"}>`;
+}
+
+function styleAttributes({ selectedStyle, warnings, warningPrefix }) {
+    const attrs = [];
+
+    const stroke = selectedStyle?.lineColor ?? selectedStyle?.lineColorWord;
+    if (stroke) {
+        attrs.push(`stroke="${escapeXml(stroke)}"`);
+    }
+
+    const thickness = formatNumber(selectedStyle?.lineWidth);
+    if (thickness !== null) {
+        attrs.push(`thickness="${escapeXml(thickness)}"`);
+    }
+
+    const fill = selectedStyle?.fillColor ?? selectedStyle?.fillColorWord;
+    if (fill) {
+        attrs.push(`fill="${escapeXml(fill)}"`);
+    }
+
+    const lineOpacity = formatNumber(selectedStyle?.lineOpacity);
+    if (lineOpacity !== null) {
+        attrs.push(`stroke-opacity="${escapeXml(lineOpacity)}"`);
+    }
+
+    const fillOpacity = formatNumber(selectedStyle?.fillOpacity);
+    if (fillOpacity !== null) {
+        attrs.push(`fill-opacity="${escapeXml(fillOpacity)}"`);
+    }
+
+    const lineStyle = selectedStyle?.lineStyle;
+    if (lineStyle) {
+        const dash = prefigureDashByLineStyle[lineStyle];
+        if (dash) {
+            attrs.push(`dash="${escapeXml(dash)}"`);
+        } else if (!(lineStyle in prefigureDashByLineStyle)) {
+            warnings.push({
+                type: "warning",
+                level: 1,
+                message: `${warningPrefix}: unknown line style '${lineStyle}' omitted from PreFigure output.`,
+            });
+        }
+    }
+
+    return attrs;
+}
+
+function convertGraphicalDescendantToPrefigure({
+    descendant,
+    index,
+    usedHandles,
+    warnings,
+}) {
+    const sv = descendant?.stateValues ?? {};
+    const warningPrefix = warningMessageForDescendant(descendant);
+    const handle = createStableHandle(descendant, index, usedHandles);
+    const styleAttrs = styleAttributes({
+        selectedStyle: sv.selectedStyle,
+        warnings,
+        warningPrefix,
+    });
+
+    let body = null;
+
+    if (descendant.componentType === "point") {
+        const p = formatPoint(sv.numericalXs);
+        if (p !== null) {
+            body = `<point id="${escapeXml(handle)}" p="${escapeXml(p)}" ${styleAttrs.join(" ")} />`;
+        }
+    } else if (descendant.componentType === "line") {
+        const p1 = formatPoint(sv.numericalPoints?.[0]);
+        const p2 = formatPoint(sv.numericalPoints?.[1]);
+        if (p1 !== null && p2 !== null) {
+            body = `<line id="${escapeXml(handle)}" endpoints="${escapeXml(`(${p1},${p2})`)}" infinite="yes" ${styleAttrs.join(" ")} />`;
+        }
+    } else if (descendant.componentType === "lineSegment") {
+        const p1 = formatPoint(sv.numericalEndpoints?.[0]);
+        const p2 = formatPoint(sv.numericalEndpoints?.[1]);
+        if (p1 !== null && p2 !== null) {
+            body = `<line id="${escapeXml(handle)}" endpoints="${escapeXml(`(${p1},${p2})`)}" infinite="no" ${styleAttrs.join(" ")} />`;
+        }
+    } else if (descendant.componentType === "ray") {
+        const p1 = formatPoint(sv.numericalEndpoint);
+        const p2 = formatPoint(sv.numericalThroughpoint);
+        if (p1 !== null && p2 !== null) {
+            body = `<line id="${escapeXml(handle)}" endpoints="${escapeXml(`(${p1},${p2})`)}" infinite="yes" ${styleAttrs.join(" ")} />`;
+        }
+    } else if (descendant.componentType === "vector") {
+        const tail = sv.numericalEndpoints?.[0];
+        const head = sv.numericalEndpoints?.[1];
+        const tailText = formatPoint(tail);
+        if (tailText !== null && Array.isArray(tail) && Array.isArray(head)) {
+            const dx = formatNumber(head[0] - tail[0]);
+            const dy = formatNumber(head[1] - tail[1]);
+            if (dx !== null && dy !== null) {
+                body = `<vector id="${escapeXml(handle)}" tail="${escapeXml(tailText)}" v="${escapeXml(`(${dx},${dy})`)}" ${styleAttrs.join(" ")} />`;
+            }
+        }
+    } else if (descendant.componentType === "circle") {
+        const center = formatPoint(sv.numericalCenter);
+        const radius = formatNumber(sv.numericalRadius);
+        if (center !== null && radius !== null) {
+            body = `<circle id="${escapeXml(handle)}" center="${escapeXml(center)}" radius="${escapeXml(radius)}" ${styleAttrs.join(" ")} />`;
+        }
+    } else if (descendant.componentType === "polyline") {
+        const points = (sv.numericalVertices ?? [])
+            .map((pt) => formatPoint(pt))
+            .filter((pt) => pt !== null);
+        if (points.length >= 2) {
+            body = `<polygon id="${escapeXml(handle)}" points="${escapeXml(`(${points.join(",")})`)}" closed="no" ${styleAttrs.join(" ")} />`;
+        }
+    } else if (descendant.componentType === "polygon") {
+        const points = (sv.numericalVertices ?? [])
+            .map((pt) => formatPoint(pt))
+            .filter((pt) => pt !== null);
+        if (points.length >= 3) {
+            body = `<polygon id="${escapeXml(handle)}" points="${escapeXml(`(${points.join(",")})`)}" closed="yes" ${styleAttrs.join(" ")} />`;
+        }
+    } else {
+        warnings.push({
+            type: "warning",
+            level: 1,
+            message: `${warningPrefix}: unsupported in graph prefigure mode; descendant skipped.`,
+        });
+        return null;
+    }
+
+    if (!body) {
+        warnings.push({
+            type: "warning",
+            level: 1,
+            message: `${warningPrefix}: non-finite or incomplete geometry; descendant skipped.`,
+        });
+        return null;
+    }
+
+    return body;
+}
+
+function createPrefigureXML({ dependencyValues, descendants, unsupported }) {
+    const warnings = [];
+    const usedHandles = new Set();
+    const elements = [];
+
+    for (const descendant of unsupported ?? []) {
+        warnings.push({
+            type: "warning",
+            level: 1,
+            message: `${warningMessageForDescendant(descendant)}: unsupported in graph prefigure mode; descendant skipped.`,
+        });
+    }
+
+    for (const [index, descendant] of (descendants ?? []).entries()) {
+        const converted = convertGraphicalDescendantToPrefigure({
+            descendant,
+            index,
+            usedHandles,
+            warnings,
+        });
+        if (converted) {
+            elements.push(converted);
+        }
+    }
+
+    const xMin = formatNumber(dependencyValues.xMin);
+    const yMin = formatNumber(dependencyValues.yMin);
+    const xMax = formatNumber(dependencyValues.xMax);
+    const yMax = formatNumber(dependencyValues.yMax);
+    const width = asFiniteNumber(dependencyValues.width?.size);
+    const aspectRatio = asFiniteNumber(dependencyValues.aspectRatio);
+
+    if ([xMin, yMin, xMax, yMax].some((x) => x === null)) {
+        warnings.push({
+            type: "warning",
+            level: 1,
+            message:
+                "<graph>: invalid axis bounds for prefigure conversion; using default bbox (-10,-10,10,10).",
+        });
+    }
+
+    const bbox =
+        [xMin, yMin, xMax, yMax].some((x) => x === null)
+            ? "(-10,-10,10,10)"
+            : `(${xMin},${yMin},${xMax},${yMax})`;
+
+    let dimensionWidth = width;
+    if (dimensionWidth === null || dimensionWidth <= 0) {
+        warnings.push({
+            type: "warning",
+            level: 1,
+            message:
+                "<graph>: invalid width for prefigure conversion; using default diagram width 425.",
+        });
+        dimensionWidth = 425;
+    }
+
+    let diagramAspectRatio = aspectRatio;
+    if (diagramAspectRatio === null || diagramAspectRatio <= 0) {
+        warnings.push({
+            type: "warning",
+            level: 1,
+            message:
+                "<graph>: invalid aspectRatio for prefigure conversion; using default aspect ratio 1.",
+        });
+        diagramAspectRatio = 1;
+    }
+
+    const dimensionHeight = dimensionWidth / diagramAspectRatio;
+    const widthText = formatNumber(dimensionWidth) ?? "425";
+    const heightText = formatNumber(dimensionHeight) ?? "425";
+    const dimensions = `(${widthText},${heightText})`;
+
+    let axesElement = "";
+    const showXAxis = Boolean(dependencyValues.displayXAxis);
+    const showYAxis = Boolean(dependencyValues.displayYAxis);
+    if (showXAxis && showYAxis) {
+        axesElement = `<axes axes="all" />`;
+    } else if (showXAxis) {
+        axesElement = `<axes axes="horizontal" />`;
+    } else if (showYAxis) {
+        axesElement = `<axes axes="vertical" />`;
+    }
+
+    const xml = `<diagram dimensions="${escapeXml(dimensions)}"><coordinates bbox="${escapeXml(bbox)}">${axesElement}${elements.join("")}</coordinates></diagram>`;
+
+    return { xml, warnings };
+}
+
 export default class Graph extends BlockComponent {
     constructor(args) {
         super(args);
@@ -537,6 +832,166 @@ export default class Graph extends BlockComponent {
             },
         };
 
+        stateVariableDefinitions.prefigureXML = {
+            public: true,
+            forRenderer: true,
+            shadowingInstructions: {
+                createComponentOfType: "text",
+            },
+            returnDependencies: () => ({
+                effectiveMode: {
+                    dependencyType: "stateVariable",
+                    variableName: "effectiveMode",
+                },
+                haveGraphParent: {
+                    dependencyType: "stateVariable",
+                    variableName: "haveGraphParent",
+                },
+                xMin: {
+                    dependencyType: "stateVariable",
+                    variableName: "xMin",
+                },
+                xMax: {
+                    dependencyType: "stateVariable",
+                    variableName: "xMax",
+                },
+                yMin: {
+                    dependencyType: "stateVariable",
+                    variableName: "yMin",
+                },
+                yMax: {
+                    dependencyType: "stateVariable",
+                    variableName: "yMax",
+                },
+                width: {
+                    dependencyType: "stateVariable",
+                    variableName: "width",
+                },
+                aspectRatio: {
+                    dependencyType: "stateVariable",
+                    variableName: "aspectRatio",
+                },
+                displayXAxis: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayXAxis",
+                },
+                displayYAxis: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayYAxis",
+                },
+                pointDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["point"],
+                    variableNames: ["numericalXs", "selectedStyle"],
+                },
+                lineDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["line"],
+                    variableNames: ["numericalPoints", "selectedStyle"],
+                },
+                lineSegmentDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["lineSegment"],
+                    variableNames: ["numericalEndpoints", "selectedStyle"],
+                },
+                rayDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["ray"],
+                    variableNames: [
+                        "numericalEndpoint",
+                        "numericalThroughpoint",
+                        "selectedStyle",
+                    ],
+                },
+                vectorDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["vector"],
+                    variableNames: ["numericalEndpoints", "selectedStyle"],
+                },
+                circleDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["circle"],
+                    variableNames: ["numericalCenter", "numericalRadius", "selectedStyle"],
+                },
+                polylineDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["polyline"],
+                    variableNames: ["numericalVertices", "selectedStyle"],
+                },
+                polygonDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["polygon"],
+                    variableNames: ["numericalVertices", "selectedStyle"],
+                },
+                allGraphicalDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["_graphical"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (
+                    dependencyValues.effectiveMode !== "prefigure" ||
+                    dependencyValues.haveGraphParent
+                ) {
+                    return { setValue: { prefigureXML: null } };
+                }
+
+                const descendants = [
+                    ...(dependencyValues.pointDescendants ?? []),
+                    ...(dependencyValues.lineDescendants ?? []),
+                    ...(dependencyValues.lineSegmentDescendants ?? []),
+                    ...(dependencyValues.rayDescendants ?? []),
+                    ...(dependencyValues.vectorDescendants ?? []),
+                    ...(dependencyValues.circleDescendants ?? []),
+                    ...(dependencyValues.polylineDescendants ?? []),
+                    ...(dependencyValues.polygonDescendants ?? []),
+                ];
+
+                descendants.sort((a, b) => {
+                    if (
+                        Number.isFinite(a.componentIdx) &&
+                        Number.isFinite(b.componentIdx)
+                    ) {
+                        return a.componentIdx - b.componentIdx;
+                    }
+                    return String(a.componentName ?? "").localeCompare(
+                        String(b.componentName ?? ""),
+                    );
+                });
+
+                const handledDescendantIndices = new Set(
+                    descendants.map((x) => x.componentIdx),
+                );
+
+                const unsupported = (
+                    dependencyValues.allGraphicalDescendants ?? []
+                ).filter((x) => !handledDescendantIndices.has(x.componentIdx));
+
+                unsupported.sort((a, b) => {
+                    if (
+                        Number.isFinite(a.componentIdx) &&
+                        Number.isFinite(b.componentIdx)
+                    ) {
+                        return a.componentIdx - b.componentIdx;
+                    }
+                    return String(a.componentName ?? "").localeCompare(
+                        String(b.componentName ?? ""),
+                    );
+                });
+
+                const { xml, warnings } = createPrefigureXML({
+                    dependencyValues,
+                    descendants,
+                    unsupported,
+                });
+
+                return {
+                    setValue: { prefigureXML: xml },
+                    sendWarnings: warnings,
+                };
+            },
+        };
+
         stateVariableDefinitions.childIndicesToRender = {
             returnDependencies: () => ({
                 graphicalOrGraphChildren: {
@@ -803,6 +1258,34 @@ export default class Graph extends BlockComponent {
                 return {
                     setValue: {
                         haveGraphParent: dependencyValues.graphParent !== null,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.effectiveMode = {
+            public: true,
+            forRenderer: true,
+            shadowingInstructions: {
+                createComponentOfType: "text",
+            },
+            returnDependencies: () => ({
+                mode: {
+                    dependencyType: "stateVariable",
+                    variableName: "mode",
+                },
+                graphParentMode: {
+                    dependencyType: "parentStateVariable",
+                    parentComponentType: "graph",
+                    variableName: "effectiveMode",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        effectiveMode:
+                            dependencyValues.graphParentMode ??
+                            dependencyValues.mode,
                     },
                 };
             },
