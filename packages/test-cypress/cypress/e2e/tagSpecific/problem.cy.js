@@ -1191,26 +1191,36 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
     });
 
-    // Helper function to verify list item rendering with section numbers via CSS ::before
+    /**
+     * Verifies baseline list-item numbering behavior for two non-boxed items.
+     *
+     * Asserts that:
+     * - visible text content excludes numbering glyphs,
+     * - numbering is provided via CSS ::before content on each list item,
+     * - introduction/conclusion elements do not receive list-item numbering.
+     */
     function verifyListItemSectionNumbers(
         item1Id,
         item2Id,
         item1Text,
         item2Text,
     ) {
+        const escapedItem1Id = cesc(item1Id);
+        const escapedItem2Id = cesc(item2Id);
+
         // Verify text content (no section numbers in text)
-        cy.get(`#${item1Id}`).should("have.text", item1Text);
-        cy.get(`#${item2Id}`).should("have.text", item2Text);
+        cy.get(`#${escapedItem1Id}`).should("have.text", item1Text);
+        cy.get(`#${escapedItem2Id}`).should("have.text", item2Text);
 
         // Verify section numbers are rendered via CSS ::before pseudo-elements
-        cy.get(`#${item1Id}`).then(($el) => {
+        cy.get(`#${escapedItem1Id}`).then(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             const before = win.getComputedStyle($el[0], "::before");
             const content = before.getPropertyValue("content");
             expect(content).to.equal('"1."');
         });
 
-        cy.get(`#${item2Id}`).then(($el) => {
+        cy.get(`#${escapedItem2Id}`).then(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             const before = win.getComputedStyle($el[0], "::before");
             const content = before.getPropertyValue("content");
@@ -1232,6 +1242,145 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             expect(content).to.be.oneOf(["none", '""', ""]);
         });
     }
+
+    /**
+     * Verifies that a non-boxed list item uses inline-flow ::before numbering,
+     * which is required for first-line baseline alignment with inline content
+     * (e.g., choiceInput/math on the first rendered line).
+     */
+    function verifyNonBoxedListItemUsesInlineBefore(itemId, expectedNumber) {
+        const escapedItemId = cesc(itemId);
+
+        cy.get(`#${escapedItemId}`).then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const before = win.getComputedStyle($el[0], "::before");
+            expect(before.getPropertyValue("content")).to.equal(
+                `"${expectedNumber}."`,
+            );
+            expect(before.getPropertyValue("position")).to.not.equal(
+                "absolute",
+            );
+            expect(before.getPropertyValue("display")).to.equal("inline-block");
+            expect(before.getPropertyValue("vertical-align")).to.equal(
+                "baseline",
+            );
+        });
+    }
+
+    /**
+     * Verifies boxed/collapsible-style numbering contract:
+     * - outer section element has no ::before number,
+     * - heading-box element owns the ::before number,
+     * - horizontal anchor uses the expected alignment strategy.
+     */
+    function verifyBoxedListItemNumberInHeadingBox(itemId, expectedNumber) {
+        const escapedItemId = cesc(itemId);
+        const escapedHeadingClassName = cesc(`section-heading-${itemId}`);
+
+        cy.get(`#${escapedItemId}`).then(($sectionEl) => {
+            const win = $sectionEl[0].ownerDocument.defaultView;
+            const sectionBefore = win.getComputedStyle(
+                $sectionEl[0],
+                "::before",
+            );
+            expect(sectionBefore.getPropertyValue("content")).to.be.oneOf([
+                "none",
+                '""',
+                "",
+            ]);
+        });
+
+        cy.get(`#${escapedItemId} .${escapedHeadingClassName}`).then(
+            ($headingEl) => {
+                const win = $headingEl[0].ownerDocument.defaultView;
+                const before = win.getComputedStyle($headingEl[0], "::before");
+                expect(before.getPropertyValue("content")).to.equal(
+                    `"${expectedNumber}."`,
+                );
+
+                const left = before.getPropertyValue("left");
+                const marginLeft = before.getPropertyValue("margin-left");
+
+                if (left && left !== "auto") {
+                    expect(left).to.equal("0px");
+                } else {
+                    expect(marginLeft).to.not.equal("0px");
+                }
+            },
+        );
+    }
+
+    it("tasks with dotted ids still render section numbers", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problem>
+            <section name="s1">
+                <task name="t1">section 1 task 1</task>
+                <task name="t2">section 1 task 2</task>
+            </section>
+            <section name="s2">
+                <task name="t1">section 2 task 1</task>
+                <task name="t2">section 2 task 2</task>
+            </section>
+        </problem>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`#${cesc("s1.t1")}`).then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const before = win.getComputedStyle($el[0], "::before");
+            expect(before.getPropertyValue("content")).to.equal('"1."');
+        });
+
+        cy.get(`#${cesc("s1.t2")}`).then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const before = win.getComputedStyle($el[0], "::before");
+            expect(before.getPropertyValue("content")).to.equal('"2."');
+        });
+
+        cy.get(`#${cesc("s2.t1")}`).then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const before = win.getComputedStyle($el[0], "::before");
+            expect(before.getPropertyValue("content")).to.equal('"1."');
+        });
+
+        cy.get(`#${cesc("s2.t2")}`).then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const before = win.getComputedStyle($el[0], "::before");
+            expect(before.getPropertyValue("content")).to.equal('"2."');
+        });
+    });
+
+    it("boxed tasks with dotted ids still render section numbers", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problem>
+            <section name="s1">
+                <task name="t1" boxed>section 1 boxed task</task>
+            </section>
+            <section name="s2">
+                <task name="t1" boxed>
+                    <title>boxed task title</title>
+                    section 2 boxed task
+                </task>
+            </section>
+        </problem>
+    `,
+                },
+                "*",
+            );
+        });
+
+        verifyBoxedListItemNumberInHeadingBox("s1.t1", 1);
+        verifyBoxedListItemNumberInHeadingBox("s2.t1", 1);
+    });
 
     it("tasks render as list", () => {
         cy.window().then(async (win) => {
@@ -1271,6 +1420,36 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
 
         verifyListItemSectionNumbers("part1", "part2", "Do this", "Do that");
+    });
+
+    it("tasks with inline choiceInput and math keep list-item numbering behavior", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problem name="problem">
+            <introduction name="intro">List of tasks</introduction>
+            <task name="task1">plain text task</task>
+            <task name="task2">inline choiceInput <choiceInput inline><choice>a</choice></choiceInput></task>
+            <task name="task3">inline math <math>x</math></task>
+            <task name="task4" boxed>boxed task with math <math>x</math></task>
+            <task name="task5" boxed>
+                <title>boxed task with title</title>
+                boxed content
+            </task>
+            <conclusion name="conclusion">Finished</conclusion>
+        </problem>
+    `,
+                },
+                "*",
+            );
+        });
+
+        verifyNonBoxedListItemUsesInlineBefore("task1", 1);
+        verifyNonBoxedListItemUsesInlineBefore("task2", 2);
+        verifyNonBoxedListItemUsesInlineBefore("task3", 3);
+        verifyBoxedListItemNumberInHeadingBox("task4", 4);
+        verifyBoxedListItemNumberInHeadingBox("task5", 5);
     });
 
     it("problems render children as list", () => {
