@@ -2,6 +2,33 @@
 
 This guide documents the process of deploying the `prefigure` Python library to AWS Lambda using a Docker container, with a hybrid caching layer (RAM + DynamoDB) to optimize performance and reduce costs.
 
+Quick endpoint verification commands are maintained in `ENDPOINT_TESTING.md`.
+
+---
+
+## API response contract (current)
+
+The Lambda endpoint returns JSON and now treats `foo.xml` (annotations) as optional.
+
+- **Success (`200`)**
+    - `svg`: always present on success
+    - `xml`: annotation XML string or `null` when annotations are not produced
+    - `annotationsGenerated`: boolean flag indicating whether annotation XML exists
+    - `cached`: whether result came from cache
+    - `hash`: cache key
+
+- **Client/build issues (`400`/`422`)**
+    - `400` with `errorCode` of:
+        - `invalid_encoding`
+        - `empty_body`
+    - `422` with `errorCode` of:
+        - `build_failed` (prefig exited non-zero)
+        - `svg_missing` (prefig exited zero but no SVG output)
+
+- **Diagnostics on failures**
+    - `prefigReturnCode`, `command`, `cwd`, `stdout`, `stderr`
+    - Add query param `?debug=1` to include directory listings (`work_dir_contents`, `output_dir_contents`) for deeper troubleshooting.
+
 ---
 
 ## 1. Project Structure
@@ -46,7 +73,7 @@ RUN dnf update -y && \
 
 # 3. Install Liblouis (Braille support) from Source
 WORKDIR /tmp/liblouis-build
-RUN git clone [https://github.com/liblouis/liblouis.git](https://github.com/liblouis/liblouis.git) . && \
+RUN git clone https://github.com/liblouis/liblouis.git . && \
     ./autogen.sh && \
     ./configure --enable-ucs4 --prefix=/usr && \
     make && \
@@ -60,7 +87,7 @@ RUN git clone [https://github.com/liblouis/liblouis.git](https://github.com/libl
 RUN pip install pycairo
 
 # 5. Install Prefigure
-RUN pip install "git+[https://github.com/davidaustinm/prefigure.git#egg=prefig](https://github.com/davidaustinm/prefigure.git#egg=prefig)[pycairo]"
+RUN pip install "git+https://github.com/davidaustinm/prefigure.git#egg=prefig[pycairo]"
 
 # 6. Initialize Prefigure (Downloads MathJax and fonts)
 RUN prefig init
@@ -94,179 +121,30 @@ We use DynamoDB for persistent caching (L2 Cache).
 
 4. Application Code (app.py)
 
-This handler implements Hybrid Caching:
+The canonical implementation is maintained in `prefigure-lambda/app.py`.
 
-    Checks RAM (L1) -> Instant return (0ms).
+Current handler behavior summary:
 
-    Checks DynamoDB (L2) -> Fast return (~15ms).
+- Hybrid cache: RAM (L1) + DynamoDB (L2)
+- `foo.svg` is required for success; `foo.xml` (annotations) is optional
+- `xml` may be `null` with `annotationsGenerated: false`
+- Error semantics:
+  - `400`: `invalid_encoding`, `empty_body`
+  - `422`: `build_failed`, `svg_missing`
+- Diagnostics on failures include: `prefigReturnCode`, `command`, `cwd`, `stdout`, `stderr`
+- Optional `?debug=1` includes file listings in error payloads
 
-    Runs Prefigure (Build) -> Slow (~2s), then saves to L1 & L2.
+Example successful response:
 
-Python
-
-import json
-import os
-import subprocess
-import hashlib
-import boto3
-import time
-import base64
-import shutil
-from botocore.exceptions import ClientError
-
-# --- CONFIGURATION ---
-# Change this version string to invalidate old cache entries when you update the library.
-CACHE_VERSION = "v0.5.7"
-CACHE_DURATION_DAYS = 30
-
-# --- INITIALIZATION ---
-LOCAL_CACHE = {}
-dynamodb = boto3.resource('dynamodb')
-table_name = "PrefigureCache"
-table = dynamodb.Table(table_name)
-
-# --- HELPER FUNCTIONS ---
-def compute_hash(content):
-    unique_string = content + CACHE_VERSION
-    return hashlib.sha256(unique_string.encode('utf-8')).hexdigest()
-
-def get_from_cache(xml_hash):
-    # 1. Check L1 (RAM)
-    if xml_hash in LOCAL_CACHE:
-        print(f"L1 MEMORY HIT: {xml_hash}")
-        return LOCAL_CACHE[xml_hash]
-
-    # 2. Check L2 (DynamoDB)
-    try:
-        response = table.get_item(Key={'xml_hash': xml_hash})
-        if 'Item' in response:
-            print(f"L2 DYNAMO HIT: {xml_hash}")
-            item = response['Item']
-
-            # Retrieve both files
-            result = {
-                'xml_content': item.get('xml_content', ''),
-                'svg_content': item.get('svg_content', '')
-            }
-
-            # Backfill RAM
-            LOCAL_CACHE[xml_hash] = result
-            return result
-    except ClientError as e:
-        print(f"DynamoDB Read Error: {e.response['Error']['Message']}")
-
-    print(f"CACHE MISS: {xml_hash}")
-    return None
-
-def save_to_cache(xml_hash, xml_content, svg_content):
-    result = {
-        'xml_content': xml_content,
-        'svg_content': svg_content
-    }
-
-    # 1. Save to RAM
-    LOCAL_CACHE[xml_hash] = result
-
-    # 2. Save to DynamoDB
-    try:
-        ttl_seconds = CACHE_DURATION_DAYS * 24 * 60 * 60
-        expiration_time = int(time.time()) + ttl_seconds
-
-        table.put_item(Item={
-            'xml_hash': xml_hash,
-            'xml_content': xml_content,
-            'svg_content': svg_content,
-            'expiration_time': expiration_time
-        })
-        print(f"Saved to L1 & L2 Cache: {xml_hash}")
-    except ClientError as e:
-        print(f"Failed to save to DynamoDB: {e.response['Error']['Message']}")
-
-# --- MAIN HANDLER ---
-def lambda_handler(event, context):
-    # 1. Parse Input
-    try:
-        body = event.get('body', '')
-        if event.get('isBase64Encoded', False):
-            body = base64.b64decode(body).decode('utf-8')
-    except Exception as e:
-        return {'statusCode': 400, 'body': json.dumps({'error': 'Invalid encoding'})}
-
-    if not body:
-        return {'statusCode': 400, 'body': json.dumps({'error': 'Empty body'})}
-
-    # 2. Check Cache
-    xml_hash = compute_hash(body)
-    cached_data = get_from_cache(xml_hash)
-
-    if cached_data:
-        return {
-            'statusCode': 200,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({
-                'cached': True,
-                'hash': xml_hash,
-                'foo.xml': cached_data['xml_content'],
-                'foo.svg': cached_data['svg_content']
-            })
-        }
-
-    # 3. Setup Paths
-    work_dir = "/tmp/prefigure_work"
-    if os.path.exists(work_dir):
-        shutil.rmtree(work_dir)
-    os.makedirs(work_dir)
-
-    # 4. Write Input
-    input_filename = "foo.xml"
-    input_path = os.path.join(work_dir, input_filename)
-    with open(input_path, 'w') as f:
-        f.write(body)
-
-    # 5. Run Prefigure
-    # We switch CWD to work_dir so 'output/' is created there
-    cmd = ["prefig", "build", input_filename]
-    result = subprocess.run(cmd, cwd=work_dir, capture_output=True, text=True)
-
-    if result.returncode != 0:
-        return {
-            'statusCode': 500,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({
-                'error': 'Prefigure build failed',
-                'stderr': result.stderr
-            })
-        }
-
-    # 6. Read Outputs
-    output_dir = os.path.join(work_dir, "output")
-    out_xml_path = os.path.join(output_dir, "foo.xml")
-    out_svg_path = os.path.join(output_dir, "foo.svg")
-
-    if os.path.exists(out_xml_path) and os.path.exists(out_svg_path):
-        with open(out_xml_path, 'r') as f:
-            xml_result = f.read()
-        with open(out_svg_path, 'r') as f:
-            svg_result = f.read()
-
-        save_to_cache(xml_hash, xml_result, svg_result)
-
-        return {
-            'statusCode': 200,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({
-                'cached': False,
-                'hash': xml_hash,
-                'foo.xml': xml_result,
-                'foo.svg': svg_result
-            })
-        }
-    else:
-        return {
-            'statusCode': 500,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({'error': 'Output files not found', 'stderr': result.stderr})
-        }
+```json
+{
+  "cached": false,
+  "hash": "...",
+  "xml": null,
+  "svg": "<svg ...>",
+  "annotationsGenerated": false
+}
+```
 
 5. IAM Permissions (Least Privilege)
 
@@ -301,29 +179,29 @@ Run these commands in your project folder. Replace [ACCOUNT_ID] with your AWS ID
 Bash
 
 # 1. Login to ECR
-aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin [ACCOUNT_ID].dkr.ecr.us-east-2.amazonaws.com
+aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin ACCOUNT_ID.dkr.ecr.us-east-2.amazonaws.com
 
 # 2. Build Image (provenance=false is critical for Lambda)
 docker build --provenance=false --platform linux/amd64 -t prefigure-repo .
 
 # 3. Tag & Push
-docker tag prefigure-repo:latest [ACCOUNT_ID][.dkr.ecr.us-east-2.amazonaws.com/prefigure-repo:latest](https://.dkr.ecr.us-east-2.amazonaws.com/prefigure-repo:latest)
-docker push [ACCOUNT_ID][.dkr.ecr.us-east-2.amazonaws.com/prefigure-repo:latest](https://.dkr.ecr.us-east-2.amazonaws.com/prefigure-repo:latest)
+docker tag prefigure-repo:latest ACCOUNT_ID.dkr.ecr.us-east-2.amazonaws.com/prefigure-repo:latest
+docker push ACCOUNT_ID.dkr.ecr.us-east-2.amazonaws.com/prefigure-repo:latest
 
 # 4. Update Lambda Function
-aws lambda update-function-code --function-name prefigure-function --image-uri [ACCOUNT_ID][.dkr.ecr.us-east-2.amazonaws.com/prefigure-repo:latest](https://.dkr.ecr.us-east-2.amazonaws.com/prefigure-repo:latest)
+aws lambda update-function-code --function-name prefigure-function --image-uri ACCOUNT_ID.dkr.ecr.us-east-2.amazonaws.com/prefigure-repo:latest
 
 7. Testing
 Terminal (Curl)
 Bash
 
-curl -X POST [https://prefigure.doenet.org/build](https://prefigure.doenet.org/build) \
+curl -X POST https://prefigure.doenet.org/build \
   -H "Content-Type: application/xml" \
   --data-binary @test.xml
 
 Browser (test.html)
 
-Save this as test.html. It handles the JSON response containing both the XML and SVG keys.
+Save this as test.html. It handles the JSON response and renders `svg` when present.
 HTML
 
 <!DOCTYPE html>
@@ -351,7 +229,7 @@ HTML
             container.innerHTML = "Building...";
 
             try {
-                const response = await fetch('[https://prefigure.doenet.org/build](https://prefigure.doenet.org/build)', {
+                const response = await fetch('https://prefigure.doenet.org/build', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/xml' },
                     body: xml
@@ -361,12 +239,10 @@ HTML
 
                 const data = await response.json();
 
-                // We look for 'foo.svg' or any key ending in .svg
-                const svgKey = Object.keys(data).find(key => key.endsWith('.svg'));
-
-                if (svgKey) {
-                    container.innerHTML = data[svgKey];
+                if (data.svg) {
+                    container.innerHTML = data.svg;
                     console.log("Cache status:", data.cached ? "HIT" : "MISS");
+                    console.log("Annotations generated:", data.annotationsGenerated);
                 } else {
                     container.textContent = "Error: No SVG found in response.";
                 }

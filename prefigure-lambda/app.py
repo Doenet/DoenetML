@@ -18,6 +18,11 @@ dynamodb = boto3.resource('dynamodb')
 table_name = "PrefigureCache"
 table = dynamodb.Table(table_name)
 
+DEFAULT_HEADERS = {
+    'Content-Type': 'application/json',
+    'Access-Control-Allow-Origin': '*'
+}
+
 # --- HELPER FUNCTIONS ---
 def compute_hash(content):
     unique_string = content + CACHE_VERSION
@@ -38,7 +43,7 @@ def get_from_cache(xml_hash):
             
             # Retrieve both files
             result = {
-                'xml_content': item.get('xml_content', ''),
+                'xml_content': item.get('xml_content', None),
                 'svg_content': item.get('svg_content', '')
             }
             
@@ -67,7 +72,7 @@ def save_to_cache(xml_hash, xml_content, svg_content):
         
         table.put_item(Item={
             'xml_hash': xml_hash,
-            'xml_content': xml_content, # Store both
+            'xml_content': xml_content,
             'svg_content': svg_content,
             'expiration_time': expiration_time
         })
@@ -75,18 +80,50 @@ def save_to_cache(xml_hash, xml_content, svg_content):
     except ClientError as e:
         print(f"Failed to save to DynamoDB: {e.response['Error']['Message']}")
 
+def get_debug_directory_contents(work_dir, output_dir):
+    try:
+        files_in_work = os.listdir(work_dir)
+        if os.path.exists(output_dir):
+            files_in_output = os.listdir(output_dir)
+        else:
+            files_in_output = "Output directory not created"
+    except Exception:
+        files_in_work = "Error listing files"
+        files_in_output = "Error listing files"
+
+    return files_in_work, files_in_output
+
 # --- MAIN HANDLER ---
 def lambda_handler(event, context):
+    debug = False
+    query_params = event.get('queryStringParameters') or {}
+    if query_params.get('debug') in ('1', 'true', 'True', 'yes'):
+        debug = True
+
     # 1. Parse Input
     try:
         body = event.get('body', '')
         if event.get('isBase64Encoded', False):
             body = base64.b64decode(body).decode('utf-8')
     except Exception as e:
-        return {'statusCode': 400, 'body': json.dumps({'error': 'Invalid encoding'})}
+        return {
+            'statusCode': 400,
+            'headers': DEFAULT_HEADERS,
+            'body': json.dumps({
+                'errorCode': 'invalid_encoding',
+                'error': 'Invalid encoding'
+            })
+        }
 
     if not body:
-        return {'statusCode': 400, 'body': json.dumps({'error': 'Empty body'})}
+        return {
+            'statusCode': 400,
+            'headers': DEFAULT_HEADERS,
+            'body': json.dumps({
+                'errorCode': 'empty_body',
+                'error': 'Empty body'
+            })
+        }
 
     # 2. Check Cache
     xml_hash = compute_hash(body)
@@ -95,12 +132,13 @@ def lambda_handler(event, context):
     if cached_data:
         return {
             'statusCode': 200,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'headers': DEFAULT_HEADERS,
             'body': json.dumps({
                 'cached': True,
                 'hash': xml_hash,
                 'xml': cached_data['xml_content'],
-                'svg': cached_data['svg_content']
+                'svg': cached_data['svg_content'],
+                'annotationsGenerated': bool(cached_data['xml_content'])
             })
         }
 
@@ -131,14 +169,26 @@ def lambda_handler(event, context):
     )
 
     if result.returncode != 0:
+        output_dir = os.path.join(work_dir, "output")
+        payload = {
+            'errorCode': 'build_failed',
+            'error': 'Prefigure build failed',
+            'prefigReturnCode': result.returncode,
+            'command': ' '.join(cmd),
+            'cwd': work_dir,
+            'stderr': result.stderr,
+            'stdout': result.stdout
+        }
+
+        if debug:
+            files_in_work, files_in_output = get_debug_directory_contents(work_dir, output_dir)
+            payload['work_dir_contents'] = files_in_work
+            payload['output_dir_contents'] = files_in_output
+
         return {
-            'statusCode': 500,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({
-                'error': 'Prefigure build failed',
-                'stderr': result.stderr,
-                'stdout': result.stdout
-            })
+            'statusCode': 422,
+            'headers': DEFAULT_HEADERS,
+            'body': json.dumps(payload)
         }
 
     # 6. Read Outputs
@@ -147,9 +197,12 @@ def lambda_handler(event, context):
     out_xml_path = os.path.join(output_dir, "foo.xml")
     out_svg_path = os.path.join(output_dir, "foo.svg")
     
-    if os.path.exists(out_xml_path) and os.path.exists(out_svg_path):
-        with open(out_xml_path, 'r') as f:
-            xml_result = f.read()
+    if os.path.exists(out_svg_path):
+        xml_result = None
+        if os.path.exists(out_xml_path):
+            with open(out_xml_path, 'r') as f:
+                xml_result = f.read()
+
         with open(out_svg_path, 'r') as f:
             svg_result = f.read()
             
@@ -158,33 +211,33 @@ def lambda_handler(event, context):
         
         return {
             'statusCode': 200,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
+            'headers': DEFAULT_HEADERS,
             'body': json.dumps({
                 'cached': False,
                 'hash': xml_hash,
                 'xml': xml_result,
-                'svg': svg_result
+                'svg': svg_result,
+                'annotationsGenerated': bool(xml_result)
             })
         }
     else:
-        # Debugging info if files are missing
-        try:
-            files_in_work = os.listdir(work_dir)
-            if os.path.exists(output_dir):
-                files_in_output = os.listdir(output_dir)
-            else:
-                files_in_output = "Output directory not created"
-        except Exception:
-            files_in_work = "Error listing files"
-            files_in_output = "Error listing files"
+        payload = {
+            'errorCode': 'svg_missing',
+            'error': 'SVG output file not found',
+            'prefigReturnCode': result.returncode,
+            'command': ' '.join(cmd),
+            'cwd': work_dir,
+            'stderr': result.stderr,
+            'stdout': result.stdout,
+        }
+
+        if debug:
+            files_in_work, files_in_output = get_debug_directory_contents(work_dir, output_dir)
+            payload['work_dir_contents'] = files_in_work
+            payload['output_dir_contents'] = files_in_output
 
         return {
-            'statusCode': 500,
-            'headers': {'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*'},
-            'body': json.dumps({
-                'error': 'Output files not found',
-                'work_dir_contents': files_in_work,
-                'output_dir_contents': files_in_output,
-                'stderr': result.stderr
-            })
+            'statusCode': 422,
+            'headers': DEFAULT_HEADERS,
+            'body': json.dumps(payload)
         }
