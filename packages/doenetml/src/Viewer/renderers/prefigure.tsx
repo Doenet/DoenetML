@@ -3,6 +3,8 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 
+const PREFIGURE_BUILD_DEBOUNCE_MS = 1000;
+
 function normalizeSerializedMarkup(value: unknown): string {
     if (typeof value !== "string") {
         return "";
@@ -50,6 +52,10 @@ export default React.memo(function Prefigure(props: UseDoenetRendererProps) {
     const [cmlContent, setCmlContent] = useState("");
     const svgRef = useRef<HTMLDivElement>(null);
     const cmlRef = useRef<HTMLDivElement>(null);
+    const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const fetchAbortControllerRef = useRef<AbortController | null>(null);
+    const requestSequenceRef = useRef(0);
+    const hasStartedBuildRef = useRef(false);
 
     // Load diagcess script
     useEffect(() => {
@@ -73,8 +79,26 @@ export default React.memo(function Prefigure(props: UseDoenetRendererProps) {
     }, []);
 
     useEffect(() => {
-        async function buildDiagram() {
-            if (!diagramXML) return;
+        if (debounceTimerRef.current) {
+            clearTimeout(debounceTimerRef.current);
+            debounceTimerRef.current = null;
+        }
+
+        if (fetchAbortControllerRef.current) {
+            fetchAbortControllerRef.current.abort();
+            fetchAbortControllerRef.current = null;
+        }
+
+        if (!diagramXML) {
+            setSvgContent("");
+            setCmlContent("");
+            return;
+        }
+
+        const startBuild = async () => {
+            const requestSequence = ++requestSequenceRef.current;
+            const abortController = new AbortController();
+            fetchAbortControllerRef.current = abortController;
 
             setSvgContent("Building...");
             setCmlContent("");
@@ -88,14 +112,23 @@ export default React.memo(function Prefigure(props: UseDoenetRendererProps) {
                             "Content-Type": "application/xml",
                         },
                         body: diagramXML,
+                        signal: abortController.signal,
                     },
                 );
+
+                if (requestSequence !== requestSequenceRef.current) {
+                    return;
+                }
 
                 if (!response.ok) {
                     throw new Error(`HTTP Error: ${response.status}`);
                 }
 
                 const data = await response.json();
+
+                if (requestSequence !== requestSequenceRef.current) {
+                    return;
+                }
 
                 const svg = normalizeSerializedMarkup(data.svg);
                 if (svg) {
@@ -114,16 +147,51 @@ export default React.memo(function Prefigure(props: UseDoenetRendererProps) {
                     setCmlContent("");
                 }
             } catch (error) {
+                if (
+                    error instanceof DOMException &&
+                    error.name === "AbortError"
+                ) {
+                    return;
+                }
+
+                if (requestSequence !== requestSequenceRef.current) {
+                    return;
+                }
+
                 console.error(error);
                 const errorMessage =
                     error instanceof Error ? error.message : "Unknown error";
                 setSvgContent(
                     `<span style="color:red">Error: ${errorMessage}</span><br><br>Check the Console (F12) for CORS details if this failed immediately.`,
                 );
+            } finally {
+                if (fetchAbortControllerRef.current === abortController) {
+                    fetchAbortControllerRef.current = null;
+                }
             }
+        };
+
+        if (!hasStartedBuildRef.current) {
+            hasStartedBuildRef.current = true;
+            void startBuild();
+        } else {
+            debounceTimerRef.current = setTimeout(
+                () => void startBuild(),
+                PREFIGURE_BUILD_DEBOUNCE_MS,
+            );
         }
 
-        buildDiagram();
+        return () => {
+            if (debounceTimerRef.current) {
+                clearTimeout(debounceTimerRef.current);
+                debounceTimerRef.current = null;
+            }
+
+            if (fetchAbortControllerRef.current) {
+                fetchAbortControllerRef.current.abort();
+                fetchAbortControllerRef.current = null;
+            }
+        };
     }, [diagramXML]);
 
     useEffect(() => {
