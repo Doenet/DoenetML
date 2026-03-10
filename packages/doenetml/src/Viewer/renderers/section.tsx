@@ -50,6 +50,7 @@ export default React.memo(function Section(props) {
             return `
                 display: inline-block;
                 width: calc(${LIST_ITEM_INDENT} - ${LIST_ITEM_SPACING});
+                margin-left: calc(-1 * ${LIST_ITEM_INDENT});
                 margin-right: ${LIST_ITEM_SPACING};
                 text-align: right;
                 flex-shrink: 0;
@@ -59,7 +60,7 @@ export default React.memo(function Section(props) {
             // Use same width as with-heading case to ensure period alignment
             return `
                 position: absolute;
-                left: ${BOX_PADDING};
+                left: 0;
                 width: calc(${LIST_ITEM_INDENT} - ${LIST_ITEM_SPACING});
                 text-align: right;
             `;
@@ -97,7 +98,7 @@ export default React.memo(function Section(props) {
                     ...baseStyle,
                     display: "flex",
                     alignItems: "baseline",
-                    paddingLeft: BOX_PADDING,
+                    paddingLeft: LIST_ITEM_INDENT,
                 };
             }
         }
@@ -167,10 +168,12 @@ export default React.memo(function Section(props) {
             cssRules.push(`
                 #${id}::before {
                     content: "${SVs.sectionNumber}.";
-                    position: absolute;
-                    left: -${LIST_ITEM_INDENT};
+                    display: inline-block;
                     width: calc(${LIST_ITEM_INDENT} - ${LIST_ITEM_SPACING});
+                    margin-left: calc(-1 * ${LIST_ITEM_INDENT});
+                    margin-right: ${LIST_ITEM_SPACING};
                     text-align: right;
+                    vertical-align: baseline;
                 }
             `);
         }
