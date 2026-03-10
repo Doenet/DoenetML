@@ -10,6 +10,7 @@ export function convertPointToPrefigure({
     handle,
     warnings,
     warningPrefix,
+    warningPosition,
 }) {
     const p = formatPoint(sv.numericalXs);
     if (p === null) {
@@ -20,11 +21,13 @@ export function convertPointToPrefigure({
         selectedStyle: sv.selectedStyle,
         warnings,
         warningPrefix,
+        warningPosition,
     });
     const pointLabel = pointLabelAttributes({
         stateValues: sv,
         warnings,
         warningPrefix,
+        warningPosition,
     });
 
     const attrs = [

@@ -1,4 +1,4 @@
-import { escapeXml } from "./common";
+import { escapeXml, pushWarning } from "./common";
 
 const prefigurePointAlignmentByLabelPosition = {
     upperright: "ne",
@@ -53,7 +53,12 @@ export function labelMarkup({ label, labelHasLatex }) {
 /**
  * Returns `<point>` label attributes/content for PreFigure output.
  */
-export function pointLabelAttributes({ stateValues, warnings, warningPrefix }) {
+export function pointLabelAttributes({
+    stateValues,
+    warnings,
+    warningPrefix,
+    warningPosition,
+}) {
     const label = labelMarkup({
         label: stateValues?.label,
         labelHasLatex: stateValues?.labelHasLatex,
@@ -72,10 +77,10 @@ export function pointLabelAttributes({ stateValues, warnings, warningPrefix }) {
         if (alignment) {
             attrs.push(`alignment="${escapeXml(alignment)}"`);
         } else {
-            warnings.push({
-                type: "warning",
-                level: 1,
+            pushWarning({
+                warnings,
                 message: `${warningPrefix}: unsupported labelPosition '${rawPosition}' for point label; default PreFigure alignment used.`,
+                position: warningPosition,
             });
         }
     }

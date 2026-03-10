@@ -202,6 +202,64 @@ describe("Graph prefigure mode tests", async () => {
         ).eq(true);
     });
 
+    it("mode=prefigure descendant warning includes position", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<setup>
+    <styleDefinitions>
+        <styleDefinition styleNumber="7" markerStyle="triangleRight" markerColor="purple" />
+    </styleDefinitions>
+</setup>
+<graph name="g" mode="prefigure">
+    <point styleNumber="7">(1,2)</point>
+</graph>
+`,
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).toBeGreaterThan(0);
+
+        const warningWithPosition = errorWarnings.warnings.find(
+            (x) => x.position,
+        );
+
+        expect(warningWithPosition).toBeDefined();
+        expect(warningWithPosition?.position).toBeDefined();
+        expect(warningWithPosition?.position?.start?.line).toBeGreaterThan(0);
+        expect(warningWithPosition?.position?.start?.column).toBeGreaterThan(0);
+    });
+
+    it("mode=prefigure triangle marker warning has exact position", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<setup>
+    <styleDefinitions>
+        <styleDefinition styleNumber="7" markerStyle="triangleRight" markerColor="purple" />
+    </styleDefinitions>
+</setup>
+<graph name="g" mode="prefigure">
+    <point styleNumber="7">(1,2)</point>
+</graph>
+`,
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+        expect(errorWarnings.errors.length).eq(0);
+
+        const triangleWarning = errorWarnings.warnings.find(
+            (x) =>
+                x.message.includes("marker style") &&
+                x.message.includes("mapped to PreFigure style") &&
+                x.message.includes("diamond"),
+        );
+
+        expect(triangleWarning).toBeDefined();
+        expect(triangleWarning?.position).toBeDefined();
+        expect(triangleWarning?.position?.start?.line).eq(8);
+        expect(triangleWarning?.position?.start?.column).eq(5);
+    });
+
     it("mode=prefigure maps graph axis labels with latex to m tags", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

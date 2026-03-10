@@ -2,6 +2,7 @@ import {
     asFiniteNumber,
     escapeXml,
     formatNumber,
+    pushWarning,
     warningMessageForDescendant,
 } from "./common";
 import { labelMarkup } from "./label";
@@ -88,10 +89,10 @@ export function createPrefigureXML({
     const elements = [];
 
     for (const descendant of unsupported ?? []) {
-        warnings.push({
-            type: "warning",
-            level: 1,
+        pushWarning({
+            warnings,
             message: `${warningMessageForDescendant(descendant)}: unsupported in graph prefigure mode; descendant skipped.`,
+            position: descendant?.position,
         });
     }
 

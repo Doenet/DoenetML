@@ -1,4 +1,8 @@
-import { createStableHandle, warningMessageForDescendant } from "./common";
+import {
+    createStableHandle,
+    pushWarning,
+    warningMessageForDescendant,
+} from "./common";
 import { styleAttributes } from "./style";
 import { convertPointToPrefigure } from "./components/point";
 import {
@@ -14,8 +18,14 @@ import {
 } from "./components/polygon";
 
 const convertByComponentType = {
-    point: ({ sv, handle, warnings, warningPrefix }) =>
-        convertPointToPrefigure({ sv, handle, warnings, warningPrefix }),
+    point: ({ sv, handle, warnings, warningPrefix, warningPosition }) =>
+        convertPointToPrefigure({
+            sv,
+            handle,
+            warnings,
+            warningPrefix,
+            warningPosition,
+        }),
     line: ({ sv, handle, styleAttrs }) =>
         convertLineToPrefigure({ sv, handle, styleAttrs }),
     lineSegment: ({ sv, handle, styleAttrs }) =>
@@ -48,30 +58,39 @@ export function convertGraphicalDescendantToPrefigure({
 }) {
     const sv = descendant?.stateValues ?? {};
     const warningPrefix = warningMessageForDescendant(descendant);
+    const warningPosition = descendant?.position;
     const handle = createStableHandle(descendant, index, usedHandles);
     const styleAttrs = styleAttributes({
         selectedStyle: sv.selectedStyle,
         warnings,
         warningPrefix,
+        warningPosition,
     });
 
     const converter = convertByComponentType[descendant.componentType];
     if (!converter) {
-        warnings.push({
-            type: "warning",
-            level: 1,
+        pushWarning({
+            warnings,
             message: `${warningPrefix}: unsupported in graph prefigure mode; descendant skipped.`,
+            position: warningPosition,
         });
         return null;
     }
 
-    const body = converter({ sv, handle, styleAttrs, warnings, warningPrefix });
+    const body = converter({
+        sv,
+        handle,
+        styleAttrs,
+        warnings,
+        warningPrefix,
+        warningPosition,
+    });
 
     if (!body) {
-        warnings.push({
-            type: "warning",
-            level: 1,
+        pushWarning({
+            warnings,
             message: `${warningPrefix}: non-finite or incomplete geometry; descendant skipped.`,
+            position: warningPosition,
         });
         return null;
     }

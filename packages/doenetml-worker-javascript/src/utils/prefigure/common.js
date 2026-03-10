@@ -77,6 +77,21 @@ export function warningMessageForDescendant(descendant) {
 }
 
 /**
+ * Pushes a warning record and attaches position when available.
+ */
+export function pushWarning({ warnings, message, position }) {
+    const warning = {
+        type: "warning",
+        level: 1,
+        message,
+    };
+    if (position) {
+        warning.position = position;
+    }
+    warnings.push(warning);
+}
+
+/**
  * Stable comparator used to keep generated XML ordering deterministic.
  */
 export function sortDescendantsByOrder(a, b) {
