@@ -793,7 +793,9 @@ describe("Graph prefigure renderer tests", async () => {
                 .prefigureXML;
 
         // upperRight should be near the upper-right endpoint (tail) for this direction
-        expect(prefigureXML).toContain(`<label p="(2.55,2.55)" alignment="north">UR</label>`);
+        expect(prefigureXML).toContain(
+            `<label p="(2.55,2.55)" alignment="north">UR</label>`,
+        );
         // lowerLeft should be near the lower-left endpoint (head) for this direction
         expect(prefigureXML).toContain(
             `<label p="(0.44999999999999996,0.44999999999999996)" alignment="north">LL</label>`,
@@ -1007,8 +1009,7 @@ describe("Graph prefigure renderer tests", async () => {
 
         const closedYesCount = (prefigureXML.match(/closed="yes"/g) ?? [])
             .length;
-        const closedNoCount = (prefigureXML.match(/closed="no"/g) ?? [])
-            .length;
+        const closedNoCount = (prefigureXML.match(/closed="no"/g) ?? []).length;
 
         // Three polygon-family descendants should produce exactly three closed polygons.
         expect(closedYesCount).eq(3);

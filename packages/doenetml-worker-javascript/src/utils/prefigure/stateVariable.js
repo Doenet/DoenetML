@@ -94,7 +94,11 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
  * `variablesOptional` is used when requesting subtype-only variables through
  * a base type (for example requesting `open` through `point` descendants).
  */
-function descendantDependency({ componentType, variableNames, variablesOptional }) {
+function descendantDependency({
+    componentType,
+    variableNames,
+    variablesOptional,
+}) {
     const dependency = {
         dependencyType: "descendant",
         componentTypes: [componentType],
