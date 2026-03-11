@@ -700,6 +700,45 @@ describe("Graph prefigure renderer tests", async () => {
         expect(prefigureXML).toContain(`<circle `);
         expect(prefigureXML).toContain(`center="(1,2)"`);
         expect(prefigureXML).toContain(`radius="3"`);
+        expect(prefigureXML).not.toContain(`fill="`);
+        expect(prefigureXML).not.toContain(`fill-opacity="`);
+    });
+
+    it("renderer=prefigure includes fill attrs only when circle is filled", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<setup>
+  <styleDefinitions>
+    <styleDefinition styleNumber="7" fillColor="red" fillOpacity="0.4" />
+  </styleDefinitions>
+</setup>
+<graph name="g" renderer="prefigure">
+  <circle styleNumber="7" center="(1,2)" radius="3" />
+  <circle styleNumber="7" center="(4,5)" radius="2" filled="true" />
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(
+            `<circle id="circle-0" center="(1,2)" radius="3"`,
+        );
+        expect(prefigureXML).not.toContain(
+            `<circle id="circle-0" center="(1,2)" radius="3" fill="red"`,
+        );
+
+        expect(prefigureXML).toContain(
+            `<circle id="circle-1" center="(4,5)" radius="2"`,
+        );
+        expect(prefigureXML).toContain(
+            `<circle id="circle-1" center="(4,5)" radius="2" stroke=`,
+        );
+        expect(prefigureXML).toContain(`fill="red"`);
+        expect(prefigureXML).toContain(`fill-opacity="0.4"`);
     });
 
     it("renderer=prefigure maps polygon vertices to closed polygon points", async () => {

@@ -111,6 +111,8 @@ export function convertGraphicalDescendantToPrefigure({
         warnings,
         warningPrefix,
         warningPosition,
+        includeFill:
+            descendant.componentType === "circle" ? Boolean(sv.filled) : true,
     });
 
     const converter = convertByComponentType[descendant.componentType];

@@ -58,7 +58,12 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
     {
         key: "circleDescendants",
         componentType: "circle",
-        variableNames: ["numericalCenter", "numericalRadius", "selectedStyle"],
+        variableNames: [
+            "numericalCenter",
+            "numericalRadius",
+            "selectedStyle",
+            "filled",
+        ],
     },
     {
         key: "polylineDescendants",

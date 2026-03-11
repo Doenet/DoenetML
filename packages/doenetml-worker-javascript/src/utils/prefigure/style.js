@@ -24,6 +24,7 @@ export function styleAttributes({
     warnings,
     warningPrefix,
     warningPosition,
+    includeFill = true,
 }) {
     const attrs = [];
 
@@ -37,9 +38,11 @@ export function styleAttributes({
         attrs.push(`thickness="${escapeXml(thickness)}"`);
     }
 
-    const fill = selectedStyle?.fillColor ?? selectedStyle?.fillColorWord;
-    if (fill) {
-        attrs.push(`fill="${escapeXml(fill)}"`);
+    if (includeFill) {
+        const fill = selectedStyle?.fillColor ?? selectedStyle?.fillColorWord;
+        if (fill) {
+            attrs.push(`fill="${escapeXml(fill)}"`);
+        }
     }
 
     const lineOpacity = formatNumber(selectedStyle?.lineOpacity);
@@ -47,9 +50,11 @@ export function styleAttributes({
         attrs.push(`stroke-opacity="${escapeXml(lineOpacity)}"`);
     }
 
-    const fillOpacity = formatNumber(selectedStyle?.fillOpacity);
-    if (fillOpacity !== null) {
-        attrs.push(`fill-opacity="${escapeXml(fillOpacity)}"`);
+    if (includeFill) {
+        const fillOpacity = formatNumber(selectedStyle?.fillOpacity);
+        if (fillOpacity !== null) {
+            attrs.push(`fill-opacity="${escapeXml(fillOpacity)}"`);
+        }
     }
 
     const lineStyle = selectedStyle?.lineStyle;

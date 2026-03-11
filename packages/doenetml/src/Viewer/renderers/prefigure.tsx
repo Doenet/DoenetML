@@ -221,13 +221,16 @@ export default React.memo(function Prefigure(props: UseDoenetRendererProps) {
         innerStyle = { maxWidth: "100%" };
     }
 
-    const contentStyle: React.CSSProperties = SVs.showBorder
-        ? {
-              border: "2px solid var(--canvasText)",
-              borderRadius: "10px",
-              overflow: "hidden",
-          }
-        : {};
+    const hasRenderedSvg = /<svg[\s>]/i.test(svgContent);
+
+    const contentStyle: React.CSSProperties =
+        SVs.showBorder && hasRenderedSvg
+            ? {
+                  border: "2px solid var(--canvasText)",
+                  borderRadius: "10px",
+                  overflow: "hidden",
+              }
+            : { overflow: "hidden" };
 
     return (
         <div style={outerStyle}>
