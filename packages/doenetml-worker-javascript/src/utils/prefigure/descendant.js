@@ -82,6 +82,10 @@ const convertByComponentType = {
         convertPolylineToPrefigure({ sv, handle, styleAttrs }),
     polygon: ({ sv, handle, styleAttrs }) =>
         convertPolygonToPrefigure({ sv, handle, styleAttrs }),
+    triangle: ({ sv, handle, styleAttrs }) =>
+        convertPolygonToPrefigure({ sv, handle, styleAttrs }),
+    rectangle: ({ sv, handle, styleAttrs }) =>
+        convertPolygonToPrefigure({ sv, handle, styleAttrs }),
 };
 
 /**
@@ -113,7 +117,9 @@ export function convertGraphicalDescendantToPrefigure({
         warningPosition,
         includeFill:
             descendant.componentType === "circle" ||
-            descendant.componentType === "polygon"
+            descendant.componentType === "polygon" ||
+            descendant.componentType === "triangle" ||
+            descendant.componentType === "rectangle"
                 ? Boolean(sv.filled)
                 : true,
     });

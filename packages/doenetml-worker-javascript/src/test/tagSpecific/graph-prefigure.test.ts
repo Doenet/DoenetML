@@ -762,6 +762,25 @@ describe("Graph prefigure renderer tests", async () => {
         expect(prefigureXML).not.toContain(`fill-opacity="`);
     });
 
+    it("renderer=prefigure maps polyline vertices to open polygon points", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" renderer="prefigure">
+  <polyline vertices="(0,0) (2,0) (1,1)" />
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(`<polygon `);
+        expect(prefigureXML).toContain(`points="((0,0),(2,0),(1,1))"`);
+        expect(prefigureXML).toContain(`closed="no"`);
+    });
+
     it("renderer=prefigure includes fill attrs only when polygon is filled", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -792,6 +811,64 @@ describe("Graph prefigure renderer tests", async () => {
         );
         expect(prefigureXML).toContain(
             `points="((3,0),(5,0),(4,1))" closed="yes" stroke="#648FFF" thickness="4" fill="red" stroke-opacity="0.7" fill-opacity="0.4"`,
+        );
+    });
+
+    it("renderer=prefigure maps triangle and rectangle directly to polygons", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" renderer="prefigure">
+  <triangle vertices="(0,0) (2,0) (1,1)" />
+    <rectangle center="(4,0.5)" width="2" height="1" />
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(`<polygon `);
+        expect(prefigureXML).toContain(`points="((0,0),(2,0),(1,1))"`);
+        expect(prefigureXML).toContain(`points="((3,0),(5,0),(5,1),(3,1))"`);
+        expect(prefigureXML).toContain(`closed="yes"`);
+    });
+
+    it("renderer=prefigure includes fill attrs only when triangle/rectangle are filled", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<setup>
+  <styleDefinitions>
+    <styleDefinition styleNumber="7" fillColor="red" fillOpacity="0.4" />
+  </styleDefinitions>
+</setup>
+<graph name="g" renderer="prefigure">
+  <triangle styleNumber="7" vertices="(0,0) (2,0) (1,1)" />
+  <triangle styleNumber="7" vertices="(3,0) (5,0) (4,1)" filled="true" />
+    <rectangle styleNumber="7" center="(1,2.5)" width="2" height="1" />
+    <rectangle styleNumber="7" center="(4,2.5)" width="2" height="1" filled="true" />
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).not.toContain(
+            `points="((0,0),(2,0),(1,1))" closed="yes" stroke="#648FFF" thickness="4" fill="red"`,
+        );
+        expect(prefigureXML).toContain(
+            `points="((3,0),(5,0),(4,1))" closed="yes" stroke="#648FFF" thickness="4" fill="red"`,
+        );
+
+        expect(prefigureXML).not.toContain(
+            `points="((0,2),(2,2),(2,3),(0,3))" closed="yes" stroke="#648FFF" thickness="4" fill="red"`,
+        );
+        expect(prefigureXML).toContain(
+            `points="((3,2),(5,2),(5,3),(3,3))" closed="yes" stroke="#648FFF" thickness="4" fill="red"`,
         );
     });
 

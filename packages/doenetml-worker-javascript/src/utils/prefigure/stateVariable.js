@@ -75,6 +75,16 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
         componentType: "polygon",
         variableNames: ["numericalVertices", "selectedStyle", "filled"],
     },
+    {
+        key: "triangleDescendants",
+        componentType: "triangle",
+        variableNames: ["numericalVertices", "selectedStyle", "filled"],
+    },
+    {
+        key: "rectangleDescendants",
+        componentType: "rectangle",
+        variableNames: ["numericalVertices", "selectedStyle", "filled"],
+    },
 ];
 
 function descendantDependency({ componentType, variableNames }) {
