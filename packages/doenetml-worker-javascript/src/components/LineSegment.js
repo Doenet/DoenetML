@@ -6,6 +6,7 @@ import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
+import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { returnStickyGroupDefinitions } from "../utils/constraints";
 
 export default class LineSegment extends GraphicalComponent {
@@ -47,25 +48,7 @@ export default class LineSegment extends GraphicalComponent {
             forRenderer: true,
         };
 
-        attributes.labelPosition = {
-            createComponentOfType: "text",
-            createStateVariable: "labelPosition",
-            defaultValue: "center",
-            public: true,
-            forRenderer: true,
-            toLowerCase: true,
-            validValues: [
-                "upperright",
-                "upperleft",
-                "lowerright",
-                "lowerleft",
-                "center",
-                "top",
-                "bottom",
-                "left",
-                "right",
-            ],
-        };
+        attributes.labelPosition = returnLineFamilyLabelPositionAttribute();
 
         Object.assign(attributes, returnRoundingAttributes());
 

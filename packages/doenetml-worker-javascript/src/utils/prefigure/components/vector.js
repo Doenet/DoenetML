@@ -1,13 +1,9 @@
 import { escapeXml, formatNumber, formatPoint } from "../common";
-import { lineLabelAttributes as getLabelForLine } from "../label";
-import { lineLabelLocationFromPosition } from "../label";
-
-function orientEndpointsForLabel(p1Raw, p2Raw) {
-    if (p1Raw[0] > p2Raw[0] || (p1Raw[0] === p2Raw[0] && p1Raw[1] > p2Raw[1])) {
-        return [p2Raw, p1Raw];
-    }
-    return [p1Raw, p2Raw];
-}
+import {
+    lineLabelAttributes as getLabelForLine,
+    lineLabelLocationValue,
+    orientEndpointsForLineLabel,
+} from "../label";
 
 /**
  * Converts a vector (tail/head endpoints) to a PreFigure `<vector>` element.
@@ -33,7 +29,7 @@ export function convertVectorToPrefigure({
         return null;
     }
 
-    const [ep1, ep2] = orientEndpointsForLabel(tail, head);
+    const [ep1, ep2] = orientEndpointsForLineLabel(tail, head);
     const labelInfo = getLabelForLine({
         stateValues: sv,
         ep1,
@@ -57,20 +53,7 @@ export function convertVectorToPrefigure({
         return vectorXml;
     }
 
-    let location = 0.5;
-    if (sv?.labelPosition) {
-        const locText = lineLabelLocationFromPosition(
-            sv.labelPosition,
-            ep1,
-            ep2,
-        );
-        if (locText !== null) {
-            const parsed = Number(locText);
-            if (Number.isFinite(parsed)) {
-                location = parsed;
-            }
-        }
-    }
+    const location = lineLabelLocationValue(sv?.labelPosition, ep1, ep2);
 
     const anchor = [
         ep1[0] + (ep2[0] - ep1[0]) * location,

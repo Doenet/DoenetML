@@ -21,6 +21,17 @@ const LINE_LABEL_LOCATION_NEAR_START = "0.15";
 const LINE_LABEL_LOCATION_NEAR_END = "0.85";
 
 /**
+ * Reorders two raw [x, y] points so the first is the leftward point.
+ * For vertical lines, the lower point comes first.
+ */
+export function orientEndpointsForLineLabel(p1Raw, p2Raw) {
+    if (p1Raw[0] > p2Raw[0] || (p1Raw[0] === p2Raw[0] && p1Raw[1] > p2Raw[1])) {
+        return [p2Raw, p1Raw];
+    }
+    return [p1Raw, p2Raw];
+}
+
+/**
  * Converts a Doenet label value into PreFigure-compatible XML label content.
  *
  * If `labelHasLatex` is true and balanced `\(...\)` delimiters are present,
@@ -125,6 +136,19 @@ export function lineLabelLocationFromPosition(labelPosition, ep1, ep2) {
 }
 
 /**
+ * Returns the numeric label-location used by vector-label anchor interpolation.
+ */
+export function lineLabelLocationValue(labelPosition, ep1, ep2) {
+    const locText = lineLabelLocationFromPosition(labelPosition, ep1, ep2);
+    if (locText === null) {
+        return 0.5;
+    }
+
+    const parsed = Number(locText);
+    return Number.isFinite(parsed) ? parsed : 0.5;
+}
+
+/**
  * Returns label attrs/content for a PreFigure `<line>` element.
  *
  * Emits `label-location` to position the label along the visible line.
@@ -132,7 +156,7 @@ export function lineLabelLocationFromPosition(labelPosition, ep1, ep2) {
  * alignment to "north" (above the line) regardless of any passed value.
  *
  * ep1 and ep2 must be the ORIENTED endpoint arrays produced by
- * `orientEndpointsForLabel`.
+ * `orientEndpointsForLineLabel`.
  */
 export function lineLabelAttributes({
     stateValues,

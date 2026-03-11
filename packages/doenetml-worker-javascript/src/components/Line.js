@@ -9,6 +9,7 @@ import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
+import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 import { returnNVariables, roundForDisplay } from "../utils/math";
 
@@ -59,25 +60,7 @@ export default class Line extends GraphicalComponent {
 
         Object.assign(attributes, returnRoundingAttributes());
 
-        attributes.labelPosition = {
-            createComponentOfType: "text",
-            createStateVariable: "labelPosition",
-            defaultValue: "center",
-            public: true,
-            forRenderer: true,
-            toLowerCase: true,
-            validValues: [
-                "upperright",
-                "upperleft",
-                "lowerright",
-                "lowerleft",
-                "center",
-                "top",
-                "bottom",
-                "left",
-                "right",
-            ],
-        };
+        attributes.labelPosition = returnLineFamilyLabelPositionAttribute();
 
         return attributes;
     }

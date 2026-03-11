@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, createContext } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
@@ -44,14 +44,11 @@ function hasAnnotationsXml(value: string): boolean {
 }
 
 export default React.memo(function Prefigure(props: UseDoenetRendererProps) {
-    let { id, SVs, children, ignoreUpdate, actions, callAction } =
-        useDoenetRenderer(props);
+    const { id, SVs } = useDoenetRenderer(props);
 
     const diagramXML = SVs.prefigureXML ?? SVs.childrenSource;
     const [svgContent, setSvgContent] = useState("Building...");
     const [cmlContent, setCmlContent] = useState("");
-    const svgRef = useRef<HTMLDivElement>(null);
-    const cmlRef = useRef<HTMLDivElement>(null);
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const fetchAbortControllerRef = useRef<AbortController | null>(null);
     const requestSequenceRef = useRef(0);
@@ -90,6 +87,8 @@ export default React.memo(function Prefigure(props: UseDoenetRendererProps) {
         }
 
         if (!diagramXML) {
+            // Treat the next non-empty XML payload as a fresh build so it renders immediately.
+            hasStartedBuildRef.current = false;
             setSvgContent("");
             setCmlContent("");
             return;
@@ -242,12 +241,10 @@ export default React.memo(function Prefigure(props: UseDoenetRendererProps) {
                 >
                     <div
                         className="svg"
-                        ref={svgRef}
                         dangerouslySetInnerHTML={{ __html: svgContent }}
                     />
                     <div
                         className="cml"
-                        ref={cmlRef}
                         dangerouslySetInnerHTML={{ __html: cmlContent }}
                     />
                 </div>

@@ -1,5 +1,8 @@
 import { cesc } from "@doenet/utils";
 
+const PREFIGURE_BUILD_DEBOUNCE_MS = 1000;
+const REQUEST_SETTLE_BUFFER_MS = 300;
+
 describe("PreFigure debounce guards", { tags: ["@group1"] }, function () {
     let prefigureBuildRequestCount;
 
@@ -50,29 +53,33 @@ describe("PreFigure debounce guards", { tags: ["@group1"] }, function () {
         cy.get(cesc("#ready")).should("have.text", "ready");
     }
 
+    function expectBuildRequestCount(count) {
+        cy.then(() => {
+            expect(prefigureBuildRequestCount).eq(count);
+        });
+    }
+
+    function waitPastDebounceWindow() {
+        cy.wait(PREFIGURE_BUILD_DEBOUNCE_MS + REQUEST_SETTLE_BUFFER_MS);
+    }
+
     it("sends initial PreFigure build request immediately", () => {
         installPrefigureBuildIntercept();
         postDebounceTestDoenetML();
 
         cy.wait(250);
-        cy.then(() => {
-            expect(prefigureBuildRequestCount).eq(1);
-        });
+        expectBuildRequestCount(1);
 
-        cy.wait(900);
-        cy.then(() => {
-            expect(prefigureBuildRequestCount).eq(1);
-        });
+        cy.wait(PREFIGURE_BUILD_DEBOUNCE_MS - 100);
+        expectBuildRequestCount(1);
     });
 
     it("coalesces rapid point updates into one additional build", () => {
         installPrefigureBuildIntercept();
         postDebounceTestDoenetML();
 
-        cy.wait(1300);
-        cy.then(() => {
-            expect(prefigureBuildRequestCount).eq(1);
-        });
+        waitPastDebounceWindow();
+        expectBuildRequestCount(1);
 
         cy.window().then(async (win) => {
             const pointIdx = await win.resolvePath1("P");
@@ -95,15 +102,11 @@ describe("PreFigure debounce guards", { tags: ["@group1"] }, function () {
             await Promise.all(actions);
         });
 
-        cy.wait(700);
-        cy.then(() => {
-            expect(prefigureBuildRequestCount).eq(1);
-        });
+        cy.wait(REQUEST_SETTLE_BUFFER_MS + 400);
+        expectBuildRequestCount(1);
 
-        cy.wait(450);
-        cy.then(() => {
-            expect(prefigureBuildRequestCount).eq(2);
-        });
+        cy.wait(PREFIGURE_BUILD_DEBOUNCE_MS - 650 + REQUEST_SETTLE_BUFFER_MS);
+        expectBuildRequestCount(2);
     });
 
     it("renders only the latest build when an older response arrives later", () => {
@@ -123,10 +126,8 @@ describe("PreFigure debounce guards", { tags: ["@group1"] }, function () {
 
         postDebounceTestDoenetML();
 
-        cy.wait(1300);
-        cy.then(() => {
-            expect(prefigureBuildRequestCount).eq(1);
-        });
+        waitPastDebounceWindow();
+        expectBuildRequestCount(1);
 
         cy.window().then(async (win) => {
             await win.callAction1({
@@ -136,10 +137,8 @@ describe("PreFigure debounce guards", { tags: ["@group1"] }, function () {
             });
         });
 
-        cy.wait(1300);
-        cy.then(() => {
-            expect(prefigureBuildRequestCount).eq(2);
-        });
+        waitPastDebounceWindow();
+        expectBuildRequestCount(2);
 
         cy.get(cesc("#prefig")).should("contain.text", "latest-response");
         cy.get(cesc("#prefig")).should("not.contain.text", "older-response");

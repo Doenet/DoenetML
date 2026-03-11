@@ -7,11 +7,11 @@ This folder contains graph-to-PreFigure conversion logic extracted from `Graph` 
 - `common.js`
   - Shared low-level helpers: XML escaping, numeric/point formatting, handle generation, stable sorting.
 - `label.js`
-  - Label rendering concerns: plain text vs latex, `\(...\)` delimiter replacement, point label alignment mapping.
+  - Label rendering concerns: plain text vs latex, `\(...\)` delimiter replacement, line endpoint orientation, and line/vector label positioning helpers.
 - `style.js`
   - Style translation from Doenet selected styles to PreFigure attributes.
 - `components/`
-  - Component-specific geometry converters (point, line-like, vector, circle, polygon/polyline).
+  - Component-specific geometry converters (point, line-like, vector, circle, polygon/polyline, angle).
 - `descendant.js`
   - Dispatcher that routes each graphical descendant to the correct component converter and normalizes warning behavior.
 - `graph.js`
@@ -40,6 +40,7 @@ This folder contains graph-to-PreFigure conversion logic extracted from `Graph` 
 - **Single responsibility**: geometry conversion lives in component files; cross-cutting concerns live in shared modules.
 - **Pure transformations**: conversion helpers should be deterministic and side-effect free, except appending warnings passed by caller.
 - **Centralized warnings**: keep warning text and behavior consistent via shared dispatch/build layers.
+- **Shared orientation rules**: line-family and vector label placement should reuse the same oriented-endpoint helper so text placement stays consistent across converters.
 - **Stable output ordering**: sort descendants by component index/name before conversion for reproducible XML.
 - **Inheritance-aware dedupe**: descendant queries can match inherited component types (for example, a `polygon` can also match `polyline`; an `endpoint` can also match `point`). Always dedupe configured descendants by `componentIdx` before conversion.
 - **Specific-over-generic precedence**: dedupe keeps the last match seen for a given `componentIdx`. Order `GRAPHICAL_DESCENDANT_CONFIGS` from generic to specific when overlap exists, so specific configs override generic matches.

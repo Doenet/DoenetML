@@ -18,119 +18,64 @@ import {
 } from "./components/polygon";
 import { convertAngleToPrefigure } from "./components/angle";
 
+function withWarnings(converter) {
+    return ({ sv, handle, warnings, warningPrefix, warningPosition }) =>
+        converter({ sv, handle, warnings, warningPrefix, warningPosition });
+}
+
+function withStyle(converter) {
+    return ({
+        sv,
+        handle,
+        styleAttrs,
+        warnings,
+        warningPrefix,
+        warningPosition,
+    }) =>
+        converter({
+            sv,
+            handle,
+            styleAttrs,
+            warnings,
+            warningPrefix,
+            warningPosition,
+        });
+}
+
+function styleIncludesFill(componentType, sv) {
+    if (
+        ["circle", "polygon", "triangle", "rectangle"].includes(componentType)
+    ) {
+        return Boolean(sv.filled);
+    }
+
+    return componentType !== "angle";
+}
+
+const pointConverter = withWarnings(convertPointToPrefigure);
+const lineConverter = withStyle(convertLineToPrefigure);
+const lineSegmentConverter = withStyle(convertLineSegmentToPrefigure);
+const rayConverter = withStyle(convertRayToPrefigure);
+const vectorConverter = withStyle(convertVectorToPrefigure);
+const circleConverter = withStyle(convertCircleToPrefigure);
+const polylineConverter = withStyle(convertPolylineToPrefigure);
+const polygonConverter = withStyle(convertPolygonToPrefigure);
+const angleConverter = withWarnings(convertAngleToPrefigure);
+
 const convertByComponentType = {
-    point: ({ sv, handle, warnings, warningPrefix, warningPosition }) =>
-        convertPointToPrefigure({
-            sv,
-            handle,
-            warnings,
-            warningPrefix,
-            warningPosition,
-        }),
-    endpoint: ({ sv, handle, warnings, warningPrefix, warningPosition }) =>
-        convertPointToPrefigure({
-            sv,
-            handle,
-            warnings,
-            warningPrefix,
-            warningPosition,
-        }),
-    equilibriumPoint: ({
-        sv,
-        handle,
-        warnings,
-        warningPrefix,
-        warningPosition,
-    }) =>
-        convertPointToPrefigure({
-            sv,
-            handle,
-            warnings,
-            warningPrefix,
-            warningPosition,
-        }),
-    line: ({
-        sv,
-        handle,
-        styleAttrs,
-        warnings,
-        warningPrefix,
-        warningPosition,
-    }) =>
-        convertLineToPrefigure({
-            sv,
-            handle,
-            styleAttrs,
-            warnings,
-            warningPrefix,
-            warningPosition,
-        }),
-    lineSegment: ({
-        sv,
-        handle,
-        styleAttrs,
-        warnings,
-        warningPrefix,
-        warningPosition,
-    }) =>
-        convertLineSegmentToPrefigure({
-            sv,
-            handle,
-            styleAttrs,
-            warnings,
-            warningPrefix,
-            warningPosition,
-        }),
-    ray: ({
-        sv,
-        handle,
-        styleAttrs,
-        warnings,
-        warningPrefix,
-        warningPosition,
-    }) =>
-        convertRayToPrefigure({
-            sv,
-            handle,
-            styleAttrs,
-            warnings,
-            warningPrefix,
-            warningPosition,
-        }),
-    vector: ({
-        sv,
-        handle,
-        styleAttrs,
-        warnings,
-        warningPrefix,
-        warningPosition,
-    }) =>
-        convertVectorToPrefigure({
-            sv,
-            handle,
-            styleAttrs,
-            warnings,
-            warningPrefix,
-            warningPosition,
-        }),
-    circle: ({ sv, handle, styleAttrs }) =>
-        convertCircleToPrefigure({ sv, handle, styleAttrs }),
-    polyline: ({ sv, handle, styleAttrs }) =>
-        convertPolylineToPrefigure({ sv, handle, styleAttrs }),
-    polygon: ({ sv, handle, styleAttrs }) =>
-        convertPolygonToPrefigure({ sv, handle, styleAttrs }),
-    triangle: ({ sv, handle, styleAttrs }) =>
-        convertPolygonToPrefigure({ sv, handle, styleAttrs }),
-    rectangle: ({ sv, handle, styleAttrs }) =>
-        convertPolygonToPrefigure({ sv, handle, styleAttrs }),
-    angle: ({ sv, handle, warnings, warningPrefix, warningPosition }) =>
-        convertAngleToPrefigure({
-            sv,
-            handle,
-            warnings,
-            warningPrefix,
-            warningPosition,
-        }),
+    point: pointConverter,
+    endpoint: pointConverter,
+    equilibriumPoint: pointConverter,
+    line: lineConverter,
+    lineSegment: lineSegmentConverter,
+    ray: rayConverter,
+    vector: vectorConverter,
+    circle: circleConverter,
+    polyline: polylineConverter,
+    polygon: polygonConverter,
+    triangle: polygonConverter,
+    rectangle: polygonConverter,
+    angle: angleConverter,
 };
 
 /**
@@ -162,15 +107,7 @@ export function convertGraphicalDescendantToPrefigure({
         warnings,
         warningPrefix,
         warningPosition,
-        includeFill:
-            descendant.componentType === "circle" ||
-            descendant.componentType === "polygon" ||
-            descendant.componentType === "triangle" ||
-            descendant.componentType === "rectangle"
-                ? Boolean(sv.filled)
-                : descendant.componentType === "angle"
-                  ? false
-                  : true,
+        includeFill: styleIncludesFill(descendant.componentType, sv),
     });
 
     const converter = convertByComponentType[descendant.componentType];

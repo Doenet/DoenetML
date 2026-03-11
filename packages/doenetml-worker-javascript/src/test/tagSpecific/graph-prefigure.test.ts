@@ -9,6 +9,25 @@ const PREFIGURE_BUILD_URL = "https://prefigure.doenet.org/build";
 const RUN_LIVE_PREFIGURE_VALIDATION =
     process.env.RUN_LIVE_PREFIGURE_VALIDATION === "1";
 
+async function getGraphRendererState(doenetML: string, graphName = "g") {
+    const { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
+    const stateVariables = await core.returnAllStateVariables(false, true);
+    const graphState =
+        stateVariables[await resolvePathToNodeIdx(graphName)].stateValues;
+
+    return {
+        core,
+        resolvePathToNodeIdx,
+        stateVariables,
+        graphState,
+        prefigureXML: graphState.prefigureXML,
+    };
+}
+
+async function getPrefigureXML(doenetML: string, graphName = "g") {
+    return (await getGraphRendererState(doenetML, graphName)).prefigureXML;
+}
+
 async function validatePrefigureXMLAgainstBuildService(xml: string) {
     const response = await fetch(PREFIGURE_BUILD_URL, {
         method: "POST",
@@ -36,44 +55,21 @@ async function validatePrefigureXMLAgainstBuildService(xml: string) {
 
 describe("Graph prefigure renderer tests", async () => {
     it("renderer=doenet leaves prefigureXML null", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<graph name="g" />`,
-        });
+        const { graphState } =
+            await getGraphRendererState(`<graph name="g" />`);
 
-        const stateVariables = await core.returnAllStateVariables(false, true);
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .renderer,
-        ).eq("doenet");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .effectiveRenderer,
-        ).eq("doenet");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .prefigureXML,
-        ).eq(null);
+        expect(graphState.renderer).eq("doenet");
+        expect(graphState.effectiveRenderer).eq("doenet");
+        expect(graphState.prefigureXML).eq(null);
     });
 
     it("renderer=prefigure emits prefigureXML payload", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<graph name="g" renderer="prefigure" />`,
-        });
+        const { graphState, prefigureXML } = await getGraphRendererState(
+            `<graph name="g" renderer="prefigure" />`,
+        );
 
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const prefigureXML =
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .prefigureXML;
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .renderer,
-        ).eq("prefigure");
-        expect(
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .effectiveRenderer,
-        ).eq("prefigure");
+        expect(graphState.renderer).eq("prefigure");
+        expect(graphState.effectiveRenderer).eq("prefigure");
 
         expect(typeof prefigureXML).eq("string");
         expect(prefigureXML).toContain("<diagram");
@@ -84,14 +80,9 @@ describe("Graph prefigure renderer tests", async () => {
     });
 
     it("renderer=prefigure empty graph has exact XML baseline", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<graph name="g" renderer="prefigure" />`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const prefigureXML =
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .prefigureXML;
+        const prefigureXML = await getPrefigureXML(
+            `<graph name="g" renderer="prefigure" />`,
+        );
 
         expect(prefigureXML).eq(
             `<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /></coordinates></diagram>`,
@@ -99,14 +90,9 @@ describe("Graph prefigure renderer tests", async () => {
     });
 
     it("renderer=prefigure xMin updates bbox with computed defaults", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<graph name="g" renderer="prefigure" xMin="0" />`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const prefigureXML =
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .prefigureXML;
+        const prefigureXML = await getPrefigureXML(
+            `<graph name="g" renderer="prefigure" xMin="0" />`,
+        );
 
         expect(prefigureXML).eq(
             `<diagram dimensions="(425,425)"><coordinates bbox="(0,-10,10,10)"><axes axes="all" /></coordinates></diagram>`,
@@ -114,14 +100,9 @@ describe("Graph prefigure renderer tests", async () => {
     });
 
     it("renderer=prefigure size and aspectRatio control dimensions", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<graph name="g" renderer="prefigure" size="full" aspectRatio="2" />`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const prefigureXML =
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .prefigureXML;
+        const prefigureXML = await getPrefigureXML(
+            `<graph name="g" renderer="prefigure" size="full" aspectRatio="2" />`,
+        );
 
         expect(prefigureXML).eq(
             `<diagram dimensions="(850,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /></coordinates></diagram>`,
@@ -129,20 +110,20 @@ describe("Graph prefigure renderer tests", async () => {
     });
 
     it("renderer=prefigure maps axis visibility to horizontal/vertical axes", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
+        const gxPrefigureXML = await getPrefigureXML(
+            `
 <graph name="gx" renderer="prefigure" displayXAxis="true" displayYAxis="false" />
 <graph name="gy" renderer="prefigure" displayXAxis="false" displayYAxis="true" />
 `,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const gxPrefigureXML =
-            stateVariables[await resolvePathToNodeIdx("gx")].stateValues
-                .prefigureXML;
-        const gyPrefigureXML =
-            stateVariables[await resolvePathToNodeIdx("gy")].stateValues
-                .prefigureXML;
+            "gx",
+        );
+        const gyPrefigureXML = await getPrefigureXML(
+            `
+<graph name="gx" renderer="prefigure" displayXAxis="true" displayYAxis="false" />
+<graph name="gy" renderer="prefigure" displayXAxis="false" displayYAxis="true" />
+`,
+            "gy",
+        );
 
         expect(gxPrefigureXML).eq(
             `<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="horizontal" /></coordinates></diagram>`,
@@ -153,14 +134,9 @@ describe("Graph prefigure renderer tests", async () => {
     });
 
     it("renderer=prefigure with both axes hidden emits no axes element", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<graph name="g" renderer="prefigure" displayXAxis="false" displayYAxis="false" />`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const prefigureXML =
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .prefigureXML;
+        const prefigureXML = await getPrefigureXML(
+            `<graph name="g" renderer="prefigure" displayXAxis="false" displayYAxis="false" />`,
+        );
 
         expect(prefigureXML).eq(
             `<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"></coordinates></diagram>`,
@@ -263,19 +239,12 @@ describe("Graph prefigure renderer tests", async () => {
     });
 
     it("renderer=prefigure maps graph axis labels with latex to m tags", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
+        const prefigureXML = await getPrefigureXML(`
 <graph name="g" renderer="prefigure">
   <xLabel><m>x^2</m></xLabel>
   <yLabel><m>y_1</m></yLabel>
 </graph>
-`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const prefigureXML =
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .prefigureXML;
+`);
 
         expect(prefigureXML).toContain(`<axes axes="all">`);
         expect(prefigureXML).toContain(`<xlabel alignment="nw"><m>`);
@@ -285,8 +254,7 @@ describe("Graph prefigure renderer tests", async () => {
     });
 
     it("renderer=prefigure maps point marker style and marker attributes", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
+        const prefigureXML = await getPrefigureXML(`
 <setup>
   <styleDefinitions>
     <styleDefinition styleNumber="7" markerStyle="square" markerSize="6" markerColor="green" markerOpacity="0.4" lineWidth="3" />
@@ -295,13 +263,7 @@ describe("Graph prefigure renderer tests", async () => {
 <graph name="g" renderer="prefigure">
   <point styleNumber="7">(1,2)</point>
 </graph>
-`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const prefigureXML =
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .prefigureXML;
+`);
 
         expect(prefigureXML).toContain(
             `p="(1,2)" style="box" size="6" fill="green" stroke="green" fill-opacity="0.4" stroke-opacity="0.4" thickness="3"`,
@@ -309,19 +271,12 @@ describe("Graph prefigure renderer tests", async () => {
     });
 
     it("renderer=prefigure maps endpoint and equilibriumPoint as points", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
+        const prefigureXML = await getPrefigureXML(`
 <graph name="g" renderer="prefigure">
   <endpoint>(1,2)</endpoint>
   <equilibriumPoint>(3,4)</equilibriumPoint>
 </graph>
-`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const prefigureXML =
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .prefigureXML;
+`);
 
         expect(prefigureXML).toContain(`<point `);
         expect(prefigureXML).toContain(`id="endpoint-`);
@@ -389,8 +344,8 @@ describe("Graph prefigure renderer tests", async () => {
     });
 
     it("extended graph preserves point marker mapping in prefigure renderer", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
+        const prefigureXML = await getPrefigureXML(
+            `
 <setup>
     <styleDefinitions>
         <styleDefinition styleNumber="7" markerStyle="square" markerSize="16" markerColor="green" markerOpacity="0.4" lineWidth="3" />
@@ -401,12 +356,8 @@ describe("Graph prefigure renderer tests", async () => {
 </graph>
 <graph name="gp" extend="$g" renderer="prefigure" />
 `,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const prefigureXML =
-            stateVariables[await resolvePathToNodeIdx("gp")].stateValues
-                .prefigureXML;
+            "gp",
+        );
 
         expect(prefigureXML).toContain(
             `p="(1,2)" style="box" size="16" fill="green" stroke="green" fill-opacity="0.4" stroke-opacity="0.4" thickness="3"`,
@@ -414,18 +365,11 @@ describe("Graph prefigure renderer tests", async () => {
     });
 
     it("renderer=prefigure maps point label and labelPosition", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
+        const prefigureXML = await getPrefigureXML(`
 <graph name="g" renderer="prefigure">
   <point labelPosition="upperLeft">(1,2)<label>A</label></point>
 </graph>
-`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const prefigureXML =
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .prefigureXML;
+`);
 
         expect(prefigureXML).toContain(`p="(1,2)"`);
         expect(prefigureXML).toContain(`alignment="nw"`);
@@ -433,18 +377,11 @@ describe("Graph prefigure renderer tests", async () => {
     });
 
     it("renderer=prefigure maps point latex label to m tag", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
+        const prefigureXML = await getPrefigureXML(`
 <graph name="g" renderer="prefigure">
   <point labelPosition="top">(1,2)<label><m>x^2</m></label></point>
 </graph>
-`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const prefigureXML =
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .prefigureXML;
+`);
 
         expect(prefigureXML).toContain(`p="(1,2)"`);
         expect(prefigureXML).toContain(`alignment="n"`);
@@ -453,18 +390,11 @@ describe("Graph prefigure renderer tests", async () => {
     });
 
     it("renderer=prefigure maps line to PreFigure line with infinite=yes", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
+        const prefigureXML = await getPrefigureXML(`
 <graph name="g" renderer="prefigure">
   <line through="(1,2) (3,4)" />
 </graph>
-`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const prefigureXML =
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .prefigureXML;
+`);
 
         expect(prefigureXML).toContain(`<line `);
         expect(prefigureXML).toContain(`endpoints="((1,2),(3,4))"`);
@@ -521,12 +451,9 @@ describe("Graph prefigure renderer tests", async () => {
         //   bottom     → label-location="0.85"  (ep2 is lower)
 
         async function xmlFor(labelPosition: string, through: string) {
-            const { core, resolvePathToNodeIdx } = await createTestCore({
-                doenetML: `<graph name="g" renderer="prefigure"><line through="${through}" labelPosition="${labelPosition}"><label>X</label></line></graph>`,
-            });
-            return (await core.returnAllStateVariables(false, true))[
-                await resolvePathToNodeIdx("g")
-            ].stateValues.prefigureXML as string;
+            return (await getPrefigureXML(
+                `<graph name="g" renderer="prefigure"><line through="${through}" labelPosition="${labelPosition}"><label>X</label></line></graph>`,
+            )) as string;
         }
 
         const posSlope = "(1,2) (3,4)";
@@ -701,18 +628,11 @@ describe("Graph prefigure renderer tests", async () => {
     });
 
     it("renderer=prefigure maps ray to bbox-clipped finite line", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
+        const prefigureXML = await getPrefigureXML(`
 <graph name="g" renderer="prefigure" xMin="-10" yMin="-10" xMax="10" yMax="10">
   <ray endpoint="(0,0)" through="(1,1)" />
 </graph>
-`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const prefigureXML =
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .prefigureXML;
+`);
 
         expect(prefigureXML).toContain(`<line `);
         expect(prefigureXML).toContain(`id="ray-0"`);
@@ -721,18 +641,11 @@ describe("Graph prefigure renderer tests", async () => {
     });
 
     it("renderer=prefigure maps vector to tail+v representation", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
+        const prefigureXML = await getPrefigureXML(`
 <graph name="g" renderer="prefigure">
   <vector tail="(3,5)" head="(-4,2)" />
 </graph>
-`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const prefigureXML =
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .prefigureXML;
+`);
 
         expect(prefigureXML).toContain(`<vector `);
         expect(prefigureXML).toContain(`tail="(3,5)"`);
@@ -803,18 +716,11 @@ describe("Graph prefigure renderer tests", async () => {
     });
 
     it("renderer=prefigure maps circle to center+radius", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
+        const prefigureXML = await getPrefigureXML(`
 <graph name="g" renderer="prefigure">
   <circle center="(1,2)" radius="3" />
 </graph>
-`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const prefigureXML =
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .prefigureXML;
+`);
 
         expect(prefigureXML).toContain(`<circle `);
         expect(prefigureXML).toContain(`center="(1,2)"`);
@@ -861,18 +767,11 @@ describe("Graph prefigure renderer tests", async () => {
     });
 
     it("renderer=prefigure maps polygon vertices to closed polygon points", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
+        const prefigureXML = await getPrefigureXML(`
 <graph name="g" renderer="prefigure">
   <polygon vertices="(0,0) (2,0) (1,1)" />
 </graph>
-`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const prefigureXML =
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .prefigureXML;
+`);
 
         expect(prefigureXML).toContain(`<polygon `);
         expect(prefigureXML).toContain(`points="((0,0),(2,0),(1,1))"`);
@@ -882,18 +781,11 @@ describe("Graph prefigure renderer tests", async () => {
     });
 
     it("renderer=prefigure maps polyline vertices to open polygon points", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
+        const prefigureXML = await getPrefigureXML(`
 <graph name="g" renderer="prefigure">
   <polyline vertices="(0,0) (2,0) (1,1)" />
 </graph>
-`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const prefigureXML =
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .prefigureXML;
+`);
 
         expect(prefigureXML).toContain(`<polygon `);
         expect(prefigureXML).toContain(`points="((0,0),(2,0),(1,1))"`);
@@ -1018,18 +910,11 @@ describe("Graph prefigure renderer tests", async () => {
     });
 
     it("renderer=prefigure maps angle to sector arc with style", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
+        const prefigureXML = await getPrefigureXML(`
 <graph name="g" renderer="prefigure">
   <angle through="(1,0) (0,0) (0,1)"><label>\\theta</label></angle>
 </graph>
-`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const prefigureXML =
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .prefigureXML;
+`);
 
         expect(prefigureXML).not.toContain(`<polygon `);
         expect(prefigureXML).toContain(`<arc `);
@@ -1044,18 +929,11 @@ describe("Graph prefigure renderer tests", async () => {
     });
 
     it("renderer=prefigure honors angle swapPointOrder", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
+        const prefigureXML = await getPrefigureXML(`
 <graph name="g" renderer="prefigure">
   <angle through="(1,0) (0,0) (0,1)" chooseReflexAngle="always" />
 </graph>
-`,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        const prefigureXML =
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .prefigureXML;
+`);
 
         expect(prefigureXML).toContain(`<arc `);
         expect(prefigureXML).toContain(`points="((0,1),(0,0),(1,0))"`);
@@ -1088,17 +966,7 @@ describe("Graph prefigure renderer tests", async () => {
             ];
 
             for (const c of cases) {
-                const { core, resolvePathToNodeIdx } = await createTestCore({
-                    doenetML: c.doenetML,
-                });
-
-                const stateVariables = await core.returnAllStateVariables(
-                    false,
-                    true,
-                );
-                const prefigureXML =
-                    stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                        .prefigureXML;
+                const prefigureXML = await getPrefigureXML(c.doenetML);
 
                 expect(typeof prefigureXML).eq("string");
 
@@ -1149,18 +1017,9 @@ describe("Graph prefigure renderer tests", async () => {
     it.skipIf(!RUN_LIVE_PREFIGURE_VALIDATION)(
         "optional: build service accepts generated empty-graph XML",
         async () => {
-            const { core, resolvePathToNodeIdx } = await createTestCore({
-                doenetML: `<graph name="g" renderer="prefigure" />`,
-            });
-
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
+            const prefigureXML = await getPrefigureXML(
+                `<graph name="g" renderer="prefigure" />`,
             );
-
-            const prefigureXML =
-                stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                    .prefigureXML;
 
             expect(typeof prefigureXML).eq("string");
 

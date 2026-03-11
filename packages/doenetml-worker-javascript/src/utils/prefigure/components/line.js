@@ -1,24 +1,8 @@
 import { clipRayToBounds, escapeXml, formatPoint } from "../common";
-import { lineLabelAttributes as getLabelForLine } from "../label";
-
-/**
- * Reorders two raw [x, y] points so the first is the leftward (smaller-x) point.
- * For vertical lines (equal x), puts the lower (smaller-y) point first.
- *
- * This canonicalization ensures that PreFigure's label rotation angle is always
- * within (-90°, 90°] in SVG space, so line labels are:
- *  - always parallel to the line (PreFigure default behaviour), and
- *  - always on the top side of the line, never upside-down.
- *
- * The midpoint label position (label_location=0.5, the PreFigure default) is
- * unaffected because swapping endpoints does not change the geometric midpoint.
- */
-function orientEndpointsForLabel(p1Raw, p2Raw) {
-    if (p1Raw[0] > p2Raw[0] || (p1Raw[0] === p2Raw[0] && p1Raw[1] > p2Raw[1])) {
-        return [p2Raw, p1Raw];
-    }
-    return [p1Raw, p2Raw];
-}
+import {
+    lineLabelAttributes as getLabelForLine,
+    orientEndpointsForLineLabel,
+} from "../label";
 
 /**
  * Serializes one PreFigure `<line>` XML element.
@@ -93,7 +77,7 @@ export function convertLineToPrefigure({
     if (!rawP1 || !rawP2) {
         return null;
     }
-    const [ep1, ep2] = orientEndpointsForLabel(rawP1, rawP2);
+    const [ep1, ep2] = orientEndpointsForLineLabel(rawP1, rawP2);
     const p1 = formatPoint(ep1);
     const p2 = formatPoint(ep2);
     if (p1 === null || p2 === null) {
@@ -135,7 +119,7 @@ export function convertLineSegmentToPrefigure({
     if (!rawP1 || !rawP2) {
         return null;
     }
-    const [ep1, ep2] = orientEndpointsForLabel(rawP1, rawP2);
+    const [ep1, ep2] = orientEndpointsForLineLabel(rawP1, rawP2);
     const p1 = formatPoint(ep1);
     const p2 = formatPoint(ep2);
     if (p1 === null || p2 === null) {
@@ -172,9 +156,7 @@ export function convertRayToPrefigure({
     warningPrefix,
     warningPosition,
 }) {
-    const p1 = formatPoint(sv.numericalEndpoint);
-    const p2 = formatPoint(sv.numericalThroughpoint);
-    if (p1 === null || p2 === null) {
+    if (!Array.isArray(sv.numericalEndpoint) || !Array.isArray(sv.numericalThroughpoint)) {
         return null;
     }
 
@@ -187,7 +169,7 @@ export function convertRayToPrefigure({
         return null;
     }
 
-    const [ep1, ep2] = orientEndpointsForLabel(clipped[0], clipped[1]);
+    const [ep1, ep2] = orientEndpointsForLineLabel(clipped[0], clipped[1]);
     const c1 = formatPoint(ep1);
     const c2 = formatPoint(ep2);
     if (c1 === null || c2 === null) {
