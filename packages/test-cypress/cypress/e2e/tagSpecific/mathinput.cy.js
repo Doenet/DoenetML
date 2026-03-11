@@ -411,8 +411,9 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
     `);
 
         cy.get("#mi textarea").focus().type("x", { force: true });
+        cy.get("#iv").should("have.text", toMathJaxString("x"));
         cy.wait(600);
-        cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
+        cy.get("#mi-preview").should("contain.text", toMathJaxString("x"));
 
         cy.get("#mi textarea").type("{esc}", { force: true });
         cy.get("#mi textarea").should("be.focused");
