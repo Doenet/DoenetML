@@ -112,7 +112,10 @@ export function convertGraphicalDescendantToPrefigure({
         warningPrefix,
         warningPosition,
         includeFill:
-            descendant.componentType === "circle" ? Boolean(sv.filled) : true,
+            descendant.componentType === "circle" ||
+            descendant.componentType === "polygon"
+                ? Boolean(sv.filled)
+                : true,
     });
 
     const converter = convertByComponentType[descendant.componentType];

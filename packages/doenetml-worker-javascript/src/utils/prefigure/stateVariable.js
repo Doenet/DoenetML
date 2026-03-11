@@ -73,7 +73,7 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
     {
         key: "polygonDescendants",
         componentType: "polygon",
-        variableNames: ["numericalVertices", "selectedStyle"],
+        variableNames: ["numericalVertices", "selectedStyle", "filled"],
     },
 ];
 

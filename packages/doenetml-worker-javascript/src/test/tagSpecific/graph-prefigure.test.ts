@@ -758,6 +758,41 @@ describe("Graph prefigure renderer tests", async () => {
         expect(prefigureXML).toContain(`<polygon `);
         expect(prefigureXML).toContain(`points="((0,0),(2,0),(1,1))"`);
         expect(prefigureXML).toContain(`closed="yes"`);
+        expect(prefigureXML).not.toContain(`fill="`);
+        expect(prefigureXML).not.toContain(`fill-opacity="`);
+    });
+
+    it("renderer=prefigure includes fill attrs only when polygon is filled", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<setup>
+  <styleDefinitions>
+    <styleDefinition styleNumber="7" fillColor="red" fillOpacity="0.4" />
+  </styleDefinitions>
+</setup>
+<graph name="g" renderer="prefigure">
+  <polygon styleNumber="7" vertices="(0,0) (2,0) (1,1)" />
+  <polygon styleNumber="7" vertices="(3,0) (5,0) (4,1)" filled="true" />
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).not.toContain(
+            `points="((0,0),(2,0),(1,1))" closed="yes" stroke="#648FFF" thickness="4" fill="red"`,
+        );
+
+        expect(prefigureXML).toContain(`points="((3,0),(5,0),(4,1))"`);
+        expect(prefigureXML).toContain(
+            `points="((3,0),(5,0),(4,1))" closed="yes" stroke="#648FFF" thickness="4" fill="red"`,
+        );
+        expect(prefigureXML).toContain(
+            `points="((3,0),(5,0),(4,1))" closed="yes" stroke="#648FFF" thickness="4" fill="red" stroke-opacity="0.7" fill-opacity="0.4"`,
+        );
     });
 
     it.skipIf(!RUN_LIVE_PREFIGURE_VALIDATION)(
