@@ -16,6 +16,7 @@ import {
     convertPolylineToPrefigure,
     convertPolygonToPrefigure,
 } from "./components/polygon";
+import { convertAngleToPrefigure } from "./components/angle";
 
 const convertByComponentType = {
     point: ({ sv, handle, warnings, warningPrefix, warningPosition }) =>
@@ -122,6 +123,14 @@ const convertByComponentType = {
         convertPolygonToPrefigure({ sv, handle, styleAttrs }),
     rectangle: ({ sv, handle, styleAttrs }) =>
         convertPolygonToPrefigure({ sv, handle, styleAttrs }),
+    angle: ({ sv, handle, warnings, warningPrefix, warningPosition }) =>
+        convertAngleToPrefigure({
+            sv,
+            handle,
+            warnings,
+            warningPrefix,
+            warningPosition,
+        }),
 };
 
 /**
@@ -138,10 +147,12 @@ export function convertGraphicalDescendantToPrefigure({
     usedHandles,
     warnings,
     graphBounds,
+    graphDimensions,
 }) {
     const sv = {
         ...(descendant?.stateValues ?? {}),
         graphBounds,
+        graphDimensions,
     };
     const warningPrefix = warningMessageForDescendant(descendant);
     const warningPosition = descendant?.position;
@@ -157,7 +168,9 @@ export function convertGraphicalDescendantToPrefigure({
             descendant.componentType === "triangle" ||
             descendant.componentType === "rectangle"
                 ? Boolean(sv.filled)
-                : true,
+                : descendant.componentType === "angle"
+                  ? false
+                  : true,
     });
 
     const converter = convertByComponentType[descendant.componentType];

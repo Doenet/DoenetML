@@ -108,6 +108,31 @@ export function createPrefigureXML({
         ? [-10, -10, 10, 10]
         : [rawXMin, rawYMin, rawXMax, rawYMax];
 
+    let dimensionWidth = asFiniteNumber(dependencyValues.width?.size);
+    if (dimensionWidth === null || dimensionWidth <= 0) {
+        warnings.push({
+            type: "warning",
+            level: 1,
+            message:
+                "<graph>: invalid width for prefigure conversion; using default diagram width 425.",
+        });
+        dimensionWidth = 425;
+    }
+
+    let diagramAspectRatio = asFiniteNumber(dependencyValues.aspectRatio);
+    if (diagramAspectRatio === null || diagramAspectRatio <= 0) {
+        warnings.push({
+            type: "warning",
+            level: 1,
+            message:
+                "<graph>: invalid aspectRatio for prefigure conversion; using default aspect ratio 1.",
+        });
+        diagramAspectRatio = 1;
+    }
+
+    const dimensionHeight = dimensionWidth / diagramAspectRatio;
+    const graphDimensions = [dimensionWidth, dimensionHeight];
+
     for (const descendant of unsupported ?? []) {
         pushWarning({
             warnings,
@@ -123,6 +148,7 @@ export function createPrefigureXML({
             usedHandles,
             warnings,
             graphBounds,
+            graphDimensions,
         });
         if (converted) {
             elements.push(converted);
@@ -133,33 +159,8 @@ export function createPrefigureXML({
     const yMin = formatNumber(graphBounds[1]);
     const xMax = formatNumber(graphBounds[2]);
     const yMax = formatNumber(graphBounds[3]);
-    const width = asFiniteNumber(dependencyValues.width?.size);
-    const aspectRatio = asFiniteNumber(dependencyValues.aspectRatio);
     const bbox = `(${xMin},${yMin},${xMax},${yMax})`;
 
-    let dimensionWidth = width;
-    if (dimensionWidth === null || dimensionWidth <= 0) {
-        warnings.push({
-            type: "warning",
-            level: 1,
-            message:
-                "<graph>: invalid width for prefigure conversion; using default diagram width 425.",
-        });
-        dimensionWidth = 425;
-    }
-
-    let diagramAspectRatio = aspectRatio;
-    if (diagramAspectRatio === null || diagramAspectRatio <= 0) {
-        warnings.push({
-            type: "warning",
-            level: 1,
-            message:
-                "<graph>: invalid aspectRatio for prefigure conversion; using default aspect ratio 1.",
-        });
-        diagramAspectRatio = 1;
-    }
-
-    const dimensionHeight = dimensionWidth / diagramAspectRatio;
     const widthText = formatNumber(dimensionWidth) ?? "425";
     const heightText = formatNumber(dimensionHeight) ?? "425";
     const dimensions = `(${widthText},${heightText})`;

@@ -1017,6 +1017,50 @@ describe("Graph prefigure renderer tests", async () => {
         expect(closedNoCount).eq(0);
     });
 
+    it("renderer=prefigure maps angle to sector arc with style", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" renderer="prefigure">
+  <angle through="(1,0) (0,0) (0,1)"><label>\\theta</label></angle>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).not.toContain(`<polygon `);
+        expect(prefigureXML).toContain(`<arc `);
+        expect(prefigureXML).toContain(`sector="yes"`);
+        expect(prefigureXML).toContain(`points="((1,0),(0,0),(0,1))"`);
+        expect(prefigureXML).toContain(`radius="1"`);
+        expect(prefigureXML).toContain(`stroke="#648FFF"`);
+        expect(prefigureXML).toContain(`thickness="4"`);
+        expect(prefigureXML).toContain(`fill="#648FFF"`);
+        expect(prefigureXML).toContain(`<label anchor="`);
+        expect(prefigureXML).toContain(`\\theta`);
+    });
+
+    it("renderer=prefigure honors angle swapPointOrder", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" renderer="prefigure">
+  <angle through="(1,0) (0,0) (0,1)" chooseReflexAngle="always" />
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(`<arc `);
+        expect(prefigureXML).toContain(`points="((0,1),(0,0),(1,0))"`);
+    });
+
     it.skipIf(!RUN_LIVE_PREFIGURE_VALIDATION)(
         "optional: build service accepts generated XML for line/ray/vector/circle/polygon",
         async () => {

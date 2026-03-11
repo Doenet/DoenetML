@@ -67,6 +67,18 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
         ],
     },
     {
+        key: "angleDescendants",
+        componentType: "angle",
+        variableNames: [
+            "numericalPoints",
+            "numericalRadius",
+            "selectedStyle",
+            "label",
+            "labelHasLatex",
+            "swapPointOrder",
+        ],
+    },
+    {
         key: "circleDescendants",
         componentType: "circle",
         variableNames: [
