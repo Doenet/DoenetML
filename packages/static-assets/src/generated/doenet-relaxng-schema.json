@@ -227,7 +227,6 @@
         "stickyGroup",
         "pretzel",
         "cascade",
-        "prefigure",
         "pointList",
         "intervalList",
         "vectorList"
@@ -2324,9 +2323,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -4518,9 +4514,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -5424,9 +5417,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -6328,9 +6318,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -8635,9 +8622,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -41698,9 +41682,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -42746,9 +42727,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -43798,9 +43776,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -44846,9 +44821,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -45919,9 +45891,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -46972,9 +46941,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -48031,9 +47997,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -49086,9 +49049,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -50145,9 +50105,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -51202,9 +51159,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -52250,9 +52204,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -53302,9 +53253,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -54350,9 +54298,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -55402,9 +55347,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -56452,9 +56394,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -57500,9 +57439,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -58572,9 +58508,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -59621,9 +59554,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -60663,9 +60593,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -61929,9 +61856,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -67828,9 +67752,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 }
             ],
             "textChildrenAllowed": false,
@@ -68880,9 +68801,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -70638,9 +70556,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -71544,9 +71459,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -72391,9 +72303,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -73196,9 +73105,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -74029,9 +73935,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -75307,9 +75210,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 }
             ],
             "textChildrenAllowed": true,
@@ -76026,9 +75926,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 }
             ],
             "textChildrenAllowed": true,
@@ -76859,9 +76756,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -82121,9 +82015,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -96466,9 +96357,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -101425,9 +101313,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -103316,9 +103201,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 }
             ],
             "textChildrenAllowed": true,
@@ -104869,9 +104751,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 }
             ],
             "textChildrenAllowed": true,
@@ -105612,9 +105491,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 }
             ],
             "textChildrenAllowed": true,
@@ -106821,9 +106697,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -107657,9 +107530,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -110800,9 +110670,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -112690,9 +112557,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -115121,9 +114985,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -117068,9 +116929,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -119037,9 +118895,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -119837,9 +119692,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -120651,9 +120503,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -122608,9 +122457,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -123388,9 +123234,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -124181,9 +124024,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -125443,9 +125283,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 }
             ],
             "textChildrenAllowed": true,
@@ -126954,9 +126791,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -127762,9 +127596,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -130083,9 +129914,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -131952,9 +131780,6 @@
                 },
                 {
                     "ref": "cascade"
-                },
-                {
-                    "ref": "prefigure"
                 },
                 {
                     "ref": "pointList"
@@ -136838,9 +136663,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -138600,9 +138422,6 @@
                     "ref": "cascade"
                 },
                 {
-                    "ref": "prefigure"
-                },
-                {
                     "ref": "pointList"
                 },
                 {
@@ -139323,131 +139142,6 @@
                 {
                     "name": "value",
                     "type": "shortDescription",
-                    "isArray": false
-                }
-            ]
-        },
-        "prefigure": {
-            "type": "element",
-            "name": "prefigure",
-            "attributes": {
-                "name": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "hide": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "disabled": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "fixed": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "fixLocation": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "styleNumber": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "isResponse": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "extend": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "copy": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "xmlns": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                }
-            },
-            "children": [],
-            "textChildrenAllowed": false,
-            "properties": [
-                {
-                    "name": "hide",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "modifyIndirectly",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "styleNumber",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "permid",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "doenetML",
-                    "type": "text",
                     "isArray": false
                 }
             ]

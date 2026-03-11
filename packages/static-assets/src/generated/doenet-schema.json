@@ -1024,7 +1024,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -2120,7 +2119,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -2544,7 +2542,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -2968,7 +2965,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -4301,7 +4297,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -26239,7 +26234,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -26789,7 +26783,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -27339,7 +27332,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -27889,7 +27881,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -28439,7 +28430,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -29015,7 +29005,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -29565,7 +29554,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -30122,7 +30110,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -30679,7 +30666,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -31236,7 +31222,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -31793,7 +31778,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -32343,7 +32327,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -32893,7 +32876,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -33443,7 +33425,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -33993,7 +33974,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -34543,7 +34523,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -35093,7 +35072,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -35660,7 +35638,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -36201,7 +36178,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -36993,7 +36969,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -41393,8 +41368,7 @@
                 "summaryStatistics",
                 "blockQuote",
                 "pretzel",
-                "cascade",
-                "prefigure"
+                "cascade"
             ],
             "attributes": [
                 {
@@ -41966,7 +41940,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -42820,7 +42793,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -43244,7 +43216,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -43668,7 +43639,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -44005,7 +43975,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -44362,7 +44331,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -45145,8 +45113,7 @@
                 "summaryStatistics",
                 "blockQuote",
                 "pretzel",
-                "cascade",
-                "prefigure"
+                "cascade"
             ],
             "attributes": [
                 {
@@ -45456,8 +45423,7 @@
                 "summaryStatistics",
                 "blockQuote",
                 "pretzel",
-                "cascade",
-                "prefigure"
+                "cascade"
             ],
             "attributes": [
                 {
@@ -45798,7 +45764,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -48822,7 +48787,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -58958,7 +58922,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -62210,7 +62173,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -63304,8 +63266,7 @@
                 "blockQuote",
                 "stickyGroup",
                 "pretzel",
-                "cascade",
-                "prefigure"
+                "cascade"
             ],
             "attributes": [
                 {
@@ -64344,8 +64305,7 @@
                 "summaryStatistics",
                 "blockQuote",
                 "pretzel",
-                "cascade",
-                "prefigure"
+                "cascade"
             ],
             "attributes": [
                 {
@@ -64679,8 +64639,7 @@
                 "summaryStatistics",
                 "blockQuote",
                 "pretzel",
-                "cascade",
-                "prefigure"
+                "cascade"
             ],
             "attributes": [
                 {
@@ -65243,7 +65202,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -65570,7 +65528,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -67515,7 +67472,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList",
@@ -68522,7 +68478,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -70197,7 +70152,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -71607,7 +71561,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -72680,7 +72633,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -73015,7 +72967,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -73352,7 +73303,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -74644,7 +74594,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -74969,7 +74918,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -75288,7 +75236,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -75837,8 +75784,7 @@
                 "summaryStatistics",
                 "blockQuote",
                 "pretzel",
-                "cascade",
-                "prefigure"
+                "cascade"
             ],
             "attributes": [
                 {
@@ -76630,7 +76576,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -76980,7 +76925,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -78393,7 +78337,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -79609,7 +79552,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -82840,7 +82782,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -83741,7 +83682,6 @@
                 "stickyGroup",
                 "pretzel",
                 "cascade",
-                "prefigure",
                 "pointList",
                 "intervalList",
                 "vectorList"
@@ -84436,116 +84376,6 @@
             ],
             "top": false,
             "acceptsStringChildren": true
-        },
-        {
-            "name": "prefigure",
-            "children": [],
-            "attributes": [
-                {
-                    "name": "name"
-                },
-                {
-                    "name": "hide",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "disabled",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "fixed",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "fixLocation",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "styleNumber"
-                },
-                {
-                    "name": "isResponse",
-                    "values": [
-                        "true",
-                        "false"
-                    ]
-                },
-                {
-                    "name": "extend"
-                },
-                {
-                    "name": "copy"
-                },
-                {
-                    "name": "xmlns"
-                }
-            ],
-            "properties": [
-                {
-                    "name": "hide",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "modifyIndirectly",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "styleNumber",
-                    "type": "integer",
-                    "isArray": false
-                },
-                {
-                    "name": "isResponse",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "permid",
-                    "type": "text",
-                    "isArray": false
-                },
-                {
-                    "name": "hidden",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "disabled",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixed",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "fixLocation",
-                    "type": "boolean",
-                    "isArray": false
-                },
-                {
-                    "name": "doenetML",
-                    "type": "text",
-                    "isArray": false
-                }
-            ],
-            "top": true,
-            "acceptsStringChildren": false
         },
         {
             "name": "pointList",
