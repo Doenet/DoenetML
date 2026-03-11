@@ -76,12 +76,16 @@ export function styleAttributes({
 
 /**
  * Maps point marker fields from Doenet selectedStyle to PreFigure point attributes.
+ *
+ * When `includeFill` is false, fill-specific attrs are omitted while stroke
+ * attrs are still emitted (used for open endpoint/equilibriumPoint rendering).
  */
 export function pointStyleAttributes({
     selectedStyle,
     warnings,
     warningPrefix,
     warningPosition,
+    includeFill = true,
 }) {
     const attrs = [];
 
@@ -116,13 +120,17 @@ export function pointStyleAttributes({
     const color =
         selectedStyle?.markerColor ?? selectedStyle?.markerColorWord ?? null;
     if (color) {
-        attrs.push(`fill="${escapeXml(color)}"`);
+        if (includeFill) {
+            attrs.push(`fill="${escapeXml(color)}"`);
+        }
         attrs.push(`stroke="${escapeXml(color)}"`);
     }
 
     const opacity = formatNumber(selectedStyle?.markerOpacity);
     if (opacity !== null) {
-        attrs.push(`fill-opacity="${escapeXml(opacity)}"`);
+        if (includeFill) {
+            attrs.push(`fill-opacity="${escapeXml(opacity)}"`);
+        }
         attrs.push(`stroke-opacity="${escapeXml(opacity)}"`);
     }
 

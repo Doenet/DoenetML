@@ -22,6 +22,9 @@ export function convertPointToPrefigure({
         warnings,
         warningPrefix,
         warningPosition,
+        // endpoint/equilibriumPoint expose `open`; open points should be
+        // stroke-only (no fill) to match Doenet semantics.
+        includeFill: sv.open !== true,
     });
     const pointLabel = pointLabelAttributes({
         stateValues: sv,

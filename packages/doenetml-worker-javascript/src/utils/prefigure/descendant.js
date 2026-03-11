@@ -26,6 +26,28 @@ const convertByComponentType = {
             warningPrefix,
             warningPosition,
         }),
+    endpoint: ({ sv, handle, warnings, warningPrefix, warningPosition }) =>
+        convertPointToPrefigure({
+            sv,
+            handle,
+            warnings,
+            warningPrefix,
+            warningPosition,
+        }),
+    equilibriumPoint: ({
+        sv,
+        handle,
+        warnings,
+        warningPrefix,
+        warningPosition,
+    }) =>
+        convertPointToPrefigure({
+            sv,
+            handle,
+            warnings,
+            warningPrefix,
+            warningPosition,
+        }),
     line: ({
         sv,
         handle,

@@ -4,6 +4,9 @@ import { sortDescendantsByOrder } from "./common";
 // PreFigure conversion architecture and extension guide:
 // see src/utils/prefigure/README.md
 
+// Ordered from broader base types to narrower types where relevant.
+// If a component matches multiple configs via inheritance, the later match
+// wins after componentIdx dedupe in collectConfiguredDescendants().
 const GRAPHICAL_DESCENDANT_CONFIGS = [
     {
         key: "pointDescendants",
@@ -14,7 +17,9 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
             "label",
             "labelHasLatex",
             "labelPosition",
+            "open",
         ],
+        variablesOptional: true,
     },
     {
         key: "lineDescendants",
@@ -81,24 +86,26 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
         componentType: "polygon",
         variableNames: ["numericalVertices", "selectedStyle", "filled"],
     },
-    {
-        key: "triangleDescendants",
-        componentType: "triangle",
-        variableNames: ["numericalVertices", "selectedStyle", "filled"],
-    },
-    {
-        key: "rectangleDescendants",
-        componentType: "rectangle",
-        variableNames: ["numericalVertices", "selectedStyle", "filled"],
-    },
 ];
 
-function descendantDependency({ componentType, variableNames }) {
-    return {
+/**
+ * Builds one descendant dependency from a compact config entry.
+ *
+ * `variablesOptional` is used when requesting subtype-only variables through
+ * a base type (for example requesting `open` through `point` descendants).
+ */
+function descendantDependency({ componentType, variableNames, variablesOptional }) {
+    const dependency = {
         dependencyType: "descendant",
         componentTypes: [componentType],
         variableNames,
     };
+
+    if (variablesOptional) {
+        dependency.variablesOptional = true;
+    }
+
+    return dependency;
 }
 
 function prefigureBaseDependencies() {
@@ -179,10 +186,23 @@ function prefigureDescendantDependencies() {
     );
 }
 
+/**
+ * Flattens configured descendant lists and deduplicates by componentIdx.
+ *
+ * Doenet descendant queries include inherited matches, so the same concrete
+ * component can appear under multiple configs (for example polygon + polyline).
+ * Keeping the last seen match lets later configs override earlier generic ones.
+ */
 function collectConfiguredDescendants(dependencyValues) {
-    return GRAPHICAL_DESCENDANT_CONFIGS.flatMap(
-        (config) => dependencyValues[config.key] ?? [],
-    );
+    const byComponentIdx = new Map();
+
+    for (const config of GRAPHICAL_DESCENDANT_CONFIGS) {
+        for (const descendant of dependencyValues[config.key] ?? []) {
+            byComponentIdx.set(descendant.componentIdx, descendant);
+        }
+    }
+
+    return [...byComponentIdx.values()];
 }
 
 /**

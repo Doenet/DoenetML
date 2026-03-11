@@ -308,6 +308,62 @@ describe("Graph prefigure renderer tests", async () => {
         );
     });
 
+    it("renderer=prefigure maps endpoint and equilibriumPoint as points", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" renderer="prefigure">
+  <endpoint>(1,2)</endpoint>
+  <equilibriumPoint>(3,4)</equilibriumPoint>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(`<point `);
+        expect(prefigureXML).toContain(`id="endpoint-`);
+        expect(prefigureXML).toContain(`id="equilibriumpoint-`);
+        expect(prefigureXML).toContain(`p="(1,2)"`);
+        expect(prefigureXML).toContain(`p="(3,4)"`);
+    });
+
+    it("renderer=prefigure open endpoint/equilibriumPoint are unfilled", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<setup>
+  <styleDefinitions>
+    <styleDefinition styleNumber="7" markerStyle="circle" markerColor="green" markerOpacity="0.4" lineWidth="3" />
+  </styleDefinitions>
+</setup>
+<graph name="g" renderer="prefigure">
+  <endpoint styleNumber="7" open="true">(1,2)</endpoint>
+  <equilibriumPoint styleNumber="7" stable="false">(3,4)</equilibriumPoint>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(
+            `p="(1,2)" style="circle" size="5" stroke="green" stroke-opacity="0.4" thickness="3"`,
+        );
+        expect(prefigureXML).toContain(
+            `p="(3,4)" style="circle" size="5" stroke="green" stroke-opacity="0.4" thickness="3"`,
+        );
+        expect(prefigureXML).not.toContain(
+            `p="(1,2)" style="circle" size="5" fill="green"`,
+        );
+        expect(prefigureXML).not.toContain(
+            `p="(3,4)" style="circle" size="5" fill="green"`,
+        );
+    });
+
     it("renderer=prefigure maps triangle marker styles to diamond with warning", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -931,6 +987,33 @@ describe("Graph prefigure renderer tests", async () => {
         expect(prefigureXML).toContain(
             `points="((3,2),(5,2),(5,3),(3,3))" closed="yes" stroke="#648FFF" thickness="4" fill="red"`,
         );
+    });
+
+    it("renderer=prefigure emits polygon-family shapes once (no polyline duplicate)", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" renderer="prefigure">
+  <polygon vertices="(0,0) (2,0) (1,1)" />
+  <triangle vertices="(3,0) (5,0) (4,1)" />
+  <rectangle center="(7,0.5)" width="2" height="1" />
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        const closedYesCount = (prefigureXML.match(/closed="yes"/g) ?? [])
+            .length;
+        const closedNoCount = (prefigureXML.match(/closed="no"/g) ?? [])
+            .length;
+
+        // Three polygon-family descendants should produce exactly three closed polygons.
+        expect(closedYesCount).eq(3);
+        // No polyline duplicates should be emitted.
+        expect(closedNoCount).eq(0);
     });
 
     it.skipIf(!RUN_LIVE_PREFIGURE_VALIDATION)(
