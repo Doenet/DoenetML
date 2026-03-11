@@ -40,7 +40,7 @@ describe("PreFigure debounce guards", { tags: ["@group1"] }, function () {
 <graph name="g">
   <point name="P">(0,0)</point>
 </graph>
-<graph name="prefig" mode="prefigure" extend="$g" />
+<graph name="prefig" renderer="prefigure" extend="$g" />
 `,
                 },
                 "*",
