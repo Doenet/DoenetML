@@ -55069,6 +55069,20 @@
                     "name": "tail"
                 },
                 {
+                    "name": "labelPosition",
+                    "values": [
+                        "upperright",
+                        "upperleft",
+                        "lowerright",
+                        "lowerleft",
+                        "center",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -55143,6 +55157,11 @@
                 {
                     "name": "draggable",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "labelPosition",
+                    "type": "text",
                     "isArray": false
                 },
                 {

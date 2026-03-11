@@ -90157,6 +90157,20 @@
                         "string"
                     ]
                 },
+                "labelPosition": {
+                    "optional": true,
+                    "type": [
+                        "upperright",
+                        "upperleft",
+                        "lowerright",
+                        "lowerleft",
+                        "center",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -90493,6 +90507,11 @@
                 {
                     "name": "draggable",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "labelPosition",
+                    "type": "text",
                     "isArray": false
                 },
                 {

@@ -98,7 +98,7 @@ export function pointLabelAttributes({
  * `LINE_LABEL_LOCATION_NEAR_END`) rather than hard 0/1 so labels near the
  * graph boundary are less likely to be clipped and tend to flow inward.
  */
-function labelLocationForLine(labelPosition, ep1, ep2) {
+export function lineLabelLocationFromPosition(labelPosition, ep1, ep2) {
     const pos = normalizeKey(labelPosition ?? "");
     switch (pos) {
         case "left":
@@ -154,7 +154,7 @@ export function lineLabelAttributes({
     const attrs = [];
     const rawPosition = stateValues?.labelPosition;
     if (rawPosition) {
-        const loc = labelLocationForLine(rawPosition, ep1, ep2);
+        const loc = lineLabelLocationFromPosition(rawPosition, ep1, ep2);
         if (loc !== null) {
             attrs.push(`label-location="${escapeXml(loc)}"`);
         }

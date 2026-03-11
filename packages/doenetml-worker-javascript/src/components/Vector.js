@@ -72,6 +72,26 @@ export default class Vector extends GraphicalComponent {
             createComponentOfType: "point",
         };
 
+        attributes.labelPosition = {
+            createComponentOfType: "text",
+            createStateVariable: "labelPosition",
+            defaultValue: "center",
+            public: true,
+            forRenderer: true,
+            toLowerCase: true,
+            validValues: [
+                "upperright",
+                "upperleft",
+                "lowerright",
+                "lowerleft",
+                "center",
+                "top",
+                "bottom",
+                "left",
+                "right",
+            ],
+        };
+
         Object.assign(attributes, returnRoundingAttributes());
 
         attributes.displayWithAngleBrackets = {

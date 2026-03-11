@@ -53,7 +53,13 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
     {
         key: "vectorDescendants",
         componentType: "vector",
-        variableNames: ["numericalEndpoints", "selectedStyle"],
+        variableNames: [
+            "numericalEndpoints",
+            "selectedStyle",
+            "label",
+            "labelHasLatex",
+            "labelPosition",
+        ],
     },
     {
         key: "circleDescendants",

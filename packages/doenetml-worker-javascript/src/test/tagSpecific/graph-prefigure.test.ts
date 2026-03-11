@@ -683,6 +683,67 @@ describe("Graph prefigure renderer tests", async () => {
         expect(prefigureXML).toContain(`v="(-7,-3)"`);
     });
 
+    it("renderer=prefigure maps vector label and labelPosition", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" renderer="prefigure">
+  <vector tail="(0,0)" head="(3,3)" labelPosition="right"><label>V</label></vector>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(`<vector `);
+        expect(prefigureXML).toContain(`<label p="(2.55,2.55)"`);
+        expect(prefigureXML).toContain(`alignment="north"`);
+        expect(prefigureXML).toContain(`>V</label>`);
+    });
+
+    it("renderer=prefigure vector label default is centered along vector", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" renderer="prefigure">
+  <vector tail="(0,0)" head="(3,3)"><label>CenterDefaultVector</label></vector>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(`<label p="(1.5,1.5)"`);
+        expect(prefigureXML).toContain(`>CenterDefaultVector</label>`);
+    });
+
+    it("renderer=prefigure vector upperRight/lowerLeft follow spatial orientation on down-left vectors", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" renderer="prefigure">
+  <vector tail="(3,3)" head="(0,0)" labelPosition="upperRight"><label>UR</label></vector>
+  <vector tail="(3,3)" head="(0,0)" labelPosition="lowerLeft"><label>LL</label></vector>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        // upperRight should be near the upper-right endpoint (tail) for this direction
+        expect(prefigureXML).toContain(`<label p="(2.55,2.55)" alignment="north">UR</label>`);
+        // lowerLeft should be near the lower-left endpoint (head) for this direction
+        expect(prefigureXML).toContain(
+            `<label p="(0.44999999999999996,0.44999999999999996)" alignment="north">LL</label>`,
+        );
+    });
+
     it("renderer=prefigure maps circle to center+radius", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

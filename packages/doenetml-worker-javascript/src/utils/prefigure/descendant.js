@@ -74,8 +74,22 @@ const convertByComponentType = {
             warningPrefix,
             warningPosition,
         }),
-    vector: ({ sv, handle, styleAttrs }) =>
-        convertVectorToPrefigure({ sv, handle, styleAttrs }),
+    vector: ({
+        sv,
+        handle,
+        styleAttrs,
+        warnings,
+        warningPrefix,
+        warningPosition,
+    }) =>
+        convertVectorToPrefigure({
+            sv,
+            handle,
+            styleAttrs,
+            warnings,
+            warningPrefix,
+            warningPosition,
+        }),
     circle: ({ sv, handle, styleAttrs }) =>
         convertCircleToPrefigure({ sv, handle, styleAttrs }),
     polyline: ({ sv, handle, styleAttrs }) =>
