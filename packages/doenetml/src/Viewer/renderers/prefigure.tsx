@@ -206,19 +206,48 @@ export default React.memo(function Prefigure(props: UseDoenetRendererProps) {
         }
     }, [svgContent, cmlContent]);
 
+    let outerStyle: React.CSSProperties = {};
+    let innerStyle: React.CSSProperties = {};
+
+    if (SVs.displayMode === "inline") {
+        outerStyle = { display: "inline-block", verticalAlign: "middle" };
+        innerStyle = {
+            display: "inline-flex",
+            alignItems: "start",
+            width: "100%",
+        };
+    } else {
+        outerStyle = { display: "flex", justifyContent: SVs.horizontalAlign };
+        innerStyle = { maxWidth: "100%" };
+    }
+
+    const contentStyle: React.CSSProperties = SVs.showBorder
+        ? {
+              border: "2px solid var(--canvasText)",
+              borderRadius: "10px",
+              overflow: "hidden",
+          }
+        : {};
+
     return (
-        <div>
-            <div id={id} className="ChemAccess-element">
+        <div style={outerStyle}>
+            <div style={innerStyle}>
                 <div
-                    className="svg"
-                    ref={svgRef}
-                    dangerouslySetInnerHTML={{ __html: svgContent }}
-                />
-                <div
-                    className="cml"
-                    ref={cmlRef}
-                    dangerouslySetInnerHTML={{ __html: cmlContent }}
-                />
+                    id={id}
+                    className="ChemAccess-element"
+                    style={contentStyle}
+                >
+                    <div
+                        className="svg"
+                        ref={svgRef}
+                        dangerouslySetInnerHTML={{ __html: svgContent }}
+                    />
+                    <div
+                        className="cml"
+                        ref={cmlRef}
+                        dangerouslySetInnerHTML={{ __html: cmlContent }}
+                    />
+                </div>
             </div>
         </div>
     );
