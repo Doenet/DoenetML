@@ -17,6 +17,9 @@ function normalizeKey(value) {
         .replaceAll(/[^a-z0-9]+/g, "");
 }
 
+const LINE_LABEL_LOCATION_NEAR_START = "0.15";
+const LINE_LABEL_LOCATION_NEAR_END = "0.85";
+
 /**
  * Converts a Doenet label value into PreFigure-compatible XML label content.
  *
@@ -82,6 +85,78 @@ export function pointLabelAttributes({
                 message: `${warningPrefix}: unsupported labelPosition '${rawPosition}' for point label; default PreFigure alignment used.`,
                 position: warningPosition,
             });
+        }
+    }
+
+    return { attrs, label };
+}
+
+/**
+ * Maps Doenet `labelPosition` to a PreFigure `label-location` value.
+ *
+ * We use small insets (`LINE_LABEL_LOCATION_NEAR_START` and
+ * `LINE_LABEL_LOCATION_NEAR_END`) rather than hard 0/1 so labels near the
+ * graph boundary are less likely to be clipped and tend to flow inward.
+ */
+function labelLocationForLine(labelPosition, ep1, ep2) {
+    const pos = normalizeKey(labelPosition ?? "");
+    switch (pos) {
+        case "left":
+        case "upperleft":
+        case "lowerleft":
+            return LINE_LABEL_LOCATION_NEAR_START;
+        case "right":
+        case "upperright":
+        case "lowerright":
+            return LINE_LABEL_LOCATION_NEAR_END;
+        case "center":
+            return null; // PreFigure default is 0.5 — omit for brevity
+        case "top":
+            if (ep2[1] > ep1[1]) return LINE_LABEL_LOCATION_NEAR_END;
+            if (ep2[1] < ep1[1]) return LINE_LABEL_LOCATION_NEAR_START;
+            return null; // horizontal — no distinct top
+        case "bottom":
+            if (ep2[1] < ep1[1]) return LINE_LABEL_LOCATION_NEAR_END;
+            if (ep2[1] > ep1[1]) return LINE_LABEL_LOCATION_NEAR_START;
+            return null; // horizontal — no distinct bottom
+        default:
+            return null;
+    }
+}
+
+/**
+ * Returns label attrs/content for a PreFigure `<line>` element.
+ *
+ * Emits `label-location` to position the label along the visible line.
+ * Does NOT emit `alignment` — PreFigure internally forces line label
+ * alignment to "north" (above the line) regardless of any passed value.
+ *
+ * ep1 and ep2 must be the ORIENTED endpoint arrays produced by
+ * `orientEndpointsForLabel`.
+ */
+export function lineLabelAttributes({
+    stateValues,
+    ep1,
+    ep2,
+    warnings,
+    warningPrefix,
+    warningPosition,
+}) {
+    const label = labelMarkup({
+        label: stateValues?.label,
+        labelHasLatex: stateValues?.labelHasLatex,
+    });
+
+    if (!label) {
+        return null;
+    }
+
+    const attrs = [];
+    const rawPosition = stateValues?.labelPosition;
+    if (rawPosition) {
+        const loc = labelLocationForLine(rawPosition, ep1, ep2);
+        if (loc !== null) {
+            attrs.push(`label-location="${escapeXml(loc)}"`);
         }
     }
 

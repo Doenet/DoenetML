@@ -38654,7 +38654,12 @@
                         "upperright",
                         "upperleft",
                         "lowerright",
-                        "lowerleft"
+                        "lowerleft",
+                        "center",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
                     ]
                 },
                 {
@@ -50115,7 +50120,12 @@
                         "upperright",
                         "upperleft",
                         "lowerright",
-                        "lowerleft"
+                        "lowerleft",
+                        "center",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
                     ]
                 }
             ],
@@ -50432,7 +50442,12 @@
                         "upperright",
                         "upperleft",
                         "lowerright",
-                        "lowerleft"
+                        "lowerleft",
+                        "center",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
                     ]
                 },
                 {
@@ -50699,6 +50714,20 @@
                     "name": "direction"
                 },
                 {
+                    "name": "labelPosition",
+                    "values": [
+                        "upperright",
+                        "upperleft",
+                        "lowerright",
+                        "lowerleft",
+                        "center",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -50759,6 +50788,11 @@
                 {
                     "name": "draggable",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "labelPosition",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -60315,6 +60349,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "prefigureXML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "size",
                     "type": "text",
                     "isArray": false
@@ -60327,6 +60366,11 @@
                 {
                     "name": "aspectRatio",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "effectiveMode",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -78563,7 +78607,12 @@
                         "upperright",
                         "upperleft",
                         "lowerright",
-                        "lowerleft"
+                        "lowerleft",
+                        "center",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
                     ]
                 },
                 {

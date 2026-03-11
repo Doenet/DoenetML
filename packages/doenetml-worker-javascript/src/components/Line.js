@@ -62,11 +62,21 @@ export default class Line extends GraphicalComponent {
         attributes.labelPosition = {
             createComponentOfType: "text",
             createStateVariable: "labelPosition",
-            defaultValue: "upperright",
+            defaultValue: "center",
             public: true,
             forRenderer: true,
             toLowerCase: true,
-            validValues: ["upperright", "upperleft", "lowerright", "lowerleft"],
+            validValues: [
+                "upperright",
+                "upperleft",
+                "lowerright",
+                "lowerleft",
+                "center",
+                "top",
+                "bottom",
+                "left",
+                "right",
+            ],
         };
 
         return attributes;

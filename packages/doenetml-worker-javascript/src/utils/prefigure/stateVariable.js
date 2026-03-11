@@ -47,6 +47,7 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
             "selectedStyle",
             "label",
             "labelHasLatex",
+            "labelPosition",
         ],
     },
     {

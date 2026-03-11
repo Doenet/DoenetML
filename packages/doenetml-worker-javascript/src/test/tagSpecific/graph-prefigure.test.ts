@@ -428,8 +428,112 @@ describe("Graph prefigure mode tests", async () => {
                 .prefigureXML;
 
         expect(prefigureXML).toContain(`<line `);
-        expect(prefigureXML).toContain(`alignment="ne"`);
+        // labelPosition="upperright" maps near the right edge (inset from 1)
+        expect(prefigureXML).toContain(`label-location="0.85"`);
         expect(prefigureXML).toContain(`>A</line>`);
+    });
+
+    it("mode=prefigure line label default is center (no explicit label-location)", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" mode="prefigure">
+    <line through="(1,2) (3,4)"><label>CenterDefault</label></line>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).not.toContain(`label-location`);
+        expect(prefigureXML).toContain(`>CenterDefault</line>`);
+    });
+
+    it("mode=prefigure label-location positions label along visible line", async () => {
+        // through=(1,2)→(3,4): ep1=(1,2), ep2=(3,4), slope positive (ep2.y > ep1.y)
+        //   left       → label-location="0.15"
+        //   right      → label-location="0.85"
+        //   top        → label-location="0.85"  (ep2 is higher)
+        //   bottom     → label-location="0.15"  (ep1 is lower)
+        //   center     → no label-location attr (PreFigure default 0.5)
+        // through=(1,4)→(3,2): ep1=(1,4), ep2=(3,2), slope negative (ep2.y < ep1.y)
+        //   top        → label-location="0.15"  (ep1 is higher)
+        //   bottom     → label-location="0.85"  (ep2 is lower)
+
+        async function xmlFor(labelPosition: string, through: string) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<graph name="g" mode="prefigure"><line through="${through}" labelPosition="${labelPosition}"><label>X</label></line></graph>`,
+            });
+            return (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx("g")
+            ].stateValues.prefigureXML as string;
+        }
+
+        const posSlope = "(1,2) (3,4)";
+        const negSlope = "(1,4) (3,2)";
+
+        expect(await xmlFor("left", posSlope)).toContain(
+            `label-location="0.15"`,
+        );
+        expect(await xmlFor("right", posSlope)).toContain(
+            `label-location="0.85"`,
+        );
+        expect(await xmlFor("upperleft", posSlope)).toContain(
+            `label-location="0.15"`,
+        );
+        expect(await xmlFor("lowerright", posSlope)).toContain(
+            `label-location="0.85"`,
+        );
+        expect(await xmlFor("top", posSlope)).toContain(
+            `label-location="0.85"`,
+        );
+        expect(await xmlFor("bottom", posSlope)).toContain(
+            `label-location="0.15"`,
+        );
+        expect(await xmlFor("top", negSlope)).toContain(
+            `label-location="0.15"`,
+        );
+        expect(await xmlFor("bottom", negSlope)).toContain(
+            `label-location="0.85"`,
+        );
+        // center emits no label-location (uses PreFigure default of 0.5)
+        expect(await xmlFor("center", posSlope)).not.toContain(
+            `label-location`,
+        );
+    });
+
+    it("mode=prefigure ray labelPosition controls label-location", async () => {
+        // Ray from (0,0) going to (1,1), clipped to ((0,0),(10,10)).
+        // After orientation ep1=(0,0), ep2=(10,10), slope positive.
+        //   right → label-location="0.85" (near far/upper-right end)
+        //   left  → label-location="0.15" (near ray origin / lower-left end)
+        const { core: cr, resolvePathToNodeIdx: rr } = await createTestCore({
+            doenetML: `
+<graph name="g" mode="prefigure" xMin="-10" yMin="-10" xMax="10" yMax="10">
+  <ray endpoint="(0,0)" through="(1,1)" labelPosition="right"><label>R</label></ray>
+</graph>
+`,
+        });
+        const xmlRight = (await cr.returnAllStateVariables(false, true))[
+            await rr("g")
+        ].stateValues.prefigureXML as string;
+        expect(xmlRight).toContain(`label-location="0.85"`);
+        expect(xmlRight).toContain(`>R</line>`);
+
+        const { core: cl, resolvePathToNodeIdx: rl } = await createTestCore({
+            doenetML: `
+<graph name="g" mode="prefigure" xMin="-10" yMin="-10" xMax="10" yMax="10">
+  <ray endpoint="(0,0)" through="(1,1)" labelPosition="left"><label>L</label></ray>
+</graph>
+`,
+        });
+        const xmlLeft = (await cl.returnAllStateVariables(false, true))[
+            await rl("g")
+        ].stateValues.prefigureXML as string;
+        expect(xmlLeft).toContain(`label-location="0.15"`);
+        expect(xmlLeft).toContain(`>L</line>`);
     });
 
     it("mode=prefigure orients line endpoints so label is never upside-down (right-to-left line)", async () => {

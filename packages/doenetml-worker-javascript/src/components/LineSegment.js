@@ -50,11 +50,21 @@ export default class LineSegment extends GraphicalComponent {
         attributes.labelPosition = {
             createComponentOfType: "text",
             createStateVariable: "labelPosition",
-            defaultValue: "upperright",
+            defaultValue: "center",
             public: true,
             forRenderer: true,
             toLowerCase: true,
-            validValues: ["upperright", "upperleft", "lowerright", "lowerleft"],
+            validValues: [
+                "upperright",
+                "upperleft",
+                "lowerright",
+                "lowerleft",
+                "center",
+                "top",
+                "bottom",
+                "left",
+                "right",
+            ],
         };
 
         Object.assign(attributes, returnRoundingAttributes());

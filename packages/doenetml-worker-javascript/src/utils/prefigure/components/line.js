@@ -1,5 +1,5 @@
 import { clipRayToBounds, escapeXml, formatPoint } from "../common";
-import { pointLabelAttributes } from "../label";
+import { lineLabelAttributes as getLabelForLine } from "../label";
 
 /**
  * Reorders two raw [x, y] points so the first is the leftward (smaller-x) point.
@@ -20,6 +20,13 @@ function orientEndpointsForLabel(p1Raw, p2Raw) {
     return [p1Raw, p2Raw];
 }
 
+/**
+ * Serializes one PreFigure `<line>` XML element.
+ *
+ * `labelAttrs` are forwarded from label helpers (for example `label-location`).
+ * If `label` exists, it is emitted as inline element content; otherwise the
+ * line is self-closing.
+ */
 function lineElement({
     handle,
     p1,
@@ -44,17 +51,29 @@ function lineElement({
     return `<line ${attrs.join(" ")} />`;
 }
 
-function lineLabelAttributes({ sv, warnings, warningPrefix, warningPosition }) {
-    const lineLabel = pointLabelAttributes({
+/**
+ * Wraps getLabelForLine and normalises the return shape.
+ * ep1/ep2 are the oriented raw [x, y] endpoint arrays.
+ */
+function getLineLabelInfo({
+    sv,
+    ep1,
+    ep2,
+    warnings,
+    warningPrefix,
+    warningPosition,
+}) {
+    const result = getLabelForLine({
         stateValues: sv,
+        ep1,
+        ep2,
         warnings,
         warningPrefix,
         warningPosition,
     });
-
     return {
-        labelAttrs: lineLabel?.attrs ?? [],
-        label: lineLabel?.label,
+        labelAttrs: result?.attrs ?? [],
+        label: result?.label,
     };
 }
 
@@ -80,8 +99,10 @@ export function convertLineToPrefigure({
     if (p1 === null || p2 === null) {
         return null;
     }
-    const { labelAttrs, label } = lineLabelAttributes({
+    const { labelAttrs, label } = getLineLabelInfo({
         sv,
+        ep1,
+        ep2,
         warnings,
         warningPrefix,
         warningPosition,
@@ -120,8 +141,10 @@ export function convertLineSegmentToPrefigure({
     if (p1 === null || p2 === null) {
         return null;
     }
-    const { labelAttrs, label } = lineLabelAttributes({
+    const { labelAttrs, label } = getLineLabelInfo({
         sv,
+        ep1,
+        ep2,
         warnings,
         warningPrefix,
         warningPosition,
@@ -164,18 +187,17 @@ export function convertRayToPrefigure({
         return null;
     }
 
-    const [orientedC1, orientedC2] = orientEndpointsForLabel(
-        clipped[0],
-        clipped[1],
-    );
-    const c1 = formatPoint(orientedC1);
-    const c2 = formatPoint(orientedC2);
+    const [ep1, ep2] = orientEndpointsForLabel(clipped[0], clipped[1]);
+    const c1 = formatPoint(ep1);
+    const c2 = formatPoint(ep2);
     if (c1 === null || c2 === null) {
         return null;
     }
 
-    const { labelAttrs, label } = lineLabelAttributes({
+    const { labelAttrs, label } = getLineLabelInfo({
         sv,
+        ep1,
+        ep2,
         warnings,
         warningPrefix,
         warningPosition,
