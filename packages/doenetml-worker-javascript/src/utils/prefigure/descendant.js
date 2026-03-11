@@ -26,12 +26,54 @@ const convertByComponentType = {
             warningPrefix,
             warningPosition,
         }),
-    line: ({ sv, handle, styleAttrs }) =>
-        convertLineToPrefigure({ sv, handle, styleAttrs }),
-    lineSegment: ({ sv, handle, styleAttrs }) =>
-        convertLineSegmentToPrefigure({ sv, handle, styleAttrs }),
-    ray: ({ sv, handle, styleAttrs }) =>
-        convertRayToPrefigure({ sv, handle, styleAttrs }),
+    line: ({
+        sv,
+        handle,
+        styleAttrs,
+        warnings,
+        warningPrefix,
+        warningPosition,
+    }) =>
+        convertLineToPrefigure({
+            sv,
+            handle,
+            styleAttrs,
+            warnings,
+            warningPrefix,
+            warningPosition,
+        }),
+    lineSegment: ({
+        sv,
+        handle,
+        styleAttrs,
+        warnings,
+        warningPrefix,
+        warningPosition,
+    }) =>
+        convertLineSegmentToPrefigure({
+            sv,
+            handle,
+            styleAttrs,
+            warnings,
+            warningPrefix,
+            warningPosition,
+        }),
+    ray: ({
+        sv,
+        handle,
+        styleAttrs,
+        warnings,
+        warningPrefix,
+        warningPosition,
+    }) =>
+        convertRayToPrefigure({
+            sv,
+            handle,
+            styleAttrs,
+            warnings,
+            warningPrefix,
+            warningPosition,
+        }),
     vector: ({ sv, handle, styleAttrs }) =>
         convertVectorToPrefigure({ sv, handle, styleAttrs }),
     circle: ({ sv, handle, styleAttrs }) =>
@@ -55,8 +97,12 @@ export function convertGraphicalDescendantToPrefigure({
     index,
     usedHandles,
     warnings,
+    graphBounds,
 }) {
-    const sv = descendant?.stateValues ?? {};
+    const sv = {
+        ...(descendant?.stateValues ?? {}),
+        graphBounds,
+    };
     const warningPrefix = warningMessageForDescendant(descendant);
     const warningPosition = descendant?.position;
     const handle = createStableHandle(descendant, index, usedHandles);

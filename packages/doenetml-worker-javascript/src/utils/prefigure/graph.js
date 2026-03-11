@@ -88,6 +88,26 @@ export function createPrefigureXML({
     const usedHandles = new Set();
     const elements = [];
 
+    const rawXMin = asFiniteNumber(dependencyValues.xMin);
+    const rawYMin = asFiniteNumber(dependencyValues.yMin);
+    const rawXMax = asFiniteNumber(dependencyValues.xMax);
+    const rawYMax = asFiniteNumber(dependencyValues.yMax);
+
+    if ([rawXMin, rawYMin, rawXMax, rawYMax].some((x) => x === null)) {
+        warnings.push({
+            type: "warning",
+            level: 1,
+            message:
+                "<graph>: invalid axis bounds for prefigure conversion; using default bbox (-10,-10,10,10).",
+        });
+    }
+
+    const graphBounds = [rawXMin, rawYMin, rawXMax, rawYMax].some(
+        (x) => x === null,
+    )
+        ? [-10, -10, 10, 10]
+        : [rawXMin, rawYMin, rawXMax, rawYMax];
+
     for (const descendant of unsupported ?? []) {
         pushWarning({
             warnings,
@@ -102,31 +122,20 @@ export function createPrefigureXML({
             index,
             usedHandles,
             warnings,
+            graphBounds,
         });
         if (converted) {
             elements.push(converted);
         }
     }
 
-    const xMin = formatNumber(dependencyValues.xMin);
-    const yMin = formatNumber(dependencyValues.yMin);
-    const xMax = formatNumber(dependencyValues.xMax);
-    const yMax = formatNumber(dependencyValues.yMax);
+    const xMin = formatNumber(graphBounds[0]);
+    const yMin = formatNumber(graphBounds[1]);
+    const xMax = formatNumber(graphBounds[2]);
+    const yMax = formatNumber(graphBounds[3]);
     const width = asFiniteNumber(dependencyValues.width?.size);
     const aspectRatio = asFiniteNumber(dependencyValues.aspectRatio);
-
-    if ([xMin, yMin, xMax, yMax].some((x) => x === null)) {
-        warnings.push({
-            type: "warning",
-            level: 1,
-            message:
-                "<graph>: invalid axis bounds for prefigure conversion; using default bbox (-10,-10,10,10).",
-        });
-    }
-
-    const bbox = [xMin, yMin, xMax, yMax].some((x) => x === null)
-        ? "(-10,-10,10,10)"
-        : `(${xMin},${yMin},${xMax},${yMax})`;
+    const bbox = `(${xMin},${yMin},${xMax},${yMax})`;
 
     let dimensionWidth = width;
     if (dimensionWidth === null || dimensionWidth <= 0) {

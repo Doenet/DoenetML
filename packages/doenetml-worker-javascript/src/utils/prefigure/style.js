@@ -2,8 +2,8 @@ import { escapeXml, formatNumber, pushWarning } from "./common";
 
 const prefigureDashByLineStyle = {
     solid: null,
-    dashed: "dashed",
-    dotted: "dotted",
+    dashed: "9 9",
+    dotted: "4 4",
 };
 
 const prefigurePointStyleByMarkerStyle = {

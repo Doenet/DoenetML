@@ -394,6 +394,285 @@ describe("Graph prefigure mode tests", async () => {
         expect(prefigureXML).toContain(`x^2`);
     });
 
+    it("mode=prefigure maps line to PreFigure line with infinite=yes", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" mode="prefigure">
+  <line through="(1,2) (3,4)" />
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(`<line `);
+        expect(prefigureXML).toContain(`endpoints="((1,2),(3,4))"`);
+        expect(prefigureXML).toContain(`infinite="yes"`);
+    });
+
+    it("mode=prefigure maps line label and labelPosition", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" mode="prefigure">
+    <line through="(1,2) (3,4)" labelPosition="upperright"><label>A</label></line>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(`<line `);
+        expect(prefigureXML).toContain(`alignment="ne"`);
+        expect(prefigureXML).toContain(`>A</line>`);
+    });
+
+    it("mode=prefigure orients line endpoints so label is never upside-down (right-to-left line)", async () => {
+        // Line given through=(3,4) then (1,2): natural order is right-to-left.
+        // The converter must swap to (1,2)→(3,4) so PreFigure's label rotation
+        // angle stays within (-90°,90°] — keeping the label on the top side and
+        // never upside-down.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" mode="prefigure">
+    <line through="(3,4) (1,2)"><label>B</label></line>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        // Endpoints must be output with the leftward point first
+        expect(prefigureXML).toContain(`endpoints="((1,2),(3,4))"`);
+        expect(prefigureXML).toContain(`>B</line>`);
+    });
+
+    it("mode=prefigure orients line segment endpoints left-to-right for label readability", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" mode="prefigure">
+    <lineSegment endpoints="(5,1) (2,3)"><label>C</label></lineSegment>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        // (2,3) has smaller x so it must be listed first
+        expect(prefigureXML).toContain(`endpoints="((2,3),(5,1))"`);
+        expect(prefigureXML).toContain(`>C</line>`);
+    });
+
+    it("mode=prefigure orients vertical line bottom-to-top for label readability", async () => {
+        // Vertical line: same x, so sort by y. (2,5) has larger y → swap to (2,1)→(2,5).
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" mode="prefigure">
+    <line through="(2,5) (2,1)"><label>D</label></line>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        // Lower-y point must come first
+        expect(prefigureXML).toContain(`endpoints="((2,1),(2,5))"`);
+        expect(prefigureXML).toContain(`>D</line>`);
+    });
+
+    it("mode=prefigure does not change already-left-to-right line endpoints", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" mode="prefigure">
+    <line through="(1,2) (3,4)"><label>E</label></line>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        // Order already correct, no swap
+        expect(prefigureXML).toContain(`endpoints="((1,2),(3,4))"`);
+        expect(prefigureXML).toContain(`>E</line>`);
+    });
+
+    it("mode=prefigure maps dashed/dotted styles to numeric dash arrays", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<setup>
+    <styleDefinitions>
+        <styleDefinition styleNumber="7" lineStyle="dashed" />
+        <styleDefinition styleNumber="8" lineStyle="dotted" />
+    </styleDefinitions>
+</setup>
+<graph name="g" mode="prefigure">
+    <line styleNumber="7" through="(1,2) (3,4)" />
+    <line styleNumber="8" through="(2,2) (4,4)" />
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(`dash="9 9"`);
+        expect(prefigureXML).toContain(`dash="4 4"`);
+    });
+
+    it("mode=prefigure maps ray to bbox-clipped finite line", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" mode="prefigure" xMin="-10" yMin="-10" xMax="10" yMax="10">
+  <ray endpoint="(0,0)" through="(1,1)" />
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(`<line `);
+        expect(prefigureXML).toContain(`id="ray-0"`);
+        expect(prefigureXML).toContain(`endpoints="((0,0),(10,10))"`);
+        expect(prefigureXML).toContain(`infinite="no"`);
+    });
+
+    it("mode=prefigure maps vector to tail+v representation", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" mode="prefigure">
+  <vector tail="(3,5)" head="(-4,2)" />
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(`<vector `);
+        expect(prefigureXML).toContain(`tail="(3,5)"`);
+        expect(prefigureXML).toContain(`v="(-7,-3)"`);
+    });
+
+    it("mode=prefigure maps circle to center+radius", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" mode="prefigure">
+  <circle center="(1,2)" radius="3" />
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(`<circle `);
+        expect(prefigureXML).toContain(`center="(1,2)"`);
+        expect(prefigureXML).toContain(`radius="3"`);
+    });
+
+    it("mode=prefigure maps polygon vertices to closed polygon points", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" mode="prefigure">
+  <polygon vertices="(0,0) (2,0) (1,1)" />
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(`<polygon `);
+        expect(prefigureXML).toContain(`points="((0,0),(2,0),(1,1))"`);
+        expect(prefigureXML).toContain(`closed="yes"`);
+    });
+
+    it.skipIf(!RUN_LIVE_PREFIGURE_VALIDATION)(
+        "optional: build service accepts generated XML for line/ray/vector/circle/polygon",
+        async () => {
+            const cases = [
+                {
+                    doenetML: `<graph name="g" mode="prefigure"><line through="(1,2) (3,4)" /></graph>`,
+                    expectText: "line",
+                },
+                {
+                    doenetML: `<graph name="g" mode="prefigure" xMin="-10" yMin="-10" xMax="10" yMax="10"><ray endpoint="(0,0)" through="(1,1)" /></graph>`,
+                    expectText: "ray",
+                },
+                {
+                    doenetML: `<graph name="g" mode="prefigure"><vector tail="(3,5)" head="(-4,2)" /></graph>`,
+                    expectText: "vector",
+                },
+                {
+                    doenetML: `<graph name="g" mode="prefigure"><circle center="(1,2)" radius="3" /></graph>`,
+                    expectText: "circle",
+                },
+                {
+                    doenetML: `<graph name="g" mode="prefigure"><polygon vertices="(0,0) (2,0) (1,1)" /></graph>`,
+                    expectText: "polygon",
+                },
+            ];
+
+            for (const c of cases) {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: c.doenetML,
+                });
+
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const prefigureXML =
+                    stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                        .prefigureXML;
+
+                expect(typeof prefigureXML).eq("string");
+
+                const result =
+                    await validatePrefigureXMLAgainstBuildService(prefigureXML);
+
+                expect(
+                    result.ok,
+                    `${c.expectText}: Prefigure build failed: status=${result.status}, body=${JSON.stringify(
+                        result.body,
+                    )}`,
+                ).toBe(true);
+                expect(
+                    result.body?.svg,
+                    `${c.expectText}: missing svg`,
+                ).toBeTruthy();
+            }
+        },
+    );
+
     it("nested graph inherits prefigure mode from parent", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

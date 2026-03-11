@@ -19,12 +19,24 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
     {
         key: "lineDescendants",
         componentType: "line",
-        variableNames: ["numericalPoints", "selectedStyle"],
+        variableNames: [
+            "numericalPoints",
+            "selectedStyle",
+            "label",
+            "labelHasLatex",
+            "labelPosition",
+        ],
     },
     {
         key: "lineSegmentDescendants",
         componentType: "lineSegment",
-        variableNames: ["numericalEndpoints", "selectedStyle"],
+        variableNames: [
+            "numericalEndpoints",
+            "selectedStyle",
+            "label",
+            "labelHasLatex",
+            "labelPosition",
+        ],
     },
     {
         key: "rayDescendants",
@@ -33,6 +45,8 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
             "numericalEndpoint",
             "numericalThroughpoint",
             "selectedStyle",
+            "label",
+            "labelHasLatex",
         ],
     },
     {
