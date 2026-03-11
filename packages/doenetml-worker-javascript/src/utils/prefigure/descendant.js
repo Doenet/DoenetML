@@ -117,7 +117,7 @@ export function convertGraphicalDescendantToPrefigure({
     if (!converter) {
         pushWarning({
             warnings,
-            message: `${warningPrefix}: unsupported in graph prefigure mode; descendant skipped.`,
+            message: `${warningPrefix}: unsupported in graph prefigure renderer; descendant skipped.`,
             position: warningPosition,
         });
         return null;

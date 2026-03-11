@@ -201,9 +201,9 @@ export default class Graph extends BlockComponent {
             forRenderer: true,
         };
 
-        attributes.mode = {
+        attributes.renderer = {
             createPrimitiveOfType: "string",
-            createStateVariable: "mode",
+            createStateVariable: "renderer",
             validValues: ["doenet", "prefigure"],
             defaultValue: "doenet",
             public: true,
@@ -815,29 +815,29 @@ export default class Graph extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.effectiveMode = {
+        stateVariableDefinitions.effectiveRenderer = {
             public: true,
             forRenderer: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
             },
             returnDependencies: () => ({
-                mode: {
+                renderer: {
                     dependencyType: "stateVariable",
-                    variableName: "mode",
+                    variableName: "renderer",
                 },
-                graphParentMode: {
+                graphParentRenderer: {
                     dependencyType: "parentStateVariable",
                     parentComponentType: "graph",
-                    variableName: "effectiveMode",
+                    variableName: "effectiveRenderer",
                 },
             }),
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        effectiveMode:
-                            dependencyValues.graphParentMode ??
-                            dependencyValues.mode,
+                        effectiveRenderer:
+                            dependencyValues.graphParentRenderer ??
+                            dependencyValues.renderer,
                     },
                 };
             },

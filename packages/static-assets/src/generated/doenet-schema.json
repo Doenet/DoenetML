@@ -60165,7 +60165,7 @@
                     ]
                 },
                 {
-                    "name": "mode",
+                    "name": "renderer",
                     "values": [
                         "doenet",
                         "prefigure"
@@ -60279,7 +60279,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "mode",
+                    "name": "renderer",
                     "type": "text",
                     "isArray": false
                 },
@@ -60369,7 +60369,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "effectiveMode",
+                    "name": "effectiveRenderer",
                     "type": "text",
                     "isArray": false
                 },

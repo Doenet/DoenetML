@@ -35,15 +35,15 @@ export default React.memo(function Graph(props) {
     let previousYaxisWithLabel = useRef(null);
 
     let showNavigation = SVs.showNavigation && !SVs.fixAxes;
-    const graphRenderMode = SVs.effectiveMode ?? SVs.mode;
-    const isPrefigureMode = graphRenderMode === "prefigure";
+    const graphRenderer = SVs.effectiveRenderer ?? SVs.renderer;
+    const isPrefigureRenderer = graphRenderer === "prefigure";
 
     const ref = useRef(null);
 
     useRecordVisibilityChanges(ref, callAction, actions, SVs.haveGraphParent);
 
     useEffect(() => {
-        if (SVs.haveGraphParent || isPrefigureMode) {
+        if (SVs.haveGraphParent || isPrefigureRenderer) {
             return;
         }
         return () => {
@@ -56,7 +56,7 @@ export default React.memo(function Graph(props) {
 
     //Draw Board after mounting component
     useEffect(() => {
-        if (SVs.haveGraphParent || isPrefigureMode) {
+        if (SVs.haveGraphParent || isPrefigureRenderer) {
             return;
         }
 
@@ -182,7 +182,7 @@ export default React.memo(function Graph(props) {
     }, []);
 
     useEffect(() => {
-        if (board && showNavigation && !isPrefigureMode) {
+        if (board && showNavigation && !isPrefigureRenderer) {
             addNavigationButtons();
         }
     }, [board]);
@@ -203,7 +203,7 @@ export default React.memo(function Graph(props) {
         );
     }
 
-    if (isPrefigureMode) {
+    if (isPrefigureRenderer) {
         return <Prefigure {...props} />;
     }
 

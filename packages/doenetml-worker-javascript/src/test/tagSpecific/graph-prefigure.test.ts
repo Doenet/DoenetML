@@ -34,8 +34,8 @@ async function validatePrefigureXMLAgainstBuildService(xml: string) {
     };
 }
 
-describe("Graph prefigure mode tests", async () => {
-    it("mode=doenet leaves prefigureXML null", async () => {
+describe("Graph prefigure renderer tests", async () => {
+    it("renderer=doenet leaves prefigureXML null", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `<graph name="g" />`,
         });
@@ -43,11 +43,12 @@ describe("Graph prefigure mode tests", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues.mode,
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .renderer,
         ).eq("doenet");
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .effectiveMode,
+                .effectiveRenderer,
         ).eq("doenet");
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
@@ -55,9 +56,9 @@ describe("Graph prefigure mode tests", async () => {
         ).eq(null);
     });
 
-    it("mode=prefigure emits prefigureXML payload", async () => {
+    it("renderer=prefigure emits prefigureXML payload", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<graph name="g" mode="prefigure" />`,
+            doenetML: `<graph name="g" renderer="prefigure" />`,
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -66,11 +67,12 @@ describe("Graph prefigure mode tests", async () => {
                 .prefigureXML;
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("g")].stateValues.mode,
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .renderer,
         ).eq("prefigure");
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
-                .effectiveMode,
+                .effectiveRenderer,
         ).eq("prefigure");
 
         expect(typeof prefigureXML).eq("string");
@@ -81,9 +83,9 @@ describe("Graph prefigure mode tests", async () => {
         expect(prefigureXML).toContain("<axes");
     });
 
-    it("mode=prefigure empty graph has exact XML baseline", async () => {
+    it("renderer=prefigure empty graph has exact XML baseline", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<graph name="g" mode="prefigure" />`,
+            doenetML: `<graph name="g" renderer="prefigure" />`,
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -96,9 +98,9 @@ describe("Graph prefigure mode tests", async () => {
         );
     });
 
-    it("mode=prefigure xMin updates bbox with computed defaults", async () => {
+    it("renderer=prefigure xMin updates bbox with computed defaults", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<graph name="g" mode="prefigure" xMin="0" />`,
+            doenetML: `<graph name="g" renderer="prefigure" xMin="0" />`,
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -111,9 +113,9 @@ describe("Graph prefigure mode tests", async () => {
         );
     });
 
-    it("mode=prefigure size and aspectRatio control dimensions", async () => {
+    it("renderer=prefigure size and aspectRatio control dimensions", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<graph name="g" mode="prefigure" size="full" aspectRatio="2" />`,
+            doenetML: `<graph name="g" renderer="prefigure" size="full" aspectRatio="2" />`,
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -126,11 +128,11 @@ describe("Graph prefigure mode tests", async () => {
         );
     });
 
-    it("mode=prefigure maps axis visibility to horizontal/vertical axes", async () => {
+    it("renderer=prefigure maps axis visibility to horizontal/vertical axes", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<graph name="gx" mode="prefigure" displayXAxis="true" displayYAxis="false" />
-<graph name="gy" mode="prefigure" displayXAxis="false" displayYAxis="true" />
+<graph name="gx" renderer="prefigure" displayXAxis="true" displayYAxis="false" />
+<graph name="gy" renderer="prefigure" displayXAxis="false" displayYAxis="true" />
 `,
         });
 
@@ -150,9 +152,9 @@ describe("Graph prefigure mode tests", async () => {
         );
     });
 
-    it("mode=prefigure with both axes hidden emits no axes element", async () => {
+    it("renderer=prefigure with both axes hidden emits no axes element", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `<graph name="g" mode="prefigure" displayXAxis="false" displayYAxis="false" />`,
+            doenetML: `<graph name="g" renderer="prefigure" displayXAxis="false" displayYAxis="false" />`,
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -165,10 +167,10 @@ describe("Graph prefigure mode tests", async () => {
         );
     });
 
-    it("mode=prefigure warns for unsupported graph axis label positions", async () => {
+    it("renderer=prefigure warns for unsupported graph axis label positions", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<graph name="g" mode="prefigure" xLabelPosition="left" yLabelPosition="bottom">
+<graph name="g" renderer="prefigure" xLabelPosition="left" yLabelPosition="bottom">
   <xLabel>time</xLabel>
   <yLabel>value</yLabel>
 </graph>
@@ -189,20 +191,20 @@ describe("Graph prefigure mode tests", async () => {
         expect(
             errorWarnings.warnings.some((x) =>
                 x.message.includes(
-                    'xLabelPosition="left" is not supported in prefigure mode',
+                    'xLabelPosition="left" is not supported in prefigure renderer',
                 ),
             ),
         ).eq(true);
         expect(
             errorWarnings.warnings.some((x) =>
                 x.message.includes(
-                    'yLabelPosition="bottom" is not supported in prefigure mode',
+                    'yLabelPosition="bottom" is not supported in prefigure renderer',
                 ),
             ),
         ).eq(true);
     });
 
-    it("mode=prefigure descendant warning includes position", async () => {
+    it("renderer=prefigure descendant warning includes position", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <setup>
@@ -210,7 +212,7 @@ describe("Graph prefigure mode tests", async () => {
         <styleDefinition styleNumber="7" markerStyle="triangleRight" markerColor="purple" />
     </styleDefinitions>
 </setup>
-<graph name="g" mode="prefigure">
+<graph name="g" renderer="prefigure">
     <point styleNumber="7">(1,2)</point>
 </graph>
 `,
@@ -230,7 +232,7 @@ describe("Graph prefigure mode tests", async () => {
         expect(warningWithPosition?.position?.start?.column).toBeGreaterThan(0);
     });
 
-    it("mode=prefigure triangle marker warning has exact position", async () => {
+    it("renderer=prefigure triangle marker warning has exact position", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <setup>
@@ -238,7 +240,7 @@ describe("Graph prefigure mode tests", async () => {
         <styleDefinition styleNumber="7" markerStyle="triangleRight" markerColor="purple" />
     </styleDefinitions>
 </setup>
-<graph name="g" mode="prefigure">
+<graph name="g" renderer="prefigure">
     <point styleNumber="7">(1,2)</point>
 </graph>
 `,
@@ -260,10 +262,10 @@ describe("Graph prefigure mode tests", async () => {
         expect(triangleWarning?.position?.start?.column).eq(5);
     });
 
-    it("mode=prefigure maps graph axis labels with latex to m tags", async () => {
+    it("renderer=prefigure maps graph axis labels with latex to m tags", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<graph name="g" mode="prefigure">
+<graph name="g" renderer="prefigure">
   <xLabel><m>x^2</m></xLabel>
   <yLabel><m>y_1</m></yLabel>
 </graph>
@@ -282,7 +284,7 @@ describe("Graph prefigure mode tests", async () => {
         expect(prefigureXML).toContain(`y_1`);
     });
 
-    it("mode=prefigure maps point marker style and marker attributes", async () => {
+    it("renderer=prefigure maps point marker style and marker attributes", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <setup>
@@ -290,7 +292,7 @@ describe("Graph prefigure mode tests", async () => {
     <styleDefinition styleNumber="7" markerStyle="square" markerSize="6" markerColor="green" markerOpacity="0.4" lineWidth="3" />
   </styleDefinitions>
 </setup>
-<graph name="g" mode="prefigure">
+<graph name="g" renderer="prefigure">
   <point styleNumber="7">(1,2)</point>
 </graph>
 `,
@@ -306,7 +308,7 @@ describe("Graph prefigure mode tests", async () => {
         );
     });
 
-    it("mode=prefigure maps triangle marker styles to diamond with warning", async () => {
+    it("renderer=prefigure maps triangle marker styles to diamond with warning", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <setup>
@@ -314,7 +316,7 @@ describe("Graph prefigure mode tests", async () => {
     <styleDefinition styleNumber="7" markerStyle="triangleRight" markerColor="purple" />
   </styleDefinitions>
 </setup>
-<graph name="g" mode="prefigure">
+<graph name="g" renderer="prefigure">
   <point styleNumber="7">(1,2)</point>
 </graph>
 `,
@@ -330,7 +332,7 @@ describe("Graph prefigure mode tests", async () => {
         expect(prefigureXML).toContain(`p="(1,2)" style="diamond"`);
     });
 
-    it("extended graph preserves point marker mapping in prefigure mode", async () => {
+    it("extended graph preserves point marker mapping in prefigure renderer", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <setup>
@@ -341,7 +343,7 @@ describe("Graph prefigure mode tests", async () => {
 <graph name="g">
     <point styleNumber="7">(1,2)</point>
 </graph>
-<graph name="gp" extend="$g" mode="prefigure" />
+<graph name="gp" extend="$g" renderer="prefigure" />
 `,
         });
 
@@ -355,10 +357,10 @@ describe("Graph prefigure mode tests", async () => {
         );
     });
 
-    it("mode=prefigure maps point label and labelPosition", async () => {
+    it("renderer=prefigure maps point label and labelPosition", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<graph name="g" mode="prefigure">
+<graph name="g" renderer="prefigure">
   <point labelPosition="upperLeft">(1,2)<label>A</label></point>
 </graph>
 `,
@@ -374,10 +376,10 @@ describe("Graph prefigure mode tests", async () => {
         expect(prefigureXML).toContain(`>A</point>`);
     });
 
-    it("mode=prefigure maps point latex label to m tag", async () => {
+    it("renderer=prefigure maps point latex label to m tag", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<graph name="g" mode="prefigure">
+<graph name="g" renderer="prefigure">
   <point labelPosition="top">(1,2)<label><m>x^2</m></label></point>
 </graph>
 `,
@@ -394,10 +396,10 @@ describe("Graph prefigure mode tests", async () => {
         expect(prefigureXML).toContain(`x^2`);
     });
 
-    it("mode=prefigure maps line to PreFigure line with infinite=yes", async () => {
+    it("renderer=prefigure maps line to PreFigure line with infinite=yes", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<graph name="g" mode="prefigure">
+<graph name="g" renderer="prefigure">
   <line through="(1,2) (3,4)" />
 </graph>
 `,
@@ -413,10 +415,10 @@ describe("Graph prefigure mode tests", async () => {
         expect(prefigureXML).toContain(`infinite="yes"`);
     });
 
-    it("mode=prefigure maps line label and labelPosition", async () => {
+    it("renderer=prefigure maps line label and labelPosition", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<graph name="g" mode="prefigure">
+<graph name="g" renderer="prefigure">
     <line through="(1,2) (3,4)" labelPosition="upperright"><label>A</label></line>
 </graph>
 `,
@@ -433,10 +435,10 @@ describe("Graph prefigure mode tests", async () => {
         expect(prefigureXML).toContain(`>A</line>`);
     });
 
-    it("mode=prefigure line label default is center (no explicit label-location)", async () => {
+    it("renderer=prefigure line label default is center (no explicit label-location)", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<graph name="g" mode="prefigure">
+<graph name="g" renderer="prefigure">
     <line through="(1,2) (3,4)"><label>CenterDefault</label></line>
 </graph>
 `,
@@ -451,7 +453,7 @@ describe("Graph prefigure mode tests", async () => {
         expect(prefigureXML).toContain(`>CenterDefault</line>`);
     });
 
-    it("mode=prefigure label-location positions label along visible line", async () => {
+    it("renderer=prefigure label-location positions label along visible line", async () => {
         // through=(1,2)→(3,4): ep1=(1,2), ep2=(3,4), slope positive (ep2.y > ep1.y)
         //   left       → label-location="0.15"
         //   right      → label-location="0.85"
@@ -464,7 +466,7 @@ describe("Graph prefigure mode tests", async () => {
 
         async function xmlFor(labelPosition: string, through: string) {
             const { core, resolvePathToNodeIdx } = await createTestCore({
-                doenetML: `<graph name="g" mode="prefigure"><line through="${through}" labelPosition="${labelPosition}"><label>X</label></line></graph>`,
+                doenetML: `<graph name="g" renderer="prefigure"><line through="${through}" labelPosition="${labelPosition}"><label>X</label></line></graph>`,
             });
             return (await core.returnAllStateVariables(false, true))[
                 await resolvePathToNodeIdx("g")
@@ -504,14 +506,14 @@ describe("Graph prefigure mode tests", async () => {
         );
     });
 
-    it("mode=prefigure ray labelPosition controls label-location", async () => {
+    it("renderer=prefigure ray labelPosition controls label-location", async () => {
         // Ray from (0,0) going to (1,1), clipped to ((0,0),(10,10)).
         // After orientation ep1=(0,0), ep2=(10,10), slope positive.
         //   right → label-location="0.85" (near far/upper-right end)
         //   left  → label-location="0.15" (near ray origin / lower-left end)
         const { core: cr, resolvePathToNodeIdx: rr } = await createTestCore({
             doenetML: `
-<graph name="g" mode="prefigure" xMin="-10" yMin="-10" xMax="10" yMax="10">
+<graph name="g" renderer="prefigure" xMin="-10" yMin="-10" xMax="10" yMax="10">
   <ray endpoint="(0,0)" through="(1,1)" labelPosition="right"><label>R</label></ray>
 </graph>
 `,
@@ -524,7 +526,7 @@ describe("Graph prefigure mode tests", async () => {
 
         const { core: cl, resolvePathToNodeIdx: rl } = await createTestCore({
             doenetML: `
-<graph name="g" mode="prefigure" xMin="-10" yMin="-10" xMax="10" yMax="10">
+<graph name="g" renderer="prefigure" xMin="-10" yMin="-10" xMax="10" yMax="10">
   <ray endpoint="(0,0)" through="(1,1)" labelPosition="left"><label>L</label></ray>
 </graph>
 `,
@@ -536,14 +538,14 @@ describe("Graph prefigure mode tests", async () => {
         expect(xmlLeft).toContain(`>L</line>`);
     });
 
-    it("mode=prefigure orients line endpoints so label is never upside-down (right-to-left line)", async () => {
+    it("renderer=prefigure orients line endpoints so label is never upside-down (right-to-left line)", async () => {
         // Line given through=(3,4) then (1,2): natural order is right-to-left.
         // The converter must swap to (1,2)→(3,4) so PreFigure's label rotation
         // angle stays within (-90°,90°] — keeping the label on the top side and
         // never upside-down.
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<graph name="g" mode="prefigure">
+<graph name="g" renderer="prefigure">
     <line through="(3,4) (1,2)"><label>B</label></line>
 </graph>
 `,
@@ -559,10 +561,10 @@ describe("Graph prefigure mode tests", async () => {
         expect(prefigureXML).toContain(`>B</line>`);
     });
 
-    it("mode=prefigure orients line segment endpoints left-to-right for label readability", async () => {
+    it("renderer=prefigure orients line segment endpoints left-to-right for label readability", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<graph name="g" mode="prefigure">
+<graph name="g" renderer="prefigure">
     <lineSegment endpoints="(5,1) (2,3)"><label>C</label></lineSegment>
 </graph>
 `,
@@ -578,11 +580,11 @@ describe("Graph prefigure mode tests", async () => {
         expect(prefigureXML).toContain(`>C</line>`);
     });
 
-    it("mode=prefigure orients vertical line bottom-to-top for label readability", async () => {
+    it("renderer=prefigure orients vertical line bottom-to-top for label readability", async () => {
         // Vertical line: same x, so sort by y. (2,5) has larger y → swap to (2,1)→(2,5).
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<graph name="g" mode="prefigure">
+<graph name="g" renderer="prefigure">
     <line through="(2,5) (2,1)"><label>D</label></line>
 </graph>
 `,
@@ -598,10 +600,10 @@ describe("Graph prefigure mode tests", async () => {
         expect(prefigureXML).toContain(`>D</line>`);
     });
 
-    it("mode=prefigure does not change already-left-to-right line endpoints", async () => {
+    it("renderer=prefigure does not change already-left-to-right line endpoints", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<graph name="g" mode="prefigure">
+<graph name="g" renderer="prefigure">
     <line through="(1,2) (3,4)"><label>E</label></line>
 </graph>
 `,
@@ -617,7 +619,7 @@ describe("Graph prefigure mode tests", async () => {
         expect(prefigureXML).toContain(`>E</line>`);
     });
 
-    it("mode=prefigure maps dashed/dotted styles to numeric dash arrays", async () => {
+    it("renderer=prefigure maps dashed/dotted styles to numeric dash arrays", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <setup>
@@ -626,7 +628,7 @@ describe("Graph prefigure mode tests", async () => {
         <styleDefinition styleNumber="8" lineStyle="dotted" />
     </styleDefinitions>
 </setup>
-<graph name="g" mode="prefigure">
+<graph name="g" renderer="prefigure">
     <line styleNumber="7" through="(1,2) (3,4)" />
     <line styleNumber="8" through="(2,2) (4,4)" />
 </graph>
@@ -642,10 +644,10 @@ describe("Graph prefigure mode tests", async () => {
         expect(prefigureXML).toContain(`dash="4 4"`);
     });
 
-    it("mode=prefigure maps ray to bbox-clipped finite line", async () => {
+    it("renderer=prefigure maps ray to bbox-clipped finite line", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<graph name="g" mode="prefigure" xMin="-10" yMin="-10" xMax="10" yMax="10">
+<graph name="g" renderer="prefigure" xMin="-10" yMin="-10" xMax="10" yMax="10">
   <ray endpoint="(0,0)" through="(1,1)" />
 </graph>
 `,
@@ -662,10 +664,10 @@ describe("Graph prefigure mode tests", async () => {
         expect(prefigureXML).toContain(`infinite="no"`);
     });
 
-    it("mode=prefigure maps vector to tail+v representation", async () => {
+    it("renderer=prefigure maps vector to tail+v representation", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<graph name="g" mode="prefigure">
+<graph name="g" renderer="prefigure">
   <vector tail="(3,5)" head="(-4,2)" />
 </graph>
 `,
@@ -681,10 +683,10 @@ describe("Graph prefigure mode tests", async () => {
         expect(prefigureXML).toContain(`v="(-7,-3)"`);
     });
 
-    it("mode=prefigure maps circle to center+radius", async () => {
+    it("renderer=prefigure maps circle to center+radius", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<graph name="g" mode="prefigure">
+<graph name="g" renderer="prefigure">
   <circle center="(1,2)" radius="3" />
 </graph>
 `,
@@ -700,10 +702,10 @@ describe("Graph prefigure mode tests", async () => {
         expect(prefigureXML).toContain(`radius="3"`);
     });
 
-    it("mode=prefigure maps polygon vertices to closed polygon points", async () => {
+    it("renderer=prefigure maps polygon vertices to closed polygon points", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<graph name="g" mode="prefigure">
+<graph name="g" renderer="prefigure">
   <polygon vertices="(0,0) (2,0) (1,1)" />
 </graph>
 `,
@@ -724,23 +726,23 @@ describe("Graph prefigure mode tests", async () => {
         async () => {
             const cases = [
                 {
-                    doenetML: `<graph name="g" mode="prefigure"><line through="(1,2) (3,4)" /></graph>`,
+                    doenetML: `<graph name="g" renderer="prefigure"><line through="(1,2) (3,4)" /></graph>`,
                     expectText: "line",
                 },
                 {
-                    doenetML: `<graph name="g" mode="prefigure" xMin="-10" yMin="-10" xMax="10" yMax="10"><ray endpoint="(0,0)" through="(1,1)" /></graph>`,
+                    doenetML: `<graph name="g" renderer="prefigure" xMin="-10" yMin="-10" xMax="10" yMax="10"><ray endpoint="(0,0)" through="(1,1)" /></graph>`,
                     expectText: "ray",
                 },
                 {
-                    doenetML: `<graph name="g" mode="prefigure"><vector tail="(3,5)" head="(-4,2)" /></graph>`,
+                    doenetML: `<graph name="g" renderer="prefigure"><vector tail="(3,5)" head="(-4,2)" /></graph>`,
                     expectText: "vector",
                 },
                 {
-                    doenetML: `<graph name="g" mode="prefigure"><circle center="(1,2)" radius="3" /></graph>`,
+                    doenetML: `<graph name="g" renderer="prefigure"><circle center="(1,2)" radius="3" /></graph>`,
                     expectText: "circle",
                 },
                 {
-                    doenetML: `<graph name="g" mode="prefigure"><polygon vertices="(0,0) (2,0) (1,1)" /></graph>`,
+                    doenetML: `<graph name="g" renderer="prefigure"><polygon vertices="(0,0) (2,0) (1,1)" /></graph>`,
                     expectText: "polygon",
                 },
             ];
@@ -777,11 +779,11 @@ describe("Graph prefigure mode tests", async () => {
         },
     );
 
-    it("nested graph inherits prefigure mode from parent", async () => {
+    it("nested graph inherits prefigure renderer from parent", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-<graph name="outer" mode="prefigure">
-  <graph name="inner" mode="doenet">
+<graph name="outer" renderer="prefigure">
+  <graph name="inner" renderer="doenet">
     <point>(1,2)</point>
   </graph>
 </graph>
@@ -795,12 +797,12 @@ describe("Graph prefigure mode tests", async () => {
         const inner =
             stateVariables[await resolvePathToNodeIdx("inner")].stateValues;
 
-        expect(outer.mode).eq("prefigure");
-        expect(outer.effectiveMode).eq("prefigure");
+        expect(outer.renderer).eq("prefigure");
+        expect(outer.effectiveRenderer).eq("prefigure");
         expect(typeof outer.prefigureXML).eq("string");
 
-        expect(inner.mode).eq("doenet");
-        expect(inner.effectiveMode).eq("prefigure");
+        expect(inner.renderer).eq("doenet");
+        expect(inner.effectiveRenderer).eq("prefigure");
         expect(inner.prefigureXML).eq(null);
     });
 
@@ -808,7 +810,7 @@ describe("Graph prefigure mode tests", async () => {
         "optional: build service accepts generated empty-graph XML",
         async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
-                doenetML: `<graph name="g" mode="prefigure" />`,
+                doenetML: `<graph name="g" renderer="prefigure" />`,
             });
 
             const stateVariables = await core.returnAllStateVariables(

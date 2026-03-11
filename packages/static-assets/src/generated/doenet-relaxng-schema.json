@@ -97966,7 +97966,7 @@
                         "false"
                     ]
                 },
-                "mode": {
+                "renderer": {
                     "optional": true,
                     "type": [
                         "doenet",
@@ -98486,7 +98486,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "mode",
+                    "name": "renderer",
                     "type": "text",
                     "isArray": false
                 },
@@ -98576,7 +98576,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "effectiveMode",
+                    "name": "effectiveRenderer",
                     "type": "text",
                     "isArray": false
                 },

@@ -82,9 +82,9 @@ function descendantDependency({ componentType, variableNames }) {
 
 function prefigureBaseDependencies() {
     return {
-        effectiveMode: {
+        effectiveRenderer: {
             dependencyType: "stateVariable",
-            variableName: "effectiveMode",
+            variableName: "effectiveRenderer",
         },
         haveGraphParent: {
             dependencyType: "stateVariable",
@@ -187,7 +187,7 @@ export function returnGraphPrefigureXMLStateVariableDefinition() {
         }),
         definition({ dependencyValues }) {
             if (
-                dependencyValues.effectiveMode !== "prefigure" ||
+                dependencyValues.effectiveRenderer !== "prefigure" ||
                 dependencyValues.haveGraphParent
             ) {
                 return { setValue: { prefigureXML: null } };

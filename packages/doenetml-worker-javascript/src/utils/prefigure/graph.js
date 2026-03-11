@@ -30,7 +30,7 @@ function pushUnsupportedAxisPositionWarnings({ dependencyValues, warnings }) {
             type: "warning",
             level: 1,
             message:
-                '<graph>: xLabelPosition="left" is not supported in prefigure mode; using right-position behavior.',
+                '<graph>: xLabelPosition="left" is not supported in prefigure renderer; using right-position behavior.',
         });
     }
 
@@ -39,7 +39,7 @@ function pushUnsupportedAxisPositionWarnings({ dependencyValues, warnings }) {
             type: "warning",
             level: 1,
             message:
-                '<graph>: yLabelPosition="bottom" is not supported in prefigure mode; using top-position behavior.',
+                '<graph>: yLabelPosition="bottom" is not supported in prefigure renderer; using top-position behavior.',
         });
     }
 }
@@ -111,7 +111,7 @@ export function createPrefigureXML({
     for (const descendant of unsupported ?? []) {
         pushWarning({
             warnings,
-            message: `${warningMessageForDescendant(descendant)}: unsupported in graph prefigure mode; descendant skipped.`,
+            message: `${warningMessageForDescendant(descendant)}: unsupported in graph prefigure renderer; descendant skipped.`,
             position: descendant?.position,
         });
     }
