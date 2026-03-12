@@ -1,9 +1,31 @@
 import React, { useEffect, useRef, useState } from "react";
-import useDoenetRenderer, {
-    UseDoenetRendererProps,
-} from "../useDoenetRenderer";
 
 const PREFIGURE_BUILD_DEBOUNCE_MS = 1000;
+
+type DiagcessApi = {
+    Base?: {
+        init?: () => void;
+    };
+};
+
+type PrefigureBuildResponse = {
+    svg?: unknown;
+    xml?: unknown;
+};
+
+type PrefigureRendererProps = {
+    id: string;
+    SVs: {
+        prefigureXML?: string | null;
+        childrenSource?: string | null;
+        showBorder?: boolean;
+    };
+    surfaceStyle: React.CSSProperties;
+};
+
+function diagcessApi(): DiagcessApi | undefined {
+    return (window as Window & { diagcess?: DiagcessApi }).diagcess;
+}
 
 function normalizeSerializedMarkup(value: unknown): string {
     if (typeof value !== "string") {
@@ -43,9 +65,11 @@ function hasAnnotationsXml(value: string): boolean {
     return /<annotations?\b|<annotation\b/i.test(trimmed);
 }
 
-export default React.memo(function Prefigure(props: UseDoenetRendererProps) {
-    const { id, SVs } = useDoenetRenderer(props);
-
+export default React.memo(function Prefigure({
+    id,
+    SVs,
+    surfaceStyle,
+}: PrefigureRendererProps) {
     const diagramXML = SVs.prefigureXML ?? SVs.childrenSource;
     const [svgContent, setSvgContent] = useState("Building...");
     const [cmlContent, setCmlContent] = useState("");
@@ -57,7 +81,7 @@ export default React.memo(function Prefigure(props: UseDoenetRendererProps) {
     // Load diagcess script
     useEffect(() => {
         // Check if script is already loaded
-        if ((window as any).diagcess) {
+        if (diagcessApi()) {
             return;
         }
 
@@ -123,7 +147,7 @@ export default React.memo(function Prefigure(props: UseDoenetRendererProps) {
                     throw new Error(`HTTP Error: ${response.status}`);
                 }
 
-                const data = await response.json();
+                const data = (await response.json()) as PrefigureBuildResponse;
 
                 if (requestSequence !== requestSequenceRef.current) {
                     return;
@@ -201,54 +225,28 @@ export default React.memo(function Prefigure(props: UseDoenetRendererProps) {
             hasAnnotationsXml(cmlContent) &&
             (window as any).diagcess
         ) {
-            (window as any).diagcess.Base.init();
+            diagcessApi()?.Base?.init?.();
         }
     }, [svgContent, cmlContent]);
 
-    let outerStyle: React.CSSProperties = {};
-    let innerStyle: React.CSSProperties = {};
-
-    if (SVs.displayMode === "inline") {
-        outerStyle = { display: "inline-block", verticalAlign: "middle" };
-        innerStyle = {
-            display: "inline-flex",
-            alignItems: "start",
-            width: "100%",
-        };
-    } else {
-        outerStyle = { display: "flex", justifyContent: SVs.horizontalAlign };
-        innerStyle = { maxWidth: "100%" };
-    }
-
-    const hasRenderedSvg = /<svg[\s>]/i.test(svgContent);
-
-    const contentStyle: React.CSSProperties =
-        SVs.showBorder && hasRenderedSvg
-            ? {
-                  border: "2px solid var(--canvasText)",
-                  borderRadius: "10px",
-                  overflow: "hidden",
-              }
-            : { overflow: "hidden" };
+    const contentStyle: React.CSSProperties = SVs.showBorder
+        ? {
+              ...surfaceStyle,
+              borderRadius: "10px",
+              overflow: "hidden",
+          }
+        : { ...surfaceStyle, overflow: "hidden" };
 
     return (
-        <div style={outerStyle}>
-            <div style={innerStyle}>
-                <div
-                    id={id}
-                    className="ChemAccess-element"
-                    style={contentStyle}
-                >
-                    <div
-                        className="svg"
-                        dangerouslySetInnerHTML={{ __html: svgContent }}
-                    />
-                    <div
-                        className="cml"
-                        dangerouslySetInnerHTML={{ __html: cmlContent }}
-                    />
-                </div>
-            </div>
+        <div id={id} className="ChemAccess-element" style={contentStyle}>
+            <div
+                className="svg"
+                dangerouslySetInnerHTML={{ __html: svgContent }}
+            />
+            <div
+                className="cml"
+                dangerouslySetInnerHTML={{ __html: cmlContent }}
+            />
         </div>
     );
 });
