@@ -65,6 +65,78 @@ function hasAnnotationsXml(value: string): boolean {
     return /<annotations?\b|<annotation\b/i.test(trimmed);
 }
 
+const FORBIDDEN_MARKUP_TAGS = new Set([
+    "script",
+    "foreignobject",
+    "iframe",
+    "object",
+    "embed",
+    "link",
+    "meta",
+    "base",
+]);
+
+function sanitizeXmlMarkup({
+    markup,
+    mimeType,
+    allowedRootNames,
+}: {
+    markup: string;
+    mimeType: DOMParserSupportedType;
+    allowedRootNames: Set<string>;
+}): string {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(markup, mimeType);
+
+    if (doc.querySelector("parsererror")) {
+        return "";
+    }
+
+    const rootName = doc.documentElement?.tagName?.toLowerCase?.();
+    if (!rootName || !allowedRootNames.has(rootName)) {
+        return "";
+    }
+
+    const elements = Array.from(doc.getElementsByTagName("*"));
+    for (const element of elements) {
+        const tagName = element.tagName.toLowerCase();
+
+        if (FORBIDDEN_MARKUP_TAGS.has(tagName)) {
+            element.remove();
+            continue;
+        }
+
+        const attributes = Array.from(element.attributes);
+        for (const attribute of attributes) {
+            const name = attribute.name.toLowerCase();
+            const value = attribute.value.trim();
+            const isEventHandler = name.startsWith("on");
+            const isScriptUrl = /^\s*javascript:/i.test(value);
+            if (isEventHandler || isScriptUrl) {
+                element.removeAttribute(attribute.name);
+            }
+        }
+    }
+
+    return new XMLSerializer().serializeToString(doc);
+}
+
+function sanitizeSvgMarkup(markup: string): string {
+    return sanitizeXmlMarkup({
+        markup,
+        mimeType: "image/svg+xml",
+        allowedRootNames: new Set(["svg"]),
+    });
+}
+
+function sanitizeAnnotationsMarkup(markup: string): string {
+    return sanitizeXmlMarkup({
+        markup,
+        mimeType: "application/xml",
+        allowedRootNames: new Set(["annotations", "annotation"]),
+    });
+}
+
 export default React.memo(function Prefigure({
     id,
     SVs,
@@ -155,7 +227,14 @@ export default React.memo(function Prefigure({
 
                 const svg = normalizeSerializedMarkup(data.svg);
                 if (svg) {
-                    setSvgContent(svg);
+                    const sanitizedSvg = sanitizeSvgMarkup(svg);
+                    if (sanitizedSvg) {
+                        setSvgContent(sanitizedSvg);
+                    } else {
+                        setSvgContent(
+                            "Error: Invalid or unsafe SVG in build response.",
+                        );
+                    }
                 } else {
                     setSvgContent(
                         "Error: No SVG found in response: " +
@@ -165,7 +244,7 @@ export default React.memo(function Prefigure({
 
                 const cml = normalizeSerializedMarkup(data.xml);
                 if (cml) {
-                    setCmlContent(cml);
+                    setCmlContent(sanitizeAnnotationsMarkup(cml));
                 } else {
                     setCmlContent("");
                 }
@@ -185,7 +264,7 @@ export default React.memo(function Prefigure({
                 const errorMessage =
                     error instanceof Error ? error.message : "Unknown error";
                 setSvgContent(
-                    `<span style="color:red">Error: ${errorMessage}</span><br><br>Check the Console (F12) for CORS details if this failed immediately.`,
+                    `Error: ${errorMessage}. Check the Console (F12) for CORS details if this failed immediately.`,
                 );
             } finally {
                 if (fetchAbortControllerRef.current === abortController) {
@@ -223,7 +302,7 @@ export default React.memo(function Prefigure({
             svgContent &&
             svgContent !== "Building..." &&
             hasAnnotationsXml(cmlContent) &&
-            (window as any).diagcess
+            diagcessApi()
         ) {
             diagcessApi()?.Base?.init?.();
         }
