@@ -1,0 +1,59 @@
+{
+    "name": "@doenet/prefigure",
+    "type": "module",
+    "description": "Standalone PreFigure WASM compiler for browser and CDN usage",
+    "version": "0.5.11",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": false,
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Doenet/DoenetML.git"
+    },
+    "files": [
+        "/dist"
+    ],
+    "exports": {
+        ".": {
+            "import": "./dist/prefigure.js"
+        },
+        "./*": {
+            "import": "./dist/*"
+        }
+    },
+    "scripts": {
+        "dev": "vite",
+        "build": "wireit",
+        "test": "echo \"No tests\"",
+        "smoke": "vite --host 127.0.0.1 --strictPort --port 4175",
+        "smoke:build": "vite build && echo \"Smoke harness available in dev mode at /\"",
+        "preview": "vite preview",
+        "update-prefigure": "node scripts/update-prefigure.js",
+        "publish": "npm run build && cd dist && npm publish"
+    },
+    "wireit": {
+        "build": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "tsconfig.json",
+                "vite.config.ts",
+                "pyodide_packages/**/*"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.d.ts",
+                "dist/**/*.json",
+                "dist/assets/**/*"
+            ]
+        }
+    },
+    "peerDependencies": {},
+    "dependencies": {
+        "@mathjax/src": "^4.0.0",
+        "comlink": "^4.4.2",
+        "pyodide": "^0.26.4",
+        "speech-rule-engine": "5.0.0-beta.1"
+    },
+    "devDependencies": {}
+}
