@@ -66,7 +66,7 @@
     },
     "dependencies": {
         "dompurify": "^3.3.0",
-        "@doenet/prefigure": "^0.7.10"
+        "@doenet/prefigure": "^*"
     },
     "prettier": {
         "tabWidth": 4
