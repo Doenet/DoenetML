@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import DOMPurify from "dompurify";
 import {
     PREFIGURE_BUILD_ENDPOINT,
     PREFIGURE_DIAGCESS_SCRIPT_URL,
@@ -80,6 +81,27 @@ const FORBIDDEN_MARKUP_TAGS = new Set([
     "base",
 ]);
 
+const URL_ATTRIBUTE_NAMES = new Set([
+    "href",
+    "xlink:href",
+    "src",
+    "data",
+    "action",
+    "formaction",
+    "poster",
+]);
+
+function isUnsafeUrl(value: string): boolean {
+    const normalized = value.trim().replace(/\s+/g, "").toLowerCase();
+    return (
+        normalized.startsWith("javascript:") ||
+        normalized.startsWith("vbscript:") ||
+        normalized.startsWith("data:") ||
+        normalized.startsWith("file:") ||
+        normalized.startsWith("//")
+    );
+}
+
 function sanitizeXmlMarkup({
     markup,
     mimeType,
@@ -92,16 +114,17 @@ function sanitizeXmlMarkup({
     const parser = new DOMParser();
     const doc = parser.parseFromString(markup, mimeType);
 
-    if (doc.querySelector("parsererror")) {
+    if (doc.getElementsByTagName("parsererror").length > 0) {
         return "";
     }
 
-    const rootName = doc.documentElement?.tagName?.toLowerCase?.();
+    const root = doc.documentElement;
+    const rootName = root?.tagName?.toLowerCase?.();
     if (!rootName || !allowedRootNames.has(rootName)) {
         return "";
     }
 
-    const elements = Array.from(doc.getElementsByTagName("*"));
+    const elements = [root, ...Array.from(root.getElementsByTagName("*"))];
     for (const element of elements) {
         const tagName = element.tagName.toLowerCase();
 
@@ -115,19 +138,33 @@ function sanitizeXmlMarkup({
             const name = attribute.name.toLowerCase();
             const value = attribute.value.trim();
             const isEventHandler = name.startsWith("on");
-            const isScriptUrl = /^\s*javascript:/i.test(value);
-            if (isEventHandler || isScriptUrl) {
+            const isScriptUrl = isUnsafeUrl(value);
+            const hasUnsafeUrl = URL_ATTRIBUTE_NAMES.has(name) && isScriptUrl;
+            const hasStyleAttr = name === "style";
+            if (isEventHandler || hasUnsafeUrl || hasStyleAttr) {
                 element.removeAttribute(attribute.name);
             }
         }
     }
 
-    return new XMLSerializer().serializeToString(doc);
+    return new XMLSerializer().serializeToString(root);
 }
 
 function sanitizeSvgMarkup(markup: string): string {
+    const purified = DOMPurify.sanitize(markup, {
+        USE_PROFILES: { svg: true, svgFilters: true },
+        FORBID_TAGS: ["foreignObject", "iframe", "object", "embed"],
+        FORBID_ATTR: ["style"],
+        ALLOW_UNKNOWN_PROTOCOLS: false,
+        RETURN_TRUSTED_TYPE: false,
+    });
+
+    if (typeof purified !== "string") {
+        return "";
+    }
+
     return sanitizeXmlMarkup({
-        markup,
+        markup: purified,
         mimeType: "image/svg+xml",
         allowedRootNames: new Set(["svg"]),
     });
