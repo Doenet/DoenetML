@@ -309,11 +309,20 @@ export function removeNavigationButtons({ board, id }) {
         navigationBar.firstElementChild.remove();
     }
 
-    board.internalclick = [];
-    board.internalmousedown = [];
-    board.internalmouseup = [];
-    board.internaltouchend = [];
-    board.internaltouchstart = [];
+    // Clear the x_internal* arrays that addNavigationButtons populates
+    // (the prefix is "x_internal", not "internal").
+    for (const type of [
+        "click",
+        "mouseup",
+        "mousedown",
+        "touchend",
+        "touchstart",
+        "pointerup",
+        "pointerdown",
+        "pointerleave",
+    ]) {
+        board["x_internal" + type] = [];
+    }
 }
 
 export function getLineFamilyLabelPositionAttributes(labelPosition) {

@@ -153,8 +153,6 @@ export default function JSXGraphRenderer({
             if (window?.JXG?.JSXGraph?.freeBoard) {
                 window.JXG.JSXGraph.freeBoard(newBoard);
             }
-
-            setBoard(null);
         };
     }, []);
 
