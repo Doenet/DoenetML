@@ -270,7 +270,8 @@ export default React.memo(function Prefigure({
     surfaceStyle,
 }: PrefigureRendererProps) {
     const diagramXML = SVs.prefigureXML ?? SVs.childrenSource;
-    const [svgContent, setSvgContent] = useState("Building...");
+    const [svgMarkup, setSvgMarkup] = useState("");
+    const [svgMessage, setSvgMessage] = useState("Building...");
     const [cmlContent, setCmlContent] = useState("");
     const [diagcessReady, setDiagcessReady] = useState(Boolean(diagcessApi()));
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -311,7 +312,8 @@ export default React.memo(function Prefigure({
         if (!diagramXML) {
             // Treat the next non-empty XML payload as a fresh build so it renders immediately.
             hasStartedBuildRef.current = false;
-            setSvgContent("");
+            setSvgMarkup("");
+            setSvgMessage("");
             setCmlContent("");
             return;
         }
@@ -321,7 +323,8 @@ export default React.memo(function Prefigure({
             const abortController = new AbortController();
             fetchAbortControllerRef.current = abortController;
 
-            setSvgContent("Building...");
+            setSvgMarkup("");
+            setSvgMessage("Building...");
             setCmlContent("");
 
             try {
@@ -352,17 +355,17 @@ export default React.memo(function Prefigure({
                 if (svg) {
                     const sanitizedSvg = sanitizeSvgMarkup(svg);
                     if (sanitizedSvg) {
-                        setSvgContent(sanitizedSvg);
+                        setSvgMarkup(sanitizedSvg);
+                        setSvgMessage("");
                     } else {
-                        setSvgContent(
+                        setSvgMarkup("");
+                        setSvgMessage(
                             "Error: Invalid or unsafe SVG in build response.",
                         );
                     }
                 } else {
-                    setSvgContent(
-                        "Error: No SVG found in response: " +
-                            JSON.stringify(data),
-                    );
+                    setSvgMarkup("");
+                    setSvgMessage("Error: No SVG found in response.");
                 }
 
                 const cml = normalizeSerializedMarkup(data.xml);
@@ -386,7 +389,8 @@ export default React.memo(function Prefigure({
                 console.error(error);
                 const errorMessage =
                     error instanceof Error ? error.message : "Unknown error";
-                setSvgContent(
+                setSvgMarkup("");
+                setSvgMessage(
                     `Error: ${errorMessage}. Check the Console (F12) for CORS details if this failed immediately.`,
                 );
             } finally {
@@ -423,14 +427,13 @@ export default React.memo(function Prefigure({
         // Call diagcess.Base.init() after content is set
         if (
             diagcessReady &&
-            svgContent &&
-            svgContent !== "Building..." &&
+            svgMarkup &&
             hasAnnotationsXml(cmlContent) &&
             diagcessApi()
         ) {
             diagcessApi()?.Base?.init?.();
         }
-    }, [svgContent, cmlContent, diagcessReady]);
+    }, [svgMarkup, cmlContent, diagcessReady]);
 
     const contentStyle: React.CSSProperties = SVs.showBorder
         ? {
@@ -442,10 +445,14 @@ export default React.memo(function Prefigure({
 
     return (
         <div id={id} className="ChemAccess-element" style={contentStyle}>
-            <div
-                className="svg"
-                dangerouslySetInnerHTML={{ __html: svgContent }}
-            />
+            {svgMarkup ? (
+                <div
+                    className="svg"
+                    dangerouslySetInnerHTML={{ __html: svgMarkup }}
+                />
+            ) : (
+                <div className="svg">{svgMessage}</div>
+            )}
             <div
                 className="cml"
                 dangerouslySetInnerHTML={{ __html: cmlContent }}
