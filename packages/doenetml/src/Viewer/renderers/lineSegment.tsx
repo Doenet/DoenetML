@@ -4,6 +4,7 @@ import useDoenetRenderer from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
 import { DocContext } from "../DocViewer";
 import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
+import { getLineFamilyLabelPositionAttributes } from "./utils/jsxgraph";
 
 export default React.memo(function LineSegment(props) {
     let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
@@ -102,25 +103,8 @@ export default React.memo(function LineSegment(props) {
         };
 
         if (withlabel) {
-            let anchorx, anchory, offset;
-            if (SVs.labelPosition === "upperright") {
-                offset = [5, 5];
-                anchorx = "left";
-                anchory = "bottom";
-            } else if (SVs.labelPosition === "upperleft") {
-                offset = [-5, 5];
-                anchorx = "right";
-                anchory = "bottom";
-            } else if (SVs.labelPosition === "lowerright") {
-                offset = [5, -5];
-                anchorx = "left";
-                anchory = "top";
-            } else {
-                // lower left
-                offset = [-5, -5];
-                anchorx = "right";
-                anchory = "top";
-            }
+            const { offset, anchorx, anchory } =
+                getLineFamilyLabelPositionAttributes(SVs.labelPosition);
 
             jsxSegmentAttributes.label = {
                 offset,
@@ -718,25 +702,8 @@ export default React.memo(function LineSegment(props) {
                         "var(--canvasText)";
                 }
                 if (SVs.labelPosition !== previousLabelPosition.current) {
-                    let anchorx, anchory, offset;
-                    if (SVs.labelPosition === "upperright") {
-                        offset = [5, 5];
-                        anchorx = "left";
-                        anchory = "bottom";
-                    } else if (SVs.labelPosition === "upperleft") {
-                        offset = [-5, 5];
-                        anchorx = "right";
-                        anchory = "bottom";
-                    } else if (SVs.labelPosition === "lowerright") {
-                        offset = [5, -5];
-                        anchorx = "left";
-                        anchory = "top";
-                    } else {
-                        // lower left
-                        offset = [-5, -5];
-                        anchorx = "right";
-                        anchory = "top";
-                    }
+                    const { offset, anchorx, anchory } =
+                        getLineFamilyLabelPositionAttributes(SVs.labelPosition);
 
                     lineSegmentJXG.current.label.visProp.anchorx = anchorx;
                     lineSegmentJXG.current.label.visProp.anchory = anchory;

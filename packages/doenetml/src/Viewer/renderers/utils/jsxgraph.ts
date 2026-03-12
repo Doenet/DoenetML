@@ -309,3 +309,27 @@ export function removeNavigationButtons({ board, id }) {
     board.internaltouchend = [];
     board.internaltouchstart = [];
 }
+
+export function getLineFamilyLabelPositionAttributes(labelPosition) {
+    const positionMap = {
+        upperright: { offset: [5, 5], anchorx: "left", anchory: "bottom" },
+        upperleft: {
+            offset: [-5, 5],
+            anchorx: "right",
+            anchory: "bottom",
+        },
+        lowerright: { offset: [5, -5], anchorx: "left", anchory: "top" },
+        lowerleft: {
+            offset: [-5, -5],
+            anchorx: "right",
+            anchory: "top",
+        },
+        top: { offset: [0, 5], anchorx: "middle", anchory: "bottom" },
+        bottom: { offset: [0, -5], anchorx: "middle", anchory: "top" },
+        left: { offset: [-5, 0], anchorx: "right", anchory: "middle" },
+        right: { offset: [5, 0], anchorx: "left", anchory: "middle" },
+        center: { offset: [0, 0], anchorx: "middle", anchory: "middle" },
+    };
+
+    return positionMap[labelPosition] ?? positionMap.lowerleft;
+}
