@@ -233,6 +233,10 @@ export function addNavigationButtons({ board, id }) {
         "#" + cesc(id) + `_navigationbar`,
     );
 
+    if (!navigationBar) {
+        return;
+    }
+
     const addEvent = function (obj, type, fn) {
         const el = function () {
             return fn.apply(board, arguments);
@@ -296,11 +300,13 @@ export function addNavigationButtons({ board, id }) {
 }
 
 export function removeNavigationButtons({ board, id }) {
-    for (let i = 3; i >= 1; i--) {
-        const button = document.querySelector(
-            "#" + cesc(id) + `_navigationbar > :first-child`,
-        );
-        button.remove();
+    const navigationBar = document.querySelector(
+        "#" + cesc(id) + `_navigationbar`,
+    );
+
+    // Remove whatever buttons currently exist without assuming a fixed count.
+    while (navigationBar?.firstElementChild) {
+        navigationBar.firstElementChild.remove();
     }
 
     board.internalclick = [];
