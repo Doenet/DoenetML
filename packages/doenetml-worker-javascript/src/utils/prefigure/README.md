@@ -31,7 +31,7 @@ This folder contains graph-to-PreFigure conversion logic extracted from `Graph` 
    - Add a new `*Descendants` dependency with required `variableNames`.
   - If a variable is only present on some inherited subtypes, set `variablesOptional: true` on that dependency config.
    - Include it in the merged `descendants` array.
-4. Add/adjust tests in `src/test/tagSpecific/graph-prefigure.test.ts`
+4. Add/adjust tests in `src/test/prefigure/*.test.ts`
    - Cover happy path XML shape.
    - Cover warning cases if style/geometry fallbacks are expected.
 
@@ -66,13 +66,13 @@ Why `variablesOptional` matters:
 - Some base-type configs intentionally include subtype-only variables (for example `point` requesting `open` so endpoint-like points can render unfilled).
 - `variablesOptional: true` allows that dependency to resolve even when the variable does not exist on the base component.
 
-Regression tests in `graph-prefigure.test.ts` include a guard that fails when dedupe is removed and polygon-family shapes are duplicated.
+Regression tests in `src/test/prefigure/*.test.ts` include a guard that fails when dedupe is removed and polygon-family shapes are duplicated.
 
 ## Testing Guidance
 
-- Prefer focused tests in `graph-prefigure.test.ts` for conversion behavior.
+- Prefer focused tests in `src/test/prefigure/*.test.ts` for conversion behavior.
 - Validate both:
   - emitted XML fragments, and
   - warning presence/wording when applicable.
 - Run:
-  - `npm run test -- --run src/test/tagSpecific/graph-prefigure.test.ts`
+  - `npm run test -- --run src/test/prefigure/*.test.ts`

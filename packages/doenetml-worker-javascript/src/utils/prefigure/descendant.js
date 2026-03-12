@@ -18,11 +18,17 @@ import {
 } from "./components/polygon";
 import { convertAngleToPrefigure } from "./components/angle";
 
+/**
+ * Normalize warning-related arguments for converters that do not consume style attrs.
+ */
 function withWarnings(converter) {
     return ({ sv, handle, warnings, warningPrefix, warningPosition }) =>
         converter({ sv, handle, warnings, warningPrefix, warningPosition });
 }
 
+/**
+ * Normalize style + warning arguments for converters that consume style attrs.
+ */
 function withStyle(converter) {
     return ({
         sv,
