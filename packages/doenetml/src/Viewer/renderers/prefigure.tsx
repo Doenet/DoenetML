@@ -5,7 +5,90 @@ import {
     PREFIGURE_DIAGCESS_SCRIPT_URL,
 } from "./utils/prefigureConfig";
 
-const PREFIGURE_BUILD_DEBOUNCE_MS = 1000;
+const PREFIGURE_BUILD_DEBOUNCE_COLD_MS = 1000;
+const PREFIGURE_BUILD_DEBOUNCE_WARM_MS = 40;
+
+type PrefigureModule = typeof import("@doenet/prefigure");
+
+let prefigureModulePromise: Promise<PrefigureModule> | null = null;
+let prefigureWarmupPromise: Promise<PrefigureModule> | null = null;
+let prefigureReadyModule: PrefigureModule | null = null;
+
+type PrefigureBuildResult = {
+    svg: string;
+    annotationsXml: string;
+};
+
+function shouldLoadPrefigureFromCdn(): boolean {
+    return Boolean((globalThis as any).__DOENET_LOAD_PREFIGURE_FROM_CDN__);
+}
+
+function getPrefigureCdnUrl(): string {
+    return "https://cdn.jsdelivr.net/npm/@doenet/prefigure@latest/prefigure.js";
+}
+
+async function importPrefigureFromUrl(url: string): Promise<PrefigureModule> {
+    return import(/* @vite-ignore */ url);
+}
+
+async function getPrefigureModule() {
+    if (!prefigureModulePromise) {
+        if (shouldLoadPrefigureFromCdn()) {
+            prefigureModulePromise =
+                importPrefigureFromUrl(getPrefigureCdnUrl());
+        } else {
+            prefigureModulePromise = import("@doenet/prefigure");
+        }
+    }
+
+    return prefigureModulePromise;
+}
+
+async function startPrefigureWarmup() {
+    if (!prefigureWarmupPromise) {
+        prefigureWarmupPromise = (async () => {
+            const module = await getPrefigureModule();
+            await module.initPrefigure();
+            prefigureReadyModule = module;
+            console.log("[prefigure] WASM runtime ready");
+            return module;
+        })().catch((error) => {
+            // Keep fallback-to-service behavior and allow future retries.
+            prefigureWarmupPromise = null;
+            throw error;
+        });
+    }
+
+    return prefigureWarmupPromise;
+}
+
+function currentPrefigureDebounceMs() {
+    return prefigureReadyModule
+        ? PREFIGURE_BUILD_DEBOUNCE_WARM_MS
+        : PREFIGURE_BUILD_DEBOUNCE_COLD_MS;
+}
+
+async function buildWithPrefigureService(
+    diagramXML: string,
+    signal: AbortSignal,
+): Promise<PrefigureBuildResult> {
+    const response = await fetch(PREFIGURE_BUILD_ENDPOINT, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/xml",
+        },
+        body: diagramXML,
+        signal,
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP Error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    return data;
+}
 
 type DiagcessApi = {
     Base?: {
@@ -298,6 +381,13 @@ export default React.memo(function Prefigure({
         };
     }, []);
 
+    // Start warming up WASM immediately, but do not block first render.
+    useEffect(() => {
+        void startPrefigureWarmup().catch(() => {
+            // If warmup fails (e.g. CDN unreachable), keep server fallback active.
+        });
+    }, []);
+
     useEffect(() => {
         if (debounceTimerRef.current) {
             clearTimeout(debounceTimerRef.current);
@@ -322,30 +412,36 @@ export default React.memo(function Prefigure({
             const requestSequence = ++requestSequenceRef.current;
             const abortController = new AbortController();
             fetchAbortControllerRef.current = abortController;
+            const isWarmMode = Boolean(prefigureReadyModule);
 
-            setSvgMarkup("");
-            setSvgMessage("Building...");
-            setCmlContent("");
+            // In warm mode, keep the previous render on screen to avoid flash while
+            // the fast local compile is in progress.
+            if (!isWarmMode) {
+                setSvgMarkup("");
+                setSvgMessage("Building...");
+                setCmlContent("");
+            }
 
             try {
-                const response = await fetch(PREFIGURE_BUILD_ENDPOINT, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/xml",
-                    },
-                    body: diagramXML,
-                    signal: abortController.signal,
-                });
+                let data: PrefigureBuildResult;
 
-                if (requestSequence !== requestSequenceRef.current) {
-                    return;
+                if (prefigureReadyModule) {
+                    data = await prefigureReadyModule.compilePrefigure(
+                        diagramXML,
+                        {
+                            mode: "svg",
+                        },
+                    );
+                } else {
+                    data = await buildWithPrefigureService(
+                        diagramXML,
+                        abortController.signal,
+                    );
+                    // Keep warmup alive for future renders.
+                    void startPrefigureWarmup().catch(() => {
+                        // Keep server fallback active if warmup fails.
+                    });
                 }
-
-                if (!response.ok) {
-                    throw new Error(`HTTP Error: ${response.status}`);
-                }
-
-                const data = (await response.json()) as PrefigureBuildResponse;
 
                 if (requestSequence !== requestSequenceRef.current) {
                     return;
@@ -368,7 +464,7 @@ export default React.memo(function Prefigure({
                     setSvgMessage("Error: No SVG found in response.");
                 }
 
-                const cml = normalizeSerializedMarkup(data.xml);
+                const cml = normalizeSerializedMarkup(data.annotationsXml);
                 if (cml) {
                     setCmlContent(sanitizeAnnotationsMarkup(cml));
                 } else {
@@ -404,9 +500,10 @@ export default React.memo(function Prefigure({
             hasStartedBuildRef.current = true;
             void startBuild();
         } else {
+            const debounceMs = currentPrefigureDebounceMs();
             debounceTimerRef.current = setTimeout(
                 () => void startBuild(),
-                PREFIGURE_BUILD_DEBOUNCE_MS,
+                debounceMs,
             );
         }
 

@@ -17,7 +17,7 @@ export function installPrefigureBuildIntercept(responseForRequest) {
                 svg:
                     customResponse?.svg ??
                     `<svg xmlns=\"http://www.w3.org/2000/svg\"><text>${tracker.count}</text></svg>`,
-                xml: "<annotations></annotations>",
+                annotationsXml: "<annotations></annotations>",
             },
             delay: customResponse?.delay ?? 0,
         });
