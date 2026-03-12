@@ -32,6 +32,92 @@ function diagcessApi(): DiagcessApi | undefined {
     return (window as Window & { diagcess?: DiagcessApi }).diagcess;
 }
 
+const DIAGCESS_SCRIPT_MARKER_ATTR = "data-doenet-diagcess-script";
+const DIAGCESS_SCRIPT_LOADED_ATTR = "data-doenet-diagcess-loaded";
+let diagcessScriptLoadPromise: Promise<void> | null = null;
+
+function resolveScriptUrl(url: string): string {
+    return new URL(url, window.location.href).href;
+}
+
+function findDiagcessScript(): HTMLScriptElement | null {
+    const expectedUrl = resolveScriptUrl(PREFIGURE_DIAGCESS_SCRIPT_URL);
+    const scripts = Array.from(document.getElementsByTagName("script"));
+
+    for (const script of scripts) {
+        const matchesMarker =
+            script.getAttribute(DIAGCESS_SCRIPT_MARKER_ATTR) === "true";
+        const matchesUrl = script.src === expectedUrl;
+
+        if (matchesMarker || matchesUrl) {
+            return script;
+        }
+    }
+
+    return null;
+}
+
+function ensureDiagcessScriptLoaded(): Promise<void> {
+    if (diagcessApi()) {
+        return Promise.resolve();
+    }
+
+    if (diagcessScriptLoadPromise) {
+        return diagcessScriptLoadPromise;
+    }
+
+    diagcessScriptLoadPromise = new Promise<void>((resolve, reject) => {
+        const resolveLoaded = () => {
+            resolve();
+        };
+
+        const rejectLoad = () => {
+            diagcessScriptLoadPromise = null;
+            reject(new Error("Failed to load diagcess script."));
+        };
+
+        const existingScript = findDiagcessScript();
+        if (existingScript) {
+            if (
+                diagcessApi() ||
+                existingScript.getAttribute(DIAGCESS_SCRIPT_LOADED_ATTR) ===
+                    "true"
+            ) {
+                resolveLoaded();
+                return;
+            }
+
+            existingScript.addEventListener("load", resolveLoaded, {
+                once: true,
+            });
+            existingScript.addEventListener("error", rejectLoad, {
+                once: true,
+            });
+            return;
+        }
+
+        const script = document.createElement("script");
+        script.src = PREFIGURE_DIAGCESS_SCRIPT_URL;
+        script.type = "text/javascript";
+        script.async = true;
+        script.setAttribute(DIAGCESS_SCRIPT_MARKER_ATTR, "true");
+
+        script.addEventListener(
+            "load",
+            () => {
+                script.setAttribute(DIAGCESS_SCRIPT_LOADED_ATTR, "true");
+                resolveLoaded();
+            },
+            { once: true },
+        );
+
+        script.addEventListener("error", rejectLoad, { once: true });
+        document.head.appendChild(script);
+    });
+
+    return diagcessScriptLoadPromise;
+}
+
 function normalizeSerializedMarkup(value: unknown): string {
     if (typeof value !== "string") {
         return "";
@@ -186,6 +272,7 @@ export default React.memo(function Prefigure({
     const diagramXML = SVs.prefigureXML ?? SVs.childrenSource;
     const [svgContent, setSvgContent] = useState("Building...");
     const [cmlContent, setCmlContent] = useState("");
+    const [diagcessReady, setDiagcessReady] = useState(Boolean(diagcessApi()));
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const fetchAbortControllerRef = useRef<AbortController | null>(null);
     const requestSequenceRef = useRef(0);
@@ -193,21 +280,20 @@ export default React.memo(function Prefigure({
 
     // Load diagcess script
     useEffect(() => {
-        // Check if script is already loaded
-        if (diagcessApi()) {
-            return;
-        }
+        let active = true;
 
-        const script = document.createElement("script");
-        script.src = PREFIGURE_DIAGCESS_SCRIPT_URL;
-        script.type = "text/javascript";
-        script.async = true;
-
-        document.head.appendChild(script);
+        void ensureDiagcessScriptLoaded()
+            .then(() => {
+                if (active) {
+                    setDiagcessReady(true);
+                }
+            })
+            .catch((error) => {
+                console.error(error);
+            });
 
         return () => {
-            // Cleanup: remove script on unmount
-            document.head.removeChild(script);
+            active = false;
         };
     }, []);
 
@@ -336,6 +422,7 @@ export default React.memo(function Prefigure({
     useEffect(() => {
         // Call diagcess.Base.init() after content is set
         if (
+            diagcessReady &&
             svgContent &&
             svgContent !== "Building..." &&
             hasAnnotationsXml(cmlContent) &&
@@ -343,7 +430,7 @@ export default React.memo(function Prefigure({
         ) {
             diagcessApi()?.Base?.init?.();
         }
-    }, [svgContent, cmlContent]);
+    }, [svgContent, cmlContent, diagcessReady]);
 
     const contentStyle: React.CSSProperties = SVs.showBorder
         ? {
