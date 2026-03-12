@@ -55,12 +55,14 @@ const FILLED_COMPONENT_TYPES = new Set([
     "rectangle",
 ]);
 
+const NO_FILL_COMPONENT_TYPES = new Set(["polyline", "angle"]);
+
 function styleIncludesFill(componentType, sv) {
     if (FILLED_COMPONENT_TYPES.has(componentType)) {
         return Boolean(sv.filled);
     }
 
-    return componentType !== "angle";
+    return !NO_FILL_COMPONENT_TYPES.has(componentType);
 }
 
 const pointConverter = withWarnings(convertPointToPrefigure);

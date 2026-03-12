@@ -303,6 +303,8 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`<polygon `);
         expect(prefigureXML).toContain(`points="((0,0),(2,0),(1,1))"`);
         expect(prefigureXML).toContain(`closed="no"`);
+        expect(prefigureXML).not.toContain(`fill="`);
+        expect(prefigureXML).not.toContain(`fill-opacity="`);
     });
 
     it("renderer=prefigure includes fill attrs only when polygon is filled", async () => {
