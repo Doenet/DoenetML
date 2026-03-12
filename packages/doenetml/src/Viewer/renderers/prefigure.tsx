@@ -4,7 +4,6 @@ import {
     PREFIGURE_BUILD_ENDPOINT,
     PREFIGURE_DIAGCESS_SCRIPT_URL,
 } from "./utils/prefigureConfig";
-import { sizeToCSS } from "./utils/css";
 
 const PREFIGURE_BUILD_DEBOUNCE_COLD_MS = 1000;
 const PREFIGURE_BUILD_DEBOUNCE_WARM_MS = 40;
@@ -537,45 +536,40 @@ export default React.memo(function Prefigure({
         }
     }, [svgMarkup, cmlContent, diagcessReady]);
 
-    const hasRenderedSvg = /<svg[\s>]/i.test(svgMarkup);
-    const isBuilding = svgMessage === "Building...";
+    const frameStyle: React.CSSProperties = {
+        ...surfaceStyle,
+        overflow: "hidden",
+        backgroundColor: "var(--canvas)",
+        color: "var(--canvasText)",
+        boxSizing: "border-box",
+        border: SVs.showBorder ? "2px solid var(--canvasText)" : "none",
+        borderRadius: SVs.showBorder ? "10px" : undefined,
+    };
 
-    const contentStyle: React.CSSProperties =
-        SVs.showBorder && hasRenderedSvg
-            ? {
-                  ...surfaceStyle,
-                  border: "2px solid var(--canvasText)",
-                  borderRadius: "10px",
-                  overflow: "hidden",
-              }
-            : { ...surfaceStyle, overflow: "hidden" };
+    const svgContainerStyle: React.CSSProperties = {
+        width: "100%",
+        height: "100%",
+    };
 
-    const loadingSvgStyle: React.CSSProperties | undefined = isBuilding
-        ? {
-              width: sizeToCSS(SVs.width),
-              aspectRatio: String(SVs.aspectRatio),
-              maxWidth: "100%",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "var(--canvas)",
-              color: "var(--canvasText)",
-              border: SVs.showBorder ? "2px solid var(--canvasText)" : "none",
-              borderRadius: SVs.showBorder ? "10px" : undefined,
-              boxSizing: "border-box",
-          }
-        : undefined;
+    const svgMessageStyle: React.CSSProperties = {
+        ...svgContainerStyle,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+    };
 
     return (
-        <div id={id} className="ChemAccess-element" style={contentStyle}>
+        <div id={id} className="ChemAccess-element" style={frameStyle}>
             {svgMarkup ? (
                 <div
                     className="svg"
-                    style={loadingSvgStyle}
+                    style={svgContainerStyle}
                     dangerouslySetInnerHTML={{ __html: svgMarkup }}
                 />
             ) : (
-                <div className="svg">{svgMessage}</div>
+                <div className="svg" style={svgMessageStyle}>
+                    {svgMessage}
+                </div>
             )}
             <div
                 className="cml"
