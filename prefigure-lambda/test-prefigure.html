@@ -140,7 +140,7 @@
             svgContainer.textContent =
               "Error: No SVG found in response: " + JSON.stringify(data);
           }
-          const cml = data.xml;
+          const cml = data.annotationsXml;
 
           if (cml) {
             cmlContainer.innerHTML = cml;

@@ -12,7 +12,7 @@ The Lambda endpoint returns JSON and now treats `foo.xml` (annotations) as optio
 
 - **Success (`200`)**
     - `svg`: always present on success
-    - `xml`: annotation XML string or `null` when annotations are not produced
+    - `annotationsXml`: annotation XML string or `null` when annotations are not produced
     - `annotationsGenerated`: boolean flag indicating whether annotation XML exists
     - `cached`: whether result came from cache
     - `hash`: cache key
@@ -127,7 +127,7 @@ Current handler behavior summary:
 
 - Hybrid cache: RAM (L1) + DynamoDB (L2)
 - `foo.svg` is required for success; `foo.xml` (annotations) is optional
-- `xml` may be `null` with `annotationsGenerated: false`
+- `annotationsXml` may be `null` with `annotationsGenerated: false`
 - Error semantics:
   - `400`: `invalid_encoding`, `empty_body`
   - `422`: `build_failed`, `svg_missing`
@@ -140,7 +140,7 @@ Example successful response:
 {
   "cached": false,
   "hash": "...",
-  "xml": null,
+  "annotationsXml": null,
   "svg": "<svg ...>",
   "annotationsGenerated": false
 }

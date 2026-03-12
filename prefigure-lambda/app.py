@@ -136,7 +136,7 @@ def lambda_handler(event, context):
             'body': json.dumps({
                 'cached': True,
                 'hash': xml_hash,
-                'xml': cached_data['xml_content'],
+                'annotationsXml': cached_data['xml_content'],
                 'svg': cached_data['svg_content'],
                 'annotationsGenerated': bool(cached_data['xml_content'])
             })
@@ -215,7 +215,7 @@ def lambda_handler(event, context):
             'body': json.dumps({
                 'cached': False,
                 'hash': xml_hash,
-                'xml': xml_result,
+                'annotationsXml': xml_result,
                 'svg': svg_result,
                 'annotationsGenerated': bool(xml_result)
             })

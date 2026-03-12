@@ -34,7 +34,7 @@ Expected response:
 - HTTP status: `200`
 - JSON fields include:
   - `svg` (non-empty string)
-  - `xml` is `null`
+  - `annotationsXml` is `null`
   - `annotationsGenerated` is `false`
   - `cached` is `true` or `false`
 
@@ -44,7 +44,7 @@ Optional quick assert with `jq`:
 curl -sS -X POST "https://prefigure.doenet.org/build" \
   -H "Content-Type: application/xml" \
   --data-binary @/tmp/prefigure-empty.xml \
-| jq '{hasSvg:(.svg|type=="string" and (.svg|length>0)), xmlIsNull:(.xml==null), annotationsGenerated, cached}'
+| jq '{hasSvg:(.svg|type=="string" and (.svg|length>0)), annotationsXmlIsNull:(.annotationsXml==null), annotationsGenerated, cached}'
 ```
 
 ## 2) Error path: malformed XML + debug diagnostics
