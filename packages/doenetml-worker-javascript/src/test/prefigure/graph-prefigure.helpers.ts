@@ -1,3 +1,5 @@
+import "./graph-prefigure.setup";
+
 import { createTestCore } from "../utils/test-core";
 
 export const PREFIGURE_BUILD_URL = "https://prefigure.doenet.org/build";

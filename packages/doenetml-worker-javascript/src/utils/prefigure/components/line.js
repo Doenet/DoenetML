@@ -156,7 +156,10 @@ export function convertRayToPrefigure({
     warningPrefix,
     warningPosition,
 }) {
-    if (!Array.isArray(sv.numericalEndpoint) || !Array.isArray(sv.numericalThroughpoint)) {
+    if (
+        !Array.isArray(sv.numericalEndpoint) ||
+        !Array.isArray(sv.numericalThroughpoint)
+    ) {
         return null;
     }
 

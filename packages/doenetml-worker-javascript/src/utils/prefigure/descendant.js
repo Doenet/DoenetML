@@ -48,10 +48,15 @@ function withStyle(converter) {
         });
 }
 
+const FILLED_COMPONENT_TYPES = new Set([
+    "circle",
+    "polygon",
+    "triangle",
+    "rectangle",
+]);
+
 function styleIncludesFill(componentType, sv) {
-    if (
-        ["circle", "polygon", "triangle", "rectangle"].includes(componentType)
-    ) {
+    if (FILLED_COMPONENT_TYPES.has(componentType)) {
         return Boolean(sv.filled);
     }
 
@@ -68,10 +73,8 @@ const polylineConverter = withStyle(convertPolylineToPrefigure);
 const polygonConverter = withStyle(convertPolygonToPrefigure);
 const angleConverter = withWarnings(convertAngleToPrefigure);
 
-const convertByComponentType = {
+const baseConverters = {
     point: pointConverter,
-    endpoint: pointConverter,
-    equilibriumPoint: pointConverter,
     line: lineConverter,
     lineSegment: lineSegmentConverter,
     ray: rayConverter,
@@ -79,9 +82,22 @@ const convertByComponentType = {
     circle: circleConverter,
     polyline: polylineConverter,
     polygon: polygonConverter,
-    triangle: polygonConverter,
-    rectangle: polygonConverter,
     angle: angleConverter,
+};
+
+const converterAliases = {
+    endpoint: "point",
+    equilibriumPoint: "point",
+    triangle: "polygon",
+    rectangle: "polygon",
+};
+
+const convertByComponentType = {
+    ...baseConverters,
+    endpoint: baseConverters[converterAliases.endpoint],
+    equilibriumPoint: baseConverters[converterAliases.equilibriumPoint],
+    triangle: baseConverters[converterAliases.triangle],
+    rectangle: baseConverters[converterAliases.rectangle],
 };
 
 /**
