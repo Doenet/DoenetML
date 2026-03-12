@@ -1,4 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
+import {
+    PREFIGURE_BUILD_ENDPOINT,
+    PREFIGURE_DIAGCESS_SCRIPT_URL,
+} from "./utils/prefigureConfig";
 
 const PREFIGURE_BUILD_DEBOUNCE_MS = 1000;
 
@@ -158,8 +162,7 @@ export default React.memo(function Prefigure({
         }
 
         const script = document.createElement("script");
-        script.src =
-            "https://cdn.jsdelivr.net/npm/diagcess@1.4.0/dist/diagcess.js";
+        script.src = PREFIGURE_DIAGCESS_SCRIPT_URL;
         script.type = "text/javascript";
         script.async = true;
 
@@ -199,17 +202,14 @@ export default React.memo(function Prefigure({
             setCmlContent("");
 
             try {
-                const response = await fetch(
-                    "https://prefigure.doenet.org/build",
-                    {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/xml",
-                        },
-                        body: diagramXML,
-                        signal: abortController.signal,
+                const response = await fetch(PREFIGURE_BUILD_ENDPOINT, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/xml",
                     },
-                );
+                    body: diagramXML,
+                    signal: abortController.signal,
+                });
 
                 if (requestSequence !== requestSequenceRef.current) {
                     return;

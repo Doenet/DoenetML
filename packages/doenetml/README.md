@@ -30,6 +30,31 @@ Navigate to `localhost:5173`
 
 ## Development
 
+### PreFigure Renderer Configuration
+
+When using `renderer="prefigure"` on a graph, the viewer may load an external
+diagcess script and call a prefigure build endpoint. Both URLs are configurable
+via Vite environment variables:
+
+- `VITE_PREFIGURE_BUILD_ENDPOINT`
+- `VITE_PREFIGURE_DIAGCESS_SCRIPT_URL`
+
+If not provided, defaults are used from
+`src/Viewer/renderers/utils/prefigureConfig.ts`.
+
+### CSP Notes for PreFigure Renderer
+
+If your deployment enforces Content Security Policy, ensure the hosts for your
+configured prefigure endpoints are allowed:
+
+- `script-src` should allow `VITE_PREFIGURE_DIAGCESS_SCRIPT_URL` host
+- `connect-src` should allow `VITE_PREFIGURE_BUILD_ENDPOINT` host
+
+With defaults, this corresponds to:
+
+- `script-src https://cdn.jsdelivr.net`
+- `connect-src https://prefigure.doenet.org`
+
 ### Publishing
 
 Run
