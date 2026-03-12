@@ -148,11 +148,6 @@ export default function JSXGraphRenderer({
             container?.removeEventListener("focusout", keyFocusOutListener);
             container?.removeEventListener("keydown", keyDownListener);
             newBoard.off("boundingbox");
-
-            // Ensure board-level handlers/objects are torn down on unmount.
-            if (window?.JXG?.JSXGraph?.freeBoard) {
-                window.JXG.JSXGraph.freeBoard(newBoard);
-            }
         };
     }, []);
 
