@@ -27,6 +27,18 @@ export default defineConfig({
                     dest: "./",
                     transform: createPackageJsonTransformer(),
                 },
+                {
+                    src: "README.md",
+                    dest: "./",
+                },
+                {
+                    src: "NOTICE.md",
+                    dest: "./",
+                },
+                {
+                    src: "../../LICENSE",
+                    dest: "./",
+                },
             ],
         }),
         suppressLogPlugin(),

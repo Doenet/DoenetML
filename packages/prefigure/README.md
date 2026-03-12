@@ -6,6 +6,19 @@ Run the PreFigure Python compiler in the browser via Pyodide + Web Worker.
 This package can be loaded from NPM or from a CDN (jsDelivr) and provides a
 full-featured PreFigure XML → SVG compiler without server dependencies.
 
+## Attribution
+
+This package includes code adapted from the PreFigure project and its browser
+playground runtime:
+
+- Upstream repository: https://github.com/davidaustinm/prefigure
+- Project website: https://prefigure.org
+
+The upstream-derived worker/runtime pieces remain available under the GNU
+Affero General Public License, version 3 or later. DoenetML distributes this
+package under the same AGPL-3.0-or-later license and preserves attribution to
+the upstream PreFigure work. See `NOTICE.md` for package-specific provenance.
+
 ## Installation
 
 ```bash

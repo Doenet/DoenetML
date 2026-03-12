@@ -1,3 +1,13 @@
+/*
+ * Portions of this file were adapted from the PreFigure playground worker
+ * runtime in https://github.com/davidaustinm/prefigure
+ * (website/packages/playground/src/worker/compiler.ts).
+ *
+ * Upstream project website: https://prefigure.org
+ * Distributed here under AGPL-3.0-or-later with DoenetML-specific
+ * modifications.
+ */
+
 import { PyodideInterface, loadPyodide } from "pyodide";
 import { prefigBrowserApi } from "./compat-api";
 
