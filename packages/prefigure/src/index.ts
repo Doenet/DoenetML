@@ -1,5 +1,5 @@
 import * as Comlink from "comlink";
-import Worker from "./worker?worker";
+import Worker from "./worker?worker&inline";
 import type { api } from "./worker";
 import { PREFIG_WHEEL_FILENAME } from "./worker/compiler";
 
@@ -42,6 +42,13 @@ export function defaultPrefigureIndexUrl(): string {
     const moduleUrl = new URL(import.meta.url);
     const path = moduleUrl.pathname;
 
+    // When this package is linked into another Vite dev server, module URLs are
+    // often served from `/@fs/.../src/index.ts`. In that case, assets live in
+    // this package's `dist/assets/` directory, not in `../assets/`.
+    if (path.includes("/@fs/") && path.includes("/src/")) {
+        return new URL("../dist/assets/", moduleUrl).toString();
+    }
+
     // When consumed by another package's dev server, Vite may load this file from
     // `/@fs/.../packages/prefigure/src/index.ts` while assets live in `dist/assets/`.
     if (path.includes("/packages/prefigure/src/")) {
@@ -58,18 +65,8 @@ export function defaultPrefigureIndexUrl(): string {
 }
 
 function prefigureIndexUrlCandidates(): string[] {
-    const moduleUrl = new URL(import.meta.url);
-    const candidates = [
-        new URL("../dist/assets/", moduleUrl).toString(),
-        new URL("./assets/", moduleUrl).toString(),
-        new URL("../assets/", moduleUrl).toString(),
-    ];
-
-    if (typeof window !== "undefined") {
-        candidates.push(new URL("/assets/", window.location.href).toString());
-    }
-
-    return [...new Set(candidates)];
+    // Keep function to centralize resolution strategy and allow future extensions.
+    return [defaultPrefigureIndexUrl()];
 }
 
 async function resolveDefaultPrefigureIndexUrl(): Promise<string> {
@@ -77,30 +74,9 @@ async function resolveDefaultPrefigureIndexUrl(): Promise<string> {
         return resolvedDefaultIndexUrl;
     }
 
-    for (const candidate of prefigureIndexUrlCandidates()) {
-        try {
-            const probeUrl = new URL("pyodide.asm.js", candidate).toString();
-            const response = await fetch(probeUrl, {
-                method: "GET",
-                cache: "no-store",
-            });
-            if (response.ok) {
-                try {
-                    await response.body?.cancel();
-                } catch (_e) {
-                    // ignore
-                }
-                resolvedDefaultIndexUrl = candidate;
-                return candidate;
-            }
-        } catch (_e) {
-            // Ignore and continue trying candidates.
-        }
-    }
-
-    const fallback = defaultPrefigureIndexUrl();
-    resolvedDefaultIndexUrl = fallback;
-    return fallback;
+    const [indexUrl] = prefigureIndexUrlCandidates();
+    resolvedDefaultIndexUrl = indexUrl;
+    return indexUrl;
 }
 
 export async function initPrefigure(indexURL?: string) {

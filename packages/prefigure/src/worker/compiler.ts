@@ -81,7 +81,17 @@ export class PreFigureCompiler {
                     );
 
                     // Pre-import during warmup so the first user-triggered compile is fast.
-                    await this.pyodide.runPythonAsync("import prefig");
+                    await this.pyodide.runPythonAsync(`
+import logging
+import prefig
+
+# prefig.engine.build_from_string() forces logger level to DEBUG.
+# Clamp handler levels to ERROR so routine parsing logs stay silent.
+_prefigure_logger = logging.getLogger("prefigure")
+_prefigure_logger.propagate = False
+for _handler in _prefigure_logger.handlers:
+    _handler.setLevel(logging.ERROR)
+`);
                 } catch (e) {
                     throw new Error(
                         `Failed to load PreFigure wheel (${PREFIG_WHEEL_FILENAME}) from ${indexURL}. Make sure the wheel is present under the pyodide asset directory.`,

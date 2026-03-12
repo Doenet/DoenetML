@@ -4,6 +4,7 @@ import {
     PREFIGURE_BUILD_ENDPOINT,
     PREFIGURE_DIAGCESS_SCRIPT_URL,
 } from "./utils/prefigureConfig";
+import { sizeToCSS } from "./utils/css";
 
 const PREFIGURE_BUILD_DEBOUNCE_COLD_MS = 1000;
 const PREFIGURE_BUILD_DEBOUNCE_WARM_MS = 40;
@@ -24,7 +25,7 @@ function shouldLoadPrefigureFromCdn(): boolean {
 }
 
 function getPrefigureCdnUrl(): string {
-    return "https://cdn.jsdelivr.net/npm/@doenet/prefigure@latest/prefigure.js";
+    return "https://cdn.jsdelivr.net/npm/@doenet/prefigure@0.5.11-doenet.4/prefigure.js";
 }
 
 async function importPrefigureFromUrl(url: string): Promise<PrefigureModule> {
@@ -107,6 +108,8 @@ type PrefigureRendererProps = {
         prefigureXML?: string | null;
         childrenSource?: string | null;
         showBorder?: boolean;
+        width?: { size: string; isAbsolute: boolean };
+        aspectRatio?: number | string;
     };
     surfaceStyle: React.CSSProperties;
 };
@@ -383,8 +386,9 @@ export default React.memo(function Prefigure({
 
     // Start warming up WASM immediately, but do not block first render.
     useEffect(() => {
-        void startPrefigureWarmup().catch(() => {
+        void startPrefigureWarmup().catch((error) => {
             // If warmup fails (e.g. CDN unreachable), keep server fallback active.
+            console.error("[prefigure] warmup failed", error);
         });
     }, []);
 
@@ -438,8 +442,9 @@ export default React.memo(function Prefigure({
                         abortController.signal,
                     );
                     // Keep warmup alive for future renders.
-                    void startPrefigureWarmup().catch(() => {
+                    void startPrefigureWarmup().catch((error) => {
                         // Keep server fallback active if warmup fails.
+                        console.error("[prefigure] warmup failed", error);
                     });
                 }
 
@@ -532,19 +537,41 @@ export default React.memo(function Prefigure({
         }
     }, [svgMarkup, cmlContent, diagcessReady]);
 
-    const contentStyle: React.CSSProperties = SVs.showBorder
+    const hasRenderedSvg = /<svg[\s>]/i.test(svgMarkup);
+    const isBuilding = svgMessage === "Building...";
+
+    const contentStyle: React.CSSProperties =
+        SVs.showBorder && hasRenderedSvg
+            ? {
+                  ...surfaceStyle,
+                  border: "2px solid var(--canvasText)",
+                  borderRadius: "10px",
+                  overflow: "hidden",
+              }
+            : { ...surfaceStyle, overflow: "hidden" };
+
+    const loadingSvgStyle: React.CSSProperties | undefined = isBuilding
         ? {
-              ...surfaceStyle,
-              borderRadius: "10px",
-              overflow: "hidden",
+              width: sizeToCSS(SVs.width),
+              aspectRatio: String(SVs.aspectRatio),
+              maxWidth: "100%",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "var(--canvas)",
+              color: "var(--canvasText)",
+              border: SVs.showBorder ? "2px solid var(--canvasText)" : "none",
+              borderRadius: SVs.showBorder ? "10px" : undefined,
+              boxSizing: "border-box",
           }
-        : { ...surfaceStyle, overflow: "hidden" };
+        : undefined;
 
     return (
         <div id={id} className="ChemAccess-element" style={contentStyle}>
             {svgMarkup ? (
                 <div
                     className="svg"
+                    style={loadingSvgStyle}
                     dangerouslySetInnerHTML={{ __html: svgMarkup }}
                 />
             ) : (

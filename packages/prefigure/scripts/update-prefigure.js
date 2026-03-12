@@ -86,6 +86,17 @@ try {
 
     compilerContent = compilerContent.replace(oldPattern, newPattern);
     fs.writeFileSync(compilerPath, compilerContent);
+
+    const updatedCompilerContent = fs.readFileSync(compilerPath, "utf8");
+    const updatedMatch = updatedCompilerContent.match(
+        /export const PREFIG_WHEEL_FILENAME = "([^"]+)";/,
+    );
+    if (!updatedMatch || updatedMatch[1] !== wheelFile) {
+        throw new Error(
+            `Failed to update PREFIG_WHEEL_FILENAME in compiler.ts to ${wheelFile}`,
+        );
+    }
+
     console.log(
         `Updated PREFIG_WHEEL_FILENAME in compiler.ts to "${wheelFile}"\n`,
     );

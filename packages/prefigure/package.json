@@ -2,7 +2,7 @@
     "name": "@doenet/prefigure",
     "type": "module",
     "description": "Standalone PreFigure WASM compiler for browser and CDN usage",
-    "version": "0.5.11",
+    "version": "0.5.11-doenet.4",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
     "private": false,
@@ -28,8 +28,9 @@
         "smoke": "vite --host 127.0.0.1 --strictPort --port 4175",
         "smoke:build": "vite build && echo \"Smoke harness available in dev mode at /\"",
         "preview": "vite preview",
+        "verify-wheel-sync": "node scripts/verify-wheel-sync.js",
         "update-prefigure": "node scripts/update-prefigure.js",
-        "publish": "npm run build && cd dist && npm publish"
+        "publish": "npm run verify-wheel-sync && npm run build && cd dist && npm publish"
     },
     "wireit": {
         "build": {
@@ -38,7 +39,8 @@
                 "src/**/*.ts",
                 "tsconfig.json",
                 "vite.config.ts",
-                "pyodide_packages/**/*"
+                "pyodide_packages/**/*",
+                "package.json"
             ],
             "output": [
                 "dist/**/*.js",
