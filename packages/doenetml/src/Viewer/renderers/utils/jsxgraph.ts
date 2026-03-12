@@ -6,7 +6,8 @@ export function setMinorTicks(axis) {
     const ticks = axis.defaultTicks;
     const tickInterval = ticks.getDistanceMajorTicks();
 
-    const mag = 10 ** Math.floor(Math.log10(tickInterval)) * ticks.visProp.scale;
+    const mag =
+        10 ** Math.floor(Math.log10(tickInterval)) * ticks.visProp.scale;
 
     let minorTicks = 4;
 
@@ -228,7 +229,9 @@ export function createXAxis({
 }
 
 export function addNavigationButtons({ board, id }) {
-    const navigationBar = document.querySelector("#" + cesc(id) + `_navigationbar`);
+    const navigationBar = document.querySelector(
+        "#" + cesc(id) + `_navigationbar`,
+    );
 
     const addEvent = function (obj, type, fn) {
         const el = function () {
