@@ -327,24 +327,258 @@ export function removeNavigationButtons({ board, id }) {
 
 export function getLineFamilyLabelPositionAttributes(labelPosition) {
     const positionMap = {
-        upperright: { offset: [5, 5], anchorx: "left", anchory: "bottom" },
+        upperright: {
+            position: "urt",
+            offset: [0, 0],
+            anchorx: "left",
+            anchory: "bottom",
+        },
         upperleft: {
-            offset: [-5, 5],
+            position: "ulft",
+            offset: [0, 0],
             anchorx: "right",
             anchory: "bottom",
         },
-        lowerright: { offset: [5, -5], anchorx: "left", anchory: "top" },
+        lowerright: {
+            position: "lrt",
+            offset: [0, 0],
+            anchorx: "left",
+            anchory: "top",
+        },
         lowerleft: {
-            offset: [-5, -5],
+            position: "llft",
+            offset: [0, 0],
             anchorx: "right",
             anchory: "top",
         },
-        top: { offset: [0, 5], anchorx: "middle", anchory: "bottom" },
-        bottom: { offset: [0, -5], anchorx: "middle", anchory: "top" },
-        left: { offset: [-5, 0], anchorx: "right", anchory: "middle" },
-        right: { offset: [5, 0], anchorx: "left", anchory: "middle" },
-        center: { offset: [0, 0], anchorx: "middle", anchory: "middle" },
+        top: {
+            position: "top",
+            offset: [0, 0],
+            anchorx: "middle",
+            anchory: "bottom",
+        },
+        bottom: {
+            position: "bot",
+            offset: [0, 0],
+            anchorx: "middle",
+            anchory: "top",
+        },
+        left: {
+            position: "lft",
+            offset: [0, 0],
+            anchorx: "right",
+            anchory: "middle",
+        },
+        right: {
+            position: "rt",
+            offset: [0, 0],
+            anchorx: "left",
+            anchory: "middle",
+        },
+        center: {
+            position: "top",
+            offset: [0, 0],
+            anchorx: "middle",
+            anchory: "middle",
+        },
     };
 
-    return positionMap[labelPosition] ?? positionMap.lowerleft;
+    return positionMap[labelPosition] ?? positionMap.center;
+}
+
+export function adjustLineFamilyLabelAnchorXToStayInGraph({
+    board,
+    lineLike,
+    label,
+    anchorx,
+    offset,
+}) {
+    if (!board || !lineLike?.getLabelAnchor || !label?.size) {
+        return anchorx;
+    }
+
+    const anchor = lineLike.getLabelAnchor();
+    if (!anchor?.scrCoords) {
+        return anchorx;
+    }
+
+    const labelWidth = Number(label.size[0]);
+    const anchorScreenX = Number(anchor.scrCoords[1]);
+    if (!Number.isFinite(labelWidth) || !Number.isFinite(anchorScreenX)) {
+        return anchorx;
+    }
+
+    const offsetX = Number(offset?.[0] ?? 0);
+    const x = anchorScreenX + (Number.isFinite(offsetX) ? offsetX : 0);
+    const margin = 6;
+    const maxX = Number(board.canvasWidth) - margin;
+    const minX = margin;
+
+    if (!Number.isFinite(maxX) || maxX <= minX) {
+        return anchorx;
+    }
+
+    let leftX, rightX;
+    if (anchorx === "left") {
+        leftX = x;
+        rightX = x + labelWidth;
+    } else if (anchorx === "right") {
+        leftX = x - labelWidth;
+        rightX = x;
+    } else {
+        leftX = x - labelWidth / 2;
+        rightX = x + labelWidth / 2;
+    }
+
+    if (rightX > maxX && anchorx !== "right") {
+        return "right";
+    }
+
+    if (leftX < minX && anchorx !== "left") {
+        return "left";
+    }
+
+    return anchorx;
+}
+
+/**
+ * Build JSXGraph `label` attributes for line-family objects from Doenet state.
+ * Handles with/without label, optional MathJax, and label color styling.
+ */
+export function buildLineFamilyLabelAttributes({
+    labelForGraph,
+    labelPosition,
+    labelHasLatex,
+    applyStyleToLabel,
+    lineColor,
+}) {
+    if (labelForGraph !== "") {
+        const { position, offset, anchorx, anchory } =
+            getLineFamilyLabelPositionAttributes(labelPosition);
+
+        const labelAttributes = {
+            position,
+            offset,
+            anchorx,
+            anchory,
+            highlight: false,
+            strokeColor: applyStyleToLabel ? lineColor : "var(--canvasText)",
+        };
+
+        if (labelHasLatex) {
+            labelAttributes.useMathJax = true;
+        }
+
+        return labelAttributes;
+    }
+
+    const labelAttributes = {
+        highlight: false,
+    };
+
+    if (labelHasLatex) {
+        labelAttributes.useMathJax = true;
+    }
+
+    return labelAttributes;
+}
+
+/**
+ * Apply line-family label placement and edge-aware anchor correction.
+ *
+ * If placement does not change, optionally sets `needsUpdate` before a light
+ * `update()` call for renderers that require it.
+ */
+export function applyLineFamilyLabelPlacement({
+    board,
+    lineLike,
+    labelPosition,
+    forceFullUpdate = false,
+    setNeedsUpdateOnNoChange = false,
+}) {
+    if (!lineLike?.hasLabel || !lineLike.label) {
+        return;
+    }
+
+    const { position, offset, anchorx, anchory } =
+        getLineFamilyLabelPositionAttributes(labelPosition);
+    const adjustedAnchorx = adjustLineFamilyLabelAnchorXToStayInGraph({
+        board,
+        lineLike,
+        label: lineLike.label,
+        anchorx,
+        offset,
+    });
+
+    const offsetChanged =
+        lineLike.label.visProp.offset?.[0] !== offset[0] ||
+        lineLike.label.visProp.offset?.[1] !== offset[1];
+
+    const placementChanged =
+        lineLike.label.visProp.position !== position ||
+        lineLike.label.visProp.anchorx !== adjustedAnchorx ||
+        lineLike.label.visProp.anchory !== anchory ||
+        offsetChanged;
+
+    if (placementChanged || forceFullUpdate) {
+        lineLike.label.visProp.position = position;
+        lineLike.label.visProp.anchorx = adjustedAnchorx;
+        lineLike.label.visProp.anchory = anchory;
+        lineLike.label.visProp.offset = offset;
+        lineLike.label.fullUpdate();
+        return;
+    }
+
+    if (setNeedsUpdateOnNoChange) {
+        lineLike.label.needsUpdate = true;
+    }
+    lineLike.label.update();
+}
+
+/**
+ * Stabilize initial line-family label placement across async first-render
+ * timing (first paint, late font metrics, late layout settling).
+ */
+export function stabilizeInitialLineFamilyLabelPlacement({
+    board,
+    lineLike,
+    applyPlacement,
+    delayMs = 120,
+}) {
+    if (!lineLike?.hasLabel || !lineLike.label || !applyPlacement) {
+        return;
+    }
+
+    lineLike.needsUpdate = true;
+    lineLike.update?.();
+    lineLike.label.needsUpdate = true;
+    applyPlacement(true);
+    board?.updateRenderer?.();
+
+    const rerunPlacement = () => {
+        if (!lineLike?.hasLabel || !lineLike.label) {
+            return;
+        }
+        lineLike.label.needsUpdate = true;
+        applyPlacement(true);
+        board?.updateRenderer?.();
+    };
+
+    if (typeof requestAnimationFrame === "function") {
+        requestAnimationFrame(() => {
+            rerunPlacement();
+        });
+    } else {
+        rerunPlacement();
+    }
+
+    if (typeof document !== "undefined" && document.fonts?.ready) {
+        document.fonts.ready.then(() => {
+            rerunPlacement();
+        });
+    }
+
+    setTimeout(() => {
+        rerunPlacement();
+    }, delayMs);
 }

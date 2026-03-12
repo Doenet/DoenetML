@@ -8,7 +8,11 @@ import { textRendererStyle } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
 import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
 import { ChoiceInputInlineContext } from "./choiceInput";
-import { getLineFamilyLabelPositionAttributes } from "./utils/jsxgraph";
+import {
+    applyLineFamilyLabelPlacement,
+    buildLineFamilyLabelAttributes,
+    stabilizeInitialLineFamilyLabelPlacement,
+} from "./utils/jsxgraph";
 
 export default React.memo(function Line(props) {
     let { componentIdx, id, SVs, actions, callAction } =
@@ -99,35 +103,13 @@ export default React.memo(function Line(props) {
             highlight: !fixLocation.current,
         };
 
-        if (withlabel) {
-            const { offset, anchorx, anchory } =
-                getLineFamilyLabelPositionAttributes(SVs.labelPosition);
-
-            jsxLineAttributes.label = {
-                offset,
-                anchorx,
-                anchory,
-                position: "top",
-                highlight: false,
-            };
-
-            if (SVs.labelHasLatex) {
-                jsxLineAttributes.label.useMathJax = true;
-            }
-
-            if (SVs.applyStyleToLabel) {
-                jsxLineAttributes.label.strokeColor = lineColor;
-            } else {
-                jsxLineAttributes.label.strokeColor = "var(--canvasText)";
-            }
-        } else {
-            jsxLineAttributes.label = {
-                highlight: false,
-            };
-            if (SVs.labelHasLatex) {
-                jsxLineAttributes.label.useMathJax = true;
-            }
-        }
+        jsxLineAttributes.label = buildLineFamilyLabelAttributes({
+            labelForGraph: SVs.labelForGraph,
+            labelPosition: SVs.labelPosition,
+            labelHasLatex: SVs.labelHasLatex,
+            applyStyleToLabel: SVs.applyStyleToLabel,
+            lineColor,
+        });
 
         let through = [
             [...SVs.numericalPoints[0]],
@@ -311,9 +293,29 @@ export default React.memo(function Line(props) {
             }
         });
 
-        previousWithLabel.current = SVs.labelForGraph !== "";
-
         lineJXG.current = newLineJXG;
+
+        if (withlabel && newLineJXG.hasLabel) {
+            stabilizeInitialLineFamilyLabelPlacement({
+                board,
+                lineLike: newLineJXG,
+                applyPlacement: (forceFullUpdate) => {
+                    if (lineJXG.current !== newLineJXG || !newLineJXG.hasLabel) {
+                        return;
+                    }
+                    applyLineFamilyLabelPlacement({
+                        board,
+                        lineLike: newLineJXG,
+                        labelPosition: SVs.labelPosition,
+                        forceFullUpdate,
+                    });
+                },
+            });
+        }
+
+        previousWithLabel.current = SVs.labelForGraph !== "";
+        previousLabelPosition.current = SVs.labelPosition;
+
     }
 
     function boardMoveHandler(e) {
@@ -454,17 +456,14 @@ export default React.memo(function Line(props) {
                         "var(--canvasText)";
                 }
                 if (SVs.labelPosition !== previousLabelPosition.current) {
-                    const { offset, anchorx, anchory } =
-                        getLineFamilyLabelPositionAttributes(SVs.labelPosition);
-
-                    lineJXG.current.label.visProp.anchorx = anchorx;
-                    lineJXG.current.label.visProp.anchory = anchory;
-                    lineJXG.current.label.visProp.offset = offset;
                     previousLabelPosition.current = SVs.labelPosition;
-                    lineJXG.current.label.fullUpdate();
-                } else {
-                    lineJXG.current.label.update();
                 }
+
+                applyLineFamilyLabelPlacement({
+                    board,
+                    lineLike: lineJXG.current,
+                    labelPosition: SVs.labelPosition,
+                });
             }
             board.updateRenderer();
         }

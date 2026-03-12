@@ -9,6 +9,11 @@ import { DocContext } from "../DocViewer";
 import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
 import { JXGObject } from "./jsxgraph-distrib/types";
 import { ChoiceInputInlineContext } from "./choiceInput";
+import {
+    applyLineFamilyLabelPlacement,
+    buildLineFamilyLabelAttributes,
+    stabilizeInitialLineFamilyLabelPlacement,
+} from "./utils/jsxgraph";
 
 export default React.memo(function Vector(props: UseDoenetRendererProps) {
     let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
@@ -35,6 +40,7 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
     let tailcoords = useRef<number[] | null>(null);
 
     let previousWithLabel = useRef<boolean | null>(null);
+    let previousLabelPosition = useRef<string | null>(null);
 
     let lastPositionsFromCore = useRef<number[]>(SVs.numericalEndpoints);
     let fixed = useRef(false);
@@ -150,18 +156,13 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
             headPointAttributes,
         );
 
-        jsxVectorAttributes.label = {
-            highlight: false,
-        };
-        if (SVs.labelHasLatex) {
-            jsxVectorAttributes.label.useMathJax = true;
-        }
-
-        if (SVs.applyStyleToLabel) {
-            jsxVectorAttributes.label.strokeColor = lineColor;
-        } else {
-            jsxVectorAttributes.label.strokeColor = "var(--canvasText)";
-        }
+        jsxVectorAttributes.label = buildLineFamilyLabelAttributes({
+            labelForGraph: SVs.labelForGraph,
+            labelPosition: SVs.labelPosition,
+            labelHasLatex: SVs.labelHasLatex,
+            applyStyleToLabel: SVs.applyStyleToLabel,
+            lineColor,
+        });
 
         let newVectorJXG: JXGObject = board.create(
             "arrow",
@@ -405,6 +406,31 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
         vectorJXG.current = newVectorJXG;
         point1JXG.current = newPoint1JXG;
         point2JXG.current = newPoint2JXG;
+
+        if (SVs.labelForGraph !== "" && newVectorJXG.hasLabel) {
+            stabilizeInitialLineFamilyLabelPlacement({
+                board,
+                lineLike: newVectorJXG,
+                applyPlacement: (forceFullUpdate: boolean) => {
+                    if (
+                        vectorJXG.current !== newVectorJXG ||
+                        !newVectorJXG.hasLabel
+                    ) {
+                        return;
+                    }
+                    applyLineFamilyLabelPlacement({
+                        board,
+                        lineLike: newVectorJXG,
+                        labelPosition: SVs.labelPosition,
+                        forceFullUpdate,
+                        setNeedsUpdateOnNoChange: true,
+                    });
+                },
+            });
+        }
+
+        previousWithLabel.current = SVs.labelForGraph !== "";
+        previousLabelPosition.current = SVs.labelPosition;
     }
 
     function boardMoveHandler(e: { x: number; y: number }) {
@@ -718,8 +744,17 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
                     vectorJXG.current.label.visProp.strokecolor =
                         "var(--canvasText)";
                 }
-                vectorJXG.current.label.needsUpdate = true;
-                vectorJXG.current.label.update();
+
+                if (SVs.labelPosition !== previousLabelPosition.current) {
+                    previousLabelPosition.current = SVs.labelPosition;
+                }
+
+                applyLineFamilyLabelPlacement({
+                    board,
+                    lineLike: vectorJXG.current,
+                    labelPosition: SVs.labelPosition,
+                    setNeedsUpdateOnNoChange: true,
+                });
             }
 
             point1JXG.current.needsUpdate = true;
