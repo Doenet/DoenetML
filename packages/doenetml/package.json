@@ -63,7 +63,9 @@
         "react": "^19.2.3",
         "react-dom": "^19.2.3"
     },
-    "dependencies": {},
+    "dependencies": {
+        "dompurify": "^3.3.0"
+    },
     "prettier": {
         "tabWidth": 4
     }

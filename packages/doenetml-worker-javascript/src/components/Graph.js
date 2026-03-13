@@ -12,6 +12,10 @@ import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
+// PreFigure conversion architecture and extension guide:
+// see src/utils/prefigure/README.md
+import { returnGraphPrefigureXMLStateVariableDefinition } from "../utils/prefigure/stateVariable";
+
 export default class Graph extends BlockComponent {
     constructor(args) {
         super(args);
@@ -194,6 +198,16 @@ export default class Graph extends BlockComponent {
             createStateVariable: "decorative",
             defaultValue: false,
             public: true,
+            forRenderer: true,
+        };
+
+        attributes.renderer = {
+            createPrimitiveOfType: "string",
+            createStateVariable: "renderer",
+            validValues: ["doenet", "prefigure"],
+            defaultValue: "doenet",
+            public: true,
+            toLowerCase: true,
             forRenderer: true,
         };
 
@@ -527,6 +541,9 @@ export default class Graph extends BlockComponent {
             },
         };
 
+        stateVariableDefinitions.prefigureXML =
+            returnGraphPrefigureXMLStateVariableDefinition();
+
         stateVariableDefinitions.childIndicesToRender = {
             returnDependencies: () => ({
                 graphicalOrGraphChildren: {
@@ -793,6 +810,34 @@ export default class Graph extends BlockComponent {
                 return {
                     setValue: {
                         haveGraphParent: dependencyValues.graphParent !== null,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.effectiveRenderer = {
+            public: true,
+            forRenderer: true,
+            shadowingInstructions: {
+                createComponentOfType: "text",
+            },
+            returnDependencies: () => ({
+                renderer: {
+                    dependencyType: "stateVariable",
+                    variableName: "renderer",
+                },
+                graphParentRenderer: {
+                    dependencyType: "parentStateVariable",
+                    parentComponentType: "graph",
+                    variableName: "effectiveRenderer",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        effectiveRenderer:
+                            dependencyValues.graphParentRenderer ??
+                            dependencyValues.renderer,
                     },
                 };
             },

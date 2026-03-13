@@ -6,6 +6,7 @@ import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
+import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 
 export default class Ray extends GraphicalComponent {
     constructor(args) {
@@ -39,6 +40,8 @@ export default class Ray extends GraphicalComponent {
         attributes.direction = {
             createComponentOfType: "vector",
         };
+
+        attributes.labelPosition = returnLineFamilyLabelPositionAttribute();
 
         Object.assign(attributes, returnRoundingAttributes());
 

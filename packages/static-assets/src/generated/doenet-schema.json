@@ -38629,7 +38629,12 @@
                         "upperright",
                         "upperleft",
                         "lowerright",
-                        "lowerleft"
+                        "lowerleft",
+                        "center",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
                     ]
                 },
                 {
@@ -50079,7 +50084,12 @@
                         "upperright",
                         "upperleft",
                         "lowerright",
-                        "lowerleft"
+                        "lowerleft",
+                        "center",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
                     ]
                 }
             ],
@@ -50396,7 +50406,12 @@
                         "upperright",
                         "upperleft",
                         "lowerright",
-                        "lowerleft"
+                        "lowerleft",
+                        "center",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
                     ]
                 },
                 {
@@ -50663,6 +50678,20 @@
                     "name": "direction"
                 },
                 {
+                    "name": "labelPosition",
+                    "values": [
+                        "upperright",
+                        "upperleft",
+                        "lowerright",
+                        "lowerleft",
+                        "center",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -50723,6 +50752,11 @@
                 {
                     "name": "draggable",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "labelPosition",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -55035,6 +55069,20 @@
                     "name": "tail"
                 },
                 {
+                    "name": "labelPosition",
+                    "values": [
+                        "upperright",
+                        "upperleft",
+                        "lowerright",
+                        "lowerleft",
+                        "center",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
+                    ]
+                },
+                {
                     "name": "displayDigits"
                 },
                 {
@@ -55109,6 +55157,11 @@
                 {
                     "name": "draggable",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "labelPosition",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -60092,6 +60145,13 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "renderer",
+                    "values": [
+                        "doenet",
+                        "prefigure"
+                    ]
                 }
             ],
             "properties": [
@@ -60201,6 +60261,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "renderer",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -60266,6 +60331,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "prefigureXML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "size",
                     "type": "text",
                     "isArray": false
@@ -60278,6 +60348,11 @@
                 {
                     "name": "aspectRatio",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "effectiveRenderer",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -78494,7 +78569,12 @@
                         "upperright",
                         "upperleft",
                         "lowerright",
-                        "lowerleft"
+                        "lowerleft",
+                        "center",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
                     ]
                 },
                 {

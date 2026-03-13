@@ -15,6 +15,7 @@ import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
+import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 
 export default class Vector extends GraphicalComponent {
     constructor(args) {
@@ -71,6 +72,8 @@ export default class Vector extends GraphicalComponent {
         attributes.tail = {
             createComponentOfType: "point",
         };
+
+        attributes.labelPosition = returnLineFamilyLabelPositionAttribute();
 
         Object.assign(attributes, returnRoundingAttributes());
 

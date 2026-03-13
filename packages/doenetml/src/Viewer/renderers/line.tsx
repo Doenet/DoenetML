@@ -8,6 +8,7 @@ import { textRendererStyle } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
 import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
 import { ChoiceInputInlineContext } from "./choiceInput";
+import { getLineFamilyLabelPositionAttributes } from "./utils/jsxgraph";
 
 export default React.memo(function Line(props) {
     let { componentIdx, id, SVs, actions, callAction } =
@@ -99,25 +100,8 @@ export default React.memo(function Line(props) {
         };
 
         if (withlabel) {
-            let anchorx, anchory, offset;
-            if (SVs.labelPosition === "upperright") {
-                offset = [5, 5];
-                anchorx = "left";
-                anchory = "bottom";
-            } else if (SVs.labelPosition === "upperleft") {
-                offset = [-5, 5];
-                anchorx = "right";
-                anchory = "bottom";
-            } else if (SVs.labelPosition === "lowerright") {
-                offset = [5, -5];
-                anchorx = "left";
-                anchory = "top";
-            } else {
-                // lower left
-                offset = [-5, -5];
-                anchorx = "right";
-                anchory = "top";
-            }
+            const { offset, anchorx, anchory } =
+                getLineFamilyLabelPositionAttributes(SVs.labelPosition);
 
             jsxLineAttributes.label = {
                 offset,
@@ -470,25 +454,8 @@ export default React.memo(function Line(props) {
                         "var(--canvasText)";
                 }
                 if (SVs.labelPosition !== previousLabelPosition.current) {
-                    let anchorx, anchory, offset;
-                    if (SVs.labelPosition === "upperright") {
-                        offset = [5, 5];
-                        anchorx = "left";
-                        anchory = "bottom";
-                    } else if (SVs.labelPosition === "upperleft") {
-                        offset = [-5, 5];
-                        anchorx = "right";
-                        anchory = "bottom";
-                    } else if (SVs.labelPosition === "lowerright") {
-                        offset = [5, -5];
-                        anchorx = "left";
-                        anchory = "top";
-                    } else {
-                        // lower left
-                        offset = [-5, -5];
-                        anchorx = "right";
-                        anchory = "top";
-                    }
+                    const { offset, anchorx, anchory } =
+                        getLineFamilyLabelPositionAttributes(SVs.labelPosition);
 
                     lineJXG.current.label.visProp.anchorx = anchorx;
                     lineJXG.current.label.visProp.anchory = anchory;

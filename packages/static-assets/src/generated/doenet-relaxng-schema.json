@@ -63722,7 +63722,12 @@
                         "upperright",
                         "upperleft",
                         "lowerright",
-                        "lowerleft"
+                        "lowerleft",
+                        "center",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
                     ]
                 },
                 "stable": {
@@ -83629,7 +83634,12 @@
                         "upperright",
                         "upperleft",
                         "lowerright",
-                        "lowerleft"
+                        "lowerleft",
+                        "center",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
                     ]
                 }
             },
@@ -84209,7 +84219,12 @@
                         "upperright",
                         "upperleft",
                         "lowerright",
-                        "lowerleft"
+                        "lowerleft",
+                        "center",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
                     ]
                 },
                 "displayDigits": {
@@ -84516,6 +84531,20 @@
                         "string"
                     ]
                 },
+                "labelPosition": {
+                    "optional": true,
+                    "type": [
+                        "upperright",
+                        "upperleft",
+                        "lowerright",
+                        "lowerleft",
+                        "center",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -84601,6 +84630,11 @@
                 {
                     "name": "draggable",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "labelPosition",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -90123,6 +90157,20 @@
                         "string"
                     ]
                 },
+                "labelPosition": {
+                    "optional": true,
+                    "type": [
+                        "upperright",
+                        "upperleft",
+                        "lowerright",
+                        "lowerleft",
+                        "center",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
+                    ]
+                },
                 "displayDigits": {
                     "optional": true,
                     "type": [
@@ -90459,6 +90507,11 @@
                 {
                     "name": "draggable",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "labelPosition",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -97819,6 +97872,13 @@
                         "true",
                         "false"
                     ]
+                },
+                "renderer": {
+                    "optional": true,
+                    "type": [
+                        "doenet",
+                        "prefigure"
+                    ]
                 }
             },
             "children": [
@@ -98333,6 +98393,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "renderer",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "hidden",
                     "type": "boolean",
                     "isArray": false
@@ -98398,6 +98463,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "prefigureXML",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "size",
                     "type": "text",
                     "isArray": false
@@ -98410,6 +98480,11 @@
                 {
                     "name": "aspectRatio",
                     "type": "number",
+                    "isArray": false
+                },
+                {
+                    "name": "effectiveRenderer",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -130033,7 +130108,12 @@
                         "upperright",
                         "upperleft",
                         "lowerright",
-                        "lowerleft"
+                        "lowerleft",
+                        "center",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
                     ]
                 },
                 "data": {
