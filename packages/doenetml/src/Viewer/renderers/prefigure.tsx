@@ -357,7 +357,7 @@ export default React.memo(function Prefigure({
     useEffect(() => {
         let active = true;
 
-        void ensureDiagcessScriptLoaded()
+        ensureDiagcessScriptLoaded()
             .then(() => {
                 if (active) {
                     setDiagcessReady(true);
@@ -374,7 +374,7 @@ export default React.memo(function Prefigure({
 
     // Start warming up WASM immediately, but do not block first render.
     useEffect(() => {
-        void startPrefigureWarmup().catch((error) => {
+        startPrefigureWarmup().catch((error) => {
             // If warmup fails (e.g. CDN unreachable), keep server fallback active.
             console.error("[prefigure] warmup failed", error);
         });
@@ -430,7 +430,7 @@ export default React.memo(function Prefigure({
                         abortController.signal,
                     );
                     // Keep warmup alive for future renders.
-                    void startPrefigureWarmup().catch((error) => {
+                    startPrefigureWarmup().catch((error) => {
                         // Keep server fallback active if warmup fails.
                         console.error("[prefigure] warmup failed", error);
                     });
@@ -491,11 +491,17 @@ export default React.memo(function Prefigure({
 
         if (!hasStartedBuildRef.current) {
             hasStartedBuildRef.current = true;
-            void startBuild();
+            startBuild().catch((error) => {
+                console.error("[prefigure] build failed", error);
+            });
         } else {
             const debounceMs = currentPrefigureDebounceMs();
             debounceTimerRef.current = setTimeout(
-                () => void startBuild(),
+                () => {
+                    startBuild().catch((error) => {
+                        console.error("[prefigure] build failed", error);
+                    });
+                },
                 debounceMs,
             );
         }
