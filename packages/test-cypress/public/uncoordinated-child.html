@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Uncoordinated Child</title>
+        <style>
+            body {
+                margin: 8px;
+                font-family: Arial, sans-serif;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="doenetml-viewer">
+            <script type="text/doenetml">
+                <p name="hello">Hello world</p>
+                <p>Uncoordinated iframe test document.</p>
+                <graph>
+                    <point>(3,2)</point>
+                    <line through="(0,1) (1,2)" />
+                </graph>
+            </script>
+        </div>
+
+        <script type="module">
+            import {
+                injectStandaloneCss,
+                loadStandaloneScript,
+            } from "/standaloneBlobUrls.js";
+
+            async function main() {
+                await injectStandaloneCss();
+                await loadStandaloneScript();
+
+                const container = document.querySelector(".doenetml-viewer");
+                window.renderDoenetViewerToContainer(container);
+            }
+
+            void main();
+        </script>
+    </body>
+</html>

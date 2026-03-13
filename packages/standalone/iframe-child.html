@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>DoenetML Document</title>
+        <style>
+            body {
+                margin: 10px;
+                font-family: Arial, sans-serif;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="doenetml-viewer" data-doenet-enable-parent-coordination="true">
+            <script type="text/doenetml">
+                <p>This is a DoenetML document.</p>
+                <graph>
+                    <point>(2,3)</point>
+                    <line through="(0,0) (1,1)" />
+                </graph>
+            </script>
+        </div>
+        <script type="module">
+            import { renderDoenetViewerToContainer } from '/src/index.tsx';
+            document.addEventListener('DOMContentLoaded', () => {
+                document
+                    .querySelectorAll(".doenetml-viewer")
+                    .forEach((container) => {
+                        renderDoenetViewerToContainer(container);
+                    });
+            });
+        </script>
+    </body>
+</html>

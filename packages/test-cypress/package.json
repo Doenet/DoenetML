@@ -32,6 +32,7 @@
                 "src/**/*.ts",
                 "src/**/*.tsx",
                 "src/**/*.jsx",
+                "public/**/*",
                 "tsconfig.json",
                 "vite.config.ts"
             ],
@@ -43,7 +44,8 @@
             "dependencies": [
                 "../doenetml-prototype:build",
                 "../doenetml:build",
-                "../ui-components:build"
+                "../ui-components:build",
+                "../standalone:build"
             ]
         }
     },
