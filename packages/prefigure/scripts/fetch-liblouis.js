@@ -169,13 +169,18 @@ async function fetchBrailleTables() {
 }
 
 function removeLegacyRootFiles() {
-    const legacyFiles = ["build-no-tables-utf32.js", ...Object.keys(TABLE_FILES)];
+    const legacyFiles = [
+        "build-no-tables-utf32.js",
+        ...Object.keys(TABLE_FILES),
+    ];
 
     for (const filename of legacyFiles) {
         const legacyPath = path.join(LIBLOUIS_DIR, filename);
         if (fs.existsSync(legacyPath)) {
             fs.unlinkSync(legacyPath);
-            console.log(`  Removed legacy file: src/worker/liblouis/${filename}`);
+            console.log(
+                `  Removed legacy file: src/worker/liblouis/${filename}`,
+            );
         }
     }
 }
