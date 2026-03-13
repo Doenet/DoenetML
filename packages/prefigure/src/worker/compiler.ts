@@ -111,8 +111,10 @@ for _handler in _prefigure_logger.handlers:
      * multiple times with the same settings.
      */
     async init(options: Options = {}) {
-        // Wait for any other initialization to finish.
-        await this.pyodideInitPromise;
+        // Wait for an existing initialization only when there is one in flight.
+        if (this.pyodideInitPromise) {
+            await this.pyodideInitPromise;
+        }
 
         if (this.pyodide) {
             return;

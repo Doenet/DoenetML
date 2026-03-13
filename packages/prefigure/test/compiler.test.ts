@@ -114,4 +114,30 @@ describe("PreFigureCompiler", () => {
             annotations: "<annotations></annotations>",
         });
     });
+
+    it("coalesces concurrent init calls into one initialization", async () => {
+        const pyodide = createPyodideMock("https://cdn.example.com/assets/");
+        mocks.loadPyodideSpy.mockResolvedValue(pyodide);
+
+        let resolveLoadPackage: (() => void) | undefined;
+        const loadPackagePromise = new Promise<void>((resolve) => {
+            resolveLoadPackage = resolve;
+        });
+
+        mocks.loadPackageSpy.mockReturnValue(loadPackagePromise);
+        mocks.runPythonAsyncSpy.mockResolvedValue(undefined);
+
+        const { PreFigureCompiler } = await import("../src/worker/compiler");
+        const compiler = new PreFigureCompiler();
+
+        const init1 = compiler.init();
+        const init2 = compiler.init();
+
+        resolveLoadPackage?.();
+        await Promise.all([init1, init2]);
+
+        expect(mocks.loadPyodideSpy).toHaveBeenCalledTimes(1);
+        expect(mocks.loadPackageSpy).toHaveBeenCalledTimes(1);
+        expect(mocks.runPythonAsyncSpy).toHaveBeenCalledTimes(1);
+    });
 });
