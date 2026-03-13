@@ -18,9 +18,6 @@ export { React, ReactDOM, DoenetViewer, DoenetEditor };
 
 export const version: string = STANDALONE_VERSION;
 
-// Signal runtime code to load prefigure from the CDN rather than from a bundled dependency.
-(globalThis as any).__DOENET_LOAD_PREFIGURE_FROM_CDN__ = true;
-
 /**
  * Render DoenetViewer to a container element. If `doenetMLSource` is not provided,
  * it is assumed that `container` has a `<script type="text/doenetml">` child which

@@ -1,9 +1,30 @@
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { DoenetViewer, DoenetEditor } from "../src/index";
+// @ts-ignore
+import PREFIGURE_LOCAL_MODULE_URL from "@doenet/prefigure/prefigure.js?url";
 
 // @ts-ignore
 import doenetMLstring from "./testCode.doenet?raw";
+
+// Toggle this to switch prefigure source in dev.
+// `true`: load local prefigure build served by this dev server.
+// `false`: use runtime defaults (CDN module URL from prefigureConfig).
+const USE_LOCAL_PREFIGURE = true;
+
+if (USE_LOCAL_PREFIGURE) {
+    (globalThis as any).__DOENET_PREFIGURE_MODULE_URL__ = new URL(
+        PREFIGURE_LOCAL_MODULE_URL,
+        window.location.href,
+    ).toString();
+    (globalThis as any).__DOENET_PREFIGURE_INDEX_URL__ = new URL(
+        "./assets/",
+        (globalThis as any).__DOENET_PREFIGURE_MODULE_URL__,
+    ).toString();
+} else {
+    delete (globalThis as any).__DOENET_PREFIGURE_MODULE_URL__;
+    delete (globalThis as any).__DOENET_PREFIGURE_INDEX_URL__;
+}
 
 const root = createRoot(document.getElementById("root")!);
 root.render(<App />);

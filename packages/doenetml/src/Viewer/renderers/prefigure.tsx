@@ -3,6 +3,8 @@ import DOMPurify from "dompurify";
 import {
     PREFIGURE_BUILD_ENDPOINT,
     PREFIGURE_DIAGCESS_SCRIPT_URL,
+    PREFIGURE_INDEX_URL,
+    PREFIGURE_MODULE_URL,
 } from "./utils/prefigureConfig";
 
 const PREFIGURE_BUILD_DEBOUNCE_COLD_MS = 1000;
@@ -19,26 +21,13 @@ type PrefigureBuildResult = {
     annotationsXml: string;
 };
 
-function shouldLoadPrefigureFromCdn(): boolean {
-    return Boolean((globalThis as any).__DOENET_LOAD_PREFIGURE_FROM_CDN__);
-}
-
-function getPrefigureCdnUrl(): string {
-    return "https://cdn.jsdelivr.net/npm/@doenet/prefigure@0.5.11-doenet.4/prefigure.js";
-}
-
 async function importPrefigureFromUrl(url: string): Promise<PrefigureModule> {
     return import(/* @vite-ignore */ url);
 }
 
 async function getPrefigureModule() {
     if (!prefigureModulePromise) {
-        if (shouldLoadPrefigureFromCdn()) {
-            prefigureModulePromise =
-                importPrefigureFromUrl(getPrefigureCdnUrl());
-        } else {
-            prefigureModulePromise = import("@doenet/prefigure");
-        }
+        prefigureModulePromise = importPrefigureFromUrl(PREFIGURE_MODULE_URL);
     }
 
     return prefigureModulePromise;
@@ -48,7 +37,7 @@ async function startPrefigureWarmup() {
     if (!prefigureWarmupPromise) {
         prefigureWarmupPromise = (async () => {
             const module = await getPrefigureModule();
-            await module.initPrefigure();
+            await module.initPrefigure(PREFIGURE_INDEX_URL || undefined);
             prefigureReadyModule = module;
             console.log("[prefigure] WASM runtime ready");
             return module;

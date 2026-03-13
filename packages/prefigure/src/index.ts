@@ -40,27 +40,8 @@ function ensureWorkerApi() {
 
 export function defaultPrefigureIndexUrl(): string {
     const moduleUrl = new URL(import.meta.url);
-    const path = moduleUrl.pathname;
-
-    // When this package is linked into another Vite dev server, module URLs are
-    // often served from `/@fs/.../src/index.ts`. In that case, assets live in
-    // this package's `dist/assets/` directory, not in `../assets/`.
-    if (path.includes("/@fs/") && path.includes("/src/")) {
-        return new URL("../dist/assets/", moduleUrl).toString();
-    }
-
-    // When consumed by another package's dev server, Vite may load this file from
-    // `/@fs/.../packages/prefigure/src/index.ts` while assets live in `dist/assets/`.
-    if (path.includes("/packages/prefigure/src/")) {
-        return new URL("../dist/assets/", moduleUrl).toString();
-    }
-
-    // In Vite dev, module URL is typically `/src/index.ts` while copied assets are served at `/assets/`.
-    if (path.includes("/src/")) {
-        return new URL("../assets/", moduleUrl).toString();
-    }
-
-    // In built output, `prefigure.js` and `assets/` are siblings inside `dist/`.
+    // Default to sibling assets relative to the module URL.
+    // Callers can pass an explicit indexURL when loading prefigure from a non-standard location.
     return new URL("./assets/", moduleUrl).toString();
 }
 

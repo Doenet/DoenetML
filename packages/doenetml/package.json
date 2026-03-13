@@ -65,8 +65,7 @@
         "react-dom": "^19.2.3"
     },
     "dependencies": {
-        "dompurify": "^3.3.0",
-        "@doenet/prefigure": "^*"
+        "dompurify": "^3.3.0"
     },
     "prettier": {
         "tabWidth": 4
