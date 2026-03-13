@@ -9,6 +9,8 @@
     "exclude": [
         "./**/*.test.ts",
         "./**/*.stub.ts",
+        "test/**/*.ts",
+        "vitest.config.ts",
         "node_modules",
         "**/test/",
         "**/dist/**/*",

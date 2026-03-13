@@ -71,6 +71,23 @@ The page shows `PASS` when `compilePrefigure(...)` returns both:
 - SVG containing an `<svg>` element
 - annotations XML containing `<annotations>` or `<annotation>`
 
+## Automated Tests
+
+Run package tests:
+
+```bash
+npm run test -w @doenet/prefigure
+```
+
+Current coverage includes API-level behavior tests for:
+
+- default index URL resolution
+- `initPrefigure()` idempotency and conflicting-URL guard
+- `compilePrefigure()` delegation/result mapping
+
+The browser smoke harness remains useful as a manual runtime check for real
+Pyodide+WASM execution.
+
 ## Wheel Requirement
 
 Builds currently vendor wheels from `pyodide_packages/`. Before publishing,

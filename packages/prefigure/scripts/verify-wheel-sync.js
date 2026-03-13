@@ -7,59 +7,87 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-function fail(message) {
-    console.error(`❌ ${message}`);
-    process.exit(1);
-}
+export function verifyWheelSync({ compilerPath, pyodidePackagesDir }) {
+    if (!fs.existsSync(compilerPath)) {
+        throw new Error(`Missing compiler file: ${compilerPath}`);
+    }
 
-const compilerPath = path.join(__dirname, "..", "src", "worker", "compiler.ts");
-const pyodidePackagesDir = path.join(__dirname, "..", "pyodide_packages");
+    if (!fs.existsSync(pyodidePackagesDir)) {
+        throw new Error(
+            `Missing pyodide packages directory: ${pyodidePackagesDir}`,
+        );
+    }
 
-if (!fs.existsSync(compilerPath)) {
-    fail(`Missing compiler file: ${compilerPath}`);
-}
-
-if (!fs.existsSync(pyodidePackagesDir)) {
-    fail(`Missing pyodide packages directory: ${pyodidePackagesDir}`);
-}
-
-const compilerContent = fs.readFileSync(compilerPath, "utf8");
-const constantMatch = compilerContent.match(
-    /export const PREFIG_WHEEL_FILENAME = "([^"]+)";/,
-);
-
-if (!constantMatch) {
-    fail("Could not parse PREFIG_WHEEL_FILENAME from compiler.ts");
-}
-
-const configuredWheel = constantMatch[1];
-if (
-    !(configuredWheel.startsWith("prefig-") && configuredWheel.endsWith(".whl"))
-) {
-    fail(
-        `PREFIG_WHEEL_FILENAME is not a prefig wheel filename: ${configuredWheel}`,
+    const compilerContent = fs.readFileSync(compilerPath, "utf8");
+    const constantMatch = compilerContent.match(
+        /export const PREFIG_WHEEL_FILENAME = "([^"]+)";/,
     );
+
+    if (!constantMatch) {
+        throw new Error(
+            "Could not parse PREFIG_WHEEL_FILENAME from compiler.ts",
+        );
+    }
+
+    const configuredWheel = constantMatch[1];
+    if (
+        !(
+            configuredWheel.startsWith("prefig-") &&
+            configuredWheel.endsWith(".whl")
+        )
+    ) {
+        throw new Error(
+            `PREFIG_WHEEL_FILENAME is not a prefig wheel filename: ${configuredWheel}`,
+        );
+    }
+
+    const prefigWheels = fs
+        .readdirSync(pyodidePackagesDir)
+        .filter((f) => f.startsWith("prefig-") && f.endsWith(".whl"));
+
+    if (prefigWheels.length === 0) {
+        throw new Error("No prefig wheel found in pyodide_packages/");
+    }
+
+    if (prefigWheels.length > 1) {
+        throw new Error(
+            `Multiple prefig wheels found in pyodide_packages/: ${prefigWheels.join(", ")}`,
+        );
+    }
+
+    const packagedWheel = prefigWheels[0];
+    if (configuredWheel !== packagedWheel) {
+        throw new Error(
+            `Wheel mismatch: compiler.ts uses ${configuredWheel}, but pyodide_packages contains ${packagedWheel}`,
+        );
+    }
+
+    return configuredWheel;
 }
 
-const prefigWheels = fs
-    .readdirSync(pyodidePackagesDir)
-    .filter((f) => f.startsWith("prefig-") && f.endsWith(".whl"));
-
-if (prefigWheels.length === 0) {
-    fail("No prefig wheel found in pyodide_packages/");
-}
-
-if (prefigWheels.length > 1) {
-    fail(
-        `Multiple prefig wheels found in pyodide_packages/: ${prefigWheels.join(", ")}`,
+function runCli() {
+    const compilerPath = path.join(
+        __dirname,
+        "..",
+        "src",
+        "worker",
+        "compiler.ts",
     );
+    const pyodidePackagesDir = path.join(__dirname, "..", "pyodide_packages");
+
+    try {
+        const configuredWheel = verifyWheelSync({
+            compilerPath,
+            pyodidePackagesDir,
+        });
+        console.log(`✅ Prefigure wheel sync OK: ${configuredWheel}`);
+    } catch (error) {
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(`❌ ${message}`);
+        process.exit(1);
+    }
 }
 
-const packagedWheel = prefigWheels[0];
-if (configuredWheel !== packagedWheel) {
-    fail(
-        `Wheel mismatch: compiler.ts uses ${configuredWheel}, but pyodide_packages contains ${packagedWheel}`,
-    );
+if (process.argv[1] && path.resolve(process.argv[1]) === __filename) {
+    runCli();
 }
-
-console.log(`✅ Prefigure wheel sync OK: ${configuredWheel}`);
