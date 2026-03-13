@@ -28,18 +28,22 @@
         "smoke": "vite --host 127.0.0.1 --strictPort --port 4175",
         "smoke:build": "vite build && echo \"Smoke harness available in dev mode at /\"",
         "preview": "vite preview",
+        "setup": "node scripts/fetch-pyodide-packages.js && node scripts/fetch-liblouis.js",
         "verify-wheel-sync": "node scripts/verify-wheel-sync.js",
         "update-prefigure": "node scripts/update-prefigure.js",
-        "publish": "npm run verify-wheel-sync && npm run build && cd dist && npm publish"
+        "publish": "npm run build && npm run verify-wheel-sync && cd dist && npm publish"
     },
     "wireit": {
         "build": {
             "command": "vite build",
+            "dependencies": [
+                "fetch-wheels",
+                "fetch-liblouis"
+            ],
             "files": [
                 "src/**/*.ts",
                 "tsconfig.json",
                 "vite.config.ts",
-                "pyodide_packages/**/*",
                 "package.json"
             ],
             "output": [
@@ -48,6 +52,32 @@
                 "dist/**/*.json",
                 "dist/assets/**/*"
             ]
+        },
+        "fetch-wheels": {
+            "command": "node scripts/fetch-pyodide-packages.js",
+            "files": [
+                "scripts/fetch-pyodide-packages.js",
+                "../../package-lock.json",
+                "src/worker/compiler.ts"
+            ],
+            "output": [
+                "pyodide_packages/**/*"
+            ],
+            "clean": false
+        },
+        "fetch-liblouis": {
+            "command": "node scripts/fetch-liblouis.js",
+            "files": [
+                "scripts/fetch-liblouis.js"
+            ],
+            "output": [
+                "src/worker/liblouis/build-no-tables-utf32.js",
+                "src/worker/liblouis/*.cti",
+                "src/worker/liblouis/*.ctb",
+                "src/worker/liblouis/*.uti",
+                "src/worker/liblouis/*.dis"
+            ],
+            "clean": false
         }
     },
     "peerDependencies": {},

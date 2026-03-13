@@ -64,4 +64,14 @@ packages/docs-nextra/public/bundle
 .next
 cspell.json
 *.timestamp-*
+
+# prefigure: downloaded at build time by scripts/fetch-pyodide-packages.js
+packages/prefigure/pyodide_packages/
+
+# prefigure: downloaded at build time by scripts/fetch-liblouis.js
+packages/prefigure/src/worker/liblouis/build-no-tables-utf32.js
+packages/prefigure/src/worker/liblouis/*.cti
+packages/prefigure/src/worker/liblouis/*.ctb
+packages/prefigure/src/worker/liblouis/*.uti
+packages/prefigure/src/worker/liblouis/*.dis
 .cspell
