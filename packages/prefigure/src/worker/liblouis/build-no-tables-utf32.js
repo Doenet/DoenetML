@@ -3765,7 +3765,8 @@ var liblouisBuild = function (liblouisBuild) {
                     node.contents.set(
                         buffer.subarray(offset, offset + length),
                         position,
-                    ); // Use typed array write if available.
+                    );
+                // Use typed array write if available.
                 else {
                     for (var i = 0; i < length; i++) {
                         node.contents[position + i] = buffer[offset + i]; // Or fall back to manual write if not.

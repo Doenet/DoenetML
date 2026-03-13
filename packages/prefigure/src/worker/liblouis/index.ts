@@ -21,7 +21,10 @@ export function toBraille(
         contracted?: boolean;
     },
 ): string {
-    const { mode, contracted: compact } = { ...DEFAULT_OPTIONS, ...(options || {}) };
+    const { mode, contracted: compact } = {
+        ...DEFAULT_OPTIONS,
+        ...(options || {}),
+    };
 
     const table = compact ? "en-ueb-g2.ctb" : "en-ueb-g1.ctb";
 
