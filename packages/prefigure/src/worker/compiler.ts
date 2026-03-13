@@ -103,10 +103,11 @@ for _handler in _prefigure_logger.handlers:
     _handler.setLevel(logging.ERROR)
 `);
                 } catch (e) {
-                    throw new Error(
+                    const error = new Error(
                         `Failed to load PreFigure wheel (${PREFIG_WHEEL_FILENAME}) from ${indexURL}. Make sure the wheel is present under the pyodide asset directory.`,
-                        { cause: e as Error },
                     );
+                    (error as Error & { cause?: unknown }).cause = e;
+                    throw error;
                 }
             } catch (e) {
                 reject(e);
