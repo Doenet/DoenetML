@@ -325,7 +325,19 @@ export function removeNavigationButtons({ board, id }) {
     }
 }
 
-export function getLineFamilyLabelPositionAttributes(labelPosition) {
+/**
+ * Map Doenet line-family `labelPosition` values onto the JSXGraph placement
+ * tuple used by line-like labels.
+ *
+ * `position` selects the side of the line in JSXGraph's coordinate system,
+ * while `anchorx`/`anchory` and `offset` control how the rendered text box is
+ * aligned relative to that anchor point.
+ *
+ * `center` intentionally uses JSXGraph's `top` position with a centered anchor
+ * so the label stays attached to the line midpoint instead of being treated as
+ * a distinct side placement.
+ */
+export function getLineFamilyLabelPlacementSpec(labelPosition) {
     const positionMap = {
         upperright: {
             position: "urt",
@@ -454,7 +466,7 @@ export function buildLineFamilyLabelAttributes({
 }) {
     if (labelForGraph !== "") {
         const { position, offset, anchorx, anchory } =
-            getLineFamilyLabelPositionAttributes(labelPosition);
+            getLineFamilyLabelPlacementSpec(labelPosition);
 
         const labelAttributes = {
             position,
@@ -501,7 +513,7 @@ export function applyLineFamilyLabelPlacement({
     }
 
     const { position, offset, anchorx, anchory } =
-        getLineFamilyLabelPositionAttributes(labelPosition);
+        getLineFamilyLabelPlacementSpec(labelPosition);
     const adjustedAnchorx = adjustLineFamilyLabelAnchorXToStayInGraph({
         board,
         lineLike,
@@ -538,6 +550,9 @@ export function applyLineFamilyLabelPlacement({
 /**
  * Stabilize initial line-family label placement across async first-render
  * timing (first paint, late font metrics, late layout settling).
+ *
+ * `applyPlacement` may return `false` to indicate the line-like object is no
+ * longer current and that no renderer update should be triggered.
  */
 export function stabilizeInitialLineFamilyLabelPlacement({
     board,
@@ -546,26 +561,38 @@ export function stabilizeInitialLineFamilyLabelPlacement({
     delayMs = 120,
 }) {
     if (!lineLike?.hasLabel || !lineLike.label || !applyPlacement) {
-        return;
+        return () => {};
     }
+
+    let cancelled = false;
+    let animationFrameId = null;
+    let timeoutId = null;
+
+    const runPlacement = () => {
+        if (cancelled || !lineLike?.hasLabel || !lineLike.label) {
+            return false;
+        }
+
+        lineLike.label.needsUpdate = true;
+        const placementApplied = applyPlacement(true);
+        if (placementApplied === false) {
+            return false;
+        }
+
+        board?.updateRenderer?.();
+        return true;
+    };
 
     lineLike.needsUpdate = true;
     lineLike.update?.();
-    lineLike.label.needsUpdate = true;
-    applyPlacement(true);
-    board?.updateRenderer?.();
+    runPlacement();
 
     const rerunPlacement = () => {
-        if (!lineLike?.hasLabel || !lineLike.label) {
-            return;
-        }
-        lineLike.label.needsUpdate = true;
-        applyPlacement(true);
-        board?.updateRenderer?.();
+        runPlacement();
     };
 
     if (typeof requestAnimationFrame === "function") {
-        requestAnimationFrame(() => {
+        animationFrameId = requestAnimationFrame(() => {
             rerunPlacement();
         });
     } else {
@@ -578,7 +605,20 @@ export function stabilizeInitialLineFamilyLabelPlacement({
         });
     }
 
-    setTimeout(() => {
+    timeoutId = setTimeout(() => {
         rerunPlacement();
     }, delayMs);
+
+    return () => {
+        cancelled = true;
+        if (
+            animationFrameId !== null &&
+            typeof cancelAnimationFrame === "function"
+        ) {
+            cancelAnimationFrame(animationFrameId);
+        }
+        if (timeoutId !== null) {
+            clearTimeout(timeoutId);
+        }
+    };
 }

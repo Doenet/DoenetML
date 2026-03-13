@@ -40,7 +40,7 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
     let tailcoords = useRef<number[] | null>(null);
 
     let previousWithLabel = useRef<boolean | null>(null);
-    let previousLabelPosition = useRef<string | null>(null);
+    let cancelInitialLabelPlacement = useRef<(() => void) | null>(null);
 
     let lastPositionsFromCore = useRef<number[]>(SVs.numericalEndpoints);
     let fixed = useRef(false);
@@ -59,6 +59,7 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
     useEffect(() => {
         //On unmount
         return () => {
+            cancelInitialLabelPlacement.current?.();
             // if vector is defined
             if (vectorJXG.current !== null) {
                 deleteVectorJXG();
@@ -170,6 +171,9 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
             jsxVectorAttributes,
         );
         newVectorJXG.isDraggable = !fixLocation.current;
+
+        cancelInitialLabelPlacement.current?.();
+        cancelInitialLabelPlacement.current = null;
 
         newPoint1JXG.on("drag", (e: { x: number; y: number; type: string }) =>
             onDragHandler(e, 0),
@@ -408,7 +412,8 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
         point2JXG.current = newPoint2JXG;
 
         if (SVs.labelForGraph !== "" && newVectorJXG.hasLabel) {
-            stabilizeInitialLineFamilyLabelPlacement({
+            cancelInitialLabelPlacement.current =
+                stabilizeInitialLineFamilyLabelPlacement({
                 board,
                 lineLike: newVectorJXG,
                 applyPlacement: (forceFullUpdate: boolean) => {
@@ -416,7 +421,7 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
                         vectorJXG.current !== newVectorJXG ||
                         !newVectorJXG.hasLabel
                     ) {
-                        return;
+                        return false;
                     }
                     applyLineFamilyLabelPlacement({
                         board,
@@ -425,12 +430,12 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
                         forceFullUpdate,
                         setNeedsUpdateOnNoChange: true,
                     });
+                    return true;
                 },
             });
         }
 
         previousWithLabel.current = SVs.labelForGraph !== "";
-        previousLabelPosition.current = SVs.labelPosition;
     }
 
     function boardMoveHandler(e: { x: number; y: number }) {
@@ -529,6 +534,8 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
     }
 
     function deleteVectorJXG() {
+        cancelInitialLabelPlacement.current?.();
+        cancelInitialLabelPlacement.current = null;
         if (vectorJXG.current) {
             vectorJXG.current.off("drag");
             vectorJXG.current.off("down");
@@ -743,10 +750,6 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
                 } else {
                     vectorJXG.current.label.visProp.strokecolor =
                         "var(--canvasText)";
-                }
-
-                if (SVs.labelPosition !== previousLabelPosition.current) {
-                    previousLabelPosition.current = SVs.labelPosition;
                 }
 
                 applyLineFamilyLabelPlacement({

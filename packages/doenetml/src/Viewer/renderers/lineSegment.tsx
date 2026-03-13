@@ -28,7 +28,7 @@ export default React.memo(function LineSegment(props) {
     let pointerMovedSinceDown = useRef(false);
     let draggedPoint = useRef(null);
     let previousWithLabel = useRef(null);
-    let previousLabelPosition = useRef(null);
+    let cancelInitialLabelPlacement = useRef(null);
     let pointCoords = useRef(null);
     let downOnPoint = useRef(null);
 
@@ -48,6 +48,7 @@ export default React.memo(function LineSegment(props) {
     useEffect(() => {
         //On unmount
         return () => {
+            cancelInitialLabelPlacement.current?.();
             // if line is defined
             if (lineSegmentJXG.current) {
                 deleteLineSegmentJXG();
@@ -379,9 +380,13 @@ export default React.memo(function LineSegment(props) {
             }
         });
 
+        cancelInitialLabelPlacement.current?.();
+        cancelInitialLabelPlacement.current = null;
+
         if (withlabel && lineSegmentJXG.current.hasLabel) {
             const createdLineSegment = lineSegmentJXG.current;
-            stabilizeInitialLineFamilyLabelPlacement({
+            cancelInitialLabelPlacement.current =
+                stabilizeInitialLineFamilyLabelPlacement({
                 board,
                 lineLike: createdLineSegment,
                 applyPlacement: (forceFullUpdate) => {
@@ -390,7 +395,7 @@ export default React.memo(function LineSegment(props) {
                         lineSegmentJXG.current !== createdLineSegment ||
                         !lineSegmentJXG.current.hasLabel
                     ) {
-                        return;
+                        return false;
                     }
                     applyLineFamilyLabelPlacement({
                         board,
@@ -398,11 +403,11 @@ export default React.memo(function LineSegment(props) {
                         labelPosition: SVs.labelPosition,
                         forceFullUpdate,
                     });
+                    return true;
                 },
             });
         }
 
-        previousLabelPosition.current = SVs.labelPosition;
         previousWithLabel.current = withlabel;
 
         return lineSegmentJXG.current;
@@ -529,6 +534,8 @@ export default React.memo(function LineSegment(props) {
     }
 
     function deleteLineSegmentJXG() {
+        cancelInitialLabelPlacement.current?.();
+        cancelInitialLabelPlacement.current = null;
         lineSegmentJXG.current.off("drag");
         lineSegmentJXG.current.off("down");
         lineSegmentJXG.current.off("hit");
@@ -706,9 +713,6 @@ export default React.memo(function LineSegment(props) {
                 } else {
                     lineSegmentJXG.current.label.visProp.strokecolor =
                         "var(--canvasText)";
-                }
-                if (SVs.labelPosition !== previousLabelPosition.current) {
-                    previousLabelPosition.current = SVs.labelPosition;
                 }
 
                 applyLineFamilyLabelPlacement({

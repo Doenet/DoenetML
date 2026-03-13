@@ -27,7 +27,7 @@ export default React.memo(function Ray(props) {
     let dragged = useRef(false);
 
     let previousWithLabel = useRef(null);
-    let previousLabelPosition = useRef(null);
+    let cancelInitialLabelPlacement = useRef(null);
     let pointCoords = useRef(null);
 
     let lastEndpointFromCore = useRef(null);
@@ -45,6 +45,7 @@ export default React.memo(function Ray(props) {
     useEffect(() => {
         //On unmount
         return () => {
+            cancelInitialLabelPlacement.current?.();
             // if ray is defined
             if (Object.keys(rayJXG.current).length !== 0) {
                 deleteRayJXG();
@@ -110,6 +111,9 @@ export default React.memo(function Ray(props) {
             [...SVs.numericalEndpoint],
             [...SVs.numericalThroughpoint],
         ];
+
+        cancelInitialLabelPlacement.current?.();
+        cancelInitialLabelPlacement.current = null;
 
         let newRayJXG = board.create("line", through, jsxRayAttributes);
         newRayJXG.isDraggable = !fixLocation.current;
@@ -266,12 +270,13 @@ export default React.memo(function Ray(props) {
         rayJXG.current = newRayJXG;
 
         if (SVs.labelForGraph !== "" && newRayJXG.hasLabel) {
-            stabilizeInitialLineFamilyLabelPlacement({
+            cancelInitialLabelPlacement.current =
+                stabilizeInitialLineFamilyLabelPlacement({
                 board,
                 lineLike: newRayJXG,
                 applyPlacement: (forceFullUpdate) => {
                     if (rayJXG.current !== newRayJXG || !newRayJXG.hasLabel) {
-                        return;
+                        return false;
                     }
                     applyLineFamilyLabelPlacement({
                         board,
@@ -280,12 +285,12 @@ export default React.memo(function Ray(props) {
                         forceFullUpdate,
                         setNeedsUpdateOnNoChange: true,
                     });
+                    return true;
                 },
             });
         }
 
         previousWithLabel.current = SVs.labelForGraph !== "";
-        previousLabelPosition.current = SVs.labelPosition;
     }
 
     function boardMoveHandler(e) {
@@ -303,6 +308,8 @@ export default React.memo(function Ray(props) {
     }
 
     function deleteRayJXG() {
+        cancelInitialLabelPlacement.current?.();
+        cancelInitialLabelPlacement.current = null;
         rayJXG.current.off("drag");
         rayJXG.current.off("down");
         rayJXG.current.off("hit");
@@ -423,10 +430,6 @@ export default React.memo(function Ray(props) {
                 } else {
                     rayJXG.current.label.visProp.strokecolor =
                         "var(--canvasText)";
-                }
-
-                if (SVs.labelPosition !== previousLabelPosition.current) {
-                    previousLabelPosition.current = SVs.labelPosition;
                 }
 
                 applyLineFamilyLabelPlacement({
