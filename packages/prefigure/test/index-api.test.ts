@@ -67,6 +67,25 @@ describe("@doenet/prefigure API", () => {
         ).rejects.toThrow(/already initialized with a different indexURL/i);
     });
 
+    it("allows retry after transient init failure", async () => {
+        const mod = await import("../src/index");
+
+        mocks.initSpy.mockReset();
+        mocks.initSpy
+            .mockRejectedValueOnce(new Error("transient init failure"))
+            .mockResolvedValueOnce(undefined);
+
+        await expect(
+            mod.initPrefigure("https://cdn.example.com/retry-assets/"),
+        ).rejects.toThrow(/transient init failure/);
+
+        await expect(
+            mod.initPrefigure("https://cdn.example.com/retry-assets/"),
+        ).resolves.toBeUndefined();
+
+        expect(mocks.initSpy).toHaveBeenCalledTimes(2);
+    });
+
     it("compilePrefigure delegates to worker compile", async () => {
         const mod = await import("../src/index");
 

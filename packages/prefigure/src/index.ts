@@ -47,6 +47,12 @@ export function defaultPrefigureIndexUrl(): string {
     return new URL("./assets/", import.meta.url).toString();
 }
 
+/**
+ * Initialize the prefigure worker runtime.
+ *
+ * Initialization is idempotent for the same `indexURL` and rejects if called
+ * again with a different URL after a successful initialization.
+ */
 export async function initPrefigure(indexURL?: string) {
     const effectiveIndexUrl = indexURL ?? defaultPrefigureIndexUrl();
 
@@ -70,11 +76,21 @@ export async function initPrefigure(indexURL?: string) {
             indexURL: normalizedIndexUrl,
         });
         initializedIndexUrl = normalizedIndexUrl;
-    })();
+    })().catch((error) => {
+        // Allow retries after transient initialization failures.
+        initPromise = null;
+        throw error;
+    });
 
     return initPromise;
 }
 
+/**
+ * Compile PreFigure XML into SVG and annotations XML.
+ *
+ * This ensures the worker runtime is initialized before delegating to the
+ * worker `compile` method.
+ */
 export async function compilePrefigure(
     source: string,
     options: PrefigureCompileOptions = {},

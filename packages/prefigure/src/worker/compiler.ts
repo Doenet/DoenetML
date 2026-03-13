@@ -31,67 +31,44 @@ export class PreFigureCompiler {
         }
     }
 
-    /**
-     * Initialize the compiler. This is safe to call multiple times.
-     */
-    async init(options: Options = {}) {
-        // Wait for any other initialization to finish
-        await this.pyodideInitPromise;
-        // Don't accidentally initialize a second time!
-        if (this.pyodide) {
-            return;
+    private normalizeIndexUrl(pyodide: PyodideInterface): string {
+        // Accessing this internal field is currently required to align package
+        // downloads with the runtime index URL.
+        const rawIndexUrl = (pyodide as any)._api.config.indexURL as string;
+        if (rawIndexUrl.endsWith("/")) {
+            return rawIndexUrl;
         }
+        return `${rawIndexUrl}/`;
+    }
 
-        this.pyodideInitPromise = new Promise(async (resolve, reject) => {
-            try {
-                // Prefer `._pyodide` over creating a new pyodide instance
-                // since `._pyodide` was provided by the user.
-                this.pyodide =
-                    (await this._pyodide) || (await loadPyodide(options));
+    private async loadPrefigureDependencies(
+        pyodide: PyodideInterface,
+        indexURL: string,
+    ) {
+        const prefigPath = indexURL + PREFIG_WHEEL_FILENAME;
 
-                // There may be some MathJax etc. setup that needs to be done
-                await prefigBrowserApi.initFinished;
+        try {
+            await pyodide.loadPackage(
+                [
+                    "micropip",
+                    "packaging",
+                    "lxml",
+                    "numpy",
+                    "scipy",
+                    "shapely",
+                    "click",
+                    "networkx",
+                    prefigPath,
+                ],
+                {
+                    messageCallback: () => {
+                        // Silence Pyodide package progress logs in production usage.
+                    },
+                },
+            );
 
-                // Set up our global compatibility API so it can be imported from Python with `import prefigBrowserApi`
-                this.pyodide.registerJsModule(
-                    "prefigBrowserApi",
-                    prefigBrowserApi,
-                );
-
-                // We want to make sure to load the prefig package from the same location that we are loading all
-                // the other packages from. This is accessing the internal `._api` from pyodide and might break in the
-                // future.
-                let indexURL = (this.pyodide as any)._api.config
-                    .indexURL as string;
-                if (!indexURL.endsWith("/")) {
-                    indexURL += "/";
-                }
-
-                const prefigPath = indexURL + PREFIG_WHEEL_FILENAME;
-
-                // Load all the dependencies
-                try {
-                    await this.pyodide.loadPackage(
-                        [
-                            "micropip",
-                            "packaging",
-                            "lxml",
-                            "numpy",
-                            "scipy",
-                            "shapely",
-                            "click",
-                            "networkx",
-                            prefigPath,
-                        ],
-                        {
-                            messageCallback: () => {
-                                // Silence Pyodide package progress logs in production usage.
-                            },
-                        },
-                    );
-
-                    // Pre-import during warmup so the first user-triggered compile is fast.
-                    await this.pyodide.runPythonAsync(`
+            // Pre-import during warmup so the first user-triggered compile is fast.
+            await pyodide.runPythonAsync(`
 import logging
 import prefig
 
@@ -102,18 +79,49 @@ _prefigure_logger.propagate = False
 for _handler in _prefigure_logger.handlers:
     _handler.setLevel(logging.ERROR)
 `);
-                } catch (e) {
-                    const error = new Error(
-                        `Failed to load PreFigure wheel (${PREFIG_WHEEL_FILENAME}) from ${indexURL}. Make sure the wheel is present under the pyodide asset directory.`,
-                    );
-                    (error as Error & { cause?: unknown }).cause = e;
-                    throw error;
-                }
-            } catch (e) {
-                reject(e);
-            }
+        } catch (e) {
+            const error = new Error(
+                `Failed to load PreFigure wheel (${PREFIG_WHEEL_FILENAME}) from ${indexURL}. Make sure the wheel is present under the pyodide asset directory.`,
+            );
+            (error as Error & { cause?: unknown }).cause = e;
+            throw error;
+        }
+    }
 
-            resolve();
+    private async initialize(options: Options) {
+        // Prefer `._pyodide` over creating a new pyodide instance since
+        // `._pyodide` was provided by the user.
+        const pyodide = (await this._pyodide) || (await loadPyodide(options));
+
+        // There may be some MathJax etc. setup that needs to be done.
+        await prefigBrowserApi.initFinished;
+
+        // Set up our global compatibility API so it can be imported from
+        // Python with `import prefigBrowserApi`.
+        pyodide.registerJsModule("prefigBrowserApi", prefigBrowserApi);
+
+        const indexURL = this.normalizeIndexUrl(pyodide);
+        await this.loadPrefigureDependencies(pyodide, indexURL);
+
+        this.pyodide = pyodide;
+    }
+
+    /**
+     * Initialize the compiler runtime. This is idempotent and safe to call
+     * multiple times with the same settings.
+     */
+    async init(options: Options = {}) {
+        // Wait for any other initialization to finish.
+        await this.pyodideInitPromise;
+
+        if (this.pyodide) {
+            return;
+        }
+
+        this.pyodideInitPromise = this.initialize(options).catch((error) => {
+            // Allow retries after transient init failures.
+            this.pyodideInitPromise = null;
+            throw error;
         });
 
         await this.pyodideInitPromise;

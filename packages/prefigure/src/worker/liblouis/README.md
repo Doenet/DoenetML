@@ -1,4 +1,4 @@
-The node package for liblouis does not work in a modern browser.
+The Node package for liblouis does not work in a modern browser.
 This module uses browser-compatible assets from
 https://github.com/liblouis/js-build.
 
@@ -11,7 +11,7 @@ with one line appended at the end:
 ```
 export { liblouisBuild as capi };
 ```
-This makes it importable into Javascript modules.
+This makes it importable into JavaScript modules.
 
 `easy-api.ts` is reimplemented from `easy-api.js` with Doenet-specific changes.
 At runtime, it copies generated table files into Emscripten's in-memory FS
