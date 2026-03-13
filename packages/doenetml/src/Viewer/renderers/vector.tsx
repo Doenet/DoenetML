@@ -414,25 +414,25 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
         if (SVs.labelForGraph !== "" && newVectorJXG.hasLabel) {
             cancelInitialLabelPlacement.current =
                 stabilizeInitialLineFamilyLabelPlacement({
-                board,
-                lineLike: newVectorJXG,
-                applyPlacement: (forceFullUpdate: boolean) => {
-                    if (
-                        vectorJXG.current !== newVectorJXG ||
-                        !newVectorJXG.hasLabel
-                    ) {
-                        return false;
-                    }
-                    applyLineFamilyLabelPlacement({
-                        board,
-                        lineLike: newVectorJXG,
-                        labelPosition: SVs.labelPosition,
-                        forceFullUpdate,
-                        setNeedsUpdateOnNoChange: true,
-                    });
-                    return true;
-                },
-            });
+                    board,
+                    lineLike: newVectorJXG,
+                    applyPlacement: (forceFullUpdate: boolean) => {
+                        if (
+                            vectorJXG.current !== newVectorJXG ||
+                            !newVectorJXG.hasLabel
+                        ) {
+                            return false;
+                        }
+                        applyLineFamilyLabelPlacement({
+                            board,
+                            lineLike: newVectorJXG,
+                            labelPosition: SVs.labelPosition,
+                            forceFullUpdate,
+                            setNeedsUpdateOnNoChange: true,
+                        });
+                        return true;
+                    },
+                });
         }
 
         previousWithLabel.current = SVs.labelForGraph !== "";

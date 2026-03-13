@@ -387,25 +387,25 @@ export default React.memo(function LineSegment(props) {
             const createdLineSegment = lineSegmentJXG.current;
             cancelInitialLabelPlacement.current =
                 stabilizeInitialLineFamilyLabelPlacement({
-                board,
-                lineLike: createdLineSegment,
-                applyPlacement: (forceFullUpdate) => {
-                    if (
-                        !lineSegmentJXG.current ||
-                        lineSegmentJXG.current !== createdLineSegment ||
-                        !lineSegmentJXG.current.hasLabel
-                    ) {
-                        return false;
-                    }
-                    applyLineFamilyLabelPlacement({
-                        board,
-                        lineLike: lineSegmentJXG.current,
-                        labelPosition: SVs.labelPosition,
-                        forceFullUpdate,
-                    });
-                    return true;
-                },
-            });
+                    board,
+                    lineLike: createdLineSegment,
+                    applyPlacement: (forceFullUpdate) => {
+                        if (
+                            !lineSegmentJXG.current ||
+                            lineSegmentJXG.current !== createdLineSegment ||
+                            !lineSegmentJXG.current.hasLabel
+                        ) {
+                            return false;
+                        }
+                        applyLineFamilyLabelPlacement({
+                            board,
+                            lineLike: lineSegmentJXG.current,
+                            labelPosition: SVs.labelPosition,
+                            forceFullUpdate,
+                        });
+                        return true;
+                    },
+                });
         }
 
         previousWithLabel.current = withlabel;

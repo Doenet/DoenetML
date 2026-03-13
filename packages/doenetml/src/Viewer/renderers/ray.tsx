@@ -272,22 +272,25 @@ export default React.memo(function Ray(props) {
         if (SVs.labelForGraph !== "" && newRayJXG.hasLabel) {
             cancelInitialLabelPlacement.current =
                 stabilizeInitialLineFamilyLabelPlacement({
-                board,
-                lineLike: newRayJXG,
-                applyPlacement: (forceFullUpdate) => {
-                    if (rayJXG.current !== newRayJXG || !newRayJXG.hasLabel) {
-                        return false;
-                    }
-                    applyLineFamilyLabelPlacement({
-                        board,
-                        lineLike: newRayJXG,
-                        labelPosition: SVs.labelPosition,
-                        forceFullUpdate,
-                        setNeedsUpdateOnNoChange: true,
-                    });
-                    return true;
-                },
-            });
+                    board,
+                    lineLike: newRayJXG,
+                    applyPlacement: (forceFullUpdate) => {
+                        if (
+                            rayJXG.current !== newRayJXG ||
+                            !newRayJXG.hasLabel
+                        ) {
+                            return false;
+                        }
+                        applyLineFamilyLabelPlacement({
+                            board,
+                            lineLike: newRayJXG,
+                            labelPosition: SVs.labelPosition,
+                            forceFullUpdate,
+                            setNeedsUpdateOnNoChange: true,
+                        });
+                        return true;
+                    },
+                });
         }
 
         previousWithLabel.current = SVs.labelForGraph !== "";
