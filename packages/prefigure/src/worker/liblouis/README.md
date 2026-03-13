@@ -13,7 +13,8 @@ export { liblouisBuild as capi };
 ```
 This makes it importable into JavaScript modules.
 
-`easy-api.ts` is reimplemented from `easy-api.js` with Doenet-specific changes.
+`easy-api.ts` is adapted from the PreFigure playground's
+`src/worker/liblouis/easy-api.ts` with package-specific adaptations.
 At runtime, it copies generated table files into Emscripten's in-memory FS
 under `/liblouis/tables` and passes absolute table paths to liblouis.
 

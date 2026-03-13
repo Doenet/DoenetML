@@ -1,3 +1,17 @@
+/*
+ * Portions of this file were adapted from the PreFigure playground worker
+ * runtime in https://github.com/davidaustinm/prefigure
+ * (website/packages/playground/src/worker/liblouis/easy-api.ts).
+ *
+ * Upstream project website: https://prefigure.org
+ * Distributed here under AGPL-3.0-or-later with package-specific
+ * adaptations.
+ *
+ * Adaptations in this package include importing liblouis and table assets from
+ * `./generated/`, copying tables into Emscripten's in-memory FS, and resolving
+ * absolute table paths used by translation calls.
+ */
+
 // @ts-nocheck
 // @ts-ignore
 import { capi } from "./generated/build-no-tables-utf32.js";

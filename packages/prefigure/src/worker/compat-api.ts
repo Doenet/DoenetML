@@ -4,8 +4,8 @@
  * (website/packages/playground/src/worker/compat-api.ts).
  *
  * Upstream project website: https://prefigure.org
- * Distributed here under AGPL-3.0-or-later with DoenetML-specific
- * modifications.
+ * Distributed here under AGPL-3.0-or-later with package-specific
+ * adaptations.
  */
 
 import { toBraille } from "./liblouis";

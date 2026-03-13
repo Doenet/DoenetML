@@ -15,9 +15,9 @@ playground runtime:
 - Project website: https://prefigure.org
 
 The upstream-derived worker/runtime pieces remain available under the GNU
-Affero General Public License, version 3 or later. DoenetML distributes this
-package under the same AGPL-3.0-or-later license and preserves attribution to
-the upstream PreFigure work. See `NOTICE.md` for package-specific provenance.
+Affero General Public License, version 3 or later. This package is distributed
+under the same AGPL-3.0-or-later license and preserves attribution to the
+upstream PreFigure work. See `NOTICE.md` for package-specific provenance.
 
 ## Installation
 
