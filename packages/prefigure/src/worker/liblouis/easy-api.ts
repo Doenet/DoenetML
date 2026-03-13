@@ -1,48 +1,48 @@
 // @ts-nocheck
 // @ts-ignore
-import { capi } from "./build-no-tables-utf32.js";
+import { capi } from "./generated/build-no-tables-utf32.js";
 export { capi };
-import TABLE_DATA_1 from "./en-ueb-g1.ctb?raw";
-import TABLE_DATA_2 from "./en-ueb-g2.ctb?raw";
-import TABLE_DATA_3 from "./en-ueb-chardefs.uti?raw";
-import TABLE_DATA_4 from "./en-ueb-math.ctb?raw";
-import TABLE_DATA_5 from "./text_nabcc.dis?raw";
-import TABLE_DATA_6 from "./spaces.uti?raw";
-import TABLE_DATA_7 from "./latinLetterDef6Dots.uti?raw";
-import TABLE_DATA_8 from "./latinUppercaseComp6.uti?raw";
-import TABLE_DATA_9 from "./braille-patterns.cti?raw";
-const TABLE_NAME_1 = "en-ueb-g1.ctb";
-const TABLE_NAME_2 = "en-ueb-g2.ctb";
-const TABLE_NAME_3 = "en-ueb-chardefs.uti";
-const TABLE_NAME_4 = "en-ueb-math.ctb";
-const TABLE_NAME_5 = "text_nabcc.dis";
-const TABLE_NAME_6 = "spaces.uti";
-const TABLE_NAME_7 = "latinLetterDef6Dots.uti";
-const TABLE_NAME_8 = "latinUppercaseComp6.uti";
-const TABLE_NAME_9 = "braille-patterns.cti";
-const TABLE_FOLDER = "/usr/local/share/liblouis/tables";
+import TABLE_DATA_1 from "./generated/en-ueb-g1.ctb?raw";
+import TABLE_DATA_2 from "./generated/en-ueb-g2.ctb?raw";
+import TABLE_DATA_3 from "./generated/en-ueb-chardefs.uti?raw";
+import TABLE_DATA_4 from "./generated/en-ueb-math.ctb?raw";
+import TABLE_DATA_5 from "./generated/text_nabcc.dis?raw";
+import TABLE_DATA_6 from "./generated/spaces.uti?raw";
+import TABLE_DATA_7 from "./generated/latinLetterDef6Dots.uti?raw";
+import TABLE_DATA_8 from "./generated/latinUppercaseComp6.uti?raw";
+import TABLE_DATA_9 from "./generated/braille-patterns.cti?raw";
+
+const TABLE_FOLDER = "/liblouis/tables";
+const TABLES = [
+    ["en-ueb-g1.ctb", TABLE_DATA_1],
+    ["en-ueb-g2.ctb", TABLE_DATA_2],
+    ["en-ueb-chardefs.uti", TABLE_DATA_3],
+    ["en-ueb-math.ctb", TABLE_DATA_4],
+    ["text_nabcc.dis", TABLE_DATA_5],
+    ["spaces.uti", TABLE_DATA_6],
+    ["latinLetterDef6Dots.uti", TABLE_DATA_7],
+    ["latinUppercaseComp6.uti", TABLE_DATA_8],
+    ["braille-patterns.cti", TABLE_DATA_9],
+] as const;
 
 let tablesInitialized = false;
 export function initTables() {
     if (tablesInitialized) {
         return;
     }
+
+    // This path is inside Emscripten's in-memory FS, not the host filesystem.
     capi.FS.mkdirTree(TABLE_FOLDER);
-    const tables = [
-        [TABLE_NAME_1, TABLE_DATA_1],
-        [TABLE_NAME_2, TABLE_DATA_2],
-        [TABLE_NAME_3, TABLE_DATA_3],
-        [TABLE_NAME_4, TABLE_DATA_4],
-        [TABLE_NAME_5, TABLE_DATA_5],
-        [TABLE_NAME_6, TABLE_DATA_6],
-        [TABLE_NAME_7, TABLE_DATA_7],
-        [TABLE_NAME_8, TABLE_DATA_8],
-        [TABLE_NAME_9, TABLE_DATA_9],
-    ];
-    for (const [name, data] of tables) {
+
+    for (const [name, data] of TABLES) {
         capi.FS.writeFile(TABLE_FOLDER + "/" + name, data);
     }
+
     tablesInitialized = true;
+}
+
+function resolveTablePath(table: "en-ueb-g2.ctb" | "en-ueb-g1.ctb") {
+    return `${TABLE_FOLDER}/${table}`;
 }
 
 export function version() {
@@ -196,7 +196,7 @@ export function translateString(
         "number",
         ["string", "number", "number", "number", "number", "number", "number"],
         [
-            table,
+            resolveTablePath(table),
             inbuff_ptr,
             strlen_ptr,
             outbuff_ptr,

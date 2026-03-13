@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
  * Download the liblouis JS binary and braille translation tables into
- * src/worker/liblouis/ from the liblouis/js-build GitHub repository.
+ * src/worker/liblouis/generated/ from the liblouis/js-build GitHub repository.
  *
  * The JS binary (build-no-tables-utf32.js) requires a one-line export shim
  * appended to it so it can be imported as an ES module. This is documented
  * in src/worker/liblouis/README.md.
  *
- * To upgrade liblouis: change LIBLOUIS_TAG and update the sha256 entries below
+ * To upgrade liblouis: change LIBLOUIS_REF and update the sha256 entries below
  * to match the new tag's file contents (run the script once with CHECK_HASHES=false
  * to download, then recompute hashes and re-enable verification).
  *
@@ -25,6 +25,7 @@ const __dirname = path.dirname(__filename);
 
 const PACKAGE_ROOT = path.join(__dirname, "..");
 const LIBLOUIS_DIR = path.join(PACKAGE_ROOT, "src", "worker", "liblouis");
+const GENERATED_DIR = path.join(LIBLOUIS_DIR, "generated");
 
 // ---------------------------------------------------------------------------
 // Version pin
@@ -104,7 +105,7 @@ function verifyHash(buffer, expected, label) {
 // ---------------------------------------------------------------------------
 
 async function fetchLiblouisJs() {
-    const destPath = path.join(LIBLOUIS_DIR, "build-no-tables-utf32.js");
+    const destPath = path.join(GENERATED_DIR, "build-no-tables-utf32.js");
     const url = `${RAW_BASE}/build-no-tables-utf32.js`;
 
     // Check if we already have the correct version: verify hash of content
@@ -143,7 +144,7 @@ async function fetchBrailleTables() {
     let skipped = 0;
 
     for (const [filename, expectedSha256] of Object.entries(TABLE_FILES)) {
-        const destPath = path.join(LIBLOUIS_DIR, filename);
+        const destPath = path.join(GENERATED_DIR, filename);
 
         if (fs.existsSync(destPath)) {
             const existing = sha256hex(fs.readFileSync(destPath));
@@ -167,14 +168,28 @@ async function fetchBrailleTables() {
     );
 }
 
+function removeLegacyRootFiles() {
+    const legacyFiles = ["build-no-tables-utf32.js", ...Object.keys(TABLE_FILES)];
+
+    for (const filename of legacyFiles) {
+        const legacyPath = path.join(LIBLOUIS_DIR, filename);
+        if (fs.existsSync(legacyPath)) {
+            fs.unlinkSync(legacyPath);
+            console.log(`  Removed legacy file: src/worker/liblouis/${filename}`);
+        }
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
 async function main() {
     console.log(`Fetching liblouis ${LIBLOUIS_REF} assets...`);
+    fs.mkdirSync(GENERATED_DIR, { recursive: true });
     await fetchLiblouisJs();
     await fetchBrailleTables();
+    removeLegacyRootFiles();
     console.log("Done.");
 }
 

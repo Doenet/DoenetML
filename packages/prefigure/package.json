@@ -30,7 +30,6 @@
         "preview": "vite preview",
         "setup": "node scripts/fetch-pyodide-packages.js && node scripts/fetch-liblouis.js",
         "verify-wheel-sync": "node scripts/verify-wheel-sync.js",
-        "update-prefigure": "node scripts/update-prefigure.js",
         "publish": "npm run build && npm run verify-wheel-sync && cd dist && npm publish"
     },
     "wireit": {
@@ -71,11 +70,11 @@
                 "scripts/fetch-liblouis.js"
             ],
             "output": [
-                "src/worker/liblouis/build-no-tables-utf32.js",
-                "src/worker/liblouis/*.cti",
-                "src/worker/liblouis/*.ctb",
-                "src/worker/liblouis/*.uti",
-                "src/worker/liblouis/*.dis"
+                "src/worker/liblouis/generated/build-no-tables-utf32.js",
+                "src/worker/liblouis/generated/*.cti",
+                "src/worker/liblouis/generated/*.ctb",
+                "src/worker/liblouis/generated/*.uti",
+                "src/worker/liblouis/generated/*.dis"
             ],
             "clean": false
         }

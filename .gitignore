@@ -69,9 +69,9 @@ cspell.json
 packages/prefigure/pyodide_packages/
 
 # prefigure: downloaded at build time by scripts/fetch-liblouis.js
-packages/prefigure/src/worker/liblouis/build-no-tables-utf32.js
-packages/prefigure/src/worker/liblouis/*.cti
-packages/prefigure/src/worker/liblouis/*.ctb
-packages/prefigure/src/worker/liblouis/*.uti
-packages/prefigure/src/worker/liblouis/*.dis
+packages/prefigure/src/worker/liblouis/generated/build-no-tables-utf32.js
+packages/prefigure/src/worker/liblouis/generated/*.cti
+packages/prefigure/src/worker/liblouis/generated/*.ctb
+packages/prefigure/src/worker/liblouis/generated/*.uti
+packages/prefigure/src/worker/liblouis/generated/*.dis
 .cspell

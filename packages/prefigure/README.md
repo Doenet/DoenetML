@@ -76,3 +76,68 @@ The page shows `PASS` when `compilePrefigure(...)` returns both:
 Builds currently vendor wheels from `pyodide_packages/`. Before publishing,
 ensure a matching `prefig-<version>-py3-none-any.whl` is present there.
 At runtime, `initPrefigure()` defaults to loading from `./assets/`.
+
+## Repository Hygiene
+
+These directories/files in `packages/prefigure` are generated and safe to
+delete locally:
+
+- `dist/`
+- `pyodide_packages/`
+- `.wireit/`
+- `src/worker/liblouis/generated/build-no-tables-utf32.js`
+- `src/worker/liblouis/generated/*.cti`
+- `src/worker/liblouis/generated/*.ctb`
+- `src/worker/liblouis/generated/*.uti`
+- `src/worker/liblouis/generated/*.dis`
+
+They are re-created by build/setup scripts and are already ignored by the
+repository `.gitignore`.
+
+## Maintenance Procedures
+
+### First-time setup
+
+```bash
+npm run setup -w @doenet/prefigure
+```
+
+This downloads:
+
+- runtime Pyodide wheels and the pinned `prefig` wheel into `pyodide_packages/`
+- liblouis JS/tables into `src/worker/liblouis/generated/`
+
+### Normal build + publish checks
+
+```bash
+npm run build -w @doenet/prefigure
+npm run verify-wheel-sync -w @doenet/prefigure
+```
+
+`verify-wheel-sync` ensures `src/worker/compiler.ts` and
+`pyodide_packages/` reference the same `prefig` wheel.
+
+### Upgrade `prefig` wheel version
+
+1. Update `PREFIG_WHEEL_FILENAME` in `src/worker/compiler.ts`.
+2. Run `npm run setup -w @doenet/prefigure`.
+3. Run `npm run verify-wheel-sync -w @doenet/prefigure`.
+4. Build and smoke test:
+
+```bash
+npm run build -w @doenet/prefigure
+npm run smoke -w @doenet/prefigure
+```
+
+### Upgrade Pyodide runtime packages
+
+1. Bump `pyodide` in `packages/prefigure/package.json`.
+2. Run `npm install` at repo root.
+3. Run `npm run setup -w @doenet/prefigure` (reads the new `pyodide-lock.json`).
+4. Run build + smoke test.
+
+### Upgrade liblouis assets
+
+1. Update `LIBLOUIS_REF` and hashes in `scripts/fetch-liblouis.js`.
+2. Run `npm run setup -w @doenet/prefigure`.
+3. Run build + smoke test.

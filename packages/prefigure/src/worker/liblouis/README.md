@@ -1,14 +1,21 @@
 The node package for liblouis does not work in a modern browser.
-This module consists of `build-no-tables-utf32.js` which comes from
-assets directly build from liblouis github (e.g. here https://github.com/liblouis/liblouis/actions/runs/12137141294 
-or https://github.com/liblouis/js-build )
-Then, at the end of the JS file
+This module uses browser-compatible assets from
+https://github.com/liblouis/js-build.
+
+Generated assets are written to `src/worker/liblouis/generated/` by
+`scripts/fetch-liblouis.js` during setup/build.
+
+In particular, `generated/build-no-tables-utf32.js` comes from upstream,
+with one line appended at the end:
 
 ```
 export { liblouisBuild as capi };
 ```
-is appended. (This makes it importable into Javascript modules.)
+This makes it importable into Javascript modules.
 
-The `easy-api` is reimplemented from `easy-api.js` but with major modifications coming from examining the source at http://liblouis.io/translate/
+`easy-api.ts` is reimplemented from `easy-api.js` with Doenet-specific changes.
+At runtime, it copies generated table files into Emscripten's in-memory FS
+under `/liblouis/tables` and passes absolute table paths to liblouis.
 
-Braille translation tables were fetched from Github: https://github.com/liblouis/js-build/tree/master/tables
+Braille translation tables are fetched from:
+https://github.com/liblouis/js-build/tree/master/tables
