@@ -78,4 +78,27 @@ describe("@doenet/prefigure API", () => {
             annotationsXml: "<annotations/>",
         });
     });
+
+    it("coalesces concurrent init/compile calls into one worker init", async () => {
+        const mod = await import("../src/index");
+
+        const calls = await Promise.all([
+            mod.initPrefigure("https://cdn.example.com/race-assets/"),
+            mod.compilePrefigure("<diagram id='a' />"),
+            mod.compilePrefigure("<diagram id='b' />"),
+        ]);
+
+        expect(calls[1]).toEqual({
+            svg: "<svg/>",
+            annotationsXml: "<annotations/>",
+        });
+        expect(calls[2]).toEqual({
+            svg: "<svg/>",
+            annotationsXml: "<annotations/>",
+        });
+
+        expect(mocks.wrapSpy).toHaveBeenCalledTimes(1);
+        expect(mocks.initSpy).toHaveBeenCalledTimes(1);
+        expect(mocks.compileSpy).toHaveBeenCalledTimes(2);
+    });
 });
