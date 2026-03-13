@@ -23,10 +23,13 @@ type PrefigureWorkerApi = Comlink.Remote<WorkerApi>;
 let workerApiPromise: Promise<PrefigureWorkerApi> | null = null;
 let initPromise: Promise<void> | null = null;
 let initializedIndexUrl: string | null = null;
-let resolvedDefaultIndexUrl: string | null = null;
 
 export const version: string = PREFIGURE_VERSION;
 export const prefigWheelFilename = PREFIG_WHEEL_FILENAME;
+const GLOBAL_SCOPE = globalThis as typeof globalThis & {
+    prefigure?: typeof prefigure;
+    initPrefigure?: typeof initPrefigure;
+};
 
 function ensureWorkerApi() {
     if (!workerApiPromise) {
@@ -39,35 +42,17 @@ function ensureWorkerApi() {
 }
 
 export function defaultPrefigureIndexUrl(): string {
-    const moduleUrl = new URL(import.meta.url);
     // Default to sibling assets relative to the module URL.
     // Callers can pass an explicit indexURL when loading prefigure from a non-standard location.
-    return new URL("./assets/", moduleUrl).toString();
-}
-
-function prefigureIndexUrlCandidates(): string[] {
-    // Keep function to centralize resolution strategy and allow future extensions.
-    return [defaultPrefigureIndexUrl()];
-}
-
-async function resolveDefaultPrefigureIndexUrl(): Promise<string> {
-    if (resolvedDefaultIndexUrl) {
-        return resolvedDefaultIndexUrl;
-    }
-
-    const [indexUrl] = prefigureIndexUrlCandidates();
-    resolvedDefaultIndexUrl = indexUrl;
-    return indexUrl;
+    return new URL("./assets/", import.meta.url).toString();
 }
 
 export async function initPrefigure(indexURL?: string) {
-    if (!indexURL) {
-        indexURL = await resolveDefaultPrefigureIndexUrl();
-    }
+    const effectiveIndexUrl = indexURL ?? defaultPrefigureIndexUrl();
 
-    const normalizedIndexUrl = indexURL.endsWith("/")
-        ? indexURL
-        : `${indexURL}/`;
+    const normalizedIndexUrl = effectiveIndexUrl.endsWith("/")
+        ? effectiveIndexUrl
+        : `${effectiveIndexUrl}/`;
 
     if (initializedIndexUrl && normalizedIndexUrl !== initializedIndexUrl) {
         throw new Error(
@@ -114,10 +99,10 @@ export async function prefigure(
     return compilePrefigure(source, options);
 }
 
-if (!(globalThis as any).prefigure) {
-    (globalThis as any).prefigure = prefigure;
+if (!GLOBAL_SCOPE.prefigure) {
+    GLOBAL_SCOPE.prefigure = prefigure;
 }
 
-if (!(globalThis as any).initPrefigure) {
-    (globalThis as any).initPrefigure = initPrefigure;
+if (!GLOBAL_SCOPE.initPrefigure) {
+    GLOBAL_SCOPE.initPrefigure = initPrefigure;
 }
