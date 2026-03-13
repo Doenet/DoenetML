@@ -24,7 +24,7 @@
     "scripts": {
         "dev": "vite",
         "build": "wireit",
-        "test": "vitest run",
+        "test": "vitest",
         "test:browser-smoke": "node scripts/run-browser-smoke-test.js",
         "smoke": "vite --host 127.0.0.1 --strictPort --port 4175",
         "smoke:build": "vite build && echo \"Smoke harness available in dev mode at /\"",
