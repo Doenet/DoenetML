@@ -65,3 +65,4 @@ packages/docs-nextra/public/bundle
 cspell.json
 *.timestamp-*
 .cspell
+**/__pycache__/
