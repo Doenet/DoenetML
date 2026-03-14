@@ -89,9 +89,17 @@ describe("normalizeLatexString unicode substitutions @group4", () => {
         expect(output).toContain("\\rho");
         expect(output).toContain("\\pi");
     });
+
+    it("removes invisible times and function operators", () => {
+        const input = "f\u2061(x\u2062y)";
+        const output = normalizeLatexString(input);
+        expect(output).toContain("f (x y)");
+        expect(output).not.toContain("\u2061");
+        expect(output).not.toContain("\u2062");
+    });
 });
 
-describe("normalizeLatexString double script handling", () => {
+describe("normalizeLatexString double script handling @group4", () => {
     it("collapses double exponents", () => {
         const input = "x^{^{8}}";
         const output = normalizeLatexString(input);
