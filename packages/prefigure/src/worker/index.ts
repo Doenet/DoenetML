@@ -9,15 +9,41 @@
  */
 
 import { expose } from "comlink";
-import { PreFigureCompiler } from "./compiler";
+import type { PreFigureCompiler } from "./compiler";
 
-const compiler = new PreFigureCompiler();
+// Some third-party libs inspect worker globals and branch on
+// DedicatedWorkerGlobalScope. Keep parity with other worker contexts by
+// ensuring this symbol exists before loading the heavy compiler module.
+if (
+    typeof (globalThis as any).DedicatedWorkerGlobalScope === "undefined" &&
+    typeof (globalThis as any).SharedWorkerGlobalScope !== "undefined"
+) {
+    (globalThis as any).DedicatedWorkerGlobalScope = (
+        globalThis as any
+    ).SharedWorkerGlobalScope;
+}
+
+let compilerPromise: Promise<PreFigureCompiler> | null = null;
+
+async function getCompiler(): Promise<PreFigureCompiler> {
+    if (!compilerPromise) {
+        compilerPromise = import("./compiler").then(
+            ({ PreFigureCompiler }) => new PreFigureCompiler(),
+        );
+    }
+
+    return compilerPromise;
+}
 
 export const api = {
-    init: (...args: Parameters<PreFigureCompiler["init"]>) =>
-        compiler.init(...args),
-    compile: (...args: Parameters<PreFigureCompiler["compile"]>) =>
-        compiler.compile(...args),
+    init: async (...args: Parameters<PreFigureCompiler["init"]>) => {
+        const compiler = await getCompiler();
+        return compiler.init(...args);
+    },
+    compile: async (...args: Parameters<PreFigureCompiler["compile"]>) => {
+        const compiler = await getCompiler();
+        return compiler.compile(...args);
+    },
 };
 
 expose(api);

@@ -84,6 +84,7 @@ Current coverage includes API-level behavior tests for:
 - default index URL resolution
 - `initPrefigure()` idempotency and conflicting-URL guard
 - `compilePrefigure()` delegation/result mapping
+- dedicated-worker cold-start harness validating lazy compiler bootstrap
 
 The browser smoke harness remains useful as a manual runtime check for real
 Pyodide+WASM execution.
