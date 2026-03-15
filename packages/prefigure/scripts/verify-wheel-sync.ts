@@ -7,7 +7,15 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export function verifyWheelSync({ compilerPath, pyodidePackagesDir }) {
+type VerifyWheelSyncOptions = {
+    compilerPath: string;
+    pyodidePackagesDir: string;
+};
+
+export function verifyWheelSync({
+    compilerPath,
+    pyodidePackagesDir,
+}: VerifyWheelSyncOptions): string {
     if (!fs.existsSync(compilerPath)) {
         throw new Error(`Missing compiler file: ${compilerPath}`);
     }

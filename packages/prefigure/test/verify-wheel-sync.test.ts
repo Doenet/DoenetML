@@ -2,7 +2,7 @@ import fs from "fs";
 import os from "os";
 import path from "path";
 import { afterEach, describe, expect, it } from "vitest";
-import { verifyWheelSync } from "../scripts/verify-wheel-sync.js";
+import { verifyWheelSync } from "../scripts/verify-wheel-sync.ts";
 
 const tempDirs: string[] = [];
 

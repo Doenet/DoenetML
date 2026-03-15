@@ -18,7 +18,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { downloadBuffer, sha256hex } from "./lib/download-utils.js";
+import { downloadBuffer, sha256hex } from "./lib/download-utils.ts";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -66,7 +66,7 @@ const TABLE_FILES = {
         "f3b10172236afd9921ac385c94a66d0ae23dbbf92afee92ae81ab31933088fbc",
 };
 
-function verifyHash(buffer, expected, label) {
+function verifyHash(buffer: Uint8Array, expected: string, label: string) {
     const actual = sha256hex(buffer);
     if (actual !== expected) {
         throw new Error(

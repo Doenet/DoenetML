@@ -25,12 +25,12 @@
         "dev": "vite",
         "build": "wireit",
         "test": "vitest",
-        "test:browser-smoke": "node scripts/run-browser-smoke-test.js",
+        "test:browser-smoke": "vite-node scripts/run-browser-smoke-test.ts",
         "smoke": "vite --host 127.0.0.1 --strictPort --port 4175",
         "smoke:build": "vite build && echo \"Smoke harness available in dev mode at /\"",
         "preview": "vite preview",
-        "setup": "node scripts/fetch-pyodide-packages.js && node scripts/fetch-liblouis.js",
-        "verify-wheel-sync": "node scripts/verify-wheel-sync.js",
+        "setup": "vite-node scripts/fetch-pyodide-packages.ts && vite-node scripts/fetch-liblouis.ts",
+        "verify-wheel-sync": "vite-node scripts/verify-wheel-sync.ts",
         "publish": "npm run build && npm run verify-wheel-sync && cd dist && npm publish"
     },
     "wireit": {
@@ -54,9 +54,9 @@
             ]
         },
         "fetch-wheels": {
-            "command": "node scripts/fetch-pyodide-packages.js",
+            "command": "vite-node scripts/fetch-pyodide-packages.ts",
             "files": [
-                "scripts/fetch-pyodide-packages.js",
+                "scripts/fetch-pyodide-packages.ts",
                 "../../package-lock.json",
                 "src/worker/compiler-metadata.ts"
             ],
@@ -66,9 +66,9 @@
             "clean": false
         },
         "fetch-liblouis": {
-            "command": "node scripts/fetch-liblouis.js",
+            "command": "vite-node scripts/fetch-liblouis.ts",
             "files": [
-                "scripts/fetch-liblouis.js"
+                "scripts/fetch-liblouis.ts"
             ],
             "output": [
                 "src/worker/liblouis/generated/build-no-tables-utf32.js",

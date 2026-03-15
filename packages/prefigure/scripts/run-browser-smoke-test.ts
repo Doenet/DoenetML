@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { spawn } from "child_process";
+import { spawn, type ChildProcess, type SpawnOptions } from "child_process";
 import { fileURLToPath } from "url";
 import path from "path";
 
@@ -12,8 +12,12 @@ const host = "127.0.0.1";
 const port = 4175;
 const baseUrl = `http://${host}:${port}`;
 
-function runCommand(command, args, options = {}) {
-    return new Promise((resolve, reject) => {
+function runCommand(
+    command: string,
+    args: string[],
+    options: SpawnOptions = {},
+): Promise<void> {
+    return new Promise<void>((resolve, reject) => {
         const child = spawn(command, args, {
             cwd: packageRoot,
             stdio: "inherit",
@@ -31,8 +35,11 @@ function runCommand(command, args, options = {}) {
     });
 }
 
-function waitForChildExit(child, timeoutMs = 10000) {
-    return new Promise((resolve) => {
+function waitForChildExit(
+    child: ChildProcess,
+    timeoutMs = 10000,
+): Promise<void> {
+    return new Promise<void>((resolve) => {
         if (child.exitCode !== null) {
             resolve();
             return;
@@ -51,7 +58,7 @@ function waitForChildExit(child, timeoutMs = 10000) {
     });
 }
 
-async function stopChildProcess(child) {
+async function stopChildProcess(child?: ChildProcess | null) {
     if (!child || child.exitCode !== null) {
         return;
     }

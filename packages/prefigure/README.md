@@ -156,6 +156,6 @@ npm run smoke -w @doenet/prefigure
 
 ### Upgrade liblouis assets
 
-1. Update `LIBLOUIS_REF` and hashes in `scripts/fetch-liblouis.js`.
+1. Update `LIBLOUIS_REF` and hashes in `scripts/fetch-liblouis.ts`.
 2. Run `npm run setup -w @doenet/prefigure`.
 3. Run build + smoke test.

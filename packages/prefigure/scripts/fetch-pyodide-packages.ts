@@ -15,7 +15,33 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { fetchUrl, downloadToFile, sha256hex } from "./lib/download-utils.js";
+import { fetchUrl, downloadToFile, sha256hex } from "./lib/download-utils.ts";
+
+type PyodideLockPackage = {
+    name?: string;
+    file_name?: string;
+    sha256?: string;
+};
+
+type PyodideLock = {
+    info: {
+        version: string;
+    };
+    packages: Record<string, PyodideLockPackage>;
+};
+
+type PyPiReleaseFile = {
+    filename: string;
+    packagetype: string;
+    url: string;
+    digests?: {
+        sha256?: string;
+    };
+};
+
+type PyPiResponse = {
+    urls?: PyPiReleaseFile[];
+};
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -50,7 +76,7 @@ const REQUIRED_PYODIDE_PACKAGES = [
     "six",
 ];
 
-function readPyodideLock() {
+function readPyodideLock(): PyodideLock {
     // pyodide is hoisted to the workspace root node_modules
     const candidates = [
         path.join(PACKAGE_ROOT, "node_modules", "pyodide", "pyodide-lock.json"),
@@ -65,7 +91,7 @@ function readPyodideLock() {
     ];
     for (const p of candidates) {
         if (fs.existsSync(p)) {
-            return JSON.parse(fs.readFileSync(p, "utf8"));
+            return JSON.parse(fs.readFileSync(p, "utf8")) as PyodideLock;
         }
     }
     throw new Error(
@@ -74,7 +100,7 @@ function readPyodideLock() {
     );
 }
 
-function readPrefigWheelFilename() {
+function readPrefigWheelFilename(): string {
     const metadataPath = path.join(
         PACKAGE_ROOT,
         "src",
@@ -97,7 +123,7 @@ function readPrefigWheelFilename() {
 // Pyodide packages
 // ---------------------------------------------------------------------------
 
-async function fetchPyodidePackages(lock) {
+async function fetchPyodidePackages(lock: PyodideLock) {
     const pyodideVersion = lock.info.version;
     const baseUrl = `https://cdn.jsdelivr.net/pyodide/v${pyodideVersion}/full/`;
     console.log(
@@ -105,16 +131,19 @@ async function fetchPyodidePackages(lock) {
     );
 
     // Build a map from package name -> lock entry
-    const byName = {};
+    const byName: Record<string, { file_name: string; sha256: string }> = {};
     for (const pkg of Object.values(lock.packages)) {
-        if (pkg.name && pkg.file_name) {
-            byName[pkg.name] = pkg;
+        if (pkg.name && pkg.file_name && pkg.sha256) {
+            byName[pkg.name] = {
+                file_name: pkg.file_name,
+                sha256: pkg.sha256,
+            };
         }
     }
 
     let downloaded = 0;
     let skipped = 0;
-    const missing = [];
+    const missing: string[] = [];
 
     for (const pkgName of REQUIRED_PYODIDE_PACKAGES) {
         const entry = byName[pkgName];
@@ -201,17 +230,18 @@ async function fetchPrefigWheel() {
     console.log(`  Fetching prefig ${version} from PyPI...`);
     const pypiMetaUrl = `https://pypi.org/pypi/prefig/${version}/json`;
     const res = await fetchUrl(pypiMetaUrl);
-    const data = await res.json();
+    const data = (await res.json()) as PyPiResponse;
 
     // Find the exact wheel in the PyPI release files
-    const allUrls = data.urls ?? [];
+    const allUrls: PyPiReleaseFile[] = data.urls ?? [];
     const wheelEntry = allUrls.find(
-        (u) => u.filename === wheelFilename && u.packagetype === "bdist_wheel",
+        (u: PyPiReleaseFile) =>
+            u.filename === wheelFilename && u.packagetype === "bdist_wheel",
     );
     if (!wheelEntry) {
         throw new Error(
             `Wheel "${wheelFilename}" not found in PyPI release files for prefig ${version}.\n` +
-                `Available files: ${allUrls.map((u) => u.filename).join(", ")}`,
+                `Available files: ${allUrls.map((u: PyPiReleaseFile) => u.filename).join(", ")}`,
         );
     }
 
