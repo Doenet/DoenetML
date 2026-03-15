@@ -4,7 +4,11 @@ import useDoenetRenderer from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
 import { DocContext } from "../DocViewer";
 import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
-import { getLineFamilyLabelPositionAttributes } from "./utils/jsxgraph";
+import {
+    applyLineFamilyLabelPlacement,
+    buildLineFamilyLabelAttributes,
+    stabilizeInitialLineFamilyLabelPlacement,
+} from "./utils/jsxgraph";
 
 export default React.memo(function LineSegment(props) {
     let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
@@ -24,7 +28,7 @@ export default React.memo(function LineSegment(props) {
     let pointerMovedSinceDown = useRef(false);
     let draggedPoint = useRef(null);
     let previousWithLabel = useRef(null);
-    let previousLabelPosition = useRef(null);
+    let cancelInitialLabelPlacement = useRef(null);
     let pointCoords = useRef(null);
     let downOnPoint = useRef(null);
 
@@ -44,6 +48,7 @@ export default React.memo(function LineSegment(props) {
     useEffect(() => {
         //On unmount
         return () => {
+            cancelInitialLabelPlacement.current?.();
             // if line is defined
             if (lineSegmentJXG.current) {
                 deleteLineSegmentJXG();
@@ -102,34 +107,13 @@ export default React.memo(function LineSegment(props) {
             highlight: !fixLocation.current,
         };
 
-        if (withlabel) {
-            const { offset, anchorx, anchory } =
-                getLineFamilyLabelPositionAttributes(SVs.labelPosition);
-
-            jsxSegmentAttributes.label = {
-                offset,
-                anchorx,
-                anchory,
-                highlight: false,
-            };
-
-            if (SVs.labelHasLatex) {
-                jsxSegmentAttributes.label.useMathJax = true;
-            }
-
-            if (SVs.applyStyleToLabel) {
-                jsxSegmentAttributes.label.strokeColor = lineColor;
-            } else {
-                jsxSegmentAttributes.label.strokeColor = "var(--canvasText)";
-            }
-        } else {
-            jsxSegmentAttributes.label = {
-                highlight: false,
-            };
-            if (SVs.labelHasLatex) {
-                jsxSegmentAttributes.label.useMathJax = true;
-            }
-        }
+        jsxSegmentAttributes.label = buildLineFamilyLabelAttributes({
+            labelForGraph: SVs.labelForGraph,
+            labelPosition: SVs.labelPosition,
+            labelHasLatex: SVs.labelHasLatex,
+            applyStyleToLabel: SVs.applyStyleToLabel,
+            lineColor,
+        });
 
         let endpointsVisible = !endpointsFixed.current && !SVs.hidden;
 
@@ -396,7 +380,34 @@ export default React.memo(function LineSegment(props) {
             }
         });
 
-        previousLabelPosition.current = SVs.labelPosition;
+        cancelInitialLabelPlacement.current?.();
+        cancelInitialLabelPlacement.current = null;
+
+        if (withlabel && lineSegmentJXG.current.hasLabel) {
+            const createdLineSegment = lineSegmentJXG.current;
+            cancelInitialLabelPlacement.current =
+                stabilizeInitialLineFamilyLabelPlacement({
+                    board,
+                    lineLike: createdLineSegment,
+                    applyPlacement: (forceFullUpdate) => {
+                        if (
+                            !lineSegmentJXG.current ||
+                            lineSegmentJXG.current !== createdLineSegment ||
+                            !lineSegmentJXG.current.hasLabel
+                        ) {
+                            return false;
+                        }
+                        applyLineFamilyLabelPlacement({
+                            board,
+                            lineLike: lineSegmentJXG.current,
+                            labelPosition: SVs.labelPosition,
+                            forceFullUpdate,
+                        });
+                        return true;
+                    },
+                });
+        }
+
         previousWithLabel.current = withlabel;
 
         return lineSegmentJXG.current;
@@ -523,6 +534,8 @@ export default React.memo(function LineSegment(props) {
     }
 
     function deleteLineSegmentJXG() {
+        cancelInitialLabelPlacement.current?.();
+        cancelInitialLabelPlacement.current = null;
         lineSegmentJXG.current.off("drag");
         lineSegmentJXG.current.off("down");
         lineSegmentJXG.current.off("hit");
@@ -701,18 +714,12 @@ export default React.memo(function LineSegment(props) {
                     lineSegmentJXG.current.label.visProp.strokecolor =
                         "var(--canvasText)";
                 }
-                if (SVs.labelPosition !== previousLabelPosition.current) {
-                    const { offset, anchorx, anchory } =
-                        getLineFamilyLabelPositionAttributes(SVs.labelPosition);
 
-                    lineSegmentJXG.current.label.visProp.anchorx = anchorx;
-                    lineSegmentJXG.current.label.visProp.anchory = anchory;
-                    lineSegmentJXG.current.label.visProp.offset = offset;
-                    previousLabelPosition.current = SVs.labelPosition;
-                    lineSegmentJXG.current.label.fullUpdate();
-                } else {
-                    lineSegmentJXG.current.label.update();
-                }
+                applyLineFamilyLabelPlacement({
+                    board,
+                    lineLike: lineSegmentJXG.current,
+                    labelPosition: SVs.labelPosition,
+                });
             }
             point1JXG.current.needsUpdate = true;
             point1JXG.current.update();

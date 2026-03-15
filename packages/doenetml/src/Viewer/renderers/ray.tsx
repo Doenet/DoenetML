@@ -4,6 +4,11 @@ import useDoenetRenderer from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET } from "./graph";
 import { DocContext } from "../DocViewer";
 import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
+import {
+    applyLineFamilyLabelPlacement,
+    buildLineFamilyLabelAttributes,
+    stabilizeInitialLineFamilyLabelPlacement,
+} from "./utils/jsxgraph";
 
 export default React.memo(function Ray(props) {
     let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
@@ -22,6 +27,7 @@ export default React.memo(function Ray(props) {
     let dragged = useRef(false);
 
     let previousWithLabel = useRef(null);
+    let cancelInitialLabelPlacement = useRef(null);
     let pointCoords = useRef(null);
 
     let lastEndpointFromCore = useRef(null);
@@ -39,6 +45,7 @@ export default React.memo(function Ray(props) {
     useEffect(() => {
         //On unmount
         return () => {
+            cancelInitialLabelPlacement.current?.();
             // if ray is defined
             if (Object.keys(rayJXG.current).length !== 0) {
                 deleteRayJXG();
@@ -92,23 +99,21 @@ export default React.memo(function Ray(props) {
             straightFirst: false,
         };
 
-        jsxRayAttributes.label = {
-            highlight: false,
-        };
-        if (SVs.labelHasLatex) {
-            jsxRayAttributes.label.useMathJax = true;
-        }
-
-        if (SVs.applyStyleToLabel) {
-            jsxRayAttributes.label.strokeColor = lineColor;
-        } else {
-            jsxRayAttributes.label.strokeColor = "var(--canvasText)";
-        }
+        jsxRayAttributes.label = buildLineFamilyLabelAttributes({
+            labelForGraph: SVs.labelForGraph,
+            labelPosition: SVs.labelPosition,
+            labelHasLatex: SVs.labelHasLatex,
+            applyStyleToLabel: SVs.applyStyleToLabel,
+            lineColor,
+        });
 
         let through = [
             [...SVs.numericalEndpoint],
             [...SVs.numericalThroughpoint],
         ];
+
+        cancelInitialLabelPlacement.current?.();
+        cancelInitialLabelPlacement.current = null;
 
         let newRayJXG = board.create("line", through, jsxRayAttributes);
         newRayJXG.isDraggable = !fixLocation.current;
@@ -262,9 +267,33 @@ export default React.memo(function Ray(props) {
             }
         });
 
-        previousWithLabel.current = SVs.labelForGraph !== "";
-
         rayJXG.current = newRayJXG;
+
+        if (SVs.labelForGraph !== "" && newRayJXG.hasLabel) {
+            cancelInitialLabelPlacement.current =
+                stabilizeInitialLineFamilyLabelPlacement({
+                    board,
+                    lineLike: newRayJXG,
+                    applyPlacement: (forceFullUpdate) => {
+                        if (
+                            rayJXG.current !== newRayJXG ||
+                            !newRayJXG.hasLabel
+                        ) {
+                            return false;
+                        }
+                        applyLineFamilyLabelPlacement({
+                            board,
+                            lineLike: newRayJXG,
+                            labelPosition: SVs.labelPosition,
+                            forceFullUpdate,
+                            setNeedsUpdateOnNoChange: true,
+                        });
+                        return true;
+                    },
+                });
+        }
+
+        previousWithLabel.current = SVs.labelForGraph !== "";
     }
 
     function boardMoveHandler(e) {
@@ -282,6 +311,8 @@ export default React.memo(function Ray(props) {
     }
 
     function deleteRayJXG() {
+        cancelInitialLabelPlacement.current?.();
+        cancelInitialLabelPlacement.current = null;
         rayJXG.current.off("drag");
         rayJXG.current.off("down");
         rayJXG.current.off("hit");
@@ -403,8 +434,13 @@ export default React.memo(function Ray(props) {
                     rayJXG.current.label.visProp.strokecolor =
                         "var(--canvasText)";
                 }
-                rayJXG.current.label.needsUpdate = true;
-                rayJXG.current.label.update();
+
+                applyLineFamilyLabelPlacement({
+                    board,
+                    lineLike: rayJXG.current,
+                    labelPosition: SVs.labelPosition,
+                    setNeedsUpdateOnNoChange: true,
+                });
             }
             board.updateRenderer();
         }

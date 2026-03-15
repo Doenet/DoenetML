@@ -8,7 +8,11 @@ import { textRendererStyle } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
 import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
 import { ChoiceInputInlineContext } from "./choiceInput";
-import { getLineFamilyLabelPositionAttributes } from "./utils/jsxgraph";
+import {
+    applyLineFamilyLabelPlacement,
+    buildLineFamilyLabelAttributes,
+    stabilizeInitialLineFamilyLabelPlacement,
+} from "./utils/jsxgraph";
 
 export default React.memo(function Line(props) {
     let { componentIdx, id, SVs, actions, callAction } =
@@ -27,7 +31,7 @@ export default React.memo(function Line(props) {
     let pointerMovedSinceDown = useRef(false);
     let dragged = useRef(false);
     let previousWithLabel = useRef(null);
-    let previousLabelPosition = useRef(null);
+    let cancelInitialLabelPlacement = useRef(null);
     let pointCoords = useRef(null);
 
     let lastPositionsFromCore = useRef(null);
@@ -45,6 +49,7 @@ export default React.memo(function Line(props) {
     useEffect(() => {
         //On unmount
         return () => {
+            cancelInitialLabelPlacement.current?.();
             // if line is defined
             if (Object.keys(lineJXG.current).length !== 0) {
                 deleteLineJXG();
@@ -99,40 +104,21 @@ export default React.memo(function Line(props) {
             highlight: !fixLocation.current,
         };
 
-        if (withlabel) {
-            const { offset, anchorx, anchory } =
-                getLineFamilyLabelPositionAttributes(SVs.labelPosition);
-
-            jsxLineAttributes.label = {
-                offset,
-                anchorx,
-                anchory,
-                position: "top",
-                highlight: false,
-            };
-
-            if (SVs.labelHasLatex) {
-                jsxLineAttributes.label.useMathJax = true;
-            }
-
-            if (SVs.applyStyleToLabel) {
-                jsxLineAttributes.label.strokeColor = lineColor;
-            } else {
-                jsxLineAttributes.label.strokeColor = "var(--canvasText)";
-            }
-        } else {
-            jsxLineAttributes.label = {
-                highlight: false,
-            };
-            if (SVs.labelHasLatex) {
-                jsxLineAttributes.label.useMathJax = true;
-            }
-        }
+        jsxLineAttributes.label = buildLineFamilyLabelAttributes({
+            labelForGraph: SVs.labelForGraph,
+            labelPosition: SVs.labelPosition,
+            labelHasLatex: SVs.labelHasLatex,
+            applyStyleToLabel: SVs.applyStyleToLabel,
+            lineColor,
+        });
 
         let through = [
             [...SVs.numericalPoints[0]],
             [...SVs.numericalPoints[1]],
         ];
+
+        cancelInitialLabelPlacement.current?.();
+        cancelInitialLabelPlacement.current = null;
 
         let newLineJXG = board.create("line", through, jsxLineAttributes);
 
@@ -311,9 +297,32 @@ export default React.memo(function Line(props) {
             }
         });
 
-        previousWithLabel.current = SVs.labelForGraph !== "";
-
         lineJXG.current = newLineJXG;
+
+        if (withlabel && newLineJXG.hasLabel) {
+            cancelInitialLabelPlacement.current =
+                stabilizeInitialLineFamilyLabelPlacement({
+                    board,
+                    lineLike: newLineJXG,
+                    applyPlacement: (forceFullUpdate) => {
+                        if (
+                            lineJXG.current !== newLineJXG ||
+                            !newLineJXG.hasLabel
+                        ) {
+                            return false;
+                        }
+                        applyLineFamilyLabelPlacement({
+                            board,
+                            lineLike: newLineJXG,
+                            labelPosition: SVs.labelPosition,
+                            forceFullUpdate,
+                        });
+                        return true;
+                    },
+                });
+        }
+
+        previousWithLabel.current = SVs.labelForGraph !== "";
     }
 
     function boardMoveHandler(e) {
@@ -331,6 +340,8 @@ export default React.memo(function Line(props) {
     }
 
     function deleteLineJXG() {
+        cancelInitialLabelPlacement.current?.();
+        cancelInitialLabelPlacement.current = null;
         lineJXG.current.off("drag");
         lineJXG.current.off("down");
         lineJXG.current.off("hit");
@@ -453,18 +464,12 @@ export default React.memo(function Line(props) {
                     lineJXG.current.label.visProp.strokecolor =
                         "var(--canvasText)";
                 }
-                if (SVs.labelPosition !== previousLabelPosition.current) {
-                    const { offset, anchorx, anchory } =
-                        getLineFamilyLabelPositionAttributes(SVs.labelPosition);
 
-                    lineJXG.current.label.visProp.anchorx = anchorx;
-                    lineJXG.current.label.visProp.anchory = anchory;
-                    lineJXG.current.label.visProp.offset = offset;
-                    previousLabelPosition.current = SVs.labelPosition;
-                    lineJXG.current.label.fullUpdate();
-                } else {
-                    lineJXG.current.label.update();
-                }
+                applyLineFamilyLabelPlacement({
+                    board,
+                    lineLike: lineJXG.current,
+                    labelPosition: SVs.labelPosition,
+                });
             }
             board.updateRenderer();
         }
