@@ -38,6 +38,8 @@ via Vite environment variables:
 
 - `VITE_PREFIGURE_BUILD_ENDPOINT`
 - `VITE_PREFIGURE_DIAGCESS_SCRIPT_URL`
+- `VITE_PREFIGURE_MODULE_URL`
+- `VITE_PREFIGURE_INDEX_URL`
 
 If not provided, defaults are used from
 `src/Viewer/renderers/utils/prefigureConfig.ts`.
