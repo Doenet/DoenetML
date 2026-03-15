@@ -58,7 +58,7 @@
             "files": [
                 "scripts/fetch-pyodide-packages.js",
                 "../../package-lock.json",
-                "src/worker/compiler.ts"
+                "src/worker/compiler-metadata.ts"
             ],
             "output": [
                 "pyodide_packages/**/*"

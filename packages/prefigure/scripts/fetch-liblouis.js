@@ -17,8 +17,8 @@
 
 import fs from "fs";
 import path from "path";
-import crypto from "crypto";
 import { fileURLToPath } from "url";
+import { downloadBuffer, sha256hex } from "./lib/download-utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -65,27 +65,6 @@ const TABLE_FILES = {
     "text_nabcc.dis":
         "f3b10172236afd9921ac385c94a66d0ae23dbbf92afee92ae81ab31933088fbc",
 };
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-async function fetchUrl(url) {
-    const res = await fetch(url);
-    if (!res.ok) {
-        throw new Error(`HTTP ${res.status} ${res.statusText} fetching ${url}`);
-    }
-    return res;
-}
-
-async function downloadBuffer(url) {
-    const res = await fetchUrl(url);
-    return Buffer.from(await res.arrayBuffer());
-}
-
-function sha256hex(buffer) {
-    return crypto.createHash("sha256").update(buffer).digest("hex");
-}
 
 function verifyHash(buffer, expected, label) {
     const actual = sha256hex(buffer);

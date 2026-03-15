@@ -84,7 +84,7 @@ Current coverage includes API-level behavior tests for:
 - default index URL resolution
 - `initPrefigure()` idempotency and conflicting-URL guard
 - `compilePrefigure()` delegation/result mapping
-- dedicated-worker cold-start harness validating lazy compiler bootstrap
+- dedicated-worker API wiring and compile delegation behavior
 
 The browser smoke harness remains useful as a manual runtime check for real
 Pyodide+WASM execution.
@@ -132,12 +132,12 @@ npm run build -w @doenet/prefigure
 npm run verify-wheel-sync -w @doenet/prefigure
 ```
 
-`verify-wheel-sync` ensures `src/worker/compiler.ts` and
+`verify-wheel-sync` ensures `src/worker/compiler-metadata.ts` and
 `pyodide_packages/` reference the same `prefig` wheel.
 
 ### Upgrade `prefig` wheel version
 
-1. Update `PREFIG_WHEEL_FILENAME` in `src/worker/compiler.ts`.
+1. Update `PREFIG_WHEEL_FILENAME` in `src/worker/compiler-metadata.ts`.
 2. Run `npm run setup -w @doenet/prefigure`.
 3. Run `npm run verify-wheel-sync -w @doenet/prefigure`.
 4. Build and smoke test:

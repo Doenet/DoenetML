@@ -58,7 +58,7 @@ export function verifyWheelSync({ compilerPath, pyodidePackagesDir }) {
     const packagedWheel = prefigWheels[0];
     if (configuredWheel !== packagedWheel) {
         throw new Error(
-            `Wheel mismatch: compiler.ts uses ${configuredWheel}, but pyodide_packages contains ${packagedWheel}`,
+            `Wheel mismatch: compiler-metadata.ts uses ${configuredWheel}, but pyodide_packages contains ${packagedWheel}`,
         );
     }
 

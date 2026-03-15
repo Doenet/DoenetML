@@ -14,8 +14,8 @@
 
 import fs from "fs";
 import path from "path";
-import crypto from "crypto";
 import { fileURLToPath } from "url";
+import { fetchUrl, downloadToFile, sha256hex } from "./lib/download-utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,29 +49,6 @@ const REQUIRED_PYODIDE_PACKAGES = [
     "shapely",
     "six",
 ];
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-async function fetchUrl(url) {
-    const res = await fetch(url);
-    if (!res.ok) {
-        throw new Error(`HTTP ${res.status} ${res.statusText} fetching ${url}`);
-    }
-    return res;
-}
-
-async function downloadToFile(url, destPath) {
-    const res = await fetchUrl(url);
-    const buffer = Buffer.from(await res.arrayBuffer());
-    fs.writeFileSync(destPath, buffer);
-    return buffer;
-}
-
-function sha256hex(buffer) {
-    return crypto.createHash("sha256").update(buffer).digest("hex");
-}
 
 function readPyodideLock() {
     // pyodide is hoisted to the workspace root node_modules

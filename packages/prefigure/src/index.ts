@@ -89,7 +89,12 @@ async function makeCrossOriginSafeWorker(): Promise<Worker> {
     const blob = new Blob([`import ${JSON.stringify(capturedUrl)}`], {
         type: "text/javascript",
     });
-    return new OrigWorker(URL.createObjectURL(blob), { type: "module" });
+    const blobUrl = URL.createObjectURL(blob);
+    try {
+        return new OrigWorker(blobUrl, { type: "module" });
+    } finally {
+        URL.revokeObjectURL(blobUrl);
+    }
 }
 
 export function defaultPrefigureIndexUrl(): string {
