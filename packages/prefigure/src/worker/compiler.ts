@@ -10,9 +10,10 @@
 
 import { PyodideInterface, loadPyodide } from "pyodide";
 import { prefigBrowserApi } from "./compat-api";
+import { PREFIG_WHEEL_FILENAME } from "./compiler-metadata";
 
 type Options = Parameters<typeof loadPyodide>[0];
-export const PREFIG_WHEEL_FILENAME = "prefig-0.5.11-py3-none-any.whl";
+export { PREFIG_WHEEL_FILENAME };
 
 /**
  * A class for compiling a PreFigure document file using a WASM implementation of python.

@@ -57,6 +57,8 @@ export default defineConfig({
         },
         rollupOptions: {
             output: {
+                // Match prefigure-shared-worker packaging to keep startup on the
+                // same loading profile that previously measured faster.
                 inlineDynamicImports: true,
             },
         },

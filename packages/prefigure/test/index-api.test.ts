@@ -22,7 +22,7 @@ vi.mock("comlink", () => {
     };
 });
 
-vi.mock("../src/worker?worker&inline", () => ({
+vi.mock("../src/worker?worker", () => ({
     default: class MockWorker {
         // Mock constructor intentionally empty; Comlink.wrap is mocked.
     },

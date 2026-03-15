@@ -1,7 +1,7 @@
 import * as Comlink from "comlink";
-import Worker from "./worker?worker&inline";
+import Worker from "./worker?worker";
 import type { api } from "./worker";
-import { PREFIG_WHEEL_FILENAME } from "./worker/compiler";
+import { PREFIG_WHEEL_FILENAME } from "./worker/compiler-metadata";
 
 declare const PREFIGURE_VERSION: string;
 
@@ -33,12 +33,63 @@ const GLOBAL_SCOPE = globalThis as typeof globalThis & {
 
 function ensureWorkerApi() {
     if (!workerApiPromise) {
-        workerApiPromise = Promise.resolve(
-            Comlink.wrap<WorkerApi>(new Worker()) as PrefigureWorkerApi,
+        workerApiPromise = makeCrossOriginSafeWorker().then(
+            (worker) => Comlink.wrap<WorkerApi>(worker) as PrefigureWorkerApi,
         );
     }
 
     return workerApiPromise;
+}
+
+/**
+ * Create the Comlink worker, working around browser restrictions on cross-origin
+ * Worker construction.
+ *
+ * When `prefigure.js` is loaded from a CDN (e.g. jsDelivr) into a page on a
+ * different origin, browsers throw a SecurityError for
+ * `new Worker(cross_origin_url)` even for `{ type: "module" }` workers in some
+ * environments (notably Vite's dev server).
+ *
+ * Workaround: capture the URL Vite's `?worker` factory would use, then create a
+ * same-origin blob worker that simply re-imports the real CDN script.  Blob URLs
+ * share the document's origin so the Worker constructor succeeds, and ES module
+ * `import` inside the blob can CORS-fetch the CDN URL.
+ */
+async function makeCrossOriginSafeWorker(): Promise<Worker> {
+    const moduleOrigin = new URL(import.meta.url).origin;
+    const docOrigin =
+        typeof globalThis.location !== "undefined"
+            ? globalThis.location.origin
+            : null;
+
+    if (!docOrigin || moduleOrigin === docOrigin) {
+        // Same-origin or non-browser context – use Vite's factory directly.
+        return new Worker();
+    }
+
+    // Cross-origin: capture the URL from Vite's ?worker factory by temporarily
+    // intercepting the native Worker constructor, then use a blob wrapper.
+    let capturedUrl: string | undefined;
+    const OrigWorker = globalThis.Worker;
+    (globalThis as any).Worker = function (url: string) {
+        capturedUrl = url;
+    };
+    try {
+        new Worker();
+    } catch {
+        // Ignore – factory may throw because our stub isn't a real Worker.
+    } finally {
+        (globalThis as any).Worker = OrigWorker;
+    }
+
+    if (!capturedUrl) {
+        throw new Error("[prefigure] Worker URL capture failed");
+    }
+
+    const blob = new Blob([`import ${JSON.stringify(capturedUrl)}`], {
+        type: "text/javascript",
+    });
+    return new OrigWorker(URL.createObjectURL(blob), { type: "module" });
 }
 
 export function defaultPrefigureIndexUrl(): string {

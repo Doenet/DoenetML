@@ -25,7 +25,7 @@ export function verifyWheelSync({ compilerPath, pyodidePackagesDir }) {
 
     if (!constantMatch) {
         throw new Error(
-            "Could not parse PREFIG_WHEEL_FILENAME from compiler.ts",
+            "Could not parse PREFIG_WHEEL_FILENAME from compiler-metadata.ts",
         );
     }
 
@@ -71,7 +71,7 @@ function runCli() {
         "..",
         "src",
         "worker",
-        "compiler.ts",
+        "compiler-metadata.ts",
     );
     const pyodidePackagesDir = path.join(__dirname, "..", "pyodide_packages");
 

@@ -4,7 +4,7 @@
  *
  * - Pyodide wheels: resolved via node_modules/pyodide/pyodide-lock.json, downloaded
  *   from the jsDelivr pyodide CDN, and verified with sha256 from the lock file.
- * - prefig wheel: downloaded from PyPI at the version pinned in src/worker/compiler.ts.
+ * - prefig wheel: downloaded from PyPI at the version pinned in src/worker/compiler-metadata.ts.
  *
  * All downloads are idempotent: existing files with matching sha256 are skipped.
  *
@@ -98,19 +98,19 @@ function readPyodideLock() {
 }
 
 function readPrefigWheelFilename() {
-    const compilerPath = path.join(
+    const metadataPath = path.join(
         PACKAGE_ROOT,
         "src",
         "worker",
-        "compiler.ts",
+        "compiler-metadata.ts",
     );
-    const content = fs.readFileSync(compilerPath, "utf8");
+    const content = fs.readFileSync(metadataPath, "utf8");
     const match = content.match(
         /export const PREFIG_WHEEL_FILENAME = "([^"]+)";/,
     );
     if (!match) {
         throw new Error(
-            "Could not find PREFIG_WHEEL_FILENAME constant in src/worker/compiler.ts",
+            "Could not find PREFIG_WHEEL_FILENAME constant in src/worker/compiler-metadata.ts",
         );
     }
     return match[1];
