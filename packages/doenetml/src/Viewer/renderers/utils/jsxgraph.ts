@@ -537,6 +537,7 @@ export function applyLineFamilyLabelPlacement({
         lineLike.label.visProp.anchorx = adjustedAnchorx;
         lineLike.label.visProp.anchory = anchory;
         lineLike.label.visProp.offset = offset;
+        lineLike.label.needsUpdate = true;
         lineLike.label.fullUpdate();
         return;
     }
