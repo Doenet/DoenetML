@@ -7,9 +7,9 @@
  * appended to it so it can be imported as an ES module. This is documented
  * in src/worker/liblouis/README.md.
  *
- * To upgrade liblouis: change LIBLOUIS_REF and update the sha256 entries below
- * to match the new tag's file contents (run the script once with CHECK_HASHES=false
- * to download, then recompute hashes and re-enable verification).
+ * To upgrade liblouis: change LIBLOUIS_REF, then run the script — it will fail
+ * with a hash mismatch showing the actual hashes. Copy those values into the
+ * LIBLOUIS_JS_SHA256 and TABLE_SHA256 constants below, then run again to confirm.
  *
  * Run via `npm run setup -w packages/prefigure`, or automatically as part of
  * `npm run build` (wired through wireit).

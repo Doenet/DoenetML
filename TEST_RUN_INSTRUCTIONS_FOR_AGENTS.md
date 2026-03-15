@@ -2,6 +2,8 @@
 
 This file is a runbook for future agents to avoid getting stuck when running tests in this repo.
 
+All commands below should be run from the **repository root** (the directory containing the top-level `package.json`).
+
 ## Core Rule
 
 Always use one-shot, non-interactive commands.
@@ -16,14 +18,12 @@ Avoid commands that open watchers/UIs unless explicitly requested:
 Run targeted Vitest tests with `--run`:
 
 ```bash
-cd /home/nykamp/src/DoenetML
 npm run test -w @doenet/prefigure -- --run test/index-api.test.ts test/worker-cold-start.test.ts
 ```
 
 You can also run all `@doenet/prefigure` tests one-shot:
 
 ```bash
-cd /home/nykamp/src/DoenetML
 npm run test -w @doenet/prefigure -- --run
 ```
 
@@ -34,7 +34,6 @@ For `@doenet/test-cypress`, **always build first** so tests use fresh assets.
 ### 1. Build test-cypress package
 
 ```bash
-cd /home/nykamp/src/DoenetML
 npm run build -w @doenet/test-cypress
 ```
 
@@ -44,7 +43,6 @@ Cypress config uses `baseUrl: http://localhost:4173`.
 Start preview from repo root with workspace selector:
 
 ```bash
-cd /home/nykamp/src/DoenetML
 npm run preview -w @doenet/test-cypress
 ```
 
@@ -55,14 +53,12 @@ If you are using an agent terminal tool, run this in a background terminal.
 Single spec:
 
 ```bash
-cd /home/nykamp/src/DoenetML
 npm run test-cypress-all -w @doenet/test-cypress -- --spec cypress/e2e/prefigure/prefigureNoRuntimeOnNonPrefigurePage.cy.js
 ```
 
 Or run by tag groups (already headless):
 
 ```bash
-cd /home/nykamp/src/DoenetML
 npm run test:group4 -w @doenet/test-cypress
 ```
 
