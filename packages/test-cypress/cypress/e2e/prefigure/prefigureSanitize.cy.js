@@ -14,7 +14,7 @@ describe("PreFigure sanitization guards @group4", { tags: ["@group4"] }, () => {
     it("sanitizes unsafe SVG and annotation markup from build response", () => {
         installPrefigureBuildIntercept(() => ({
             svg: `<svg xmlns="http://www.w3.org/2000/svg" onload="alert('xss')" style="background:url(javascript:alert(1))"><script>alert('bad')</script><foreignObject><div>bad</div></foreignObject><a xlink:href="javascript:alert(2)"><text>unsafe-link</text></a><text id="ok-svg">safe-svg</text></svg>`,
-            xml: `<?xml version="1.0"?><annotations onclick="alert('xss')" style="color:red"><annotation href="javascript:alert(3)" style="color:blue" onclick="alert(4)">safe-cml</annotation></annotations>`,
+            annotationsXml: `<?xml version="1.0"?><annotations onclick="alert('xss')" style="color:red"><annotation href="javascript:alert(3)" style="color:blue" onclick="alert(4)">safe-cml</annotation></annotations>`,
         }));
 
         postDebounceTestDoenetML(cesc);

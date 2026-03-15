@@ -5,6 +5,35 @@ import { DoenetViewer, DoenetEditor } from "../src/index";
 // @ts-ignore
 import doenetMLstring from "./testCode.doenet?raw";
 
+// Toggle to switch prefigure source in dev.
+// true  – load from local @doenet/prefigure build (served by this dev server).
+// false – use the CDN version configured in prefigureConfig.ts.
+const USE_LOCAL_PREFIGURE = true;
+
+async function configurePrefigureDevSource() {
+    if (!USE_LOCAL_PREFIGURE) {
+        delete (globalThis as any).__DOENET_PREFIGURE_MODULE_URL__;
+        delete (globalThis as any).__DOENET_PREFIGURE_INDEX_URL__;
+        return;
+    }
+
+    const { default: localModuleUrl } = (await import(
+        // @ts-ignore - Vite resolves ?url virtual imports at runtime.
+        "@doenet/prefigure/prefigure.js?url"
+    )) as { default: string };
+
+    (globalThis as any).__DOENET_PREFIGURE_MODULE_URL__ = new URL(
+        localModuleUrl,
+        window.location.href,
+    ).toString();
+    (globalThis as any).__DOENET_PREFIGURE_INDEX_URL__ = new URL(
+        "./assets/",
+        (globalThis as any).__DOENET_PREFIGURE_MODULE_URL__,
+    ).toString();
+}
+
+await configurePrefigureDevSource();
+
 const root = createRoot(document.getElementById("root")!);
 root.render(<App />);
 

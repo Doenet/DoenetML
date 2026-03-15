@@ -3,19 +3,117 @@ import DOMPurify from "dompurify";
 import {
     PREFIGURE_BUILD_ENDPOINT,
     PREFIGURE_DIAGCESS_SCRIPT_URL,
+    PREFIGURE_INDEX_URL,
+    PREFIGURE_MODULE_URL,
 } from "./utils/prefigureConfig";
 
-const PREFIGURE_BUILD_DEBOUNCE_MS = 1000;
+const PREFIGURE_BUILD_DEBOUNCE_COLD_MS = 1000;
+const PREFIGURE_BUILD_DEBOUNCE_WARM_MS = 40;
+
+type PrefigureModule = typeof import("@doenet/prefigure");
+
+let prefigureModulePromise: Promise<PrefigureModule> | null = null;
+let prefigureWarmupPromise: Promise<PrefigureModule> | null = null;
+let prefigureReadyModule: PrefigureModule | null = null;
+
+type PrefigureBuildResult = {
+    svg: string;
+    annotationsXml: string;
+};
+
+async function importPrefigureFromUrl(url: string): Promise<PrefigureModule> {
+    return import(/* @vite-ignore */ url);
+}
+
+async function getPrefigureModule() {
+    if (!prefigureModulePromise) {
+        prefigureModulePromise = importPrefigureFromUrl(PREFIGURE_MODULE_URL);
+    }
+
+    return prefigureModulePromise;
+}
+
+async function startPrefigureWarmup() {
+    if (!prefigureWarmupPromise) {
+        prefigureWarmupPromise = (async () => {
+            const module = await getPrefigureModule();
+            await module.initPrefigure(PREFIGURE_INDEX_URL || undefined);
+            prefigureReadyModule = module;
+            console.log("[prefigure] WASM runtime ready");
+            return module;
+        })().catch((error) => {
+            // Keep fallback-to-service behavior and allow future retries.
+            prefigureWarmupPromise = null;
+            throw error;
+        });
+    }
+
+    return prefigureWarmupPromise;
+}
+
+function logWarmupFailure(error: unknown) {
+    console.error("[prefigure] warmup failed", error);
+}
+
+function warmupPrefigureInBackground() {
+    startPrefigureWarmup().catch(logWarmupFailure);
+}
+
+function currentPrefigureDebounceMs() {
+    return prefigureReadyModule
+        ? PREFIGURE_BUILD_DEBOUNCE_WARM_MS
+        : PREFIGURE_BUILD_DEBOUNCE_COLD_MS;
+}
+
+async function buildWithPrefigureService(
+    diagramXML: string,
+    signal: AbortSignal,
+): Promise<PrefigureBuildResult> {
+    const response = await fetch(PREFIGURE_BUILD_ENDPOINT, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/xml",
+        },
+        body: diagramXML,
+        signal,
+    });
+
+    if (!response.ok) {
+        throw new Error(`HTTP Error: ${response.status}`);
+    }
+
+    const data = await response.json();
+
+    return data;
+}
+
+/**
+ * Build diagram content via whichever backend is currently available.
+ * Prefers local WASM when warm; otherwise uses the build service.
+ */
+async function buildPrefigureDiagram(
+    diagramXML: string,
+    signal: AbortSignal,
+): Promise<PrefigureBuildResult> {
+    if (prefigureReadyModule) {
+        return prefigureReadyModule.compilePrefigure(diagramXML, {
+            mode: "svg",
+            indexURL: PREFIGURE_INDEX_URL || undefined,
+        });
+    }
+
+    const data = await buildWithPrefigureService(diagramXML, signal);
+
+    // Keep warmup alive for future renders.
+    warmupPrefigureInBackground();
+
+    return data;
+}
 
 type DiagcessApi = {
     Base?: {
         init?: () => void;
     };
-};
-
-type PrefigureBuildResponse = {
-    svg?: unknown;
-    xml?: unknown;
 };
 
 type PrefigureRendererProps = {
@@ -24,6 +122,8 @@ type PrefigureRendererProps = {
         prefigureXML?: string | null;
         childrenSource?: string | null;
         showBorder?: boolean;
+        width?: { size: string; isAbsolute: boolean };
+        aspectRatio?: number | string;
     };
     surfaceStyle: React.CSSProperties;
 };
@@ -236,6 +336,57 @@ function sanitizeXmlMarkup({
     return new XMLSerializer().serializeToString(root);
 }
 
+/**
+ * Apply a successful build result to component state after sanitization.
+ */
+function applyBuildResultToState({
+    data,
+    setSvgMarkup,
+    setSvgMessage,
+    setCmlContent,
+}: {
+    data: PrefigureBuildResult;
+    setSvgMarkup: React.Dispatch<React.SetStateAction<string>>;
+    setSvgMessage: React.Dispatch<React.SetStateAction<string>>;
+    setCmlContent: React.Dispatch<React.SetStateAction<string>>;
+}) {
+    const svg = normalizeSerializedMarkup(data.svg);
+    if (svg) {
+        const sanitizedSvg = sanitizeSvgMarkup(svg);
+        if (sanitizedSvg) {
+            setSvgMarkup(sanitizedSvg);
+            setSvgMessage("");
+        } else {
+            setSvgMarkup("");
+            setSvgMessage("Error: Invalid or unsafe SVG in build response.");
+        }
+    } else {
+        setSvgMarkup("");
+        setSvgMessage("Error: No SVG found in response.");
+    }
+
+    const cml = normalizeSerializedMarkup(data.annotationsXml);
+    if (cml) {
+        setCmlContent(sanitizeAnnotationsMarkup(cml));
+    } else {
+        setCmlContent("");
+    }
+}
+
+function setBuildErrorMessage(
+    error: unknown,
+    setSvgMarkup: React.Dispatch<React.SetStateAction<string>>,
+    setSvgMessage: React.Dispatch<React.SetStateAction<string>>,
+) {
+    console.error(error);
+    const errorMessage =
+        error instanceof Error ? error.message : "Unknown error";
+    setSvgMarkup("");
+    setSvgMessage(
+        `Error: ${errorMessage}. Check the Console (F12) for CORS details if this failed immediately.`,
+    );
+}
+
 function sanitizeSvgMarkup(markup: string): string {
     const purified = DOMPurify.sanitize(markup, {
         USE_PROFILES: { svg: true, svgFilters: true },
@@ -283,7 +434,7 @@ export default React.memo(function Prefigure({
     useEffect(() => {
         let active = true;
 
-        void ensureDiagcessScriptLoaded()
+        ensureDiagcessScriptLoaded()
             .then(() => {
                 if (active) {
                     setDiagcessReady(true);
@@ -296,6 +447,12 @@ export default React.memo(function Prefigure({
         return () => {
             active = false;
         };
+    }, []);
+
+    // Start warming up WASM immediately, but do not block first render.
+    useEffect(() => {
+        // If warmup fails (e.g. CDN unreachable), keep server fallback active.
+        warmupPrefigureInBackground();
     }, []);
 
     useEffect(() => {
@@ -318,62 +475,46 @@ export default React.memo(function Prefigure({
             return;
         }
 
+        const resetBuildState = () => {
+            setSvgMarkup("");
+            setSvgMessage("Building...");
+            setCmlContent("");
+        };
+
+        const runBuildWithLogging = (startBuild: () => Promise<void>) => {
+            startBuild().catch((error) => {
+                console.error("[prefigure] build failed", error);
+            });
+        };
+
         const startBuild = async () => {
             const requestSequence = ++requestSequenceRef.current;
             const abortController = new AbortController();
             fetchAbortControllerRef.current = abortController;
+            const isWarmMode = Boolean(prefigureReadyModule);
 
-            setSvgMarkup("");
-            setSvgMessage("Building...");
-            setCmlContent("");
+            // In warm mode, keep the previous render on screen to avoid flash while
+            // the fast local compile is in progress.
+            if (!isWarmMode) {
+                resetBuildState();
+            }
 
             try {
-                const response = await fetch(PREFIGURE_BUILD_ENDPOINT, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/xml",
-                    },
-                    body: diagramXML,
-                    signal: abortController.signal,
+                const data = await buildPrefigureDiagram(
+                    diagramXML,
+                    abortController.signal,
+                );
+
+                if (requestSequence !== requestSequenceRef.current) {
+                    return;
+                }
+
+                applyBuildResultToState({
+                    data,
+                    setSvgMarkup,
+                    setSvgMessage,
+                    setCmlContent,
                 });
-
-                if (requestSequence !== requestSequenceRef.current) {
-                    return;
-                }
-
-                if (!response.ok) {
-                    throw new Error(`HTTP Error: ${response.status}`);
-                }
-
-                const data = (await response.json()) as PrefigureBuildResponse;
-
-                if (requestSequence !== requestSequenceRef.current) {
-                    return;
-                }
-
-                const svg = normalizeSerializedMarkup(data.svg);
-                if (svg) {
-                    const sanitizedSvg = sanitizeSvgMarkup(svg);
-                    if (sanitizedSvg) {
-                        setSvgMarkup(sanitizedSvg);
-                        setSvgMessage("");
-                    } else {
-                        setSvgMarkup("");
-                        setSvgMessage(
-                            "Error: Invalid or unsafe SVG in build response.",
-                        );
-                    }
-                } else {
-                    setSvgMarkup("");
-                    setSvgMessage("Error: No SVG found in response.");
-                }
-
-                const cml = normalizeSerializedMarkup(data.xml);
-                if (cml) {
-                    setCmlContent(sanitizeAnnotationsMarkup(cml));
-                } else {
-                    setCmlContent("");
-                }
             } catch (error) {
                 if (
                     error instanceof DOMException &&
@@ -386,13 +527,7 @@ export default React.memo(function Prefigure({
                     return;
                 }
 
-                console.error(error);
-                const errorMessage =
-                    error instanceof Error ? error.message : "Unknown error";
-                setSvgMarkup("");
-                setSvgMessage(
-                    `Error: ${errorMessage}. Check the Console (F12) for CORS details if this failed immediately.`,
-                );
+                setBuildErrorMessage(error, setSvgMarkup, setSvgMessage);
             } finally {
                 if (fetchAbortControllerRef.current === abortController) {
                     fetchAbortControllerRef.current = null;
@@ -402,12 +537,12 @@ export default React.memo(function Prefigure({
 
         if (!hasStartedBuildRef.current) {
             hasStartedBuildRef.current = true;
-            void startBuild();
+            runBuildWithLogging(startBuild);
         } else {
-            debounceTimerRef.current = setTimeout(
-                () => void startBuild(),
-                PREFIGURE_BUILD_DEBOUNCE_MS,
-            );
+            const debounceMs = currentPrefigureDebounceMs();
+            debounceTimerRef.current = setTimeout(() => {
+                runBuildWithLogging(startBuild);
+            }, debounceMs);
         }
 
         return () => {
@@ -435,23 +570,40 @@ export default React.memo(function Prefigure({
         }
     }, [svgMarkup, cmlContent, diagcessReady]);
 
-    const contentStyle: React.CSSProperties = SVs.showBorder
-        ? {
-              ...surfaceStyle,
-              borderRadius: "10px",
-              overflow: "hidden",
-          }
-        : { ...surfaceStyle, overflow: "hidden" };
+    const frameStyle: React.CSSProperties = {
+        ...surfaceStyle,
+        overflow: "hidden",
+        backgroundColor: "var(--canvas)",
+        color: "var(--canvasText)",
+        boxSizing: "border-box",
+        border: SVs.showBorder ? "2px solid var(--canvasText)" : "none",
+        borderRadius: SVs.showBorder ? "10px" : undefined,
+    };
+
+    const svgContainerStyle: React.CSSProperties = {
+        width: "100%",
+        height: "100%",
+    };
+
+    const svgMessageStyle: React.CSSProperties = {
+        ...svgContainerStyle,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+    };
 
     return (
-        <div id={id} className="ChemAccess-element" style={contentStyle}>
+        <div id={id} className="ChemAccess-element" style={frameStyle}>
             {svgMarkup ? (
                 <div
                     className="svg"
+                    style={svgContainerStyle}
                     dangerouslySetInnerHTML={{ __html: svgMarkup }}
                 />
             ) : (
-                <div className="svg">{svgMessage}</div>
+                <div className="svg" style={svgMessageStyle}>
+                    {svgMessage}
+                </div>
             )}
             <div
                 className="cml"

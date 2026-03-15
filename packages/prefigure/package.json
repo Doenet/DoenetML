@@ -1,0 +1,91 @@
+{
+    "name": "@doenet/prefigure",
+    "type": "module",
+    "description": "Standalone PreFigure WASM compiler for browser and CDN usage",
+    "version": "0.5.11-doenet.6",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": false,
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Doenet/DoenetML.git"
+    },
+    "files": [
+        "/dist"
+    ],
+    "exports": {
+        ".": {
+            "import": "./dist/prefigure.js"
+        },
+        "./*": {
+            "import": "./dist/*"
+        }
+    },
+    "scripts": {
+        "dev": "vite",
+        "build": "wireit",
+        "test": "vitest",
+        "test:browser-runtime": "vite-node scripts/run-browser-runtime-check.ts",
+        "browser-runtime": "vite --host 127.0.0.1 --strictPort --port 4175",
+        "browser-runtime:build": "vite build && echo \"Browser runtime check harness available in dev mode at /\"",
+        "preview": "vite preview",
+        "setup": "vite-node scripts/fetch-pyodide-packages.ts && vite-node scripts/fetch-liblouis.ts",
+        "verify-wheel-sync": "vite-node scripts/verify-wheel-sync.ts",
+        "publish": "npm run build && npm run verify-wheel-sync && cd dist && npm publish"
+    },
+    "wireit": {
+        "build": {
+            "command": "vite build",
+            "dependencies": [
+                "fetch-wheels",
+                "fetch-liblouis"
+            ],
+            "files": [
+                "src/**/*.ts",
+                "tsconfig.json",
+                "vite.config.ts",
+                "package.json"
+            ],
+            "output": [
+                "dist/**/*.js",
+                "dist/**/*.d.ts",
+                "dist/**/*.json",
+                "dist/assets/**/*"
+            ]
+        },
+        "fetch-wheels": {
+            "command": "vite-node scripts/fetch-pyodide-packages.ts",
+            "files": [
+                "scripts/fetch-pyodide-packages.ts",
+                "../../package-lock.json",
+                "src/worker/compiler-metadata.ts"
+            ],
+            "output": [
+                "pyodide_packages/**/*"
+            ],
+            "clean": false
+        },
+        "fetch-liblouis": {
+            "command": "vite-node scripts/fetch-liblouis.ts",
+            "files": [
+                "scripts/fetch-liblouis.ts"
+            ],
+            "output": [
+                "src/worker/liblouis/generated/build-no-tables-utf32.js",
+                "src/worker/liblouis/generated/*.cti",
+                "src/worker/liblouis/generated/*.ctb",
+                "src/worker/liblouis/generated/*.uti",
+                "src/worker/liblouis/generated/*.dis"
+            ],
+            "clean": false
+        }
+    },
+    "peerDependencies": {},
+    "dependencies": {
+        "@mathjax/src": "^4.0.0",
+        "comlink": "^4.4.2",
+        "pyodide": "^0.26.4",
+        "speech-rule-engine": "5.0.0-beta.1"
+    },
+    "devDependencies": {}
+}

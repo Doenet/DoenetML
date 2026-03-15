@@ -55,7 +55,8 @@
                 "../ui-components:build",
                 "../utils:build",
                 "../virtual-keyboard:build",
-                "../parser:build"
+                "../parser:build",
+                "../prefigure:build"
             ]
         }
     },
