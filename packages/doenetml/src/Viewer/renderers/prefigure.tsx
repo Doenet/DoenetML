@@ -98,6 +98,7 @@ async function buildPrefigureDiagram(
     if (prefigureReadyModule) {
         return prefigureReadyModule.compilePrefigure(diagramXML, {
             mode: "svg",
+            indexURL: PREFIGURE_INDEX_URL || undefined,
         });
     }
 

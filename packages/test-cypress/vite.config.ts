@@ -26,6 +26,13 @@ export default defineConfig({
                     ),
                     dest: "fonts/",
                 },
+                {
+                    // Include local prefigure runtime artifacts in preview output
+                    // so Cypress timing probes can compare local vs jsDelivr with
+                    // the same preview-based test harness.
+                    src: path.resolve(process.cwd(), "../prefigure/dist/*"),
+                    dest: "prefigure-local/",
+                },
             ],
         }),
     ],
