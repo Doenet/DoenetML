@@ -214,8 +214,8 @@ jobs:
                   name: cypress-screenshots-${{ matrix.test-group }}
                   path: ./packages/test-cypress/cypress/screenshots
 
-    test-prefigure-browser-smoke:
-        name: Prefigure Browser Smoke
+    test-prefigure-browser-runtime:
+        name: Prefigure Browser Runtime Check
         runs-on: ubuntu-latest
         needs: [build, changes]
         if: needs.changes.outputs.prefigure == 'true'
@@ -243,8 +243,8 @@ jobs:
               env:
                   WIREIT_CACHE: "local"
 
-            - name: Run browser smoke test
-              run: npm run test:browser-smoke -w @doenet/prefigure
+            - name: Run browser runtime check
+              run: npm run test:browser-runtime -w @doenet/prefigure
 
     lint:
         name: Lint Rust Code

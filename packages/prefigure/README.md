@@ -55,13 +55,13 @@ Both methods return promises.
 </script>
 ```
 
-## Smoke Test
+## Browser Runtime Check
 
-Run a local smoke harness that compiles a tiny diagram and checks for
+Run a local browser runtime check harness that compiles a tiny diagram and checks for
 non-empty SVG + annotations output:
 
 ```bash
-npm run smoke -w @doenet/prefigure
+npm run browser-runtime -w @doenet/prefigure
 ```
 
 Then open `http://127.0.0.1:4175/`.
@@ -86,7 +86,7 @@ Current coverage includes API-level behavior tests for:
 - `compilePrefigure()` delegation/result mapping
 - dedicated-worker API wiring and compile delegation behavior
 
-The browser smoke harness remains useful as a manual runtime check for real
+The browser runtime check remains useful as a manual runtime check for real
 Pyodide+WASM execution.
 
 ## Wheel Requirement
@@ -140,11 +140,11 @@ npm run verify-wheel-sync -w @doenet/prefigure
 1. Update `PREFIG_WHEEL_FILENAME` in `src/worker/compiler-metadata.ts`.
 2. Run `npm run setup -w @doenet/prefigure`.
 3. Run `npm run verify-wheel-sync -w @doenet/prefigure`.
-4. Build and smoke test:
+4. Build and run the browser runtime check:
 
 ```bash
 npm run build -w @doenet/prefigure
-npm run smoke -w @doenet/prefigure
+npm run browser-runtime -w @doenet/prefigure
 ```
 
 ### Upgrade Pyodide runtime packages
@@ -152,10 +152,10 @@ npm run smoke -w @doenet/prefigure
 1. Bump `pyodide` in `packages/prefigure/package.json`.
 2. Run `npm install` at repo root.
 3. Run `npm run setup -w @doenet/prefigure` (reads the new `pyodide-lock.json`).
-4. Run build + smoke test.
+4. Run build + the browser runtime check.
 
 ### Upgrade liblouis assets
 
 1. Update `LIBLOUIS_REF` and hashes in `scripts/fetch-liblouis.ts`.
 2. Run `npm run setup -w @doenet/prefigure`.
-3. Run build + smoke test.
+3. Run build + the browser runtime check.

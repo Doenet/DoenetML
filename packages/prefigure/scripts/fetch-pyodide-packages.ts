@@ -15,7 +15,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { fetchUrl, downloadToFile, sha256hex } from "./lib/download-utils.ts";
+import { fetchUrl, downloadToFile, sha256hex } from "./lib/download-utils.js";
 
 type PyodideLockPackage = {
     name?: string;

@@ -120,7 +120,7 @@ async function main() {
             "--config",
             `baseUrl=${baseUrl},video=false,screenshotOnRunFailure=false`,
             "--spec",
-            "test/cypress/prefigure-smoke.cy.js",
+            "test/cypress/prefigure-browser-runtime.cy.js",
         ]);
     } finally {
         process.off("SIGINT", onInterrupt);

@@ -18,7 +18,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
-import { downloadBuffer, sha256hex } from "./lib/download-utils.ts";
+import { downloadBuffer, sha256hex } from "./lib/download-utils.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);

@@ -5,7 +5,7 @@
         "rootDir": "./src",
         "types": ["vite/client"]
     },
-    "include": ["./**/*.ts", "./**/*.d.ts"],
+    "include": ["src/**/*.ts", "src/**/*.d.ts"],
     "exclude": [
         "./**/*.test.ts",
         "./**/*.stub.ts",

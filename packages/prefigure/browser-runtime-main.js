@@ -13,7 +13,7 @@ const sampleDiagram = `<diagram dimensions="(300,300)" margins="5">
   </annotations>
 </diagram>`;
 
-async function runSmoke() {
+async function runBrowserRuntimeCheck() {
     const started = performance.now();
 
     try {
@@ -44,7 +44,7 @@ async function runSmoke() {
             result.svg.slice(0, 500),
         ].join("\n");
 
-        window.__PREFIGURE_SMOKE__ = {
+        window.__PREFIGURE_BROWSER_RUNTIME_CHECK__ = {
             ok: true,
             elapsed,
             svgLength: result.svg.length,
@@ -58,8 +58,11 @@ async function runSmoke() {
         statusEl.textContent = "FAIL";
         statusEl.className = "fail";
         outputEl.textContent = message;
-        window.__PREFIGURE_SMOKE__ = { ok: false, error: message };
+        window.__PREFIGURE_BROWSER_RUNTIME_CHECK__ = {
+            ok: false,
+            error: message,
+        };
     }
 }
 
-runSmoke();
+runBrowserRuntimeCheck();

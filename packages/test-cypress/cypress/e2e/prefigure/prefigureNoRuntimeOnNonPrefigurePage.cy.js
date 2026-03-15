@@ -40,11 +40,14 @@ describe(
                     const OriginalSharedWorker = win.SharedWorker;
                     if (OriginalSharedWorker) {
                         function SharedWorkerProxy(...args) {
-                            tracker.sharedWorkerUrls.push(String(args[0] ?? ""));
+                            tracker.sharedWorkerUrls.push(
+                                String(args[0] ?? ""),
+                            );
                             return new OriginalSharedWorker(...args);
                         }
 
-                        SharedWorkerProxy.prototype = OriginalSharedWorker.prototype;
+                        SharedWorkerProxy.prototype =
+                            OriginalSharedWorker.prototype;
                         win.SharedWorker = SharedWorkerProxy;
                     }
                 },
@@ -66,7 +69,10 @@ describe(
             });
 
             cy.get(cesc("#ready")).should("have.text", "ready");
-            cy.get(cesc("#status")).should("have.text", "no prefigure renderer");
+            cy.get(cesc("#status")).should(
+                "have.text",
+                "no prefigure renderer",
+            );
 
             cy.wait(500);
 
