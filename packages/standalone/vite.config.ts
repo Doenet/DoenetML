@@ -5,9 +5,6 @@ import { createPackageJsonTransformer } from "../../scripts/transform-package-js
 import { version } from "./package.json";
 import { suppressLogPlugin } from "../../scripts/vite-plugins";
 
-// These are the dependencies that will not be bundled into the library.
-const EXTERNAL_DEPS = ["@doenet/prefigure"];
-
 // https://vitejs.dev/config/
 export default defineConfig({
     base: "./",
@@ -35,7 +32,6 @@ export default defineConfig({
             formats: ["es"],
         },
         rollupOptions: {
-            external: EXTERNAL_DEPS,
             output: {
                 // Make sure everything is bundled as a single file
                 inlineDynamicImports: true,
