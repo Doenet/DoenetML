@@ -390,6 +390,7 @@ function setBuildErrorMessage(
 function sanitizeSvgMarkup(markup: string): string {
     const purified = DOMPurify.sanitize(markup, {
         USE_PROFILES: { svg: true, svgFilters: true },
+        ADD_TAGS: ["use"],
         FORBID_TAGS: ["foreignObject", "iframe", "object", "embed"],
         FORBID_ATTR: ["style"],
         ALLOW_UNKNOWN_PROTOCOLS: false,
