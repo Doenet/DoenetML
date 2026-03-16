@@ -59,9 +59,21 @@ describe("PreFigure sanitization guards @group4", { tags: ["@group4"] }, () => {
         postDebounceTestDoenetML(cesc);
         waitPastDebounceWindow();
 
+        // Ensure the tick label text is present somewhere in the SVG.
         cy.get(cesc("#prefig")).find(".svg").should("contain.text", "-1");
         cy.get(cesc("#prefig")).find(".svg").should("contain.text", "0");
         cy.get(cesc("#prefig")).find(".svg").should("contain.text", "1");
+
+        // Critically, ensure the local <use> references themselves are preserved.
+        cy.get(cesc("#prefig"))
+            .find(".svg use[xlink\\:href='#tick-label-neg1']")
+            .should("exist");
+        cy.get(cesc("#prefig"))
+            .find(".svg use[href='#tick-label-zero']")
+            .should("exist");
+        cy.get(cesc("#prefig"))
+            .find(".svg use[xlink\\:href='#tick-label-pos1']")
+            .should("exist");
     });
 
     it("preserves math-like point label content emitted through local <use> references", () => {
