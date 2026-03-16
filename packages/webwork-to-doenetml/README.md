@@ -1,13 +1,23 @@
 ## Setup
-Clone this repo in the command line: `git clone https://github.com/Doenet/webwork-to-doenetml.git`
 
-Make sure you have Node installed `node -v`
+This tool now lives inside the DoenetML monorepo at `packages/webwork-to-doenetml`.
+
+Make sure you have Node installed: `node -v`
 
 ## Usage
-Paste the Webwork PERL code into `input.pg`
 
-Run on the command line: `node convert`
+Paste the WeBWorK Perl code into `packages/webwork-to-doenetml/input.pg`.
 
-Output generates to `output.doenetml`
+From the repository root, run:
 
-If you don't want to include the original WeBWorK problem, run `node convert hide-original`
+`npm run convert -w packages/webwork-to-doenetml`
+
+That writes the converted output to `packages/webwork-to-doenetml/output.doenetml`.
+
+If you don't want to include the original WeBWorK problem in the generated output, run:
+
+`npm run convert -w packages/webwork-to-doenetml -- hide-original`
+
+You can also run the package locally from inside `packages/webwork-to-doenetml` with:
+
+`npm run convert`

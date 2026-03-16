@@ -1,13 +1,16 @@
+#!/usr/bin/env node
+
 /**
  * Script to convert WebWork problems (written in Perl) to DoenetML
  * TODO: tables
  */
 
-const fs = require("fs");
+import fs from "node:fs";
+import { pathToFileURL } from "node:url";
 
 const tab = "  ";
 
-function convert(data) {
+export function convert(data) {
   // const sections = data.split(/#{4,}/);
   let document = data.match(/DOCUMENT\(\);(.*)ENDDOCUMENT\(\);/s);
   document = document[1];
@@ -94,7 +97,7 @@ function convert(data) {
   // let out = "";
   let answers = [];
   let activeConditions = [];
-  // let prevCondition = "";
+  let prevCondition = "";
 
   let showPartialCorrectAnswers = false;
 
@@ -332,7 +335,7 @@ function convert(data) {
 
   if (solutionSection) {
     // If a <SOLUTION> is defined, use that instead
-    [solutionOut, _] = textSection(solutionSection, 0, graphs, graphContents);
+    [solutionOut] = textSection(solutionSection, 0, graphs, graphContents);
   } else {
     solutionOut = `<ol>\n${solutionOut}</ol>`;
   }
@@ -363,11 +366,12 @@ function functionStatement(name, func, argsString, graphicalStyleCount) {
   let close = "";
   if (func === "random") {
     // <selectFromSequence>
-    step = args[2] === "1" || args[2] === undefined ? "" : ` step="${args[2]}"`;
+    let step =
+      args[2] === "1" || args[2] === undefined ? "" : ` step="${args[2]}"`;
     open = `<selectFromSequence${nameStr} from="${args[0]}" to="${args[1]}"${step}/>`;
   } else if (func === "non_zero_random") {
     // <selectFromSequence>, exclude 0
-    step = args[2] === "1" ? "" : ` step="${args[2]}"`;
+    let step = args[2] === "1" ? "" : ` step="${args[2]}"`;
     open = `<selectFromSequence${nameStr} from="${args[0]}" to="${args[1]}"${step} exclude="0"/>`;
   } else if (func === "Real") {
     // <number>
@@ -584,8 +588,8 @@ function warnAndComment(message) {
   return `<!-- ${message} -->\n`;
 }
 
-function main() {
-  const firstArg = process.argv[2];
+export function main(args = process.argv.slice(2)) {
+  const hideOriginal = args.includes("hide-original");
 
   const inputFilepath = "input.pg";
   const outputFilepath = "output.doenetml";
@@ -598,7 +602,7 @@ function main() {
   }
 
   let output = convert(data);
-  if (firstArg !== "hide-original") {
+  if (!hideOriginal) {
     output += `
 <!-- Generated from this WeBWorK problem: -->
 <!--\n${data}\n-->\n`;
@@ -611,4 +615,6 @@ function main() {
   }
 }
 
-main();
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main();
+}
