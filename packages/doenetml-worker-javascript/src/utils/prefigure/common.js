@@ -52,6 +52,12 @@ function sanitizeHandle(value) {
         .replaceAll(/^-|-$/g, "");
 }
 
+/**
+ * Creates a deterministic, XML-safe id for emitted PreFigure elements.
+ *
+ * Handles are based on component type/name when available and are made unique
+ * against `usedHandles` to keep output stable across runs.
+ */
 export function createStableHandle(descendant, index, usedHandles) {
     const stem = sanitizeHandle(
         `${descendant.componentType}-${descendant.componentName ?? index}`,
@@ -176,6 +182,150 @@ export function clipRayToBounds({ endpoint, throughpoint, bounds }) {
 
     return [
         [x0 + rayStart * dx, y0 + rayStart * dy],
+        [x0 + tMax * dx, y0 + tMax * dy],
+    ];
+}
+
+/**
+ * Clips an infinite line through two points to an axis-aligned bbox.
+ * Returns `[startPoint, endPoint]` in user coordinates, or null if no intersection.
+ */
+export function clipInfiniteLineToBounds({ point1, point2, bounds }) {
+    if (
+        !Array.isArray(point1) ||
+        !Array.isArray(point2) ||
+        point1.length < 2 ||
+        point2.length < 2 ||
+        !Array.isArray(bounds) ||
+        bounds.length < 4
+    ) {
+        return null;
+    }
+
+    const x0 = asFiniteNumber(point1[0]);
+    const y0 = asFiniteNumber(point1[1]);
+    const x1 = asFiniteNumber(point2[0]);
+    const y1 = asFiniteNumber(point2[1]);
+    const bxMin = asFiniteNumber(bounds[0]);
+    const byMin = asFiniteNumber(bounds[1]);
+    const bxMax = asFiniteNumber(bounds[2]);
+    const byMax = asFiniteNumber(bounds[3]);
+
+    if ([x0, y0, x1, y1, bxMin, byMin, bxMax, byMax].some((x) => x === null)) {
+        return null;
+    }
+
+    const dx = x1 - x0;
+    const dy = y1 - y0;
+    if (dx === 0 && dy === 0) {
+        return null;
+    }
+
+    let tMin = -Infinity;
+    let tMax = Infinity;
+
+    if (dx !== 0) {
+        let tx0 = (bxMin - x0) / dx;
+        let tx1 = (bxMax - x0) / dx;
+        if (tx0 > tx1) {
+            [tx0, tx1] = [tx1, tx0];
+        }
+        tMin = Math.max(tMin, tx0);
+        tMax = Math.min(tMax, tx1);
+    } else if (x0 < bxMin || x0 > bxMax) {
+        return null;
+    }
+
+    if (dy !== 0) {
+        let ty0 = (byMin - y0) / dy;
+        let ty1 = (byMax - y0) / dy;
+        if (ty0 > ty1) {
+            [ty0, ty1] = [ty1, ty0];
+        }
+        tMin = Math.max(tMin, ty0);
+        tMax = Math.min(tMax, ty1);
+    } else if (y0 < byMin || y0 > byMax) {
+        return null;
+    }
+
+    if (tMin > tMax) {
+        return null;
+    }
+
+    return [
+        [x0 + tMin * dx, y0 + tMin * dy],
+        [x0 + tMax * dx, y0 + tMax * dy],
+    ];
+}
+
+/**
+ * Clips a finite segment between two points to an axis-aligned bbox.
+ * Returns `[startPoint, endPoint]` in user coordinates, or null if no intersection.
+ */
+export function clipSegmentToBounds({ point1, point2, bounds }) {
+    if (
+        !Array.isArray(point1) ||
+        !Array.isArray(point2) ||
+        point1.length < 2 ||
+        point2.length < 2 ||
+        !Array.isArray(bounds) ||
+        bounds.length < 4
+    ) {
+        return null;
+    }
+
+    const x0 = asFiniteNumber(point1[0]);
+    const y0 = asFiniteNumber(point1[1]);
+    const x1 = asFiniteNumber(point2[0]);
+    const y1 = asFiniteNumber(point2[1]);
+    const bxMin = asFiniteNumber(bounds[0]);
+    const byMin = asFiniteNumber(bounds[1]);
+    const bxMax = asFiniteNumber(bounds[2]);
+    const byMax = asFiniteNumber(bounds[3]);
+
+    if ([x0, y0, x1, y1, bxMin, byMin, bxMax, byMax].some((x) => x === null)) {
+        return null;
+    }
+
+    const dx = x1 - x0;
+    const dy = y1 - y0;
+    if (dx === 0 && dy === 0) {
+        return null;
+    }
+
+    let tMin = 0;
+    let tMax = 1;
+
+    if (dx !== 0) {
+        let tx0 = (bxMin - x0) / dx;
+        let tx1 = (bxMax - x0) / dx;
+        if (tx0 > tx1) {
+            [tx0, tx1] = [tx1, tx0];
+        }
+        tMin = Math.max(tMin, tx0);
+        tMax = Math.min(tMax, tx1);
+    } else if (x0 < bxMin || x0 > bxMax) {
+        return null;
+    }
+
+    if (dy !== 0) {
+        let ty0 = (byMin - y0) / dy;
+        let ty1 = (byMax - y0) / dy;
+        if (ty0 > ty1) {
+            [ty0, ty1] = [ty1, ty0];
+        }
+        tMin = Math.max(tMin, ty0);
+        tMax = Math.min(tMax, ty1);
+    } else if (y0 < byMin || y0 > byMax) {
+        return null;
+    }
+
+    if (tMin > tMax) {
+        return null;
+    }
+
+    return [
+        [x0 + tMin * dx, y0 + tMin * dy],
         [x0 + tMax * dx, y0 + tMax * dy],
     ];
 }

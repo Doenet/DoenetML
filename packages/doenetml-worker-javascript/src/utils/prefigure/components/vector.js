@@ -7,6 +7,14 @@ import {
 
 /**
  * Converts a vector (tail/head endpoints) to a PreFigure `<vector>` element.
+ *
+ * Label handling note:
+ * - We currently emit vector labels as separate `<label>` siblings with an
+ *   absolute anchor point.
+ * - Anchor location reuses Doenet line-family location semantics
+ *   (`lineLabelLocationValue`) for consistency with existing conversion tests.
+ * - This intentionally differs from PreFigure's native vector label semantics,
+ *   which are head-anchored and offset-driven.
  */
 export function convertVectorToPrefigure({
     sv,
@@ -53,11 +61,12 @@ export function convertVectorToPrefigure({
         return vectorXml;
     }
 
+    // Keep location policy aligned with line-family Doenet labelPosition mapping.
     const location = lineLabelLocationValue(sv?.labelPosition, ep1, ep2);
 
     const anchor = [
-        ep1[0] + (ep2[0] - ep1[0]) * location,
-        ep1[1] + (ep2[1] - ep1[1]) * location,
+        Number((ep1[0] + (ep2[0] - ep1[0]) * location).toFixed(12)),
+        Number((ep1[1] + (ep2[1] - ep1[1]) * location).toFixed(12)),
     ];
     const anchorText = formatPoint(anchor);
     if (anchorText === null) {
