@@ -50,11 +50,16 @@ If you are using an agent terminal tool, run this in a background terminal.
 
 ### 3. Run Cypress in headless mode (non-interactive)
 
-Single spec:
+Single spec (reliable for agents):
 
 ```bash
-npm run test-cypress-all -w @doenet/test-cypress -- --spec cypress/e2e/prefigure/prefigureNoRuntimeOnNonPrefigurePage.cy.js
+npm exec -w @doenet/test-cypress -- cypress run -b chrome --headless --config-file cypress.config.js --config video=false,retries=0,specPattern=cypress/e2e/prefigure/prefigureNoRuntimeOnNonPrefigurePage.cy.js
 ```
+
+Notes:
+- This command overrides `retries` from `cypress.config.js` (for example, `runMode: 2`) via CLI `--config retries=0`.
+- Prefer this direct `npm exec ... cypress run` form when you must run exactly one spec.
+- The script wrapper `npm run test-cypress-all -w @doenet/test-cypress -- --spec ...` can be less predictable in some agent shells.
 
 Or run by tag groups (already headless):
 

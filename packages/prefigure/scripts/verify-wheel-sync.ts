@@ -3,41 +3,25 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { PREFIG_WHEEL_FILENAME } from "../src/worker/compiler-metadata";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 type VerifyWheelSyncOptions = {
-    compilerPath: string;
     pyodidePackagesDir: string;
 };
 
 export function verifyWheelSync({
-    compilerPath,
     pyodidePackagesDir,
 }: VerifyWheelSyncOptions): string {
-    if (!fs.existsSync(compilerPath)) {
-        throw new Error(`Missing compiler file: ${compilerPath}`);
-    }
-
     if (!fs.existsSync(pyodidePackagesDir)) {
         throw new Error(
             `Missing pyodide packages directory: ${pyodidePackagesDir}`,
         );
     }
 
-    const compilerContent = fs.readFileSync(compilerPath, "utf8");
-    const constantMatch = compilerContent.match(
-        /export const PREFIG_WHEEL_FILENAME = "([^"]+)";/,
-    );
-
-    if (!constantMatch) {
-        throw new Error(
-            "Could not parse PREFIG_WHEEL_FILENAME from compiler-metadata.ts",
-        );
-    }
-
-    const configuredWheel = constantMatch[1];
+    const configuredWheel = PREFIG_WHEEL_FILENAME;
     if (
         !(
             configuredWheel.startsWith("prefig-") &&
@@ -74,20 +58,10 @@ export function verifyWheelSync({
 }
 
 function runCli() {
-    const compilerPath = path.join(
-        __dirname,
-        "..",
-        "src",
-        "worker",
-        "compiler-metadata.ts",
-    );
     const pyodidePackagesDir = path.join(__dirname, "..", "pyodide_packages");
 
     try {
-        const configuredWheel = verifyWheelSync({
-            compilerPath,
-            pyodidePackagesDir,
-        });
+        const configuredWheel = verifyWheelSync({ pyodidePackagesDir });
         console.log(`✅ Prefigure wheel sync OK: ${configuredWheel}`);
     } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

@@ -288,6 +288,11 @@ function isUnsafeUrl(value: string): boolean {
     );
 }
 
+function isLocalSvgFragmentReference(value: string): boolean {
+    const normalized = value.trim();
+    return normalized.startsWith("#");
+}
+
 function sanitizeXmlMarkup({
     markup,
     mimeType,
@@ -312,7 +317,9 @@ function sanitizeXmlMarkup({
 
     const elements = [root, ...Array.from(root.getElementsByTagName("*"))];
     for (const element of elements) {
-        const tagName = element.tagName.toLowerCase();
+        const tagName = (
+            element.localName || element.tagName
+        ).toLowerCase();
 
         if (FORBIDDEN_MARKUP_TAGS.has(tagName)) {
             element.remove();
@@ -322,12 +329,23 @@ function sanitizeXmlMarkup({
         const attributes = Array.from(element.attributes);
         for (const attribute of attributes) {
             const name = attribute.name.toLowerCase();
+            const localName = (attribute.localName || attribute.name).toLowerCase();
             const value = attribute.value.trim();
             const isEventHandler = name.startsWith("on");
+            const isUseHrefAttr = tagName === "use" && localName === "href";
+            const hasUnsafeUseHref =
+                isUseHrefAttr && !isLocalSvgFragmentReference(value);
             const isScriptUrl = isUnsafeUrl(value);
-            const hasUnsafeUrl = URL_ATTRIBUTE_NAMES.has(name) && isScriptUrl;
+            const hasUnsafeUrl =
+                (URL_ATTRIBUTE_NAMES.has(name) || URL_ATTRIBUTE_NAMES.has(localName)) &&
+                isScriptUrl;
             const hasStyleAttr = name === "style";
-            if (isEventHandler || hasUnsafeUrl || hasStyleAttr) {
+            if (
+                isEventHandler ||
+                hasUnsafeUseHref ||
+                hasUnsafeUrl ||
+                hasStyleAttr
+            ) {
                 element.removeAttribute(attribute.name);
             }
         }

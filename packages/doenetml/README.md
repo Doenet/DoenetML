@@ -44,6 +44,11 @@ via Vite environment variables:
 If not provided, defaults are used from
 `src/Viewer/renderers/utils/prefigureConfig.ts`.
 
+Note: the default module URL pins a published `@doenet/prefigure` package tag
+for CDN usage. That value is intentionally managed independently from
+`@doenet/prefigure` compiler wheel metadata (`PREFIG_VERSION` /
+`PREFIG_WHEEL_FILENAME`), which only centralizes the runtime wheel version.
+
 ### CSP Notes for PreFigure Renderer
 
 If your deployment enforces Content Security Policy, ensure the hosts for your

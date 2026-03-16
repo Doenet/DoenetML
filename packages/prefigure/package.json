@@ -30,7 +30,7 @@
         "browser-runtime:build": "vite build && echo \"Browser runtime check harness available in dev mode at /\"",
         "preview": "vite preview",
         "setup": "vite-node scripts/fetch-pyodide-packages.ts && vite-node scripts/fetch-liblouis.ts",
-        "verify-wheel-sync": "vite-node scripts/verify-wheel-sync.ts",
+        "verify-wheel-sync": "vite-node --script scripts/verify-wheel-sync.ts",
         "publish": "npm run build && npm run verify-wheel-sync && cd dist && npm publish"
     },
     "wireit": {
