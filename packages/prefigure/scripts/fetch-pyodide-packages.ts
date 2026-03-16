@@ -16,6 +16,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import { fetchUrl, downloadToFile, sha256hex } from "./lib/download-utils.js";
+import { PREFIG_WHEEL_FILENAME } from "../src/worker/compiler-metadata";
 
 type PyodideLockPackage = {
     name?: string;
@@ -100,25 +101,6 @@ function readPyodideLock(): PyodideLock {
     );
 }
 
-function readPrefigWheelFilename(): string {
-    const metadataPath = path.join(
-        PACKAGE_ROOT,
-        "src",
-        "worker",
-        "compiler-metadata.ts",
-    );
-    const content = fs.readFileSync(metadataPath, "utf8");
-    const match = content.match(
-        /export const PREFIG_WHEEL_FILENAME = "([^"]+)";/,
-    );
-    if (!match) {
-        throw new Error(
-            "Could not find PREFIG_WHEEL_FILENAME constant in src/worker/compiler-metadata.ts",
-        );
-    }
-    return match[1];
-}
-
 // ---------------------------------------------------------------------------
 // Pyodide packages
 // ---------------------------------------------------------------------------
@@ -198,7 +180,7 @@ async function fetchPyodidePackages(lock: PyodideLock) {
 // ---------------------------------------------------------------------------
 
 async function fetchPrefigWheel() {
-    const wheelFilename = readPrefigWheelFilename();
+    const wheelFilename = PREFIG_WHEEL_FILENAME;
     const destPath = path.join(PYODIDE_PACKAGES_DIR, wheelFilename);
 
     // Keep only the pinned prefig wheel to avoid stale-version ambiguity.

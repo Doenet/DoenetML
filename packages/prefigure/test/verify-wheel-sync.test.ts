@@ -13,10 +13,17 @@ function makeTempDir() {
 }
 
 function writeCompilerWithWheel(compilerPath: string, wheelFilename: string) {
+    const versionMatch = wheelFilename.match(/^prefig-([^-]+)-/);
+    if (!versionMatch) {
+        throw new Error(`Invalid wheel filename: ${wheelFilename}`);
+    }
+    const version = versionMatch[1];
+
     fs.mkdirSync(path.dirname(compilerPath), { recursive: true });
     fs.writeFileSync(
         compilerPath,
-        `export const PREFIG_WHEEL_FILENAME = "${wheelFilename}";\n`,
+        `export const PREFIG_VERSION = "${version}";\n` +
+            `export const PREFIG_WHEEL_FILENAME = "${wheelFilename}";\n`,
     );
 }
 

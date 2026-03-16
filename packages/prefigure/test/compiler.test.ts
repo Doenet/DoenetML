@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { PREFIG_WHEEL_FILENAME } from "../src/worker/compiler-metadata";
 
 const mocks = vi.hoisted(() => {
     return {
@@ -56,7 +57,7 @@ describe("PreFigureCompiler", () => {
         expect(mocks.loadPackageSpy).toHaveBeenCalledTimes(1);
         const packageList = mocks.loadPackageSpy.mock.calls[0][0] as string[];
         expect(packageList).toContain(
-            "https://cdn.example.com/assets/prefig-0.5.11-py3-none-any.whl",
+            `https://cdn.example.com/assets/${PREFIG_WHEEL_FILENAME}`,
         );
         expect(mocks.registerJsModuleSpy).toHaveBeenCalledWith(
             "prefigBrowserApi",
@@ -73,7 +74,9 @@ describe("PreFigureCompiler", () => {
         const compiler = new PreFigureCompiler();
 
         await expect(compiler.init()).rejects.toThrow(
-            /Failed to load PreFigure wheel \(prefig-0\.5\.11-py3-none-any\.whl\) from https:\/\/cdn\.example\.com\/assets\//,
+            new RegExp(
+                `Failed to load PreFigure wheel \\(${PREFIG_WHEEL_FILENAME.replace(/[.*+?^${}()|[\\]\\]/g, "\\\\$&")}\\) from https://cdn\\.example\\.com/assets/`,
+            ),
         );
 
         try {

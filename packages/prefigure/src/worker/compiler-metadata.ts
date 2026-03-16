@@ -4,4 +4,5 @@
  *
  * Keep this file free of imports so it tree-shakes to a tiny constant.
  */
-export const PREFIG_WHEEL_FILENAME = "prefig-0.5.13-py3-none-any.whl";
+export const PREFIG_VERSION = "0.5.13";
+export const PREFIG_WHEEL_FILENAME = `prefig-${PREFIG_VERSION}-py3-none-any.whl`;
