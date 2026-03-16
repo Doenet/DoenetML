@@ -64,16 +64,22 @@ describe("PreFigure sanitization guards @group4", { tags: ["@group4"] }, () => {
         cy.get(cesc("#prefig")).find(".svg").should("contain.text", "0");
         cy.get(cesc("#prefig")).find(".svg").should("contain.text", "1");
 
-        // Critically, ensure the local <use> references themselves are preserved.
+        // Critically, ensure local fragment references survive sanitization.
+        // Browsers may normalize xlink:href into href in the live DOM.
         cy.get(cesc("#prefig"))
-            .find(".svg use[xlink\\:href='#tick-label-neg1']")
-            .should("exist");
-        cy.get(cesc("#prefig"))
-            .find(".svg use[href='#tick-label-zero']")
-            .should("exist");
-        cy.get(cesc("#prefig"))
-            .find(".svg use[xlink\\:href='#tick-label-pos1']")
-            .should("exist");
+            .find(".svg use")
+            .then(($uses) => {
+                const refs = [...$uses].map(
+                    (el) =>
+                        el.getAttribute("href") ||
+                        el.getAttribute("xlink:href") ||
+                        "",
+                );
+
+                expect(refs).to.include("#tick-label-neg1");
+                expect(refs).to.include("#tick-label-zero");
+                expect(refs).to.include("#tick-label-pos1");
+            });
     });
 
     it("preserves math-like point label content emitted through local <use> references", () => {
