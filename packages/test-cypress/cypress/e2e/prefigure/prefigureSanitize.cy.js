@@ -107,6 +107,9 @@ describe("PreFigure sanitization guards @group4", { tags: ["@group4"] }, () => {
             .find(".svg")
             .should("contain.text", "local-label");
         cy.get(cesc("#prefig"))
+            .find(".svg use[href='#local-label']")
+            .should("exist");
+        cy.get(cesc("#prefig"))
             .find(
                 ".svg use[href^='https://'], .svg use[xlink\\:href^='https://']",
             )
