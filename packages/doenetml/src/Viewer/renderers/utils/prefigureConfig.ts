@@ -1,6 +1,9 @@
 const DEFAULT_PREFIGURE_BUILD_ENDPOINT = "https://prefigure.doenet.org/build";
 const DEFAULT_PREFIGURE_DIAGCESS_SCRIPT_URL =
     "https://cdn.jsdelivr.net/npm/diagcess@1.4.0/dist/diagcess.js";
+// This default pins a published @doenet/prefigure package tag for CDN loading.
+// It is intentionally managed independently from the wheel/runtime version
+// metadata in packages/prefigure/src/worker/compiler-metadata.ts.
 const DEFAULT_PREFIGURE_MODULE_URL =
     "https://cdn.jsdelivr.net/npm/@doenet/prefigure@0.5.11-doenet.6/prefigure.js";
 

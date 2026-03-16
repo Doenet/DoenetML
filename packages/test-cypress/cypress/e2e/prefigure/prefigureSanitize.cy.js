@@ -49,4 +49,76 @@ describe("PreFigure sanitization guards @group4", { tags: ["@group4"] }, () => {
                 expect(html).not.to.include("alert(4)");
             });
     });
+
+    it("preserves axis tick labels emitted through local <use> references", () => {
+        installPrefigureBuildIntercept(() => ({
+            svg: `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><g id="tick-label-neg1"><text>-1</text></g><g id="tick-label-zero"><text>0</text></g><g id="tick-label-pos1"><text>1</text></g></defs><g class="axis-ticks"><use xlink:href="#tick-label-neg1"/><use href="#tick-label-zero"/><use xlink:href="#tick-label-pos1"/></g></svg>`,
+            annotationsXml: "<annotations></annotations>",
+        }));
+
+        postDebounceTestDoenetML(cesc);
+        waitPastDebounceWindow();
+
+        // Ensure the tick label text is present somewhere in the SVG.
+        cy.get(cesc("#prefig")).find(".svg").should("contain.text", "-1");
+        cy.get(cesc("#prefig")).find(".svg").should("contain.text", "0");
+        cy.get(cesc("#prefig")).find(".svg").should("contain.text", "1");
+
+        // Critically, ensure local fragment references survive sanitization.
+        // Browsers may normalize xlink:href into href in the live DOM.
+        cy.get(cesc("#prefig"))
+            .find(".svg use")
+            .then(($uses) => {
+                const refs = [...$uses].map(
+                    (el) =>
+                        el.getAttribute("href") ||
+                        el.getAttribute("xlink:href") ||
+                        "",
+                );
+
+                expect(refs).to.include("#tick-label-neg1");
+                expect(refs).to.include("#tick-label-zero");
+                expect(refs).to.include("#tick-label-pos1");
+            });
+    });
+
+    it("preserves math-like point label content emitted through local <use> references", () => {
+        installPrefigureBuildIntercept(() => ({
+            svg: `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><defs><g id="point-label-math"><text>x_1 + y^2</text></g></defs><g class="point-label"><use href="#point-label-math"/></g></svg>`,
+            annotationsXml: "<annotations></annotations>",
+        }));
+
+        postDebounceTestDoenetML(cesc);
+        waitPastDebounceWindow();
+
+        cy.get(cesc("#prefig"))
+            .find(".svg")
+            .should("contain.text", "x_1 + y^2");
+        cy.get(cesc("#prefig"))
+            .find(".svg use[href='#point-label-math']")
+            .should("exist");
+    });
+
+    it("strips external <use> references", () => {
+        installPrefigureBuildIntercept(() => ({
+            svg: `<svg xmlns="http://www.w3.org/2000/svg"><defs><g id="local-label"><text>local-label</text></g></defs><g><use href="#local-label"/><use href="https://evil.example/external.svg#label"/></g></svg>`,
+            annotationsXml: "<annotations></annotations>",
+        }));
+
+        postDebounceTestDoenetML(cesc);
+        waitPastDebounceWindow();
+
+        // Expected policy: only fragment-local <use> targets should survive sanitization.
+        cy.get(cesc("#prefig"))
+            .find(".svg")
+            .should("contain.text", "local-label");
+        cy.get(cesc("#prefig"))
+            .find(".svg use[href='#local-label']")
+            .should("exist");
+        cy.get(cesc("#prefig"))
+            .find(
+                ".svg use[href^='https://'], .svg use[xlink\\:href^='https://']",
+            )
+            .should("not.exist");
+    });
 });
