@@ -212,6 +212,10 @@ export function convertLineToPrefigure({
  * - Both endpoints off-screen but segment visible: line mode over clipped
  *   visible geometry.
  *
+ * Endpoint-side label locations in this converter use fixed screen-space offset
+ * semantics (`lineLabelAbsoluteEndpointOffset`) so extending a segment keeps the
+ * label anchor at a stable visual distance from its chosen endpoint.
+ *
  * When clipped geometry is used for alignment scoring, we remap the chosen
  * location back to the full segment parameterization via:
  * - `lineLabelLocationOverride` (emitted value)
@@ -292,6 +296,11 @@ export function convertLineSegmentToPrefigure({
                 sv?.labelPosition,
                 labelEp1,
                 labelEp2,
+                {
+                    absoluteEndpointOffset: true,
+                    graphBounds: sv?.graphBounds,
+                    graphDimensions: sv?.graphDimensions,
+                },
             );
             lineLabelAlignmentLocationOverride = visibleLoc;
             lineLabelLocationOverride = t0 + visibleLoc * (t1 - t0);
@@ -301,6 +310,7 @@ export function convertLineSegmentToPrefigure({
     const { labelAttrs, label } = getLineLabelInfo({
         sv: {
             ...sv,
+            lineLabelAbsoluteEndpointOffset: true,
             ...(lineLabelRayFiniteEndpointIndex === 0 ||
             lineLabelRayFiniteEndpointIndex === 1
                 ? { lineLabelRayFiniteEndpointIndex }
@@ -333,6 +343,9 @@ export function convertLineSegmentToPrefigure({
 
 /**
  * Converts a ray (endpoint + throughpoint) to a PreFigure line representation.
+ *
+ * Ray labels also opt into absolute endpoint-offset location semantics so the
+ * finite-endpoint-side anchor remains visually stable under ray extension.
  */
 export function convertRayToPrefigure({
     sv,
@@ -373,6 +386,7 @@ export function convertRayToPrefigure({
     const { labelAttrs, label } = getLineLabelInfo({
         sv: {
             ...sv,
+            lineLabelAbsoluteEndpointOffset: true,
             lineLabelRayFiniteEndpointIndex: finiteIndex,
         },
         ep1,

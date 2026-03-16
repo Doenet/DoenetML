@@ -5,6 +5,32 @@ import {
     withStyleDefinitions,
 } from "./graph-prefigure.fixtures";
 
+function labelLocationFromXml(prefigureXML: string): number {
+    const match = prefigureXML.match(/label-location="([0-9.]+)"/);
+    expect(match).not.toBeNull();
+    return Number(match?.[1]);
+}
+
+function expectLabelLocationNearStart(prefigureXML: string, max = 0.15) {
+    const location = labelLocationFromXml(prefigureXML);
+    expect(location).toBeLessThan(max);
+}
+
+function expectLabelLocationNearEnd(prefigureXML: string, min = 0.85) {
+    const location = labelLocationFromXml(prefigureXML);
+    expect(location).toBeGreaterThan(min);
+}
+
+function expectLabelLocationBetween(
+    prefigureXML: string,
+    min: number,
+    max: number,
+) {
+    const location = labelLocationFromXml(prefigureXML);
+    expect(location).toBeGreaterThan(min);
+    expect(location).toBeLessThan(max);
+}
+
 describe("Graph prefigure renderer geometry mappings @group4", () => {
     it("renderer=prefigure maps line to PreFigure line with infinite=yes", async () => {
         const prefigureXML = await getPrefigureXML(
@@ -113,30 +139,14 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         const posSlope = "(1,2) (3,4)";
         const negSlope = "(1,4) (3,2)";
 
-        expect(await xmlFor("left", posSlope)).toContain(
-            `label-location="0.05"`,
-        );
-        expect(await xmlFor("right", posSlope)).toContain(
-            `label-location="0.95"`,
-        );
-        expect(await xmlFor("upperleft", posSlope)).toContain(
-            `label-location="0.05"`,
-        );
-        expect(await xmlFor("lowerright", posSlope)).toContain(
-            `label-location="0.95"`,
-        );
-        expect(await xmlFor("top", posSlope)).toContain(
-            `label-location="0.95"`,
-        );
-        expect(await xmlFor("bottom", posSlope)).toContain(
-            `label-location="0.05"`,
-        );
-        expect(await xmlFor("top", negSlope)).toContain(
-            `label-location="0.05"`,
-        );
-        expect(await xmlFor("bottom", negSlope)).toContain(
-            `label-location="0.95"`,
-        );
+        expectLabelLocationNearStart(await xmlFor("left", posSlope), 0.25);
+        expectLabelLocationNearEnd(await xmlFor("right", posSlope), 0.75);
+        expectLabelLocationNearStart(await xmlFor("upperleft", posSlope), 0.25);
+        expectLabelLocationNearEnd(await xmlFor("lowerright", posSlope), 0.75);
+        expectLabelLocationNearEnd(await xmlFor("top", posSlope), 0.75);
+        expectLabelLocationNearStart(await xmlFor("bottom", posSlope), 0.25);
+        expectLabelLocationNearStart(await xmlFor("top", negSlope), 0.25);
+        expectLabelLocationNearEnd(await xmlFor("bottom", negSlope), 0.75);
         expect(await xmlFor("center", posSlope)).not.toContain(
             `label-location`,
         );
@@ -149,7 +159,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
                 { attrs: 'xMin="-10" yMin="-10" xMax="10" yMax="10"' },
             ),
         )) as string;
-        expect(xmlRight).toContain(`label-location="0.95"`);
+        expectLabelLocationNearEnd(xmlRight);
         expect(xmlRight).toContain(`>R</line>`);
 
         const xmlLeft = (await getPrefigureXML(
@@ -158,7 +168,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
                 { attrs: 'xMin="-10" yMin="-10" xMax="10" yMax="10"' },
             ),
         )) as string;
-        expect(xmlLeft).toContain(`label-location="0.05"`);
+        expectLabelLocationNearStart(xmlLeft);
         expect(xmlLeft).toContain(`>L</line>`);
     });
 
@@ -169,7 +179,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expect(prefigureXML).toContain(`label-location="0.05"`);
+        expectLabelLocationNearStart(prefigureXML, 0.25);
         expect(prefigureXML).toContain(`alignment="n"`);
     });
 
@@ -216,7 +226,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expect(prefigureXML).toContain(`label-location="0.05"`);
+        expectLabelLocationNearStart(prefigureXML);
         expect(prefigureXML).toContain(`alignment="s"`);
     });
 
@@ -227,7 +237,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expect(prefigureXML).toContain(`label-location="0.95"`);
+        expectLabelLocationNearEnd(prefigureXML);
         expect(prefigureXML).toContain(`alignment="s"`);
     });
 
@@ -251,7 +261,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expect(prefigureXML).toContain(`label-location="0.95"`);
+        expectLabelLocationBetween(prefigureXML, 0.7, 0.8);
         expect(prefigureXML).toContain(`alignment="n"`);
     });
 
@@ -304,7 +314,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expect(prefigureXML).toContain(`label-location="0.95"`);
+        expectLabelLocationBetween(prefigureXML, 0.55, 0.7);
         expect(prefigureXML).toContain(`alignment="nw"`);
     });
 
@@ -316,7 +326,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expect(prefigureXML).toContain(`label-location="0.05"`);
+        expectLabelLocationNearStart(prefigureXML);
         expect(prefigureXML).toContain(`alignment="n"`);
     });
 
@@ -328,7 +338,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expect(prefigureXML).toContain(`label-location="0.95"`);
+        expectLabelLocationNearEnd(prefigureXML);
         expect(prefigureXML).toContain(`alignment="nw"`);
     });
 
@@ -340,7 +350,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expect(prefigureXML).toContain(`label-location="0.95"`);
+        expectLabelLocationBetween(prefigureXML, 0.55, 0.7);
         expect(prefigureXML).toContain(`alignment="nw"`);
     });
 
@@ -352,7 +362,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expect(prefigureXML).toContain(`label-location="0.95"`);
+        expectLabelLocationNearEnd(prefigureXML);
         expect(prefigureXML).toContain(`alignment="n"`);
     });
 
@@ -364,7 +374,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expect(prefigureXML).toContain(`label-location="0.95"`);
+        expectLabelLocationNearEnd(prefigureXML);
         expect(prefigureXML).toContain(`alignment="n"`);
     });
 
@@ -376,11 +386,11 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expect(prefigureXML).toContain(`label-location="0.05"`);
+        expectLabelLocationNearStart(prefigureXML);
         expect(prefigureXML).toContain(`alignment="n"`);
     });
 
-    it("renderer=prefigure upperright horizontal segment at x=8 flips to nw for 'the line segment'", async () => {
+    it("renderer=prefigure upperright horizontal segment at x=8 keeps n with absolute endpoint offset", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(
                 '<lineSegment endpoints="(0,2) (8,2)" labelPosition="upperRight"><label>the line segment</label></lineSegment>',
@@ -388,8 +398,8 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expect(prefigureXML).toContain(`label-location="0.95"`);
-        expect(prefigureXML).toContain(`alignment="nw"`);
+        expectLabelLocationNearEnd(prefigureXML);
+        expect(prefigureXML).toContain(`alignment="n"`);
     });
 
     it("renderer=prefigure segment upperright switches to clipped-edge line behavior when right endpoint is off-screen", async () => {
@@ -401,7 +411,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toContain(`endpoints="((0,2),(20,2))"`);
-        expect(prefigureXML).toContain(`label-location="0.475"`);
+        expectLabelLocationBetween(prefigureXML, 0.45, 0.55);
         expect(prefigureXML).toContain(`alignment="nw"`);
     });
 
@@ -414,7 +424,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toContain(`endpoints="((0,2),(20,2))"`);
-        expect(prefigureXML).toContain(`label-location="0.025"`);
+        expectLabelLocationNearStart(prefigureXML, 0.08);
         expect(prefigureXML).toContain(`alignment="n"`);
         expect(prefigureXML).not.toContain(`alignment="ne"`);
     });
@@ -428,7 +438,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toContain(`endpoints="((-20,2),(0,2))"`);
-        expect(prefigureXML).toContain(`label-location="0.525"`);
+        expectLabelLocationBetween(prefigureXML, 0.5, 0.6);
         expect(prefigureXML).toContain(`alignment="se"`);
     });
 
@@ -441,7 +451,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toContain(`endpoints="((-20,2),(0,2))"`);
-        expect(prefigureXML).toContain(`label-location="0.975"`);
+        expectLabelLocationNearEnd(prefigureXML, 0.92);
         expect(prefigureXML).toContain(`alignment="n"`);
         expect(prefigureXML).not.toContain(`alignment="nw"`);
     });
@@ -455,7 +465,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toContain(`endpoints="((-20,-8),(-5,4))"`);
-        expect(prefigureXML).toContain(`label-location="0.683333"`);
+        expectLabelLocationBetween(prefigureXML, 0.65, 0.75);
         expect(prefigureXML).toContain(`alignment="se"`);
         expect(prefigureXML).not.toContain(`alignment="sw"`);
     });
@@ -482,7 +492,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toContain(`endpoints="((-20,2),(20,2))"`);
-        expect(prefigureXML).toContain(`label-location="0.725"`);
+        expectLabelLocationBetween(prefigureXML, 0.7, 0.8);
         expect(prefigureXML).toContain(`alignment="nw"`);
     });
 
@@ -507,7 +517,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expect(prefigureXML).toContain(`label-location="0.95"`);
+        expectLabelLocationNearEnd(prefigureXML);
         expect(prefigureXML).toContain(`alignment="sw"`);
     });
 
@@ -519,7 +529,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expect(prefigureXML).toContain(`label-location="0.95"`);
+        expectLabelLocationNearEnd(prefigureXML);
         expect(prefigureXML).toContain(`alignment="s"`);
     });
 
@@ -530,7 +540,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expect(prefigureXML).toContain(`label-location="0.05"`);
+        expectLabelLocationNearStart(prefigureXML);
         expect(prefigureXML).toContain(`alignment="se"`);
     });
 
@@ -541,7 +551,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expect(prefigureXML).toContain(`label-location="0.95"`);
+        expectLabelLocationNearEnd(prefigureXML);
         expect(prefigureXML).toContain(`alignment="n"`);
         expect(prefigureXML).not.toContain(`alignment="e"`);
         expect(prefigureXML).not.toContain(`alignment="w"`);
@@ -638,7 +648,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
 
         expect(prefigureXML).toContain(`id="ray-0"`);
         expect(prefigureXML).toContain(`endpoints="((-10,0),(10,0))"`);
-        expect(prefigureXML).toContain(`label-location="0.95"`);
+        expectLabelLocationNearEnd(prefigureXML);
     });
 
     it("renderer=prefigure clips rays with off-screen throughpoint while keeping endpoint-side alignment mode", async () => {
@@ -651,7 +661,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
 
         expect(prefigureXML).toContain(`id="ray-0"`);
         expect(prefigureXML).toContain(`endpoints="((0,0),(10,0))"`);
-        expect(prefigureXML).toContain(`label-location="0.05"`);
+        expectLabelLocationNearStart(prefigureXML);
         expect(prefigureXML).toContain(`alignment="n"`);
         expect(prefigureXML).not.toContain(`alignment="ne"`);
     });

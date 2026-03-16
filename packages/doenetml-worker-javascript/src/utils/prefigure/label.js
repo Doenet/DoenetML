@@ -44,18 +44,21 @@ const LINE_LABEL_LOCATION_NEAR_END = "0.95";
  * @property flipThreshold If default candidate score is <= threshold, keep default.
  * @property edgePaddingRatio Reserved inset to reduce visible clipping at bounds.
  * @property overflowPenalty Base cost added when candidate predicts any overflow.
+ * @property endpointOffsetPixels Endpoint-anchor inset in screen pixels.
  */
 export const lineLabelTuning = Object.freeze({
     edgeMarginRatio: 0.08,
     flipThreshold: 0.35,
     edgePaddingRatio: 0.02,
     overflowPenalty: 1,
+    endpointOffsetPixels: 12,
 });
 
 const LINE_ALIGNMENT_EDGE_MARGIN_RATIO = lineLabelTuning.edgeMarginRatio;
 const LINE_ALIGNMENT_FLIP_THRESHOLD = lineLabelTuning.flipThreshold;
 const LINE_LABEL_EDGE_PADDING_RATIO = lineLabelTuning.edgePaddingRatio;
 const LINE_ALIGNMENT_OVERFLOW_PENALTY = lineLabelTuning.overflowPenalty;
+const LINE_LABEL_ENDPOINT_OFFSET_PIXELS = lineLabelTuning.endpointOffsetPixels;
 
 // All labelPosition values recognized by the line-family converter.
 const KNOWN_LINE_POSITIONS = new Set([
@@ -268,6 +271,28 @@ function getGraphBounds(graphBounds) {
     }
 
     return { xMin, yMin, xMax, yMax };
+}
+
+/**
+ * Validates and normalizes graph dimensions for screen-space conversions.
+ */
+function getGraphDimensions(graphDimensions) {
+    const dims = Array.isArray(graphDimensions) ? graphDimensions : null;
+    if (!dims || dims.length !== 2) {
+        return null;
+    }
+
+    const [width, height] = dims;
+    if (
+        !Number.isFinite(width) ||
+        !Number.isFinite(height) ||
+        !(width > 0) ||
+        !(height > 0)
+    ) {
+        return null;
+    }
+
+    return { width, height };
 }
 
 /**
@@ -675,13 +700,69 @@ export function pointLabelAttributes({
 }
 
 /**
+ * Converts a fixed screen-space endpoint offset into line-location parameter t.
+ *
+ * This keeps endpoint-side label anchors visually stable when segments are
+ * lengthened while still scaling with graph size and zoom.
+ */
+function locationForEndpointIndexWithAbsoluteOffset({
+    endpointIndex,
+    ep1,
+    ep2,
+    graphBounds,
+    graphDimensions,
+}) {
+    const bounds = getGraphBounds(graphBounds);
+    const dims = getGraphDimensions(graphDimensions);
+    if (!bounds || !dims) {
+        return locationForEndpointIndex(endpointIndex);
+    }
+
+    const dx = ep2[0] - ep1[0];
+    const dy = ep2[1] - ep1[1];
+    const segmentLength = Math.hypot(dx, dy);
+    if (!(segmentLength > 0)) {
+        return locationForEndpointIndex(endpointIndex);
+    }
+
+    const tx = dx / segmentLength;
+    const ty = dy / segmentLength;
+    const graphWidth = bounds.xMax - bounds.xMin;
+    const graphHeight = bounds.yMax - bounds.yMin;
+
+    // Convert endpoint offset from pixels to graph-units along line direction.
+    const unitsPerPixelAlongLine = Math.hypot(
+        tx * (graphWidth / dims.width),
+        ty * (graphHeight / dims.height),
+    );
+    if (!(unitsPerPixelAlongLine > 0)) {
+        return locationForEndpointIndex(endpointIndex);
+    }
+
+    const absoluteOffset =
+        LINE_LABEL_ENDPOINT_OFFSET_PIXELS * unitsPerPixelAlongLine;
+    const insetRatio = Math.min(0.45, clamp01(absoluteOffset / segmentLength));
+    const location = endpointIndex === 0 ? insetRatio : 1 - insetRatio;
+    return formatLocation(location);
+}
+
+/**
  * Maps Doenet `labelPosition` to a PreFigure `label-location` value.
  *
- * We use edge-near insets (`LINE_LABEL_LOCATION_NEAR_START` and
- * `LINE_LABEL_LOCATION_NEAR_END`) rather than hard 0/1 so non-center label
- * positions anchor close to the graph edge and flow inward via alignment.
+ * By default, endpoint-side positions use edge-near insets
+ * (`LINE_LABEL_LOCATION_NEAR_START` and `LINE_LABEL_LOCATION_NEAR_END`) rather
+ * than hard 0/1 so non-center labels anchor near the selected endpoint.
+ *
+ * When `options.absoluteEndpointOffset` is true and graph bounds/dimensions are
+ * available, endpoint-side labels use a fixed screen-space offset from the
+ * endpoint so line extension does not move the anchor relative to that endpoint.
  */
-export function lineLabelLocationFromPosition(labelPosition, ep1, ep2) {
+export function lineLabelLocationFromPosition(
+    labelPosition,
+    ep1,
+    ep2,
+    options = {},
+) {
     const selectedEndpoint = chooseEndpointIndexForLabelPosition(
         labelPosition,
         ep1,
@@ -692,14 +773,31 @@ export function lineLabelLocationFromPosition(labelPosition, ep1, ep2) {
         return null;
     }
 
+    if (options.absoluteEndpointOffset) {
+        return locationForEndpointIndexWithAbsoluteOffset({
+            endpointIndex: selectedEndpoint,
+            ep1,
+            ep2,
+            graphBounds: options.graphBounds,
+            graphDimensions: options.graphDimensions,
+        });
+    }
+
     return locationForEndpointIndex(selectedEndpoint);
 }
 
 /**
- * Returns the numeric label-location used by vector-label anchor interpolation.
+ * Returns the numeric label-location value for downstream interpolation logic.
+ *
+ * Vector conversion and clipped-segment remapping both call this helper.
  */
-export function lineLabelLocationValue(labelPosition, ep1, ep2) {
-    const locText = lineLabelLocationFromPosition(labelPosition, ep1, ep2);
+export function lineLabelLocationValue(labelPosition, ep1, ep2, options = {}) {
+    const locText = lineLabelLocationFromPosition(
+        labelPosition,
+        ep1,
+        ep2,
+        options,
+    );
     if (locText === null) {
         return 0.5;
     }
@@ -717,9 +815,9 @@ export function lineLabelLocationValue(labelPosition, ep1, ep2) {
  *
  * The `alignment` is expressed in the line's LOCAL ROTATED FRAME so the
  * label always flows into the graph from whichever end is nearest:
- * - Positions near ep2 (label-location ≈ 0.98) get a "W" component so the
+ * - Positions on the ep2 side get a "W" component so the
  *   label extends backward along the line, staying inside the graph.
- * - Positions near ep1 (label-location ≈ 0.02) get an "E" component so the
+ * - Positions on the ep1 side get an "E" component so the
  *   label extends forward along the line, staying inside the graph.
  *
  * ep1 and ep2 must be the ORIENTED endpoint arrays produced by
@@ -728,6 +826,7 @@ export function lineLabelLocationValue(labelPosition, ep1, ep2) {
  * Caller-controlled options in `stateValues`:
  * - `lineLabelLocationOverride`: emitted `label-location` in full-geometry space.
  * - `lineLabelAlignmentLocationOverride`: scoring location for alignment selection.
+ * - `lineLabelAbsoluteEndpointOffset`: enable fixed pixel offset from endpoint.
  * - `lineLabelAlignmentMode`: one of `line`, `endpoint`, `ray`.
  * - `lineLabelRayFiniteEndpointIndex`: required when mode is `ray`.
  */
@@ -759,7 +858,12 @@ export function lineLabelAttributes({
     const hasOverrideLoc = Number.isFinite(overrideLoc);
     const baseLoc = hasOverrideLoc
         ? formatLocation(clamp01(overrideLoc))
-        : lineLabelLocationFromPosition(rawPosition, ep1, ep2);
+        : lineLabelLocationFromPosition(rawPosition, ep1, ep2, {
+              absoluteEndpointOffset:
+                  stateValues?.lineLabelAbsoluteEndpointOffset === true,
+              graphBounds: stateValues?.graphBounds,
+              graphDimensions: stateValues?.graphDimensions,
+          });
 
     let location = 0.5;
     if (baseLoc !== null) {
