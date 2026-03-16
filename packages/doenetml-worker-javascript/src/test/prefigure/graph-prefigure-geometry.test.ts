@@ -31,6 +31,11 @@ function expectLabelLocationBetween(
     expect(location).toBeLessThan(max);
 }
 
+function expectLabelLocationNearCenter(prefigureXML: string, delta = 0.05) {
+    const location = labelLocationFromXml(prefigureXML);
+    expect(Math.abs(location - 0.5)).toBeLessThan(delta);
+}
+
 describe("Graph prefigure renderer geometry mappings @group4", () => {
     it("renderer=prefigure maps line to PreFigure line with infinite=yes", async () => {
         const prefigureXML = await getPrefigureXML(
@@ -139,14 +144,15 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         const posSlope = "(1,2) (3,4)";
         const negSlope = "(1,4) (3,2)";
 
-        expectLabelLocationNearStart(await xmlFor("left", posSlope), 0.25);
-        expectLabelLocationNearEnd(await xmlFor("right", posSlope), 0.75);
-        expectLabelLocationNearStart(await xmlFor("upperleft", posSlope), 0.25);
-        expectLabelLocationNearEnd(await xmlFor("lowerright", posSlope), 0.75);
-        expectLabelLocationNearEnd(await xmlFor("top", posSlope), 0.75);
-        expectLabelLocationNearStart(await xmlFor("bottom", posSlope), 0.25);
-        expectLabelLocationNearStart(await xmlFor("top", negSlope), 0.25);
-        expectLabelLocationNearEnd(await xmlFor("bottom", negSlope), 0.75);
+        expectLabelLocationNearStart(await xmlFor("left", posSlope), 0.35);
+        expectLabelLocationNearEnd(await xmlFor("right", posSlope), 0.7);
+        expectLabelLocationNearCenter(await xmlFor("upperleft", posSlope));
+        expectLabelLocationNearCenter(await xmlFor("lowerright", posSlope));
+        expectLabelLocationNearEnd(await xmlFor("top", posSlope), 0.7);
+        expectLabelLocationNearStart(await xmlFor("bottom", posSlope), 0.35);
+        expectLabelLocationNearStart(await xmlFor("top", negSlope), 0.35);
+        expectLabelLocationNearEnd(await xmlFor("bottom", negSlope), 0.7);
+        expectLabelLocationNearCenter(await xmlFor("upperright", negSlope));
         expect(await xmlFor("center", posSlope)).not.toContain(
             `label-location`,
         );
@@ -159,7 +165,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
                 { attrs: 'xMin="-10" yMin="-10" xMax="10" yMax="10"' },
             ),
         )) as string;
-        expectLabelLocationNearEnd(xmlRight);
+        expectLabelLocationNearEnd(xmlRight, 0.8);
         expect(xmlRight).toContain(`>R</line>`);
 
         const xmlLeft = (await getPrefigureXML(
@@ -168,18 +174,18 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
                 { attrs: 'xMin="-10" yMin="-10" xMax="10" yMax="10"' },
             ),
         )) as string;
-        expectLabelLocationNearStart(xmlLeft);
+        expectLabelLocationNearStart(xmlLeft, 0.2);
         expect(xmlLeft).toContain(`>L</line>`);
     });
 
-    it("renderer=prefigure endpoint-mode upperleft defaults to n alignment", async () => {
+    it("renderer=prefigure endpoint-mode upperleft anchors near center on slope +1", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(
                 '<lineSegment endpoints="(-1,-1) (1,1)" labelPosition="upperleft"><label>UL</label></lineSegment>',
             ),
         );
 
-        expectLabelLocationNearStart(prefigureXML, 0.25);
+        expectLabelLocationNearCenter(prefigureXML);
         expect(prefigureXML).toContain(`alignment="n"`);
     });
 
@@ -237,7 +243,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expectLabelLocationNearEnd(prefigureXML);
+        expectLabelLocationBetween(prefigureXML, 0.6, 0.7);
         expect(prefigureXML).toContain(`alignment="s"`);
     });
 
@@ -261,7 +267,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expectLabelLocationBetween(prefigureXML, 0.7, 0.8);
+        expectLabelLocationBetween(prefigureXML, 0.55, 0.65);
         expect(prefigureXML).toContain(`alignment="n"`);
     });
 
@@ -285,9 +291,9 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         )) as string;
 
-        expect(xmlRight).toContain(`label-location="0.95"`);
+        expectLabelLocationBetween(xmlRight, 0.5, 0.65);
         expect(xmlUpperRight).toContain(`label-location="0.95"`);
-        expect(xmlLowerRight).toContain(`label-location="0.05"`);
+        expectLabelLocationNearStart(xmlLowerRight, 0.2);
     });
 
     it("renderer=prefigure shallow line keeps lowerright on the right endpoint", async () => {
@@ -303,7 +309,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         )) as string;
 
         expect(xmlUpperRight).toContain(`label-location="0.95"`);
-        expect(xmlLowerRight).toContain(`label-location="0.95"`);
+        expectLabelLocationNearEnd(xmlLowerRight, 0.8);
     });
 
     it("renderer=prefigure upperright ray near right edge falls back to nw", async () => {
@@ -326,7 +332,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expectLabelLocationNearStart(prefigureXML);
+        expectLabelLocationNearStart(prefigureXML, 0.2);
         expect(prefigureXML).toContain(`alignment="n"`);
     });
 
@@ -509,7 +515,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`>outside segment</line>`);
     });
 
-    it("renderer=prefigure lowerleft segment at x=9.2 flips to sw for 'the line segment'", async () => {
+    it("renderer=prefigure lowerleft segment at x=9.2 settles on s for 'the line segment'", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(
                 '<lineSegment endpoints="(1,10) (9.2,1)" labelPosition="lowerLeft"><label>the line segment</label></lineSegment>',
@@ -517,8 +523,8 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expectLabelLocationNearEnd(prefigureXML);
-        expect(prefigureXML).toContain(`alignment="sw"`);
+        expectLabelLocationBetween(prefigureXML, 0.5, 0.55);
+        expect(prefigureXML).toContain(`alignment="s"`);
     });
 
     it("renderer=prefigure lowerleft segment at x=8 can remain s for 'the line segment'", async () => {
@@ -529,19 +535,19 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expectLabelLocationNearEnd(prefigureXML);
+        expectLabelLocationBetween(prefigureXML, 0.54, 0.58);
         expect(prefigureXML).toContain(`alignment="s"`);
     });
 
-    it("renderer=prefigure bottom labelPosition prefers a diagonal below the line", async () => {
+    it("renderer=prefigure bottom labelPosition prefers centered south alignment below the line", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(
                 '<lineSegment endpoints="(-4,-2) (4,2)" labelPosition="bottom"><label>B</label></lineSegment>',
             ),
         );
 
-        expectLabelLocationNearStart(prefigureXML);
-        expect(prefigureXML).toContain(`alignment="se"`);
+        expectLabelLocationNearStart(prefigureXML, 0.35);
+        expect(prefigureXML).toContain(`alignment="s"`);
     });
 
     it("renderer=prefigure right labelPosition uses n alignment rather than e or w", async () => {
@@ -555,6 +561,54 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`alignment="n"`);
         expect(prefigureXML).not.toContain(`alignment="e"`);
         expect(prefigureXML).not.toContain(`alignment="w"`);
+    });
+
+    it("renderer=prefigure top labelPosition transitions smoothly through center near horizontal", async () => {
+        async function xmlFor(y2: number) {
+            return (await getPrefigureXML(
+                prefigureGraph(
+                    `<lineSegment endpoints="(0,0) (6,${y2})" labelPosition="top"><label>T</label></lineSegment>`,
+                ),
+            )) as string;
+        }
+
+        const locSteep = labelLocationFromXml(await xmlFor(8));
+        const locShallow = labelLocationFromXml(await xmlFor(1.25));
+        const locNearHorizontalPositive = labelLocationFromXml(
+            await xmlFor(0.1),
+        );
+        const locNearHorizontalNegative = labelLocationFromXml(
+            await xmlFor(-0.1),
+        );
+
+        expect(locSteep).toBeGreaterThan(locShallow);
+        expect(locShallow).toBeGreaterThan(locNearHorizontalPositive);
+        expect(locNearHorizontalPositive).toBeGreaterThan(0.5);
+        expect(locNearHorizontalNegative).toBeLessThan(0.5);
+    });
+
+    it("renderer=prefigure bottom labelPosition transitions smoothly through center near horizontal", async () => {
+        async function xmlFor(y2: number) {
+            return (await getPrefigureXML(
+                prefigureGraph(
+                    `<lineSegment endpoints="(0,0) (6,${y2})" labelPosition="bottom"><label>B</label></lineSegment>`,
+                ),
+            )) as string;
+        }
+
+        const locSteep = labelLocationFromXml(await xmlFor(8));
+        const locShallow = labelLocationFromXml(await xmlFor(1.25));
+        const locNearHorizontalPositive = labelLocationFromXml(
+            await xmlFor(0.1),
+        );
+        const locNearHorizontalNegative = labelLocationFromXml(
+            await xmlFor(-0.1),
+        );
+
+        expect(locSteep).toBeLessThan(locShallow);
+        expect(locShallow).toBeLessThan(locNearHorizontalPositive);
+        expect(locNearHorizontalPositive).toBeLessThan(0.5);
+        expect(locNearHorizontalNegative).toBeGreaterThan(0.5);
     });
 
     it("renderer=prefigure orients line endpoints so label is never upside-down (right-to-left line)", async () => {
@@ -684,7 +738,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toContain(`<vector `);
-        expect(prefigureXML).toContain(`<label p="(2.85,2.85)"`);
+        expect(prefigureXML).toContain(`<label p="(2.454594,2.454594)"`);
         expect(prefigureXML).toContain(`alignment="north"`);
         expect(prefigureXML).toContain(`>V</label>`);
     });
@@ -697,7 +751,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toMatchInlineSnapshot(
-            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><vector id="vector-0" tail="(0,0)" v="(3,3)" stroke="#648FFF" thickness="4" fill="#648FFF" stroke-opacity="0.7" fill-opacity="0.3" /><label p="(2.85,2.85)" alignment="north">V</label></coordinates></diagram>"`,
+            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><vector id="vector-0" tail="(0,0)" v="(3,3)" stroke="#648FFF" thickness="4" fill="#648FFF" stroke-opacity="0.7" fill-opacity="0.3" /><label p="(2.454594,2.454594)" alignment="north">V</label></coordinates></diagram>"`,
         );
     });
 

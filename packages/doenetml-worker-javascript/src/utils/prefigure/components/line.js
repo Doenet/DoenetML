@@ -102,7 +102,12 @@ function rayFiniteEndpointIndex({ ep1, ep2, finiteEndpoint }) {
  * endpoint/line alignment behavior.
  */
 function pointInsideBounds(point, bounds) {
-    if (!Array.isArray(point) || point.length < 2 || !Array.isArray(bounds) || bounds.length < 4) {
+    if (
+        !Array.isArray(point) ||
+        point.length < 2 ||
+        !Array.isArray(bounds) ||
+        bounds.length < 4
+    ) {
         return false;
     }
 

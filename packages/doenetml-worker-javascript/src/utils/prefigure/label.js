@@ -73,7 +73,31 @@ const KNOWN_LINE_POSITIONS = new Set([
     "bottom",
 ]);
 
+/**
+ * Numeric tie-break threshold for endpoint bias scoring.
+ *
+ * If two endpoint scores differ by less than this value, we treat the bias as
+ * effectively zero to avoid jitter from floating-point noise.
+ */
 const LOCATION_SCORE_EPSILON = 1e-12;
+
+/**
+ * Center snap tolerance for ray-side resolution.
+ *
+ * When `label-location` is within this tolerance of 0.5, ray alignment mode
+ * treats the anchor as centered (neither endpoint side), so ray logic falls
+ * back to line-mode alignment.
+ */
+const RAY_LOCATION_CENTER_EPSILON = 1e-9;
+
+/**
+ * Horizontal center deadzone used by line-mode alignment candidate selection.
+ *
+ * If `label-location` is within this distance from center, we prefer pure
+ * cardinal candidates (`n`/`s`) over diagonal variants to reduce unnecessary
+ * side flipping near midpoint.
+ */
+const LINE_ALIGNMENT_CENTER_DEADZONE = 0.08;
 
 /**
  * Formats label-location numbers with stable precision for snapshot-friendly XML.
@@ -110,10 +134,24 @@ function directionalScore(value, otherValue, magnitude, direction) {
     return direction === "positive" ? rightOrUp : 1 - rightOrUp;
 }
 
-function locationForEndpointIndex(index) {
-    return index === 0
-        ? LINE_LABEL_LOCATION_NEAR_START
-        : LINE_LABEL_LOCATION_NEAR_END;
+function defaultInsetRatio() {
+    const nearStart = Number(LINE_LABEL_LOCATION_NEAR_START);
+    if (Number.isFinite(nearStart) && nearStart >= 0 && nearStart <= 0.5) {
+        return nearStart;
+    }
+    return 0.05;
+}
+
+/**
+ * Converts a side preference in [-1, 1] into a [0, 1] label-location.
+ *
+ * -1 anchors near ep1, +1 anchors near ep2, and 0 anchors at center.
+ */
+function locationFromBiasAndInset({ bias, insetRatio }) {
+    const clampedBias = Math.max(-1, Math.min(1, bias));
+    const clampedInset = clamp01(Math.min(0.5, insetRatio));
+    const span = Math.max(0, 0.5 - clampedInset);
+    return clamp01(0.5 + clampedBias * span);
 }
 
 /**
@@ -123,17 +161,20 @@ function endpointIndexFromLocation(location) {
     if (!Number.isFinite(location)) {
         return null;
     }
+    if (Math.abs(location - 0.5) <= RAY_LOCATION_CENTER_EPSILON) {
+        return null;
+    }
     return location >= 0.5 ? 1 : 0;
 }
 
 /**
- * Chooses which oriented endpoint best matches a semantic line-family
+ * Returns a continuous side preference in [-1, 1] for line-family
  * `labelPosition`.
  *
  * Corner positions blend horizontal and vertical evidence so steep and shallow
- * segments choose the visually expected endpoint.
+ * segments transition smoothly through center as orientation rotates.
  */
-function chooseEndpointIndexForLabelPosition(labelPosition, ep1, ep2) {
+function chooseEndpointBiasForLabelPosition(labelPosition, ep1, ep2) {
     const pos = normalizeKey(labelPosition ?? "");
     if (!KNOWN_LINE_POSITIONS.has(pos) || pos === "center") {
         return null;
@@ -143,6 +184,10 @@ function chooseEndpointIndexForLabelPosition(labelPosition, ep1, ep2) {
     const dy = ep2[1] - ep1[1];
     const absDx = Math.abs(dx);
     const absDy = Math.abs(dy);
+    const segmentLength = Math.hypot(dx, dy);
+    if (!(segmentLength > 0)) {
+        return 0;
+    }
     const sum = absDx + absDy;
     const xDominance = sum > 0 ? absDx / sum : 0.5;
     const yDominance = sum > 0 ? absDy / sum : 0.5;
@@ -154,48 +199,77 @@ function chooseEndpointIndexForLabelPosition(labelPosition, ep1, ep2) {
         const point = index === 0 ? ep1 : ep2;
         const other = index === 0 ? ep2 : ep1;
 
-        const rightScore = directionalScore(
+        const rightScoreAxis = directionalScore(
             point[0],
             other[0],
             absDx,
             "positive",
         );
-        const leftScore = directionalScore(
+        const leftScoreAxis = directionalScore(
             point[0],
             other[0],
             absDx,
             "negative",
         );
-        const upperScore = directionalScore(
+        const upperScoreAxis = directionalScore(
             point[1],
             other[1],
             absDy,
             "positive",
         );
-        const lowerScore = directionalScore(
+        const lowerScoreAxis = directionalScore(
             point[1],
             other[1],
             absDy,
             "negative",
         );
 
+        const rightScoreSmooth = directionalScore(
+            point[0],
+            other[0],
+            segmentLength,
+            "positive",
+        );
+        const leftScoreSmooth = directionalScore(
+            point[0],
+            other[0],
+            segmentLength,
+            "negative",
+        );
+        const upperScoreSmooth = directionalScore(
+            point[1],
+            other[1],
+            segmentLength,
+            "positive",
+        );
+        const lowerScoreSmooth = directionalScore(
+            point[1],
+            other[1],
+            segmentLength,
+            "negative",
+        );
+
         switch (pos) {
             case "right":
-                return rightScore;
+                return rightScoreSmooth;
             case "left":
-                return leftScore;
+                return leftScoreSmooth;
             case "top":
-                return upperScore;
+                return upperScoreSmooth;
             case "bottom":
-                return lowerScore;
+                return lowerScoreSmooth;
             case "upperright":
-                return xDominance * rightScore + yDominance * upperScore;
+                return (
+                    xDominance * rightScoreAxis + yDominance * upperScoreAxis
+                );
             case "upperleft":
-                return xDominance * leftScore + yDominance * upperScore;
+                return xDominance * leftScoreAxis + yDominance * upperScoreAxis;
             case "lowerright":
-                return xDominance * rightScore + yDominance * lowerScore;
+                return (
+                    xDominance * rightScoreAxis + yDominance * lowerScoreAxis
+                );
             case "lowerleft":
-                return xDominance * leftScore + yDominance * lowerScore;
+                return xDominance * leftScoreAxis + yDominance * lowerScoreAxis;
             default:
                 return 0.5;
         }
@@ -204,39 +278,13 @@ function chooseEndpointIndexForLabelPosition(labelPosition, ep1, ep2) {
     const score0 = endpointScore(0);
     const score1 = endpointScore(1);
 
-    if (score0 > score1 + LOCATION_SCORE_EPSILON) return 0;
-    if (score1 > score0 + LOCATION_SCORE_EPSILON) return 1;
-
-    // Tie-break: for corner positions, let the dominant axis decide.
-    if (
-        pos === "upperright" ||
-        pos === "upperleft" ||
-        pos === "lowerright" ||
-        pos === "lowerleft"
-    ) {
-        const primaryAxis = xDominance >= yDominance ? "x" : "y";
-        const point0 = ep1;
-        const point1 = ep2;
-
-        if (primaryAxis === "x") {
-            if (pos.endsWith("right")) {
-                if (point1[0] > point0[0] + LOCATION_SCORE_EPSILON) return 1;
-                if (point0[0] > point1[0] + LOCATION_SCORE_EPSILON) return 0;
-            } else {
-                if (point1[0] < point0[0] - LOCATION_SCORE_EPSILON) return 1;
-                if (point0[0] < point1[0] - LOCATION_SCORE_EPSILON) return 0;
-            }
-        } else if (pos.startsWith("upper")) {
-            if (point1[1] > point0[1] + LOCATION_SCORE_EPSILON) return 1;
-            if (point0[1] > point1[1] + LOCATION_SCORE_EPSILON) return 0;
-        } else {
-            if (point1[1] < point0[1] - LOCATION_SCORE_EPSILON) return 1;
-            if (point0[1] < point1[1] - LOCATION_SCORE_EPSILON) return 0;
-        }
+    // Bias > 0 means ep2 side, bias < 0 means ep1 side.
+    const bias = score1 - score0;
+    if (Math.abs(bias) <= LOCATION_SCORE_EPSILON) {
+        return 0;
     }
 
-    // Deterministic final fallback.
-    return pos === "left" || pos === "bottom" ? 0 : 1;
+    return Math.max(-1, Math.min(1, bias));
 }
 
 /**
@@ -349,7 +397,10 @@ function getLineAlignmentCandidates(labelPosition, location, mode = "line") {
         return ["n", "s"];
     }
 
-    const h = location >= 0.5 ? "w" : "e";
+    const distanceFromCenter = location - 0.5;
+    const h = distanceFromCenter >= 0 ? "w" : "e";
+    const centeredHorizontally =
+        Math.abs(distanceFromCenter) <= LINE_ALIGNMENT_CENTER_DEADZONE;
 
     // Endpoint mode is intentionally richer than line mode. We include fallback
     // candidates (for example plain `n`/`s`) to recover when diagonal choices
@@ -369,6 +420,22 @@ function getLineAlignmentCandidates(labelPosition, location, mode = "line") {
         }
         if (isLowerCorner) {
             return ["s", `s${h}`, `n${h}`];
+        }
+    }
+
+    if (pos === "right" || pos === "left" || pos === "top") {
+        return ["n", `n${h}`, `s${h}`, "s"];
+    }
+    if (pos === "bottom") {
+        return ["s", `s${h}`, `n${h}`, "n"];
+    }
+
+    if (centeredHorizontally) {
+        if (pos === "top" || pos === "right" || pos === "left") {
+            return ["n", "s"];
+        }
+        if (pos === "bottom") {
+            return ["s", "n"];
         }
     }
 
@@ -705,8 +772,8 @@ export function pointLabelAttributes({
  * This keeps endpoint-side label anchors visually stable when segments are
  * lengthened while still scaling with graph size and zoom.
  */
-function locationForEndpointIndexWithAbsoluteOffset({
-    endpointIndex,
+function locationForEndpointBiasWithAbsoluteOffset({
+    endpointBias,
     ep1,
     ep2,
     graphBounds,
@@ -715,14 +782,22 @@ function locationForEndpointIndexWithAbsoluteOffset({
     const bounds = getGraphBounds(graphBounds);
     const dims = getGraphDimensions(graphDimensions);
     if (!bounds || !dims) {
-        return locationForEndpointIndex(endpointIndex);
+        const location = locationFromBiasAndInset({
+            bias: endpointBias,
+            insetRatio: defaultInsetRatio(),
+        });
+        return formatLocation(location);
     }
 
     const dx = ep2[0] - ep1[0];
     const dy = ep2[1] - ep1[1];
     const segmentLength = Math.hypot(dx, dy);
     if (!(segmentLength > 0)) {
-        return locationForEndpointIndex(endpointIndex);
+        const location = locationFromBiasAndInset({
+            bias: endpointBias,
+            insetRatio: defaultInsetRatio(),
+        });
+        return formatLocation(location);
     }
 
     const tx = dx / segmentLength;
@@ -736,13 +811,20 @@ function locationForEndpointIndexWithAbsoluteOffset({
         ty * (graphHeight / dims.height),
     );
     if (!(unitsPerPixelAlongLine > 0)) {
-        return locationForEndpointIndex(endpointIndex);
+        const location = locationFromBiasAndInset({
+            bias: endpointBias,
+            insetRatio: defaultInsetRatio(),
+        });
+        return formatLocation(location);
     }
 
     const absoluteOffset =
         LINE_LABEL_ENDPOINT_OFFSET_PIXELS * unitsPerPixelAlongLine;
     const insetRatio = Math.min(0.45, clamp01(absoluteOffset / segmentLength));
-    const location = endpointIndex === 0 ? insetRatio : 1 - insetRatio;
+    const location = locationFromBiasAndInset({
+        bias: endpointBias,
+        insetRatio,
+    });
     return formatLocation(location);
 }
 
@@ -763,19 +845,19 @@ export function lineLabelLocationFromPosition(
     ep2,
     options = {},
 ) {
-    const selectedEndpoint = chooseEndpointIndexForLabelPosition(
+    const endpointBias = chooseEndpointBiasForLabelPosition(
         labelPosition,
         ep1,
         ep2,
     );
 
-    if (selectedEndpoint === null) {
+    if (endpointBias === null) {
         return null;
     }
 
     if (options.absoluteEndpointOffset) {
-        return locationForEndpointIndexWithAbsoluteOffset({
-            endpointIndex: selectedEndpoint,
+        return locationForEndpointBiasWithAbsoluteOffset({
+            endpointBias,
             ep1,
             ep2,
             graphBounds: options.graphBounds,
@@ -783,7 +865,11 @@ export function lineLabelLocationFromPosition(
         });
     }
 
-    return locationForEndpointIndex(selectedEndpoint);
+    const location = locationFromBiasAndInset({
+        bias: endpointBias,
+        insetRatio: defaultInsetRatio(),
+    });
+    return formatLocation(location);
 }
 
 /**
