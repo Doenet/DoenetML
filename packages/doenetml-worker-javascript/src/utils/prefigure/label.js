@@ -24,12 +24,23 @@ const prefigurePointAlignmentByLabelPosition = {
     right: "e",
 };
 
+/**
+ * Normalizes a Doenet attribute string for case-insensitive, punctuation-
+ * tolerant lookup in position maps and candidate sets.
+ *
+ * For example `"upperRight"`, `"upper-right"`, and `"UPPER_RIGHT"` all
+ * normalize to `"upperright"`.
+ */
 function normalizeKey(value) {
     return String(value)
         .toLowerCase()
         .replaceAll(/[^a-z0-9]+/g, "");
 }
 
+// Default endpoint-side label-location anchors. NEAR_START is parsed by
+// defaultInsetRatio() to derive the inset fraction; NEAR_END (0.95) is the
+// symmetric result for bias=+1 and is defined here for documentation purposes
+// only — it is never read directly in code.
 const LINE_LABEL_LOCATION_NEAR_START = "0.05";
 const LINE_LABEL_LOCATION_NEAR_END = "0.95";
 
@@ -45,6 +56,7 @@ const LINE_LABEL_LOCATION_NEAR_END = "0.95";
  * @property edgePaddingRatio Reserved inset to reduce visible clipping at bounds.
  * @property overflowPenalty Base cost added when candidate predicts any overflow.
  * @property endpointOffsetPixels Endpoint-anchor inset in screen pixels.
+ * @property sideBiasHardening Factor k applied to the tangent–intent dot product; k=sqrt(2) locks 90-degree sectors, k=1 gives fully smooth interpolation.
  */
 export const lineLabelTuning = Object.freeze({
     edgeMarginRatio: 0.08,
@@ -52,6 +64,7 @@ export const lineLabelTuning = Object.freeze({
     edgePaddingRatio: 0.02,
     overflowPenalty: 1,
     endpointOffsetPixels: 12,
+    sideBiasHardening: Math.SQRT2,
 });
 
 const LINE_ALIGNMENT_EDGE_MARGIN_RATIO = lineLabelTuning.edgeMarginRatio;
@@ -59,6 +72,7 @@ const LINE_ALIGNMENT_FLIP_THRESHOLD = lineLabelTuning.flipThreshold;
 const LINE_LABEL_EDGE_PADDING_RATIO = lineLabelTuning.edgePaddingRatio;
 const LINE_ALIGNMENT_OVERFLOW_PENALTY = lineLabelTuning.overflowPenalty;
 const LINE_LABEL_ENDPOINT_OFFSET_PIXELS = lineLabelTuning.endpointOffsetPixels;
+const LINE_LABEL_SIDE_BIAS_HARDENING = lineLabelTuning.sideBiasHardening;
 
 // All labelPosition values recognized by the line-family converter.
 const KNOWN_LINE_POSITIONS = new Set([
@@ -72,14 +86,6 @@ const KNOWN_LINE_POSITIONS = new Set([
     "top",
     "bottom",
 ]);
-
-/**
- * Numeric tie-break threshold for endpoint bias scoring.
- *
- * If two endpoint scores differ by less than this value, we treat the bias as
- * effectively zero to avoid jitter from floating-point noise.
- */
-const LOCATION_SCORE_EPSILON = 1e-12;
 
 /**
  * Center snap tolerance for ray-side resolution.
@@ -115,25 +121,67 @@ function clamp01(value) {
 }
 
 /**
- * Scores how strongly one endpoint satisfies a directional intent.
+ * Maps a line-family `labelPosition` to its preferred unit direction vector.
  *
- * `value` is the scored endpoint's coordinate on one axis, `otherValue` is the
- * opposite endpoint's coordinate on that same axis, `magnitude` is the absolute
- * endpoint separation on that axis, and `direction` selects whether larger
- * (`"positive"`) or smaller (`"negative"`) coordinates should score higher.
- *
- * Returns a value in [0, 1] where 1 means the point is strongly in the
- * requested positive/negative direction relative to the other endpoint.
+ * The returned vector is in graph coordinates. Returns null for `center` and
+ * any unrecognized position.
  */
-function directionalScore(value, otherValue, magnitude, direction) {
-    if (!(magnitude > 0)) {
-        return 0.5;
+function getPreferredDirectionForLabelPosition(labelPosition) {
+    switch (normalizeKey(labelPosition ?? "")) {
+        case "right":
+            return [1, 0];
+        case "left":
+            return [-1, 0];
+        case "top":
+            return [0, 1];
+        case "bottom":
+            return [0, -1];
+        case "upperright":
+            return [1 / Math.SQRT2, 1 / Math.SQRT2];
+        case "upperleft":
+            return [-1 / Math.SQRT2, 1 / Math.SQRT2];
+        case "lowerright":
+            return [1 / Math.SQRT2, -1 / Math.SQRT2];
+        case "lowerleft":
+            return [-1 / Math.SQRT2, -1 / Math.SQRT2];
+        default:
+            return null;
     }
-    const normalized = (value - otherValue) / magnitude;
-    const rightOrUp = clamp01(0.5 + normalized / 2);
-    return direction === "positive" ? rightOrUp : 1 - rightOrUp;
 }
 
+/**
+ * Computes endpoint bias from a preferred direction and segment endpoints.
+ *
+ * Projects the unit segment tangent onto `preferredDirection`, multiplies by
+ * the hardening factor, and clamps to [-1, 1]. Positive bias means ep2 side;
+ * negative means ep1 side; zero means center.
+ */
+function biasFromPreferredDirection(
+    preferredDirection,
+    ep1,
+    ep2,
+    { hardening = LINE_LABEL_SIDE_BIAS_HARDENING } = {},
+) {
+    const dx = ep2[0] - ep1[0];
+    const dy = ep2[1] - ep1[1];
+    const segmentLength = Math.hypot(dx, dy);
+    if (!(segmentLength > 0)) {
+        return 0;
+    }
+    const tx = dx / segmentLength;
+    const ty = dy / segmentLength;
+    const agreement = tx * preferredDirection[0] + ty * preferredDirection[1];
+    return Math.max(-1, Math.min(1, hardening * agreement));
+}
+
+/**
+ * Returns the default endpoint inset ratio used by `locationFromBiasAndInset`.
+ *
+ * Parses `LINE_LABEL_LOCATION_NEAR_START` as a [0, 0.5] fraction so the
+ * two constants stay in sync: a bias of -1 yields `insetRatio` (e.g. 0.05)
+ * and a bias of +1 yields `1 - insetRatio` (e.g. 0.95 = `LINE_LABEL_LOCATION_NEAR_END`).
+ * Falls back to 0.05 if the constant is absent or malformed.
+ */
 function defaultInsetRatio() {
     const nearStart = Number(LINE_LABEL_LOCATION_NEAR_START);
     if (Number.isFinite(nearStart) && nearStart >= 0 && nearStart <= 0.5) {
@@ -171,120 +219,21 @@ function endpointIndexFromLocation(location) {
  * Returns a continuous side preference in [-1, 1] for line-family
  * `labelPosition`.
  *
- * Corner positions blend horizontal and vertical evidence so steep and shallow
- * segments transition smoothly through center as orientation rotates.
+ * All non-center positions project the oriented segment tangent onto a
+ * preferred unit direction vector. The dot product is multiplied by a
+ * hardening factor and clamped so the result transitions smoothly as
+ * the segment rotates.
  */
 function chooseEndpointBiasForLabelPosition(labelPosition, ep1, ep2) {
     const pos = normalizeKey(labelPosition ?? "");
     if (!KNOWN_LINE_POSITIONS.has(pos) || pos === "center") {
         return null;
     }
-
-    const dx = ep2[0] - ep1[0];
-    const dy = ep2[1] - ep1[1];
-    const absDx = Math.abs(dx);
-    const absDy = Math.abs(dy);
-    const segmentLength = Math.hypot(dx, dy);
-    if (!(segmentLength > 0)) {
-        return 0;
+    const preferredDirection = getPreferredDirectionForLabelPosition(pos);
+    if (!preferredDirection) {
+        return null;
     }
-    const sum = absDx + absDy;
-    const xDominance = sum > 0 ? absDx / sum : 0.5;
-    const yDominance = sum > 0 ? absDy / sum : 0.5;
-
-    // Score each endpoint against the semantic intent of labelPosition.
-    // We blend horizontal/vertical evidence for corner positions so steep lines
-    // and shallow lines produce intuitive endpoint choices.
-    function endpointScore(index) {
-        const point = index === 0 ? ep1 : ep2;
-        const other = index === 0 ? ep2 : ep1;
-
-        const rightScoreAxis = directionalScore(
-            point[0],
-            other[0],
-            absDx,
-            "positive",
-        );
-        const leftScoreAxis = directionalScore(
-            point[0],
-            other[0],
-            absDx,
-            "negative",
-        );
-        const upperScoreAxis = directionalScore(
-            point[1],
-            other[1],
-            absDy,
-            "positive",
-        );
-        const lowerScoreAxis = directionalScore(
-            point[1],
-            other[1],
-            absDy,
-            "negative",
-        );
-
-        const rightScoreSmooth = directionalScore(
-            point[0],
-            other[0],
-            segmentLength,
-            "positive",
-        );
-        const leftScoreSmooth = directionalScore(
-            point[0],
-            other[0],
-            segmentLength,
-            "negative",
-        );
-        const upperScoreSmooth = directionalScore(
-            point[1],
-            other[1],
-            segmentLength,
-            "positive",
-        );
-        const lowerScoreSmooth = directionalScore(
-            point[1],
-            other[1],
-            segmentLength,
-            "negative",
-        );
-
-        switch (pos) {
-            case "right":
-                return rightScoreSmooth;
-            case "left":
-                return leftScoreSmooth;
-            case "top":
-                return upperScoreSmooth;
-            case "bottom":
-                return lowerScoreSmooth;
-            case "upperright":
-                return (
-                    xDominance * rightScoreAxis + yDominance * upperScoreAxis
-                );
-            case "upperleft":
-                return xDominance * leftScoreAxis + yDominance * upperScoreAxis;
-            case "lowerright":
-                return (
-                    xDominance * rightScoreAxis + yDominance * lowerScoreAxis
-                );
-            case "lowerleft":
-                return xDominance * leftScoreAxis + yDominance * lowerScoreAxis;
-            default:
-                return 0.5;
-        }
-    }
-
-    const score0 = endpointScore(0);
-    const score1 = endpointScore(1);
-
-    // Bias > 0 means ep2 side, bias < 0 means ep1 side.
-    const bias = score1 - score0;
-    if (Math.abs(bias) <= LOCATION_SCORE_EPSILON) {
-        return 0;
-    }
-
-    return Math.max(-1, Math.min(1, bias));
+    return biasFromPreferredDirection(preferredDirection, ep1, ep2);
 }
 
 /**
@@ -384,6 +333,20 @@ function estimateLabelMetrics(labelText, labelHasLatex) {
 /**
  * Returns ordered alignment candidates for a line-family label.
  *
+ * `labelPosition` is the Doenet label position string (normalized internally).
+ * `location` is the label-location in [0, 1]; values above 0.5 correspond to
+ * the ep2 side, below 0.5 to the ep1 side. The `h` component of diagonal
+ * candidates (`ne`/`nw`/`se`/`sw`) is derived from this to keep the label
+ * extending back along the visible segment rather than off the edge.
+ *
+ * `mode` controls the candidate set:
+ *   - `"line"`:     used for infinite lines and clipped-segment anchors;
+ *                  yields a 4-candidate list biased toward `n`/`s`.
+ *   - `"endpoint"`: used near finite segment endpoints and ray finite sides;
+ *                  yields a 3-candidate list; `right`/`left` and corner
+ *                  positions prefer `n`/`s` over diagonals to avoid clipping.
+ *                  `top` and `bottom` fall through to the 4-candidate line list.
+ *
  * Candidate order matters: earlier entries are preferred, later entries are
  * only considered when edge/overflow scoring indicates a fallback is safer.
  */
@@ -399,54 +362,47 @@ function getLineAlignmentCandidates(labelPosition, location, mode = "line") {
 
     const distanceFromCenter = location - 0.5;
     const h = distanceFromCenter >= 0 ? "w" : "e";
-    const centeredHorizontally =
-        Math.abs(distanceFromCenter) <= LINE_ALIGNMENT_CENTER_DEADZONE;
 
-    // Endpoint mode is intentionally richer than line mode. We include fallback
-    // candidates (for example plain `n`/`s`) to recover when diagonal choices
-    // would clip near boundaries.
+    // Endpoint mode handles right/left and corner positions with 3 candidates.
+    // top/bottom fall through to the 4-candidate line-mode list below.
     if (mode === "endpoint") {
-        if (pos === "right") {
+        if (pos === "right" || pos === "left") {
             return ["n", `n${h}`, `s${h}`];
         }
-        if (pos === "left") {
+        if (pos === "upperright" || pos === "upperleft") {
             return ["n", `n${h}`, `s${h}`];
         }
-
-        const isUpperCorner = pos === "upperright" || pos === "upperleft";
-        const isLowerCorner = pos === "lowerright" || pos === "lowerleft";
-        if (isUpperCorner) {
-            return ["n", `n${h}`, `s${h}`];
-        }
-        if (isLowerCorner) {
+        if (pos === "lowerright" || pos === "lowerleft") {
             return ["s", `s${h}`, `n${h}`];
         }
     }
 
+    // Line mode (and top/bottom in any mode).
     if (pos === "right" || pos === "left" || pos === "top") {
-        return ["n", `n${h}`, `s${h}`, "s"];
+        return ["n", `n${h}`, "s", `s${h}`];
     }
     if (pos === "bottom") {
-        return ["s", `s${h}`, `n${h}`, "n"];
+        return ["s", `s${h}`, "n", `n${h}`];
     }
 
-    if (centeredHorizontally) {
-        if (pos === "top" || pos === "right" || pos === "left") {
-            return ["n", "s"];
-        }
-        if (pos === "bottom") {
-            return ["s", "n"];
-        }
-    }
-
-    const prefersSouth =
-        pos === "bottom" || pos === "lowerleft" || pos === "lowerright";
+    // Corner positions in line mode: prefer north for upper, south for lower.
+    const prefersSouth = pos === "lowerleft" || pos === "lowerright";
 
     return prefersSouth ? [`s${h}`, `n${h}`] : [`n${h}`, `s${h}`];
 }
 
 /**
- * Converts a candidate alignment into tangent/normal extents for overflow tests.
+ * Returns the axis-aligned bounding box of a label placement relative to its
+ * anchor point, expressed in graph coordinates.
+ *
+ * `tangent` is the unit vector along ep1 -> ep2; its left-normal defines the
+ * "north" direction in the line's local frame.
+ * `alignment` is a PreFigure cardinal token (`n`, `nw`, `se`, etc.) that
+ * determines which quadrant of the label box the anchor falls in.
+ * `metrics` carries estimated `width` and `height` in graph coordinate units.
+ *
+ * The returned `{minX, maxX, minY, maxY}` are graph-axis-aligned bounds of the
+ * rotated label box, suitable for overflow tests against `graphBounds`.
  */
 function getAlignmentExtents(tangent, alignment, metrics) {
     const normal = [-tangent[1], tangent[0]];
@@ -594,6 +550,17 @@ function scoreLineAlignmentForBounds({
 
 /**
  * Selects the best alignment for the requested line-family label position.
+ *
+ * Queries `getLineAlignmentCandidates` for an ordered preference list, then
+ * scores each candidate via `scoreLineAlignmentForBounds`. The first candidate
+ * is returned as-is unless its score exceeds `LINE_ALIGNMENT_FLIP_THRESHOLD`,
+ * at which point the lowest-scoring alternative from the remainder wins.
+ *
+ * `location` is the label-location in [0, 1] used for scoring; it may differ
+ * from the emitted value when callers remap clipped-segment anchors (see
+ * `lineLabelAlignmentLocationOverride` in `lineLabelAttributes`).
+ * `mode` (`"line"`, `"endpoint"`, or `"ray"`) determines the candidate list.
+ * Returns `null` when `labelPosition` is unrecognized or absent.
  */
 function getLineLabelAlignment({
     labelPosition,
@@ -831,9 +798,9 @@ function locationForEndpointBiasWithAbsoluteOffset({
 /**
  * Maps Doenet `labelPosition` to a PreFigure `label-location` value.
  *
- * By default, endpoint-side positions use edge-near insets
- * (`LINE_LABEL_LOCATION_NEAR_START` and `LINE_LABEL_LOCATION_NEAR_END`) rather
- * than hard 0/1 so non-center labels anchor near the selected endpoint.
+ * By default, endpoint-side positions use edge-near insets (0.05 near ep1,
+ * 0.95 near ep2, per `LINE_LABEL_LOCATION_NEAR_START` / `LINE_LABEL_LOCATION_NEAR_END`)
+ * rather than hard 0/1 so non-center labels anchor near the selected endpoint.
  *
  * When `options.absoluteEndpointOffset` is true and graph bounds/dimensions are
  * available, endpoint-side labels use a fixed screen-space offset from the

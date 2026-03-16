@@ -611,6 +611,69 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(locNearHorizontalNegative).toBeGreaterThan(0.5);
     });
 
+    it("renderer=prefigure right labelPosition transitions smoothly toward center near vertical", async () => {
+        async function xmlFor(x2: number) {
+            return (await getPrefigureXML(
+                prefigureGraph(
+                    `<lineSegment endpoints="(0,0) (${x2},6)" labelPosition="right"><label>R</label></lineSegment>`,
+                ),
+            )) as string;
+        }
+
+        const locLargeX = labelLocationFromXml(await xmlFor(8));
+        const locMediumX = labelLocationFromXml(await xmlFor(1.25));
+        const locSmallX = labelLocationFromXml(await xmlFor(0.1));
+
+        // As the segment tilts from mostly-horizontal toward vertical, the
+        // right label smoothly approaches center from above.
+        expect(locLargeX).toBeGreaterThan(locMediumX);
+        expect(locMediumX).toBeGreaterThan(locSmallX);
+        expect(locSmallX).toBeGreaterThan(0.5);
+    });
+
+    it("renderer=prefigure left labelPosition transitions smoothly toward center near vertical", async () => {
+        async function xmlFor(x2: number) {
+            return (await getPrefigureXML(
+                prefigureGraph(
+                    `<lineSegment endpoints="(0,0) (${x2},6)" labelPosition="left"><label>L</label></lineSegment>`,
+                ),
+            )) as string;
+        }
+
+        const locLargeX = labelLocationFromXml(await xmlFor(8));
+        const locMediumX = labelLocationFromXml(await xmlFor(1.25));
+        const locSmallX = labelLocationFromXml(await xmlFor(0.1));
+
+        // As the segment tilts from mostly-horizontal toward vertical, the
+        // left label smoothly approaches center from below.
+        expect(locLargeX).toBeLessThan(locMediumX);
+        expect(locMediumX).toBeLessThan(locSmallX);
+        expect(locSmallX).toBeLessThan(0.5);
+    });
+
+    it("renderer=prefigure upperright corner sweep all favor ep2 side across near-horizontal slopes", async () => {
+        async function xmlFor(y2: number) {
+            return (await getPrefigureXML(
+                prefigureGraph(
+                    `<lineSegment endpoints="(0,0) (6,${y2})" labelPosition="upperright"><label>UR</label></lineSegment>`,
+                ),
+            )) as string;
+        }
+
+        const locSteepPos = labelLocationFromXml(await xmlFor(8));
+        const locShallowPos = labelLocationFromXml(await xmlFor(1.25));
+        const locNearHorizPos = labelLocationFromXml(await xmlFor(0.1));
+        const locNearHorizNeg = labelLocationFromXml(await xmlFor(-0.1));
+
+        // All near-horizontal cases favor ep2 (the upper-right endpoint).
+        expect(locSteepPos).toBeGreaterThan(0.5);
+        expect(locShallowPos).toBeGreaterThan(0.5);
+        expect(locNearHorizPos).toBeGreaterThan(0.5);
+        expect(locNearHorizNeg).toBeGreaterThan(0.5);
+        // Steeper positive slope anchors further toward ep2 (longer span).
+        expect(locSteepPos).toBeGreaterThan(locShallowPos);
+    });
+
     it("renderer=prefigure orients line endpoints so label is never upside-down (right-to-left line)", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(
@@ -738,7 +801,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toContain(`<vector `);
-        expect(prefigureXML).toContain(`<label p="(2.454594,2.454594)"`);
+        expect(prefigureXML).toContain(`<label p="(2.85,2.85)"`);
         expect(prefigureXML).toContain(`alignment="north"`);
         expect(prefigureXML).toContain(`>V</label>`);
     });
@@ -751,7 +814,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toMatchInlineSnapshot(
-            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><vector id="vector-0" tail="(0,0)" v="(3,3)" stroke="#648FFF" thickness="4" fill="#648FFF" stroke-opacity="0.7" fill-opacity="0.3" /><label p="(2.454594,2.454594)" alignment="north">V</label></coordinates></diagram>"`,
+            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><vector id="vector-0" tail="(0,0)" v="(3,3)" stroke="#648FFF" thickness="4" fill="#648FFF" stroke-opacity="0.7" fill-opacity="0.3" /><label p="(2.85,2.85)" alignment="north">V</label></coordinates></diagram>"`,
         );
     });
 
