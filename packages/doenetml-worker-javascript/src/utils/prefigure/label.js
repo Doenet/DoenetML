@@ -35,9 +35,9 @@ function normalizeKey(value) {
         .replaceAll(/[^a-z0-9]+/g, "");
 }
 
-// Default endpoint-side label-location near ep1. The symmetric near-ep2 value
-// is computed from this by locationFromBiasAndInset() when bias is +1.
-const LINE_LABEL_LOCATION_NEAR_START = "0.05";
+// Fractional inset from each endpoint for endpoint-side label anchors.
+// ep1-side labels anchor at DEFAULT_INSET_RATIO; ep2-side at 1 - DEFAULT_INSET_RATIO.
+const DEFAULT_INSET_RATIO = 0.05;
 
 /**
  * Line-family label tuning constants.
@@ -48,17 +48,14 @@ const LINE_LABEL_LOCATION_NEAR_START = "0.05";
  *
  * @property edgePaddingRatio Reserved inset to reduce visible clipping at bounds.
  * @property endpointOffsetPixels Endpoint-anchor inset in screen pixels.
- * @property sideBiasHardening Factor k applied to the tangent–intent dot product; k=sqrt(2) locks 90-degree sectors, k=1 gives fully smooth interpolation.
  */
 export const lineLabelTuning = Object.freeze({
     edgePaddingRatio: 0.02,
     endpointOffsetPixels: 12,
-    sideBiasHardening: Math.SQRT2,
 });
 
 const LINE_LABEL_EDGE_PADDING_RATIO = lineLabelTuning.edgePaddingRatio;
 const LINE_LABEL_ENDPOINT_OFFSET_PIXELS = lineLabelTuning.endpointOffsetPixels;
-const LINE_LABEL_SIDE_BIAS_HARDENING = lineLabelTuning.sideBiasHardening;
 
 // All labelPosition values recognized by the line-family converter.
 const KNOWN_LINE_POSITIONS = new Set([
@@ -93,6 +90,8 @@ function clamp01(value) {
  *
  * The returned vector is in graph coordinates. Returns null for `center` and
  * any unrecognized position.
+ *
+ * Example: `getPreferredDirectionForLabelPosition("right")` returns `[1, 0]`.
  */
 function getPreferredDirectionForLabelPosition(labelPosition) {
     switch (normalizeKey(labelPosition ?? "")) {
@@ -121,15 +120,18 @@ function getPreferredDirectionForLabelPosition(labelPosition) {
  * Computes endpoint bias from a preferred direction and segment endpoints.
  *
  * Projects the unit segment tangent onto `preferredDirection`, multiplies by
- * the hardening factor, and clamps to [-1, 1]. Positive bias means ep2 side;
- * negative means ep1 side; zero means center.
+ * a fixed hardening factor (`Math.SQRT2`), and clamps to [-1, 1]. Positive
+ * bias means ep2 side; negative means ep1 side; zero means center.
+ *
+ * Examples:
+ * - Aligned with preferred direction:
+ *   `biasFromPreferredDirection([1, 0], [0, 0], [4, 0]) // 1`
+ * - Opposite preferred direction:
+ *   `biasFromPreferredDirection([1, 0], [4, 0], [0, 0]) // -1`
+ * - Perpendicular to preferred direction:
+ *   `biasFromPreferredDirection([1, 0], [0, 0], [0, 4]) // 0`
  */
-function biasFromPreferredDirection(
-    preferredDirection,
-    ep1,
-    ep2,
-    { hardening = LINE_LABEL_SIDE_BIAS_HARDENING } = {},
-) {
+function biasFromPreferredDirection(preferredDirection, ep1, ep2) {
     const dx = ep2[0] - ep1[0];
     const dy = ep2[1] - ep1[1];
     const segmentLength = Math.hypot(dx, dy);
@@ -139,23 +141,8 @@ function biasFromPreferredDirection(
     const tx = dx / segmentLength;
     const ty = dy / segmentLength;
     const agreement = tx * preferredDirection[0] + ty * preferredDirection[1];
-    return Math.max(-1, Math.min(1, hardening * agreement));
-}
-
-/**
- * Returns the default endpoint inset ratio used by `locationFromBiasAndInset`.
- *
- * Parses `LINE_LABEL_LOCATION_NEAR_START` as a [0, 0.5] fraction so the
- * two constants stay in sync: a bias of -1 yields `insetRatio` (e.g. 0.05)
- * and a bias of +1 yields `1 - insetRatio` (e.g. 0.95).
- * Falls back to 0.05 if the constant is absent or malformed.
- */
-function defaultInsetRatio() {
-    const nearStart = Number(LINE_LABEL_LOCATION_NEAR_START);
-    if (Number.isFinite(nearStart) && nearStart >= 0 && nearStart <= 0.5) {
-        return nearStart;
-    }
-    return 0.05;
+    // Hard-code k = sqrt(2) to keep 90-degree sector behavior stable.
+    return Math.max(-1, Math.min(1, Math.SQRT2 * agreement));
 }
 
 /**
@@ -178,6 +165,15 @@ function locationFromBiasAndInset({ bias, insetRatio }) {
  * preferred unit direction vector. The dot product is multiplied by a
  * hardening factor and clamped so the result transitions smoothly as
  * the segment rotates.
+ *
+ * Examples:
+ * - Same direction request, endpoints reversed:
+ *   `chooseEndpointBiasForLabelPosition("right", [0, 0], [4, 0]) // 1`
+ *   `chooseEndpointBiasForLabelPosition("right", [4, 0], [0, 0]) // -1`
+ * - Same segment, different requested side:
+ *   `chooseEndpointBiasForLabelPosition("top", [0, 0], [4, 0]) // 0`
+ * - Same request, segment angle changed:
+ *   `chooseEndpointBiasForLabelPosition("right", [0, 0], [0, 4]) // 0`
  */
 function chooseEndpointBiasForLabelPosition(labelPosition, ep1, ep2) {
     const pos = normalizeKey(labelPosition ?? "");
@@ -478,7 +474,7 @@ function evaluateLineAlignmentOverflow({
  *
  * `location` is the label-location in [0, 1] used for scoring; it may differ
  * from the emitted value when callers remap clipped-segment anchors (see
- * `lineLabelAlignmentLocationOverride` in `lineLabelAttributes`).
+ * `lineLabelAlignmentLocationOverride` in `getLabelForLine`).
  * Returns `null` when `labelPosition` is unrecognized or absent.
  */
 function getLineLabelAlignment({
@@ -635,7 +631,7 @@ function locationForEndpointBiasWithAbsoluteOffset({
     if (!bounds || !dims) {
         const location = locationFromBiasAndInset({
             bias: endpointBias,
-            insetRatio: defaultInsetRatio(),
+            insetRatio: DEFAULT_INSET_RATIO,
         });
         return formatLocation(location);
     }
@@ -646,7 +642,7 @@ function locationForEndpointBiasWithAbsoluteOffset({
     if (!(segmentLength > 0)) {
         const location = locationFromBiasAndInset({
             bias: endpointBias,
-            insetRatio: defaultInsetRatio(),
+            insetRatio: DEFAULT_INSET_RATIO,
         });
         return formatLocation(location);
     }
@@ -664,7 +660,7 @@ function locationForEndpointBiasWithAbsoluteOffset({
     if (!(unitsPerPixelAlongLine > 0)) {
         const location = locationFromBiasAndInset({
             bias: endpointBias,
-            insetRatio: defaultInsetRatio(),
+            insetRatio: DEFAULT_INSET_RATIO,
         });
         return formatLocation(location);
     }
@@ -684,12 +680,26 @@ function locationForEndpointBiasWithAbsoluteOffset({
  *
  * By default, recognized non-center line-family positions map to a continuous
  * location between ep1 and ep2 with edge-near insets (0.05 near ep1,
- * 0.95 near ep2, derived from `LINE_LABEL_LOCATION_NEAR_START`)
+ * 0.95 near ep2, set by `DEFAULT_INSET_RATIO`)
  * rather than hard 0/1.
  *
  * When `options.absoluteEndpointOffset` is true and graph bounds/dimensions are
  * available, endpoint-side labels use a fixed screen-space offset from the
  * endpoint so line extension does not move the anchor relative to that endpoint.
+ *
+ * Supported `options`:
+ * - `absoluteEndpointOffset` (`boolean`): enables endpoint offsets measured in
+ *   screen pixels instead of a fixed fractional inset.
+ * - `graphBounds` (`[xMin, yMin, xMax, yMax]`): graph bounds used to convert
+ *   pixel offsets into graph units.
+ * - `graphDimensions` (`[widthPx, heightPx]`): rendered graph size in pixels,
+ *   used with `graphBounds` for pixel-to-graph conversion.
+ *
+ * Examples:
+ * - Default inset behavior:
+ *   `lineLabelLocationFromPosition("right", [0, 0], [4, 0]) // "0.95"`
+ * - Absolute endpoint offset behavior:
+ *   `lineLabelLocationFromPosition("right", [0, 0], [4, 0], { absoluteEndpointOffset: true, graphBounds: [0, 0, 10, 10], graphDimensions: [500, 500] }) // "0.94"`
  */
 export function lineLabelLocationFromPosition(
     labelPosition,
@@ -719,7 +729,7 @@ export function lineLabelLocationFromPosition(
 
     const location = locationFromBiasAndInset({
         bias: endpointBias,
-        insetRatio: defaultInsetRatio(),
+        insetRatio: DEFAULT_INSET_RATIO,
     });
     return formatLocation(location);
 }
@@ -728,6 +738,16 @@ export function lineLabelLocationFromPosition(
  * Returns the numeric label-location value for downstream interpolation logic.
  *
  * Vector conversion and clipped-segment remapping both call this helper.
+ *
+ * Supported `options`:
+ * - `absoluteEndpointOffset` (`boolean`): use fixed screen-space endpoint
+ *   offset behavior for endpoint-side positions.
+ * - `graphBounds` (`[xMin, yMin, xMax, yMax]`): required with
+ *   `absoluteEndpointOffset` for graph-unit conversion.
+ * - `graphDimensions` (`[widthPx, heightPx]`): required with
+ *   `absoluteEndpointOffset` for graph-unit conversion.
+ *
+ * Example: `lineLabelLocationValue("right", [0, 0], [4, 0])` returns `0.95`.
  */
 export function lineLabelLocationValue(labelPosition, ep1, ep2, options = {}) {
     const locText = lineLabelLocationFromPosition(
@@ -767,7 +787,7 @@ export function lineLabelLocationValue(labelPosition, ep1, ep2, options = {}) {
  * - `lineLabelAlignmentLocationOverride`: scoring location for alignment selection.
  * - `lineLabelAbsoluteEndpointOffset`: enable fixed pixel offset from endpoint.
  */
-export function lineLabelAttributes({
+export function getLabelForLine({
     stateValues,
     ep1,
     ep2,
@@ -781,10 +801,13 @@ export function lineLabelAttributes({
     });
 
     if (!label) {
-        return null;
+        return {
+            labelAttrs: [],
+            label: null,
+        };
     }
 
-    const attrs = [];
+    const labelAttrs = [];
     const rawPosition = stateValues?.labelPosition;
     const normalizedPosition = normalizeKey(rawPosition ?? "");
 
@@ -806,7 +829,7 @@ export function lineLabelAttributes({
     if (baseLoc !== null) {
         location = Number(baseLoc);
         if (Number.isFinite(location)) {
-            attrs.push(
+            labelAttrs.push(
                 `label-location="${escapeXml(formatLocation(location))}"`,
             );
         }
@@ -831,7 +854,7 @@ export function lineLabelAttributes({
             labelHasLatex: stateValues?.labelHasLatex,
         });
         if (alignment) {
-            attrs.push(`alignment="${escapeXml(alignment)}"`);
+            labelAttrs.push(`alignment="${escapeXml(alignment)}"`);
         } else if (!KNOWN_LINE_POSITIONS.has(normalizedPosition)) {
             pushWarning({
                 warnings,
@@ -841,5 +864,5 @@ export function lineLabelAttributes({
         }
     }
 
-    return { attrs, label };
+    return { labelAttrs, label };
 }

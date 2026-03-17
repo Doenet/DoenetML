@@ -1,14 +1,12 @@
 import {
     asFiniteNumber,
-    clipInfiniteLineToBounds,
-    clipRayToBounds,
-    clipSegmentToBounds,
+    clipLineLikeToBounds,
     escapeXml,
     formatPoint,
 } from "../common";
 import {
     lineLabelLocationValue,
-    lineLabelAttributes as getLabelForLine,
+    getLabelForLine,
     orientEndpointsForLineLabel,
 } from "../label";
 
@@ -42,34 +40,6 @@ function lineElement({
     }
 
     return `<line ${attrs.join(" ")} />`;
-}
-
-/**
- * Wraps the shared line-label helper and normalizes the return shape expected
- * by this module.
- *
- * ep1/ep2 are the oriented raw [x, y] endpoint arrays.
- */
-function getLineLabelInfo({
-    sv,
-    ep1,
-    ep2,
-    warnings,
-    warningPrefix,
-    warningPosition,
-}) {
-    const result = getLabelForLine({
-        stateValues: sv,
-        ep1,
-        ep2,
-        warnings,
-        warningPrefix,
-        warningPosition,
-    });
-    return {
-        labelAttrs: result?.attrs ?? [],
-        label: result?.label,
-    };
 }
 
 /**
@@ -140,17 +110,19 @@ export function convertLineToPrefigure({
         return null;
     }
 
-    const clippedForLabel = clipInfiniteLineToBounds({
+    const clippedForLabel = clipLineLikeToBounds({
         point1: rawP1,
         point2: rawP2,
         bounds: sv.graphBounds,
+        tMin: -Infinity,
+        tMax: Infinity,
     });
     const [labelEp1, labelEp2] = clippedForLabel
         ? orientEndpointsForLineLabel(clippedForLabel[0], clippedForLabel[1])
         : [ep1, ep2];
 
-    const { labelAttrs, label } = getLineLabelInfo({
-        sv,
+    const { labelAttrs, label } = getLabelForLine({
+        stateValues: sv,
         ep1: labelEp1,
         ep2: labelEp2,
         warnings,
@@ -211,53 +183,57 @@ export function convertLineSegmentToPrefigure({
     let lineLabelLocationOverride;
     let lineLabelAlignmentLocationOverride;
 
-    const clippedVisibleSegment = clipSegmentToBounds({
-        point1: ep1,
-        point2: ep2,
-        bounds: sv?.graphBounds,
-    });
-
     const endpoint1Inside = pointInsideBounds(ep1, sv?.graphBounds);
     const endpoint2Inside = pointInsideBounds(ep2, sv?.graphBounds);
     const hasOffscreenEndpoint = !endpoint1Inside || !endpoint2Inside;
 
     // If either endpoint is off-screen but the segment is still visible, anchor
     // label placement to the visible clipped segment.
-    if (hasOffscreenEndpoint && clippedVisibleSegment) {
-        [labelEp1, labelEp2] = orientEndpointsForLineLabel(
-            clippedVisibleSegment[0],
-            clippedVisibleSegment[1],
-        );
-
-        const t0 = paramAlongSegment({
-            start: ep1,
-            end: ep2,
-            point: labelEp1,
-        });
-        const t1 = paramAlongSegment({
-            start: ep1,
-            end: ep2,
-            point: labelEp2,
+    if (hasOffscreenEndpoint) {
+        const clippedVisibleSegment = clipLineLikeToBounds({
+            point1: ep1,
+            point2: ep2,
+            bounds: sv?.graphBounds,
+            tMin: 0,
+            tMax: 1,
         });
 
-        if (Number.isFinite(t0) && Number.isFinite(t1)) {
-            const visibleLoc = lineLabelLocationValue(
-                sv?.labelPosition,
-                labelEp1,
-                labelEp2,
-                {
-                    absoluteEndpointOffset: true,
-                    graphBounds: sv?.graphBounds,
-                    graphDimensions: sv?.graphDimensions,
-                },
+        if (clippedVisibleSegment) {
+            [labelEp1, labelEp2] = orientEndpointsForLineLabel(
+                clippedVisibleSegment[0],
+                clippedVisibleSegment[1],
             );
-            lineLabelAlignmentLocationOverride = visibleLoc;
-            lineLabelLocationOverride = t0 + visibleLoc * (t1 - t0);
+
+            const t0 = paramAlongSegment({
+                start: ep1,
+                end: ep2,
+                point: labelEp1,
+            });
+            const t1 = paramAlongSegment({
+                start: ep1,
+                end: ep2,
+                point: labelEp2,
+            });
+
+            if (Number.isFinite(t0) && Number.isFinite(t1)) {
+                const visibleLoc = lineLabelLocationValue(
+                    sv?.labelPosition,
+                    labelEp1,
+                    labelEp2,
+                    {
+                        absoluteEndpointOffset: true,
+                        graphBounds: sv?.graphBounds,
+                        graphDimensions: sv?.graphDimensions,
+                    },
+                );
+                lineLabelAlignmentLocationOverride = visibleLoc;
+                lineLabelLocationOverride = t0 + visibleLoc * (t1 - t0);
+            }
         }
     }
 
-    const { labelAttrs, label } = getLineLabelInfo({
-        sv: {
+    const { labelAttrs, label } = getLabelForLine({
+        stateValues: {
             ...sv,
             lineLabelAbsoluteEndpointOffset: true,
             ...(Number.isFinite(lineLabelLocationOverride)
@@ -306,10 +282,12 @@ export function convertRayToPrefigure({
         return null;
     }
 
-    const clipped = clipRayToBounds({
-        endpoint: sv.numericalEndpoint,
-        throughpoint: sv.numericalThroughpoint,
+    const clipped = clipLineLikeToBounds({
+        point1: sv.numericalEndpoint,
+        point2: sv.numericalThroughpoint,
         bounds: sv.graphBounds,
+        tMin: 0,
+        tMax: Infinity,
     });
     if (!clipped) {
         return null;
@@ -322,8 +300,8 @@ export function convertRayToPrefigure({
         return null;
     }
 
-    const { labelAttrs, label } = getLineLabelInfo({
-        sv: {
+    const { labelAttrs, label } = getLabelForLine({
+        stateValues: {
             ...sv,
             lineLabelAbsoluteEndpointOffset: true,
         },

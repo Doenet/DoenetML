@@ -110,7 +110,14 @@ export function sortDescendantsByOrder(a, b) {
 }
 
 /**
- * Normalizes point/bounds inputs for line-like clipping helpers.
+ * Validates and extracts scalar inputs for line-like clipping helpers.
+ *
+ * Checks that `point1`, `point2`, and `bounds` are arrays of sufficient length,
+ * coerces all coordinates to finite numbers, and computes the direction vector
+ * `(dx, dy)`. Returns null if any input is missing, non-finite, or degenerate
+ * (zero-length direction). Otherwise returns `{ x0, y0, dx, dy, bxMin,
+ * byMin, bxMax, byMax }` where `(x0, y0)` is `point1`, `(dx, dy)` is the
+ * direction from `point1` to `point2`, and the `b*` values are the bbox bounds.
  */
 function normalizeLineClipInputs({ point1, point2, bounds }) {
     if (
@@ -153,15 +160,22 @@ function normalizeLineClipInputs({ point1, point2, bounds }) {
  * - line: `(-Infinity, Infinity)`
  * - ray: `(0, Infinity)`
  * - segment: `(0, 1)`
+ *
+ * Returns `[startPoint, endPoint]` in user coordinates, or null if the
+ * geometry does not intersect the bbox within the given parameter range.
  */
-function clipLineLikeToBounds({ point1, point2, bounds, tMin, tMax }) {
+export function clipLineLikeToBounds({ point1, point2, bounds, tMin, tMax }) {
     const inputs = normalizeLineClipInputs({ point1, point2, bounds });
     if (!inputs) {
         return null;
     }
 
+    // (x0, y0): start of the parametric line (point1)
+    // (dx, dy): direction vector from point1 to point2
+    // the `b*`: the bbox bound
     const { x0, y0, dx, dy, bxMin, byMin, bxMax, byMax } = inputs;
 
+    // clippedTMin/clippedTMax: parameter range narrowed to the visible bbox
     let clippedTMin = tMin;
     let clippedTMax = tMax;
 
@@ -191,46 +205,4 @@ function clipLineLikeToBounds({ point1, point2, bounds, tMin, tMax }) {
         [x0 + clippedTMin * dx, y0 + clippedTMin * dy],
         [x0 + clippedTMax * dx, y0 + clippedTMax * dy],
     ];
-}
-
-/**
- * Clips a ray `p + t*v`, `t >= 0` to an axis-aligned bbox.
- * Returns `[startPoint, endPoint]` in user coordinates, or null if no intersection.
- */
-export function clipRayToBounds({ endpoint, throughpoint, bounds }) {
-    return clipLineLikeToBounds({
-        point1: endpoint,
-        point2: throughpoint,
-        bounds,
-        tMin: 0,
-        tMax: Infinity,
-    });
-}
-
-/**
- * Clips an infinite line through two points to an axis-aligned bbox.
- * Returns `[startPoint, endPoint]` in user coordinates, or null if no intersection.
- */
-export function clipInfiniteLineToBounds({ point1, point2, bounds }) {
-    return clipLineLikeToBounds({
-        point1,
-        point2,
-        bounds,
-        tMin: -Infinity,
-        tMax: Infinity,
-    });
-}
-
-/**
- * Clips a finite segment between two points to an axis-aligned bbox.
- * Returns `[startPoint, endPoint]` in user coordinates, or null if no intersection.
- */
-export function clipSegmentToBounds({ point1, point2, bounds }) {
-    return clipLineLikeToBounds({
-        point1,
-        point2,
-        bounds,
-        tMin: 0,
-        tMax: 1,
-    });
 }

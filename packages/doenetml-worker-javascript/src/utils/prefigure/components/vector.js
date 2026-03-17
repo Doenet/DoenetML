@@ -1,6 +1,6 @@
 import { escapeXml, formatNumber, formatPoint } from "../common";
 import {
-    lineLabelAttributes as getLabelForLine,
+    getLabelForLine,
     lineLabelLocationValue,
     orientEndpointsForLineLabel,
 } from "../label";
