@@ -49,7 +49,7 @@ function lineElement({
  * by this module.
  *
  * ep1/ep2 are the oriented raw [x, y] endpoint arrays. `alignmentMode`
- * selects whether label alignment should follow line, endpoint, or ray rules.
+ * selects the requested policy passed through to label resolution.
  */
 function getLineLabelInfo({
     sv,
@@ -78,28 +78,10 @@ function getLineLabelInfo({
 }
 
 /**
- * Finds which clipped ray endpoint corresponds to the ray's finite endpoint.
- *
- * The return value is an oriented endpoint index (0 or 1) used by ray label
- * logic to keep endpoint-side labels in endpoint mode.
- */
-function rayFiniteEndpointIndex({ ep1, ep2, finiteEndpoint }) {
-    const fx = asFiniteNumber(finiteEndpoint?.[0]);
-    const fy = asFiniteNumber(finiteEndpoint?.[1]);
-    if (fx === null || fy === null) {
-        return null;
-    }
-
-    const d1 = (ep1[0] - fx) ** 2 + (ep1[1] - fy) ** 2;
-    const d2 = (ep2[0] - fx) ** 2 + (ep2[1] - fy) ** 2;
-    return d1 <= d2 ? 0 : 1;
-}
-
-/**
  * True if a point lies within inclusive graph bounds.
  *
- * Used by clipped-segment logic to decide whether we should use mixed
- * endpoint/line alignment behavior.
+ * Used by clipped-segment logic to decide whether endpoint clipping has
+ * changed which geometry should be used for label placement.
  */
 function pointInsideBounds(point, bounds) {
     if (
@@ -211,9 +193,8 @@ export function convertLineToPrefigure({
  *
  * Off-screen behavior:
  * - Fully on-screen: endpoint alignment mode.
- * - One endpoint off-screen and segment visible: ray-style mixed mode where the
- *   visible endpoint side uses endpoint behavior and the opposite side uses
- *   line behavior.
+ * - One endpoint off-screen and segment visible: score alignment on the clipped
+ *   visible segment while preserving endpoint-style anchoring semantics.
  * - Both endpoints off-screen but segment visible: line mode over clipped
  *   visible geometry.
  *
@@ -251,7 +232,6 @@ export function convertLineSegmentToPrefigure({
     let alignmentMode = "endpoint";
     let lineLabelLocationOverride;
     let lineLabelAlignmentLocationOverride;
-    let lineLabelRayFiniteEndpointIndex;
 
     const clippedVisibleSegment = clipSegmentToBounds({
         point1: ep1,
@@ -265,10 +245,6 @@ export function convertLineSegmentToPrefigure({
 
     // If either endpoint is off-screen but the segment is still visible, anchor
     // label placement to the visible clipped segment.
-    //
-    // When exactly one endpoint remains in-bounds, use ray-style mixed behavior:
-    // labels on the visible endpoint side stay in endpoint mode, while labels on
-    // the off-screen side keep line-mode behavior.
     if (hasOffscreenEndpoint && clippedVisibleSegment) {
         [labelEp1, labelEp2] = orientEndpointsForLineLabel(
             clippedVisibleSegment[0],
@@ -282,7 +258,6 @@ export function convertLineSegmentToPrefigure({
         });
         if (visibleEndpointIndex !== null) {
             alignmentMode = "ray";
-            lineLabelRayFiniteEndpointIndex = visibleEndpointIndex;
         }
 
         const t0 = paramAlongSegment({
@@ -316,10 +291,6 @@ export function convertLineSegmentToPrefigure({
         sv: {
             ...sv,
             lineLabelAbsoluteEndpointOffset: true,
-            ...(lineLabelRayFiniteEndpointIndex === 0 ||
-            lineLabelRayFiniteEndpointIndex === 1
-                ? { lineLabelRayFiniteEndpointIndex }
-                : {}),
             ...(Number.isFinite(lineLabelLocationOverride)
                 ? { lineLabelLocationOverride }
                 : {}),
@@ -377,11 +348,6 @@ export function convertRayToPrefigure({
     }
 
     const [ep1, ep2] = orientEndpointsForLineLabel(clipped[0], clipped[1]);
-    const finiteIndex = rayFiniteEndpointIndex({
-        ep1,
-        ep2,
-        finiteEndpoint: sv.numericalEndpoint,
-    });
     const c1 = formatPoint(ep1);
     const c2 = formatPoint(ep2);
     if (c1 === null || c2 === null) {
@@ -392,7 +358,6 @@ export function convertRayToPrefigure({
         sv: {
             ...sv,
             lineLabelAbsoluteEndpointOffset: true,
-            lineLabelRayFiniteEndpointIndex: finiteIndex,
         },
         ep1,
         ep2,

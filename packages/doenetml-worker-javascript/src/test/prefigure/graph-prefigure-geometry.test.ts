@@ -47,7 +47,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`infinite="yes"`);
     });
 
-    it("renderer=prefigure uses diagonal alignment for upperright line labels near the top-right corner", async () => {
+    it("renderer=prefigure prefers the cardinal candidate before diagonals when upperright fits in-bounds", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(
                 '<line through="(1,2) (3,4)" labelPosition="upperright"><label>A</label></line>',
@@ -56,7 +56,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
 
         expect(prefigureXML).toContain(`<line `);
         expect(prefigureXML).toContain(`label-location="0.95"`);
-        expect(prefigureXML).toContain(`alignment="sw"`);
+        expect(prefigureXML).toContain(`alignment="s"`);
         expect(prefigureXML).toContain(`>A</line>`);
     });
 
@@ -68,7 +68,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toMatchInlineSnapshot(
-            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><line id="line-0" endpoints="((1,2),(3,4))" infinite="yes" stroke="#648FFF" thickness="4" fill="#648FFF" stroke-opacity="0.7" fill-opacity="0.3" label-location="0.95" alignment="sw">A</line></coordinates></diagram>"`,
+            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><line id="line-0" endpoints="((1,2),(3,4))" infinite="yes" stroke="#648FFF" thickness="4" fill="#648FFF" stroke-opacity="0.7" fill-opacity="0.3" label-location="0.95" alignment="s">A</line></coordinates></diagram>"`,
         );
     });
 
@@ -247,7 +247,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`alignment="s"`);
     });
 
-    it("renderer=prefigure steep upperRight line uses nw alignment to keep label inside graph", async () => {
+    it("renderer=prefigure steep upperRight line falls back to sw when the primary south candidate overflows", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(
                 '<line through="(0,0) (1,8)" labelPosition="upperRight"><label>the line label</label></line>',
@@ -255,7 +255,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expect(prefigureXML).toContain(`alignment="nw"`);
+        expect(prefigureXML).toContain(`alignment="sw"`);
         expect(prefigureXML).toContain(`label-location="0.95"`);
     });
 
@@ -324,28 +324,25 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`alignment="nw"`);
     });
 
-    it("renderer=prefigure ray uses endpoint-mode alignment when label is on endpoint side", async () => {
-        const prefigureXML = await getPrefigureXML(
+    it("renderer=prefigure ray alignment depends on labelPosition, not separate endpoint/infinite-side modes", async () => {
+        const endpointSideXML = await getPrefigureXML(
             prefigureGraph(
                 '<ray endpoint="(0,0)" through="(8,1)" labelPosition="upperLeft"><label>endpoint side</label></ray>',
                 { attrs: 'xMin="-10" yMin="-10" xMax="10" yMax="10"' },
             ),
         );
-
-        expectLabelLocationNearStart(prefigureXML, 0.2);
-        expect(prefigureXML).toContain(`alignment="n"`);
-    });
-
-    it("renderer=prefigure ray uses line-mode alignment when label is on infinite side", async () => {
-        const prefigureXML = await getPrefigureXML(
+        const throughpointSideXML = await getPrefigureXML(
             prefigureGraph(
                 '<ray endpoint="(0,0)" through="(8,1)" labelPosition="upperRight"><label>infinite side</label></ray>',
                 { attrs: 'xMin="-10" yMin="-10" xMax="10" yMax="10"' },
             ),
         );
 
-        expectLabelLocationNearEnd(prefigureXML);
-        expect(prefigureXML).toContain(`alignment="nw"`);
+        expectLabelLocationNearStart(endpointSideXML, 0.2);
+        expect(endpointSideXML).toContain(`alignment="n"`);
+
+        expectLabelLocationNearEnd(throughpointSideXML);
+        expect(throughpointSideXML).toContain(`alignment="nw"`);
     });
 
     it("renderer=prefigure long upperright segment label near right edge falls back to nw", async () => {
@@ -372,7 +369,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`alignment="n"`);
     });
 
-    it("renderer=prefigure right endpoint-mode uses 4-candidate fallback chain near the right edge", async () => {
+    it("renderer=prefigure right endpoint-side fallback near the right edge prefers cardinals before diagonals", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(
                 '<lineSegment endpoints="(0,2) (6,2)" labelPosition="right"><label>the line segment</label></lineSegment>',
@@ -384,7 +381,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`alignment="n"`);
     });
 
-    it("renderer=prefigure left endpoint-mode uses 4-candidate fallback chain near the left edge", async () => {
+    it("renderer=prefigure left endpoint-side fallback near the left edge prefers cardinals before diagonals", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(
                 '<lineSegment endpoints="(-6,2) (0,2)" labelPosition="left"><label>the line segment</label></lineSegment>',
@@ -421,7 +418,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`alignment="nw"`);
     });
 
-    it("renderer=prefigure segment left keeps endpoint-mode alignment when the opposite endpoint is off-screen", async () => {
+    it("renderer=prefigure segment left keeps endpoint-style alignment when the opposite endpoint is off-screen", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(
                 '<lineSegment endpoints="(0,2) (20,2)" labelPosition="left"><label>the line segment</label></lineSegment>',
@@ -448,7 +445,30 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`alignment="se"`);
     });
 
-    it("renderer=prefigure segment right keeps endpoint-mode alignment when the opposite endpoint is off-screen", async () => {
+    it("renderer=prefigure upperleft clipped horizontal segments keep distinct placements on left and right edges", async () => {
+        const leftOffscreenXML = await getPrefigureXML(
+            prefigureGraph(
+                '<lineSegment endpoints="(-20,2) (0,2)" labelPosition="upperLeft"><label>the line segment</label></lineSegment>',
+                { attrs: 'xMin="-10" yMin="-10" xMax="10" yMax="10"' },
+            ),
+        );
+        const rightOffscreenXML = await getPrefigureXML(
+            prefigureGraph(
+                '<lineSegment endpoints="(0,2) (20,2)" labelPosition="upperLeft"><label>the line segment</label></lineSegment>',
+                { attrs: 'xMin="-10" yMin="-10" xMax="10" yMax="10"' },
+            ),
+        );
+
+        expect(leftOffscreenXML).toContain(`endpoints="((-20,2),(0,2))"`);
+        expectLabelLocationBetween(leftOffscreenXML, 0.5, 0.6);
+        expect(leftOffscreenXML).toContain(`alignment="ne"`);
+
+        expect(rightOffscreenXML).toContain(`endpoints="((0,2),(20,2))"`);
+        expectLabelLocationNearStart(rightOffscreenXML, 0.08);
+        expect(rightOffscreenXML).toContain(`alignment="n"`);
+    });
+
+    it("renderer=prefigure segment right keeps endpoint-style alignment when the opposite endpoint is off-screen", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(
                 '<lineSegment endpoints="(-20,2) (0,2)" labelPosition="right"><label>the line segment</label></lineSegment>',
@@ -550,7 +570,28 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`alignment="s"`);
     });
 
-    it("renderer=prefigure right labelPosition uses n alignment rather than e or w", async () => {
+    it("renderer=prefigure near-horizontal bottom flips from s to n as lower edge approaches", async () => {
+        const baseXML = await getPrefigureXML(
+            prefigureGraph(
+                '<lineSegment endpoints="(-6,-0.02) (6,0.01)" labelPosition="bottom"><label>B</label></lineSegment>',
+                { attrs: 'xMin="-10" yMin="-10" xMax="10" yMax="10"' },
+            ),
+        );
+
+        const flippedXML = await getPrefigureXML(
+            prefigureGraph(
+                '<lineSegment endpoints="(-6,-0.02) (6,0.01)" labelPosition="bottom"><label>B</label></lineSegment>',
+                { attrs: 'xMin="-10" yMin="-0.45" xMax="10" yMax="10"' },
+            ),
+        );
+
+        expect(baseXML).toContain(`alignment="s"`);
+        expect(flippedXML).toContain(`alignment="n"`);
+        expect(flippedXML).not.toContain(`alignment="ne"`);
+        expect(flippedXML).not.toContain(`alignment="nw"`);
+    });
+
+    it("renderer=prefigure right labelPosition uses the geometrically correct south side rather than e or w", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(
                 '<lineSegment endpoints="(-4,-2) (4,2)" labelPosition="right"><label>R</label></lineSegment>',
@@ -558,9 +599,54 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expectLabelLocationNearEnd(prefigureXML);
-        expect(prefigureXML).toContain(`alignment="n"`);
+        expect(prefigureXML).toContain(`alignment="s"`);
         expect(prefigureXML).not.toContain(`alignment="e"`);
         expect(prefigureXML).not.toContain(`alignment="w"`);
+    });
+
+    it("renderer=prefigure near-vertical right falls back between cardinals before using diagonals near the right edge", async () => {
+        const baseXML = await getPrefigureXML(
+            prefigureGraph(
+                '<lineSegment endpoints="(9.95,6) (10.02,-6)" labelPosition="right"><label>R</label></lineSegment>',
+                { attrs: 'xMin="-10" yMin="-10" xMax="20" yMax="10"' },
+            ),
+        );
+
+        const flippedXML = await getPrefigureXML(
+            prefigureGraph(
+                '<lineSegment endpoints="(9.95,6) (10.02,-6)" labelPosition="right"><label>R</label></lineSegment>',
+                { attrs: 'xMin="-10" yMin="-10" xMax="11" yMax="10"' },
+            ),
+        );
+
+        expect(baseXML).toContain(`alignment="n"`);
+        expect(flippedXML).toContain(`alignment="s"`);
+        expect(flippedXML).not.toContain(`alignment="se"`);
+        expect(flippedXML).not.toContain(`alignment="ne"`);
+    });
+
+    it("renderer=prefigure user-reported near-vertical right case near right edge unlocks to sw when both cardinals overflow", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<lineSegment endpoints="(0.0212,6.03) (0.0259,-6.09)" labelPosition="right"><label>R</label></lineSegment>',
+                { attrs: 'xMin="-10" yMin="-10" xMax="0.03" yMax="10"' },
+            ),
+        );
+
+        expect(prefigureXML).toContain(`alignment="sw"`);
+        expect(prefigureXML).not.toContain(`alignment="se"`);
+    });
+
+    it("renderer=prefigure right can reach the opposite-side diagonal fallback when preferred diagonals also overflow", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<lineSegment endpoints="(9.95,6) (10.02,-6)" labelPosition="right"><label>probe label</label></lineSegment>',
+                { attrs: 'xMin="-10" yMin="-10" xMax="10" yMax="10"' },
+            ),
+        );
+
+        expectLabelLocationBetween(prefigureXML, 0.3, 0.45);
+        expect(prefigureXML).toContain(`alignment="sw"`);
     });
 
     it("renderer=prefigure top labelPosition transitions smoothly through center near horizontal", async () => {

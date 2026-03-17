@@ -7,9 +7,8 @@ import { escapeXml, pushWarning } from "./common";
  * 2) Line-family labels (`line`, `lineSegment`, `ray`) compute two outputs:
  *    - `label-location`: where along the oriented segment to anchor the label
  *    - `alignment`: which side of the oriented segment to place text on
- * 3) `ray` can behave in mixed mode:
- *    - finite-endpoint side uses endpoint candidate policy
- *    - infinite side uses line candidate policy
+ * 3) Ray callers may request `ray` alignment mode, which is normalized to the
+ *    same endpoint-style alignment policy used for finite endpoint anchoring.
  * 4) Callers can override emitted/scoring locations for clipped/remapped geometry.
  */
 
@@ -51,26 +50,17 @@ const LINE_LABEL_LOCATION_NEAR_END = "0.95";
  * Adjust with corresponding geometry tests in
  * `src/test/prefigure/graph-prefigure-geometry.test.ts`.
  *
- * @property edgeMarginRatio Portion of graph width/height considered "near edge".
- * @property flipThreshold If default candidate score is <= threshold, keep default.
  * @property edgePaddingRatio Reserved inset to reduce visible clipping at bounds.
- * @property overflowPenalty Base cost added when candidate predicts any overflow.
  * @property endpointOffsetPixels Endpoint-anchor inset in screen pixels.
  * @property sideBiasHardening Factor k applied to the tangent–intent dot product; k=sqrt(2) locks 90-degree sectors, k=1 gives fully smooth interpolation.
  */
 export const lineLabelTuning = Object.freeze({
-    edgeMarginRatio: 0.08,
-    flipThreshold: 0.35,
     edgePaddingRatio: 0.02,
-    overflowPenalty: 1,
     endpointOffsetPixels: 12,
     sideBiasHardening: Math.SQRT2,
 });
 
-const LINE_ALIGNMENT_EDGE_MARGIN_RATIO = lineLabelTuning.edgeMarginRatio;
-const LINE_ALIGNMENT_FLIP_THRESHOLD = lineLabelTuning.flipThreshold;
 const LINE_LABEL_EDGE_PADDING_RATIO = lineLabelTuning.edgePaddingRatio;
-const LINE_ALIGNMENT_OVERFLOW_PENALTY = lineLabelTuning.overflowPenalty;
 const LINE_LABEL_ENDPOINT_OFFSET_PIXELS = lineLabelTuning.endpointOffsetPixels;
 const LINE_LABEL_SIDE_BIAS_HARDENING = lineLabelTuning.sideBiasHardening;
 
@@ -86,24 +76,6 @@ const KNOWN_LINE_POSITIONS = new Set([
     "top",
     "bottom",
 ]);
-
-/**
- * Center snap tolerance for ray-side resolution.
- *
- * When `label-location` is within this tolerance of 0.5, ray alignment mode
- * treats the anchor as centered (neither endpoint side), so ray logic falls
- * back to line-mode alignment.
- */
-const RAY_LOCATION_CENTER_EPSILON = 1e-9;
-
-/**
- * Horizontal center deadzone used by line-mode alignment candidate selection.
- *
- * If `label-location` is within this distance from center, we prefer pure
- * cardinal candidates (`n`/`s`) over diagonal variants to reduce unnecessary
- * side flipping near midpoint.
- */
-const LINE_ALIGNMENT_CENTER_DEADZONE = 0.08;
 
 /**
  * Formats label-location numbers with stable precision for snapshot-friendly XML.
@@ -200,19 +172,6 @@ function locationFromBiasAndInset({ bias, insetRatio }) {
     const clampedInset = clamp01(Math.min(0.5, insetRatio));
     const span = Math.max(0, 0.5 - clampedInset);
     return clamp01(0.5 + clampedBias * span);
-}
-
-/**
- * Maps a numeric label-location back to the oriented endpoint side it favors.
- */
-function endpointIndexFromLocation(location) {
-    if (!Number.isFinite(location)) {
-        return null;
-    }
-    if (Math.abs(location - 0.5) <= RAY_LOCATION_CENTER_EPSILON) {
-        return null;
-    }
-    return location >= 0.5 ? 1 : 0;
 }
 
 /**
@@ -339,18 +298,16 @@ function estimateLabelMetrics(labelText, labelHasLatex) {
  * candidates (`ne`/`nw`/`se`/`sw`) is derived from this to keep the label
  * extending back along the visible segment rather than off the edge.
  *
- * `mode` controls the candidate set:
- *   - `"line"`:     used for infinite lines and clipped-segment anchors;
- *                  yields a 4-candidate list biased toward `n`/`s`.
- *   - `"endpoint"`: used near finite segment endpoints and ray finite sides;
- *                  yields a 3-candidate list; `right`/`left` and corner
- *                  positions prefer `n`/`s` over diagonals to avoid clipping.
- *                  `top` and `bottom` fall through to the 4-candidate line list.
- *
+ * `preferNorth` determines whether the graph-direction intent lies on the
+ * local north (`n`) or south (`s`) side of the segment.
  * Candidate order matters: earlier entries are preferred, later entries are
- * only considered when edge/overflow scoring indicates a fallback is safer.
+ * only considered when overflow forces a fallback.
  */
-function getLineAlignmentCandidates(labelPosition, location, mode = "line") {
+function getLineAlignmentCandidates(
+    labelPosition,
+    location,
+    preferNorth = true,
+) {
     const pos = normalizeKey(labelPosition ?? "");
     if (!pos || !KNOWN_LINE_POSITIONS.has(pos)) {
         return null;
@@ -360,35 +317,19 @@ function getLineAlignmentCandidates(labelPosition, location, mode = "line") {
         return ["n", "s"];
     }
 
-    const distanceFromCenter = location - 0.5;
-    const h = distanceFromCenter >= 0 ? "w" : "e";
+    const h = location >= 0.5 ? "w" : "e";
+    const oppositeH = h === "w" ? "e" : "w";
+    const primary = preferNorth ? "n" : "s";
+    const secondary = preferNorth ? "s" : "n";
 
-    // Endpoint mode handles right/left and corner positions with 3 candidates.
-    // top/bottom fall through to the 4-candidate line-mode list below.
-    if (mode === "endpoint") {
-        if (pos === "right" || pos === "left") {
-            return ["n", `n${h}`, `s${h}`];
-        }
-        if (pos === "upperright" || pos === "upperleft") {
-            return ["n", `n${h}`, `s${h}`];
-        }
-        if (pos === "lowerright" || pos === "lowerleft") {
-            return ["s", `s${h}`, `n${h}`];
-        }
-    }
-
-    // Line mode (and top/bottom in any mode).
-    if (pos === "right" || pos === "left" || pos === "top") {
-        return ["n", `n${h}`, "s", `s${h}`];
-    }
-    if (pos === "bottom") {
-        return ["s", `s${h}`, "n", `n${h}`];
-    }
-
-    // Corner positions in line mode: prefer north for upper, south for lower.
-    const prefersSouth = pos === "lowerleft" || pos === "lowerright";
-
-    return prefersSouth ? [`s${h}`, `n${h}`] : [`n${h}`, `s${h}`];
+    return [
+        primary,
+        `${primary}${h}`,
+        secondary,
+        `${secondary}${h}`,
+        `${primary}${oppositeH}`,
+        `${secondary}${oppositeH}`,
+    ];
 }
 
 /**
@@ -487,12 +428,12 @@ function getAlignmentExtents(tangent, alignment, metrics) {
 }
 
 /**
- * Scores one candidate alignment against graph bounds.
+ * Evaluates one candidate alignment against graph bounds.
  *
- * Lower scores are better. Any predicted overflow gets a strong penalty so the
- * caller will immediately prefer in-bounds fallback candidates.
+ * Returns the predicted overflow amount after applying graph-edge padding.
+ * A zero overflow score means the candidate stays within the safe inset box.
  */
-function scoreLineAlignmentForBounds({
+function evaluateLineAlignmentOverflow({
     alignment,
     ep1,
     ep2,
@@ -503,22 +444,15 @@ function scoreLineAlignmentForBounds({
     const bounds = getGraphBounds(graphBounds);
     const tangent = getLineTangent(ep1, ep2);
     if (!bounds || !tangent) {
-        return 0;
+        return { overflowScore: 0 };
     }
 
     const anchor = lineLabelAnchorPoint({ ep1, ep2, location });
     const { xMin, yMin, xMax, yMax } = bounds;
     const width = xMax - xMin;
     const height = yMax - yMin;
-    const marginX = width * LINE_ALIGNMENT_EDGE_MARGIN_RATIO;
-    const marginY = height * LINE_ALIGNMENT_EDGE_MARGIN_RATIO;
     const edgePaddingX = width * LINE_LABEL_EDGE_PADDING_RATIO;
     const edgePaddingY = height * LINE_LABEL_EDGE_PADDING_RATIO;
-
-    const nearLeft = clamp01((xMin + marginX - anchor[0]) / marginX);
-    const nearRight = clamp01((anchor[0] - (xMax - marginX)) / marginX);
-    const nearBottom = clamp01((yMin + marginY - anchor[1]) / marginY);
-    const nearTop = clamp01((anchor[1] - (yMax - marginY)) / marginY);
 
     const extents = getAlignmentExtents(tangent, alignment, labelMetrics);
 
@@ -535,31 +469,20 @@ function scoreLineAlignmentForBounds({
     const overflowScore =
         overflowLeft + overflowRight + overflowBottom + overflowTop;
 
-    let score = 0;
-    if (overflowScore > 0) {
-        // Any predicted overflow should trigger fallback evaluation immediately.
-        score += LINE_ALIGNMENT_OVERFLOW_PENALTY + overflowScore;
-    }
-    score += nearLeft * Math.max(0, -extents.minX);
-    score += nearRight * Math.max(0, extents.maxX);
-    score += nearBottom * Math.max(0, -extents.minY);
-    score += nearTop * Math.max(0, extents.maxY);
-
-    return score;
+    return { overflowScore };
 }
 
 /**
  * Selects the best alignment for the requested line-family label position.
  *
  * Queries `getLineAlignmentCandidates` for an ordered preference list, then
- * scores each candidate via `scoreLineAlignmentForBounds`. The first candidate
- * is returned as-is unless its score exceeds `LINE_ALIGNMENT_FLIP_THRESHOLD`,
- * at which point the lowest-scoring alternative from the remainder wins.
+ * evaluates each candidate via `evaluateLineAlignmentOverflow`. The first
+ * non-overflow candidate wins immediately. If all candidates overflow, the
+ * candidate with minimum overflow wins.
  *
  * `location` is the label-location in [0, 1] used for scoring; it may differ
  * from the emitted value when callers remap clipped-segment anchors (see
  * `lineLabelAlignmentLocationOverride` in `lineLabelAttributes`).
- * `mode` (`"line"`, `"endpoint"`, or `"ray"`) determines the candidate list.
  * Returns `null` when `labelPosition` is unrecognized or absent.
  */
 function getLineLabelAlignment({
@@ -570,12 +493,21 @@ function getLineLabelAlignment({
     graphBounds,
     labelText,
     labelHasLatex,
-    mode = "line",
 }) {
+    const tangent = getLineTangent(ep1, ep2);
+    const preferredDirection =
+        getPreferredDirectionForLabelPosition(labelPosition);
+    const preferNorth =
+        preferredDirection && tangent
+            ? -tangent[1] * preferredDirection[0] +
+                  tangent[0] * preferredDirection[1] >=
+              0
+            : true;
+
     const candidates = getLineAlignmentCandidates(
         labelPosition,
         location,
-        mode,
+        preferNorth,
     );
     if (!candidates?.length) {
         return null;
@@ -583,30 +515,11 @@ function getLineLabelAlignment({
 
     const labelMetrics = estimateLabelMetrics(labelText, labelHasLatex);
 
-    // Candidate order matters: first entry is the design-preferred alignment,
-    // remaining entries are fallbacks for edge/overflow conditions.
-    const defaultAlignment = candidates[0];
-    const defaultScore = scoreLineAlignmentForBounds({
-        alignment: defaultAlignment,
-        ep1,
-        ep2,
-        location,
-        graphBounds,
-        labelMetrics,
-    });
+    let bestAlignment = candidates[0];
+    let minimumOverflow = Number.POSITIVE_INFINITY;
 
-    if (
-        defaultScore <= LINE_ALIGNMENT_FLIP_THRESHOLD ||
-        candidates.length === 1
-    ) {
-        return defaultAlignment;
-    }
-
-    let bestAlignment = defaultAlignment;
-    let bestScore = defaultScore;
-
-    for (const candidate of candidates.slice(1)) {
-        const score = scoreLineAlignmentForBounds({
+    for (const candidate of candidates) {
+        const result = evaluateLineAlignmentOverflow({
             alignment: candidate,
             ep1,
             ep2,
@@ -614,9 +527,12 @@ function getLineLabelAlignment({
             graphBounds,
             labelMetrics,
         });
-        if (score < bestScore) {
+        if (result.overflowScore === 0) {
+            return candidate;
+        }
+        if (result.overflowScore < minimumOverflow) {
             bestAlignment = candidate;
-            bestScore = score;
+            minimumOverflow = result.overflowScore;
         }
     }
 
@@ -624,31 +540,18 @@ function getLineLabelAlignment({
 }
 
 /**
- * Resolves the effective alignment policy for the current anchor location.
+ * Resolves the effective alignment policy requested by the caller.
  *
- * `ray` mode is split dynamically: the finite-endpoint side behaves like a
- * segment endpoint while the opposite side behaves like an infinite line.
+ * Ray mode is normalized to endpoint-mode so clipped one-ended segments use a
+ * single alignment policy regardless of which side remains visible.
  */
-function resolveAlignmentMode({ stateValues, location }) {
-    // Non-ray callers use their explicit mode directly.
+function resolveAlignmentMode(stateValues) {
     const baseMode = stateValues?.lineLabelAlignmentMode ?? "line";
     if (baseMode !== "ray") {
         return baseMode;
     }
 
-    // Ray-mode split: endpoint side behaves like finite segments; opposite side
-    // behaves like infinite lines.
-    const finiteIndex = stateValues?.lineLabelRayFiniteEndpointIndex;
-    if (finiteIndex !== 0 && finiteIndex !== 1) {
-        return "line";
-    }
-
-    const selectedIndex = endpointIndexFromLocation(location);
-    if (selectedIndex === null) {
-        return "line";
-    }
-
-    return selectedIndex === finiteIndex ? "endpoint" : "line";
+    return "endpoint";
 }
 
 /**
@@ -880,8 +783,8 @@ export function lineLabelLocationValue(labelPosition, ep1, ep2, options = {}) {
  * - `lineLabelLocationOverride`: emitted `label-location` in full-geometry space.
  * - `lineLabelAlignmentLocationOverride`: scoring location for alignment selection.
  * - `lineLabelAbsoluteEndpointOffset`: enable fixed pixel offset from endpoint.
- * - `lineLabelAlignmentMode`: one of `line`, `endpoint`, `ray`.
- * - `lineLabelRayFiniteEndpointIndex`: required when mode is `ray`.
+ * - `lineLabelAlignmentMode`: requested alignment policy (`ray` is normalized
+ *   to endpoint-style alignment during resolution).
  */
 export function lineLabelAttributes({
     stateValues,
@@ -937,10 +840,7 @@ export function lineLabelAttributes({
         : location;
 
     if (rawPosition) {
-        const resolvedMode = resolveAlignmentMode({
-            stateValues,
-            location: alignmentLocation,
-        });
+        const resolvedMode = resolveAlignmentMode(stateValues);
         const alignment = getLineLabelAlignment({
             labelPosition: rawPosition,
             location: alignmentLocation,
@@ -949,7 +849,6 @@ export function lineLabelAttributes({
             graphBounds: stateValues?.graphBounds,
             labelText: stateValues?.label,
             labelHasLatex: stateValues?.labelHasLatex,
-            mode: resolvedMode,
         });
         if (alignment) {
             attrs.push(`alignment="${escapeXml(alignment)}"`);
