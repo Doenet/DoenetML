@@ -48,23 +48,18 @@ function lineElement({
  * Wraps the shared line-label helper and normalizes the return shape expected
  * by this module.
  *
- * ep1/ep2 are the oriented raw [x, y] endpoint arrays. `alignmentMode`
- * selects the requested policy passed through to label resolution.
+ * ep1/ep2 are the oriented raw [x, y] endpoint arrays.
  */
 function getLineLabelInfo({
     sv,
     ep1,
     ep2,
-    alignmentMode = "line",
     warnings,
     warningPrefix,
     warningPosition,
 }) {
     const result = getLabelForLine({
-        stateValues: {
-            ...sv,
-            lineLabelAlignmentMode: alignmentMode,
-        },
+        stateValues: sv,
         ep1,
         ep2,
         warnings,
@@ -123,19 +118,6 @@ function paramAlongSegment({ start, end, point }) {
 }
 
 /**
- * Determines which raw segment endpoint remains visible when exactly one is
- * in-bounds. Returns 0/1 for raw oriented segment endpoint index, or null when
- * both endpoints are either visible or off-screen.
- */
-function segmentVisibleEndpointIndex({ endpoint1Inside, endpoint2Inside }) {
-    if (endpoint1Inside === endpoint2Inside) {
-        return null;
-    }
-
-    return endpoint1Inside ? 0 : 1;
-}
-
-/**
  * Converts an infinite line (two defining points) to a PreFigure `<line>` element.
  */
 export function convertLineToPrefigure({
@@ -171,7 +153,6 @@ export function convertLineToPrefigure({
         sv,
         ep1: labelEp1,
         ep2: labelEp2,
-        alignmentMode: "line",
         warnings,
         warningPrefix,
         warningPosition,
@@ -192,11 +173,9 @@ export function convertLineToPrefigure({
  * Converts a finite line segment to a PreFigure `<line infinite="no">` element.
  *
  * Off-screen behavior:
- * - Fully on-screen: endpoint alignment mode.
- * - One endpoint off-screen and segment visible: score alignment on the clipped
- *   visible segment while preserving endpoint-style anchoring semantics.
- * - Both endpoints off-screen but segment visible: line mode over clipped
- *   visible geometry.
+ * - Fully on-screen: label location is computed on full segment geometry.
+ * - Any endpoint off-screen while segment is visible: alignment scoring is run
+ *   on clipped visible geometry and remapped to full-segment parameterization.
  *
  * Endpoint-side label locations in this converter use fixed screen-space offset
  * semantics (`lineLabelAbsoluteEndpointOffset`) so extending a segment keeps the
@@ -229,7 +208,6 @@ export function convertLineSegmentToPrefigure({
 
     let labelEp1 = ep1;
     let labelEp2 = ep2;
-    let alignmentMode = "endpoint";
     let lineLabelLocationOverride;
     let lineLabelAlignmentLocationOverride;
 
@@ -250,15 +228,6 @@ export function convertLineSegmentToPrefigure({
             clippedVisibleSegment[0],
             clippedVisibleSegment[1],
         );
-        alignmentMode = "line";
-
-        const visibleEndpointIndex = segmentVisibleEndpointIndex({
-            endpoint1Inside,
-            endpoint2Inside,
-        });
-        if (visibleEndpointIndex !== null) {
-            alignmentMode = "ray";
-        }
 
         const t0 = paramAlongSegment({
             start: ep1,
@@ -300,7 +269,6 @@ export function convertLineSegmentToPrefigure({
         },
         ep1: labelEp1,
         ep2: labelEp2,
-        alignmentMode,
         warnings,
         warningPrefix,
         warningPosition,
@@ -361,7 +329,6 @@ export function convertRayToPrefigure({
         },
         ep1,
         ep2,
-        alignmentMode: "ray",
         warnings,
         warningPrefix,
         warningPosition,

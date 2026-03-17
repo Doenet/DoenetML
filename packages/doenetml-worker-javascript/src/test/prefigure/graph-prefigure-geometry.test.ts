@@ -36,6 +36,59 @@ function expectLabelLocationNearCenter(prefigureXML: string, delta = 0.05) {
     expect(Math.abs(location - 0.5)).toBeLessThan(delta);
 }
 
+async function lineSegmentLabelXml({
+    endpoints,
+    labelPosition,
+    label = "X",
+    attrs,
+}: {
+    endpoints: string;
+    labelPosition: string;
+    label?: string;
+    attrs?: string;
+}) {
+    return (await getPrefigureXML(
+        prefigureGraph(
+            `<lineSegment endpoints="${endpoints}" labelPosition="${labelPosition}"><label>${label}</label></lineSegment>`,
+            attrs ? { attrs } : undefined,
+        ),
+    )) as string;
+}
+
+async function lineSegmentLabelLocation({
+    endpoints,
+    labelPosition,
+    label = "X",
+    attrs,
+}: {
+    endpoints: string;
+    labelPosition: string;
+    label?: string;
+    attrs?: string;
+}) {
+    return labelLocationFromXml(
+        await lineSegmentLabelXml({ endpoints, labelPosition, label, attrs }),
+    );
+}
+
+async function lineSegmentLocationFromOrigin({
+    x2,
+    y2,
+    labelPosition,
+    label = "X",
+}: {
+    x2: number;
+    y2: number;
+    labelPosition: string;
+    label?: string;
+}) {
+    return lineSegmentLabelLocation({
+        endpoints: `(0,0) (${x2},${y2})`,
+        labelPosition,
+        label,
+    });
+}
+
 describe("Graph prefigure renderer geometry mappings @group4", () => {
     it("renderer=prefigure maps line to PreFigure line with infinite=yes", async () => {
         const prefigureXML = await getPrefigureXML(
@@ -133,29 +186,75 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
     });
 
     it("renderer=prefigure label-location positions label along visible line", async () => {
-        async function xmlFor(labelPosition: string, endpoints: string) {
-            return (await getPrefigureXML(
-                prefigureGraph(
-                    `<lineSegment endpoints="${endpoints}" labelPosition="${labelPosition}"><label>X</label></lineSegment>`,
-                ),
-            )) as string;
-        }
-
         const posSlope = "(1,2) (3,4)";
         const negSlope = "(1,4) (3,2)";
 
-        expectLabelLocationNearStart(await xmlFor("left", posSlope), 0.35);
-        expectLabelLocationNearEnd(await xmlFor("right", posSlope), 0.7);
-        expectLabelLocationNearCenter(await xmlFor("upperleft", posSlope));
-        expectLabelLocationNearCenter(await xmlFor("lowerright", posSlope));
-        expectLabelLocationNearEnd(await xmlFor("top", posSlope), 0.7);
-        expectLabelLocationNearStart(await xmlFor("bottom", posSlope), 0.35);
-        expectLabelLocationNearStart(await xmlFor("top", negSlope), 0.35);
-        expectLabelLocationNearEnd(await xmlFor("bottom", negSlope), 0.7);
-        expectLabelLocationNearCenter(await xmlFor("upperright", negSlope));
-        expect(await xmlFor("center", posSlope)).not.toContain(
-            `label-location`,
+        expectLabelLocationNearStart(
+            await lineSegmentLabelXml({
+                labelPosition: "left",
+                endpoints: posSlope,
+            }),
+            0.35,
         );
+        expectLabelLocationNearEnd(
+            await lineSegmentLabelXml({
+                labelPosition: "right",
+                endpoints: posSlope,
+            }),
+            0.7,
+        );
+        expectLabelLocationNearCenter(
+            await lineSegmentLabelXml({
+                labelPosition: "upperleft",
+                endpoints: posSlope,
+            }),
+        );
+        expectLabelLocationNearCenter(
+            await lineSegmentLabelXml({
+                labelPosition: "lowerright",
+                endpoints: posSlope,
+            }),
+        );
+        expectLabelLocationNearEnd(
+            await lineSegmentLabelXml({
+                labelPosition: "top",
+                endpoints: posSlope,
+            }),
+            0.7,
+        );
+        expectLabelLocationNearStart(
+            await lineSegmentLabelXml({
+                labelPosition: "bottom",
+                endpoints: posSlope,
+            }),
+            0.35,
+        );
+        expectLabelLocationNearStart(
+            await lineSegmentLabelXml({
+                labelPosition: "top",
+                endpoints: negSlope,
+            }),
+            0.35,
+        );
+        expectLabelLocationNearEnd(
+            await lineSegmentLabelXml({
+                labelPosition: "bottom",
+                endpoints: negSlope,
+            }),
+            0.7,
+        );
+        expectLabelLocationNearCenter(
+            await lineSegmentLabelXml({
+                labelPosition: "upperright",
+                endpoints: negSlope,
+            }),
+        );
+        expect(
+            await lineSegmentLabelXml({
+                labelPosition: "center",
+                endpoints: posSlope,
+            }),
+        ).not.toContain(`label-location`);
     });
 
     it("renderer=prefigure ray labelPosition controls label-location", async () => {
@@ -650,22 +749,30 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
     });
 
     it("renderer=prefigure top labelPosition transitions smoothly through center near horizontal", async () => {
-        async function xmlFor(y2: number) {
-            return (await getPrefigureXML(
-                prefigureGraph(
-                    `<lineSegment endpoints="(0,0) (6,${y2})" labelPosition="top"><label>T</label></lineSegment>`,
-                ),
-            )) as string;
-        }
-
-        const locSteep = labelLocationFromXml(await xmlFor(8));
-        const locShallow = labelLocationFromXml(await xmlFor(1.25));
-        const locNearHorizontalPositive = labelLocationFromXml(
-            await xmlFor(0.1),
-        );
-        const locNearHorizontalNegative = labelLocationFromXml(
-            await xmlFor(-0.1),
-        );
+        const locSteep = await lineSegmentLocationFromOrigin({
+            x2: 6,
+            y2: 8,
+            labelPosition: "top",
+            label: "T",
+        });
+        const locShallow = await lineSegmentLocationFromOrigin({
+            x2: 6,
+            y2: 1.25,
+            labelPosition: "top",
+            label: "T",
+        });
+        const locNearHorizontalPositive = await lineSegmentLocationFromOrigin({
+            x2: 6,
+            y2: 0.1,
+            labelPosition: "top",
+            label: "T",
+        });
+        const locNearHorizontalNegative = await lineSegmentLocationFromOrigin({
+            x2: 6,
+            y2: -0.1,
+            labelPosition: "top",
+            label: "T",
+        });
 
         expect(locSteep).toBeGreaterThan(locShallow);
         expect(locShallow).toBeGreaterThan(locNearHorizontalPositive);
@@ -674,22 +781,30 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
     });
 
     it("renderer=prefigure bottom labelPosition transitions smoothly through center near horizontal", async () => {
-        async function xmlFor(y2: number) {
-            return (await getPrefigureXML(
-                prefigureGraph(
-                    `<lineSegment endpoints="(0,0) (6,${y2})" labelPosition="bottom"><label>B</label></lineSegment>`,
-                ),
-            )) as string;
-        }
-
-        const locSteep = labelLocationFromXml(await xmlFor(8));
-        const locShallow = labelLocationFromXml(await xmlFor(1.25));
-        const locNearHorizontalPositive = labelLocationFromXml(
-            await xmlFor(0.1),
-        );
-        const locNearHorizontalNegative = labelLocationFromXml(
-            await xmlFor(-0.1),
-        );
+        const locSteep = await lineSegmentLocationFromOrigin({
+            x2: 6,
+            y2: 8,
+            labelPosition: "bottom",
+            label: "B",
+        });
+        const locShallow = await lineSegmentLocationFromOrigin({
+            x2: 6,
+            y2: 1.25,
+            labelPosition: "bottom",
+            label: "B",
+        });
+        const locNearHorizontalPositive = await lineSegmentLocationFromOrigin({
+            x2: 6,
+            y2: 0.1,
+            labelPosition: "bottom",
+            label: "B",
+        });
+        const locNearHorizontalNegative = await lineSegmentLocationFromOrigin({
+            x2: 6,
+            y2: -0.1,
+            labelPosition: "bottom",
+            label: "B",
+        });
 
         expect(locSteep).toBeLessThan(locShallow);
         expect(locShallow).toBeLessThan(locNearHorizontalPositive);
@@ -698,17 +813,24 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
     });
 
     it("renderer=prefigure right labelPosition transitions smoothly toward center near vertical", async () => {
-        async function xmlFor(x2: number) {
-            return (await getPrefigureXML(
-                prefigureGraph(
-                    `<lineSegment endpoints="(0,0) (${x2},6)" labelPosition="right"><label>R</label></lineSegment>`,
-                ),
-            )) as string;
-        }
-
-        const locLargeX = labelLocationFromXml(await xmlFor(8));
-        const locMediumX = labelLocationFromXml(await xmlFor(1.25));
-        const locSmallX = labelLocationFromXml(await xmlFor(0.1));
+        const locLargeX = await lineSegmentLocationFromOrigin({
+            x2: 8,
+            y2: 6,
+            labelPosition: "right",
+            label: "R",
+        });
+        const locMediumX = await lineSegmentLocationFromOrigin({
+            x2: 1.25,
+            y2: 6,
+            labelPosition: "right",
+            label: "R",
+        });
+        const locSmallX = await lineSegmentLocationFromOrigin({
+            x2: 0.1,
+            y2: 6,
+            labelPosition: "right",
+            label: "R",
+        });
 
         // As the segment tilts from mostly-horizontal toward vertical, the
         // right label smoothly approaches center from above.
@@ -718,17 +840,24 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
     });
 
     it("renderer=prefigure left labelPosition transitions smoothly toward center near vertical", async () => {
-        async function xmlFor(x2: number) {
-            return (await getPrefigureXML(
-                prefigureGraph(
-                    `<lineSegment endpoints="(0,0) (${x2},6)" labelPosition="left"><label>L</label></lineSegment>`,
-                ),
-            )) as string;
-        }
-
-        const locLargeX = labelLocationFromXml(await xmlFor(8));
-        const locMediumX = labelLocationFromXml(await xmlFor(1.25));
-        const locSmallX = labelLocationFromXml(await xmlFor(0.1));
+        const locLargeX = await lineSegmentLocationFromOrigin({
+            x2: 8,
+            y2: 6,
+            labelPosition: "left",
+            label: "L",
+        });
+        const locMediumX = await lineSegmentLocationFromOrigin({
+            x2: 1.25,
+            y2: 6,
+            labelPosition: "left",
+            label: "L",
+        });
+        const locSmallX = await lineSegmentLocationFromOrigin({
+            x2: 0.1,
+            y2: 6,
+            labelPosition: "left",
+            label: "L",
+        });
 
         // As the segment tilts from mostly-horizontal toward vertical, the
         // left label smoothly approaches center from below.
@@ -738,18 +867,30 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
     });
 
     it("renderer=prefigure upperright corner sweep all favor ep2 side across near-horizontal slopes", async () => {
-        async function xmlFor(y2: number) {
-            return (await getPrefigureXML(
-                prefigureGraph(
-                    `<lineSegment endpoints="(0,0) (6,${y2})" labelPosition="upperright"><label>UR</label></lineSegment>`,
-                ),
-            )) as string;
-        }
-
-        const locSteepPos = labelLocationFromXml(await xmlFor(8));
-        const locShallowPos = labelLocationFromXml(await xmlFor(1.25));
-        const locNearHorizPos = labelLocationFromXml(await xmlFor(0.1));
-        const locNearHorizNeg = labelLocationFromXml(await xmlFor(-0.1));
+        const locSteepPos = await lineSegmentLocationFromOrigin({
+            x2: 6,
+            y2: 8,
+            labelPosition: "upperright",
+            label: "UR",
+        });
+        const locShallowPos = await lineSegmentLocationFromOrigin({
+            x2: 6,
+            y2: 1.25,
+            labelPosition: "upperright",
+            label: "UR",
+        });
+        const locNearHorizPos = await lineSegmentLocationFromOrigin({
+            x2: 6,
+            y2: 0.1,
+            labelPosition: "upperright",
+            label: "UR",
+        });
+        const locNearHorizNeg = await lineSegmentLocationFromOrigin({
+            x2: 6,
+            y2: -0.1,
+            labelPosition: "upperright",
+            label: "UR",
+        });
 
         // All near-horizontal cases favor ep2 (the upper-right endpoint).
         expect(locSteepPos).toBeGreaterThan(0.5);

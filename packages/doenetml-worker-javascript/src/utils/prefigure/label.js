@@ -7,9 +7,8 @@ import { escapeXml, pushWarning } from "./common";
  * 2) Line-family labels (`line`, `lineSegment`, `ray`) compute two outputs:
  *    - `label-location`: where along the oriented segment to anchor the label
  *    - `alignment`: which side of the oriented segment to place text on
- * 3) Ray callers may request `ray` alignment mode, which is normalized to the
- *    same endpoint-style alignment policy used for finite endpoint anchoring.
- * 4) Callers can override emitted/scoring locations for clipped/remapped geometry.
+ * 3) Callers can override emitted/scoring locations for clipped/remapped
+ *    geometry.
  */
 
 const prefigurePointAlignmentByLabelPosition = {
@@ -36,12 +35,9 @@ function normalizeKey(value) {
         .replaceAll(/[^a-z0-9]+/g, "");
 }
 
-// Default endpoint-side label-location anchors. NEAR_START is parsed by
-// defaultInsetRatio() to derive the inset fraction; NEAR_END (0.95) is the
-// symmetric result for bias=+1 and is defined here for documentation purposes
-// only — it is never read directly in code.
+// Default endpoint-side label-location near ep1. The symmetric near-ep2 value
+// is computed from this by locationFromBiasAndInset() when bias is +1.
 const LINE_LABEL_LOCATION_NEAR_START = "0.05";
-const LINE_LABEL_LOCATION_NEAR_END = "0.95";
 
 /**
  * Line-family label tuning constants.
@@ -151,7 +147,7 @@ function biasFromPreferredDirection(
  *
  * Parses `LINE_LABEL_LOCATION_NEAR_START` as a [0, 0.5] fraction so the
  * two constants stay in sync: a bias of -1 yields `insetRatio` (e.g. 0.05)
- * and a bias of +1 yields `1 - insetRatio` (e.g. 0.95 = `LINE_LABEL_LOCATION_NEAR_END`).
+ * and a bias of +1 yields `1 - insetRatio` (e.g. 0.95).
  * Falls back to 0.05 if the constant is absent or malformed.
  */
 function defaultInsetRatio() {
@@ -540,21 +536,6 @@ function getLineLabelAlignment({
 }
 
 /**
- * Resolves the effective alignment policy requested by the caller.
- *
- * Ray mode is normalized to endpoint-mode so clipped one-ended segments use a
- * single alignment policy regardless of which side remains visible.
- */
-function resolveAlignmentMode(stateValues) {
-    const baseMode = stateValues?.lineLabelAlignmentMode ?? "line";
-    if (baseMode !== "ray") {
-        return baseMode;
-    }
-
-    return "endpoint";
-}
-
-/**
  * Reorders two raw [x, y] points so the first is the leftward point.
  * For vertical lines, the lower point comes first.
  */
@@ -701,9 +682,10 @@ function locationForEndpointBiasWithAbsoluteOffset({
 /**
  * Maps Doenet `labelPosition` to a PreFigure `label-location` value.
  *
- * By default, endpoint-side positions use edge-near insets (0.05 near ep1,
- * 0.95 near ep2, per `LINE_LABEL_LOCATION_NEAR_START` / `LINE_LABEL_LOCATION_NEAR_END`)
- * rather than hard 0/1 so non-center labels anchor near the selected endpoint.
+ * By default, recognized non-center line-family positions map to a continuous
+ * location between ep1 and ep2 with edge-near insets (0.05 near ep1,
+ * 0.95 near ep2, derived from `LINE_LABEL_LOCATION_NEAR_START`)
+ * rather than hard 0/1.
  *
  * When `options.absoluteEndpointOffset` is true and graph bounds/dimensions are
  * available, endpoint-side labels use a fixed screen-space offset from the
@@ -766,11 +748,12 @@ export function lineLabelLocationValue(labelPosition, ep1, ep2, options = {}) {
  * Returns label attrs/content for a PreFigure `<line>` element.
  *
  * Emits `label-location` to position the label along the visible line and
- * emits `alignment` when Doenet provides a non-center line-family
- * `labelPosition`.
+ * emits `alignment` when Doenet provides a recognized line-family
+ * `labelPosition` (including `center`).
  *
- * The `alignment` is expressed in the line's LOCAL ROTATED FRAME so the
- * label always flows into the graph from whichever end is nearest:
+ * For non-center positions, the `alignment` is expressed in the line's LOCAL
+ * ROTATED FRAME so the label flows into the graph from whichever end is
+ * nearest:
  * - Positions on the ep2 side get a "W" component so the
  *   label extends backward along the line, staying inside the graph.
  * - Positions on the ep1 side get an "E" component so the
@@ -783,8 +766,6 @@ export function lineLabelLocationValue(labelPosition, ep1, ep2, options = {}) {
  * - `lineLabelLocationOverride`: emitted `label-location` in full-geometry space.
  * - `lineLabelAlignmentLocationOverride`: scoring location for alignment selection.
  * - `lineLabelAbsoluteEndpointOffset`: enable fixed pixel offset from endpoint.
- * - `lineLabelAlignmentMode`: requested alignment policy (`ray` is normalized
- *   to endpoint-style alignment during resolution).
  */
 export function lineLabelAttributes({
     stateValues,
@@ -840,7 +821,6 @@ export function lineLabelAttributes({
         : location;
 
     if (rawPosition) {
-        const resolvedMode = resolveAlignmentMode(stateValues);
         const alignment = getLineLabelAlignment({
             labelPosition: rawPosition,
             location: alignmentLocation,
