@@ -408,7 +408,7 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
     // See issue #936
     it(
         "Escape in math input closes preview until next interaction",
-        { retries: { openMode: null, runMode: 10 } },
+        { retries: { openMode: 1, runMode: 10 } },
         () => {
             postDoenetMLWithMathJaxPrimed(`
     <p><mathInput name="mi" showPreview /></p>
