@@ -62,7 +62,7 @@ export function convertVectorToPrefigure({
     }
 
     // Keep location policy aligned with line-family Doenet labelPosition mapping.
-    const location = lineLabelLocationValue(sv?.labelPosition, ep1, ep2);
+    const location = lineLabelLocationValue(sv?.labelPosition, ep1, ep2) ?? 0.5;
 
     const anchor = [
         Number((ep1[0] + (ep2[0] - ep1[0]) * location).toFixed(12)),

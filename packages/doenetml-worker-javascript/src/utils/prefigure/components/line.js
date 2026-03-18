@@ -146,17 +146,19 @@ export function convertLineToPrefigure({
  *
  * Off-screen behavior:
  * - Fully on-screen: label location is computed on full segment geometry.
- * - Any endpoint off-screen while segment is visible: alignment scoring is run
- *   on clipped visible geometry and remapped to full-segment parameterization.
+ * - Any endpoint off-screen while segment is visible: alignment overflow
+ *   evaluation is run on clipped visible geometry and remapped to
+ *   full-segment parameterization.
  *
  * Endpoint-side label locations in this converter use fixed screen-space offset
  * semantics (`lineLabelAbsoluteEndpointOffset`) so extending a segment keeps the
  * label anchor at a stable visual distance from its chosen endpoint.
  *
- * When clipped geometry is used for alignment scoring, we remap the chosen
- * location back to the full segment parameterization via:
- * - `lineLabelLocationOverride` (emitted value)
- * - `lineLabelAlignmentLocationOverride` (scoring value)
+ * When clipped geometry is used, we set two locations:
+ * - `lineLabelLocationOverride`: value written to the output
+ *   `label-location` attribute (in full-segment parameter space).
+ * - `lineLabelAlignmentLocationOverride`: value used when choosing
+ *   `alignment` by overflow amount (in visible clipped-segment space).
  */
 export function convertLineSegmentToPrefigure({
     sv,
@@ -180,12 +182,19 @@ export function convertLineSegmentToPrefigure({
 
     let labelEp1 = ep1;
     let labelEp2 = ep2;
-    let lineLabelLocationOverride;
-    let lineLabelAlignmentLocationOverride;
 
     const endpoint1Inside = pointInsideBounds(ep1, sv?.graphBounds);
     const endpoint2Inside = pointInsideBounds(ep2, sv?.graphBounds);
     const hasOffscreenEndpoint = !endpoint1Inside || !endpoint2Inside;
+
+    const stateValuesForLabel = {
+        ...sv,
+        // Use fixed pixel offset semantics so endpoint-side labels stay at a
+        // stable on-screen distance from their chosen endpoint as the segment
+        // is extended/clipped, instead of drifting under normalized [0, 1]
+        // location scaling, which is a fraction of the full segment length.
+        lineLabelAbsoluteEndpointOffset: true,
+    };
 
     // If either endpoint is off-screen but the segment is still visible, anchor
     // label placement to the visible clipped segment.
@@ -225,24 +234,18 @@ export function convertLineSegmentToPrefigure({
                         graphBounds: sv?.graphBounds,
                         graphDimensions: sv?.graphDimensions,
                     },
-                );
-                lineLabelAlignmentLocationOverride = visibleLoc;
-                lineLabelLocationOverride = t0 + visibleLoc * (t1 - t0);
+                ) ?? 0.5;
+                // Adjust the label location and alignment to account for portion of segment visible
+                stateValuesForLabel.lineLabelAlignmentLocationOverride =
+                    visibleLoc;
+                stateValuesForLabel.lineLabelLocationOverride =
+                    t0 + visibleLoc * (t1 - t0);
             }
         }
     }
 
     const { labelAttrs, label } = getLabelForLine({
-        stateValues: {
-            ...sv,
-            lineLabelAbsoluteEndpointOffset: true,
-            ...(Number.isFinite(lineLabelLocationOverride)
-                ? { lineLabelLocationOverride }
-                : {}),
-            ...(Number.isFinite(lineLabelAlignmentLocationOverride)
-                ? { lineLabelAlignmentLocationOverride }
-                : {}),
-        },
+        stateValues: stateValuesForLabel,
         ep1: labelEp1,
         ep2: labelEp2,
         warnings,

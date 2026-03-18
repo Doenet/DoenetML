@@ -7,8 +7,8 @@ import { escapeXml, pushWarning } from "./common";
  * 2) Line-family labels (`line`, `lineSegment`, `ray`) compute two outputs:
  *    - `label-location`: where along the oriented segment to anchor the label
  *    - `alignment`: which side of the oriented segment to place text on
- * 3) Callers can override emitted/scoring locations for clipped/remapped
- *    geometry.
+ * 3) Callers can override the location written to `label-location` and the
+ *    location used when choosing `alignment` for clipped/remapped geometry.
  */
 
 const prefigurePointAlignmentByLabelPosition = {
@@ -35,10 +35,6 @@ function normalizeKey(value) {
         .replaceAll(/[^a-z0-9]+/g, "");
 }
 
-// Fractional inset from each endpoint for endpoint-side label anchors.
-// ep1-side labels anchor at DEFAULT_INSET_RATIO; ep2-side at 1 - DEFAULT_INSET_RATIO.
-const DEFAULT_INSET_RATIO = 0.05;
-
 /**
  * Line-family label tuning constants.
  *
@@ -46,16 +42,23 @@ const DEFAULT_INSET_RATIO = 0.05;
  * Adjust with corresponding geometry tests in
  * `src/test/prefigure/graph-prefigure-geometry.test.ts`.
  *
+ * @property endpointInsetRatio Fractional inset from each endpoint for
+ * endpoint-side label anchors.
  * @property edgePaddingRatio Reserved inset to reduce visible clipping at bounds.
- * @property endpointOffsetPixels Endpoint-anchor inset in screen pixels.
+ * @property endpointInsetPixels Endpoint-anchor inset in screen pixels.
  */
 export const lineLabelTuning = Object.freeze({
+    endpointInsetRatio: 0.05,
     edgePaddingRatio: 0.02,
-    endpointOffsetPixels: 12,
+    endpointInsetPixels: 12,
 });
 
+// Fractional inset from each endpoint for endpoint-side label anchors.
+// ep1-side labels anchor at LINE_LABEL_ENDPOINT_INSET_RATIO; ep2-side at
+// 1 - LINE_LABEL_ENDPOINT_INSET_RATIO.
+const LINE_LABEL_ENDPOINT_INSET_RATIO = lineLabelTuning.endpointInsetRatio;
 const LINE_LABEL_EDGE_PADDING_RATIO = lineLabelTuning.edgePaddingRatio;
-const LINE_LABEL_ENDPOINT_OFFSET_PIXELS = lineLabelTuning.endpointOffsetPixels;
+const LINE_LABEL_ENDPOINT_INSET_PIXELS = lineLabelTuning.endpointInsetPixels;
 
 // All labelPosition values recognized by the line-family converter.
 const KNOWN_LINE_POSITIONS = new Set([
@@ -79,7 +82,7 @@ function formatLocation(value) {
 }
 
 /**
- * Clamps a numeric score or ratio into the inclusive unit interval.
+ * Clamps a numeric value or ratio into the inclusive unit interval.
  */
 function clamp01(value) {
     return Math.min(1, Math.max(0, value));
@@ -119,9 +122,11 @@ function getPreferredDirectionForLabelPosition(labelPosition) {
 /**
  * Computes endpoint bias from a preferred direction and segment endpoints.
  *
- * Projects the unit segment tangent onto `preferredDirection`, multiplies by
- * a fixed hardening factor (`Math.SQRT2`), and clamps to [-1, 1]. Positive
- * bias means ep2 side; negative means ep1 side; zero means center.
+ * Projects the unit segment tangent onto `preferredDirection`, scales by
+ * `Math.SQRT2`, and clamps to [-1, 1]. This creates flat saturated regions at
+ * ±1 for the outer 90-degree sectors and a smooth transition between -1 and 1
+ * across the middle sectors. Positive bias means ep2 side; negative means ep1
+ * side; zero means center.
  *
  * Examples:
  * - Aligned with preferred direction:
@@ -141,30 +146,25 @@ function biasFromPreferredDirection(preferredDirection, ep1, ep2) {
     const tx = dx / segmentLength;
     const ty = dy / segmentLength;
     const agreement = tx * preferredDirection[0] + ty * preferredDirection[1];
-    // Hard-code k = sqrt(2) to keep 90-degree sector behavior stable.
+    // Use k = sqrt(2) so the outer 90-degree sectors saturate at ±1.
     return Math.max(-1, Math.min(1, Math.SQRT2 * agreement));
-}
-
-/**
- * Converts a side preference in [-1, 1] into a [0, 1] label-location.
- *
- * -1 anchors near ep1, +1 anchors near ep2, and 0 anchors at center.
- */
-function locationFromBiasAndInset({ bias, insetRatio }) {
-    const clampedBias = Math.max(-1, Math.min(1, bias));
-    const clampedInset = clamp01(Math.min(0.5, insetRatio));
-    const span = Math.max(0, 0.5 - clampedInset);
-    return clamp01(0.5 + clampedBias * span);
 }
 
 /**
  * Returns a continuous side preference in [-1, 1] for line-family
  * `labelPosition`.
  *
- * All non-center positions project the oriented segment tangent onto a
- * preferred unit direction vector. The dot product is multiplied by a
- * hardening factor and clamped so the result transitions smoothly as
- * the segment rotates.
+ * For `center` and unrecognized positions, returns null to indicate no bias.
+ * For zero-length segments, we return 0.
+ *
+ * Each non-center position has a preferred direction (e.g. `right` -> `[1, 0]`).
+ * We project the unit segment tangent onto the preferred direction;
+ * this projection will continuously vary from -1 to 1 as the segment rotates.
+ *
+ * We next multiply the projection by sqrt(2) and clamp to [-1,1]
+ * so that the outer 90-degree sectors saturate at ±1.
+ *
+ * The result is the bias that will be later mapped to label position along the segment.
  *
  * Examples:
  * - Same direction request, endpoints reversed:
@@ -188,7 +188,7 @@ function chooseEndpointBiasForLabelPosition(labelPosition, ep1, ep2) {
 }
 
 /**
- * Interpolates the anchor point used for line-label alignment scoring.
+ * Interpolates the anchor point used for line-label overflow evaluation.
  */
 function lineLabelAnchorPoint({ ep1, ep2, location }) {
     return [
@@ -198,7 +198,10 @@ function lineLabelAnchorPoint({ ep1, ep2, location }) {
 }
 
 /**
- * Validates and normalizes graph bounds for edge-aware alignment scoring.
+ * Validates `graphBounds` and returns `{xMin, yMin, xMax, yMax}`.
+ *
+ * Returns null unless `graphBounds` is a 4-element numeric array with
+ * strictly increasing x/y extents.
  */
 function getGraphBounds(graphBounds) {
     const bounds = Array.isArray(graphBounds) ? graphBounds : null;
@@ -222,7 +225,10 @@ function getGraphBounds(graphBounds) {
 }
 
 /**
- * Validates and normalizes graph dimensions for screen-space conversions.
+ * Validates `graphDimensions` and returns `{width, height}`.
+ *
+ * Returns null unless `graphDimensions` is a 2-element numeric array with
+ * strictly positive width/height.
  */
 function getGraphDimensions(graphDimensions) {
     const dims = Array.isArray(graphDimensions) ? graphDimensions : null;
@@ -260,7 +266,8 @@ function getLineTangent(ep1, ep2) {
  * Estimates label width/height for overflow comparison.
  *
  * This is intentionally heuristic rather than typographically exact; it exists
- * only to rank fallback alignments near graph boundaries.
+ * only to approximate how much each candidate alignment would overflow near
+ * graph boundaries.
  */
 function estimateLabelMetrics(labelText, labelHasLatex) {
     const raw = typeof labelText === "string" ? labelText.trim() : "";
@@ -423,7 +430,7 @@ function getAlignmentExtents(tangent, alignment, metrics) {
  * Evaluates one candidate alignment against graph bounds.
  *
  * Returns the predicted overflow amount after applying graph-edge padding.
- * A zero overflow score means the candidate stays within the safe inset box.
+ * A zero overflow amount means the candidate stays within the safe inset box.
  */
 function evaluateLineAlignmentOverflow({
     alignment,
@@ -436,7 +443,7 @@ function evaluateLineAlignmentOverflow({
     const bounds = getGraphBounds(graphBounds);
     const tangent = getLineTangent(ep1, ep2);
     if (!bounds || !tangent) {
-        return { overflowScore: 0 };
+        return { overflowAmount: 0 };
     }
 
     const anchor = lineLabelAnchorPoint({ ep1, ep2, location });
@@ -458,10 +465,10 @@ function evaluateLineAlignmentOverflow({
     const overflowBottom = Math.max(0, yMin + edgePaddingY - projectedBottom);
     const overflowTop = Math.max(0, projectedTop - (yMax - edgePaddingY));
 
-    const overflowScore =
+    const overflowAmount =
         overflowLeft + overflowRight + overflowBottom + overflowTop;
 
-    return { overflowScore };
+    return { overflowAmount };
 }
 
 /**
@@ -472,8 +479,9 @@ function evaluateLineAlignmentOverflow({
  * non-overflow candidate wins immediately. If all candidates overflow, the
  * candidate with minimum overflow wins.
  *
- * `location` is the label-location in [0, 1] used for scoring; it may differ
- * from the emitted value when callers remap clipped-segment anchors (see
+ * `location` is the label-location in [0, 1] used for overflow evaluation; it
+ * may differ from the value written to the output `label-location` attribute
+ * when callers remap clipped-segment anchors (see
  * `lineLabelAlignmentLocationOverride` in `getLabelForLine`).
  * Returns `null` when `labelPosition` is unrecognized or absent.
  */
@@ -519,12 +527,12 @@ function getLineLabelAlignment({
             graphBounds,
             labelMetrics,
         });
-        if (result.overflowScore === 0) {
+        if (result.overflowAmount === 0) {
             return candidate;
         }
-        if (result.overflowScore < minimumOverflow) {
+        if (result.overflowAmount < minimumOverflow) {
             bestAlignment = candidate;
-            minimumOverflow = result.overflowScore;
+            minimumOverflow = result.overflowAmount;
         }
     }
 
@@ -614,13 +622,39 @@ export function pointLabelAttributes({
 }
 
 /**
- * Converts a fixed screen-space endpoint offset into line-location parameter t.
+ * Maps `bias` in [-1, 1] to a `label-location` using a fractional endpoint
+ * inset ratio.
  *
- * This keeps endpoint-side label anchors visually stable when segments are
- * lengthened while still scaling with graph size and zoom.
+ * The returned location lies in `[insetRatio, 1 - insetRatio]`.
+ * `bias = -1` maps near ep1, `bias = +1` maps near ep2, and `bias = 0`
+ * maps to the midpoint between them.
  */
-function locationForEndpointBiasWithAbsoluteOffset({
-    endpointBias,
+function locationFromBiasWithInsetRatio({ bias, insetRatio }) {
+    const clampedBias = Math.max(-1, Math.min(1, bias));
+    const clampedInset = clamp01(Math.min(0.5, insetRatio));
+    const span = Math.max(0, 0.5 - clampedInset);
+    return clamp01(0.5 + clampedBias * span);
+}
+
+/**
+ * Maps `bias` in [-1, 1] to a `label-location` using a fixed screen-space
+ * endpoint inset when that conversion is well-defined.
+ *
+ * As with `locationFromBiasWithInsetRatio`, `bias = -1` maps near ep1,
+ * `bias = +1` maps near ep2, and `bias = 0` maps near the midpoint. When the
+ * graph bounds, graph dimensions, and segment geometry are all usable, this
+ * helper converts
+ * `LINE_LABEL_ENDPOINT_INSET_PIXELS` into an equivalent inset ratio for the
+ * current segment and graph scale, then maps the bias through
+ * `locationFromBiasWithInsetRatio`.
+ *
+ * If that absolute-offset conversion is not well-defined, we fall back to the
+ * default relative endpoint inset from `LINE_LABEL_ENDPOINT_INSET_RATIO`.
+ * This covers cases such as coincident endpoints or missing/degenerate graph
+ * bounds and dimensions.
+ */
+function locationFromBiasWithAbsoluteEndpointOffset({
+    bias,
     ep1,
     ep2,
     graphBounds,
@@ -628,64 +662,59 @@ function locationForEndpointBiasWithAbsoluteOffset({
 }) {
     const bounds = getGraphBounds(graphBounds);
     const dims = getGraphDimensions(graphDimensions);
-    if (!bounds || !dims) {
-        const location = locationFromBiasAndInset({
-            bias: endpointBias,
-            insetRatio: DEFAULT_INSET_RATIO,
-        });
-        return formatLocation(location);
-    }
-
     const dx = ep2[0] - ep1[0];
     const dy = ep2[1] - ep1[1];
     const segmentLength = Math.hypot(dx, dy);
-    if (!(segmentLength > 0)) {
-        const location = locationFromBiasAndInset({
-            bias: endpointBias,
-            insetRatio: DEFAULT_INSET_RATIO,
+    const graphWidth = bounds ? bounds.xMax - bounds.xMin : 0;
+    const graphHeight = bounds ? bounds.yMax - bounds.yMin : 0;
+
+    const shouldUseRelativeInsetFallback =
+        !bounds ||
+        !dims ||
+        !(segmentLength > 0) ||
+        !(graphWidth > 0) ||
+        !(graphHeight > 0);
+
+    if (shouldUseRelativeInsetFallback) {
+        return locationFromBiasWithInsetRatio({
+            bias,
+            insetRatio: LINE_LABEL_ENDPOINT_INSET_RATIO,
         });
-        return formatLocation(location);
     }
 
     const tx = dx / segmentLength;
     const ty = dy / segmentLength;
-    const graphWidth = bounds.xMax - bounds.xMin;
-    const graphHeight = bounds.yMax - bounds.yMin;
 
     // Convert endpoint offset from pixels to graph-units along line direction.
     const unitsPerPixelAlongLine = Math.hypot(
         tx * (graphWidth / dims.width),
         ty * (graphHeight / dims.height),
     );
-    if (!(unitsPerPixelAlongLine > 0)) {
-        const location = locationFromBiasAndInset({
-            bias: endpointBias,
-            insetRatio: DEFAULT_INSET_RATIO,
-        });
-        return formatLocation(location);
-    }
 
     const absoluteOffset =
-        LINE_LABEL_ENDPOINT_OFFSET_PIXELS * unitsPerPixelAlongLine;
+        LINE_LABEL_ENDPOINT_INSET_PIXELS * unitsPerPixelAlongLine;
     const insetRatio = Math.min(0.45, clamp01(absoluteOffset / segmentLength));
-    const location = locationFromBiasAndInset({
-        bias: endpointBias,
+    const location = locationFromBiasWithInsetRatio({
+        bias,
         insetRatio,
     });
-    return formatLocation(location);
+    return location;
 }
 
 /**
- * Maps Doenet `labelPosition` to a PreFigure `label-location` value.
+ * Maps Doenet `labelPosition` to a numeric `label-location` value.
  *
  * By default, recognized non-center line-family positions map to a continuous
  * location between ep1 and ep2 with edge-near insets (0.05 near ep1,
- * 0.95 near ep2, set by `DEFAULT_INSET_RATIO`)
+ * 0.95 near ep2, set by `LINE_LABEL_ENDPOINT_INSET_RATIO`)
  * rather than hard 0/1.
  *
  * When `options.absoluteEndpointOffset` is true and graph bounds/dimensions are
- * available, endpoint-side labels use a fixed screen-space offset from the
- * endpoint so line extension does not move the anchor relative to that endpoint.
+ * available, endpoint-side labels use a fixed screen-space inset from the
+ * endpoint, set by `LINE_LABEL_ENDPOINT_INSET_PIXELS`, so line extension does
+ * not move the anchor relative to that endpoint.
+ *
+ * Returns null for `center` and unrecognized positions.
  *
  * Supported `options`:
  * - `absoluteEndpointOffset` (`boolean`): enables endpoint offsets measured in
@@ -697,16 +726,11 @@ function locationForEndpointBiasWithAbsoluteOffset({
  *
  * Examples:
  * - Default inset behavior:
- *   `lineLabelLocationFromPosition("right", [0, 0], [4, 0]) // "0.95"`
+ *   `lineLabelLocationValue("right", [0, 0], [4, 0]) // 0.95`
  * - Absolute endpoint offset behavior:
- *   `lineLabelLocationFromPosition("right", [0, 0], [4, 0], { absoluteEndpointOffset: true, graphBounds: [0, 0, 10, 10], graphDimensions: [500, 500] }) // "0.94"`
+ *   `lineLabelLocationValue("right", [0, 0], [4, 0], { absoluteEndpointOffset: true, graphBounds: [0, 0, 10, 10], graphDimensions: [500, 500] }) // 0.94`
  */
-export function lineLabelLocationFromPosition(
-    labelPosition,
-    ep1,
-    ep2,
-    options = {},
-) {
+export function lineLabelLocationValue(labelPosition, ep1, ep2, options = {}) {
     const endpointBias = chooseEndpointBiasForLabelPosition(
         labelPosition,
         ep1,
@@ -718,8 +742,8 @@ export function lineLabelLocationFromPosition(
     }
 
     if (options.absoluteEndpointOffset) {
-        return locationForEndpointBiasWithAbsoluteOffset({
-            endpointBias,
+        return locationFromBiasWithAbsoluteEndpointOffset({
+            bias: endpointBias,
             ep1,
             ep2,
             graphBounds: options.graphBounds,
@@ -727,41 +751,10 @@ export function lineLabelLocationFromPosition(
         });
     }
 
-    const location = locationFromBiasAndInset({
+    return locationFromBiasWithInsetRatio({
         bias: endpointBias,
-        insetRatio: DEFAULT_INSET_RATIO,
+        insetRatio: LINE_LABEL_ENDPOINT_INSET_RATIO,
     });
-    return formatLocation(location);
-}
-
-/**
- * Returns the numeric label-location value for downstream interpolation logic.
- *
- * Vector conversion and clipped-segment remapping both call this helper.
- *
- * Supported `options`:
- * - `absoluteEndpointOffset` (`boolean`): use fixed screen-space endpoint
- *   offset behavior for endpoint-side positions.
- * - `graphBounds` (`[xMin, yMin, xMax, yMax]`): required with
- *   `absoluteEndpointOffset` for graph-unit conversion.
- * - `graphDimensions` (`[widthPx, heightPx]`): required with
- *   `absoluteEndpointOffset` for graph-unit conversion.
- *
- * Example: `lineLabelLocationValue("right", [0, 0], [4, 0])` returns `0.95`.
- */
-export function lineLabelLocationValue(labelPosition, ep1, ep2, options = {}) {
-    const locText = lineLabelLocationFromPosition(
-        labelPosition,
-        ep1,
-        ep2,
-        options,
-    );
-    if (locText === null) {
-        return 0.5;
-    }
-
-    const parsed = Number(locText);
-    return Number.isFinite(parsed) ? parsed : 0.5;
 }
 
 /**
@@ -783,8 +776,10 @@ export function lineLabelLocationValue(labelPosition, ep1, ep2, options = {}) {
  * `orientEndpointsForLineLabel`.
  *
  * Caller-controlled options in `stateValues`:
- * - `lineLabelLocationOverride`: emitted `label-location` in full-geometry space.
- * - `lineLabelAlignmentLocationOverride`: scoring location for alignment selection.
+ * - `lineLabelLocationOverride`: value to write into the output
+ *   `label-location` attribute, in full-geometry parameter space.
+ * - `lineLabelAlignmentLocationOverride`: value to use when choosing
+ *   `alignment` by overflow amount.
  * - `lineLabelAbsoluteEndpointOffset`: enable fixed pixel offset from endpoint.
  */
 export function getLabelForLine({
@@ -817,8 +812,8 @@ export function getLabelForLine({
     const overrideLoc = Number(overrideLocRaw);
     const hasOverrideLoc = Number.isFinite(overrideLoc);
     const baseLoc = hasOverrideLoc
-        ? formatLocation(clamp01(overrideLoc))
-        : lineLabelLocationFromPosition(rawPosition, ep1, ep2, {
+        ? clamp01(overrideLoc)
+        : lineLabelLocationValue(rawPosition, ep1, ep2, {
               absoluteEndpointOffset:
                   stateValues?.lineLabelAbsoluteEndpointOffset === true,
               graphBounds: stateValues?.graphBounds,
@@ -826,17 +821,16 @@ export function getLabelForLine({
           });
 
     let location = 0.5;
-    if (baseLoc !== null) {
-        location = Number(baseLoc);
-        if (Number.isFinite(location)) {
-            labelAttrs.push(
-                `label-location="${escapeXml(formatLocation(location))}"`,
-            );
-        }
+    if (Number.isFinite(baseLoc)) {
+        location = baseLoc;
+        labelAttrs.push(
+            `label-location="${escapeXml(formatLocation(location))}"`,
+        );
     }
 
-    // Alignment can be scored at a different location than emitted label-location
-    // when remapping visible-segment anchors back to the full segment.
+    // Optionally choose `alignment` using a different location than the one
+    // written to output `label-location` (used when visible clipped geometry
+    // is remapped back to full-segment parameter space).
     const alignmentLocationRaw =
         stateValues?.lineLabelAlignmentLocationOverride;
     const alignmentLocation = Number.isFinite(Number(alignmentLocationRaw))
