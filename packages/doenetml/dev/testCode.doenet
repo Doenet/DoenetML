@@ -1,35 +1,17 @@
-<choiceInput inline name="pos">
-  <choice>center</choice>
-  <choice>left</choice>
-  <choice>lowerLeft</choice>
-  <choice>bottom</choice>
-  <choice>lowerRight</choice>
-  <choice>right</choice>
-  <choice>upperRight</choice>
-  <choice>top</choice>
-  <choice>upperLeft</choice>
-</choiceInput>
+<booleanInput name="bi" />
 
-<graph name="g">
-  <shortDescription>testing</shortDescription>
-  <point styleNumber="7" name="A">
-    (1,2)
-  </point>
-  <point styleNumber="1" name="B">
-    (3,4)
-  </point>
+<conditionalContent>
+     <case condition="$bi">A</case>
 
-<!--
-  <ray name="ls" endpoint="$A" through="$B" labelPosition="$pos">
-    <label>the ray </label>
-  </ray>
--->
-  <lineSegment name="ls" endpoints="$A $B" labelPosition="$pos">
-    <label>the line</label>
-  </lineSegment>
+    <else>
+        <p>
+            <updateValue
+                name="addPoint1"
+                target="$bi"
+                newValue="true"
+                type="boolean"
+            />
+        </p>
+    </else>
 
-</graph>
-
-
-
-<graph extend="$g" renderer="prefigure" />
+</conditionalContent>
