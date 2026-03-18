@@ -52,6 +52,12 @@ function sanitizeHandle(value) {
         .replaceAll(/^-|-$/g, "");
 }
 
+/**
+ * Creates a deterministic, XML-safe id for emitted PreFigure elements.
+ *
+ * Handles are based on component type/name when available and are made unique
+ * against `usedHandles` to keep output stable across runs.
+ */
 export function createStableHandle(descendant, index, usedHandles) {
     const stem = sanitizeHandle(
         `${descendant.componentType}-${descendant.componentName ?? index}`,
@@ -104,25 +110,31 @@ export function sortDescendantsByOrder(a, b) {
 }
 
 /**
- * Clips a ray `p + t*v`, `t >= 0` to an axis-aligned bbox.
- * Returns `[startPoint, endPoint]` in user coordinates, or null if no intersection.
+ * Validates and extracts scalar inputs for line-like clipping helpers.
+ *
+ * Checks that `point1`, `point2`, and `bounds` are arrays of sufficient length,
+ * coerces all coordinates to finite numbers, and computes the direction vector
+ * `(dx, dy)`. Returns null if any input is missing, non-finite, or degenerate
+ * (zero-length direction). Otherwise returns `{ x0, y0, dx, dy, bxMin,
+ * byMin, bxMax, byMax }` where `(x0, y0)` is `point1`, `(dx, dy)` is the
+ * direction from `point1` to `point2`, and the `b*` values are the bbox bounds.
  */
-export function clipRayToBounds({ endpoint, throughpoint, bounds }) {
+function normalizeLineClipInputs({ point1, point2, bounds }) {
     if (
-        !Array.isArray(endpoint) ||
-        !Array.isArray(throughpoint) ||
-        endpoint.length < 2 ||
-        throughpoint.length < 2 ||
+        !Array.isArray(point1) ||
+        !Array.isArray(point2) ||
+        point1.length < 2 ||
+        point2.length < 2 ||
         !Array.isArray(bounds) ||
         bounds.length < 4
     ) {
         return null;
     }
 
-    const x0 = asFiniteNumber(endpoint[0]);
-    const y0 = asFiniteNumber(endpoint[1]);
-    const x1 = asFiniteNumber(throughpoint[0]);
-    const y1 = asFiniteNumber(throughpoint[1]);
+    const x0 = asFiniteNumber(point1[0]);
+    const y0 = asFiniteNumber(point1[1]);
+    const x1 = asFiniteNumber(point2[0]);
+    const y1 = asFiniteNumber(point2[1]);
     const bxMin = asFiniteNumber(bounds[0]);
     const byMin = asFiniteNumber(bounds[1]);
     const bxMax = asFiniteNumber(bounds[2]);
@@ -138,44 +150,59 @@ export function clipRayToBounds({ endpoint, throughpoint, bounds }) {
         return null;
     }
 
-    let tMin = -Infinity;
-    let tMax = Infinity;
+    return { x0, y0, dx, dy, bxMin, byMin, bxMax, byMax };
+}
 
-    if (dx !== 0) {
-        let tx0 = (bxMin - x0) / dx;
-        let tx1 = (bxMax - x0) / dx;
-        if (tx0 > tx1) {
-            [tx0, tx1] = [tx1, tx0];
+/**
+ * Clips parameterized line geometry `p + t*v` against an axis-aligned bbox.
+ *
+ * `tMin`/`tMax` select geometry type:
+ * - line: `(-Infinity, Infinity)`
+ * - ray: `(0, Infinity)`
+ * - segment: `(0, 1)`
+ *
+ * Returns `[startPoint, endPoint]` in user coordinates, or null if the
+ * geometry does not intersect the bbox within the given parameter range.
+ */
+export function clipLineLikeToBounds({ point1, point2, bounds, tMin, tMax }) {
+    const inputs = normalizeLineClipInputs({ point1, point2, bounds });
+    if (!inputs) {
+        return null;
+    }
+
+    // (x0, y0): start of the parametric line (point1)
+    // (dx, dy): direction vector from point1 to point2
+    // the `b*`: the bbox bound
+    const { x0, y0, dx, dy, bxMin, byMin, bxMax, byMax } = inputs;
+
+    // clippedTMin/clippedTMax: parameter range narrowed to the visible bbox
+    let clippedTMin = tMin;
+    let clippedTMax = tMax;
+
+    const updateRange = (p0, delta, minBound, maxBound) => {
+        if (delta !== 0) {
+            let ta = (minBound - p0) / delta;
+            let tb = (maxBound - p0) / delta;
+            if (ta > tb) {
+                [ta, tb] = [tb, ta];
+            }
+            clippedTMin = Math.max(clippedTMin, ta);
+            clippedTMax = Math.min(clippedTMax, tb);
+            return clippedTMin <= clippedTMax;
         }
-        tMin = Math.max(tMin, tx0);
-        tMax = Math.min(tMax, tx1);
-    } else if (x0 < bxMin || x0 > bxMax) {
+
+        return p0 >= minBound && p0 <= maxBound;
+    };
+
+    if (!updateRange(x0, dx, bxMin, bxMax)) {
         return null;
     }
-
-    if (dy !== 0) {
-        let ty0 = (byMin - y0) / dy;
-        let ty1 = (byMax - y0) / dy;
-        if (ty0 > ty1) {
-            [ty0, ty1] = [ty1, ty0];
-        }
-        tMin = Math.max(tMin, ty0);
-        tMax = Math.min(tMax, ty1);
-    } else if (y0 < byMin || y0 > byMax) {
-        return null;
-    }
-
-    if (tMin > tMax) {
-        return null;
-    }
-
-    const rayStart = Math.max(0, tMin);
-    if (rayStart > tMax) {
+    if (!updateRange(y0, dy, byMin, byMax)) {
         return null;
     }
 
     return [
-        [x0 + rayStart * dx, y0 + rayStart * dy],
-        [x0 + tMax * dx, y0 + tMax * dy],
+        [x0 + clippedTMin * dx, y0 + clippedTMin * dy],
+        [x0 + clippedTMax * dx, y0 + clippedTMax * dy],
     ];
 }
