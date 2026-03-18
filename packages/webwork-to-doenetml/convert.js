@@ -278,9 +278,9 @@ export function convert(data) {
             for (let option of options) {
                 if (option.condition === "else") {
                     //TODO: bug with else nested inside if
-                    out += `${tab}<else>${option.value}</else>\n`;
+                    out += `${tab}<else>${escapeXml(option.value)}</else>\n`;
                 } else {
-                    out += `${tab}<case condition="${option.condition}">${option.value}</case>\n`;
+                    out += `${tab}<case condition="${escapeXml(option.condition)}">${escapeXml(option.value)}</case>\n`;
                 }
             }
             out += `</conditionalContent>`;
@@ -304,6 +304,9 @@ export function convert(data) {
     let solutionOut = "";
     if (contentType === "text") {
         // TEXT
+        if (answers.length === 0) {
+            out += warnAndComment("No answers found in problem");
+        }
         [textOut, mathInputCount] = textSection(
             content,
             mathInputCount,
@@ -422,9 +425,15 @@ function functionStatement(name, func, argsString, graphicalStyleCount) {
         // <function>
         graphicalStyleCount++;
         let funcDef = args[0].match(/(.*)\sfor\sx\sin\s<(.*),(.*)>/);
-        open = `<function${nameStr} domain="[${funcDef[2]},${funcDef[3]}]" stylenumber="${graphicalStyleCount}">`;
-        child = `${funcDef[1]}`;
-        close = `</function>`;
+        if (funcDef) {
+            open = `<function${nameStr} domain="[${funcDef[2]},${funcDef[3]}]" stylenumber="${graphicalStyleCount}">`;
+            child = `${funcDef[1]}`;
+            close = `</function>`;
+        } else {
+            open = warnAndComment(
+                `FEQ function does not match expected pattern: ${args[0]}`,
+            );
+        }
     } else {
         open = warnAndComment(`Unknown function ${func}`);
     }
@@ -477,9 +486,9 @@ function textSection(text, mathInputCount, graphs, graphContents) {
     text = text.replaceAll("${EITALIC}", "</em>");
     // Centering
     text = text.replaceAll("$BCENTER", "");
-    text = text.replaceAll("$(BCENTER}", "");
-    text = text.replaceAll("$ECENTER", "");
     text = text.replaceAll("${BCENTER}", "");
+    text = text.replaceAll("$ECENTER", "");
+    text = text.replaceAll("${ECENTER}", "");
     // <m> tags
     text = text.replaceAll("\\(", "<m>");
     text = text.replaceAll("\\)", "</m>");
