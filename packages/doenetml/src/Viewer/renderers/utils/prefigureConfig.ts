@@ -5,7 +5,7 @@ const DEFAULT_PREFIGURE_DIAGCESS_SCRIPT_URL =
 // It is intentionally managed independently from the wheel/runtime version
 // metadata in packages/prefigure/src/worker/compiler-metadata.ts.
 const DEFAULT_PREFIGURE_MODULE_URL =
-    "https://cdn.jsdelivr.net/npm/@doenet/prefigure@0.5.11-doenet.6/prefigure.js";
+    "https://cdn.jsdelivr.net/npm/@doenet/prefigure@0.5.13/prefigure.js";
 
 const env = (
     import.meta as ImportMeta & {
