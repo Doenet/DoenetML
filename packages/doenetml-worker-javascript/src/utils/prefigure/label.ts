@@ -802,10 +802,12 @@ export function pointLabelAttributes({
                 ? [Number(rawXs[0]), Number(rawXs[1])]
                 : null;
 
+        // Preferred alignment from the raw labelPosition lookup only.
         const directAlignment =
             prefigurePointAlignmentByLabelPosition[normalizeKey(rawPosition)];
 
         if (directAlignment) {
+            // Final alignment after optional overflow-aware adjustment.
             const alignment =
                 pointCoord !== null && stateValues?.graphBounds
                     ? (getPointLabelAlignment({
