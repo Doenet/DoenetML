@@ -225,16 +225,17 @@ export function convertLineSegmentToPrefigure({
             });
 
             if (Number.isFinite(t0) && Number.isFinite(t1)) {
-                const visibleLoc = lineLabelLocationValue(
-                    sv?.labelPosition,
-                    labelEp1,
-                    labelEp2,
-                    {
-                        absoluteEndpointOffset: true,
-                        graphBounds: sv?.graphBounds,
-                        graphDimensions: sv?.graphDimensions,
-                    },
-                ) ?? 0.5;
+                const visibleLoc =
+                    lineLabelLocationValue(
+                        sv?.labelPosition,
+                        labelEp1,
+                        labelEp2,
+                        {
+                            absoluteEndpointOffset: true,
+                            graphBounds: sv?.graphBounds,
+                            graphDimensions: sv?.graphDimensions,
+                        },
+                    ) ?? 0.5;
                 // Adjust the label location and alignment to account for portion of segment visible
                 stateValuesForLabel.lineLabelAlignmentLocationOverride =
                     visibleLoc;
