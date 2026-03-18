@@ -329,6 +329,9 @@ function estimateLabelMetrics(
  *
  * `preferNorth` determines whether the graph-direction intent lies on the
  * local north (`n`) or south (`s`) side of the segment.
+ * For `center`, we still prefer centered `n`/`s` placements first, but also
+ * include diagonal fallbacks so labels can stay visible when the centered
+ * cardinals would clip at the graph boundary.
  * Candidate order matters: earlier entries are preferred, later entries are
  * only considered when overflow forces a fallback.
  */
@@ -342,14 +345,14 @@ function getLineAlignmentCandidates(
         return null;
     }
 
-    if (pos === "center") {
-        return ["n", "s"];
-    }
-
     const h = location >= 0.5 ? "w" : "e";
     const oppositeH = h === "w" ? "e" : "w";
     const primary = preferNorth ? "n" : "s";
     const secondary = preferNorth ? "s" : "n";
+
+    if (pos === "center") {
+        return ["n", "s", `n${h}`, `s${h}`, `n${oppositeH}`, `s${oppositeH}`];
+    }
 
     return [
         primary,
