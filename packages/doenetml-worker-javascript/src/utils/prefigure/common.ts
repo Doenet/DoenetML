@@ -1,26 +1,35 @@
+import type {
+    Descendant,
+    GraphBounds,
+    Point,
+    PushWarningArgs,
+    Warning,
+    UsedHandles,
+} from "./types";
+
 /**
  * Escapes user-provided text for safe insertion into XML attributes/text nodes.
  */
-export function escapeXml(value) {
+export function escapeXml(value: unknown): string {
     return String(value)
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&apos;");
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;");
 }
 
 /**
  * Coerces finite numeric values to Number and normalizes non-finite values to null.
  */
-export function asFiniteNumber(value) {
+export function asFiniteNumber(value: unknown): number | null {
     return Number.isFinite(value) ? Number(value) : null;
 }
 
 /**
  * Formats a numeric value for XML serialization.
  */
-export function formatNumber(value) {
+export function formatNumber(value: unknown): string | null {
     const num = asFiniteNumber(value);
     return num === null ? null : `${num}`;
 }
@@ -29,7 +38,7 @@ export function formatNumber(value) {
  * Converts a 2D point-like value to a PreFigure coordinate string `(x,y)`.
  * Returns null when coordinates are missing or non-finite.
  */
-export function formatPoint(point) {
+export function formatPoint(point: unknown): string | null {
     if (!Array.isArray(point) || point.length < 2) {
         return null;
     }
@@ -44,12 +53,12 @@ export function formatPoint(point) {
     return `(${x},${y})`;
 }
 
-function sanitizeHandle(value) {
+function sanitizeHandle(value: unknown): string {
     return String(value)
         .toLowerCase()
-        .replaceAll(/[^a-z0-9_-]+/g, "-")
-        .replaceAll(/-+/g, "-")
-        .replaceAll(/^-|-$/g, "");
+        .replace(/[^a-z0-9_-]+/g, "-")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "");
 }
 
 /**
@@ -58,7 +67,11 @@ function sanitizeHandle(value) {
  * Handles are based on component type/name when available and are made unique
  * against `usedHandles` to keep output stable across runs.
  */
-export function createStableHandle(descendant, index, usedHandles) {
+export function createStableHandle(
+    descendant: Descendant,
+    index: number,
+    usedHandles: UsedHandles,
+): string {
     const stem = sanitizeHandle(
         `${descendant.componentType}-${descendant.componentName ?? index}`,
     );
@@ -75,7 +88,9 @@ export function createStableHandle(descendant, index, usedHandles) {
 /**
  * Builds a readable warning prefix for a descendant component.
  */
-export function warningMessageForDescendant(descendant) {
+export function warningMessageForDescendant(
+    descendant: Descendant | null | undefined,
+): string {
     if (descendant?.componentName) {
         return `<${descendant.componentType}> (${descendant.componentName})`;
     }
@@ -85,8 +100,12 @@ export function warningMessageForDescendant(descendant) {
 /**
  * Pushes a warning record and attaches position when available.
  */
-export function pushWarning({ warnings, message, position }) {
-    const warning = {
+export function pushWarning({
+    warnings,
+    message,
+    position,
+}: PushWarningArgs): void {
+    const warning: Warning = {
         type: "warning",
         level: 1,
         message,
@@ -100,9 +119,9 @@ export function pushWarning({ warnings, message, position }) {
 /**
  * Stable comparator used to keep generated XML ordering deterministic.
  */
-export function sortDescendantsByOrder(a, b) {
+export function sortDescendantsByOrder(a: Descendant, b: Descendant): number {
     if (Number.isFinite(a.componentIdx) && Number.isFinite(b.componentIdx)) {
-        return a.componentIdx - b.componentIdx;
+        return (a.componentIdx as number) - (b.componentIdx as number);
     }
     return String(a.componentName ?? "").localeCompare(
         String(b.componentName ?? ""),
@@ -119,7 +138,28 @@ export function sortDescendantsByOrder(a, b) {
  * byMin, bxMax, byMax }` where `(x0, y0)` is `point1`, `(dx, dy)` is the
  * direction from `point1` to `point2`, and the `b*` values are the bbox bounds.
  */
-function normalizeLineClipInputs({ point1, point2, bounds }) {
+interface NormalizeLineClipInputsArgs {
+    point1: unknown;
+    point2: unknown;
+    bounds: unknown;
+}
+
+interface NormalizedLineClipInputs {
+    x0: number;
+    y0: number;
+    dx: number;
+    dy: number;
+    bxMin: number;
+    byMin: number;
+    bxMax: number;
+    byMax: number;
+}
+
+function normalizeLineClipInputs({
+    point1,
+    point2,
+    bounds,
+}: NormalizeLineClipInputsArgs): NormalizedLineClipInputs | null {
     if (
         !Array.isArray(point1) ||
         !Array.isArray(point2) ||
@@ -140,7 +180,16 @@ function normalizeLineClipInputs({ point1, point2, bounds }) {
     const bxMax = asFiniteNumber(bounds[2]);
     const byMax = asFiniteNumber(bounds[3]);
 
-    if ([x0, y0, x1, y1, bxMin, byMin, bxMax, byMax].some((x) => x === null)) {
+    if (
+        x0 === null ||
+        y0 === null ||
+        x1 === null ||
+        y1 === null ||
+        bxMin === null ||
+        byMin === null ||
+        bxMax === null ||
+        byMax === null
+    ) {
         return null;
     }
 
@@ -164,7 +213,21 @@ function normalizeLineClipInputs({ point1, point2, bounds }) {
  * Returns `[startPoint, endPoint]` in user coordinates, or null if the
  * geometry does not intersect the bbox within the given parameter range.
  */
-export function clipLineLikeToBounds({ point1, point2, bounds, tMin, tMax }) {
+interface ClipLineLikeToBoundsArgs {
+    point1: unknown;
+    point2: unknown;
+    bounds: GraphBounds | unknown;
+    tMin: number;
+    tMax: number;
+}
+
+export function clipLineLikeToBounds({
+    point1,
+    point2,
+    bounds,
+    tMin,
+    tMax,
+}: ClipLineLikeToBoundsArgs): [Point, Point] | null {
     const inputs = normalizeLineClipInputs({ point1, point2, bounds });
     if (!inputs) {
         return null;
@@ -179,7 +242,12 @@ export function clipLineLikeToBounds({ point1, point2, bounds, tMin, tMax }) {
     let clippedTMin = tMin;
     let clippedTMax = tMax;
 
-    const updateRange = (p0, delta, minBound, maxBound) => {
+    const updateRange = (
+        p0: number,
+        delta: number,
+        minBound: number,
+        maxBound: number,
+    ): boolean => {
         if (delta !== 0) {
             let ta = (minBound - p0) / delta;
             let tb = (maxBound - p0) / delta;

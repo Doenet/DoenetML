@@ -1,6 +1,7 @@
 import { escapeXml, formatPoint } from "../common";
 import { pointLabelAttributes } from "../label";
 import { pointStyleAttributes } from "../style";
+import type { ConverterBaseArgs } from "../types";
 
 /**
  * Converts a Doenet point descendant into a PreFigure `<point>` element.
@@ -11,7 +12,7 @@ export function convertPointToPrefigure({
     warnings,
     warningPrefix,
     warningPosition,
-}) {
+}: ConverterBaseArgs): string | null {
     const p = formatPoint(sv.numericalXs);
     if (p === null) {
         return null;

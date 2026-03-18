@@ -1,24 +1,46 @@
 import { escapeXml, formatNumber, formatPoint } from "../common";
 import { labelMarkup } from "../label";
 import { styleAttributes } from "../style";
+import type { ConverterBaseArgs, Point } from "../types";
 
-function anglePointsFromStateValues(sv) {
-    const p1Raw = sv.numericalPoints?.[0];
-    const pRaw = sv.numericalPoints?.[1];
-    const p2Raw = sv.numericalPoints?.[2];
+function anglePointsFromStateValues(
+    sv: Record<string, unknown>,
+): [Point, Point, Point] | null {
+    const points = Array.isArray(sv.numericalPoints)
+        ? sv.numericalPoints
+        : null;
+    const p1Raw = points?.[0];
+    const pRaw = points?.[1];
+    const p2Raw = points?.[2];
 
-    if (!p1Raw || !pRaw || !p2Raw) {
+    if (
+        !Array.isArray(p1Raw) ||
+        !Array.isArray(pRaw) ||
+        !Array.isArray(p2Raw)
+    ) {
+        return null;
+    }
+
+    if (p1Raw.length < 2 || pRaw.length < 2 || p2Raw.length < 2) {
+        return null;
+    }
+
+    const p1: Point = [Number(p1Raw[0]), Number(p1Raw[1])];
+    const p: Point = [Number(pRaw[0]), Number(pRaw[1])];
+    const p2: Point = [Number(p2Raw[0]), Number(p2Raw[1])];
+
+    if ([...p1, ...p, ...p2].some((x) => !Number.isFinite(x))) {
         return null;
     }
 
     if (sv.swapPointOrder) {
-        return [p2Raw, pRaw, p1Raw];
+        return [p2, p, p1];
     }
 
-    return [p1Raw, pRaw, p2Raw];
+    return [p1, p, p2];
 }
 
-function normalizeVector(v) {
+function normalizeVector(v: Point): Point | null {
     const mag = Math.hypot(v[0], v[1]);
     if (!(mag > 0)) {
         return null;
@@ -26,14 +48,24 @@ function normalizeVector(v) {
     return [v[0] / mag, v[1] / mag];
 }
 
-function offsetPoint(base, direction, distance) {
+function offsetPoint(base: Point, direction: Point, distance: number): Point {
     return [
         base[0] + direction[0] * distance,
         base[1] + direction[1] * distance,
     ];
 }
 
-function labelAnchorForAngle({ p1, p, p2, radius }) {
+function labelAnchorForAngle({
+    p1,
+    p,
+    p2,
+    radius,
+}: {
+    p1: Point;
+    p: Point;
+    p2: Point;
+    radius: number;
+}): Point | null {
     const u = normalizeVector([p1[0] - p[0], p1[1] - p[1]]);
     const v = normalizeVector([p2[0] - p[0], p2[1] - p[1]]);
     if (!u || !v) {
@@ -41,7 +73,7 @@ function labelAnchorForAngle({ p1, p, p2, radius }) {
     }
 
     // Use internal bisector; fall back to perpendicular for straight angles.
-    let bisector = [u[0] + v[0], u[1] + v[1]];
+    let bisector: Point = [u[0] + v[0], u[1] + v[1]];
     if (Math.hypot(bisector[0], bisector[1]) < 1e-10) {
         bisector = [u[1], -u[0]];
     }
@@ -64,7 +96,7 @@ export function convertAngleToPrefigure({
     warnings,
     warningPrefix,
     warningPosition,
-}) {
+}: ConverterBaseArgs): string | null {
     const points = anglePointsFromStateValues(sv);
     if (!points) {
         return null;

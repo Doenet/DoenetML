@@ -17,19 +17,35 @@ import {
     convertPolygonToPrefigure,
 } from "./components/polygon";
 import { convertAngleToPrefigure } from "./components/angle";
+import type {
+    ConverterBaseArgs,
+    Descendant,
+    GraphBounds,
+    GraphDimensions,
+    PrefigureStateValues,
+    StyledConverter,
+    Warning,
+    WarningOnlyConverter,
+} from "./types";
 
 /**
  * Normalize warning-related arguments for converters that do not consume style attrs.
  */
-function withWarnings(converter) {
-    return ({ sv, handle, warnings, warningPrefix, warningPosition }) =>
+function withWarnings(converter: WarningOnlyConverter): WarningOnlyConverter {
+    return ({
+        sv,
+        handle,
+        warnings,
+        warningPrefix,
+        warningPosition,
+    }: ConverterBaseArgs) =>
         converter({ sv, handle, warnings, warningPrefix, warningPosition });
 }
 
 /**
  * Normalize style + warning arguments for converters that consume style attrs.
  */
-function withStyle(converter) {
+function withStyle(converter: StyledConverter): StyledConverter {
     return ({
         sv,
         handle,
@@ -57,7 +73,10 @@ const FILLED_COMPONENT_TYPES = new Set([
 
 const NO_FILL_COMPONENT_TYPES = new Set(["polyline", "angle"]);
 
-function styleIncludesFill(componentType, sv) {
+function styleIncludesFill(
+    componentType: string,
+    sv: PrefigureStateValues,
+): boolean {
     if (FILLED_COMPONENT_TYPES.has(componentType)) {
         return Boolean(sv.filled);
     }
@@ -86,21 +105,25 @@ const baseConverters = {
     polygon: polygonConverter,
     angle: angleConverter,
 };
-
-const converterAliases = {
-    endpoint: "point",
-    equilibriumPoint: "point",
-    triangle: "polygon",
-    rectangle: "polygon",
-};
-
-const convertByComponentType = {
+const convertByComponentType: Record<
+    string,
+    StyledConverter | WarningOnlyConverter
+> = {
     ...baseConverters,
-    endpoint: baseConverters[converterAliases.endpoint],
-    equilibriumPoint: baseConverters[converterAliases.equilibriumPoint],
-    triangle: baseConverters[converterAliases.triangle],
-    rectangle: baseConverters[converterAliases.rectangle],
+    endpoint: baseConverters.point,
+    equilibriumPoint: baseConverters.point,
+    triangle: baseConverters.polygon,
+    rectangle: baseConverters.polygon,
 };
+
+interface ConvertGraphicalDescendantArgs {
+    descendant: Descendant;
+    index: number;
+    usedHandles: Set<string>;
+    warnings: Warning[];
+    graphBounds: GraphBounds;
+    graphDimensions: GraphDimensions;
+}
 
 /**
  * Converts a single graphical descendant into a PreFigure element string.
@@ -117,8 +140,8 @@ export function convertGraphicalDescendantToPrefigure({
     warnings,
     graphBounds,
     graphDimensions,
-}) {
-    const sv = {
+}: ConvertGraphicalDescendantArgs): string | null {
+    const sv: PrefigureStateValues = {
         ...(descendant?.stateValues ?? {}),
         graphBounds,
         graphDimensions,

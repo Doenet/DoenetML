@@ -1,4 +1,13 @@
 import { escapeXml, pushWarning } from "./common";
+import type {
+    Bounds,
+    Dimensions,
+    GraphBounds,
+    GraphDimensions,
+    Point,
+    PrefigureStateValues,
+    Warning,
+} from "./types";
 
 /**
  * Label conversion strategy summary
@@ -11,7 +20,7 @@ import { escapeXml, pushWarning } from "./common";
  *    location used when choosing `alignment` for clipped/remapped geometry.
  */
 
-const prefigurePointAlignmentByLabelPosition = {
+const prefigurePointAlignmentByLabelPosition: Record<string, string> = {
     upperright: "ne",
     upperleft: "nw",
     lowerright: "se",
@@ -29,10 +38,10 @@ const prefigurePointAlignmentByLabelPosition = {
  * For example `"upperRight"`, `"upper-right"`, and `"UPPER_RIGHT"` all
  * normalize to `"upperright"`.
  */
-function normalizeKey(value) {
+function normalizeKey(value: unknown): string {
     return String(value)
         .toLowerCase()
-        .replaceAll(/[^a-z0-9]+/g, "");
+        .replace(/[^a-z0-9]+/g, "");
 }
 
 /**
@@ -61,7 +70,7 @@ const LINE_LABEL_EDGE_PADDING_RATIO = lineLabelTuning.edgePaddingRatio;
 const LINE_LABEL_ENDPOINT_INSET_PIXELS = lineLabelTuning.endpointInsetPixels;
 
 // All labelPosition values recognized by the line-family converter.
-const KNOWN_LINE_POSITIONS = new Set([
+const KNOWN_LINE_POSITIONS = new Set<string>([
     "left",
     "upperleft",
     "lowerleft",
@@ -76,7 +85,7 @@ const KNOWN_LINE_POSITIONS = new Set([
 /**
  * Formats label-location numbers with stable precision for snapshot-friendly XML.
  */
-function formatLocation(value) {
+function formatLocation(value: number): string {
     const rounded = Number(value.toFixed(6));
     return `${rounded}`;
 }
@@ -84,7 +93,7 @@ function formatLocation(value) {
 /**
  * Clamps a numeric value or ratio into the inclusive unit interval.
  */
-function clamp01(value) {
+function clamp01(value: number): number {
     return Math.min(1, Math.max(0, value));
 }
 
@@ -96,7 +105,9 @@ function clamp01(value) {
  *
  * Example: `getPreferredDirectionForLabelPosition("right")` returns `[1, 0]`.
  */
-function getPreferredDirectionForLabelPosition(labelPosition) {
+function getPreferredDirectionForLabelPosition(
+    labelPosition: unknown,
+): Point | null {
     switch (normalizeKey(labelPosition ?? "")) {
         case "right":
             return [1, 0];
@@ -136,7 +147,11 @@ function getPreferredDirectionForLabelPosition(labelPosition) {
  * - Perpendicular to preferred direction:
  *   `biasFromPreferredDirection([1, 0], [0, 0], [0, 4]) // 0`
  */
-function biasFromPreferredDirection(preferredDirection, ep1, ep2) {
+function biasFromPreferredDirection(
+    preferredDirection: Point,
+    ep1: Point,
+    ep2: Point,
+): number {
     const dx = ep2[0] - ep1[0];
     const dy = ep2[1] - ep1[1];
     const segmentLength = Math.hypot(dx, dy);
@@ -175,7 +190,11 @@ function biasFromPreferredDirection(preferredDirection, ep1, ep2) {
  * - Same request, segment angle changed:
  *   `chooseEndpointBiasForLabelPosition("right", [0, 0], [0, 4]) // 0`
  */
-function chooseEndpointBiasForLabelPosition(labelPosition, ep1, ep2) {
+function chooseEndpointBiasForLabelPosition(
+    labelPosition: unknown,
+    ep1: Point,
+    ep2: Point,
+): number | null {
     const pos = normalizeKey(labelPosition ?? "");
     if (!KNOWN_LINE_POSITIONS.has(pos) || pos === "center") {
         return null;
@@ -190,7 +209,15 @@ function chooseEndpointBiasForLabelPosition(labelPosition, ep1, ep2) {
 /**
  * Interpolates the anchor point used for line-label overflow evaluation.
  */
-function lineLabelAnchorPoint({ ep1, ep2, location }) {
+function lineLabelAnchorPoint({
+    ep1,
+    ep2,
+    location,
+}: {
+    ep1: Point;
+    ep2: Point;
+    location: number;
+}): Point {
     return [
         ep1[0] + (ep2[0] - ep1[0]) * location,
         ep1[1] + (ep2[1] - ep1[1]) * location,
@@ -203,7 +230,7 @@ function lineLabelAnchorPoint({ ep1, ep2, location }) {
  * Returns null unless `graphBounds` is a 4-element numeric array with
  * strictly increasing x/y extents.
  */
-function getGraphBounds(graphBounds) {
+function getGraphBounds(graphBounds: unknown): Bounds | null {
     const bounds = Array.isArray(graphBounds) ? graphBounds : null;
     if (!bounds || bounds.length !== 4) {
         return null;
@@ -230,7 +257,7 @@ function getGraphBounds(graphBounds) {
  * Returns null unless `graphDimensions` is a 2-element numeric array with
  * strictly positive width/height.
  */
-function getGraphDimensions(graphDimensions) {
+function getGraphDimensions(graphDimensions: unknown): Dimensions | null {
     const dims = Array.isArray(graphDimensions) ? graphDimensions : null;
     if (!dims || dims.length !== 2) {
         return null;
@@ -252,7 +279,7 @@ function getGraphDimensions(graphDimensions) {
 /**
  * Returns the unit tangent of the oriented line-family geometry.
  */
-function getLineTangent(ep1, ep2) {
+function getLineTangent(ep1: Point, ep2: Point): Point | null {
     const dx = ep2[0] - ep1[0];
     const dy = ep2[1] - ep1[1];
     const length = Math.hypot(dx, dy);
@@ -269,7 +296,10 @@ function getLineTangent(ep1, ep2) {
  * only to approximate how much each candidate alignment would overflow near
  * graph boundaries.
  */
-function estimateLabelMetrics(labelText, labelHasLatex) {
+function estimateLabelMetrics(
+    labelText: unknown,
+    labelHasLatex: unknown,
+): { width: number; height: number } {
     const raw = typeof labelText === "string" ? labelText.trim() : "";
     const visibleLength = raw.length;
 
@@ -303,10 +333,10 @@ function estimateLabelMetrics(labelText, labelHasLatex) {
  * only considered when overflow forces a fallback.
  */
 function getLineAlignmentCandidates(
-    labelPosition,
-    location,
+    labelPosition: unknown,
+    location: number,
     preferNorth = true,
-) {
+): string[] | null {
     const pos = normalizeKey(labelPosition ?? "");
     if (!pos || !KNOWN_LINE_POSITIONS.has(pos)) {
         return null;
@@ -344,7 +374,11 @@ function getLineAlignmentCandidates(
  * The returned `{minX, maxX, minY, maxY}` are graph-axis-aligned bounds of the
  * rotated label box, suitable for overflow tests against `graphBounds`.
  */
-function getAlignmentExtents(tangent, alignment, metrics) {
+function getAlignmentExtents(
+    tangent: Point,
+    alignment: string,
+    metrics: { width: number; height: number },
+): { minX: number; maxX: number; minY: number; maxY: number } {
     const normal = [-tangent[1], tangent[0]];
     const width = metrics?.width ?? 1.2;
     const height = metrics?.height ?? 1;
@@ -439,7 +473,14 @@ function evaluateLineAlignmentOverflow({
     location,
     graphBounds,
     labelMetrics,
-}) {
+}: {
+    alignment: string;
+    ep1: Point;
+    ep2: Point;
+    location: number;
+    graphBounds: GraphBounds | undefined;
+    labelMetrics: { width: number; height: number };
+}): { overflowAmount: number } {
     const bounds = getGraphBounds(graphBounds);
     const tangent = getLineTangent(ep1, ep2);
     if (!bounds || !tangent) {
@@ -493,7 +534,15 @@ function getLineLabelAlignment({
     graphBounds,
     labelText,
     labelHasLatex,
-}) {
+}: {
+    labelPosition: unknown;
+    location: number;
+    ep1: Point;
+    ep2: Point;
+    graphBounds: GraphBounds | undefined;
+    labelText: unknown;
+    labelHasLatex: unknown;
+}): string | null {
     const tangent = getLineTangent(ep1, ep2);
     const preferredDirection =
         getPreferredDirectionForLabelPosition(labelPosition);
@@ -543,7 +592,10 @@ function getLineLabelAlignment({
  * Reorders two raw [x, y] points so the first is the leftward point.
  * For vertical lines, the lower point comes first.
  */
-export function orientEndpointsForLineLabel(p1Raw, p2Raw) {
+export function orientEndpointsForLineLabel(
+    p1Raw: Point,
+    p2Raw: Point,
+): [Point, Point] {
     if (p1Raw[0] > p2Raw[0] || (p1Raw[0] === p2Raw[0] && p1Raw[1] > p2Raw[1])) {
         return [p2Raw, p1Raw];
     }
@@ -557,7 +609,13 @@ export function orientEndpointsForLineLabel(p1Raw, p2Raw) {
  * those delimiters are rewritten to `<m>...</m>` while preserving surrounding
  * plain text. Otherwise the full label is wrapped in a single `<m>` block.
  */
-export function labelMarkup({ label, labelHasLatex }) {
+export function labelMarkup({
+    label,
+    labelHasLatex,
+}: {
+    label: unknown;
+    labelHasLatex: unknown;
+}): string | null {
     if (typeof label !== "string") {
         return null;
     }
@@ -573,8 +631,8 @@ export function labelMarkup({ label, labelHasLatex }) {
 
         if (openDelimiters > 0 && openDelimiters === closeDelimiters) {
             return escapeXml(text)
-                .replaceAll("\\(", "<m>")
-                .replaceAll("\\)", "</m>");
+                .replace(/\\\(/g, "<m>")
+                .replace(/\\\)/g, "</m>");
         }
 
         return `<m>${escapeXml(text)}</m>`;
@@ -591,7 +649,12 @@ export function pointLabelAttributes({
     warnings,
     warningPrefix,
     warningPosition,
-}) {
+}: {
+    stateValues: PrefigureStateValues;
+    warnings: Warning[];
+    warningPrefix: string;
+    warningPosition?: unknown;
+}): { attrs: string[]; label: string } | null {
     const label = labelMarkup({
         label: stateValues?.label,
         labelHasLatex: stateValues?.labelHasLatex,
@@ -629,7 +692,13 @@ export function pointLabelAttributes({
  * `bias = -1` maps near ep1, `bias = +1` maps near ep2, and `bias = 0`
  * maps to the midpoint between them.
  */
-function locationFromBiasWithInsetRatio({ bias, insetRatio }) {
+function locationFromBiasWithInsetRatio({
+    bias,
+    insetRatio,
+}: {
+    bias: number;
+    insetRatio: number;
+}): number {
     const clampedBias = Math.max(-1, Math.min(1, bias));
     const clampedInset = clamp01(Math.min(0.5, insetRatio));
     const span = Math.max(0, 0.5 - clampedInset);
@@ -659,7 +728,13 @@ function locationFromBiasWithAbsoluteEndpointOffset({
     ep2,
     graphBounds,
     graphDimensions,
-}) {
+}: {
+    bias: number;
+    ep1: Point;
+    ep2: Point;
+    graphBounds: GraphBounds | undefined;
+    graphDimensions: GraphDimensions | undefined;
+}): number {
     const bounds = getGraphBounds(graphBounds);
     const dims = getGraphDimensions(graphDimensions);
     const dx = ep2[0] - ep1[0];
@@ -730,7 +805,16 @@ function locationFromBiasWithAbsoluteEndpointOffset({
  * - Absolute endpoint offset behavior:
  *   `lineLabelLocationValue("right", [0, 0], [4, 0], { absoluteEndpointOffset: true, graphBounds: [0, 0, 10, 10], graphDimensions: [500, 500] }) // 0.94`
  */
-export function lineLabelLocationValue(labelPosition, ep1, ep2, options = {}) {
+export function lineLabelLocationValue(
+    labelPosition: unknown,
+    ep1: Point,
+    ep2: Point,
+    options: {
+        absoluteEndpointOffset?: boolean;
+        graphBounds?: GraphBounds;
+        graphDimensions?: GraphDimensions;
+    } = {},
+): number | null {
     const endpointBias = chooseEndpointBiasForLabelPosition(
         labelPosition,
         ep1,
@@ -789,7 +873,14 @@ export function getLabelForLine({
     warnings,
     warningPrefix,
     warningPosition,
-}) {
+}: {
+    stateValues: PrefigureStateValues;
+    ep1: Point;
+    ep2: Point;
+    warnings: Warning[];
+    warningPrefix: string;
+    warningPosition?: unknown;
+}): { labelAttrs: string[]; label: string | null } {
     const label = labelMarkup({
         label: stateValues?.label,
         labelHasLatex: stateValues?.labelHasLatex,
@@ -821,7 +912,7 @@ export function getLabelForLine({
           });
 
     let location = 0.5;
-    if (Number.isFinite(baseLoc)) {
+    if (baseLoc !== null && Number.isFinite(baseLoc)) {
         location = baseLoc;
         labelAttrs.push(
             `label-location="${escapeXml(formatLocation(location))}"`,

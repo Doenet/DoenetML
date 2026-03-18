@@ -1,19 +1,38 @@
 import { escapeXml, formatPoint } from "../common";
+import type { StyledConverterArgs } from "../types";
 
-function serializedVertices(vertices) {
-    return (vertices ?? [])
-        .map((pt) => formatPoint(pt))
-        .filter((pt) => pt !== null);
+function serializedVertices(vertices: unknown): string[] {
+    if (!Array.isArray(vertices)) {
+        return [];
+    }
+
+    return vertices
+        .map((pt: unknown) => formatPoint(pt))
+        .filter((pt): pt is string => pt !== null);
 }
 
-function polygonElement({ handle, points, closed, styleAttrs }) {
+function polygonElement({
+    handle,
+    points,
+    closed,
+    styleAttrs,
+}: {
+    handle: string;
+    points: string[];
+    closed: "yes" | "no";
+    styleAttrs: string[];
+}): string {
     return `<polygon id="${escapeXml(handle)}" points="${escapeXml(`(${points.join(",")})`)}" closed="${closed}" ${styleAttrs.join(" ")} />`;
 }
 
 /**
  * Converts a polyline to a PreFigure `<polygon closed="no">` element.
  */
-export function convertPolylineToPrefigure({ sv, handle, styleAttrs }) {
+export function convertPolylineToPrefigure({
+    sv,
+    handle,
+    styleAttrs,
+}: StyledConverterArgs): string | null {
     const points = serializedVertices(sv.numericalVertices);
     if (points.length < 2) {
         return null;
@@ -25,7 +44,11 @@ export function convertPolylineToPrefigure({ sv, handle, styleAttrs }) {
 /**
  * Converts a polygon to a PreFigure `<polygon closed="yes">` element.
  */
-export function convertPolygonToPrefigure({ sv, handle, styleAttrs }) {
+export function convertPolygonToPrefigure({
+    sv,
+    handle,
+    styleAttrs,
+}: StyledConverterArgs): string | null {
     const points = serializedVertices(sv.numericalVertices);
     if (points.length < 3) {
         return null;

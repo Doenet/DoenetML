@@ -9,6 +9,7 @@ import {
     getLabelForLine,
     orientEndpointsForLineLabel,
 } from "../label";
+import type { GraphBounds, Point, StyledConverterArgs } from "../types";
 
 /**
  * Serializes one PreFigure `<line>` XML element.
@@ -26,7 +27,15 @@ function lineElement({
     styleAttrs,
     labelAttrs,
     label,
-}) {
+}: {
+    handle: string;
+    p1: string;
+    p2: string;
+    infinite: "yes" | "no";
+    styleAttrs: string[];
+    labelAttrs: string[];
+    label: string | null;
+}): string {
     const attrs = [
         `id="${escapeXml(handle)}"`,
         `endpoints="${escapeXml(`(${p1},${p2})`)}"`,
@@ -48,7 +57,10 @@ function lineElement({
  * Used by clipped-segment logic to decide whether endpoint clipping has
  * changed which geometry should be used for label placement.
  */
-function pointInsideBounds(point, bounds) {
+function pointInsideBounds(
+    point: Point,
+    bounds: GraphBounds | undefined,
+): boolean {
     if (
         !Array.isArray(point) ||
         point.length < 2 ||
@@ -65,7 +77,14 @@ function pointInsideBounds(point, bounds) {
     const xMax = asFiniteNumber(bounds[2]);
     const yMax = asFiniteNumber(bounds[3]);
 
-    if ([x, y, xMin, yMin, xMax, yMax].some((v) => v === null)) {
+    if (
+        x === null ||
+        y === null ||
+        xMin === null ||
+        yMin === null ||
+        xMax === null ||
+        yMax === null
+    ) {
         return false;
     }
 
@@ -77,7 +96,15 @@ function pointInsideBounds(point, bounds) {
  *
  * t=0 corresponds to `start`, t=1 corresponds to `end`.
  */
-function paramAlongSegment({ start, end, point }) {
+function paramAlongSegment({
+    start,
+    end,
+    point,
+}: {
+    start: Point;
+    end: Point;
+    point: Point;
+}): number | null {
     const dx = end[0] - start[0];
     const dy = end[1] - start[1];
     const denom = dx * dx + dy * dy;
@@ -97,13 +124,24 @@ export function convertLineToPrefigure({
     warnings,
     warningPrefix,
     warningPosition,
-}) {
-    const rawP1 = sv.numericalPoints?.[0];
-    const rawP2 = sv.numericalPoints?.[1];
-    if (!rawP1 || !rawP2) {
+}: StyledConverterArgs): string | null {
+    const points = Array.isArray(sv.numericalPoints)
+        ? sv.numericalPoints
+        : null;
+    const rawP1 = points?.[0];
+    const rawP2 = points?.[1];
+    if (!Array.isArray(rawP1) || !Array.isArray(rawP2)) {
         return null;
     }
-    const [ep1, ep2] = orientEndpointsForLineLabel(rawP1, rawP2);
+    if (rawP1.length < 2 || rawP2.length < 2) {
+        return null;
+    }
+    const p1Point: Point = [Number(rawP1[0]), Number(rawP1[1])];
+    const p2Point: Point = [Number(rawP2[0]), Number(rawP2[1])];
+    if ([...p1Point, ...p2Point].some((x) => !Number.isFinite(x))) {
+        return null;
+    }
+    const [ep1, ep2] = orientEndpointsForLineLabel(p1Point, p2Point);
     const p1 = formatPoint(ep1);
     const p2 = formatPoint(ep2);
     if (p1 === null || p2 === null) {
@@ -111,8 +149,8 @@ export function convertLineToPrefigure({
     }
 
     const clippedForLabel = clipLineLikeToBounds({
-        point1: rawP1,
-        point2: rawP2,
+        point1: p1Point,
+        point2: p2Point,
         bounds: sv.graphBounds,
         tMin: -Infinity,
         tMax: Infinity,
@@ -167,13 +205,24 @@ export function convertLineSegmentToPrefigure({
     warnings,
     warningPrefix,
     warningPosition,
-}) {
-    const rawP1 = sv.numericalEndpoints?.[0];
-    const rawP2 = sv.numericalEndpoints?.[1];
-    if (!rawP1 || !rawP2) {
+}: StyledConverterArgs): string | null {
+    const endpoints = Array.isArray(sv.numericalEndpoints)
+        ? sv.numericalEndpoints
+        : null;
+    const rawP1 = endpoints?.[0];
+    const rawP2 = endpoints?.[1];
+    if (!Array.isArray(rawP1) || !Array.isArray(rawP2)) {
         return null;
     }
-    const [ep1, ep2] = orientEndpointsForLineLabel(rawP1, rawP2);
+    if (rawP1.length < 2 || rawP2.length < 2) {
+        return null;
+    }
+    const segmentP1: Point = [Number(rawP1[0]), Number(rawP1[1])];
+    const segmentP2: Point = [Number(rawP2[0]), Number(rawP2[1])];
+    if ([...segmentP1, ...segmentP2].some((x) => !Number.isFinite(x))) {
+        return null;
+    }
+    const [ep1, ep2] = orientEndpointsForLineLabel(segmentP1, segmentP2);
     const p1 = formatPoint(ep1);
     const p2 = formatPoint(ep2);
     if (p1 === null || p2 === null) {
@@ -224,7 +273,7 @@ export function convertLineSegmentToPrefigure({
                 point: labelEp2,
             });
 
-            if (Number.isFinite(t0) && Number.isFinite(t1)) {
+            if (t0 !== null && t1 !== null) {
                 const visibleLoc =
                     lineLabelLocationValue(
                         sv?.labelPosition,
@@ -278,7 +327,7 @@ export function convertRayToPrefigure({
     warnings,
     warningPrefix,
     warningPosition,
-}) {
+}: StyledConverterArgs): string | null {
     if (
         !Array.isArray(sv.numericalEndpoint) ||
         !Array.isArray(sv.numericalThroughpoint)

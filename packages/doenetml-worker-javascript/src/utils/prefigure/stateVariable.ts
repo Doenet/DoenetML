@@ -1,5 +1,13 @@
 import { createPrefigureXML } from "./graph";
 import { sortDescendantsByOrder } from "./common";
+import type { Descendant, GraphDependencyValues } from "./types";
+
+interface DescendantDependency {
+    dependencyType: "descendant";
+    componentTypes: string[];
+    variableNames: string[];
+    variablesOptional?: boolean;
+}
 
 // PreFigure conversion architecture and extension guide:
 // see src/utils/prefigure/README.md
@@ -110,8 +118,12 @@ function descendantDependency({
     componentType,
     variableNames,
     variablesOptional,
-}) {
-    const dependency = {
+}: {
+    componentType: string;
+    variableNames: string[];
+    variablesOptional?: boolean;
+}): DescendantDependency {
+    const dependency: DescendantDependency = {
         dependencyType: "descendant",
         componentTypes: [componentType],
         variableNames,
@@ -193,7 +205,7 @@ function prefigureBaseDependencies() {
     };
 }
 
-function prefigureDescendantDependencies() {
+function prefigureDescendantDependencies(): Record<string, unknown> {
     return Object.fromEntries(
         GRAPHICAL_DESCENDANT_CONFIGS.map((config) => [
             config.key,
@@ -209,12 +221,19 @@ function prefigureDescendantDependencies() {
  * component can appear under multiple configs (for example polygon + polyline).
  * Keeping the last seen match lets later configs override earlier generic ones.
  */
-function collectConfiguredDescendants(dependencyValues) {
-    const byComponentIdx = new Map();
+function collectConfiguredDescendants(
+    dependencyValues: GraphDependencyValues,
+): Descendant[] {
+    const byComponentIdx = new Map<number, Descendant>();
 
     for (const config of GRAPHICAL_DESCENDANT_CONFIGS) {
-        for (const descendant of dependencyValues[config.key] ?? []) {
-            byComponentIdx.set(descendant.componentIdx, descendant);
+        for (const descendant of (dependencyValues[config.key] as
+            | Descendant[]
+            | undefined) ?? []) {
+            if (!Number.isFinite(descendant.componentIdx)) {
+                continue;
+            }
+            byComponentIdx.set(descendant.componentIdx as number, descendant);
         }
     }
 
@@ -242,7 +261,11 @@ export function returnGraphPrefigureXMLStateVariableDefinition() {
                 componentTypes: ["_graphical"],
             },
         }),
-        definition({ dependencyValues }) {
+        definition({
+            dependencyValues,
+        }: {
+            dependencyValues: GraphDependencyValues;
+        }) {
             if (
                 dependencyValues.effectiveRenderer !== "prefigure" ||
                 dependencyValues.haveGraphParent
@@ -254,12 +277,18 @@ export function returnGraphPrefigureXMLStateVariableDefinition() {
             descendants.sort(sortDescendantsByOrder);
 
             const handledDescendantIndices = new Set(
-                descendants.map((x) => x.componentIdx),
+                descendants
+                    .map((x) => x.componentIdx)
+                    .filter((x): x is number => Number.isFinite(x)),
             );
 
             const unsupported = (
                 dependencyValues.allGraphicalDescendants ?? []
-            ).filter((x) => !handledDescendantIndices.has(x.componentIdx));
+            ).filter(
+                (x) =>
+                    Number.isFinite(x.componentIdx) &&
+                    !handledDescendantIndices.has(x.componentIdx as number),
+            );
 
             unsupported.sort(sortDescendantsByOrder);
 
