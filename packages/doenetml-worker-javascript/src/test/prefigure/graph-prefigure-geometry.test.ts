@@ -608,6 +608,19 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`alignment="n"`);
     });
 
+    it("renderer=prefigure center lineSegment mostly off graph shifts anchor/alignment to keep label visible", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<lineSegment endpoints="(8,9.7) (100,9.7)" labelPosition="center"><label>this is a long center label</label></lineSegment>',
+                { attrs: 'xMin="-10" yMin="-10" xMax="10" yMax="10"' },
+            ),
+        );
+
+        expect(prefigureXML).toContain(`endpoints="((8,9.7),(100,9.7))"`);
+        expectLabelLocationNearStart(prefigureXML, 0.1);
+        expect(prefigureXML).toContain(`alignment="sw"`);
+    });
+
     it("renderer=prefigure segment with both endpoints off-screen but crossing graph uses clipped line-mode remap", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(
