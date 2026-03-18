@@ -690,14 +690,14 @@ export function labelMarkup({
  * preferring adjacent cardinals before adjacent diagonals at the same distance.
  */
 const POINT_ALIGNMENT_CANDIDATES: Record<string, string[]> = {
-    n:  ["n",  "nw", "ne", "w",  "e",  "sw", "se", "s" ],
-    ne: ["ne", "n",  "e",  "nw", "se", "w",  "s",  "sw"],
-    e:  ["e",  "ne", "se", "n",  "s",  "nw", "sw", "w" ],
-    se: ["se", "e",  "s",  "ne", "sw", "n",  "w",  "nw"],
-    s:  ["s",  "se", "sw", "e",  "w",  "ne", "nw", "n" ],
-    sw: ["sw", "s",  "w",  "se", "nw", "e",  "n",  "ne"],
-    w:  ["w",  "nw", "sw", "n",  "s",  "ne", "se", "e" ],
-    nw: ["nw", "n",  "w",  "ne", "sw", "e",  "s",  "se"],
+    n: ["n", "nw", "ne", "w", "e", "sw", "se", "s"],
+    ne: ["ne", "n", "e", "nw", "se", "w", "s", "sw"],
+    e: ["e", "ne", "se", "n", "s", "nw", "sw", "w"],
+    se: ["se", "e", "s", "ne", "sw", "n", "w", "nw"],
+    s: ["s", "se", "sw", "e", "w", "ne", "nw", "n"],
+    sw: ["sw", "s", "w", "se", "nw", "e", "n", "ne"],
+    w: ["w", "nw", "sw", "n", "s", "ne", "se", "e"],
+    nw: ["nw", "n", "w", "ne", "sw", "e", "s", "se"],
 };
 
 /**
