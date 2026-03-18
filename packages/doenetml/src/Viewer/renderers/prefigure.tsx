@@ -372,8 +372,12 @@ function applyBuildResultToState({
     const svg = normalizeSerializedMarkup(data.svg);
     if (svg) {
         const sanitizedSvg = sanitizeSvgMarkup(svg);
-        if (sanitizedSvg) {
-            setSvgMarkup(sanitizedSvg);
+        const responsiveSvg = sanitizedSvg
+            ? normalizeSvgViewport(sanitizedSvg)
+            : "";
+
+        if (responsiveSvg) {
+            setSvgMarkup(responsiveSvg);
             setSvgMessage("");
         } else {
             setSvgMarkup("");
@@ -425,6 +429,59 @@ function sanitizeSvgMarkup(markup: string): string {
         mimeType: "image/svg+xml",
         allowedRootNames: new Set(["svg"]),
     });
+}
+
+function parseSvgLength(value: string | null): number | null {
+    if (!value) {
+        return null;
+    }
+
+    const parsed = Number.parseFloat(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
+/**
+ * Convert a built PreFigure SVG into a container-responsive SVG.
+ *
+ * PreFigure output can arrive with fixed width/height attributes, which makes
+ * the browser lay it out at a rigid pixel size. In narrower graph containers
+ * that can truncate the visible drawing even though the underlying SVG content
+ * is complete. By ensuring a viewBox exists and then switching the root SVG to
+ * width/height 100%, the browser scales the existing viewport to fit the graph
+ * frame instead of clipping it.
+ */
+function normalizeSvgViewport(markup: string): string {
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(markup, "image/svg+xml");
+    if (doc.getElementsByTagName("parsererror").length > 0) {
+        return "";
+    }
+
+    const root = doc.documentElement;
+    if (!root || root.tagName.toLowerCase() !== "svg") {
+        return "";
+    }
+
+    if (!root.getAttribute("viewBox")) {
+        const width = parseSvgLength(root.getAttribute("width"));
+        const height = parseSvgLength(root.getAttribute("height"));
+
+        if (width !== null && height !== null) {
+            // Preserve the original drawing coordinates before replacing the
+            // fixed outer size with responsive sizing.
+            root.setAttribute("viewBox", `0 0 ${width} ${height}`);
+        }
+    }
+
+    root.setAttribute("width", "100%");
+    root.setAttribute("height", "100%");
+    if (!root.getAttribute("preserveAspectRatio")) {
+        // Keep the full diagram visible when the container aspect ratio differs
+        // from the original SVG dimensions.
+        root.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    }
+
+    return new XMLSerializer().serializeToString(root);
 }
 
 function sanitizeAnnotationsMarkup(markup: string): string {
