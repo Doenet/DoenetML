@@ -404,7 +404,7 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#mi [data-test='MathInput Preview']").should("not.be.visible");
     });
 
-    // TODO: fix this test so don't have to it retry a ridiculous number of times to get it to pass in CI.
+    // TODO: fix this test so we don't have to retry it a ridiculous number of times to get it to pass in CI.
     // See issue #936
     it(
         "Escape in math input closes preview until next interaction",
