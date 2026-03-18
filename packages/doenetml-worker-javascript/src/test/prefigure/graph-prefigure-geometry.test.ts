@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { pointLabelAttributes } from "../../utils/prefigure/label";
 import { getPrefigureXML } from "./graph-prefigure.helpers";
 import {
     prefigureGraph,
@@ -1251,5 +1252,85 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
 
         expect(prefigureXML).toContain(`<arc `);
         expect(prefigureXML).toContain(`points="((0,1),(0,0),(1,0))"`);
+    });
+});
+
+// ─── point label alignment overflow ──────────────────────────────────────────
+
+async function pointLabelXml({
+    xs,
+    labelPosition,
+    label = "X",
+    attrs = "",
+}: {
+    xs: string;
+    labelPosition: string;
+    label?: string;
+    attrs?: string;
+}) {
+    return (await getPrefigureXML(
+        prefigureGraph(
+            `<point xs="${xs}" labelPosition="${labelPosition}"${attrs ? " " + attrs : ""}><label>${label}</label></point>`,
+        ),
+    )) as string;
+}
+
+describe("point label alignment overflow @group4", () => {
+    it("center — primary alignment used when no overflow", async () => {
+        const prefigureXML = await pointLabelXml({
+            xs: "0 0",
+            labelPosition: "upperright",
+        });
+        expect(prefigureXML).toContain(`alignment="ne"`);
+    });
+
+    it("near top-right — primary ne overflows, fallback used", async () => {
+        const prefigureXML = await pointLabelXml({
+            xs: "9.5 9.5",
+            labelPosition: "upperright",
+        });
+        expect(prefigureXML).not.toContain(`alignment="ne"`);
+    });
+
+    it("near top-left — primary nw overflows, fallback used", async () => {
+        const prefigureXML = await pointLabelXml({
+            xs: "-9.5 9.5",
+            labelPosition: "upperleft",
+        });
+        expect(prefigureXML).not.toContain(`alignment="nw"`);
+    });
+
+    it("near bottom-right — primary se overflows, fallback used", async () => {
+        const prefigureXML = await pointLabelXml({
+            xs: "9.5 -9.5",
+            labelPosition: "lowerright",
+        });
+        expect(prefigureXML).not.toContain(`alignment="se"`);
+    });
+
+    it("near top edge centered — primary n overflows, fallback used", async () => {
+        const prefigureXML = await pointLabelXml({
+            xs: "0 9.5",
+            labelPosition: "top",
+        });
+        expect(prefigureXML).not.toContain(`alignment="n"`);
+    });
+
+    it("no graphBounds — falls back to direct lookup", () => {
+        // When graphBounds is absent from stateValues, the direct alignment
+        // (prefigurePointAlignmentByLabelPosition lookup) is used without
+        // overflow evaluation. A top-right corner point still gets "ne".
+        const result = pointLabelAttributes({
+            stateValues: {
+                label: "X",
+                labelHasLatex: false,
+                labelPosition: "upperright",
+                numericalXs: [9.5, 9.5],
+                // graphBounds intentionally omitted
+            },
+            warnings: [],
+            warningPrefix: "test",
+        });
+        expect(result?.attrs).toContain(`alignment="ne"`);
     });
 });

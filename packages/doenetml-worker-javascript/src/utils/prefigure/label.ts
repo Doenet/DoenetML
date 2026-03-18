@@ -464,33 +464,34 @@ function getAlignmentExtents(
 }
 
 /**
- * Evaluates one candidate alignment against graph bounds.
+ * Core overflow scorer for a single alignment candidate at a known anchor.
  *
- * Returns the predicted overflow amount after applying graph-edge padding.
+ * Given the label anchor in graph coordinates, the local tangent frame, the
+ * candidate alignment token, the graph bounds, and the estimated label size,
+ * returns the total overflow amount after applying graph-edge padding.
  * A zero overflow amount means the candidate stays within the safe inset box.
+ *
+ * This is the shared implementation used by both line-family and point label
+ * overflow evaluation.
  */
-function evaluateLineAlignmentOverflow({
+function computeAlignmentOverflowAt({
+    anchor,
+    tangent,
     alignment,
-    ep1,
-    ep2,
-    location,
     graphBounds,
     labelMetrics,
 }: {
+    anchor: Point;
+    tangent: Point;
     alignment: string;
-    ep1: Point;
-    ep2: Point;
-    location: number;
     graphBounds: GraphBounds | undefined;
     labelMetrics: { width: number; height: number };
 }): { overflowAmount: number } {
     const bounds = getGraphBounds(graphBounds);
-    const tangent = getLineTangent(ep1, ep2);
-    if (!bounds || !tangent) {
+    if (!bounds) {
         return { overflowAmount: 0 };
     }
 
-    const anchor = lineLabelAnchorPoint({ ep1, ep2, location });
     const { xMin, yMin, xMax, yMax } = bounds;
     const width = xMax - xMin;
     const height = yMax - yMin;
@@ -513,6 +514,43 @@ function evaluateLineAlignmentOverflow({
         overflowLeft + overflowRight + overflowBottom + overflowTop;
 
     return { overflowAmount };
+}
+
+/**
+ * Evaluates one candidate alignment against graph bounds for a line-family label.
+ *
+ * Returns the predicted overflow amount after applying graph-edge padding.
+ * A zero overflow amount means the candidate stays within the safe inset box.
+ */
+function evaluateLineAlignmentOverflow({
+    alignment,
+    ep1,
+    ep2,
+    location,
+    graphBounds,
+    labelMetrics,
+}: {
+    alignment: string;
+    ep1: Point;
+    ep2: Point;
+    location: number;
+    graphBounds: GraphBounds | undefined;
+    labelMetrics: { width: number; height: number };
+}): { overflowAmount: number } {
+    const tangent = getLineTangent(ep1, ep2);
+    if (!tangent) {
+        return { overflowAmount: 0 };
+    }
+
+    const anchor = lineLabelAnchorPoint({ ep1, ep2, location });
+
+    return computeAlignmentOverflowAt({
+        anchor,
+        tangent,
+        alignment,
+        graphBounds,
+        labelMetrics,
+    });
 }
 
 /**
@@ -645,6 +683,91 @@ export function labelMarkup({
 }
 
 /**
+ * Ordered alignment fallback candidates for each PreFigure alignment token.
+ *
+ * Each key is the primary (preferred) alignment. The value is all 8 tokens
+ * sorted by ascending angular distance from the primary, with ties broken by
+ * preferring adjacent cardinals before adjacent diagonals at the same distance.
+ */
+const POINT_ALIGNMENT_CANDIDATES: Record<string, string[]> = {
+    n:  ["n",  "nw", "ne", "w",  "e",  "sw", "se", "s" ],
+    ne: ["ne", "n",  "e",  "nw", "se", "w",  "s",  "sw"],
+    e:  ["e",  "ne", "se", "n",  "s",  "nw", "sw", "w" ],
+    se: ["se", "e",  "s",  "ne", "sw", "n",  "w",  "nw"],
+    s:  ["s",  "se", "sw", "e",  "w",  "ne", "nw", "n" ],
+    sw: ["sw", "s",  "w",  "se", "nw", "e",  "n",  "ne"],
+    w:  ["w",  "nw", "sw", "n",  "s",  "ne", "se", "e" ],
+    nw: ["nw", "n",  "w",  "ne", "sw", "e",  "s",  "se"],
+};
+
+/**
+ * Returns the ordered alignment candidate list for a point label position.
+ *
+ * Returns null when `labelPosition` is unrecognized or absent.
+ */
+function getPointAlignmentCandidates(labelPosition: unknown): string[] | null {
+    const key = normalizeKey(labelPosition ?? "");
+    const primary = prefigurePointAlignmentByLabelPosition[key];
+    if (!primary) return null;
+    return POINT_ALIGNMENT_CANDIDATES[primary] ?? null;
+}
+
+/**
+ * Selects the best alignment for a point label, avoiding viewport overflow.
+ *
+ * Uses the same selection model as `getLineLabelAlignment`: iterates an
+ * ordered candidate list, returns the first non-overflow candidate, or the
+ * minimum-overflow candidate when all overflow.
+ *
+ * The tangent is always `[1, 0]` because point labels are axis-aligned and
+ * need no rotation.
+ *
+ * Returns null when `labelPosition` is unrecognized or absent.
+ */
+function getPointLabelAlignment({
+    labelPosition,
+    point,
+    graphBounds,
+    labelText,
+    labelHasLatex,
+}: {
+    labelPosition: unknown;
+    point: Point;
+    graphBounds: GraphBounds | undefined;
+    labelText: unknown;
+    labelHasLatex: unknown;
+}): string | null {
+    const candidates = getPointAlignmentCandidates(labelPosition);
+    if (!candidates?.length) return null;
+
+    // Point labels are axis-aligned; tangent is the standard x-axis frame.
+    const tangent: Point = [1, 0];
+    const labelMetrics = estimateLabelMetrics(labelText, labelHasLatex);
+
+    let bestAlignment = candidates[0];
+    let minimumOverflow = Number.POSITIVE_INFINITY;
+
+    for (const candidate of candidates) {
+        const { overflowAmount } = computeAlignmentOverflowAt({
+            anchor: point,
+            tangent,
+            alignment: candidate,
+            graphBounds,
+            labelMetrics,
+        });
+        if (overflowAmount === 0) {
+            return candidate;
+        }
+        if (overflowAmount < minimumOverflow) {
+            bestAlignment = candidate;
+            minimumOverflow = overflowAmount;
+        }
+    }
+
+    return bestAlignment;
+}
+
+/**
  * Returns `<point>` label attributes/content for PreFigure output.
  */
 export function pointLabelAttributes({
@@ -670,10 +793,29 @@ export function pointLabelAttributes({
     const attrs = [];
     const rawPosition = stateValues?.labelPosition;
     if (rawPosition) {
-        const alignment =
+        const rawXs = stateValues?.numericalXs;
+        const pointCoord: Point | null =
+            Array.isArray(rawXs) &&
+            rawXs.length >= 2 &&
+            Number.isFinite(rawXs[0]) &&
+            Number.isFinite(rawXs[1])
+                ? [Number(rawXs[0]), Number(rawXs[1])]
+                : null;
+
+        const directAlignment =
             prefigurePointAlignmentByLabelPosition[normalizeKey(rawPosition)];
 
-        if (alignment) {
+        if (directAlignment) {
+            const alignment =
+                pointCoord !== null && stateValues?.graphBounds
+                    ? (getPointLabelAlignment({
+                          labelPosition: rawPosition,
+                          point: pointCoord,
+                          graphBounds: stateValues.graphBounds,
+                          labelText: stateValues?.label,
+                          labelHasLatex: stateValues?.labelHasLatex,
+                      }) ?? directAlignment)
+                    : directAlignment;
             attrs.push(`alignment="${escapeXml(alignment)}"`);
         } else {
             pushWarning({
