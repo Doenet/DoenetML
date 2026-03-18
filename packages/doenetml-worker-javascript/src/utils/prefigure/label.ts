@@ -44,30 +44,15 @@ function normalizeKey(value: unknown): string {
         .replace(/[^a-z0-9]+/g, "");
 }
 
-/**
- * Line-family label tuning constants.
- *
- * These are intentionally centralized to make tuning explicit and auditable.
- * Adjust with corresponding geometry tests in
- * `src/test/prefigure/graph-prefigure-geometry.test.ts`.
- *
- * @property endpointInsetRatio Fractional inset from each endpoint for
- * endpoint-side label anchors.
- * @property edgePaddingRatio Reserved inset to reduce visible clipping at bounds.
- * @property endpointInsetPixels Endpoint-anchor inset in screen pixels.
- */
-export const lineLabelTuning = Object.freeze({
-    endpointInsetRatio: 0.05,
-    edgePaddingRatio: 0.02,
-    endpointInsetPixels: 12,
-});
+// Reserved inset used during label overflow scoring to reduce visible clipping
+// at graph bounds. Shared by point and line-family label placement.
+const LABEL_EDGE_PADDING_RATIO = 0.02;
 
-// Fractional inset from each endpoint for endpoint-side label anchors.
-// ep1-side labels anchor at LINE_LABEL_ENDPOINT_INSET_RATIO; ep2-side at
-// 1 - LINE_LABEL_ENDPOINT_INSET_RATIO.
-const LINE_LABEL_ENDPOINT_INSET_RATIO = lineLabelTuning.endpointInsetRatio;
-const LINE_LABEL_EDGE_PADDING_RATIO = lineLabelTuning.edgePaddingRatio;
-const LINE_LABEL_ENDPOINT_INSET_PIXELS = lineLabelTuning.endpointInsetPixels;
+// Fractional inset from each endpoint for endpoint-side line-family anchors.
+const LINE_LABEL_ENDPOINT_INSET_RATIO = 0.05;
+
+// Fixed screen-space inset from endpoints when absolute endpoint offset mode is used.
+const LINE_LABEL_ENDPOINT_INSET_PIXELS = 12;
 
 // All labelPosition values recognized by the line-family converter.
 const KNOWN_LINE_POSITIONS = new Set<string>([
@@ -495,8 +480,8 @@ function computeAlignmentOverflowAt({
     const { xMin, yMin, xMax, yMax } = bounds;
     const width = xMax - xMin;
     const height = yMax - yMin;
-    const edgePaddingX = width * LINE_LABEL_EDGE_PADDING_RATIO;
-    const edgePaddingY = height * LINE_LABEL_EDGE_PADDING_RATIO;
+    const edgePaddingX = width * LABEL_EDGE_PADDING_RATIO;
+    const edgePaddingY = height * LABEL_EDGE_PADDING_RATIO;
 
     const extents = getAlignmentExtents(tangent, alignment, labelMetrics);
 
