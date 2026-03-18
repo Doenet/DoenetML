@@ -44,30 +44,15 @@ function normalizeKey(value: unknown): string {
         .replace(/[^a-z0-9]+/g, "");
 }
 
-/**
- * Line-family label tuning constants.
- *
- * These are intentionally centralized to make tuning explicit and auditable.
- * Adjust with corresponding geometry tests in
- * `src/test/prefigure/graph-prefigure-geometry.test.ts`.
- *
- * @property endpointInsetRatio Fractional inset from each endpoint for
- * endpoint-side label anchors.
- * @property edgePaddingRatio Reserved inset to reduce visible clipping at bounds.
- * @property endpointInsetPixels Endpoint-anchor inset in screen pixels.
- */
-export const lineLabelTuning = Object.freeze({
-    endpointInsetRatio: 0.05,
-    edgePaddingRatio: 0.02,
-    endpointInsetPixels: 12,
-});
+// Reserved inset used during label overflow scoring to reduce visible clipping
+// at graph bounds. Shared by point and line-family label placement.
+const LABEL_EDGE_PADDING_RATIO = 0.02;
 
-// Fractional inset from each endpoint for endpoint-side label anchors.
-// ep1-side labels anchor at LINE_LABEL_ENDPOINT_INSET_RATIO; ep2-side at
-// 1 - LINE_LABEL_ENDPOINT_INSET_RATIO.
-const LINE_LABEL_ENDPOINT_INSET_RATIO = lineLabelTuning.endpointInsetRatio;
-const LINE_LABEL_EDGE_PADDING_RATIO = lineLabelTuning.edgePaddingRatio;
-const LINE_LABEL_ENDPOINT_INSET_PIXELS = lineLabelTuning.endpointInsetPixels;
+// Fractional inset from each endpoint for endpoint-side line-family anchors.
+const LINE_LABEL_ENDPOINT_INSET_RATIO = 0.05;
+
+// Fixed screen-space inset from endpoints when absolute endpoint offset mode is used.
+const LINE_LABEL_ENDPOINT_INSET_PIXELS = 12;
 
 // All labelPosition values recognized by the line-family converter.
 const KNOWN_LINE_POSITIONS = new Set<string>([
@@ -464,7 +449,60 @@ function getAlignmentExtents(
 }
 
 /**
- * Evaluates one candidate alignment against graph bounds.
+ * Core overflow scorer for a single alignment candidate at a known anchor.
+ *
+ * Given the label anchor in graph coordinates, the local tangent frame, the
+ * candidate alignment token, the graph bounds, and the estimated label size,
+ * returns the total overflow amount after applying graph-edge padding.
+ * A zero overflow amount means the candidate stays within the safe inset box.
+ *
+ * This is the shared implementation used by both line-family and point label
+ * overflow evaluation.
+ */
+function computeAlignmentOverflowAt({
+    anchor,
+    tangent,
+    alignment,
+    graphBounds,
+    labelMetrics,
+}: {
+    anchor: Point;
+    tangent: Point;
+    alignment: string;
+    graphBounds: GraphBounds | undefined;
+    labelMetrics: { width: number; height: number };
+}): { overflowAmount: number } {
+    const bounds = getGraphBounds(graphBounds);
+    if (!bounds) {
+        return { overflowAmount: 0 };
+    }
+
+    const { xMin, yMin, xMax, yMax } = bounds;
+    const width = xMax - xMin;
+    const height = yMax - yMin;
+    const edgePaddingX = width * LABEL_EDGE_PADDING_RATIO;
+    const edgePaddingY = height * LABEL_EDGE_PADDING_RATIO;
+
+    const extents = getAlignmentExtents(tangent, alignment, labelMetrics);
+
+    const projectedLeft = anchor[0] + extents.minX;
+    const projectedRight = anchor[0] + extents.maxX;
+    const projectedBottom = anchor[1] + extents.minY;
+    const projectedTop = anchor[1] + extents.maxY;
+
+    const overflowLeft = Math.max(0, xMin + edgePaddingX - projectedLeft);
+    const overflowRight = Math.max(0, projectedRight - (xMax - edgePaddingX));
+    const overflowBottom = Math.max(0, yMin + edgePaddingY - projectedBottom);
+    const overflowTop = Math.max(0, projectedTop - (yMax - edgePaddingY));
+
+    const overflowAmount =
+        overflowLeft + overflowRight + overflowBottom + overflowTop;
+
+    return { overflowAmount };
+}
+
+/**
+ * Evaluates one candidate alignment against graph bounds for a line-family label.
  *
  * Returns the predicted overflow amount after applying graph-edge padding.
  * A zero overflow amount means the candidate stays within the safe inset box.
@@ -484,35 +522,20 @@ function evaluateLineAlignmentOverflow({
     graphBounds: GraphBounds | undefined;
     labelMetrics: { width: number; height: number };
 }): { overflowAmount: number } {
-    const bounds = getGraphBounds(graphBounds);
     const tangent = getLineTangent(ep1, ep2);
-    if (!bounds || !tangent) {
+    if (!tangent) {
         return { overflowAmount: 0 };
     }
 
     const anchor = lineLabelAnchorPoint({ ep1, ep2, location });
-    const { xMin, yMin, xMax, yMax } = bounds;
-    const width = xMax - xMin;
-    const height = yMax - yMin;
-    const edgePaddingX = width * LINE_LABEL_EDGE_PADDING_RATIO;
-    const edgePaddingY = height * LINE_LABEL_EDGE_PADDING_RATIO;
 
-    const extents = getAlignmentExtents(tangent, alignment, labelMetrics);
-
-    const projectedLeft = anchor[0] + extents.minX;
-    const projectedRight = anchor[0] + extents.maxX;
-    const projectedBottom = anchor[1] + extents.minY;
-    const projectedTop = anchor[1] + extents.maxY;
-
-    const overflowLeft = Math.max(0, xMin + edgePaddingX - projectedLeft);
-    const overflowRight = Math.max(0, projectedRight - (xMax - edgePaddingX));
-    const overflowBottom = Math.max(0, yMin + edgePaddingY - projectedBottom);
-    const overflowTop = Math.max(0, projectedTop - (yMax - edgePaddingY));
-
-    const overflowAmount =
-        overflowLeft + overflowRight + overflowBottom + overflowTop;
-
-    return { overflowAmount };
+    return computeAlignmentOverflowAt({
+        anchor,
+        tangent,
+        alignment,
+        graphBounds,
+        labelMetrics,
+    });
 }
 
 /**
@@ -645,6 +668,91 @@ export function labelMarkup({
 }
 
 /**
+ * Ordered alignment fallback candidates for each PreFigure alignment token.
+ *
+ * Each key is the primary (preferred) alignment. The value is all 8 tokens
+ * sorted by ascending angular distance from the primary, with ties broken by
+ * preferring adjacent cardinals before adjacent diagonals at the same distance.
+ */
+const POINT_ALIGNMENT_CANDIDATES: Record<string, string[]> = {
+    n: ["n", "nw", "ne", "w", "e", "sw", "se", "s"],
+    ne: ["ne", "n", "e", "nw", "se", "w", "s", "sw"],
+    e: ["e", "ne", "se", "n", "s", "nw", "sw", "w"],
+    se: ["se", "e", "s", "ne", "sw", "n", "w", "nw"],
+    s: ["s", "se", "sw", "e", "w", "ne", "nw", "n"],
+    sw: ["sw", "s", "w", "se", "nw", "e", "n", "ne"],
+    w: ["w", "nw", "sw", "n", "s", "ne", "se", "e"],
+    nw: ["nw", "n", "w", "ne", "sw", "e", "s", "se"],
+};
+
+/**
+ * Returns the ordered alignment candidate list for a point label position.
+ *
+ * Returns null when `labelPosition` is unrecognized or absent.
+ */
+function getPointAlignmentCandidates(labelPosition: unknown): string[] | null {
+    const key = normalizeKey(labelPosition ?? "");
+    const primary = prefigurePointAlignmentByLabelPosition[key];
+    if (!primary) return null;
+    return POINT_ALIGNMENT_CANDIDATES[primary] ?? null;
+}
+
+/**
+ * Selects the best alignment for a point label, avoiding viewport overflow.
+ *
+ * Uses the same selection model as `getLineLabelAlignment`: iterates an
+ * ordered candidate list, returns the first non-overflow candidate, or the
+ * minimum-overflow candidate when all overflow.
+ *
+ * The tangent is always `[1, 0]` because point labels are axis-aligned and
+ * need no rotation.
+ *
+ * Returns null when `labelPosition` is unrecognized or absent.
+ */
+function getPointLabelAlignment({
+    labelPosition,
+    point,
+    graphBounds,
+    labelText,
+    labelHasLatex,
+}: {
+    labelPosition: unknown;
+    point: Point;
+    graphBounds: GraphBounds | undefined;
+    labelText: unknown;
+    labelHasLatex: unknown;
+}): string | null {
+    const candidates = getPointAlignmentCandidates(labelPosition);
+    if (!candidates?.length) return null;
+
+    // Point labels are axis-aligned; tangent is the standard x-axis frame.
+    const tangent: Point = [1, 0];
+    const labelMetrics = estimateLabelMetrics(labelText, labelHasLatex);
+
+    let bestAlignment = candidates[0];
+    let minimumOverflow = Number.POSITIVE_INFINITY;
+
+    for (const candidate of candidates) {
+        const { overflowAmount } = computeAlignmentOverflowAt({
+            anchor: point,
+            tangent,
+            alignment: candidate,
+            graphBounds,
+            labelMetrics,
+        });
+        if (overflowAmount === 0) {
+            return candidate;
+        }
+        if (overflowAmount < minimumOverflow) {
+            bestAlignment = candidate;
+            minimumOverflow = overflowAmount;
+        }
+    }
+
+    return bestAlignment;
+}
+
+/**
  * Returns `<point>` label attributes/content for PreFigure output.
  */
 export function pointLabelAttributes({
@@ -670,10 +778,31 @@ export function pointLabelAttributes({
     const attrs = [];
     const rawPosition = stateValues?.labelPosition;
     if (rawPosition) {
-        const alignment =
+        const rawXs = stateValues?.numericalXs;
+        const pointCoord: Point | null =
+            Array.isArray(rawXs) &&
+            rawXs.length >= 2 &&
+            Number.isFinite(rawXs[0]) &&
+            Number.isFinite(rawXs[1])
+                ? [Number(rawXs[0]), Number(rawXs[1])]
+                : null;
+
+        // Preferred alignment from the raw labelPosition lookup only.
+        const directAlignment =
             prefigurePointAlignmentByLabelPosition[normalizeKey(rawPosition)];
 
-        if (alignment) {
+        if (directAlignment) {
+            // Final alignment after optional overflow-aware adjustment.
+            const alignment =
+                pointCoord !== null && stateValues?.graphBounds
+                    ? (getPointLabelAlignment({
+                          labelPosition: rawPosition,
+                          point: pointCoord,
+                          graphBounds: stateValues.graphBounds,
+                          labelText: stateValues?.label,
+                          labelHasLatex: stateValues?.labelHasLatex,
+                      }) ?? directAlignment)
+                    : directAlignment;
             attrs.push(`alignment="${escapeXml(alignment)}"`);
         } else {
             pushWarning({
