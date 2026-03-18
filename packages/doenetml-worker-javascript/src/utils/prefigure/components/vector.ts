@@ -4,6 +4,7 @@ import {
     lineLabelLocationValue,
     orientEndpointsForLineLabel,
 } from "../label";
+import type { Point, StyledConverterArgs } from "../types";
 
 /**
  * Converts a vector (tail/head endpoints) to a PreFigure `<vector>` element.
@@ -23,11 +24,25 @@ export function convertVectorToPrefigure({
     warnings,
     warningPrefix,
     warningPosition,
-}) {
-    const tail = sv.numericalEndpoints?.[0];
-    const head = sv.numericalEndpoints?.[1];
+}: StyledConverterArgs): string | null {
+    const endpoints = Array.isArray(sv.numericalEndpoints)
+        ? sv.numericalEndpoints
+        : null;
+    const tailRaw = endpoints?.[0];
+    const headRaw = endpoints?.[1];
+    if (!Array.isArray(tailRaw) || !Array.isArray(headRaw)) {
+        return null;
+    }
+    if (tailRaw.length < 2 || headRaw.length < 2) {
+        return null;
+    }
+    const tail: Point = [Number(tailRaw[0]), Number(tailRaw[1])];
+    const head: Point = [Number(headRaw[0]), Number(headRaw[1])];
+    if ([...tail, ...head].some((x) => !Number.isFinite(x))) {
+        return null;
+    }
     const tailText = formatPoint(tail);
-    if (tailText === null || !Array.isArray(tail) || !Array.isArray(head)) {
+    if (tailText === null) {
         return null;
     }
 
@@ -64,7 +79,7 @@ export function convertVectorToPrefigure({
     // Keep location policy aligned with line-family Doenet labelPosition mapping.
     const location = lineLabelLocationValue(sv?.labelPosition, ep1, ep2) ?? 0.5;
 
-    const anchor = [
+    const anchor: Point = [
         Number((ep1[0] + (ep2[0] - ep1[0]) * location).toFixed(12)),
         Number((ep1[1] + (ep2[1] - ep1[1]) * location).toFixed(12)),
     ];

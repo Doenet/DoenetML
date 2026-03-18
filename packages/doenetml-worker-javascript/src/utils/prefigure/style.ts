@@ -1,12 +1,13 @@
 import { escapeXml, formatNumber, pushWarning } from "./common";
+import type { SelectedStyle, Warning } from "./types";
 
-const prefigureDashByLineStyle = {
+const prefigureDashByLineStyle: Record<string, string | null> = {
     solid: null,
     dashed: "9 9",
     dotted: "4 4",
 };
 
-const prefigurePointStyleByMarkerStyle = {
+const prefigurePointStyleByMarkerStyle: Record<string, string> = {
     circle: "circle",
     square: "box",
     box: "box",
@@ -25,7 +26,13 @@ export function styleAttributes({
     warningPrefix,
     warningPosition,
     includeFill = true,
-}) {
+}: {
+    selectedStyle: SelectedStyle | undefined;
+    warnings: Warning[];
+    warningPrefix: string;
+    warningPosition?: unknown;
+    includeFill?: boolean;
+}): string[] {
     const attrs = [];
 
     const stroke = selectedStyle?.lineColor ?? selectedStyle?.lineColorWord;
@@ -86,7 +93,13 @@ export function pointStyleAttributes({
     warningPrefix,
     warningPosition,
     includeFill = true,
-}) {
+}: {
+    selectedStyle: SelectedStyle | undefined;
+    warnings: Warning[];
+    warningPrefix: string;
+    warningPosition?: unknown;
+    includeFill?: boolean;
+}): string[] {
     const attrs = [];
 
     const markerStyle = selectedStyle?.markerStyle;

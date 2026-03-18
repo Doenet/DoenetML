@@ -7,8 +7,18 @@ import {
 } from "./common";
 import { labelMarkup } from "./label";
 import { convertGraphicalDescendantToPrefigure } from "./descendant";
+import type {
+    Descendant,
+    GraphBounds,
+    GraphDependencyValues,
+    GraphDimensions,
+    Warning,
+} from "./types";
 
-function axisModeFromVisibility({ displayXAxis, displayYAxis }) {
+function axisModeFromVisibility({
+    displayXAxis,
+    displayYAxis,
+}: GraphDependencyValues): "all" | "horizontal" | "vertical" | null {
     const showXAxis = Boolean(displayXAxis);
     const showYAxis = Boolean(displayYAxis);
 
@@ -24,7 +34,13 @@ function axisModeFromVisibility({ displayXAxis, displayYAxis }) {
     return null;
 }
 
-function pushUnsupportedAxisPositionWarnings({ dependencyValues, warnings }) {
+function pushUnsupportedAxisPositionWarnings({
+    dependencyValues,
+    warnings,
+}: {
+    dependencyValues: GraphDependencyValues;
+    warnings: Warning[];
+}): void {
     if (dependencyValues.xLabelPosition === "left") {
         warnings.push({
             type: "warning",
@@ -44,7 +60,13 @@ function pushUnsupportedAxisPositionWarnings({ dependencyValues, warnings }) {
     }
 }
 
-function axesElementFromLabels({ dependencyValues, axesMode }) {
+function axesElementFromLabels({
+    dependencyValues,
+    axesMode,
+}: {
+    dependencyValues: GraphDependencyValues;
+    axesMode: "all" | "horizontal" | "vertical";
+}): string {
     const axisLabelElements = [];
 
     const xLabel = labelMarkup({
@@ -83,9 +105,13 @@ export function createPrefigureXML({
     dependencyValues,
     descendants,
     unsupported,
-}) {
-    const warnings = [];
-    const usedHandles = new Set();
+}: {
+    dependencyValues: GraphDependencyValues;
+    descendants: Descendant[];
+    unsupported: Descendant[];
+}): { xml: string; warnings: Warning[] } {
+    const warnings: Warning[] = [];
+    const usedHandles = new Set<string>();
     const elements = [];
 
     const rawXMin = asFiniteNumber(dependencyValues.xMin);
@@ -102,11 +128,13 @@ export function createPrefigureXML({
         });
     }
 
-    const graphBounds = [rawXMin, rawYMin, rawXMax, rawYMax].some(
-        (x) => x === null,
-    )
-        ? [-10, -10, 10, 10]
-        : [rawXMin, rawYMin, rawXMax, rawYMax];
+    const graphBounds: GraphBounds =
+        rawXMin === null ||
+        rawYMin === null ||
+        rawXMax === null ||
+        rawYMax === null
+            ? [-10, -10, 10, 10]
+            : [rawXMin, rawYMin, rawXMax, rawYMax];
 
     let dimensionWidth = asFiniteNumber(dependencyValues.width?.size);
     if (dimensionWidth === null || dimensionWidth <= 0) {
@@ -131,7 +159,7 @@ export function createPrefigureXML({
     }
 
     const dimensionHeight = dimensionWidth / diagramAspectRatio;
-    const graphDimensions = [dimensionWidth, dimensionHeight];
+    const graphDimensions: GraphDimensions = [dimensionWidth, dimensionHeight];
 
     for (const descendant of unsupported ?? []) {
         pushWarning({
@@ -141,7 +169,7 @@ export function createPrefigureXML({
         });
     }
 
-    for (const [index, descendant] of (descendants ?? []).entries()) {
+    for (const [index, descendant] of descendants.entries()) {
         const converted = convertGraphicalDescendantToPrefigure({
             descendant,
             index,
