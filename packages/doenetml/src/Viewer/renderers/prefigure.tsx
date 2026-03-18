@@ -448,7 +448,9 @@ function parseSvgLength(value: string | null): number | null {
  * that can truncate the visible drawing even though the underlying SVG content
  * is complete. By ensuring a viewBox exists and then switching the root SVG to
  * width/height 100%, the browser scales the existing viewport to fit the graph
- * frame instead of clipping it.
+ * frame instead of clipping it. If no usable viewBox exists and one cannot be
+ * derived from numeric width/height attributes, preserve the original sizing
+ * so this normalization step does not change SVG layout semantics.
  */
 function normalizeSvgViewport(markup: string): string {
     const parser = new DOMParser();
@@ -462,7 +464,9 @@ function normalizeSvgViewport(markup: string): string {
         return "";
     }
 
-    if (!root.getAttribute("viewBox")) {
+    let hasUsableViewBox = Boolean(root.getAttribute("viewBox"));
+
+    if (!hasUsableViewBox) {
         const width = parseSvgLength(root.getAttribute("width"));
         const height = parseSvgLength(root.getAttribute("height"));
 
@@ -470,15 +474,18 @@ function normalizeSvgViewport(markup: string): string {
             // Preserve the original drawing coordinates before replacing the
             // fixed outer size with responsive sizing.
             root.setAttribute("viewBox", `0 0 ${width} ${height}`);
+            hasUsableViewBox = true;
         }
     }
 
-    root.setAttribute("width", "100%");
-    root.setAttribute("height", "100%");
-    if (!root.getAttribute("preserveAspectRatio")) {
-        // Keep the full diagram visible when the container aspect ratio differs
-        // from the original SVG dimensions.
-        root.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    if (hasUsableViewBox) {
+        root.setAttribute("width", "100%");
+        root.setAttribute("height", "100%");
+        if (!root.getAttribute("preserveAspectRatio")) {
+            // Keep the full diagram visible when the container aspect ratio differs
+            // from the original SVG dimensions.
+            root.setAttribute("preserveAspectRatio", "xMidYMid meet");
+        }
     }
 
     return new XMLSerializer().serializeToString(root);
