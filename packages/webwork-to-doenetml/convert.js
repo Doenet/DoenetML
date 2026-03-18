@@ -15,7 +15,7 @@ export function convert(data) {
     const documentMatch = data.match(/DOCUMENT\(\);(.*)ENDDOCUMENT\(\);/s);
     if (!documentMatch || documentMatch.length < 2) {
         console.warn(
-            "Expected a 'DOCUMENT(); ... ENDDOCUMENT();' block, but none was found. Returning empty output."
+            "Expected a 'DOCUMENT(); ... ENDDOCUMENT();' block, but none was found. Returning empty output.",
         );
         return "";
     }
