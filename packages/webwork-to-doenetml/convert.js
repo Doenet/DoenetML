@@ -12,8 +12,14 @@ const tab = "  ";
 
 export function convert(data) {
     // const sections = data.split(/#{4,}/);
-    let document = data.match(/DOCUMENT\(\);(.*)ENDDOCUMENT\(\);/s);
-    document = document[1];
+    const documentMatch = data.match(/DOCUMENT\(\);(.*)ENDDOCUMENT\(\);/s);
+    if (!documentMatch || documentMatch.length < 2) {
+        console.warn(
+            "Expected a 'DOCUMENT(); ... ENDDOCUMENT();' block, but none was found. Returning empty output."
+        );
+        return "";
+    }
+    let document = documentMatch[1];
 
     // Remove comments
     document = document.replace(/\#.*/g, "");
