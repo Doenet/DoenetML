@@ -773,22 +773,22 @@ describe("Function Operator tag tests @group1", async () => {
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("d5")
-            ].stateValues.formula.equals(me.fromText("1/(x sqrt(x^2-1))")),
+            ].stateValues.formula.equals(me.fromText("1/(|x| sqrt(x^2-1))")),
         ).be.true;
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("d5a")
-            ].stateValues.formula.equals(me.fromText("1/(x sqrt(x^2-1))")),
+            ].stateValues.formula.equals(me.fromText("1/(|x| sqrt(x^2-1))")),
         ).be.true;
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("d6")
-            ].stateValues.formula.equals(me.fromText("-1/(x sqrt(x^2-1))")),
+            ].stateValues.formula.equals(me.fromText("-1/(|x| sqrt(x^2-1))")),
         ).be.true;
         expect(
             stateVariables[
                 await resolvePathToNodeIdx("d6a")
-            ].stateValues.formula.equals(me.fromText("-1/(x sqrt(x^2-1))")),
+            ].stateValues.formula.equals(me.fromText("-1/(|x| sqrt(x^2-1))")),
         ).be.true;
     });
 
