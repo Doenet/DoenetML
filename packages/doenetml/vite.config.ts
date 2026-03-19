@@ -7,7 +7,10 @@ const require = createRequire(import.meta.url);
 import dts from "vite-plugin-dts";
 import { createPackageJsonTransformer } from "../../scripts/transform-package-json";
 import { version } from "./package.json";
-import { suppressLogPlugin } from "../../scripts/vite-plugins";
+import {
+    prefigureDynamicImportIgnorePlugin,
+    suppressLogPlugin,
+} from "../../scripts/vite-plugins";
 
 // These are the dependencies that will not be bundled into the library.
 const EXTERNAL_DEPS = ["react", "react-dom"];
@@ -38,6 +41,7 @@ export default defineConfig({
                 },
             ],
         }),
+        prefigureDynamicImportIgnorePlugin(),
         suppressLogPlugin(),
     ],
     define: {
