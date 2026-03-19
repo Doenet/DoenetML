@@ -285,7 +285,7 @@ export default function checkEquality({
             object2 = normalize(object2);
         } else {
             // For numeric, we need to expand vectors, etc.
-            // We no longer due a full normalization due to speed issues
+            // We no longer do a full normalization due to speed issues
             object1 =
                 object1.perform_vector_matrix_additions_scalar_multiplications();
             object2 =
