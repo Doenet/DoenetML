@@ -428,6 +428,23 @@ describe("Math expressions equality tests @group2", async () => {
         },
 
         {
+            expr1: "<math><matrix><row>a b</row><row>c d</row></matrix>n</math>",
+            expr2: "<math><matrix><row>an bn</row><row>cn dn</row></matrix></math>",
+            equal: true,
+            symbolicEqual: false,
+            symbolicSimplifyEqual: true,
+            symbolicSimplifyExpandEqual: true,
+        },
+        {
+            expr1: "<math><matrix><row>a b</row><row>c d</row></matrix> + <matrix><row>w x</row><row>y z</row></matrix></math>",
+            expr2: "<math><matrix><row>a+w b+x</row><row>c+y d+z</row></matrix></math>",
+            equal: true,
+            symbolicEqual: false,
+            symbolicSimplifyEqual: true,
+            symbolicSimplifyExpandEqual: true,
+        },
+
+        {
             expr1: "angle ABC",
             expr2: "angle CBA",
             equal: true,
