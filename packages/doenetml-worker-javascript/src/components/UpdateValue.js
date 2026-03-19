@@ -82,8 +82,8 @@ export default class UpdateValue extends InlineComponent {
                 "none",
                 "full",
                 "numbers",
-                "numberspreserveorder",
-                "normalizeorder",
+                "numbersPreserveOrder",
+                "normalizeOrder",
             ],
         };
 

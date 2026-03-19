@@ -48,6 +48,7 @@ export default class Video extends BlockComponent {
         attributes.displayMode = {
             createComponentOfType: "text",
             createStateVariable: "displayMode",
+            toLowerCase: true,
             validValues: ["block", "inline"],
             defaultValue: "block",
             forRenderer: true,
@@ -57,6 +58,7 @@ export default class Video extends BlockComponent {
         attributes.horizontalAlign = {
             createComponentOfType: "text",
             createStateVariable: "horizontalAlign",
+            toLowerCase: true,
             validValues: ["center", "left", "right"],
             defaultValue: "center",
             forRenderer: true,

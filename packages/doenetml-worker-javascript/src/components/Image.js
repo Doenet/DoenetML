@@ -51,6 +51,7 @@ export default class Image extends BlockComponent {
         attributes.displayMode = {
             createComponentOfType: "text",
             createStateVariable: "displayMode",
+            toLowerCase: true,
             validValues: ["block", "inline"],
             defaultValue: "block",
             forRenderer: true,

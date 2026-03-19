@@ -84,8 +84,8 @@ export default class Answer extends InlineComponent {
                 "none",
                 "full",
                 "numbers",
-                "numberspreserveorder",
-                "normalizeorder",
+                "numbersPreserveOrder",
+                "normalizeOrder",
             ],
             public: true,
         };
@@ -159,6 +159,7 @@ export default class Answer extends InlineComponent {
             createPrimitiveOfType: "string",
             createStateVariable: "type",
             defaultValue: null,
+            toLowerCase: true,
             validValues: ["math", "text", "boolean", "videoWatched"],
         };
 
@@ -649,7 +650,7 @@ export default class Answer extends InlineComponent {
             if (componentAttributes.type) {
                 type = componentAttributes.type.value;
                 if (!["math", "text", "boolean"].includes(type)) {
-                    if (type === "videoWatched") {
+                    if (type.toLowerCase() === "videowatched") {
                         return { success: false };
                     }
                     warnings.push({

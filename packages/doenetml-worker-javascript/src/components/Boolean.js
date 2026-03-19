@@ -40,8 +40,8 @@ export default class BooleanComponent extends InlineComponent {
                 "none",
                 "full",
                 "numbers",
-                "numberspreserveorder",
-                "normalizeorder",
+                "numbersPreserveOrder",
+                "normalizeOrder",
             ],
             public: true,
         };

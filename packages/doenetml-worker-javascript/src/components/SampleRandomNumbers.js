@@ -43,7 +43,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
             defaultValue: "uniform",
             public: true,
             toLowerCase: true,
-            validValues: ["uniform", "discreteuniform", "gaussian"],
+            validValues: ["uniform", "discreteUniform", "gaussian"],
         };
 
         attributes.mean = {

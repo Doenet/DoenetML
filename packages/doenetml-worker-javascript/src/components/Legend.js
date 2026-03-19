@@ -9,11 +9,11 @@ export default class Legend extends GraphicalComponent {
         attributes.position = {
             createComponentOfType: "text",
             createStateVariable: "position",
-            defaultValue: "upperright",
+            defaultValue: "upperRight",
             public: true,
             forRenderer: true,
             toLowerCase: true,
-            validValues: ["upperright", "upperleft", "lowerright", "lowerleft"],
+            validValues: ["upperRight", "upperLeft", "lowerRight", "lowerLeft"],
         };
 
         attributes.displayClosedSwatches = {

@@ -406,8 +406,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -503,10 +503,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -1433,10 +1433,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -1769,10 +1769,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -3329,10 +3329,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -4628,10 +4628,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -4956,10 +4956,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -5284,10 +5284,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -5476,10 +5476,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -5658,10 +5658,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -5981,10 +5981,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -6278,8 +6278,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -6549,8 +6549,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -6815,8 +6815,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -7081,8 +7081,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -7414,8 +7414,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -7747,8 +7747,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -8080,8 +8080,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -8426,8 +8426,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -8523,10 +8523,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -8985,8 +8985,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -9082,10 +9082,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -9544,8 +9544,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -9641,10 +9641,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -10095,8 +10095,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -10192,10 +10192,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -10646,8 +10646,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -10743,10 +10743,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -11197,8 +11197,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -11294,10 +11294,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -11740,8 +11740,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -11830,10 +11830,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -12263,8 +12263,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -12360,10 +12360,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -12798,8 +12798,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -12895,10 +12895,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -13333,8 +13333,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -13430,10 +13430,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -13868,8 +13868,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -13965,10 +13965,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -14403,8 +14403,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -14500,10 +14500,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -14962,8 +14962,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -15059,10 +15059,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -15521,8 +15521,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -15618,10 +15618,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -16092,8 +16092,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -16189,10 +16189,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -16663,8 +16663,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -16760,10 +16760,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -17222,8 +17222,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -17319,10 +17319,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -17781,8 +17781,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -17878,10 +17878,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -18340,8 +18340,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -18437,10 +18437,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -18899,8 +18899,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -18996,10 +18996,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -19458,8 +19458,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -19555,10 +19555,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -20017,8 +20017,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -20114,10 +20114,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -20130,9 +20130,9 @@
                     "values": [
                         "operand",
                         "function",
-                        "functionargument",
-                        "numoperands",
-                        "recursiveoperands"
+                        "functionArgument",
+                        "numOperands",
+                        "recursiveOperands"
                     ]
                 },
                 {
@@ -20574,8 +20574,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -20617,10 +20617,10 @@
                 {
                     "name": "labelPosition",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -21164,8 +21164,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -21207,10 +21207,10 @@
                 {
                     "name": "labelPosition",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -21754,8 +21754,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -21797,10 +21797,10 @@
                 {
                     "name": "labelPosition",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -22366,10 +22366,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -38178,10 +38178,10 @@
                 {
                     "name": "labelPosition",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -38626,10 +38626,10 @@
                 {
                     "name": "labelPosition",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "center",
                         "top",
                         "bottom",
@@ -39035,10 +39035,10 @@
                 {
                     "name": "labelPosition",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -40257,8 +40257,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -40354,10 +40354,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -42217,10 +42217,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -46073,10 +46073,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -46955,8 +46955,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -47406,8 +47406,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -47503,10 +47503,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -49129,10 +49129,10 @@
                 {
                     "name": "labelPosition",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -49502,8 +49502,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -49592,10 +49592,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -50081,10 +50081,10 @@
                 {
                     "name": "labelPosition",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "center",
                         "top",
                         "bottom",
@@ -50403,10 +50403,10 @@
                 {
                     "name": "labelPosition",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "center",
                         "top",
                         "bottom",
@@ -50680,10 +50680,10 @@
                 {
                     "name": "labelPosition",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "center",
                         "top",
                         "bottom",
@@ -53035,10 +53035,10 @@
                 {
                     "name": "labelPosition",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -53536,10 +53536,10 @@
                 {
                     "name": "labelPosition",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -54001,10 +54001,10 @@
                 {
                     "name": "labelPosition",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -55071,10 +55071,10 @@
                 {
                     "name": "labelPosition",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "center",
                         "top",
                         "bottom",
@@ -55910,8 +55910,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -56572,8 +56572,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -57012,8 +57012,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -57867,10 +57867,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -58261,10 +58261,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -59306,10 +59306,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -59649,10 +59649,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -60534,8 +60534,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -60577,10 +60577,10 @@
                 {
                     "name": "labelPosition",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -61034,8 +61034,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -61071,10 +61071,10 @@
                 {
                     "name": "labelPosition",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -61581,8 +61581,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -61671,10 +61671,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -68859,8 +68859,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -68956,10 +68956,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -69339,7 +69339,7 @@
                     "name": "type",
                     "values": [
                         "uniform",
-                        "discreteuniform",
+                        "discreteUniform",
                         "gaussian"
                     ]
                 },
@@ -69520,7 +69520,7 @@
                     "name": "type",
                     "values": [
                         "uniform",
-                        "discreteuniform",
+                        "discreteUniform",
                         "gaussian"
                     ]
                 },
@@ -70242,8 +70242,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -70428,8 +70428,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -70525,10 +70525,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -70994,10 +70994,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -71867,10 +71867,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -72222,10 +72222,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -73654,10 +73654,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -73694,8 +73694,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 }
             ],
@@ -73866,10 +73866,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -74056,10 +74056,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -76115,10 +76115,10 @@
                 {
                     "name": "labelPosition",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -77671,8 +77671,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -77768,10 +77768,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -78566,10 +78566,10 @@
                 {
                     "name": "labelPosition",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "center",
                         "top",
                         "bottom",
@@ -79941,8 +79941,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -80615,10 +80615,10 @@
                 {
                     "name": "position",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft"
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft"
                     ]
                 },
                 {
@@ -80928,10 +80928,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -81202,8 +81202,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -81540,8 +81540,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 {
@@ -81637,10 +81637,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -82387,10 +82387,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -84210,10 +84210,10 @@
                 {
                     "name": "positionFromAnchor",
                     "values": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",

@@ -19,7 +19,7 @@ export function answerSugar(node: DastElement) {
     if (
         typeChildren.length === 1 &&
         typeChildren[0].type === "text" &&
-        typeChildren[0].value === "videoWatched"
+        typeChildren[0].value.toLowerCase() === "videowatched"
     ) {
         // If node already has an award child, then skip applying sugar.
         // This is to prevent the sugar from being applied multiple times,

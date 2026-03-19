@@ -47,6 +47,7 @@ export default class Tabular extends BlockComponent {
             createStateVariable: "halign",
             defaultValue: "left",
             public: true,
+            toLowerCase: true,
             validValues: ["left", "center", "right", "justify"],
         };
         attributes.valign = {
@@ -54,6 +55,7 @@ export default class Tabular extends BlockComponent {
             createStateVariable: "valign",
             defaultValue: "middle",
             public: true,
+            toLowerCase: true,
             validValues: ["top", "middle", "bottom"],
         };
         attributes.top = {
@@ -61,6 +63,7 @@ export default class Tabular extends BlockComponent {
             createStateVariable: "top",
             defaultValue: "none",
             public: true,
+            toLowerCase: true,
             validValues: ["none", "minor", "medium", "major"],
             forRenderer: true,
         };
@@ -69,6 +72,7 @@ export default class Tabular extends BlockComponent {
             createStateVariable: "left",
             defaultValue: "none",
             public: true,
+            toLowerCase: true,
             validValues: ["none", "minor", "medium", "major"],
         };
         attributes.bottom = {
@@ -76,6 +80,7 @@ export default class Tabular extends BlockComponent {
             createStateVariable: "bottom",
             defaultValue: "none",
             public: true,
+            toLowerCase: true,
             validValues: ["none", "minor", "medium", "major"],
         };
         attributes.right = {
@@ -83,6 +88,7 @@ export default class Tabular extends BlockComponent {
             createStateVariable: "right",
             defaultValue: "none",
             public: true,
+            toLowerCase: true,
             validValues: ["none", "minor", "medium", "major"],
         };
         return attributes;

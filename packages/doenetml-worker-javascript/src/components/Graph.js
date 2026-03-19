@@ -71,6 +71,7 @@ export default class Graph extends BlockComponent {
             createStateVariable: "displayMode",
             validValues: ["block", "inline"],
             defaultValue: "block",
+            toLowerCase: true,
             forRenderer: true,
             public: true,
         };
@@ -80,6 +81,7 @@ export default class Graph extends BlockComponent {
             createStateVariable: "horizontalAlign",
             validValues: ["center", "left", "right"],
             defaultValue: "center",
+            toLowerCase: true,
             forRenderer: true,
             public: true,
         };

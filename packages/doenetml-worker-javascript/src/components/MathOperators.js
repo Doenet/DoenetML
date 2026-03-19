@@ -1170,9 +1170,9 @@ export class ExtractMath extends MathBaseOperatorOneInput {
             validValues: [
                 "operand",
                 "function",
-                "functionargument",
-                "numoperands",
-                "recursiveoperands",
+                "functionArgument",
+                "numOperands",
+                "recursiveOperands",
             ],
         };
         attributes.operandNumber = {

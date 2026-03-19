@@ -13714,15 +13714,13 @@ export default class Core {
 function validateAttributeValue({ value, attributeSpecification, attribute }) {
     let warnings = [];
 
+    const valueOrig = value;
+
     if (
         attributeSpecification.transformNonFiniteTo !== undefined &&
         !Number.isFinite(value)
     ) {
         value = attributeSpecification.transformNonFiniteTo;
-    }
-
-    if (attributeSpecification.toLowerCase) {
-        value = value.toLowerCase();
     }
 
     // `validValues` implies `trim` so that extra spaces don't break the matches
@@ -13731,7 +13729,13 @@ function validateAttributeValue({ value, attributeSpecification, attribute }) {
     }
 
     if (attributeSpecification.validValues) {
-        if (!attributeSpecification.validValues.includes(value)) {
+        const validValues = attributeSpecification.toLowerCase
+            ? attributeSpecification.validValues.map((v) => v.toLowerCase())
+            : attributeSpecification.validValues;
+        if (attributeSpecification.toLowerCase) {
+            value = value.toLowerCase();
+        }
+        if (!validValues.includes(value)) {
             let defaultValue = attributeSpecification.defaultValue;
             if (defaultValue === undefined) {
                 if (attributeSpecification.createPrimitiveOfType) {
@@ -13744,7 +13748,7 @@ function validateAttributeValue({ value, attributeSpecification, attribute }) {
                 }
             }
             warnings.push({
-                message: `Invalid value ${value} for attribute ${attribute}, using value ${defaultValue}`,
+                message: `Invalid value ${valueOrig} for attribute ${attribute}, using value ${defaultValue}`,
                 level: 2,
             });
             value = defaultValue;
@@ -13757,6 +13761,10 @@ function validateAttributeValue({ value, attributeSpecification, attribute }) {
         } else if (!Number.isFinite(value)) {
             value = attributeSpecification.defaultValue;
         }
+    }
+
+    if (attributeSpecification.toLowerCase && typeof value === "string") {
+        value = value.toLowerCase();
     }
 
     return { value, warnings };

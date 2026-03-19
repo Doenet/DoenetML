@@ -54,8 +54,8 @@ export default class Function extends InlineComponent {
                 "none",
                 "full",
                 "numbers",
-                "numberspreserveorder",
-                "normalizeorder",
+                "numbersPreserveOrder",
+                "normalizeOrder",
             ],
         };
         attributes.expand = {
@@ -102,15 +102,15 @@ export default class Function extends InlineComponent {
         attributes.labelPosition = {
             createComponentOfType: "text",
             createStateVariable: "labelPosition",
-            defaultValue: "upperright",
+            defaultValue: "upperRight",
             public: true,
             forRenderer: true,
             toLowerCase: true,
             validValues: [
-                "upperright",
-                "upperleft",
-                "lowerright",
-                "lowerleft",
+                "upperRight",
+                "upperLeft",
+                "lowerRight",
+                "lowerLeft",
                 "top",
                 "bottom",
                 "left",
