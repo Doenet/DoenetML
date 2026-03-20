@@ -245,4 +245,30 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
             .last()
             .should("have.attr", "id", "tr-input-label");
     });
+
+    it("focused state variable updates on focus and blur", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><textInput name="ti">
+      <label>hello</label>
+    </textInput></p>
+    <p name="fv">focused: <boolean extend="$ti.focused" /></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#fv").should("have.text", "focused: false");
+
+        cy.log("Focus the input: focused becomes true");
+        cy.get("#ti_input").focus();
+        cy.get("#fv").should("have.text", "focused: true");
+
+        cy.log("Blur the input: focused becomes false");
+        cy.get("#ti_input").blur();
+        cy.get("#fv").should("have.text", "focused: false");
+    });
 });

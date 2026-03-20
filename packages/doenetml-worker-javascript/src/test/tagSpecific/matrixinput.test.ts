@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
+    focusChanged,
     updateMathInputValue,
     updateMatrixInputImmediateValue,
     updateMatrixInputNumColumns,
@@ -2451,5 +2452,59 @@ describe("MathInput tag tests @group3", async () => {
         );
         expect(errorWarnings.errors[1].position.start.line).eq(6);
         expect(errorWarnings.errors[1].position.end.line).eq(6);
+    });
+
+    it("focused state variable", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <matrixInput name="mi" numRows="1" numColumns="2">
+      <label>hello</label>
+    </matrixInput>
+    <boolean extend="$mi.focused" name="f" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                .focused,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(false);
+
+        // Get the first matrix cell input component index
+        const miStateVars = stateVariables[await resolvePathToNodeIdx("mi")];
+        const cellIdx = miStateVars.activeChildren[0].componentIdx;
+
+        // Focus the first cell
+        await focusChanged({
+            focused: true,
+            componentIdx: cellIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                .focused,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(true);
+
+        // Blur the first cell
+        await focusChanged({
+            focused: false,
+            componentIdx: cellIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                .focused,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(false);
     });
 });

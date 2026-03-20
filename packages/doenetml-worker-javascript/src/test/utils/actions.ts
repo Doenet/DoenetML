@@ -645,3 +645,19 @@ export async function updateSelectedIndices({
         args: { selectedIndices },
     });
 }
+
+export async function focusChanged({
+    componentIdx,
+    focused,
+    core,
+}: {
+    componentIdx: number;
+    focused: boolean;
+    core: PublicDoenetMLCore;
+}) {
+    await core.requestAction({
+        componentIdx,
+        actionName: "focusChanged",
+        args: { focused },
+    });
+}
