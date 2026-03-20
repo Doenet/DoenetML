@@ -3374,8 +3374,9 @@ export default class Core {
                     component,
                     replacements: serializedReplacements,
                     componentInfoObjects: this.componentInfoObjects,
-                    compositeAttributesObj:
-                        preprocessAttributesObject(component.constructor.createAttributesObject()),
+                    compositeAttributesObj: preprocessAttributesObject(
+                        component.constructor.createAttributesObject(),
+                    ),
                     components: this._components,
                     nComponents: newNComponents,
                     stateIdInfo,
@@ -3992,7 +3993,9 @@ export default class Core {
         componentClass,
         stateVariableDefinitions,
     }) {
-        let attributes = preprocessAttributesObject(componentClass.createAttributesObject());
+        let attributes = preprocessAttributesObject(
+            componentClass.createAttributesObject(),
+        );
 
         for (let attrName in attributes) {
             let attributeSpecification = attributes[attrName];
@@ -4308,7 +4311,9 @@ export default class Core {
                 redefineDependencies.adapterTargetIdentity.componentIdx
             ];
 
-        let attributes = preprocessAttributesObject(componentClass.createAttributesObject());
+        let attributes = preprocessAttributesObject(
+            componentClass.createAttributesObject(),
+        );
 
         for (let attrName in attributes) {
             let attributeSpecification = attributes[attrName];
@@ -4537,7 +4542,9 @@ export default class Core {
         // - first on attributes from component attribute components, if they exist
         // - then on targetComponent (if not copying a prop and attribute exists in targetComponent)
 
-        let attributes = preprocessAttributesObject(componentClass.createAttributesObject());
+        let attributes = preprocessAttributesObject(
+            componentClass.createAttributesObject(),
+        );
 
         for (let attrName in attributes) {
             let attributeSpecification = attributes[attrName];
@@ -10909,8 +10916,9 @@ export default class Core {
 
                 // TODO: is isResponse the only attribute to convert?
                 if (shadowingComponent.attributes.isResponse) {
-                    let compositeAttributesObj =
-                        preprocessAttributesObject(shadowingComponent.constructor.createAttributesObject());
+                    let compositeAttributesObj = preprocessAttributesObject(
+                        shadowingComponent.constructor.createAttributesObject(),
+                    );
 
                     for (let repl of newSerializedReplacements) {
                         if (typeof repl !== "object") {
@@ -13724,19 +13732,17 @@ function validateAttributeValue({ value, attributeSpecification, attribute }) {
         value = attributeSpecification.transformNonFiniteTo;
     }
 
+    if (attributeSpecification.toLowerCase) {
+        value = value.toLowerCase();
+    }
+
     // `validValues` implies `trim` so that extra spaces don't break the matches
     if (attributeSpecification.trim || attributeSpecification.validValues) {
         value = value.trim();
     }
 
     if (attributeSpecification.validValues) {
-        const validValues = attributeSpecification.toLowerCase
-            ? attributeSpecification.validValues.map((v) => v.toLowerCase())
-            : attributeSpecification.validValues;
-        if (attributeSpecification.toLowerCase) {
-            value = value.toLowerCase();
-        }
-        if (!validValues.includes(value)) {
+        if (!attributeSpecification.validValues.includes(value)) {
             let defaultValue = attributeSpecification.defaultValue;
             if (defaultValue === undefined) {
                 if (attributeSpecification.createPrimitiveOfType) {
@@ -13762,10 +13768,6 @@ function validateAttributeValue({ value, attributeSpecification, attribute }) {
         } else if (!Number.isFinite(value)) {
             value = attributeSpecification.defaultValue;
         }
-    }
-
-    if (attributeSpecification.toLowerCase && typeof value === "string") {
-        value = value.toLowerCase();
     }
 
     return { value, warnings };
