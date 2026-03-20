@@ -2888,6 +2888,27 @@ export class MatrixInput extends Input {
             markStale: () => ({ updateRenderedChildren: true }),
         };
 
+        stateVariableDefinitions.focused = {
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            returnDependencies: () => ({
+                inputChildren: {
+                    dependencyType: "child",
+                    childGroups: ["matrixComponentInputs"],
+                    variableNames: ["focused"],
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    focused: dependencyValues.inputChildren.some(
+                        (child) => child.stateValues.focused,
+                    ),
+                },
+            }),
+        };
+
         return stateVariableDefinitions;
     }
 
@@ -3348,8 +3369,10 @@ export default class MatrixComponentInput extends BaseComponent {
         Object.assign(this.actions, {
             updateRawValue: this.updateRawValue.bind(this),
             updateValue: this.updateValue.bind(this),
+            focusChanged: this.focusChanged.bind(this),
         });
     }
+
     static componentType = "_matrixComponentInput";
     static rendererType = "mathInput";
 
@@ -3890,6 +3913,31 @@ export default class MatrixComponentInput extends BaseComponent {
             definition: () => ({ setValue: { componentType: "math" } }),
         };
 
+        stateVariableDefinitions.focused = {
+            forRenderer: true,
+            hasEssential: true,
+            defaultValue: false,
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            returnDependencies: () => ({}),
+            definition: () => ({
+                useEssentialOrDefaultValue: { focused: true },
+            }),
+            inverseDefinition({ desiredStateVariableValues }) {
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue: "focused",
+                            value: Boolean(desiredStateVariableValues.focused),
+                        },
+                    ],
+                };
+            },
+        };
+
         return stateVariableDefinitions;
     }
 
@@ -4019,5 +4067,21 @@ export default class MatrixComponentInput extends BaseComponent {
                 });
             }
         }
+    }
+
+    async focusChanged({ focused, actionId, sourceInformation }) {
+        return await this.coreFunctions.performUpdate({
+            updateInstructions: [
+                {
+                    updateType: "updateValue",
+                    componentIdx: this.componentIdx,
+                    stateVariable: "focused",
+                    value: focused,
+                },
+            ],
+            actionId,
+            sourceInformation,
+            doNotSave: true,
+        });
     }
 }
