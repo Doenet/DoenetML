@@ -380,7 +380,16 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         );
 
         const labelComponent = hasLabel ? (
-            <label id={labelId} htmlFor={inlineInputId}>
+            <label
+                id={labelId}
+                htmlFor={inlineInputId}
+                style={{
+                    marginRight:
+                        SVs.labelPosition === "right" ? undefined : "4px",
+                    marginLeft:
+                        SVs.labelPosition === "right" ? "4px" : undefined,
+                }}
+            >
                 {label}
             </label>
         ) : null;

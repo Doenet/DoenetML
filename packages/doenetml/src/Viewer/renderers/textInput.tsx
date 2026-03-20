@@ -669,7 +669,14 @@ export default function TextInput(props: UseDoenetRendererProps) {
     );
 
     const labelComponent = hasLabel ? (
-        <label id={labelId} htmlFor={inputKey}>
+        <label
+            id={labelId}
+            htmlFor={inputKey}
+            style={{
+                marginRight: SVs.labelPosition === "right" ? undefined : "2px",
+                marginLeft: SVs.labelPosition === "right" ? "2px" : undefined,
+            }}
+        >
             {label}
         </label>
     ) : null;

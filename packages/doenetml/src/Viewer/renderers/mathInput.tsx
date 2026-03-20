@@ -623,7 +623,15 @@ export default function MathInput(props: UseDoenetRendererProps) {
     }
 
     const labelComponent = hasLabel ? (
-        <label id={labelId}>{label}</label>
+        <label
+            id={labelId}
+            style={{
+                marginRight: SVs.labelPosition === "right" ? undefined : "2px",
+                marginLeft: SVs.labelPosition === "right" ? "2px" : undefined,
+            }}
+        >
+            {label}
+        </label>
     ) : null;
 
     const inputRow = (
