@@ -124,4 +124,39 @@ describe("MatrixInput Tag Tests", { tags: ["@group4"] }, function () {
         cy.get("#mi [data-test='Description']").should("not.exist");
         cy.get("#mi table").should("not.have.attr", "aria-details");
     });
+
+    it("labelPosition left and right", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p>
+    <matrixInput name="ml" labelPosition="left">
+      <label>left</label>
+    </matrixInput>
+    </p>
+
+    <p>
+    <matrixInput name="mr" labelPosition="right">
+      <label>right</label>
+    </matrixInput>
+    </p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.log("Left matrixInput: label before matrix input row");
+        cy.get("#ml-container")
+            .children()
+            .eq(0)
+            .should("have.attr", "id", "ml-label");
+
+        cy.log("Right matrixInput: label after matrix input row");
+        cy.get("#mr-container")
+            .children()
+            .last()
+            .should("have.attr", "id", "mr-label");
+    });
 });

@@ -1189,4 +1189,43 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         cy.get("#ci-label [data-test='Description']").should("not.exist");
         cy.get("#ci input").should("not.have.attr", "aria-details");
     });
+
+    it("inline labelPosition left and right", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p>Left label:
+    <choiceInput name="cil" inline labelPosition="left">
+      <label>left</label>
+      <choice>a</choice>
+      <choice>b</choice>
+    </choiceInput>
+    </p>
+
+    <p>Right label:
+    <choiceInput name="cir" inline labelPosition="right">
+      <label>right</label>
+      <choice>a</choice>
+      <choice>b</choice>
+    </choiceInput>
+    </p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.log("Left inline choiceInput: label before input row");
+        cy.get("#cil-container")
+            .children()
+            .eq(0)
+            .should("have.attr", "id", "cil-label");
+
+        cy.log("Right inline choiceInput: label after input row");
+        cy.get("#cir-container")
+            .children()
+            .last()
+            .should("have.attr", "id", "cir-label");
+    });
 });

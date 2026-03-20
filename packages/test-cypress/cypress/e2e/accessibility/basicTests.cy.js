@@ -1338,4 +1338,31 @@ describe("Basic accessibility tests", { tags: ["@group5"] }, function () {
             // onlyWarnImpacts: ["moderate", "minor"],
         });
     });
+
+    it("Inputs with labelPosition pass accessibility checks", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p>
+    <textInput name="ti" labelPosition="right"><label>Text</label></textInput>
+    </p>
+    <p>
+    <mathInput name="mi" labelPosition="left"><label>Math</label></mathInput>
+    </p>
+    <p>
+    <booleanInput name="bi" labelPosition="right"><label>Boolean</label></booleanInput>
+    </p>
+                    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ti").should("be.visible");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
 });
