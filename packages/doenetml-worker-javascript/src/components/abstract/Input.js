@@ -20,6 +20,16 @@ export default class Input extends InlineComponent {
             excludeFromSchema: true,
         };
 
+        attributes.labelPosition = {
+            createComponentOfType: "text",
+            createStateVariable: "labelPosition",
+            defaultValue: "left",
+            public: true,
+            forRenderer: true,
+            toLowerCase: true,
+            validValues: ["left", "right"],
+        };
+
         attributes.forAnswer = {
             createReferences: true,
         };

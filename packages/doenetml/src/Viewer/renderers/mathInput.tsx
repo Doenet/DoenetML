@@ -570,6 +570,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
     );
 
     let label = SVs.label;
+    const hasLabel =
+        typeof SVs.label === "string" ? SVs.label.trim() !== "" : !!SVs.label;
+    const labelId = `${id}-input-label`;
     if (SVs.labelHasLatex) {
         label = (
             <MathJax hideUntilTypeset={"first"} inline dynamic>
@@ -619,78 +622,114 @@ export default function MathInput(props: UseDoenetRendererProps) {
         );
     }
 
+    const labelComponent = hasLabel ? (
+        <label
+            id={labelId}
+            style={{
+                marginRight: SVs.labelPosition === "right" ? undefined : "2px",
+                marginLeft: SVs.labelPosition === "right" ? "2px" : undefined,
+            }}
+        >
+            {label}
+        </label>
+    ) : null;
+
+    const inputRow = (
+        <span
+            style={{
+                display: "inline-flex",
+                alignItems: "flex-start",
+            }}
+        >
+            <Ariakit.PopoverAnchor
+                store={preview.previewPopover}
+                className="mathInputWrapper"
+                style={{
+                    cursor: mathInputWrapperCursor,
+                    display: "block",
+                }}
+            >
+                <EditableMathField
+                    style={mathInputStyle}
+                    latex={rendererValue.current}
+                    aria-labelledby={hasLabel ? labelId : undefined}
+                    ariaLabel={!hasLabel ? shortDescription : undefined}
+                    aria-description={hasLabel ? shortDescription : undefined}
+                    aria-details={ariaDetailsIds || undefined}
+                    config={{
+                        autoCommands:
+                            "alpha beta gamma delta epsilon zeta eta mu nu xi omega rho sigma tau phi chi psi omega iota kappa lambda Gamma Delta Xi Omega Sigma Phi Psi Omega Lambda sqrt pi Pi theta Theta integral infinity forall exists",
+                        autoOperatorNames:
+                            "arg deg det dim exp gcd hom ker lg lim ln log max min" +
+                            " Pr" +
+                            " cos cosh acos acosh arccos arccosh" +
+                            " cot coth acot acoth arccot arccoth" +
+                            " csc csch acsc acsch arccsc arccsch" +
+                            " sec sech asec asech arcsec arcsech" +
+                            " sin sinh asin asinh arcsin arcsinh" +
+                            " tan tanh atan atanh arctan arctanh" +
+                            " nPr nCr",
+                        handlers: {
+                            enter: handlePressEnter,
+                        },
+                        substituteTextarea: function () {
+                            textareaRef.current =
+                                document.createElement("textarea");
+                            textareaRef.current.disabled = SVs.disabled;
+                            textareaRef.current.addEventListener(
+                                "keydown",
+                                (event) => {
+                                    if (event.key === "Escape") {
+                                        // Match preview Escape behavior: dismiss the
+                                        // popover until the next user interaction.
+                                        preview.dismissPreview();
+                                    }
+                                },
+                            );
+                            return textareaRef.current;
+                        },
+                    }}
+                    onChange={(mField: any) => {
+                        onChangeHandler(mField.latex());
+                    }}
+                    onBlur={handleBlur}
+                    onFocus={handleFocus}
+                    mathquillDidMount={(mf: any) => {
+                        setMathField(mf);
+                    }}
+                />
+            </Ariakit.PopoverAnchor>
+            <MathInputPreviewPopover
+                preview={preview}
+                showPreview={SVs.showPreview}
+                immediateValueLatex={preview.debouncedImmediateValueLatex}
+            />
+            {checkWorkComponent}
+            {description}
+        </span>
+    );
+
     return (
         <React.Fragment>
             <span
                 id={id}
-                style={{ display: "inline-flex", alignItems: "start" }}
+                style={{
+                    display: "inline-flex",
+                    maxWidth: "100%",
+                    alignItems: "baseline",
+                }}
             >
-                <label style={{ display: "inline-flex", maxWidth: "100%" }}>
-                    {label}
-                    <Ariakit.PopoverAnchor
-                        store={preview.previewPopover}
-                        className="mathInputWrapper"
-                        style={{
-                            cursor: mathInputWrapperCursor,
-                            display: "block",
-                        }}
-                    >
-                        <EditableMathField
-                            style={mathInputStyle}
-                            latex={rendererValue.current}
-                            ariaLabel={shortDescription}
-                            aria-details={ariaDetailsIds || undefined}
-                            config={{
-                                autoCommands:
-                                    "alpha beta gamma delta epsilon zeta eta mu nu xi omega rho sigma tau phi chi psi omega iota kappa lambda Gamma Delta Xi Omega Sigma Phi Psi Omega Lambda sqrt pi Pi theta Theta integral infinity forall exists",
-                                autoOperatorNames:
-                                    "arg deg det dim exp gcd hom ker lg lim ln log max min" +
-                                    " Pr" +
-                                    " cos cosh acos acosh arccos arccosh" +
-                                    " cot coth acot acoth arccot arccoth" +
-                                    " csc csch acsc acsch arccsc arccsch" +
-                                    " sec sech asec asech arcsec arcsech" +
-                                    " sin sinh asin asinh arcsin arcsinh" +
-                                    " tan tanh atan atanh arctan arctanh" +
-                                    " nPr nCr",
-                                handlers: {
-                                    enter: handlePressEnter,
-                                },
-                                substituteTextarea: function () {
-                                    textareaRef.current =
-                                        document.createElement("textarea");
-                                    textareaRef.current.disabled = SVs.disabled;
-                                    textareaRef.current.addEventListener(
-                                        "keydown",
-                                        (event) => {
-                                            if (event.key === "Escape") {
-                                                // Match preview Escape behavior: dismiss the
-                                                // popover until the next user interaction.
-                                                preview.dismissPreview();
-                                            }
-                                        },
-                                    );
-                                    return textareaRef.current;
-                                },
-                            }}
-                            onChange={(mField: any) => {
-                                onChangeHandler(mField.latex());
-                            }}
-                            onBlur={handleBlur}
-                            onFocus={handleFocus}
-                            mathquillDidMount={(mf: any) => {
-                                setMathField(mf);
-                            }}
-                        />
-                    </Ariakit.PopoverAnchor>
-                </label>
-                <MathInputPreviewPopover
-                    preview={preview}
-                    showPreview={SVs.showPreview}
-                    immediateValueLatex={preview.debouncedImmediateValueLatex}
-                />
-                {checkWorkComponent}
-                {description}
+                {SVs.labelPosition === "right" ? (
+                    <>
+                        {inputRow}
+                        {labelComponent}
+                    </>
+                ) : (
+                    <>
+                        {labelComponent}
+                        {inputRow}
+                    </>
+                )}
             </span>
         </React.Fragment>
     );

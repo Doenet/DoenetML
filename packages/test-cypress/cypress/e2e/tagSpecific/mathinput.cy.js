@@ -1,4 +1,3 @@
-import { cesc } from "@doenet/utils";
 import { toMathJaxString } from "../../../src/util/mathDisplay";
 
 function postDoenetML(doenetML) {
@@ -42,16 +41,16 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
             );
         });
 
-        cy.get(cesc("#a2")).should("contain.text", "＿");
+        cy.get("#a2").should("contain.text", "＿");
 
-        cy.get(cesc("#a") + " textarea").type("sqrt4{enter}", {
+        cy.get("#a" + " textarea").type("sqrt4{enter}", {
             force: true,
         });
 
-        // cy.get(cesc("#a") + " .mq-editable-field").should("contain.text", "√4");
-        cy.get(cesc("#a") + " .mq-editable-field").should("contain.text", "4");
-        cy.get(cesc("#a2")).should("contain.text", "4");
-        cy.get(cesc("#a3")).should("contain.text", "2");
+        // cy.get(("#a") + " .mq-editable-field").should("contain.text", "√4");
+        cy.get("#a" + " .mq-editable-field").should("contain.text", "4");
+        cy.get("#a2").should("contain.text", "4");
+        cy.get("#a3").should("contain.text", "2");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -61,7 +60,7 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
             ).eqls(["apply", "sqrt", 4]);
         });
 
-        // cy.get(cesc("#a") + " .mq-editable-field")
+        // cy.get(("#a") + " .mq-editable-field")
         //     .invoke("text")
         //     .then((text) => {
         //         expect(text.replace(/[\s\u200B-\u200D\uFEFF]/g, "")).equal(
@@ -90,15 +89,15 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
 
         // by highlighting and typing a number, we make sure the rendererValue changes directly
         // from 10 to 20 and back to 10 (without other changes that would hide the bug)
-        cy.get(cesc("#n") + " textarea")
+        cy.get("#n" + " textarea")
             .type("{home}{shift+rightArrow}2", { force: true })
             .blur();
-        cy.get(cesc("#n2")).should("contain.text", "20");
+        cy.get("#n2").should("contain.text", "20");
 
-        cy.get(cesc("#n") + " textarea")
+        cy.get("#n" + " textarea")
             .type("{home}{shift+rightArrow}1", { force: true })
             .blur();
-        cy.get(cesc("#n2")).should("contain.text", "10");
+        cy.get("#n2").should("contain.text", "10");
     });
 
     it("check ignoreUpdate bug 2", () => {
@@ -120,22 +119,22 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
             );
         });
 
-        cy.get(cesc("#c2")).should("have.text", toMathJaxString("x"));
+        cy.get("#c2").should("have.text", toMathJaxString("x"));
 
-        cy.get(cesc("#c") + " textarea").type("{end}y{enter}", {
+        cy.get("#c" + " textarea").type("{end}y{enter}", {
             force: true,
         });
-        cy.get(cesc("#d") + " textarea").focus();
+        cy.get("#d" + " textarea").focus();
 
-        cy.get(cesc("#c2")).should("have.text", toMathJaxString("xy"));
-        cy.get(cesc("#c") + " .mq-editable-field").should("contain.text", "xy");
+        cy.get("#c2").should("have.text", toMathJaxString("xy"));
+        cy.get("#c" + " .mq-editable-field").should("contain.text", "xy");
 
         // need next update to go back to x for the bug to be revealed
-        cy.get(cesc("#c") + " textarea").type("{end}{backspace}{enter}", {
+        cy.get("#c" + " textarea").type("{end}{backspace}{enter}", {
             force: true,
         });
-        cy.get(cesc("#c2")).should("not.have.text", toMathJaxString("xy"));
-        cy.get(cesc("#c") + " .mq-editable-field").should("contain.text", "x");
+        cy.get("#c2").should("not.have.text", toMathJaxString("xy"));
+        cy.get("#c" + " .mq-editable-field").should("contain.text", "x");
     });
 
     it("set value from immediateValue on reload", () => {
@@ -160,12 +159,12 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
             );
         });
 
-        cy.get(cesc("#pv")).should("contain.text", "value: \uff3f");
+        cy.get("#pv").should("contain.text", "value: \uff3f");
 
-        cy.get(cesc("#n") + " textarea").type("1", { force: true });
+        cy.get("#n" + " textarea").type("1", { force: true });
 
-        cy.get(cesc("#piv")).should("have.text", "immediate value: 1");
-        cy.get(cesc("#pv")).should("contain.text", "value: \uff3f");
+        cy.get("#piv").should("have.text", "immediate value: 1");
+        cy.get("#pv").should("contain.text", "value: \uff3f");
 
         cy.wait(1500); // wait for debounce
 
@@ -180,8 +179,8 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
             );
         });
 
-        cy.get(cesc("#pv")).should("have.text", "value: 1");
-        cy.get(cesc("#piv")).should("have.text", "immediate value: 1");
+        cy.get("#pv").should("have.text", "value: 1");
+        cy.get("#piv").should("have.text", "immediate value: 1");
     });
 
     it("minWidth attribute", () => {
@@ -198,70 +197,70 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
             );
         });
 
-        cy.get(cesc("#mw") + " .mq-editable-field").should(
+        cy.get("#mw" + " .mq-editable-field").should(
             "have.css",
             "min-width",
             "50px",
         );
 
-        cy.get(cesc("#result") + " .mq-editable-field").should(
+        cy.get("#result" + " .mq-editable-field").should(
             "have.css",
             "min-width",
             "0px",
         );
 
-        cy.get(cesc("#mw") + " textarea").type("{end}{backspace}100{enter}", {
+        cy.get("#mw" + " textarea").type("{end}{backspace}100{enter}", {
             force: true,
         });
-        cy.get(cesc("#result") + " .mq-editable-field").should(
+        cy.get("#result" + " .mq-editable-field").should(
             "have.css",
             "min-width",
             "100px",
         );
 
-        cy.get(cesc("#mw") + " textarea").type(
+        cy.get("#mw" + " textarea").type(
             "{end}{backspace}{backspace}{backspace}{enter}",
             { force: true },
         );
-        cy.get(cesc("#result") + " .mq-editable-field").should(
+        cy.get("#result" + " .mq-editable-field").should(
             "have.css",
             "min-width",
             "50px",
         );
 
-        cy.get(cesc("#mw") + " textarea").type("{end}{backspace}40{enter}", {
+        cy.get("#mw" + " textarea").type("{end}{backspace}40{enter}", {
             force: true,
         });
-        cy.get(cesc("#result") + " .mq-editable-field").should(
+        cy.get("#result" + " .mq-editable-field").should(
             "have.css",
             "min-width",
             "40px",
         );
 
-        cy.get(cesc("#mw") + " textarea").type("{end}x{enter}", {
+        cy.get("#mw" + " textarea").type("{end}x{enter}", {
             force: true,
         });
-        cy.get(cesc("#result") + " .mq-editable-field").should(
+        cy.get("#result" + " .mq-editable-field").should(
             "have.css",
             "min-width",
             "50px",
         );
 
-        cy.get(cesc("#mw") + " textarea").type(
+        cy.get("#mw" + " textarea").type(
             "{end}{backspace}{backspace}7{enter}",
             { force: true },
         );
-        cy.get(cesc("#result") + " .mq-editable-field").should(
+        cy.get("#result" + " .mq-editable-field").should(
             "have.css",
             "min-width",
             "47px",
         );
 
-        cy.get(cesc("#mw") + " textarea").type(
+        cy.get("#mw" + " textarea").type(
             "{end}{backspace}{backspace}-20{enter}",
             { force: true },
         );
-        cy.get(cesc("#result") + " .mq-editable-field").should(
+        cy.get("#result" + " .mq-editable-field").should(
             "have.css",
             "min-width",
             "0px",
@@ -566,5 +565,33 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
             "not.have.attr",
             "aria-details",
         );
+    });
+
+    it("labelPosition left and right", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <p>Left label:
+    <mathInput name="ml" labelPosition="left">
+      <label>left</label>
+    </mathInput>
+    </p>
+    
+    <p>Right label:
+    <mathInput name="mr" labelPosition="right">
+      <label>right</label>
+    </mathInput>
+    </p>
+        `);
+
+        cy.log("Test left: label before input");
+        cy.get("#ml")
+            .children()
+            .eq(0)
+            .should("have.attr", "id", "ml-input-label");
+
+        cy.log("Test right: label after input");
+        cy.get("#mr")
+            .children()
+            .last()
+            .should("have.attr", "id", "mr-input-label");
     });
 });

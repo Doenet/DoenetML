@@ -124,6 +124,7 @@ export default class Choiceinput extends Input {
             forRenderer: true,
             defaultValue: false,
             hasEssential: true,
+            provideEssentialValuesInDefinition: true,
             returnDependencies: () => ({
                 inlineAttr: {
                     dependencyType: "attributeComponent",
@@ -134,22 +135,47 @@ export default class Choiceinput extends Input {
                     dependencyType: "parentStateVariable",
                     variableName: "inline",
                 },
+                labelPositionAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "labelPosition",
+                    variableNames: ["value"],
+                },
             }),
-            definition({ dependencyValues }) {
+            definition({ dependencyValues, essentialValues }) {
+                const setValue = {};
+                const useEssentialOrDefaultValue = {};
+                let isInline = false;
+
                 if (dependencyValues.inlineAttr) {
-                    return {
-                        setValue: {
-                            inline: dependencyValues.inlineAttr.stateValues
-                                .value,
-                        },
-                    };
+                    isInline = Boolean(
+                        dependencyValues.inlineAttr.stateValues.value,
+                    );
+                    setValue.inline = isInline;
                 } else if (dependencyValues.parentInline !== null) {
-                    return {
-                        setValue: { inline: dependencyValues.parentInline },
-                    };
+                    isInline = Boolean(dependencyValues.parentInline);
+                    setValue.inline = isInline;
                 } else {
-                    return { useEssentialOrDefaultValue: { inline: {} } };
+                    // since defaultValue for inline is false, isInline will be false if the essential value is undefined.
+                    isInline = Boolean(essentialValues.inline);
+                    useEssentialOrDefaultValue.inline = {};
                 }
+
+                const warnings = [];
+
+                if (dependencyValues.labelPositionAttr && !isInline) {
+                    warnings.push({
+                        message:
+                            "labelPosition is ignored for non-inline choiceInput",
+                        level: 1,
+                        position: dependencyValues.labelPositionAttr.position,
+                    });
+                }
+
+                return {
+                    setValue,
+                    useEssentialOrDefaultValue,
+                    sendWarnings: warnings,
+                };
             },
         };
 

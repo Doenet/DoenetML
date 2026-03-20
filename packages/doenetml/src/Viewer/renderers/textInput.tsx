@@ -564,6 +564,9 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
     let input;
     let label = SVs.label;
+    const hasLabel =
+        typeof SVs.label === "string" ? SVs.label.trim() !== "" : !!SVs.label;
+    const labelId = `${id}-input-label`;
     if (SVs.labelHasLatex) {
         label = (
             <MathJax hideUntilTypeset={"first"} inline dynamic>
@@ -602,57 +605,81 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
     if (SVs.expanded) {
         input = (
-            <label style={{ display: "inline-flex", maxWidth: "100%" }}>
-                {label}
-                <textarea
-                    key={inputKey}
-                    id={inputKey}
-                    value={rendererValue}
-                    disabled={disabled}
-                    onChange={onChangeHandler}
-                    onKeyPress={handleKeyPress}
-                    onKeyDown={handleKeyDown}
-                    onBlur={handleBlur}
-                    onFocus={handleFocus}
-                    className={inputClass}
-                    aria-label={shortDescription}
-                    aria-details={descriptionId}
-                    style={{
-                        margin: "0px 4px 4px 4px",
-                        color: "var(--canvasText)",
-                        background: "var(--canvas)",
-                    }}
-                />
-            </label>
+            <textarea
+                key={inputKey}
+                id={inputKey}
+                value={rendererValue}
+                disabled={disabled}
+                onChange={onChangeHandler}
+                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyDown}
+                onBlur={handleBlur}
+                onFocus={handleFocus}
+                className={inputClass}
+                aria-labelledby={hasLabel ? labelId : undefined}
+                aria-label={!hasLabel ? shortDescription : undefined}
+                aria-description={hasLabel ? shortDescription : undefined}
+                aria-details={descriptionId}
+                style={{
+                    margin: "0px 4px 4px 4px",
+                    color: "var(--canvasText)",
+                    background: "var(--canvas)",
+                }}
+            />
         );
     } else {
         input = (
-            <label style={{ display: "inline-flex", maxWidth: "100%" }}>
-                {label}
-                <input
-                    key={inputKey}
-                    id={inputKey}
-                    value={rendererValue}
-                    disabled={disabled}
-                    onChange={onChangeHandler}
-                    onKeyPress={handleKeyPress}
-                    onKeyDown={handleKeyDown}
-                    onBlur={handleBlur}
-                    onFocus={handleFocus}
-                    className={inputClass}
-                    aria-label={shortDescription}
-                    aria-details={descriptionId}
-                    style={{
-                        margin: "0px 4px 4px 4px",
-                        color: "var(--canvasText)",
-                        background: "var(--canvas)",
-                        width,
-                        height: "20px",
-                    }}
-                />
-            </label>
+            <input
+                key={inputKey}
+                id={inputKey}
+                value={rendererValue}
+                disabled={disabled}
+                onChange={onChangeHandler}
+                onKeyPress={handleKeyPress}
+                onKeyDown={handleKeyDown}
+                onBlur={handleBlur}
+                onFocus={handleFocus}
+                className={inputClass}
+                aria-labelledby={hasLabel ? labelId : undefined}
+                aria-label={!hasLabel ? shortDescription : undefined}
+                aria-description={hasLabel ? shortDescription : undefined}
+                aria-details={descriptionId}
+                style={{
+                    margin: "0px 4px 4px 4px",
+                    color: "var(--canvasText)",
+                    background: "var(--canvas)",
+                    width,
+                    height: "20px",
+                }}
+            />
         );
     }
+
+    const inputRow = (
+        <span
+            style={{
+                display: "inline-flex",
+                alignItems: "flex-start",
+            }}
+        >
+            {input}
+            {checkWorkComponent}
+            {description}
+        </span>
+    );
+
+    const labelComponent = hasLabel ? (
+        <label
+            id={labelId}
+            htmlFor={inputKey}
+            style={{
+                marginRight: SVs.labelPosition === "right" ? undefined : "2px",
+                marginLeft: SVs.labelPosition === "right" ? "2px" : undefined,
+            }}
+        >
+            {label}
+        </label>
+    ) : null;
 
     return (
         <span
@@ -660,12 +687,20 @@ export default function TextInput(props: UseDoenetRendererProps) {
             style={{
                 display: "inline-flex",
                 maxWidth: "100%",
-                alignItems: "start",
+                alignItems: "baseline",
             }}
         >
-            {input}
-            {checkWorkComponent}
-            {description}
+            {SVs.labelPosition === "right" ? (
+                <>
+                    {inputRow}
+                    {labelComponent}
+                </>
+            ) : (
+                <>
+                    {labelComponent}
+                    {inputRow}
+                </>
+            )}
         </span>
     );
 }

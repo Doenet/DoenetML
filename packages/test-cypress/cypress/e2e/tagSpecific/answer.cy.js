@@ -1140,10 +1140,10 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             cy.get("#answer15 button").should("contain.text", "Correct");
             cy.get("#answer16 button").should("contain.text", "Correct");
 
-            cy.get("#_id_" + inputIndices[16] + "-label").click();
-            cy.get("#_id_" + inputIndices[17] + "-label").click();
-            cy.get("#_id_" + inputIndices[18] + "-label").click();
-            cy.get("#_id_" + inputIndices[19] + "-label").click();
+            cy.get("#_id_" + inputIndices[16] + "-container").click();
+            cy.get("#_id_" + inputIndices[17] + "-container").click();
+            cy.get("#_id_" + inputIndices[18] + "-container").click();
+            cy.get("#_id_" + inputIndices[19] + "-container").click();
             cy.get("#_id_" + inputIndices[16] + "_button").click();
             cy.get("#_id_" + inputIndices[17] + "_button").click();
             cy.get("#answer19 button").click();
@@ -1242,10 +1242,10 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             cy.get("#answer15 button").should("contain.text", "Incorrect");
             cy.get("#answer16 button").should("contain.text", "Incorrect");
 
-            cy.get("#_id_" + inputIndices[16] + "-label").click();
-            cy.get("#_id_" + inputIndices[17] + "-label").click();
-            cy.get("#_id_" + inputIndices[18] + "-label").click();
-            cy.get("#_id_" + inputIndices[19] + "-label").click();
+            cy.get("#_id_" + inputIndices[16] + "-container").click();
+            cy.get("#_id_" + inputIndices[17] + "-container").click();
+            cy.get("#_id_" + inputIndices[18] + "-container").click();
+            cy.get("#_id_" + inputIndices[19] + "-container").click();
             cy.get("#_id_" + inputIndices[16] + "_button").click();
             cy.get("#_id_" + inputIndices[17] + "_button").click();
             cy.get("#answer19 button").click();
@@ -1330,9 +1330,9 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             cy.get("#answer15 button").should("contain.text", "Correct");
             cy.get("#answer16 button").should("contain.text", "Incorrect");
 
-            cy.get("#_id_" + inputIndices[16] + "-label").click();
+            cy.get("#_id_" + inputIndices[16] + "-container").click();
             cy.get("#_id_" + inputIndices[17] + "_input").should("be.disabled");
-            cy.get("#_id_" + inputIndices[18] + "-label").click();
+            cy.get("#_id_" + inputIndices[18] + "-container").click();
             cy.get("#_id_" + inputIndices[19] + "_input").should("be.disabled");
             cy.get("#_id_" + inputIndices[16] + "_button").click();
             cy.get("#_id_" + inputIndices[17] + "_button").should(
@@ -1605,10 +1605,10 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             cy.get("#answer15 button").should("contain.text", "Correct");
             cy.get("#answer16 button").should("contain.text", "Correct");
 
-            cy.get("#_id_" + inputIndices[16] + "-label").click();
-            cy.get("#_id_" + inputIndices[17] + "-label").click();
-            cy.get("#_id_" + inputIndices[18] + "-label").click();
-            cy.get("#_id_" + inputIndices[19] + "-label").click();
+            cy.get("#_id_" + inputIndices[16] + "-container").click();
+            cy.get("#_id_" + inputIndices[17] + "-container").click();
+            cy.get("#_id_" + inputIndices[18] + "-container").click();
+            cy.get("#_id_" + inputIndices[19] + "-container").click();
             cy.get("#_id_" + inputIndices[16] + "_button").click();
             cy.get("#_id_" + inputIndices[17] + "_button").click();
             cy.get("#answer19 button").click();
@@ -1693,9 +1693,9 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             cy.get("#answer15 button").should("contain.text", "Incorrect");
             cy.get("#answer16 button").should("contain.text", "Correct");
 
-            cy.get("#_id_" + inputIndices[16] + "-label").click();
+            cy.get("#_id_" + inputIndices[16] + "-container").click();
             cy.get("#_id_" + inputIndices[17] + "_input").should("be.disabled");
-            cy.get("#_id_" + inputIndices[18] + "-label").click();
+            cy.get("#_id_" + inputIndices[18] + "-container").click();
             cy.get("#_id_" + inputIndices[19] + "_input").should("be.disabled");
             cy.get("#_id_" + inputIndices[16] + "_button").click();
             cy.get("#_id_" + inputIndices[17] + "_button").should(
@@ -3244,15 +3244,15 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             cy.get("@textInput").type("hello{enter}", { force: true }).blur();
             cy.get("@textInput")
                 .should("have.css", "border-color", correctColor)
-                .should("have.attr", "aria-label", "(Correct)");
+                .should("have.attr", "aria-description", "(Correct)");
             cy.get("@textInput").clear().type("bye{enter}", { force: true });
             cy.get("@textInput")
                 .should("have.css", "border-color", partialColor)
-                .should("have.attr", "aria-label", "(Partially correct)");
+                .should("have.attr", "aria-description", "(Partially correct)");
             cy.get("@textInput").clear().type("hi{enter}", { force: true });
             cy.get("@textInput")
                 .should("have.css", "border-color", incorrectColor)
-                .should("have.attr", "aria-label", "(Incorrect)");
+                .should("have.attr", "aria-description", "(Incorrect)");
 
             // choice inline answer
             cy.get("#ansChoiceInline .custom-select").as("choiceInlineSelect");

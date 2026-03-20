@@ -4006,6 +4006,39 @@ describe("ChoiceInput tag tests @group4", async () => {
         expect(errorWarnings.errors[1].position.end.line).eq(21);
     });
 
+    it("warning if labelPosition is used on non-inline choiceInput, with attribute-level position", async () => {
+        const tagLine = `    <choiceInput name="ci" labelPosition="left">`;
+
+        let { core } = await createTestCore({
+            doenetML: `
+${tagLine}
+      <shortDescription>Choose one</shortDescription>
+      <choice>a</choice>
+      <choice>b</choice>
+    </choiceInput>
+    `,
+        });
+
+        let errorWarnings = core.core!.errorWarnings;
+
+        expect(errorWarnings.errors.length).eq(0);
+        expect(errorWarnings.warnings.length).eq(1);
+        expect(errorWarnings.warnings[0].message).eq(
+            "labelPosition is ignored for non-inline choiceInput",
+        );
+
+        const expectedStartColumn = tagLine.indexOf("labelPosition") + 1;
+        const expectedEndColumn = tagLine.indexOf(">") + 1;
+        expect(errorWarnings.warnings[0].position.start.line).eq(2);
+        expect(errorWarnings.warnings[0].position.end.line).eq(2);
+        expect(errorWarnings.warnings[0].position.start.column).eq(
+            expectedStartColumn,
+        );
+        expect(errorWarnings.warnings[0].position.end.column).eq(
+            expectedEndColumn,
+        );
+    });
+
     it("with description", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

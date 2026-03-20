@@ -1,4 +1,3 @@
-import { cesc } from "@doenet/utils";
 import { toMathJaxString } from "../../../src/util/mathDisplay";
 
 describe("BooleanInput Tag Tests", { tags: ["@group3"] }, function () {
@@ -29,10 +28,10 @@ describe("BooleanInput Tag Tests", { tags: ["@group3"] }, function () {
 
         cy.log("Test values displayed in browser");
 
-        cy.get(cesc("#atb_input")).should("not.be.checked");
-        cy.get(cesc("#bi_input")).should("not.be.checked");
-        cy.get(cesc("#v1")).should("have.text", "false");
-        cy.get(cesc("#v2")).should("have.text", "false");
+        cy.get("#atb_input").should("not.be.checked");
+        cy.get("#bi_input").should("not.be.checked");
+        cy.get("#v1").should("have.text", "false");
+        cy.get("#v2").should("have.text", "false");
 
         cy.log("Test internal values are set to the correct values");
         cy.window().then(async (win) => {
@@ -58,13 +57,13 @@ describe("BooleanInput Tag Tests", { tags: ["@group3"] }, function () {
         });
 
         cy.log("check the box");
-        cy.get(cesc("#bi")).click();
+        cy.get("#bi").click();
 
         cy.log("Test values displayed in browser");
-        cy.get(cesc("#atb_input")).should("not.be.checked");
-        cy.get(cesc("#bi_input")).should("be.checked");
-        cy.get(cesc("#v1")).should("have.text", "true");
-        cy.get(cesc("#v2")).should("have.text", "true");
+        cy.get("#atb_input").should("not.be.checked");
+        cy.get("#bi_input").should("be.checked");
+        cy.get("#v1").should("have.text", "true");
+        cy.get("#v2").should("have.text", "true");
 
         cy.log("Test internal values are set to the correct values");
         cy.window().then(async (win) => {
@@ -84,14 +83,14 @@ describe("BooleanInput Tag Tests", { tags: ["@group3"] }, function () {
         });
 
         cy.log("set as toggle button");
-        cy.get(cesc("#atb")).click();
+        cy.get("#atb").click();
 
         cy.log("Test values displayed in browser");
-        cy.get(cesc("#atb_input")).should("be.checked");
+        cy.get("#atb_input").should("be.checked");
         // TODO: how to check the renderer if ToggleButton is selected
-        //cy.get(cesc('#bi_input')).should('be.checked');
-        cy.get(cesc("#v1")).should("have.text", "true");
-        cy.get(cesc("#v2")).should("have.text", "true");
+        //cy.get(('#bi_input')).should('be.checked');
+        cy.get("#v1").should("have.text", "true");
+        cy.get("#v2").should("have.text", "true");
 
         cy.log("Test internal values are set to the correct values");
         cy.window().then(async (win) => {
@@ -111,14 +110,14 @@ describe("BooleanInput Tag Tests", { tags: ["@group3"] }, function () {
         });
 
         cy.log("turn off via toggle button");
-        cy.get(cesc("#bi_input")).click({ force: true });
+        cy.get("#bi_input").click({ force: true });
 
         cy.log("Test values displayed in browser");
-        cy.get(cesc("#atb_input")).should("be.checked");
+        cy.get("#atb_input").should("be.checked");
         // TODO: how to check the renderer if ToggleButton is selected
-        //cy.get(cesc('#bi_input')).should('not.be.checked');
-        cy.get(cesc("#v1")).should("have.text", "false");
-        cy.get(cesc("#v2")).should("have.text", "false");
+        //cy.get(('#bi_input')).should('not.be.checked');
+        cy.get("#v1").should("have.text", "false");
+        cy.get("#v2").should("have.text", "false");
 
         cy.log("Test internal values are set to the correct values");
         cy.window().then(async (win) => {
@@ -138,14 +137,14 @@ describe("BooleanInput Tag Tests", { tags: ["@group3"] }, function () {
         });
 
         cy.log("turn on via toggle button");
-        cy.get(cesc("#bi_input")).click({ force: true });
+        cy.get("#bi_input").click({ force: true });
 
         cy.log("Test values displayed in browser");
-        cy.get(cesc("#atb_input")).should("be.checked");
+        cy.get("#atb_input").should("be.checked");
         // TODO: how to check the renderer if ToggleButton is selected
-        //cy.get(cesc('#bi_input')).should('be.checked');
-        cy.get(cesc("#v1")).should("have.text", "true");
-        cy.get(cesc("#v2")).should("have.text", "true");
+        //cy.get(('#bi_input')).should('be.checked');
+        cy.get("#v1").should("have.text", "true");
+        cy.get("#v2").should("have.text", "true");
 
         cy.log("Test internal values are set to the correct values");
         cy.window().then(async (win) => {
@@ -185,14 +184,14 @@ describe("BooleanInput Tag Tests", { tags: ["@group3"] }, function () {
 
         cy.log("Test values displayed in browser");
 
-        cy.get(cesc("#atb_input")).should("not.be.checked");
-        cy.get(cesc("#bi_input")).should("not.be.checked");
-        cy.get(cesc("#v")).should("have.text", "false");
-        cy.get(cesc("#atb")).should(
+        cy.get("#atb_input").should("not.be.checked");
+        cy.get("#bi_input").should("not.be.checked");
+        cy.get("#v").should("have.text", "false");
+        cy.get("#atb").should(
             "contain.text",
             `It is ${toMathJaxString(`∫baf⁡(x) dx`, { noInvisibleTimes: true })}`,
         );
-        cy.get(cesc("#bi")).should(
+        cy.get("#bi").should(
             "contain.text",
             `Hello ${toMathJaxString(`ab`, { noInvisibleTimes: true })}`,
         );
@@ -218,18 +217,18 @@ describe("BooleanInput Tag Tests", { tags: ["@group3"] }, function () {
         });
 
         cy.log("set as toggle button");
-        cy.get(cesc("#atb") + " .checkmark").click();
+        cy.get("#atb" + " .checkmark").click();
 
         cy.log("Test values displayed in browser");
-        cy.get(cesc("#v")).should("have.text", "true");
-        cy.get(cesc("#atb_input")).should("be.checked");
+        cy.get("#v").should("have.text", "true");
+        cy.get("#atb_input").should("be.checked");
         // TODO: how to check the renderer if ToggleButton is selected
-        //cy.get(cesc('#bi_input')).should('be.checked');
-        cy.get(cesc("#atb")).should(
+        //cy.get(('#bi_input')).should('be.checked');
+        cy.get("#atb").should(
             "contain.text",
             `It is ${toMathJaxString(`∫baf⁡(x) dx`, { noInvisibleTimes: true })}`,
         );
-        cy.get(cesc("#bi")).should(
+        cy.get("#bi").should(
             "contain.text",
             `Hello ${toMathJaxString(`ab`, { noInvisibleTimes: true })}`,
         );
@@ -255,13 +254,13 @@ describe("BooleanInput Tag Tests", { tags: ["@group3"] }, function () {
         });
 
         cy.log("hide labels");
-        cy.get(cesc("#toggleLabels")).click();
+        cy.get("#toggleLabels").click();
 
-        cy.get(cesc("#atb")).should(
+        cy.get("#atb").should(
             "not.contain.text",
             `It is ${toMathJaxString(`∫baf⁡(x) dx`, { noInvisibleTimes: true })}`,
         );
-        cy.get(cesc("#bi")).should(
+        cy.get("#bi").should(
             "not.contain.text",
             `Hello ${toMathJaxString(`ab`, { noInvisibleTimes: true })}`,
         );
@@ -287,13 +286,13 @@ describe("BooleanInput Tag Tests", { tags: ["@group3"] }, function () {
         });
 
         cy.log("show labels again");
-        cy.get(cesc("#toggleLabels")).click();
+        cy.get("#toggleLabels").click();
 
-        cy.get(cesc("#atb")).should(
+        cy.get("#atb").should(
             "contain.text",
             `It is ${toMathJaxString(`∫baf⁡(x) dx`, { noInvisibleTimes: true })}`,
         );
-        cy.get(cesc("#bi")).should(
+        cy.get("#bi").should(
             "contain.text",
             `Hello ${toMathJaxString(`ab`, { noInvisibleTimes: true })}`,
         );
@@ -336,14 +335,11 @@ describe("BooleanInput Tag Tests", { tags: ["@group3"] }, function () {
 
         cy.log("Test values displayed in browser");
 
-        cy.get(cesc("#asToggleButton_input")).should("not.be.checked");
-        cy.get(cesc("#AnotherInput_input")).should("not.be.checked");
-        cy.get(cesc("#v")).should("have.text", "false");
-        cy.get(cesc("#asToggleButton")).should(
-            "contain.text",
-            "as toggle button",
-        );
-        cy.get(cesc("#AnotherInput")).should("contain.text", "Another Input");
+        cy.get("#asToggleButton_input").should("not.be.checked");
+        cy.get("#AnotherInput_input").should("not.be.checked");
+        cy.get("#v").should("have.text", "false");
+        cy.get("#asToggleButton").should("contain.text", "as toggle button");
+        cy.get("#AnotherInput").should("contain.text", "Another Input");
 
         cy.log("Test internal values are set to the correct values");
         cy.window().then(async (win) => {
@@ -370,18 +366,15 @@ describe("BooleanInput Tag Tests", { tags: ["@group3"] }, function () {
         });
 
         cy.log("set as toggle button");
-        cy.get(cesc("#asToggleButton")).click();
+        cy.get("#asToggleButton").click();
 
         cy.log("Test values displayed in browser");
-        cy.get(cesc("#v")).should("have.text", "true");
-        cy.get(cesc("#asToggleButton_input")).should("be.checked");
+        cy.get("#v").should("have.text", "true");
+        cy.get("#asToggleButton_input").should("be.checked");
         // TODO: how to check the renderer if ToggleButton is selected
-        //cy.get(cesc('#AnotherInput_input')).should('be.checked');
-        cy.get(cesc("#asToggleButton")).should(
-            "contain.text",
-            "as toggle button",
-        );
-        cy.get(cesc("#AnotherInput")).should("contain.text", "Another Input");
+        //cy.get(('#AnotherInput_input')).should('be.checked');
+        cy.get("#asToggleButton").should("contain.text", "as toggle button");
+        cy.get("#AnotherInput").should("contain.text", "Another Input");
 
         cy.log("Test internal values are set to the correct values");
         cy.window().then(async (win) => {
@@ -469,5 +462,36 @@ describe("BooleanInput Tag Tests", { tags: ["@group3"] }, function () {
         cy.get("#bi [data-test='Description Button']").should("not.exist");
         cy.get("#bi [data-test='Description']").should("not.exist");
         cy.get("#bi_input").should("not.have.attr", "aria-details");
+    });
+
+    it("labelPosition left and right", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p>Left label:
+    <booleanInput name="bl" labelPosition="left">
+      <label>left</label>
+    </booleanInput>
+    </p>
+    
+    <p>Right label:
+    <booleanInput name="br" labelPosition="right">
+      <label>right</label>
+    </booleanInput>
+    </p>
+                    `,
+                },
+                "*",
+            );
+        });
+
+        cy.log("Test left: label before checkbox");
+        cy.get("#bl").children().eq(0).should("have.attr", "id", "bl-label");
+
+        cy.log(
+            "Test right: label after checkbox (and checkWork/description if present)",
+        );
+        cy.get("#br").children().last().should("have.attr", "id", "br-label");
     });
 });
