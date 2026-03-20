@@ -138,6 +138,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     let disabled = SVs.disabled;
 
     let label = SVs.label;
+    const hasLabel =
+        typeof SVs.label === "string" ? SVs.label.trim() !== "" : !!SVs.label;
+    const labelId = `${id}-label`;
+    const inlineInputId = `${id}-input`;
     if (SVs.labelHasLatex) {
         label = (
             <MathJax hideUntilTypeset={"first"} inline dynamic>
@@ -344,6 +348,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                     >
                         <Select
                             id={id}
+                            inputId={inlineInputId}
                             isMulti={SVs.selectMultiple}
                             styles={customStyles}
                             options={choiceOptions}
@@ -360,7 +365,13 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                             placeholder={SVs.placeHolder}
                             isDisabled={disabled}
                             isOptionDisabled={(opt) => !!opt.isDisabled}
-                            aria-label={shortDescription}
+                            aria-labelledby={hasLabel ? labelId : undefined}
+                            aria-label={
+                                !hasLabel ? shortDescription : undefined
+                            }
+                            aria-description={
+                                hasLabel ? shortDescription : undefined
+                            }
                             // Note: aria-details added in CustomInput
                         />
                     </ChoiceInputInlineContext.Provider>
@@ -368,25 +379,45 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             </div>
         );
 
+        const labelComponent = hasLabel ? (
+            <label id={labelId} htmlFor={inlineInputId}>
+                {label}
+            </label>
+        ) : null;
+
+        const inputRow = (
+            <span
+                style={{
+                    display: "inline-flex",
+                    alignItems: "flex-start",
+                }}
+            >
+                {selectWithDynamicWidth}
+                {checkWorkComponent}
+                {description}
+            </span>
+        );
+
         return (
             <span
-                style={{ display: "inline-flex", alignItems: "start" }}
+                style={{
+                    display: "inline-flex",
+                    maxWidth: "100%",
+                    alignItems: "baseline",
+                }}
                 id={id + "-container"}
             >
-                <span style={{ display: "inline-flex", alignItems: "center" }}>
-                    <label
-                        style={{
-                            display: "inline-flex",
-                            maxWidth: "100%",
-                        }}
-                        id={id + "-label"}
-                    >
-                        {label}
-                        {selectWithDynamicWidth}
-                    </label>
-                    {checkWorkComponent}
-                </span>
-                {description}
+                {SVs.labelPosition === "right" ? (
+                    <>
+                        {inputRow}
+                        {labelComponent}
+                    </>
+                ) : (
+                    <>
+                        {labelComponent}
+                        {inputRow}
+                    </>
+                )}
             </span>
         );
     } else {

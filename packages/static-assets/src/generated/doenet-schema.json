@@ -44651,6 +44651,13 @@
                     "name": "copy"
                 },
                 {
+                    "name": "labelPosition",
+                    "values": [
+                        "left",
+                        "right"
+                    ]
+                },
+                {
                     "name": "forAnswer"
                 },
                 {
@@ -44762,6 +44769,11 @@
                 {
                     "name": "collaborateGroups",
                     "type": "collaborateGroups",
+                    "isArray": false
+                },
+                {
+                    "name": "labelPosition",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -57353,6 +57365,13 @@
                     "name": "copy"
                 },
                 {
+                    "name": "labelPosition",
+                    "values": [
+                        "left",
+                        "right"
+                    ]
+                },
+                {
                     "name": "forAnswer"
                 },
                 {
@@ -57468,6 +57487,11 @@
                 {
                     "name": "collaborateGroups",
                     "type": "collaborateGroups",
+                    "isArray": false
+                },
+                {
+                    "name": "labelPosition",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -57826,6 +57850,13 @@
                     "name": "copy"
                 },
                 {
+                    "name": "labelPosition",
+                    "values": [
+                        "left",
+                        "right"
+                    ]
+                },
+                {
                     "name": "forAnswer"
                 },
                 {
@@ -57908,6 +57939,11 @@
                 {
                     "name": "collaborateGroups",
                     "type": "collaborateGroups",
+                    "isArray": false
+                },
+                {
+                    "name": "labelPosition",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -58218,6 +58254,13 @@
                     "name": "copy"
                 },
                 {
+                    "name": "labelPosition",
+                    "values": [
+                        "left",
+                        "right"
+                    ]
+                },
+                {
                     "name": "forAnswer"
                 },
                 {
@@ -58302,6 +58345,11 @@
                 {
                     "name": "collaborateGroups",
                     "type": "collaborateGroups",
+                    "isArray": false
+                },
+                {
+                    "name": "labelPosition",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -58448,6 +58496,13 @@
                     "name": "copy"
                 },
                 {
+                    "name": "labelPosition",
+                    "values": [
+                        "left",
+                        "right"
+                    ]
+                },
+                {
                     "name": "forAnswer"
                 },
                 {
@@ -58531,6 +58586,11 @@
                 {
                     "name": "collaborateGroups",
                     "type": "collaborateGroups",
+                    "isArray": false
+                },
+                {
+                    "name": "labelPosition",
+                    "type": "text",
                     "isArray": false
                 },
                 {

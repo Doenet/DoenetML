@@ -74236,6 +74236,13 @@
                         "string"
                     ]
                 },
+                "labelPosition": {
+                    "optional": true,
+                    "type": [
+                        "left",
+                        "right"
+                    ]
+                },
                 "forAnswer": {
                     "optional": true,
                     "type": [
@@ -74405,6 +74412,11 @@
                 {
                     "name": "collaborateGroups",
                     "type": "collaborateGroups",
+                    "isArray": false
+                },
+                {
+                    "name": "labelPosition",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -93527,6 +93539,13 @@
                         "string"
                     ]
                 },
+                "labelPosition": {
+                    "optional": true,
+                    "type": [
+                        "left",
+                        "right"
+                    ]
+                },
                 "forAnswer": {
                     "optional": true,
                     "type": [
@@ -93934,6 +93953,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "labelPosition",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "labelIsName",
                     "type": "boolean",
                     "isArray": false
@@ -94217,6 +94241,13 @@
                     "optional": true,
                     "type": [
                         "string"
+                    ]
+                },
+                "labelPosition": {
+                    "optional": true,
+                    "type": [
+                        "left",
+                        "right"
                     ]
                 },
                 "forAnswer": {
@@ -94560,6 +94591,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "labelPosition",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "labelIsName",
                     "type": "boolean",
                     "isArray": false
@@ -94776,6 +94812,13 @@
                     "optional": true,
                     "type": [
                         "string"
+                    ]
+                },
+                "labelPosition": {
+                    "optional": true,
+                    "type": [
+                        "left",
+                        "right"
                     ]
                 },
                 "forAnswer": {
@@ -95166,6 +95209,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "labelPosition",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "labelIsName",
                     "type": "boolean",
                     "isArray": false
@@ -95310,6 +95358,13 @@
                         "string"
                     ]
                 },
+                "labelPosition": {
+                    "optional": true,
+                    "type": [
+                        "left",
+                        "right"
+                    ]
+                },
                 "forAnswer": {
                     "optional": true,
                     "type": [
@@ -95430,6 +95485,11 @@
                 {
                     "name": "collaborateGroups",
                     "type": "collaborateGroups",
+                    "isArray": false
+                },
+                {
+                    "name": "labelPosition",
+                    "type": "text",
                     "isArray": false
                 },
                 {

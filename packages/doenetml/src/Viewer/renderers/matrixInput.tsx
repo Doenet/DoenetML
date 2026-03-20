@@ -4,6 +4,7 @@ import useDoenetRenderer from "../useDoenetRenderer";
 // import me from 'math-expressions';
 import { ActionButton } from "@doenet/ui-components";
 import { ActionButtonGroup } from "@doenet/ui-components";
+import { MathJax } from "better-react-mathjax";
 
 import "./matrixInput.css";
 import "./mathInput.css";
@@ -144,23 +145,14 @@ export default React.memo(function MatrixInput(props) {
     }
 
     let label = SVs.label;
+    const hasLabel =
+        typeof SVs.label === "string" ? SVs.label.trim() !== "" : !!SVs.label;
+    const labelId = `${id}-label`;
     if (SVs.labelHasLatex) {
         label = (
             <MathJax hideUntilTypeset={"first"} inline dynamic>
                 {label}
             </MathJax>
-        );
-    }
-    if (label) {
-        label = (
-            <div
-                style={{
-                    marginRight: "5px",
-                    alignContent: "center",
-                }}
-            >
-                {label}
-            </div>
         );
     }
 
@@ -181,32 +173,60 @@ export default React.memo(function MatrixInput(props) {
         );
     }
 
+    const labelComponent = hasLabel ? (
+        <span
+            id={labelId}
+            style={{
+                marginRight: SVs.labelPosition === "right" ? undefined : "5px",
+                marginLeft: SVs.labelPosition === "right" ? "5px" : undefined,
+            }}
+        >
+            {label}
+        </span>
+    ) : null;
+
+    const matrixInputRow = (
+        <span style={{ display: "inline-flex", alignItems: "flex-start" }}>
+            <div className="matrix-input" id={id}>
+                <table
+                    aria-labelledby={hasLabel ? labelId : undefined}
+                    aria-label={!hasLabel ? shortDescription : undefined}
+                    aria-description={hasLabel ? shortDescription : undefined}
+                    aria-details={descriptionId}
+                >
+                    <tbody>{matrixInputs}</tbody>
+                </table>
+            </div>
+            <div style={{ marginRight: "4px" }}></div>
+            {rowNumControls}
+            {colNumControls}
+            {checkWorkComponent}
+            {description}
+        </span>
+    );
+
     return (
         <React.Fragment>
             <div
                 style={{
                     display: "inline-flex",
+                    maxWidth: "100%",
                     margin: "0px 4px 4px 4px",
-                    alignItems: "start",
+                    alignItems: "baseline",
                 }}
                 id={`${id}-container`}
             >
-                <label style={{ display: "inline-flex", maxWidth: "100%" }}>
-                    {label}
-                    <div className="matrix-input" id={id}>
-                        <table
-                            aria-label={shortDescription}
-                            aria-details={descriptionId}
-                        >
-                            <tbody>{matrixInputs}</tbody>
-                        </table>
-                    </div>
-                </label>
-                <div style={{ marginRight: "4px" }}></div>
-                {rowNumControls}
-                {colNumControls}
-                {checkWorkComponent}
-                {description}
+                {SVs.labelPosition === "right" ? (
+                    <>
+                        {matrixInputRow}
+                        {labelComponent}
+                    </>
+                ) : (
+                    <>
+                        {labelComponent}
+                        {matrixInputRow}
+                    </>
+                )}
             </div>
         </React.Fragment>
     );

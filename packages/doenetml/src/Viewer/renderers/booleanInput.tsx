@@ -496,6 +496,9 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
     }
 
     let shortDescription = SVs.shortDescription || undefined;
+    const hasLabel =
+        typeof SVs.label === "string" ? SVs.label.trim() !== "" : !!SVs.label;
+    const labelId = `${id}-label`;
 
     // description will be the one non-null child
     const descriptionChild = children.find((child) => child);
@@ -532,8 +535,16 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
             checkmarkClass += " checkmark-disabled";
         }
 
-        input = (
-            <label className={containerClass} id={`${id}-label`}>
+        const checkboxControl = (
+            <span
+                className={containerClass}
+                onClick={(e) => {
+                    if (disabled || e.target instanceof HTMLInputElement) {
+                        return;
+                    }
+                    onChangeHandler();
+                }}
+            >
                 <input
                     type="checkbox"
                     key={inputKey}
@@ -541,18 +552,17 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
                     checked={rendererValue}
                     onChange={onChangeHandler}
                     disabled={disabled}
-                    aria-label={shortDescription}
+                    aria-labelledby={hasLabel ? labelId : undefined}
+                    aria-label={!hasLabel ? shortDescription : undefined}
+                    aria-description={hasLabel ? shortDescription : undefined}
                     aria-details={descriptionId}
                 />
                 <span className={checkmarkClass}></span>
-                {label != "" ? (
-                    <span style={{ marginLeft: "2px" }}>{label}</span>
-                ) : (
-                    // Add a zero width space so that the vertical alignment is the same
-                    <span>&#8203;</span>
-                )}
-            </label>
+                <span>&#8203;</span>
+            </span>
         );
+
+        input = checkboxControl;
     }
 
     return (
@@ -560,12 +570,30 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
             id={id}
             style={{
                 display: "inline-flex",
-                alignItems: "start",
+                alignItems: "baseline",
             }}
         >
+            {SVs.labelPosition === "left" && hasLabel ? (
+                <label
+                    id={labelId}
+                    htmlFor={inputKey}
+                    style={{ marginRight: "2px" }}
+                >
+                    {label}
+                </label>
+            ) : null}
             {input}
             {checkWorkComponent}
             {description}
+            {SVs.labelPosition !== "left" && hasLabel ? (
+                <label
+                    id={labelId}
+                    htmlFor={inputKey}
+                    style={{ marginLeft: "2px" }}
+                >
+                    {label}
+                </label>
+            ) : null}
         </span>
     );
 });
