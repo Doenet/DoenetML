@@ -11798,35 +11798,40 @@ export default class Core {
             this.essentialValuesSavedInDefinition = {};
         }
 
-        // merge in new state variables set in update
-        for (let newValuesProcessed of newStateVariableValuesProcessed) {
-            for (const componentIdxStr in newValuesProcessed) {
-                const componentIdx = Number(componentIdxStr);
-                const stateId = this._components[componentIdx].stateId;
-                if (!this.cumulativeStateVariableChanges[stateId]) {
-                    this.cumulativeStateVariableChanges[stateId] = {};
-                }
-                for (let varName in newValuesProcessed[componentIdx]) {
-                    let cumValues =
-                        this.cumulativeStateVariableChanges[stateId][varName];
-                    // if cumValues is an object with mergeObject = true,
-                    // then merge attributes from newStateVariableValues into cumValues
-                    if (
-                        typeof cumValues === "object" &&
-                        cumValues !== null &&
-                        cumValues.mergeObject
-                    ) {
-                        Object.assign(
-                            cumValues,
-                            removeFunctionsMathExpressionClass(
-                                newValuesProcessed[componentIdx][varName],
-                            ),
-                        );
-                    } else {
-                        this.cumulativeStateVariableChanges[stateId][varName] =
-                            removeFunctionsMathExpressionClass(
+        if (!doNotSave) {
+            // merge in new state variables set in update
+            for (let newValuesProcessed of newStateVariableValuesProcessed) {
+                for (const componentIdxStr in newValuesProcessed) {
+                    const componentIdx = Number(componentIdxStr);
+                    const stateId = this._components[componentIdx].stateId;
+                    if (!this.cumulativeStateVariableChanges[stateId]) {
+                        this.cumulativeStateVariableChanges[stateId] = {};
+                    }
+                    for (let varName in newValuesProcessed[componentIdx]) {
+                        let cumValues =
+                            this.cumulativeStateVariableChanges[stateId][
+                                varName
+                            ];
+                        // if cumValues is an object with mergeObject = true,
+                        // then merge attributes from newStateVariableValues into cumValues
+                        if (
+                            typeof cumValues === "object" &&
+                            cumValues !== null &&
+                            cumValues.mergeObject
+                        ) {
+                            Object.assign(
+                                cumValues,
+                                removeFunctionsMathExpressionClass(
+                                    newValuesProcessed[componentIdx][varName],
+                                ),
+                            );
+                        } else {
+                            this.cumulativeStateVariableChanges[stateId][
+                                varName
+                            ] = removeFunctionsMathExpressionClass(
                                 newValuesProcessed[componentIdx][varName],
                             );
+                        }
                     }
                 }
             }
