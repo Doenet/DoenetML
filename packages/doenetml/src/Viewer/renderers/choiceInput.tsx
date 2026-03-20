@@ -557,12 +557,16 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                     aria-label={shortDescription}
                     aria-details={descriptionId}
                     onFocus={(e) => {
-                        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        if (
+                            !e.currentTarget.contains(e.relatedTarget as Node)
+                        ) {
                             onFocusChanged(true);
                         }
                     }}
                     onBlur={(e) => {
-                        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        if (
+                            !e.currentTarget.contains(e.relatedTarget as Node)
+                        ) {
                             onFocusChanged(false);
                         }
                     }}
