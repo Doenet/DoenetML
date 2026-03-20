@@ -460,11 +460,19 @@ export default function MathInput(props: UseDoenetRendererProps) {
         }
     }, [virtualKeyboardEvents]);
 
+    function onFocusChanged(focused: boolean) {
+        setFocused(focused);
+        callAction({
+            action: actions.focusChanged,
+            args: { focused },
+        });
+    }
+
     const handleFocus = (e: React.FocusEvent) => {
         if (mathField) {
             focusedMathInput.current = mathField.el();
         }
-        setFocused(true);
+        onFocusChanged(true);
     };
 
     const handleBlur: FocusEventHandler<HTMLElement> = (e) => {
@@ -488,7 +496,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                 action: actions.updateValue,
                 baseVariableValue: rendererValue.current,
             });
-            setFocused(false);
+            onFocusChanged(false);
 
             // Keep preview open when keyboard focus tabs from the input into the
             // preview region.

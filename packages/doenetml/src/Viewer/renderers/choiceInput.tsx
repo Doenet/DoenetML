@@ -1,4 +1,4 @@
-import React, { createContext, useRef, useState } from "react";
+import React, { createContext, useMemo, useRef, useState } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
@@ -64,6 +64,13 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         callAction({
             action: actions.submitAnswer,
         });
+
+    function onFocusChanged(focused: boolean) {
+        callAction({
+            action: actions.focusChanged,
+            args: { focused },
+        });
+    }
 
     function onChangeHandlerInline(newValue: OnChangeValue<Option, boolean>) {
         let newSelectedIndices: number[] = [];
@@ -181,6 +188,23 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         fullCheckWork,
     );
 
+    const inlineSelectComponents = useMemo(
+        () => ({
+            // Disable pointer events on option content to keep MathJax from
+            // interfering with option selection.
+            Option: (props: any) => (
+                <components.Option {...props}>
+                    <div style={{ pointerEvents: "none" }}>{props.label}</div>
+                </components.Option>
+            ),
+            // Add aria-details to the internal input used by react-select.
+            Input: (props: any) => (
+                <components.Input {...props} aria-details={descriptionId} />
+            ),
+        }),
+        [descriptionId],
+    );
+
     if (SVs.inline) {
         // since we color correctness for inline choiceInput,
         // modify shortDescription to include correctness state
@@ -190,21 +214,6 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 shortDescription,
             );
         }
-
-        // Custom Option to disable pointer events on option content
-        // to keep MathJax from interfering with option selection
-        const CustomOption = (props: any) => {
-            return (
-                <components.Option {...props}>
-                    <div style={{ pointerEvents: "none" }}>{props.label}</div>
-                </components.Option>
-            );
-        };
-
-        // Custom Input to add aria-details
-        const CustomInput = (props: any) => {
-            return <components.Input {...props} aria-details={descriptionId} />;
-        };
 
         const choiceChildren = SVs.choiceChildIndices.map(
             (ind: number) => children[ind],
@@ -352,10 +361,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                             isMulti={SVs.selectMultiple}
                             styles={customStyles}
                             options={choiceOptions}
-                            components={{
-                                Option: CustomOption,
-                                Input: CustomInput,
-                            }}
+                            components={inlineSelectComponents}
                             menuPlacement="auto"
                             className={inputClasses}
                             onChange={onChangeHandlerInline}
@@ -415,6 +421,16 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                     alignItems: "baseline",
                 }}
                 id={id + "-container"}
+                onFocus={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        onFocusChanged(true);
+                    }
+                }}
+                onBlur={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        onFocusChanged(false);
+                    }
+                }}
             >
                 {SVs.labelPosition === "right" ? (
                     <>
@@ -540,6 +556,16 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                     style={listStyle}
                     aria-label={shortDescription}
                     aria-details={descriptionId}
+                    onFocus={(e) => {
+                        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                            onFocusChanged(true);
+                        }
+                    }}
+                    onBlur={(e) => {
+                        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                            onFocusChanged(false);
+                        }
+                    }}
                 >
                     {choiceDoenetTags}
                 </ul>

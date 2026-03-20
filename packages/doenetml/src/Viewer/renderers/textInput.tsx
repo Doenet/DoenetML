@@ -132,19 +132,26 @@ export default function TextInput(props: UseDoenetRendererProps) {
         }
     }
 
+    function onFocusChanged(isFocused: boolean) {
+        focused.current = isFocused;
+        callAction({
+            action: actions.focusChanged,
+            args: { focused: isFocused },
+        });
+    }
+
     function handleFocus() {
-        focused.current = true;
+        onFocusChanged(true);
     }
 
     function handleBlur() {
-        focused.current = false;
-
         valueToRevertTo.current = rendererValueRef.current;
 
         callAction({
             action: actions.updateValue,
             baseVariableValue: rendererValueRef.current,
         });
+        onFocusChanged(false);
     }
 
     function onChangeHandler(
