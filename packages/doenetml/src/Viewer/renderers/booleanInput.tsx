@@ -544,6 +544,7 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
                     }
                     onChangeHandler();
                 }}
+                id={`${id}-container`}
             >
                 <input
                     type="checkbox"

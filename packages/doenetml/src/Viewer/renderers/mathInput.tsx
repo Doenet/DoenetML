@@ -623,9 +623,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
     }
 
     const labelComponent = hasLabel ? (
-        <label id={labelId}>
-            {label}
-        </label>
+        <label id={labelId}>{label}</label>
     ) : null;
 
     const inputRow = (
