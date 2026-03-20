@@ -574,7 +574,7 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
                 alignItems: "baseline",
             }}
         >
-            {SVs.labelPosition === "left" && hasLabel ? (
+            {SVs.labelPosition === "left" && hasLabel && !SVs.asToggleButton ? (
                 <label
                     id={labelId}
                     htmlFor={inputKey}
@@ -586,7 +586,7 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
             {input}
             {checkWorkComponent}
             {description}
-            {SVs.labelPosition !== "left" && hasLabel ? (
+            {SVs.labelPosition !== "left" && hasLabel && !SVs.asToggleButton ? (
                 <label
                     id={labelId}
                     htmlFor={inputKey}
