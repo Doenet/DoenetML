@@ -135,7 +135,7 @@ describe("Legend tag tests @group3", async () => {
             core,
             resolvePathToNodeIdx,
             legendItems,
-            position: "upperRight",
+            position: "upperright",
         });
     });
 
@@ -178,7 +178,7 @@ describe("Legend tag tests @group3", async () => {
             core,
             resolvePathToNodeIdx,
             legendItems,
-            position: "upperRight",
+            position: "upperright",
         });
     });
 
