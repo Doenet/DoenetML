@@ -82,8 +82,8 @@ export default class MathComponent extends InlineComponent {
                 "none",
                 "full",
                 "numbers",
-                "numberspreserveorder",
-                "normalizeorder",
+                "numbersPreserveOrder",
+                "normalizeOrder",
             ],
         };
         attributes.expand = {

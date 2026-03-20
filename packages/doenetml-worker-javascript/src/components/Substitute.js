@@ -51,8 +51,8 @@ export default class Substitute extends CompositeComponent {
                 "none",
                 "full",
                 "numbers",
-                "numberspreserveorder",
-                "normalizeorder",
+                "numbersPreserveOrder",
+                "normalizeOrder",
             ],
         };
 

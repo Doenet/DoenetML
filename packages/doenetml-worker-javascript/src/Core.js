@@ -22,6 +22,7 @@ import {
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
 } from "./utils/copy";
+import { preprocessAttributesObject } from "./utils/attributes";
 import {
     convertUnresolvedAttributesForComponentType,
     unwrapSource,
@@ -3373,8 +3374,9 @@ export default class Core {
                     component,
                     replacements: serializedReplacements,
                     componentInfoObjects: this.componentInfoObjects,
-                    compositeAttributesObj:
+                    compositeAttributesObj: preprocessAttributesObject(
                         component.constructor.createAttributesObject(),
+                    ),
                     components: this._components,
                     nComponents: newNComponents,
                     stateIdInfo,
@@ -3991,7 +3993,9 @@ export default class Core {
         componentClass,
         stateVariableDefinitions,
     }) {
-        let attributes = componentClass.createAttributesObject();
+        let attributes = preprocessAttributesObject(
+            componentClass.createAttributesObject(),
+        );
 
         for (let attrName in attributes) {
             let attributeSpecification = attributes[attrName];
@@ -4307,7 +4311,9 @@ export default class Core {
                 redefineDependencies.adapterTargetIdentity.componentIdx
             ];
 
-        let attributes = componentClass.createAttributesObject();
+        let attributes = preprocessAttributesObject(
+            componentClass.createAttributesObject(),
+        );
 
         for (let attrName in attributes) {
             let attributeSpecification = attributes[attrName];
@@ -4536,7 +4542,9 @@ export default class Core {
         // - first on attributes from component attribute components, if they exist
         // - then on targetComponent (if not copying a prop and attribute exists in targetComponent)
 
-        let attributes = componentClass.createAttributesObject();
+        let attributes = preprocessAttributesObject(
+            componentClass.createAttributesObject(),
+        );
 
         for (let attrName in attributes) {
             let attributeSpecification = attributes[attrName];
@@ -10908,8 +10916,9 @@ export default class Core {
 
                 // TODO: is isResponse the only attribute to convert?
                 if (shadowingComponent.attributes.isResponse) {
-                    let compositeAttributesObj =
-                        shadowingComponent.constructor.createAttributesObject();
+                    let compositeAttributesObj = preprocessAttributesObject(
+                        shadowingComponent.constructor.createAttributesObject(),
+                    );
 
                     for (let repl of newSerializedReplacements) {
                         if (typeof repl !== "object") {
@@ -13714,6 +13723,8 @@ export default class Core {
 function validateAttributeValue({ value, attributeSpecification, attribute }) {
     let warnings = [];
 
+    const valueOrig = value;
+
     if (
         attributeSpecification.transformNonFiniteTo !== undefined &&
         !Number.isFinite(value)
@@ -13744,7 +13755,7 @@ function validateAttributeValue({ value, attributeSpecification, attribute }) {
                 }
             }
             warnings.push({
-                message: `Invalid value ${value} for attribute ${attribute}, using value ${defaultValue}`,
+                message: `Invalid value ${valueOrig} for attribute ${attribute}, using value ${defaultValue}`,
                 level: 2,
             });
             value = defaultValue;

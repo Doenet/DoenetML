@@ -72,6 +72,7 @@ export default class Polyline extends GraphicalComponent {
         attributes.rotateAround = {
             createComponentOfType: "text",
             createStateVariable: "rotateAround",
+            toLowerCase: true,
             validValues: ["centroid", "vertex", "point"],
             defaultValue: "centroid",
         };

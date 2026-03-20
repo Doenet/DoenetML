@@ -1,8 +1,8 @@
-export const LINE_FAMILY_LABEL_POSITION_VALID_VALUES = [
-    "upperright",
-    "upperleft",
-    "lowerright",
-    "lowerleft",
+const LINE_FAMILY_LABEL_POSITION_VALID_VALUES = [
+    "upperRight",
+    "upperLeft",
+    "lowerRight",
+    "lowerLeft",
     "center",
     "top",
     "bottom",

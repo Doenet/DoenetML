@@ -867,8 +867,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -991,10 +991,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -2519,10 +2519,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -3162,10 +3162,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -6515,10 +6515,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -8777,10 +8777,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -9409,10 +9409,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -10041,10 +10041,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -10678,10 +10678,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -10882,10 +10882,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -11086,10 +11086,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -11728,8 +11728,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "unorderedCompare": {
@@ -12295,8 +12295,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "unorderedCompare": {
@@ -12608,8 +12608,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "unorderedCompare": {
@@ -12921,8 +12921,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "unorderedCompare": {
@@ -13234,8 +13234,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "unorderedCompare": {
@@ -13748,8 +13748,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "unorderedCompare": {
@@ -14262,8 +14262,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "unorderedCompare": {
@@ -14792,8 +14792,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -14916,10 +14916,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -15550,8 +15550,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -15674,10 +15674,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -16308,8 +16308,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -16432,10 +16432,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -17064,8 +17064,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -17188,10 +17188,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -17820,8 +17820,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -17944,10 +17944,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -18576,8 +18576,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -18700,10 +18700,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -19321,8 +19321,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -19438,10 +19438,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -20043,8 +20043,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -20167,10 +20167,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -20777,8 +20777,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -20901,10 +20901,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -21511,8 +21511,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -21635,10 +21635,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -22245,8 +22245,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -22369,10 +22369,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -22979,8 +22979,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -23103,10 +23103,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -23737,8 +23737,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -23861,10 +23861,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -24495,8 +24495,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -24619,10 +24619,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -25265,8 +25265,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -25389,10 +25389,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -26035,8 +26035,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -26159,10 +26159,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -26793,8 +26793,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -26917,10 +26917,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -27551,8 +27551,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -27675,10 +27675,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -28309,8 +28309,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -28433,10 +28433,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -29067,8 +29067,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -29191,10 +29191,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -29825,8 +29825,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -29949,10 +29949,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -30583,8 +30583,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -30707,10 +30707,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -30723,9 +30723,9 @@
                     "type": [
                         "operand",
                         "function",
-                        "functionargument",
-                        "numoperands",
-                        "recursiveoperands"
+                        "functionArgument",
+                        "numOperands",
+                        "recursiveOperands"
                     ]
                 },
                 "operandNumber": {
@@ -31342,8 +31342,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -31400,10 +31400,10 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -32164,8 +32164,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -32222,10 +32222,10 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -32986,8 +32986,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -33044,10 +33044,10 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -33839,10 +33839,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -63039,10 +63039,10 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -63719,10 +63719,10 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "center",
                         "top",
                         "bottom",
@@ -64308,10 +64308,10 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -65820,8 +65820,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -65944,10 +65944,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -68958,10 +68958,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -76933,10 +76933,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -78500,8 +78500,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "unorderedCompare": {
@@ -79227,8 +79227,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -79351,10 +79351,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -82248,10 +82248,10 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -82826,8 +82826,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -82943,10 +82943,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -83631,10 +83631,10 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "center",
                         "top",
                         "bottom",
@@ -84216,10 +84216,10 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "center",
                         "top",
                         "bottom",
@@ -84534,10 +84534,10 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "center",
                         "top",
                         "bottom",
@@ -87116,10 +87116,10 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -87822,10 +87822,10 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -88488,10 +88488,10 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -90160,10 +90160,10 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "center",
                         "top",
                         "bottom",
@@ -91391,8 +91391,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expandOnCompare": {
@@ -92298,8 +92298,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "unorderedCompare": {
@@ -92963,8 +92963,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "unorderedCompare": {
@@ -94279,10 +94279,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -94828,10 +94828,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -96614,10 +96614,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -97177,10 +97177,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -98592,8 +98592,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -98650,10 +98650,10 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -99392,8 +99392,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -99438,10 +99438,10 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -99928,8 +99928,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -100045,10 +100045,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -112924,8 +112924,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -113048,10 +113048,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -113449,7 +113449,7 @@
                     "optional": true,
                     "type": [
                         "uniform",
-                        "discreteuniform",
+                        "discreteUniform",
                         "gaussian"
                     ]
                 },
@@ -113681,7 +113681,7 @@
                     "optional": true,
                     "type": [
                         "uniform",
-                        "discreteuniform",
+                        "discreteUniform",
                         "gaussian"
                     ]
                 },
@@ -114276,8 +114276,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "displayDigits": {
@@ -115168,8 +115168,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -115292,10 +115292,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -115808,10 +115808,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -117115,10 +117115,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -117676,10 +117676,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -120853,10 +120853,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -120902,8 +120902,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 }
             },
@@ -121103,10 +121103,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -121329,10 +121329,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -125511,10 +125511,10 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -128443,8 +128443,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -128567,10 +128567,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -130105,10 +130105,10 @@
                 "labelPosition": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "center",
                         "top",
                         "bottom",
@@ -132007,8 +132007,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "unorderedCompare": {
@@ -132995,10 +132995,10 @@
                 "position": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft"
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft"
                     ]
                 },
                 "displayClosedSwatches": {
@@ -133198,10 +133198,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -133833,8 +133833,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "unorderedCompare": {
@@ -134435,8 +134435,8 @@
                         "none",
                         "full",
                         "numbers",
-                        "numberspreserveorder",
-                        "normalizeorder"
+                        "numbersPreserveOrder",
+                        "normalizeOrder"
                     ]
                 },
                 "expand": {
@@ -134559,10 +134559,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -135412,10 +135412,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
@@ -138696,10 +138696,10 @@
                 "positionFromAnchor": {
                     "optional": true,
                     "type": [
-                        "upperright",
-                        "upperleft",
-                        "lowerright",
-                        "lowerleft",
+                        "upperRight",
+                        "upperLeft",
+                        "lowerRight",
+                        "lowerLeft",
                         "top",
                         "bottom",
                         "left",
