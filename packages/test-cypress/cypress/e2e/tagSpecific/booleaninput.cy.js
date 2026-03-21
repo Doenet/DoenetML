@@ -494,4 +494,55 @@ describe("BooleanInput Tag Tests", { tags: ["@group3"] }, function () {
         );
         cy.get("#br").children().last().should("have.attr", "id", "br-label");
     });
+
+    it("focused state variable updates on focus and blur", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><booleanInput name="bi">
+      <label>hello</label>
+    </booleanInput></p>
+    <p name="fv">focused: <boolean extend="$bi.focused" /></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#fv").should("have.text", "focused: false");
+
+        cy.log("Focus the checkbox: focused becomes true");
+        cy.get("#bi_input").focus();
+        cy.get("#fv").should("have.text", "focused: true");
+
+        cy.log("Blur the checkbox: focused becomes false");
+        cy.get("#bi_input").blur();
+        cy.get("#fv").should("have.text", "focused: false");
+    });
+
+    it("clicking container span focuses checkbox input", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><booleanInput name="bi">
+      <label>hello</label>
+    </booleanInput></p>
+    <p name="fv">focused: <boolean extend="$bi.focused" /></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#fv").should("have.text", "focused: false");
+
+        cy.log(
+            "Click the checkmark span (not the native input): input gets focus",
+        );
+        cy.get("#bi-container .checkmark").click();
+        cy.get("#bi_input").should("be.focused");
+        cy.get("#fv").should("have.text", "focused: true");
+    });
 });

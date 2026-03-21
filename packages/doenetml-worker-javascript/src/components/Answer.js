@@ -1110,6 +1110,67 @@ export default class Answer extends InlineComponent {
             },
         };
 
+        stateVariableDefinitions.focused = {
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            stateVariablesDeterminingDependencies: [
+                "inputsForAnswer",
+                "inputChildrenWithValues",
+            ],
+            returnDependencies({ stateValues }) {
+                let dependencies = {
+                    numInputs: {
+                        dependencyType: "value",
+                        value: stateValues.inputsForAnswer.length,
+                    },
+                    numInputChildren: {
+                        dependencyType: "value",
+                        value: stateValues.inputChildrenWithValues.length,
+                    },
+                };
+                for (const [
+                    i,
+                    input,
+                ] of stateValues.inputsForAnswer.entries()) {
+                    dependencies["inputForAnswer" + i] = {
+                        dependencyType: "stateVariable",
+                        componentIdx: input.componentIdx,
+                        variableName: "focused",
+                    };
+                }
+
+                for (const [
+                    i,
+                    input,
+                ] of stateValues.inputChildrenWithValues.entries()) {
+                    dependencies["inputChild" + i] = {
+                        dependencyType: "stateVariable",
+                        componentIdx: input.componentIdx,
+                        variableName: "focused",
+                    };
+                }
+                return dependencies;
+            },
+            definition({ dependencyValues }) {
+                let focused = false;
+                for (let i = 0; i < dependencyValues.numInputs; i++) {
+                    if (dependencyValues["inputForAnswer" + i]) {
+                        focused = true;
+                        break;
+                    }
+                }
+                for (let i = 0; i < dependencyValues.numInputChildren; i++) {
+                    if (dependencyValues["inputChild" + i]) {
+                        focused = true;
+                        break;
+                    }
+                }
+                return { setValue: { focused } };
+            },
+        };
+
         stateVariableDefinitions.numResponses = {
             additionalStateVariablesDefined: ["usePotentialResponses"],
             public: true,

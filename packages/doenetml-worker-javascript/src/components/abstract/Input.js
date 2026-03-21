@@ -6,6 +6,14 @@ import { accessibilityWarningsResult } from "@doenet/utils";
 import InlineComponent from "./InlineComponent";
 
 export default class Input extends InlineComponent {
+    constructor(args) {
+        super(args);
+
+        Object.assign(this.actions, {
+            focusChanged: this.focusChanged.bind(this),
+        });
+    }
+
     static componentType = "_input";
 
     static renderChildren = true;
@@ -655,6 +663,49 @@ export default class Input extends InlineComponent {
             markStale: () => ({ updateRenderedChildren: true }),
         };
 
+        stateVariableDefinitions.focused = {
+            forRenderer: true,
+            hasEssential: true,
+            defaultValue: false,
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            ignoreFixed: true,
+            returnDependencies: () => ({}),
+            definition: () => ({
+                useEssentialOrDefaultValue: { focused: true },
+            }),
+            inverseDefinition({ desiredStateVariableValues }) {
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue: "focused",
+                            value: Boolean(desiredStateVariableValues.focused),
+                        },
+                    ],
+                };
+            },
+        };
+
         return stateVariableDefinitions;
+    }
+
+    async focusChanged({ focused, actionId, sourceInformation }) {
+        return await this.coreFunctions.performUpdate({
+            updateInstructions: [
+                {
+                    updateType: "updateValue",
+                    componentIdx: this.componentIdx,
+                    stateVariable: "focused",
+                    value: focused,
+                },
+            ],
+            actionId,
+            sourceInformation,
+            overrideReadOnly: true,
+            doNotSave: true,
+        });
     }
 }

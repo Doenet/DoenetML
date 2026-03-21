@@ -56,6 +56,7 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
 
     let fixed = useRef(false);
     let fixLocation = useRef(false);
+    let inputRef = useRef<HTMLInputElement>(null);
 
     fixed.current = SVs.fixed;
     fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
@@ -89,6 +90,13 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
                 boolean: newValue,
             },
             baseVariableValue: newValue,
+        });
+    }
+
+    function onFocusChanged(focused: boolean) {
+        callAction({
+            action: actions.focusChanged,
+            args: { focused },
         });
     }
 
@@ -522,6 +530,8 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
                 key={inputKey}
                 isSelected={rendererValue}
                 onClick={onChangeHandler}
+                onFocus={() => onFocusChanged(true)}
+                onBlur={() => onFocusChanged(false)}
                 value={label}
                 disabled={disabled}
                 ariaLabel={shortDescription}
@@ -538,33 +548,58 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
         const checkboxControl = (
             <span
                 className={containerClass}
+                onMouseDown={(e) => {
+                    if (e.target instanceof HTMLInputElement) {
+                        return;
+                    }
+                    e.preventDefault();
+                }}
                 onClick={(e) => {
                     if (disabled || e.target instanceof HTMLInputElement) {
                         return;
                     }
+                    inputRef.current?.focus();
                     onChangeHandler();
                 }}
                 id={`${id}-container`}
             >
                 <input
+                    ref={inputRef}
                     type="checkbox"
                     key={inputKey}
                     id={inputKey}
                     checked={rendererValue}
                     onChange={onChangeHandler}
                     disabled={disabled}
+                    onFocus={() => onFocusChanged(true)}
+                    onBlur={() => onFocusChanged(false)}
                     aria-labelledby={hasLabel ? labelId : undefined}
                     aria-label={!hasLabel ? shortDescription : undefined}
                     aria-description={hasLabel ? shortDescription : undefined}
                     aria-details={descriptionId}
                 />
-                <span className={checkmarkClass}></span>
-                <span>&#8203;</span>
+                <span className={checkmarkClass} aria-hidden="true"></span>
+                <span aria-hidden="true">&#8203;</span>
             </span>
         );
 
         input = checkboxControl;
     }
+
+    const labelComponent =
+        hasLabel && !SVs.asToggleButton ? (
+            <label
+                id={labelId}
+                htmlFor={inputKey}
+                style={
+                    SVs.labelPosition === "left"
+                        ? { marginRight: "2px" }
+                        : { marginLeft: "2px" }
+                }
+            >
+                {label}
+            </label>
+        ) : null;
 
     return (
         <span
@@ -574,27 +609,11 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
                 alignItems: "baseline",
             }}
         >
-            {SVs.labelPosition === "left" && hasLabel && !SVs.asToggleButton ? (
-                <label
-                    id={labelId}
-                    htmlFor={inputKey}
-                    style={{ marginRight: "2px" }}
-                >
-                    {label}
-                </label>
-            ) : null}
+            {SVs.labelPosition === "left" ? labelComponent : null}
             {input}
             {checkWorkComponent}
             {description}
-            {SVs.labelPosition !== "left" && hasLabel && !SVs.asToggleButton ? (
-                <label
-                    id={labelId}
-                    htmlFor={inputKey}
-                    style={{ marginLeft: "2px" }}
-                >
-                    {label}
-                </label>
-            ) : null}
+            {SVs.labelPosition !== "left" ? labelComponent : null}
         </span>
     );
 });

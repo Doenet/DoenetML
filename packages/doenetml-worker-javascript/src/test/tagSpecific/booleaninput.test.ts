@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
+    focusChanged,
     moveInput,
     updateBooleanInputValue,
     updateMathInputValue,
@@ -941,5 +942,55 @@ describe("BooleanInput tag tests @group1", async () => {
             stateVariables[await resolvePathToNodeIdx("bi")].activeChildren[1]
                 .componentType,
         ).eq("description");
+    });
+
+    it("focused state variable", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="bi">
+      <label>hello</label>
+    </booleanInput>
+    <boolean extend="$bi.focused" name="f" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bi")].stateValues
+                .focused,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(false);
+
+        // Focus the input
+        await focusChanged({
+            focused: true,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bi")].stateValues
+                .focused,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(true);
+
+        // Blur the input
+        await focusChanged({
+            focused: false,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bi")].stateValues
+                .focused,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(false);
     });
 });

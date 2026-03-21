@@ -1228,4 +1228,64 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             .last()
             .should("have.attr", "id", "cir-label");
     });
+
+    it("focused state variable updates on focus and blur (inline)", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><choiceInput name="ci" inline>
+      <label>pick one</label>
+      <choice>cat</choice>
+      <choice>dog</choice>
+    </choiceInput></p>
+    <p name="fv">focused: <boolean extend="$ci.focused" /></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#fv").should("have.text", "focused: false");
+
+        cy.log("Focus the select input: focused becomes true");
+        cy.get("#ci-input").focus();
+        cy.get("#fv").should("have.text", "focused: true");
+
+        cy.log("Blur the select input: focused becomes false");
+        cy.get("#ci-input").blur();
+        cy.get("#fv").should("have.text", "focused: false");
+    });
+
+    it("focused state variable updates on focus and blur (non-inline radio)", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <choiceInput name="ci">
+      <label>pick one</label>
+      <choice>cat</choice>
+      <choice>dog</choice>
+    </choiceInput>
+    <p name="fv">focused: <boolean extend="$ci.focused" /></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#fv").should("have.text", "focused: false");
+
+        cy.log("Focus the first radio input: focused becomes true");
+        cy.get("#ci_choice1_input").focus();
+        cy.get("#fv").should("have.text", "focused: true");
+
+        cy.log("Tab to second radio: focused stays true");
+        cy.get("#ci_choice1_input").tab();
+        cy.get("#fv").should("have.text", "focused: true");
+
+        cy.log("Blur the second radio input: focused becomes false");
+        cy.get("#ci_choice2_input").blur();
+        cy.get("#fv").should("have.text", "focused: false");
+    });
 });

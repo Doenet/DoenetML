@@ -594,4 +594,30 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
             .last()
             .should("have.attr", "id", "mr-input-label");
     });
+
+    it("focused state variable updates on focus and blur", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><mathInput name="mi">
+      <label>hello</label>
+    </mathInput></p>
+    <p name="fv">focused: <boolean extend="$mi.focused" /></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#fv").should("have.text", "focused: false");
+
+        cy.log("Focus the math input: focused becomes true");
+        cy.get("#mi textarea").focus();
+        cy.get("#fv").should("have.text", "focused: true");
+
+        cy.log("Blur the math input: focused becomes false");
+        cy.get("#mi textarea").blur();
+        cy.get("#fv").should("have.text", "focused: false");
+    });
 });
