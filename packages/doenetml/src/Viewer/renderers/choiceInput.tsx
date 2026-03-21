@@ -249,6 +249,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             inputClasses += ` custom-select-${validationState}`;
         }
 
+        const menuPortalTarget =
+            typeof document === "undefined" ? undefined : document.body;
+
         const customStyles = {
             control: (provided: any) => ({
                 ...provided,
@@ -362,6 +365,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                             styles={customStyles}
                             options={choiceOptions}
                             components={inlineSelectComponents}
+                            menuPortalTarget={menuPortalTarget}
                             menuPlacement="auto"
                             className={inputClasses}
                             onChange={onChangeHandlerInline}
