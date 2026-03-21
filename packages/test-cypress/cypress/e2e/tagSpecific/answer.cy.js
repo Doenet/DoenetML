@@ -6,6 +6,9 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
         cy.visit("/");
     });
 
+    const getOpenInlineChoiceMenu = () =>
+        cy.get('[id^="react-select-"][id$="-listbox"]:visible').last();
+
     it("integrated submit buttons", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -846,11 +849,7 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
 
             cy.log("Select correct answer");
             cy.get(choiceInputAnchor).click();
-            cy.get(`${choiceInputAnchor} [class*="menu"]`)
-                .contains("dog")
-                .parent()
-                .parent()
-                .click();
+            getOpenInlineChoiceMenu().contains("dog").parent().parent().click();
 
             cy.get(choiceInputButtonAnchor).should(
                 "contain.text",
@@ -1108,29 +1107,13 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             cy.get("#answer12 button").should("contain.text", "Correct");
 
             cy.get("#choiceInput5").click();
-            cy.get(`${"#choiceInput5"} [class*="menu"]`)
-                .contains("yes")
-                .parent()
-                .parent()
-                .click();
+            getOpenInlineChoiceMenu().contains("yes").parent().parent().click();
             cy.get("#choiceInput6").click();
-            cy.get(`${"#choiceInput6"} [class*="menu"]`)
-                .contains("yes")
-                .parent()
-                .parent()
-                .click();
+            getOpenInlineChoiceMenu().contains("yes").parent().parent().click();
             cy.get("#choiceInput7").click();
-            cy.get(`${"#choiceInput7"} [class*="menu"]`)
-                .contains("yes")
-                .parent()
-                .parent()
-                .click();
+            getOpenInlineChoiceMenu().contains("yes").parent().parent().click();
             cy.get("#choiceInput8").click();
-            cy.get(`${"#choiceInput8"} [class*="menu"]`)
-                .contains("yes")
-                .parent()
-                .parent()
-                .click();
+            getOpenInlineChoiceMenu().contains("yes").parent().parent().click();
             cy.get("#choiceInput5_button").click();
             cy.get("#choiceInput6_button").click();
             cy.get("#answer15 button").click();
@@ -1210,29 +1193,13 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             cy.get("#answer12 button").should("contain.text", "Incorrect");
 
             cy.get("#choiceInput5").click();
-            cy.get(`${"#choiceInput5"} [class*="menu"]`)
-                .contains("no")
-                .parent()
-                .parent()
-                .click();
+            getOpenInlineChoiceMenu().contains("no").parent().parent().click();
             cy.get("#choiceInput6").click();
-            cy.get(`${"#choiceInput6"} [class*="menu"]`)
-                .contains("no")
-                .parent()
-                .parent()
-                .click();
+            getOpenInlineChoiceMenu().contains("no").parent().parent().click();
             cy.get("#choiceInput7").click();
-            cy.get(`${"#choiceInput7"} [class*="menu"]`)
-                .contains("no")
-                .parent()
-                .parent()
-                .click();
+            getOpenInlineChoiceMenu().contains("no").parent().parent().click();
             cy.get("#choiceInput8").click();
-            cy.get(`${"#choiceInput8"} [class*="menu"]`)
-                .contains("no")
-                .parent()
-                .parent()
-                .click();
+            getOpenInlineChoiceMenu().contains("no").parent().parent().click();
             cy.get("#choiceInput5_button").click();
             cy.get("#choiceInput6_button").click();
             cy.get("#answer15 button").click();
@@ -1308,18 +1275,10 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             cy.get("#answer12 button").should("contain.text", "Incorrect");
 
             cy.get("#choiceInput5").click();
-            cy.get(`${"#choiceInput5"} [class*="menu"]`)
-                .contains("yes")
-                .parent()
-                .parent()
-                .click();
+            getOpenInlineChoiceMenu().contains("yes").parent().parent().click();
             cy.get("#choiceInput6 input").should("be.disabled");
             cy.get("#choiceInput7").click();
-            cy.get(`${"#choiceInput7"} [class*="menu"]`)
-                .contains("yes")
-                .parent()
-                .parent()
-                .click();
+            getOpenInlineChoiceMenu().contains("yes").parent().parent().click();
             cy.get("#choiceInput8 input").should("be.disabled");
             cy.get("#choiceInput5_button").click();
             cy.get("#choiceInput6_button").should("be.disabled");
@@ -1483,29 +1442,13 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             cy.get("#answer12 button").should("contain.text", "Incorrect");
 
             cy.get("#choiceInput5").click();
-            cy.get("#choiceInput5 [class*='menu']")
-                .contains("no")
-                .parent()
-                .parent()
-                .click();
+            getOpenInlineChoiceMenu().contains("no").parent().parent().click();
             cy.get("#choiceInput6").click();
-            cy.get("#choiceInput6 [class*='menu']")
-                .contains("no")
-                .parent()
-                .parent()
-                .click();
+            getOpenInlineChoiceMenu().contains("no").parent().parent().click();
             cy.get("#choiceInput7").click();
-            cy.get("#choiceInput7 [class*='menu']")
-                .contains("no")
-                .parent()
-                .parent()
-                .click();
+            getOpenInlineChoiceMenu().contains("no").parent().parent().click();
             cy.get("#choiceInput8").click();
-            cy.get("#choiceInput8 [class*='menu']")
-                .contains("no")
-                .parent()
-                .parent()
-                .click();
+            getOpenInlineChoiceMenu().contains("no").parent().parent().click();
             cy.get("#choiceInput5_button").click();
             cy.get("#choiceInput6_button").click();
             cy.get("#answer15 button").click();
@@ -1573,29 +1516,13 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             cy.get("#answer12 button").should("contain.text", "Correct");
 
             cy.get("#choiceInput5").click();
-            cy.get("#choiceInput5 [class*='menu']")
-                .contains("yes")
-                .parent()
-                .parent()
-                .click();
+            getOpenInlineChoiceMenu().contains("yes").parent().parent().click();
             cy.get("#choiceInput6").click();
-            cy.get("#choiceInput6 [class*='menu']")
-                .contains("yes")
-                .parent()
-                .parent()
-                .click();
+            getOpenInlineChoiceMenu().contains("yes").parent().parent().click();
             cy.get("#choiceInput7").click();
-            cy.get("#choiceInput7 [class*='menu']")
-                .contains("yes")
-                .parent()
-                .parent()
-                .click();
+            getOpenInlineChoiceMenu().contains("yes").parent().parent().click();
             cy.get("#choiceInput8").click();
-            cy.get("#choiceInput8 [class*='menu']")
-                .contains("yes")
-                .parent()
-                .parent()
-                .click();
+            getOpenInlineChoiceMenu().contains("yes").parent().parent().click();
             cy.get("#choiceInput5_button").click();
             cy.get("#choiceInput6_button").click();
             cy.get("#answer15 button").click();
@@ -1671,18 +1598,10 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             cy.get("#answer12 button").should("contain.text", "Correct");
 
             cy.get("#choiceInput5").click();
-            cy.get("#choiceInput5 [class*='menu']")
-                .contains("no")
-                .parent()
-                .parent()
-                .click();
+            getOpenInlineChoiceMenu().contains("no").parent().parent().click();
             cy.get("#choiceInput6 input").should("be.disabled");
             cy.get("#choiceInput7").click();
-            cy.get("#choiceInput7 [class*='menu']")
-                .contains("no")
-                .parent()
-                .parent()
-                .click();
+            getOpenInlineChoiceMenu().contains("no").parent().parent().click();
             cy.get("#choiceInput8 input").should("be.disabled");
             cy.get("#choiceInput5_button").click();
             cy.get("#choiceInput6_button").should("be.disabled");
@@ -2491,17 +2410,9 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
 
         cy.log("Submit correct answers");
         cy.get("#choiceInput1").click();
-        cy.get("#choiceInput1 [class*='menu']")
-            .contains(`A`)
-            .parent()
-            .parent()
-            .click();
+        getOpenInlineChoiceMenu().contains(`A`).parent().parent().click();
         cy.get("#choiceInput2").click();
-        cy.get("#choiceInput2 [class*='menu']")
-            .contains(`A`)
-            .parent()
-            .parent()
-            .click();
+        getOpenInlineChoiceMenu().contains(`A`).parent().parent().click();
         cy.get("#choiceInput1_button").click();
         cy.get("#answer2 button").click();
         cy.get("#choiceInput1_button").should("contain.text", "Correct");
@@ -2512,17 +2423,9 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
 
         cy.log("Submit incorrect answers");
         cy.get("#choiceInput1").click();
-        cy.get("#choiceInput1 [class*='menu']")
-            .contains(`B`)
-            .parent()
-            .parent()
-            .click();
+        getOpenInlineChoiceMenu().contains(`B`).parent().parent().click();
         cy.get("#choiceInput2").click();
-        cy.get("#choiceInput2 [class*='menu']")
-            .contains(`B`)
-            .parent()
-            .parent()
-            .click();
+        getOpenInlineChoiceMenu().contains(`B`).parent().parent().click();
         cy.get("#choiceInput1_button").click();
         cy.get("#answer2 button").click();
         cy.get("#choiceInput1_button").should("contain.text", "Incorrect");
@@ -2531,14 +2434,14 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
         cy.get("#answer1").should("contain.text", "Max credit available: 60%");
         cy.get("#answer2").should("contain.text", "Max credit available: 60%");
         cy.get("#choiceInput1").click();
-        cy.get("#choiceInput1 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`B`)
             .parent()
             .parent()
             .should("have.attr", "aria-disabled", "true");
         cy.get("#choiceInput1").click();
         cy.get("#choiceInput2").click();
-        cy.get("#choiceInput2 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`B`)
             .parent()
             .parent()
@@ -2547,17 +2450,9 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
 
         cy.log("Submit correct answers for reduced credit");
         cy.get("#choiceInput1").click();
-        cy.get("#choiceInput1 [class*='menu']")
-            .contains(`A`)
-            .parent()
-            .parent()
-            .click();
+        getOpenInlineChoiceMenu().contains(`A`).parent().parent().click();
         cy.get("#choiceInput2").click();
-        cy.get("#choiceInput2 [class*='menu']")
-            .contains(`A`)
-            .parent()
-            .parent()
-            .click();
+        getOpenInlineChoiceMenu().contains(`A`).parent().parent().click();
         cy.get("#choiceInput1_button").click();
         cy.get("#answer2 button").click();
         cy.get("#choiceInput1_button")
@@ -2568,14 +2463,14 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
         cy.get("#answer1").should("contain.text", "Max credit available: 60%");
         cy.get("#answer2").should("contain.text", "Max credit available: 60%");
         cy.get("#choiceInput1").click();
-        cy.get("#choiceInput1 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`B`)
             .parent()
             .parent()
             .should("have.attr", "aria-disabled", "true");
         cy.get("#choiceInput1").click();
         cy.get("#choiceInput2").click();
-        cy.get("#choiceInput2 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`B`)
             .parent()
             .parent()
@@ -2584,17 +2479,9 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
 
         cy.log("Submit second incorrect answers");
         cy.get("#choiceInput1").click();
-        cy.get("#choiceInput1 [class*='menu']")
-            .contains(`D`)
-            .parent()
-            .parent()
-            .click();
+        getOpenInlineChoiceMenu().contains(`D`).parent().parent().click();
         cy.get("#choiceInput2").click();
-        cy.get("#choiceInput2 [class*='menu']")
-            .contains(`D`)
-            .parent()
-            .parent()
-            .click();
+        getOpenInlineChoiceMenu().contains(`D`).parent().parent().click();
         cy.get("#choiceInput1_button").click();
         cy.get("#answer2 button").click();
         cy.get("#choiceInput1_button").should("contain.text", "Incorrect");
@@ -2604,24 +2491,24 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
         cy.get("#answer2").should("contain.text", "Max credit available: 40%");
 
         cy.get("#choiceInput1").click();
-        cy.get("#choiceInput1 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`B`)
             .parent()
             .parent()
             .should("have.attr", "aria-disabled", "true");
-        cy.get("#choiceInput1 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`D`)
             .parent()
             .parent()
             .should("have.attr", "aria-disabled", "true");
         cy.get("#choiceInput1").click();
         cy.get("#choiceInput2").click();
-        cy.get("#choiceInput2 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`B`)
             .parent()
             .parent()
             .should("have.attr", "aria-disabled", "true");
-        cy.get("#choiceInput2 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`D`)
             .parent()
             .parent()
@@ -2630,17 +2517,9 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
 
         cy.log("Submit correct answers for further reduced credit");
         cy.get("#choiceInput1").click();
-        cy.get("#choiceInput1 [class*='menu']")
-            .contains(`A`)
-            .parent()
-            .parent()
-            .click();
+        getOpenInlineChoiceMenu().contains(`A`).parent().parent().click();
         cy.get("#choiceInput2").click();
-        cy.get("#choiceInput2 [class*='menu']")
-            .contains(`A`)
-            .parent()
-            .parent()
-            .click();
+        getOpenInlineChoiceMenu().contains(`A`).parent().parent().click();
         cy.get("#choiceInput1_button").click();
         cy.get("#answer2 button").click();
         cy.get("#choiceInput1_button")
@@ -2652,24 +2531,24 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
         cy.get("#answer2").should("contain.text", "Max credit available: 40%");
 
         cy.get("#choiceInput1").click();
-        cy.get("#choiceInput1 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`B`)
             .parent()
             .parent()
             .should("have.attr", "aria-disabled", "true");
-        cy.get("#choiceInput1 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`D`)
             .parent()
             .parent()
             .should("have.attr", "aria-disabled", "true");
         cy.get("#choiceInput1").click();
         cy.get("#choiceInput2").click();
-        cy.get("#choiceInput2 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`B`)
             .parent()
             .parent()
             .should("have.attr", "aria-disabled", "true");
-        cy.get("#choiceInput2 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`D`)
             .parent()
             .parent()
@@ -2678,17 +2557,9 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
 
         cy.log("Submit third incorrect answers");
         cy.get("#choiceInput1").click();
-        cy.get("#choiceInput1 [class*='menu']")
-            .contains(`C`)
-            .parent()
-            .parent()
-            .click();
+        getOpenInlineChoiceMenu().contains(`C`).parent().parent().click();
         cy.get("#choiceInput2").click();
-        cy.get("#choiceInput2 [class*='menu']")
-            .contains(`C`)
-            .parent()
-            .parent()
-            .click();
+        getOpenInlineChoiceMenu().contains(`C`).parent().parent().click();
         cy.get("#choiceInput1_button").click();
         cy.get("#answer2 button").click();
         cy.get("#choiceInput1_button").should("contain.text", "Incorrect");
@@ -2698,34 +2569,34 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
         cy.get("#answer2").should("contain.text", "Max credit available: 40%");
 
         cy.get("#choiceInput1").click();
-        cy.get("#choiceInput1 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`B`)
             .parent()
             .parent()
             .should("have.attr", "aria-disabled", "true");
-        cy.get("#choiceInput1 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`C`)
             .parent()
             .parent()
             .should("have.attr", "aria-disabled", "true");
-        cy.get("#choiceInput1 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`D`)
             .parent()
             .parent()
             .should("have.attr", "aria-disabled", "true");
         cy.get("#choiceInput1").click();
         cy.get("#choiceInput2").click();
-        cy.get("#choiceInput2 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`B`)
             .parent()
             .parent()
             .should("have.attr", "aria-disabled", "true");
-        cy.get("#choiceInput2 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`C`)
             .parent()
             .parent()
             .should("have.attr", "aria-disabled", "true");
-        cy.get("#choiceInput2 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`D`)
             .parent()
             .parent()
@@ -2734,17 +2605,9 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
 
         cy.log("Submit correct answers, credit not further reduced");
         cy.get("#choiceInput1").click();
-        cy.get("#choiceInput1 [class*='menu']")
-            .contains(`A`)
-            .parent()
-            .parent()
-            .click();
+        getOpenInlineChoiceMenu().contains(`A`).parent().parent().click();
         cy.get("#choiceInput2").click();
-        cy.get("#choiceInput2 [class*='menu']")
-            .contains(`A`)
-            .parent()
-            .parent()
-            .click();
+        getOpenInlineChoiceMenu().contains(`A`).parent().parent().click();
         cy.get("#choiceInput1_button").click();
         cy.get("#answer2 button").click();
         cy.get("#choiceInput1_button")
@@ -2756,34 +2619,34 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
         cy.get("#answer2").should("contain.text", "Max credit available: 40%");
 
         cy.get("#choiceInput1").click();
-        cy.get("#choiceInput1 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`B`)
             .parent()
             .parent()
             .should("have.attr", "aria-disabled", "true");
-        cy.get("#choiceInput1 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`C`)
             .parent()
             .parent()
             .should("have.attr", "aria-disabled", "true");
-        cy.get("#choiceInput1 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`D`)
             .parent()
             .parent()
             .should("have.attr", "aria-disabled", "true");
         cy.get("#choiceInput1").click();
         cy.get("#choiceInput2").click();
-        cy.get("#choiceInput2 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`B`)
             .parent()
             .parent()
             .should("have.attr", "aria-disabled", "true");
-        cy.get("#choiceInput2 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`C`)
             .parent()
             .parent()
             .should("have.attr", "aria-disabled", "true");
-        cy.get("#choiceInput2 [class*='menu']")
+        getOpenInlineChoiceMenu()
             .contains(`D`)
             .parent()
             .parent()
@@ -3283,9 +3146,7 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             );
 
             cy.get("@choiceInlineSelect").click();
-            cy.get('#ansChoiceInline [class*="menu"]')
-                .contains("red")
-                .click({ force: true });
+            getOpenInlineChoiceMenu().contains("red").click({ force: true });
             cy.get("#ansChoiceInline button").click();
             cy.get("@choiceInlineSelect").should(
                 "have.css",
@@ -3299,9 +3160,7 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             );
 
             cy.get("@choiceInlineSelect").click();
-            cy.get('#ansChoiceInline [class*="menu"]')
-                .contains("green")
-                .click({ force: true });
+            getOpenInlineChoiceMenu().contains("green").click({ force: true });
             cy.get("#ansChoiceInline button").click();
             cy.get("@choiceInlineSelect").should(
                 "have.css",
@@ -3315,9 +3174,7 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             );
 
             cy.get("@choiceInlineSelect").click();
-            cy.get('#ansChoiceInline [class*="menu"]')
-                .contains("blue")
-                .click({ force: true });
+            getOpenInlineChoiceMenu().contains("blue").click({ force: true });
             cy.get("#ansChoiceInline button").click();
             cy.get("@choiceInlineSelect").should(
                 "have.css",
@@ -3490,9 +3347,7 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
                 defaultColor,
             );
             cy.get("@choiceInlineSelect").click();
-            cy.get('#ansChoiceInline [class*="menu"]')
-                .contains("red")
-                .click({ force: true });
+            getOpenInlineChoiceMenu().contains("red").click({ force: true });
             cy.get("#ansChoiceInline button").click();
             cy.get("@choiceInlineSelect").should(
                 "have.css",
@@ -3500,9 +3355,7 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
                 defaultColor,
             );
             cy.get("@choiceInlineSelect").click();
-            cy.get('#ansChoiceInline [class*="menu"]')
-                .contains("green")
-                .click({ force: true });
+            getOpenInlineChoiceMenu().contains("green").click({ force: true });
             cy.get("#ansChoiceInline button").click();
             cy.get("@choiceInlineSelect").should(
                 "have.css",
@@ -3510,9 +3363,7 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
                 defaultColor,
             );
             cy.get("@choiceInlineSelect").click();
-            cy.get('#ansChoiceInline [class*="menu"]')
-                .contains("blue")
-                .click({ force: true });
+            getOpenInlineChoiceMenu().contains("blue").click({ force: true });
             cy.get("#ansChoiceInline button").click();
             cy.get("@choiceInlineSelect").should(
                 "have.css",

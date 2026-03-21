@@ -5,6 +5,9 @@ describe("Basic accessibility tests", { tags: ["@group5"] }, function () {
         cy.injectAxe();
     });
 
+    const getOpenInlineChoiceMenu = () =>
+        cy.get('[id^="react-select-"][id$="-listbox"]:visible').last();
+
     it("Virtual keyboard passes accessibility tests", () => {
         // Makes sure keyboard passes basic tests, like color contrast
         cy.window().then(async (win) => {
@@ -669,13 +672,13 @@ describe("Basic accessibility tests", { tags: ["@group5"] }, function () {
         });
 
         cy.get(`#ci1`).click();
-        cy.get('#ci1 [class*="menu"]').within(() => {
+        getOpenInlineChoiceMenu().within(() => {
             cy.contains("apple").click({ force: true });
         });
         cy.get(`#ci1`).click();
 
         // Hover over the banana option
-        cy.get('#ci1 [class*="menu"]')
+        getOpenInlineChoiceMenu()
             .contains("banana")
             .parent()
             .parent()
