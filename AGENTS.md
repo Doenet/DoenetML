@@ -11,6 +11,7 @@ Agents working in this repository should read [TEST_RUN_INSTRUCTIONS_FOR_AGENTS.
 
 ## Commit Hygiene Requirements
 
+- Format changed files with Prettier before committing.
 - Ignore changes to `testCode.doenet` files. Do not commit them.
 - Ignore changes to `packages/doenetml/dev/main.tsx`. Do not commit them.
 - Ignore changes to any untracked `*.md` files in the repository root. Do not commit them.
