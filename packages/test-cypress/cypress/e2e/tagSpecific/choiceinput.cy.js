@@ -4,6 +4,9 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         cy.visit("/");
     });
 
+    const getOpenInlineChoiceMenu = () =>
+        cy.get('[id^="react-select-"][id$="-listbox"]:visible').last();
+
     it("disabled choice with inline choiceInput", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -91,7 +94,7 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             if (i === 2) {
                 cy.get(`#choiceInput1`).click();
 
-                cy.get(`#choiceInput1 [class*="menu"]`).within(() => {
+                getOpenInlineChoiceMenu().within(() => {
                     cy.contains(choices[i])
                         .parent()
                         .parent()
@@ -100,7 +103,7 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
                 cy.get(`#choiceInput1`).click();
             } else {
                 cy.get(`#choiceInput1`).click();
-                cy.get('#choiceInput1 [class*="menu"]')
+                getOpenInlineChoiceMenu()
                     .within(() => {
                         cy.contains(choices[i]).click({ force: true });
                     })
@@ -240,13 +243,13 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             if (i === 2) {
                 cy.get(`#choiceInput1`).click();
 
-                cy.get(`#choiceInput1 [class*="menu"]`).within(() => {
+                getOpenInlineChoiceMenu().within(() => {
                     cy.contains(choices[i]).should("not.exist");
                 });
                 cy.get(`#choiceInput1`).click();
             } else {
                 cy.get(`#choiceInput1`).click();
-                cy.get('#choiceInput1 [class*="menu"]')
+                getOpenInlineChoiceMenu()
                     .within(() => {
                         cy.contains(choices[i]).click({ force: true });
                     })
@@ -424,6 +427,125 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
                     });
             }
         }
+    });
+
+    it("inline choiceInput menu stays within viewport near bottom", () => {
+        cy.viewport(900, 420);
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p>
+      <choiceInput inline name="choiceInputBottom" placeholder="Choose letter">
+        <choice>a</choice>
+        <choice>b</choice>
+        <choice>c</choice>
+      </choiceInput>
+    </p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#choiceInputBottom").scrollIntoView({ block: "end" }).click();
+
+        getOpenInlineChoiceMenu().should("exist");
+
+        cy.window().then((win) => {
+            getOpenInlineChoiceMenu().then(($menu) => {
+                const rect = $menu[0].getBoundingClientRect();
+                expect(rect.top).to.be.at.least(0);
+                expect(rect.bottom).to.be.at.most(win.innerHeight);
+            });
+        });
+    });
+
+    it("inline choiceInput menu escapes a scroll-clipped viewer container", () => {
+        cy.viewport(900, 700);
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p><text>a</text></p>
+    <p>
+      <choiceInput inline name="choiceInputClipped" placeholder="Choose letter">
+        <choice>a</choice>
+        <choice>b</choice>
+        <choice>c</choice>
+      </choiceInput>
+    </p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(".doenet-viewer").then(($viewer) => {
+            $viewer[0].style.height = "180px";
+            $viewer[0].style.overflow = "auto";
+            $viewer[0].style.position = "relative";
+        });
+
+        cy.get(".doenet-viewer").scrollTo("bottom");
+        cy.get("#choiceInputClipped").click();
+        getOpenInlineChoiceMenu()
+            .parents(".doenet-viewer")
+            .should("have.length", 0);
+
+        cy.get(".doenet-viewer").then(($viewer) => {
+            const viewerRect = $viewer[0].getBoundingClientRect();
+
+            cy.get("#choiceInputClipped").then(($control) => {
+                const controlRect = $control[0].getBoundingClientRect();
+
+                getOpenInlineChoiceMenu().then(($menu) => {
+                    const menuRect = $menu[0].getBoundingClientRect();
+                    expect($viewer[0].contains($menu[0])).to.equal(false);
+
+                    expect(controlRect.bottom).to.be.greaterThan(
+                        viewerRect.bottom - 60,
+                    );
+                    expect(menuRect.top).to.be.at.least(controlRect.bottom - 2);
+                    expect(menuRect.bottom).to.be.greaterThan(
+                        viewerRect.bottom + 10,
+                    );
+
+                    const sampleX = Math.min(
+                        menuRect.left + 20,
+                        menuRect.right - 10,
+                    );
+                    const sampleY = viewerRect.bottom + 10;
+
+                    cy.document().then((doc) => {
+                        const hit = doc.elementFromPoint(sampleX, sampleY);
+                        expect(hit).to.not.equal(null);
+                        expect($menu[0].contains(hit)).to.equal(true);
+                    });
+                });
+            });
+        });
     });
 
     it("hidden choice with block choiceInput", () => {
@@ -876,7 +998,7 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
                 .find('svg[aria-hidden="true"]')
                 .last() // Gets the dropdown arrow, not the X
                 .click();
-            cy.get('#choiceInput1 [class*="menu"]')
+            getOpenInlineChoiceMenu()
                 .within(() => {
                     cy.contains(choices[i]).click({ force: true });
                 })
@@ -990,7 +1112,7 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
                 .find('svg[aria-hidden="true"]')
                 .last() // Gets the dropdown arrow, not the X
                 .click();
-            cy.get('#choiceInput1 [class*="menu"]')
+            getOpenInlineChoiceMenu()
                 .within(() => {
                     cy.contains(choices[i]).click({ force: true });
                 })
