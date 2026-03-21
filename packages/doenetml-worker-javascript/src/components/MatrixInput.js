@@ -3921,6 +3921,7 @@ export default class MatrixComponentInput extends BaseComponent {
             shadowingInstructions: {
                 createComponentOfType: "boolean",
             },
+            ignoreFixed: true,
             returnDependencies: () => ({}),
             definition: () => ({
                 useEssentialOrDefaultValue: { focused: true },
@@ -4081,6 +4082,7 @@ export default class MatrixComponentInput extends BaseComponent {
             ],
             actionId,
             sourceInformation,
+            overrideReadOnly: true,
             doNotSave: true,
         });
     }

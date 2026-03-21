@@ -1930,4 +1930,55 @@ describe("TextInput tag tests @group1", async () => {
             stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
         ).eq(false);
     });
+
+    it("focused state variable still updates when readOnly", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <textInput name="ti">
+      <label>hello</label>
+    </textInput>
+    <boolean extend="$ti.focused" name="f" />
+    `,
+            flags: { readOnly: true },
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ti")].stateValues
+                .focused,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(false);
+
+        // Focus should still update focused, even when readOnly is set.
+        await focusChanged({
+            focused: true,
+            componentIdx: await resolvePathToNodeIdx("ti"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ti")].stateValues
+                .focused,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(true);
+
+        // Blur should also update focused.
+        await focusChanged({
+            focused: false,
+            componentIdx: await resolvePathToNodeIdx("ti"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ti")].stateValues
+                .focused,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues.value,
+        ).eq(false);
+    });
 });

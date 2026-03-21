@@ -671,6 +671,7 @@ export default class Input extends InlineComponent {
             shadowingInstructions: {
                 createComponentOfType: "boolean",
             },
+            ignoreFixed: true,
             returnDependencies: () => ({}),
             definition: () => ({
                 useEssentialOrDefaultValue: { focused: true },
@@ -703,6 +704,7 @@ export default class Input extends InlineComponent {
             ],
             actionId,
             sourceInformation,
+            overrideReadOnly: true,
             doNotSave: true,
         });
     }
