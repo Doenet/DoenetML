@@ -3,6 +3,7 @@ import {
     mathTextDoesNotContainExpected,
     mathTextDoesNotMatchExpected,
     mathTextMatchesExpected,
+    toMathJaxString,
 } from "../../../src/util/mathDisplay";
 
 function postDoenetML(doenetML) {
