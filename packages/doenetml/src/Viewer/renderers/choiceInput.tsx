@@ -292,6 +292,11 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                       : "#fff",
                 color: state.isSelected ? "#fff" : "#000",
             }),
+            menuPortal: (provided: any) => ({
+                ...provided,
+                fontSize: "80%",
+                zIndex: 9999,
+            }),
         };
 
         // The select is wrapped in a grid with an invisible ghost element

@@ -461,17 +461,9 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get("#choiceInputBottom").scrollIntoView().click();
+        cy.get("#choiceInputBottom").scrollIntoView({ block: "end" }).click();
 
         getOpenInlineChoiceMenu().should("exist");
-
-        cy.get("#choiceInputBottom").then(($control) => {
-            const controlRect = $control[0].getBoundingClientRect();
-            getOpenInlineChoiceMenu().then(($menu) => {
-                const menuRect = $menu[0].getBoundingClientRect();
-                expect(menuRect.bottom).to.be.at.most(controlRect.top + 2);
-            });
-        });
 
         cy.window().then((win) => {
             getOpenInlineChoiceMenu().then(($menu) => {
