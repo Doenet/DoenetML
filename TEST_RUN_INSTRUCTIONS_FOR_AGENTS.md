@@ -117,8 +117,8 @@ Fix:
 2. Clean and rebuild dist with:
 
 ```bash
-rm -rf /home/nykamp/src/DoenetML/packages/test-cypress/dist
-npm exec -w @doenet/test-cypress -- vite build
+rm -rf packages/test-cypress/dist
+npm run build -w @doenet/test-cypress
 ```
 
 3. Restart preview on baseUrl port 4173:
