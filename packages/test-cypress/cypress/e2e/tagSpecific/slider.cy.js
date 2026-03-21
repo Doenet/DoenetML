@@ -366,4 +366,75 @@ describe("Slider Tag Tests", { tags: ["@group1"] }, function () {
         cy.get("#s-prevbutton").should("not.be.disabled");
         cy.get("#s-nextbutton").should("not.be.disabled");
     });
+
+    it("slider handle snaps to core-constrained on mouseup", () => {
+        // Regression: s2 is bound to s1 (step=2), so Core forces both sliders
+        // onto even numbers. When the user drags s2's handle to an odd index,
+        // Core rounds to the nearest even value. During drag we keep optimistic
+        // handle position and snap to Core-constrained value on mouseup.
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <slider name="s1" step="2"><label><m>s_1</m></label></slider>
+  <slider name="s2" step="1" bindValueTo="$s1"><label><m>s_2</m></label></slider>
+  <p>s1 value: <number name="sv1">$s1</number></p>
+  <p>s2 value: <number name="sv2">$s2</number></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        // Initial state: both sliders at value 0
+        cy.get("#sv1").should("have.text", "0");
+        cy.get("#sv2").should("have.text", "0");
+        // s1: step=2, from=0 to 10 → values 0,2,4,6,8,10 (6 items); index 0 = value 0
+        cy.get("#s1").should("have.value", "0");
+        // s2: step=1, from=0 to 10 → 11 items; index 0 = value 0
+        cy.get("#s2").should("have.value", "0");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(
+                stateVariables[await win.resolvePath1("s1")].stateValues.value,
+            ).eq(0);
+            expect(
+                stateVariables[await win.resolvePath1("s2")].stateValues.value,
+            ).eq(0);
+        });
+
+        cy.log(
+            "drag s2 handle to index 5 (value 5); core rounds both sliders up to 6",
+        );
+        // s2 index 5 = value 5. Core finds nearest even for s1: round((5-0)/2)=3
+        // → s1 value = 6. s2 is bound to s1, so s2 value also becomes 6.
+        // The handle should remain optimistic (index 5) while dragging.
+        cy.get("#s2").trigger("mousedown");
+        cy.get("#s2").invoke("val", 5).trigger("input");
+
+        cy.get("#sv1").should("have.text", "6");
+        cy.get("#sv2").should("have.text", "6");
+
+        // s1: index 3 corresponds to value 6 in the 0,2,4,6,8,10 sequence
+        cy.get("#s1").should("have.value", "3");
+        // While transient drag is active, the displayed handle index remains optimistic.
+        cy.get("#s2").should("have.value", "5");
+
+        cy.get("#s2").trigger("mouseup");
+
+        // s2: index 6 corresponds to value 6 in the 0..10 step-1 sequence
+        // and should only snap at mouseup.
+        cy.get("#s2").should("have.value", "6");
+
+        cy.window().then(async (win) => {
+            let stateVariables = await win.returnAllStateVariables1();
+            expect(
+                stateVariables[await win.resolvePath1("s1")].stateValues.value,
+            ).eq(6);
+            expect(
+                stateVariables[await win.resolvePath1("s2")].stateValues.value,
+            ).eq(6);
+        });
+    });
 });

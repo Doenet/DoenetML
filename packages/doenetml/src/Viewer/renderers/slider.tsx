@@ -187,6 +187,11 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
 
     const inputRef = useRef<HTMLInputElement>(null);
 
+    let indexWhenSetState = useRef<number | null>(null);
+    // Always stays current via direct assignment (does not trigger re-render)
+    let currentSVsIndexRef = useRef(SVs.index);
+    currentSVsIndexRef.current = SVs.index;
+
     useEffect(() => {
         if (inputRef.current) {
             setInputWidth(inputRef.current.offsetWidth);
@@ -205,9 +210,16 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
         };
     }, []);
 
-    useEffect(() => {
+    // Inline render-time sync:
+    // We must handle the case where core constrains the value back to a position
+    // that equals the previous SVs.index, yet the local optimistic index must be reverted.
+    // The !transient condition ensures that this only happens on mouse up, not during dragging.
+    if (!transient && indexWhenSetState.current !== SVs.index) {
         setIndex(SVs.index);
-    }, [SVs.index]);
+        indexWhenSetState.current = SVs.index;
+    } else {
+        indexWhenSetState.current = null;
+    }
 
     const changeValue = React.useCallback((v: string, isTransient: boolean) => {
         const index = Number(v);
@@ -217,6 +229,9 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
                     ? SVs.from + SVs.step * index
                     : Number(SVs.items[index]);
 
+            // Record the current core index so the inline guard knows this
+            // setState came from the renderer (optimistic), not from core.
+            indexWhenSetState.current = currentSVsIndexRef.current;
             setIndex(index);
 
             callAction({
@@ -229,6 +244,7 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
                 baseVariableValue: index,
             });
         } else {
+            indexWhenSetState.current = currentSVsIndexRef.current;
             setIndex(index);
 
             callAction({
