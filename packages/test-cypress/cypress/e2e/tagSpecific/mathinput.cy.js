@@ -63,7 +63,7 @@ function shouldNotContainMathText(selector, expectedMathSource) {
  */
 function postDoenetMLWithMathJaxPrimed(doenetML) {
     postDoenetML(`${doenetML}\n<p><m name="to-prime-mathjax">z</m></p>`);
-    shouldHaveMathText("#to-prime-mathjax", "z");
+    cy.get("#to-prime-mathjax").should("have.text", toMathJaxString("z"));
 }
 
 describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
