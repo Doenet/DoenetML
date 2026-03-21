@@ -123,10 +123,8 @@ export function normalizeMathTextForComparison(s: string) {
         .replace(/\\\(|\\\)|\\\[|\\\]/g, "")
         .replace(/\u2062/g, "")
         .replace(/−/g, "-")
-        .replace(/\s+/g, "")
-        .trim();
+        .replace(/\s+/g, "");
 }
-
 /**
  * Returns true when actual math text semantically equals the expected source,
  * accepting either raw-source form or MathJax-rendered form.
