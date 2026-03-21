@@ -74495,6 +74495,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "focused",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "displayDigits",
                     "type": "integer",
                     "isArray": false
@@ -92155,6 +92160,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "focused",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "numResponses",
                     "type": "number",
                     "isArray": false
@@ -94043,6 +94053,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "focused",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "displayDigits",
                     "type": "integer",
                     "isArray": false
@@ -94661,6 +94676,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "focused",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "anchor",
                     "type": "point",
                     "isArray": false
@@ -95274,6 +95294,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "focused",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "anchor",
                     "type": "point",
                     "isArray": false
@@ -95550,6 +95575,11 @@
                 {
                     "name": "shortDescription",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "focused",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {

@@ -94,6 +94,47 @@ describe("TextInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#piv").should("have.text", "immediate value: hello");
     });
 
+    it("focused state variable is not saved to database (doNotSave)", () => {
+        let doenetML = `
+    <p><textInput name="ti">
+      <label>hello</label>
+    </textInput></p>
+    <p name="fv">focused: <boolean extend="$ti.focused" /></p>
+    <p name="piv">immediate value: <text extend="$ti.immediateValue" /></p>
+    `;
+
+        cy.get("#testRunner_toggleControls").click();
+        cy.get("#testRunner_allowLocalState").click();
+        cy.wait(100);
+        cy.get("#testRunner_toggleControls").click();
+
+        cy.window().then(async (win) => {
+            win.postMessage({ doenetML }, "*");
+        });
+
+        cy.get("#fv").should("have.text", "focused: false");
+        cy.get("#piv").should("have.text", "immediate value: ");
+
+        cy.get("#ti_input").focus();
+        cy.get("#fv").should("have.text", "focused: true");
+
+        cy.get("#ti_input").type("hello");
+        cy.get("#fv").should("have.text", "focused: true");
+        cy.get("#piv").should("have.text", "immediate value: hello");
+
+        cy.wait(1500); // wait for debounce
+
+        cy.reload();
+
+        cy.window().then(async (win) => {
+            win.postMessage({ doenetML }, "*");
+        });
+
+        // immediateValue should be restored, but focused should not be saved
+        cy.get("#piv").should("have.text", "immediate value: hello");
+        cy.get("#fv").should("have.text", "focused: false");
+    });
+
     it("shadowed textInput's update is not ignored", () => {
         // Check for a bug where the renderer of a shadowed text input did not update correctly
         // as its update was incorrectly being ignored.
