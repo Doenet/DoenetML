@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
 import {
+    focusChanged,
     submitAnswer,
     updateBooleanInputValue,
     updateMathInputImmediateValue,
@@ -8950,5 +8951,177 @@ What is the derivative of <function name="f">x^2</function>?
             true,
         );
         expect(stateVariables[mathInput2Idx].stateValues.creditAchieved).eq(0);
+    });
+
+    it("focused state variable: implicit math input", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <answer name="ans">x+y</answer>
+    <boolean extend="$ans.focused" name="f" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        expect(stateVariables[ansIdx].stateValues.focused).eq(false);
+
+        // Get the implicit mathInput child
+        const implicitMathInputIdx =
+            stateVariables[ansIdx].activeChildren[0].componentIdx;
+
+        // Focus the implicit input
+        await focusChanged({
+            focused: true,
+            componentIdx: implicitMathInputIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.focused).eq(true);
+
+        // Blur the implicit input
+        await focusChanged({
+            focused: false,
+            componentIdx: implicitMathInputIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.focused).eq(false);
+    });
+
+    it("focused state variable: implicit text input", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <answer name="ans" type="text">hello</answer>
+    <boolean extend="$ans.focused" name="f" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        expect(stateVariables[ansIdx].stateValues.focused).eq(false);
+
+        // Get the implicit textInput child
+        const implicitTextInputIdx =
+            stateVariables[ansIdx].activeChildren[0].componentIdx;
+
+        // Focus the implicit input
+        await focusChanged({
+            focused: true,
+            componentIdx: implicitTextInputIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.focused).eq(true);
+
+        // Blur the implicit input
+        await focusChanged({
+            focused: false,
+            componentIdx: implicitTextInputIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.focused).eq(false);
+    });
+
+    it("focused state variable: explicit inputs via forAnswer", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" forAnswer="$ans" />
+    <textInput name="ti" forAnswer="$ans" />
+    <answer name="ans"><award><when>$mi = x and $ti = hello</when></award></answer>
+    <boolean extend="$ans.focused" name="f" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        const miIdx = await resolvePathToNodeIdx("mi");
+        const tiIdx = await resolvePathToNodeIdx("ti");
+
+        expect(stateVariables[ansIdx].stateValues.focused).eq(false);
+
+        // Focus mathInput: answer should be focused
+        await focusChanged({
+            focused: true,
+            componentIdx: miIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.focused).eq(true);
+
+        // Blur mathInput; focus textInput: answer should still be focused
+        await focusChanged({
+            focused: false,
+            componentIdx: miIdx,
+            core,
+        });
+        await focusChanged({
+            focused: true,
+            componentIdx: tiIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.focused).eq(true);
+
+        // Blur textInput: answer should be unfocused
+        await focusChanged({
+            focused: false,
+            componentIdx: tiIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.focused).eq(false);
+    });
+
+    it("focused state variable: implicit choice input", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <answer name="ans">
+      <choice>cat</choice>
+      <choice>dog</choice>
+    </answer>
+    <boolean extend="$ans.focused" name="f" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        expect(stateVariables[ansIdx].stateValues.focused).eq(false);
+
+        // Get the implicit choiceInput child
+        const implicitChoiceInputIdx =
+            stateVariables[ansIdx].activeChildren[0].componentIdx;
+
+        // Focus the implicit input
+        await focusChanged({
+            focused: true,
+            componentIdx: implicitChoiceInputIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.focused).eq(true);
+
+        // Blur the implicit input
+        await focusChanged({
+            focused: false,
+            componentIdx: implicitChoiceInputIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.focused).eq(false);
+    });
+
+    it("focused state variable: answer with no inputs", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <answer name="ans"><award><when>true</when></award></answer>
+    <boolean extend="$ans.focused" name="f" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        // Should be false since there are no inputs
+        expect(stateVariables[ansIdx].stateValues.focused).eq(false);
     });
 });
