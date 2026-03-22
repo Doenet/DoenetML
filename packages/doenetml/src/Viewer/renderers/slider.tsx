@@ -205,9 +205,14 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
         };
     }, []);
 
+    // Sync local index to Core index when not dragging.
+    // During drag (transient=true), keep optimistic local index.
+    // When drag ends (transient=false), snap to Core-constrained index.
     useEffect(() => {
-        setIndex(SVs.index);
-    }, [SVs.index]);
+        if (!transient) {
+            setIndex(SVs.index);
+        }
+    }, [SVs.index, transient]);
 
     const changeValue = React.useCallback((v: string, isTransient: boolean) => {
         const index = Number(v);
