@@ -30,6 +30,8 @@
         "build": {
             "command": "vite build",
             "files": [
+                "index.html",
+                "public/**/*",
                 "src/**/*.ts",
                 "src/**/*.tsx",
                 "src/**/*.jsx",
@@ -37,9 +39,7 @@
                 "vite.config.ts"
             ],
             "output": [
-                "dist/**/*.js",
-                "dist/**/*.d.ts",
-                "dist/**/*.json"
+                "dist/**"
             ],
             "dependencies": [
                 "../doenetml-prototype:build",

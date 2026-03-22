@@ -18,7 +18,7 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
-import { addValidationStateToShortDescription } from "./utils/description";
+import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
 export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, ignoreUpdate, callAction } =
@@ -480,17 +480,21 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
         checkWorkTabIndex = "-1";
     }
 
-    const submitAnswer = () =>
-        callAction({
-            action: actions.submitAnswer,
-        });
     const validationState = calculateValidationState(SVs);
+    const { isPending, submitActionWithPending } = useSubmitActionWithDelay({
+        actionKey: "submitAnswer",
+        actions,
+        callAction,
+        validationState,
+        justSubmitted: SVs.justSubmitted,
+    });
     const checkWorkComponent = createCheckWorkComponent(
         SVs,
         id,
         validationState,
-        submitAnswer,
+        submitActionWithPending,
         SVs.forceFullCheckWorkButton,
+        isPending,
     );
 
     let input;

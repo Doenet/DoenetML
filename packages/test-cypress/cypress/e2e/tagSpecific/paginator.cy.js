@@ -358,7 +358,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                 });
                 cy.get(answer3Button).should("contain.text", "Check Work");
                 cy.get(mathInput3Anchor).type("{enter}", { force: true });
-                cy.get(answer2Button).should("contain.text", "Incorrect");
+                cy.get(answer3Button).should("contain.text", "Incorrect");
                 cy.get(cesc("#ca")).should("have.text", "0.5");
                 cy.get(mathInput3DisplayAnchor).should("contain.text", "2q");
 

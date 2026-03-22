@@ -10,6 +10,7 @@ import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
+import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
 export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
     let {
@@ -35,10 +36,14 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
         return null;
     }
 
-    const submitAnswer = () =>
-        callAction({
-            action: actions.submitAnswer,
-        });
+    const validationState = calculateValidationState(SVs);
+    const { isPending, submitActionWithPending } = useSubmitActionWithDelay({
+        actionKey: "submitAnswer",
+        actions,
+        callAction,
+        validationState,
+        justSubmitted: SVs.justSubmitted,
+    });
 
     let answerResponseButton = null;
     if (showAnswerResponseButton) {
@@ -116,13 +121,13 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
         problemGrids.push(grid);
     }
 
-    const validationState = calculateValidationState(SVs);
     const checkWorkComponent = createCheckWorkComponent(
         SVs,
         id,
         validationState,
-        submitAnswer,
+        submitActionWithPending,
         true,
+        isPending,
     );
 
     return (

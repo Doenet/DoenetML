@@ -204,6 +204,11 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
             "contain.text",
             "Incorrect",
         );
+
+        cy.get(cesc("#gradedApplet.cc.initialCorrect_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.cc.initialCorrect_button")).click();
         cy.get(cesc("#gradedApplet.cc.initialCorrect_button")).should(
             "contain.text",
@@ -253,6 +258,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
                 },
             });
         });
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.cc.initialCorrect_button")).should(
             "contain.text",
@@ -272,6 +281,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.deleteLine_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.cc.initialCorrect_button")).should(
             "contain.text",
@@ -289,6 +302,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.cc.initialCorrect_button")).should(
             "contain.text",
@@ -308,6 +325,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
             "contain.text",
@@ -324,6 +345,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
                 },
             });
         });
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
             "contain.text",
@@ -339,6 +364,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
             "contain.text",
@@ -377,6 +406,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
 
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
             "contain.text",
@@ -407,6 +440,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
             "contain.text",
@@ -424,6 +461,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
             });
         });
 
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
             "contain.text",
@@ -439,6 +480,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
             "contain.text",
@@ -454,6 +499,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
                 },
             });
         });
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
             "contain.text",
@@ -469,6 +518,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
         );
 
         cy.get(cesc("#gradedApplet.cobwebApplet.addLine_button")).click();
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
             "contain.text",
@@ -485,6 +538,10 @@ describe("CobwebPolyline Tag Tests", { tags: ["@group2"] }, function () {
                 },
             });
         });
+        cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
+            "contain.text",
+            "Check Work",
+        );
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).click();
         cy.get(cesc("#gradedApplet.correctCobwebbing_button")).should(
             "contain.text",

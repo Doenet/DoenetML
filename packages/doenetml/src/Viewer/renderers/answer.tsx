@@ -8,6 +8,7 @@ import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
+import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { MathJax } from "better-react-mathjax";
 import { DescriptionPopover } from "./utils/Description";
 
@@ -31,10 +32,15 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         return null;
     }
 
-    const submitAnswer = () =>
-        callAction({
-            action: actions.submitAnswer,
-        });
+    const validationState = calculateValidationState(SVs);
+
+    const { isPending, submitActionWithPending } = useSubmitActionWithDelay({
+        actionKey: "submitAnswer",
+        actions,
+        callAction,
+        validationState,
+        justSubmitted: SVs.justSubmitted,
+    });
 
     let label = SVs.label;
     if (SVs.labelHasLatex) {
@@ -78,13 +84,13 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         );
     }
 
-    const validationState = calculateValidationState(SVs);
     let checkWorkComponent = createCheckWorkComponent(
         SVs,
         id,
         validationState,
-        submitAnswer,
+        submitActionWithPending,
         SVs.forceFullCheckWorkButton || !SVs.forceSmallCheckWorkButton,
+        isPending,
     );
 
     if (checkWorkComponent) {

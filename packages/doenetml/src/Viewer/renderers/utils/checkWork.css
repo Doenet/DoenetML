@@ -100,6 +100,21 @@
     outline-color: rgb(74, 3, 217); /* Dark Purple */
 }
 
+.doenet-viewer button.check-work-pending {
+    background-color: var(--mainGray);
+    color: black;
+    cursor: progress;
+
+    &:hover {
+        background-color: var(--mainGray);
+        color: black;
+    }
+}
+
+.doenet-viewer button.check-work-pending:focus {
+    outline-color: var(--mainGray);
+}
+
 /* A utility class to hide content visually but keep it accessible */
 .doenet-viewer .visually-hidden {
     position: absolute;
