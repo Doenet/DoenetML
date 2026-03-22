@@ -209,7 +209,7 @@ export function createCheckWorkComponent(
         button = (
             <>
                 {button}
-                <span>({message})</span>
+                <span data-test="attempts-remaining">({message})</span>
             </>
         );
     }

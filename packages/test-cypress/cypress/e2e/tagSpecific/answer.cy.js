@@ -3691,6 +3691,189 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             expect(hasDirectText($el[0], "Check Work")).to.equal(true);
         });
     });
+
+    it("shows pending message during slow submit before correct", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <text name="a">a</text>
+  <p>
+    <answer name="answerClick" symbolicEquality expandOnCompare>
+            <mathInput name="miClick" prefill="5/(6 y + 72 - 4 x)^2" />
+      <math>5/(6 y + 72 - 4 x)^2</math>
+    </answer>
+  </p>
+  <p>
+    <answer name="answerEnter" symbolicEquality expandOnCompare>
+            <mathInput name="miEnter" prefill="5/(6 y + 72 - 4 x)^2" />
+      <math>5/(6 y + 72 - 4 x)^2</math>
+    </answer>
+  </p>
+    <p>
+        <answer
+            name="answerFull"
+            symbolicEquality
+            expandOnCompare
+            forceFullCheckWorkButton
+        >
+            <mathInput name="miFull" prefill="5/(6 y + 72 - 4 x)^2" />
+            <math>5/(6 y + 72 - 4 x)^2</math>
+        </answer>
+    </p>
+    <p>
+        <answer
+            name="answerNoCorrect"
+            symbolicEquality
+            expandOnCompare
+            showCorrectness="false"
+            forceFullCheckWorkButton
+        >
+            <mathInput name="miNoCorrect" prefill="5/(6 y + 72 - 4 x)^2" />
+            <math>5/(6 y + 72 - 4 x)^2</math>
+        </answer>
+    </p>
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#a").should("have.text", "a");
+
+        const clickButton = "#miClick_button";
+        const enterTextarea = "#miEnter textarea";
+        const enterButton = "#miEnter_button";
+        const fullButton = "#miFull_button";
+        const noCorrectButton = "#miNoCorrect_button";
+
+        cy.get(clickButton).should("contain.text", "Check Work");
+        cy.get(clickButton).click();
+        cy.get(clickButton, { timeout: 3000 }).should(
+            "contain.text",
+            "Checking answer",
+        );
+        cy.get(clickButton).should("have.attr", "aria-disabled", "true");
+        cy.get(clickButton).should("contain.text", "Correct");
+        cy.get(clickButton).should("not.have.attr", "aria-disabled");
+
+        cy.get(enterButton).should("contain.text", "Check Work");
+        cy.get(enterTextarea).focus().type("{enter}", { force: true });
+        cy.get(enterButton, { timeout: 3000 }).should(
+            "contain.text",
+            "Checking answer",
+        );
+        cy.get(enterButton).should("have.attr", "aria-disabled", "true");
+        cy.get(enterButton).should("contain.text", "Correct");
+        cy.get(enterButton).should("not.have.attr", "aria-disabled");
+
+        cy.get(fullButton).should("contain.text", "Check Work");
+        cy.get(fullButton).click();
+        cy.get(fullButton, { timeout: 3000 }).should(
+            "contain.text",
+            "Checking...",
+        );
+        cy.get(fullButton, { timeout: 3000 }).should(
+            "contain.text",
+            "Checking answer",
+        );
+        cy.get(fullButton).should("have.attr", "aria-disabled", "true");
+        cy.get(fullButton).should("contain.text", "Correct");
+        cy.get(fullButton).should("not.have.attr", "aria-disabled");
+
+        cy.get(noCorrectButton).click();
+        cy.get(noCorrectButton, { timeout: 3000 }).should(
+            "contain.text",
+            "Submitting...",
+        );
+        cy.get(noCorrectButton, { timeout: 3000 }).should(
+            "contain.text",
+            "Submitting answer",
+        );
+        cy.get(noCorrectButton).should("have.attr", "aria-disabled", "true");
+        cy.get(noCorrectButton).should("contain.text", "Response Saved");
+        cy.get(noCorrectButton).should("not.have.attr", "aria-disabled");
+    });
+
+    it("suppresses duplicate submits while pending", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <text name="a">a</text>
+    <p>
+        <answer
+            name="answerSpamClick"
+            symbolicEquality
+            expandOnCompare
+            forceFullCheckWorkButton
+            maxNumAttempts="3"
+        >
+            <mathInput
+                name="miSpamClick"
+                prefill="(x)/((aa+bb+cc)^2)"
+            />
+            <math>(x + 1)/((aa+bb+cc)^2)</math>
+        </answer>
+    </p>
+    <p>
+        <answer
+            name="answerSpamEnter"
+            symbolicEquality
+            expandOnCompare
+            forceFullCheckWorkButton
+            maxNumAttempts="3"
+        >
+            <mathInput
+                name="miSpamEnter"
+                prefill="(x)/((aa+bb+cc)^2)"
+            />
+            <math>(x + 1)/((aa+bb+cc)^2)</math>
+        </answer>
+    </p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#a").should("have.text", "a");
+
+        const clickButton = "#miSpamClick_button";
+        const enterTextarea = "#miSpamEnter textarea";
+        const enterButton = "#miSpamEnter_button";
+
+        cy.get(clickButton)
+            .next('[data-test="attempts-remaining"]')
+            .should("contain.text", "3 attempts remaining");
+        cy.get(clickButton).click();
+        cy.get(clickButton, { timeout: 3000 }).should(
+            "contain.text",
+            "Checking...",
+        );
+        cy.get(clickButton).click({ force: true });
+        cy.get(clickButton).click({ force: true });
+        cy.get(clickButton).click({ force: true });
+        cy.get(clickButton).should("contain.text", "Incorrect");
+        cy.get(clickButton)
+            .next('[data-test="attempts-remaining"]')
+            .should("contain.text", "2 attempts remaining");
+
+        cy.get(enterButton)
+            .next('[data-test="attempts-remaining"]')
+            .should("contain.text", "3 attempts remaining");
+        cy.get(enterTextarea)
+            .focus()
+            .type("{enter}{enter}{enter}{enter}", { force: true });
+        cy.get(enterButton, { timeout: 3000 }).should(
+            "contain.text",
+            "Checking...",
+        );
+        cy.get(enterButton).should("contain.text", "Incorrect");
+        cy.get(enterButton)
+            .next('[data-test="attempts-remaining"]')
+            .should("contain.text", "2 attempts remaining");
+    });
 });
 
 function getCSSVariableAsRGB(win, varName) {
