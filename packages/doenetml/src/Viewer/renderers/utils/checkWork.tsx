@@ -5,6 +5,7 @@ import {
     faCheck,
     faCloud,
     faLevelDownAlt,
+    faSpinner,
     faTimes,
 } from "@fortawesome/free-solid-svg-icons";
 import "./checkWork.css";
@@ -50,6 +51,7 @@ export function createCheckWorkComponent(
     validationState: string,
     submitAnswer: () => void,
     showText: boolean,
+    isPending = false,
 ) {
     if (!SVs.showCheckWork) {
         return null;
@@ -67,7 +69,22 @@ export function createCheckWorkComponent(
     // though it will be read by the screen reader as part of the document as normal.
     let otherLabel: string | undefined = undefined;
 
-    if (validationState === "unvalidated") {
+    if (isPending) {
+        buttonClassNames.push("check-work-pending");
+        const pendingText = SVs.showCorrectness
+            ? "Checking..."
+            : "Submitting...";
+        liveLabel = SVs.showCorrectness
+            ? "Checking answer"
+            : "Submitting answer";
+        buttonContent = showText ? <>&nbsp; {pendingText}</> : null;
+        buttonContent = (
+            <span aria-hidden={true}>
+                <FontAwesomeIcon icon={faSpinner as IconProp} spin={true} />
+                {buttonContent}
+            </span>
+        );
+    } else if (validationState === "unvalidated") {
         buttonClassNames.push("check-work-unvalidated");
         const checkWorkText = SVs.showCorrectness
             ? SVs.submitLabel
@@ -150,6 +167,7 @@ export function createCheckWorkComponent(
             id={id + "_button"}
             tabIndex={tabIndex}
             disabled={SVs.disabled}
+            aria-disabled={isPending ? true : undefined}
             onClick={submitAnswer}
         >
             {buttonContent}

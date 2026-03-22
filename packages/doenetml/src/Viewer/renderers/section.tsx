@@ -18,6 +18,7 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { cesc } from "@doenet/utils";
+import { useDelayedSubmissionPending } from "./utils/useDelayedSubmissionPending";
 
 export default React.memo(function Section(props) {
     let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
@@ -235,9 +236,19 @@ export default React.memo(function Section(props) {
         return null;
     }
 
-    const submitAllAnswers = () =>
-        callAction({
-            action: actions.submitAllAnswers,
+    const submitAllAnswers = React.useCallback(
+        () =>
+            callAction({
+                action: actions.submitAllAnswers,
+            }),
+        [actions.submitAllAnswers, callAction],
+    );
+    const validationState = calculateValidationState(SVs);
+    const { isPending, submitActionWithPending: submitAllAnswersWithPending } =
+        useDelayedSubmissionPending({
+            submitAction: submitAllAnswers,
+            validationState,
+            justSubmitted: SVs.justSubmitted,
         });
 
     let title;
@@ -347,13 +358,13 @@ export default React.memo(function Section(props) {
         }
     }
 
-    const validationState = calculateValidationState(SVs);
     let checkWorkComponent = createCheckWorkComponent(
         SVs,
         id,
         validationState,
-        submitAllAnswers,
+        submitAllAnswersWithPending,
         true,
+        isPending,
     );
 
     if (checkWorkComponent) {

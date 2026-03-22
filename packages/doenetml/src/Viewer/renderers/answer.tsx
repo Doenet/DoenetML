@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useCallback, useContext } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
@@ -10,6 +10,7 @@ import {
 } from "./utils/checkWork";
 import { MathJax } from "better-react-mathjax";
 import { DescriptionPopover } from "./utils/Description";
+import { useDelayedSubmissionPending } from "./utils/useDelayedSubmissionPending";
 
 export default React.memo(function Answer(props: UseDoenetRendererProps) {
     let {
@@ -31,9 +32,21 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         return null;
     }
 
-    const submitAnswer = () =>
-        callAction({
-            action: actions.submitAnswer,
+    const validationState = calculateValidationState(SVs);
+
+    const submitAnswer = useCallback(
+        () =>
+            callAction({
+                action: actions.submitAnswer,
+            }),
+        [actions.submitAnswer, callAction],
+    );
+
+    const { isPending, submitActionWithPending: submitAnswerWithPending } =
+        useDelayedSubmissionPending({
+            submitAction: submitAnswer,
+            validationState,
+            justSubmitted: SVs.justSubmitted,
         });
 
     let label = SVs.label;
@@ -78,13 +91,13 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         );
     }
 
-    const validationState = calculateValidationState(SVs);
     let checkWorkComponent = createCheckWorkComponent(
         SVs,
         id,
         validationState,
-        submitAnswer,
+        submitAnswerWithPending,
         SVs.forceFullCheckWorkButton || !SVs.forceSmallCheckWorkButton,
+        isPending,
     );
 
     if (checkWorkComponent) {

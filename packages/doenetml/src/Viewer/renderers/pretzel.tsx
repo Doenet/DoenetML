@@ -1,4 +1,4 @@
-import React, { useRef, useContext, ReactElement } from "react";
+import React, { useRef, useContext, ReactElement, useCallback } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
@@ -10,6 +10,7 @@ import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
+import { useDelayedSubmissionPending } from "./utils/useDelayedSubmissionPending";
 
 export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
     let {
@@ -35,9 +36,20 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
         return null;
     }
 
-    const submitAnswer = () =>
-        callAction({
-            action: actions.submitAnswer,
+    const submitAnswer = useCallback(
+        () =>
+            callAction({
+                action: actions.submitAnswer,
+            }),
+        [actions.submitAnswer, callAction],
+    );
+
+    const validationState = calculateValidationState(SVs);
+    const { isPending, submitActionWithPending: submitAnswerWithPending } =
+        useDelayedSubmissionPending({
+            submitAction: submitAnswer,
+            validationState,
+            justSubmitted: SVs.justSubmitted,
         });
 
     let answerResponseButton = null;
@@ -116,13 +128,13 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
         problemGrids.push(grid);
     }
 
-    const validationState = calculateValidationState(SVs);
     const checkWorkComponent = createCheckWorkComponent(
         SVs,
         id,
         validationState,
-        submitAnswer,
+        submitAnswerWithPending,
         true,
+        isPending,
     );
 
     return (

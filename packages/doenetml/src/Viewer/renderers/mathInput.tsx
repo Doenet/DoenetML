@@ -26,6 +26,7 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { addValidationStateToShortDescription } from "./utils/description";
+import { useDelayedSubmissionPending } from "./utils/useDelayedSubmissionPending";
 
 const PREVIEW_UPDATE_DELAY_MS = 500;
 
@@ -366,13 +367,21 @@ export default function MathInput(props: UseDoenetRendererProps) {
         "unvalidated" | "correct" | "incorrect" | "partialcorrect"
     >("unvalidated");
 
-    const updateValidationState = () => {
-        validationState.current = calculateValidationState(SVs);
-    };
+    validationState.current = calculateValidationState(SVs);
 
-    const submitAnswer = () =>
-        callAction({
-            action: actions.submitAnswer,
+    const submitAnswer = React.useCallback(
+        () =>
+            callAction({
+                action: actions.submitAnswer,
+            }),
+        [actions.submitAnswer, callAction],
+    );
+
+    const { isPending, submitActionWithPending: submitAnswerWithPending } =
+        useDelayedSubmissionPending({
+            submitAction: submitAnswer,
+            validationState: validationState.current,
+            justSubmitted: SVs.justSubmitted,
         });
 
     const handlePressEnter = React.useCallback(() => {
@@ -389,9 +398,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
             showCheckWork.current &&
             validationState.current === "unvalidated"
         ) {
-            submitAnswer();
+            submitAnswerWithPending();
         }
-    }, [callAction, mathField]);
+    }, [callAction, submitAnswerWithPending]);
 
     React.useEffect(() => {
         if (!mathField || focusedMathInput.current !== mathField.el()) {
@@ -410,7 +419,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                     showCheckWork.current &&
                     validationState.current === "unvalidated"
                 ) {
-                    submitAnswer();
+                    submitAnswerWithPending();
                 }
                 continue;
             }
@@ -531,8 +540,6 @@ export default function MathInput(props: UseDoenetRendererProps) {
         return null;
     }
 
-    updateValidationState();
-
     let mathInputStyle: React.CSSProperties = {
         /* Set border properties individually because border color is updated
            during rerender (e.g., disabled/validation state). */
@@ -573,8 +580,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
         SVs,
         id,
         validationState.current,
-        submitAnswer,
+        submitAnswerWithPending,
         SVs.forceFullCheckWorkButton,
+        isPending,
     );
 
     let label = SVs.label;

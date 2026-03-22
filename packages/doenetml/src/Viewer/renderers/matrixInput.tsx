@@ -13,6 +13,7 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
+import { useDelayedSubmissionPending } from "./utils/useDelayedSubmissionPending";
 
 export default React.memo(function MatrixInput(props) {
     let { id, SVs, actions, children, callAction } = useDoenetRenderer(props);
@@ -44,17 +45,28 @@ export default React.memo(function MatrixInput(props) {
     //   surroundingBorderColor = "#82a5ff";
     // }
 
-    const submitAnswer = () =>
-        callAction({
-            action: actions.submitAnswer,
+    const submitAnswer = React.useCallback(
+        () =>
+            callAction({
+                action: actions.submitAnswer,
+            }),
+        [actions.submitAnswer, callAction],
+    );
+
+    const { isPending, submitActionWithPending: submitAnswerWithPending } =
+        useDelayedSubmissionPending({
+            submitAction: submitAnswer,
+            validationState: validationState.current,
+            justSubmitted: SVs.justSubmitted,
         });
 
     const checkWorkComponent = createCheckWorkComponent(
         SVs,
         id,
         validationState.current,
-        submitAnswer,
+        submitAnswerWithPending,
         SVs.forceFullCheckWorkButton,
+        isPending,
     );
 
     let matrixInputs = [];

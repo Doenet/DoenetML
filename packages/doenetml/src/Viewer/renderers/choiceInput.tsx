@@ -1,4 +1,10 @@
-import React, { createContext, useMemo, useRef, useState } from "react";
+import React, {
+    createContext,
+    useCallback,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
@@ -11,6 +17,7 @@ import {
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
 import { addValidationStateToShortDescription } from "./utils/description";
+import { useDelayedSubmissionPending } from "./utils/useDelayedSubmissionPending";
 
 // type guard
 const isMultiValue = <T,>(
@@ -60,9 +67,19 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     }
 
     const validationState = calculateValidationState(SVs);
-    const submitAnswer = () =>
-        callAction({
-            action: actions.submitAnswer,
+    const submitAnswer = useCallback(
+        () =>
+            callAction({
+                action: actions.submitAnswer,
+            }),
+        [actions.submitAnswer, callAction],
+    );
+
+    const { isPending, submitActionWithPending: submitAnswerWithPending } =
+        useDelayedSubmissionPending({
+            submitAction: submitAnswer,
+            validationState,
+            justSubmitted: SVs.justSubmitted,
         });
 
     function onFocusChanged(focused: boolean) {
@@ -184,8 +201,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         SVs,
         id,
         validationState,
-        submitAnswer,
+        submitAnswerWithPending,
         fullCheckWork,
+        isPending,
     );
 
     const inlineSelectComponents = useMemo(

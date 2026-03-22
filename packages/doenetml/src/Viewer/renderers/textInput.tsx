@@ -1,4 +1,10 @@
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, {
+    useCallback,
+    useContext,
+    useEffect,
+    useRef,
+    useState,
+} from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
@@ -19,6 +25,7 @@ import {
 import "./textInput.css";
 import { DescriptionPopover } from "./utils/Description";
 import { addValidationStateToShortDescription } from "./utils/description";
+import { useDelayedSubmissionPending } from "./utils/useDelayedSubmissionPending";
 
 export default function TextInput(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, ignoreUpdate, callAction } =
@@ -89,9 +96,19 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
     const validationState = calculateValidationState(SVs);
 
-    const submitAnswer = () =>
-        callAction({
-            action: actions.submitAnswer,
+    const submitAnswer = useCallback(
+        () =>
+            callAction({
+                action: actions.submitAnswer,
+            }),
+        [actions.submitAnswer, callAction],
+    );
+
+    const { isPending, submitActionWithPending: submitAnswerWithPending } =
+        useDelayedSubmissionPending({
+            submitAction: submitAnswer,
+            validationState,
+            justSubmitted: SVs.justSubmitted,
         });
 
     function handleKeyPress(e: React.KeyboardEvent) {
@@ -108,7 +125,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
                 !SVs.expanded &&
                 validationState === "unvalidated"
             ) {
-                submitAnswer();
+                submitAnswerWithPending();
             }
         }
     }
@@ -565,8 +582,9 @@ export default function TextInput(props: UseDoenetRendererProps) {
         SVs,
         id,
         validationState,
-        submitAnswer,
+        submitAnswerWithPending,
         SVs.forceFullCheckWorkButton,
+        isPending,
     );
 
     let input;
