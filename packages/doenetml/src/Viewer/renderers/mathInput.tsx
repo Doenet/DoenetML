@@ -377,6 +377,11 @@ export default function MathInput(props: UseDoenetRendererProps) {
         justSubmitted: SVs.justSubmitted,
     });
 
+    // `EditableMathField` can invoke an older enter handler capture.
+    // Read submit callback from a ref so Enter always uses current guard state.
+    const submitActionWithPendingRef = useRef(submitActionWithPending);
+    submitActionWithPendingRef.current = submitActionWithPending;
+
     const handlePressEnter = React.useCallback(() => {
         if (!mathFieldRef.current) {
             return;
@@ -391,9 +396,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
             showCheckWork.current &&
             validationState.current === "unvalidated"
         ) {
-            submitActionWithPending();
+            submitActionWithPendingRef.current();
         }
-    }, [callAction, submitActionWithPending]);
+    }, [callAction]);
 
     React.useEffect(() => {
         if (!mathField || focusedMathInput.current !== mathField.el()) {
@@ -412,7 +417,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                     showCheckWork.current &&
                     validationState.current === "unvalidated"
                 ) {
-                    submitActionWithPending();
+                    submitActionWithPendingRef.current();
                 }
                 continue;
             }

@@ -37,14 +37,13 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
     }
 
     const validationState = calculateValidationState(SVs);
-    const { isPending, submitActionWithPending } =
-        useSubmitActionWithDelay({
-            actionKey: "submitAnswer",
-            actions,
-            callAction,
-            validationState,
-            justSubmitted: SVs.justSubmitted,
-        });
+    const { isPending, submitActionWithPending } = useSubmitActionWithDelay({
+        actionKey: "submitAnswer",
+        actions,
+        callAction,
+        validationState,
+        justSubmitted: SVs.justSubmitted,
+    });
 
     let answerResponseButton = null;
     if (showAnswerResponseButton) {
