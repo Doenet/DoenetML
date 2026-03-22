@@ -11,6 +11,9 @@ concurrency:
     group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
     cancel-in-progress: true
 
+env:
+    FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
 jobs:
     changes:
         name: Detect Changed Paths
@@ -255,12 +258,10 @@ jobs:
               uses: actions/checkout@v3
 
             - name: Install toolchain
-              uses: actions-rs/toolchain@v1
-              with:
-                  profile: minimal
-                  toolchain: stable
-                  override: true
-                  components: rustfmt, clippy
+              run: |
+                  rustup set profile minimal
+                  rustup toolchain install stable --component rustfmt --component clippy
+                  rustup default stable
 
             - name: Cargo fmt
               working-directory: ./packages/doenetml-worker-rust
