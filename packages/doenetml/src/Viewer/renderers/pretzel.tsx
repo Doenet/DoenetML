@@ -1,4 +1,4 @@
-import React, { useRef, useContext, ReactElement, useCallback } from "react";
+import React, { useRef, useContext, ReactElement } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
@@ -10,7 +10,7 @@ import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
-import { useDelayedSubmissionPending } from "./utils/useDelayedSubmissionPending";
+import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
 export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
     let {
@@ -36,18 +36,12 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
         return null;
     }
 
-    const submitAnswer = useCallback(
-        () =>
-            callAction({
-                action: actions.submitAnswer,
-            }),
-        [actions.submitAnswer, callAction],
-    );
-
     const validationState = calculateValidationState(SVs);
-    const { isPending, submitActionWithPending: submitAnswerWithPending } =
-        useDelayedSubmissionPending({
-            submitAction: submitAnswer,
+    const { isPending, submitActionWithPending } =
+        useSubmitActionWithDelay({
+            actionKey: "submitAnswer",
+            actions,
+            callAction,
             validationState,
             justSubmitted: SVs.justSubmitted,
         });
@@ -132,7 +126,7 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
         SVs,
         id,
         validationState,
-        submitAnswerWithPending,
+        submitActionWithPending,
         true,
         isPending,
     );

@@ -10,18 +10,23 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import "./checkWork.css";
 
+/** Validation state for answer submissions */
+export type ValidationState =
+    | "unvalidated"
+    | "correct"
+    | "incorrect"
+    | "partialcorrect";
+
 /**
  * Calculate if the current response of an answer blank has already been validated,
  * and, if so, the correctness of the response.
  *
  * Calculation is based on the state variables `SVs`.
  */
-export function calculateValidationState(SVs: Record<string, any>) {
-    let validationState:
-        | "unvalidated"
-        | "correct"
-        | "incorrect"
-        | "partialcorrect" = "unvalidated";
+export function calculateValidationState(
+    SVs: Record<string, any>,
+): ValidationState {
+    let validationState: ValidationState = "unvalidated";
     if (SVs.justSubmitted || SVs.numAttemptsLeft < 1) {
         if (SVs.creditAchieved === 1) {
             validationState = "correct";
@@ -44,11 +49,12 @@ export function calculateValidationState(SVs: Record<string, any>) {
  * - submitAnswer: function to call to submit answer
  * - showText: if true, then the button includes text like "Submit" or "Correct"
  *   in addition to the symbols
+ * - isPending: if true, shows pending/checking state with spinner
  */
 export function createCheckWorkComponent(
     SVs: Record<string, any>,
     id: string,
-    validationState: string,
+    validationState: ValidationState,
     submitAnswer: () => void,
     showText: boolean,
     isPending = false,

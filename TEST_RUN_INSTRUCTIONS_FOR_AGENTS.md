@@ -55,7 +55,7 @@ Cypress config uses `baseUrl: http://localhost:4173`.
 Start preview from repo root with workspace selector:
 
 ```bash
-npm run preview -w @doenet/test-cypress
+npm run preview -w @doenet/test-cypress -- --host 127.0.0.1 --port 4173 --strictPort
 ```
 
 If you are using an agent terminal tool, run this in a background terminal.
@@ -110,7 +110,9 @@ Fix:
 1. Start `npm run preview -w @doenet/test-cypress`.
 2. Re-run the headless Cypress command.
 
-If the browser shows a blank page and console 404 errors for hashed assets like `assets/index-*.js`, preview is serving a stale `dist/index.html`.
+If the browser shows a blank page and console 404 errors for hashed assets like `assets/index-*.js`, preview is serving a stale/inconsistent `dist`.
+
+Note: this should be much less likely now that `@doenet/test-cypress` Wireit output tracks `dist/**`, but keep the recovery steps below as a fallback.
 
 Fix:
 1. Stop preview server.
@@ -121,10 +123,10 @@ rm -rf packages/test-cypress/dist
 npm run build -w @doenet/test-cypress
 ```
 
-3. Restart preview on baseUrl port 4173:
+3. Restart preview on baseUrl port 4173 (with strict port):
 
 ```bash
-npm run preview -w @doenet/test-cypress -- --host 127.0.0.1 --port 4173
+npm run preview -w @doenet/test-cypress -- --host 127.0.0.1 --port 4173 --strictPort
 ```
 
 4. Re-run Cypress with fast-fail settings.

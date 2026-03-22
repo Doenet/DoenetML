@@ -8,7 +8,7 @@ import {
     calculateValidationState,
     createCheckWorkComponent,
 } from "./utils/checkWork";
-import { useDelayedSubmissionPending } from "./utils/useDelayedSubmissionPending";
+import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
 export default React.memo(function List(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
@@ -23,28 +23,20 @@ export default React.memo(function List(props: UseDoenetRendererProps) {
 
     let checkWorkComponent = null;
     const validationState = calculateValidationState(SVs);
-    const submitAllAnswers = React.useCallback(() => {
-        if (!actions.submitAllAnswers) {
-            return;
-        }
-
-        callAction({
-            action: actions.submitAllAnswers,
-        });
-    }, [actions.submitAllAnswers, callAction]);
-    const { isPending, submitActionWithPending: submitAllAnswersWithPending } =
-        useDelayedSubmissionPending({
-            submitAction: submitAllAnswers,
-            validationState,
-            justSubmitted: SVs.justSubmitted,
-        });
+    const { isPending, submitActionWithPending } = useSubmitActionWithDelay({
+        actionKey: "submitAllAnswers",
+        actions,
+        callAction,
+        validationState,
+        justSubmitted: SVs.justSubmitted,
+    });
 
     if (actions.submitAllAnswers) {
         checkWorkComponent = createCheckWorkComponent(
             SVs,
             id,
             validationState,
-            submitAllAnswersWithPending,
+            submitActionWithPending,
             true,
             isPending,
         );

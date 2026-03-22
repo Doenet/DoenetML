@@ -1,12 +1,31 @@
 import React from "react";
+import type { ValidationState } from "./checkWork";
 
 type UseDelayedSubmissionPendingOptions = {
+    /** Delay in milliseconds before showing pending UI (default: 500ms) */
     delayMs?: number;
+    /** Function to call to submit the answer */
     submitAction: () => void;
-    validationState: string;
+    /** Current validation state of the answer */
+    validationState: ValidationState;
+    /** Whether the answer was just submitted */
     justSubmitted?: boolean;
 };
 
+/**
+ * Hook for delayed submission pending UI feedback.
+ *
+ * Shows a "Checking..." message only if submission takes longer than the specified delay.
+ * Prevents duplicate submissions while in-flight. Automatically clears the pending state
+ * when validation completes (via validationState change from "unvalidated") or when a new
+ * answer is submitted (via justSubmitted flag).
+ *
+ * The delay default (500ms) balances user experience:
+ * - Avoids flashing spinners for quick validations
+ * - Shows feedback for slow network/computation requests
+ *
+ * @returns Object with isPending state and submitActionWithPending function
+ */
 export function useDelayedSubmissionPending({
     delayMs = 500,
     submitAction,
@@ -45,6 +64,10 @@ export function useDelayedSubmissionPending({
     }, []);
 
     const submitActionWithPending = React.useCallback(() => {
+        if (validationState !== "unvalidated") {
+            return;
+        }
+
         if (isSubmissionInFlight.current) {
             return;
         }
@@ -65,7 +88,7 @@ export function useDelayedSubmissionPending({
         }, delayMs);
 
         submitAction();
-    }, [delayMs, submitAction]);
+    }, [delayMs, submitAction, validationState]);
 
     return {
         isPending,

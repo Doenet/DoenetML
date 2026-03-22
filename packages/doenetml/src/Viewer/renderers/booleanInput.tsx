@@ -1,10 +1,4 @@
-import React, {
-    useCallback,
-    useContext,
-    useEffect,
-    useRef,
-    useState,
-} from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
@@ -24,8 +18,7 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
-import { addValidationStateToShortDescription } from "./utils/description";
-import { useDelayedSubmissionPending } from "./utils/useDelayedSubmissionPending";
+import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
 export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, ignoreUpdate, callAction } =
@@ -487,25 +480,19 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
         checkWorkTabIndex = "-1";
     }
 
-    const submitAnswer = useCallback(
-        () =>
-            callAction({
-                action: actions.submitAnswer,
-            }),
-        [actions.submitAnswer, callAction],
-    );
     const validationState = calculateValidationState(SVs);
-    const { isPending, submitActionWithPending: submitAnswerWithPending } =
-        useDelayedSubmissionPending({
-            submitAction: submitAnswer,
-            validationState,
-            justSubmitted: SVs.justSubmitted,
-        });
+    const { isPending, submitActionWithPending } = useSubmitActionWithDelay({
+        actionKey: "submitAnswer",
+        actions,
+        callAction,
+        validationState,
+        justSubmitted: SVs.justSubmitted,
+    });
     const checkWorkComponent = createCheckWorkComponent(
         SVs,
         id,
         validationState,
-        submitAnswerWithPending,
+        submitActionWithPending,
         SVs.forceFullCheckWorkButton,
         isPending,
     );

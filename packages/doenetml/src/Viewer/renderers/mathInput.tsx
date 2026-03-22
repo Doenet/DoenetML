@@ -26,7 +26,7 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { addValidationStateToShortDescription } from "./utils/description";
-import { useDelayedSubmissionPending } from "./utils/useDelayedSubmissionPending";
+import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
 const PREVIEW_UPDATE_DELAY_MS = 500;
 
@@ -369,20 +369,13 @@ export default function MathInput(props: UseDoenetRendererProps) {
 
     validationState.current = calculateValidationState(SVs);
 
-    const submitAnswer = React.useCallback(
-        () =>
-            callAction({
-                action: actions.submitAnswer,
-            }),
-        [actions.submitAnswer, callAction],
-    );
-
-    const { isPending, submitActionWithPending: submitAnswerWithPending } =
-        useDelayedSubmissionPending({
-            submitAction: submitAnswer,
-            validationState: validationState.current,
-            justSubmitted: SVs.justSubmitted,
-        });
+    const { isPending, submitActionWithPending } = useSubmitActionWithDelay({
+        actionKey: "submitAnswer",
+        actions,
+        callAction,
+        validationState: validationState.current,
+        justSubmitted: SVs.justSubmitted,
+    });
 
     const handlePressEnter = React.useCallback(() => {
         if (!mathFieldRef.current) {
@@ -398,9 +391,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
             showCheckWork.current &&
             validationState.current === "unvalidated"
         ) {
-            submitAnswerWithPending();
+            submitActionWithPending();
         }
-    }, [callAction, submitAnswerWithPending]);
+    }, [callAction, submitActionWithPending]);
 
     React.useEffect(() => {
         if (!mathField || focusedMathInput.current !== mathField.el()) {
@@ -419,7 +412,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                     showCheckWork.current &&
                     validationState.current === "unvalidated"
                 ) {
-                    submitAnswerWithPending();
+                    submitActionWithPending();
                 }
                 continue;
             }
@@ -580,7 +573,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         SVs,
         id,
         validationState.current,
-        submitAnswerWithPending,
+        submitActionWithPending,
         SVs.forceFullCheckWorkButton,
         isPending,
     );

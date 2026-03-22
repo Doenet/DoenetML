@@ -3874,6 +3874,69 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             .next('[data-test="attempts-remaining"]')
             .should("contain.text", "2 attempts remaining");
     });
+
+    it("does nothing when clicking or pressing enter after validation", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <text name="a">a</text>
+        <p>
+            <answer name="answerClickValidated" symbolicEquality expandOnCompare>
+                <mathInput name="miClickValidated" prefill="x+1" />
+                <math>x+1</math>
+            </answer>
+        </p>
+        <p>
+            <answer name="answerEnterValidated" symbolicEquality expandOnCompare>
+                <mathInput name="miEnterValidated" prefill="y+2" />
+                <math>y+2</math>
+            </answer>
+        </p>
+        `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#a").should("have.text", "a");
+
+        const clickButton = "#miClickValidated_button";
+        const enterButton = "#miEnterValidated_button";
+        const enterTextarea = "#miEnterValidated textarea";
+
+        cy.get(clickButton).should("contain.text", "Check Work");
+        cy.get(clickButton).click();
+        cy.get(clickButton).should("contain.text", "Correct");
+        cy.get(clickButton).should("not.have.attr", "aria-disabled");
+        cy.get(clickButton).should("contain.text", "Correct");
+        cy.get(clickButton).should("not.contain.text", "Checking answer");
+        cy.get(clickButton).should("not.contain.text", "Checking...");
+        cy.get(clickButton).should("not.have.attr", "aria-disabled");
+
+        cy.get(clickButton).click();
+        cy.wait(800);
+        cy.get(clickButton).should("contain.text", "Correct");
+        cy.get(clickButton).should("not.contain.text", "Checking answer");
+        cy.get(clickButton).should("not.contain.text", "Checking...");
+        cy.get(clickButton).should("not.have.attr", "aria-disabled");
+
+        cy.get(enterButton).should("contain.text", "Check Work");
+        cy.get(enterTextarea).focus().type("{enter}", { force: true });
+        cy.get(enterButton).should("contain.text", "Correct");
+        cy.get(enterButton).should("not.have.attr", "aria-disabled");
+        cy.get(enterButton).should("contain.text", "Correct");
+        cy.get(enterButton).should("not.contain.text", "Checking answer");
+        cy.get(enterButton).should("not.contain.text", "Checking...");
+        cy.get(enterButton).should("not.have.attr", "aria-disabled");
+
+        cy.get(enterTextarea).focus().type("{enter}", { force: true });
+        cy.wait(800);
+        cy.get(enterButton).should("contain.text", "Correct");
+        cy.get(enterButton).should("not.contain.text", "Checking answer");
+        cy.get(enterButton).should("not.contain.text", "Checking...");
+        cy.get(enterButton).should("not.have.attr", "aria-disabled");
+    });
 });
 
 function getCSSVariableAsRGB(win, varName) {

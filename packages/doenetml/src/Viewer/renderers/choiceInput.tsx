@@ -1,6 +1,5 @@
 import React, {
     createContext,
-    useCallback,
     useMemo,
     useRef,
     useState,
@@ -17,7 +16,7 @@ import {
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
 import { addValidationStateToShortDescription } from "./utils/description";
-import { useDelayedSubmissionPending } from "./utils/useDelayedSubmissionPending";
+import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
 // type guard
 const isMultiValue = <T,>(
@@ -67,17 +66,11 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     }
 
     const validationState = calculateValidationState(SVs);
-    const submitAnswer = useCallback(
-        () =>
-            callAction({
-                action: actions.submitAnswer,
-            }),
-        [actions.submitAnswer, callAction],
-    );
-
-    const { isPending, submitActionWithPending: submitAnswerWithPending } =
-        useDelayedSubmissionPending({
-            submitAction: submitAnswer,
+    const { isPending, submitActionWithPending } =
+        useSubmitActionWithDelay({
+            actionKey: "submitAnswer",
+            actions,
+            callAction,
             validationState,
             justSubmitted: SVs.justSubmitted,
         });
@@ -201,7 +194,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         SVs,
         id,
         validationState,
-        submitAnswerWithPending,
+        submitActionWithPending,
         fullCheckWork,
         isPending,
     );

@@ -1,5 +1,4 @@
 import React, {
-    useCallback,
     useContext,
     useEffect,
     useRef,
@@ -25,7 +24,7 @@ import {
 import "./textInput.css";
 import { DescriptionPopover } from "./utils/Description";
 import { addValidationStateToShortDescription } from "./utils/description";
-import { useDelayedSubmissionPending } from "./utils/useDelayedSubmissionPending";
+import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
 export default function TextInput(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, ignoreUpdate, callAction } =
@@ -96,17 +95,11 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
     const validationState = calculateValidationState(SVs);
 
-    const submitAnswer = useCallback(
-        () =>
-            callAction({
-                action: actions.submitAnswer,
-            }),
-        [actions.submitAnswer, callAction],
-    );
-
-    const { isPending, submitActionWithPending: submitAnswerWithPending } =
-        useDelayedSubmissionPending({
-            submitAction: submitAnswer,
+    const { isPending, submitActionWithPending } =
+        useSubmitActionWithDelay({
+            actionKey: "submitAnswer",
+            actions,
+            callAction,
             validationState,
             justSubmitted: SVs.justSubmitted,
         });
@@ -125,7 +118,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
                 !SVs.expanded &&
                 validationState === "unvalidated"
             ) {
-                submitAnswerWithPending();
+                submitActionWithPending();
             }
         }
     }
@@ -582,7 +575,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
         SVs,
         id,
         validationState,
-        submitAnswerWithPending,
+        submitActionWithPending,
         SVs.forceFullCheckWorkButton,
         isPending,
     );
