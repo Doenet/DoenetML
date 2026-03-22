@@ -18,6 +18,7 @@ export default defineConfig({
                         "../*",
                     ),
                     dest: "doenetml-worker/",
+                    overwrite: false,
                 },
                 {
                     src: path.join(
@@ -25,6 +26,7 @@ export default defineConfig({
                         "../fonts/*",
                     ),
                     dest: "fonts/",
+                    overwrite: false,
                 },
             ],
         }),
