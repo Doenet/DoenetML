@@ -3647,7 +3647,7 @@ export default class Core {
                     ) &&
                     !parent.constructor.canDisplayChildErrors
                 ) {
-                    // The composite returned an error but this parent cannot display child diagnostics,
+                    // The composite returned an error but this parent cannot display child errors,
                     // so remove it from the replacements
                     // (to avoid a confusing warning about an invalid _error child)
                     // and store it in undisplayableErrorChildren.
@@ -3750,13 +3750,13 @@ export default class Core {
         parent,
         undisplayableErrorChildren,
     ) {
-        // If parent had an error added by a composite, but it can't display diagnostics,
-        // then look for an ancestor that can display diagnostics
-        // (which will exist since document can display diagnostics).
-        // Add the diagnostics to the defining children of that ancestor.
+        // If parent had an error added by a composite, but it can't display errors,
+        // then look for an ancestor that can display errors
+        // (which will exist since document can display errors).
+        // Add the errors to the defining children of that ancestor.
         // Note: this breaks the rules of DoenetML and
-        // it is possible that these diagnostics will accumulate in the ancestor
-        // if this code is repeated. But, the DoenetML is broken anyway with diagnostics,
+        // it is possible that these errors will accumulate in the ancestor
+        // if this code is repeated. But, the DoenetML is broken anyway with errors,
         // and the purpose is just to make sure that the error is prominently displayed.
 
         let ancestorToDisplayErrors = parent;
