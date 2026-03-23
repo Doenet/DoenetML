@@ -232,7 +232,7 @@ export default class Ray extends GraphicalComponent {
                     dependencyValues.endpointAttr !== null &&
                     dependencyValues.directionAttr !== null
                 ) {
-                    let warnings = [];
+                    let diagnostics = [];
                     if (dependencyValues.throughAttr !== null) {
                         // if overprescribed by specifying through, endpoint, and direction
                         // we ignore through
@@ -245,12 +245,12 @@ export default class Ray extends GraphicalComponent {
                             warning.position =
                                 dependencyValues.throughAttr.position;
                         }
-                        warnings.push(warning);
+                        diagnostics.push(warning);
                     }
                     return {
                         setValue: { basedOnThrough: false },
                         checkForActualChange: { basedOnThrough: true },
-                        sendWarnings: warnings,
+                        sendDiagnostics: diagnostics,
                     };
                 }
 
@@ -658,11 +658,11 @@ export default class Ray extends GraphicalComponent {
                         ) {
                             let warning = {
                                 message: "numDimensions mismatch in ray.",
-                                level: 1,
+                                type: "warning",
                             };
                             return {
                                 setValue: { numDimensions: NaN },
-                                sendWarnings: [warning],
+                                sendDiagnostics: [warning],
                             };
                         }
                     } else if (dependencyValues.basedOnThrough) {
@@ -672,11 +672,11 @@ export default class Ray extends GraphicalComponent {
                         ) {
                             let warning = {
                                 message: "numDimensions mismatch in ray.",
-                                level: 1,
+                                type: "warning",
                             };
                             return {
                                 setValue: { numDimensions: NaN },
-                                sendWarnings: [warning],
+                                sendDiagnostics: [warning],
                             };
                         }
                     }
@@ -689,11 +689,11 @@ export default class Ray extends GraphicalComponent {
                         ) {
                             let warning = {
                                 message: "numDimensions mismatch in ray.",
-                                level: 1,
+                                type: "warning",
                             };
                             return {
                                 setValue: { numDimensions: NaN },
-                                sendWarnings: [warning],
+                                sendDiagnostics: [warning],
                             };
                         }
                     }

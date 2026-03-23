@@ -4,7 +4,11 @@ import * as Comlink from "comlink";
 
 import { MdError } from "react-icons/md";
 import { findAllNewlines, getLineCharRange } from "@doenet/utils";
-import type { ErrorRecord, WarningRecord } from "@doenet/utils";
+import type {
+    DiagnosticRecord,
+    ErrorRecord,
+    WarningRecord,
+} from "@doenet/utils";
 import {
     DoenetViewerProps,
     DoenetEditorProps,
@@ -16,7 +20,7 @@ export const version: string = IFRAME_VERSION;
 const latestDoenetmlVersion: string = version;
 
 export { mathjaxConfig } from "@doenet/utils";
-export type { ErrorRecord, WarningRecord };
+export type { DiagnosticRecord, ErrorRecord, WarningRecord };
 import { detectVersionFromDoenetML } from "@doenet/parser";
 
 import { ExternalVirtualKeyboard } from "@doenet/virtual-keyboard";

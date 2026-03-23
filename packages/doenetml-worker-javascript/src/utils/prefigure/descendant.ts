@@ -24,9 +24,9 @@ import type {
     GraphDimensions,
     PrefigureStateValues,
     StyledConverter,
-    Warning,
     WarningOnlyConverter,
 } from "./types";
+import type { DiagnosticRecord } from "@doenet/utils";
 
 /**
  * Normalize warning-related arguments for converters that do not consume style attrs.
@@ -35,11 +35,11 @@ function withWarnings(converter: WarningOnlyConverter): WarningOnlyConverter {
     return ({
         sv,
         handle,
-        warnings,
+        diagnostics,
         warningPrefix,
         warningPosition,
     }: ConverterBaseArgs) =>
-        converter({ sv, handle, warnings, warningPrefix, warningPosition });
+        converter({ sv, handle, diagnostics, warningPrefix, warningPosition });
 }
 
 /**
@@ -50,7 +50,7 @@ function withStyle(converter: StyledConverter): StyledConverter {
         sv,
         handle,
         styleAttrs,
-        warnings,
+        diagnostics,
         warningPrefix,
         warningPosition,
     }) =>
@@ -58,7 +58,7 @@ function withStyle(converter: StyledConverter): StyledConverter {
             sv,
             handle,
             styleAttrs,
-            warnings,
+            diagnostics,
             warningPrefix,
             warningPosition,
         });
@@ -120,7 +120,7 @@ interface ConvertGraphicalDescendantArgs {
     descendant: Descendant;
     index: number;
     usedHandles: Set<string>;
-    warnings: Warning[];
+    diagnostics: DiagnosticRecord[];
     graphBounds: GraphBounds;
     graphDimensions: GraphDimensions;
 }
@@ -137,7 +137,7 @@ export function convertGraphicalDescendantToPrefigure({
     descendant,
     index,
     usedHandles,
-    warnings,
+    diagnostics,
     graphBounds,
     graphDimensions,
 }: ConvertGraphicalDescendantArgs): string | null {
@@ -151,7 +151,7 @@ export function convertGraphicalDescendantToPrefigure({
     const handle = createStableHandle(descendant, index, usedHandles);
     const styleAttrs = styleAttributes({
         selectedStyle: sv.selectedStyle,
-        warnings,
+        diagnostics,
         warningPrefix,
         warningPosition,
         includeFill: styleIncludesFill(descendant.componentType, sv),
@@ -160,7 +160,7 @@ export function convertGraphicalDescendantToPrefigure({
     const converter = convertByComponentType[descendant.componentType];
     if (!converter) {
         pushWarning({
-            warnings,
+            diagnostics,
             message: `${warningPrefix}: unsupported in graph prefigure renderer; descendant skipped.`,
             position: warningPosition,
         });
@@ -171,14 +171,14 @@ export function convertGraphicalDescendantToPrefigure({
         sv,
         handle,
         styleAttrs,
-        warnings,
+        diagnostics,
         warningPrefix,
         warningPosition,
     });
 
     if (!body) {
         pushWarning({
-            warnings,
+            diagnostics,
             message: `${warningPrefix}: non-finite or incomplete geometry; descendant skipped.`,
             position: warningPosition,
         });

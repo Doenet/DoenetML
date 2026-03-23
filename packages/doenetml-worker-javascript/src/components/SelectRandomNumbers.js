@@ -195,8 +195,7 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
             num: workspace.replacementsCreated,
         };
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let attributesToConvert = {};
         for (let attr of Object.keys(returnRoundingAttributes())) {
@@ -238,8 +237,7 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }

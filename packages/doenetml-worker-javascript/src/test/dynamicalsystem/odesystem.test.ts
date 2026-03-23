@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { createFunctionFromDefinition } from "@doenet/utils";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     movePoint,
     updateBooleanInputValue,
@@ -933,41 +934,41 @@ describe("odeSystem Tag Tests @group4", async () => {
 `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(4);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(4);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             `Invalid value of a variable: sin(x)`,
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(6);
-        expect(errorWarnings.warnings[0].position.start.column).eq(26);
-        expect(errorWarnings.warnings[0].position.end.line).eq(6);
-        expect(errorWarnings.warnings[0].position.end.column).eq(54);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(6);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(26);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(6);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(54);
 
-        expect(errorWarnings.warnings[1].message).contain(
+        expect(diagnosticsByType.warnings[1].message).contain(
             `Variables of <odeSystem> must be different than independent variable`,
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(2);
-        expect(errorWarnings.warnings[1].position.start.column).eq(12);
-        expect(errorWarnings.warnings[1].position.end.line).eq(2);
-        expect(errorWarnings.warnings[1].position.end.column).eq(25);
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[1].position.start.column).eq(12);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(2);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(25);
 
-        expect(errorWarnings.warnings[2].message).contain(
+        expect(diagnosticsByType.warnings[2].message).contain(
             `Invalid value of a variable: sin(y)`,
         );
-        expect(errorWarnings.warnings[2].position.start.line).eq(10);
-        expect(errorWarnings.warnings[2].position.start.column).eq(12);
-        expect(errorWarnings.warnings[2].position.end.line).eq(10);
-        expect(errorWarnings.warnings[2].position.end.column).eq(30);
+        expect(diagnosticsByType.warnings[2].position.start.line).eq(10);
+        expect(diagnosticsByType.warnings[2].position.start.column).eq(12);
+        expect(diagnosticsByType.warnings[2].position.end.line).eq(10);
+        expect(diagnosticsByType.warnings[2].position.end.column).eq(30);
 
-        expect(errorWarnings.warnings[3].message).contain(
+        expect(diagnosticsByType.warnings[3].message).contain(
             `Can't define ODE RHS functions with duplicate dependent variable names`,
         );
-        expect(errorWarnings.warnings[3].position.start.line).eq(14);
-        expect(errorWarnings.warnings[3].position.start.column).eq(1);
-        expect(errorWarnings.warnings[3].position.end.line).eq(17);
-        expect(errorWarnings.warnings[3].position.end.column).eq(13);
+        expect(diagnosticsByType.warnings[3].position.start.line).eq(14);
+        expect(diagnosticsByType.warnings[3].position.start.column).eq(1);
+        expect(diagnosticsByType.warnings[3].position.end.line).eq(17);
+        expect(diagnosticsByType.warnings[3].position.end.column).eq(13);
     });
 });

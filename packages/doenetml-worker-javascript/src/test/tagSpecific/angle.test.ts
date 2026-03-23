@@ -8,6 +8,7 @@ import {
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import me from "math-expressions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -240,19 +241,21 @@ describe("Angle tag tests @group4", async () => {
   `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
+        let diagnostics = core.core!.diagnostics;
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(1);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.infos[0].message).contain(
             "Cannot define an angle between 3 lines",
         );
-        expect(errorWarnings.warnings[0].level).eq(2);
-        expect(errorWarnings.warnings[0].position.start.line).eq(7);
-        expect(errorWarnings.warnings[0].position.start.column).eq(5);
-        expect(errorWarnings.warnings[0].position.end.line).eq(7);
-        expect(errorWarnings.warnings[0].position.end.column).eq(41);
+        expect(diagnostics[0].type).eq("info");
+        expect(diagnosticsByType.infos[0].position.start.line).eq(7);
+        expect(diagnosticsByType.infos[0].position.start.column).eq(5);
+        expect(diagnosticsByType.infos[0].position.end.line).eq(7);
+        expect(diagnosticsByType.infos[0].position.end.column).eq(41);
     });
 
     it("parallel and undefined lines", async () => {
@@ -1532,17 +1535,17 @@ describe("Angle tag tests @group4", async () => {
                 .radians.tree,
         ).eq("\uff3f");
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             "Invalid point in through of <angle>",
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.start.column).eq(21);
-        expect(errorWarnings.warnings[0].position.end.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.column).eq(49);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(21);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(49);
     });
 });

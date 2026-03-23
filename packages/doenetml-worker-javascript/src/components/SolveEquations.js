@@ -288,11 +288,11 @@ export default class SolveEquations extends InlineComponent {
                     let message =
                         "Cannot solve equation as could not evaluate equation: " +
                         expression.toString();
-                    let warnings = [{ message, level: 1 }];
+                    let diagnostics = [{ message, type: "warning" }];
 
                     return {
                         setValue: { allSolutions: [] },
-                        sendWarnings: warnings,
+                        sendDiagnostics: diagnostics,
                     };
                 }
 

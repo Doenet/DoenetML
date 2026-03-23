@@ -9,7 +9,7 @@ import type { ConverterBaseArgs } from "../types";
 export function convertPointToPrefigure({
     sv,
     handle,
-    warnings,
+    diagnostics,
     warningPrefix,
     warningPosition,
 }: ConverterBaseArgs): string | null {
@@ -20,7 +20,7 @@ export function convertPointToPrefigure({
 
     const pointAttrs = pointStyleAttributes({
         selectedStyle: sv.selectedStyle,
-        warnings,
+        diagnostics,
         warningPrefix,
         warningPosition,
         // endpoint/equilibriumPoint expose `open`; open points should be
@@ -29,7 +29,7 @@ export function convertPointToPrefigure({
     });
     const pointLabel = pointLabelAttributes({
         stateValues: sv,
-        warnings,
+        diagnostics,
         warningPrefix,
         warningPosition,
     });

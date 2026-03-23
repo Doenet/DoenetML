@@ -46,16 +46,16 @@ export default class VariableNameList extends MathList {
             arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
                 let variables = {};
                 let validVariables = {};
-                let warnings = [];
+                let diagnostics = [];
                 for (let arrayKey of arrayKeys) {
                     let variable = dependencyValuesByKey[arrayKey].math;
                     let validVariable = isValidVariable(variable);
                     if (!validVariable) {
-                        warnings.push({
+                        diagnostics.push({
                             message:
                                 "Invalid value of a variable: " +
                                 variable.toString(),
-                            level: 1,
+                            type: "warning",
                         });
                         validVariable = false;
                     }
@@ -64,7 +64,7 @@ export default class VariableNameList extends MathList {
                 }
                 return {
                     setValue: { variables, validVariables },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };

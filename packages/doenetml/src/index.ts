@@ -8,6 +8,10 @@ export {
     serializedComponentsReviver,
     // returnAllPossibleVariants,
 } from "@doenet/utils";
-export type { ErrorRecord, WarningRecord } from "@doenet/utils";
+export type {
+    DiagnosticRecord,
+    ErrorRecord,
+    WarningRecord,
+} from "@doenet/utils";
 
 export { CodeMirror } from "@doenet/codemirror";

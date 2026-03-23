@@ -627,7 +627,7 @@ export default class Vector extends GraphicalComponent {
                     dependencyValues.tailAttr !== null &&
                     dependencyValues.sourceOfDisplacement !== null
                 ) {
-                    let warnings = [];
+                    let diagnostics = [];
                     if (dependencyValues.headAttr !== null) {
                         // if overprescribed by specifying head, tail, and displacement
                         // we ignore head
@@ -640,12 +640,12 @@ export default class Vector extends GraphicalComponent {
                             warning.position =
                                 dependencyValues.headAttr.position;
                         }
-                        warnings.push(warning);
+                        diagnostics.push(warning);
                     }
                     return {
                         setValue: { basedOnHead: false },
                         checkForActualChange: { basedOnHead: true },
-                        sendWarnings: warnings,
+                        sendDiagnostics: diagnostics,
                     };
                 }
 
@@ -1113,11 +1113,11 @@ export default class Vector extends GraphicalComponent {
                         ) {
                             let warning = {
                                 message: "numDimensions mismatch in vector.",
-                                level: 1,
+                                type: "warning",
                             };
                             return {
                                 setValue: { numDimensions: NaN },
-                                sendWarnings: [warning],
+                                sendDiagnostics: [warning],
                             };
                         }
                     } else if (dependencyValues.basedOnHead) {
@@ -1127,11 +1127,11 @@ export default class Vector extends GraphicalComponent {
                         ) {
                             let warning = {
                                 message: "numDimensions mismatch in vector.",
-                                level: 1,
+                                type: "warning",
                             };
                             return {
                                 setValue: { numDimensions: NaN },
-                                sendWarnings: [warning],
+                                sendDiagnostics: [warning],
                             };
                         }
                     }
@@ -1144,11 +1144,11 @@ export default class Vector extends GraphicalComponent {
                         ) {
                             let warning = {
                                 message: "numDimensions mismatch in vector.",
-                                level: 1,
+                                type: "warning",
                             };
                             return {
                                 setValue: { numDimensions: NaN },
-                                sendWarnings: [warning],
+                                sendDiagnostics: [warning],
                             };
                         }
                     }

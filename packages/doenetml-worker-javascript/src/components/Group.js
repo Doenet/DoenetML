@@ -223,14 +223,13 @@ export default class Group extends CompositeComponent {
         workspace,
         publicCaseInsensitiveAliasSubstitutions,
     }) {
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         // evaluate numComponentsSpecified so get error if specify numComponents without createComponentOfType
         await component.stateValues.numComponentsSpecified;
 
         if (!(await component.stateValues.rendered)) {
-            return { replacements: [], errors, warnings, nComponents };
+            return { replacements: [], diagnostics, nComponents };
         } else {
             let replacements = deepClone(
                 await component.state.serializedChildren.value,
@@ -296,8 +295,7 @@ export default class Group extends CompositeComponent {
                 },
             );
             nComponents = verificationResult.nComponents;
-            errors.push(...verificationResult.errors);
-            warnings.push(...verificationResult.warnings);
+            diagnostics.push(...verificationResult.diagnostics);
 
             // console.log(`serialized replacements for ${component.componentIdx}`)
             // console.log(JSON.parse(JSON.stringify(verificationResult.replacements)))
@@ -306,8 +304,7 @@ export default class Group extends CompositeComponent {
 
             return {
                 replacements: verificationResult.replacements,
-                errors,
-                warnings,
+                diagnostics,
                 nComponents,
             };
         }
@@ -319,9 +316,7 @@ export default class Group extends CompositeComponent {
         nComponents,
         workspace,
     }) {
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         if (!(await component.stateValues.rendered)) {
             if (
@@ -333,9 +328,13 @@ export default class Group extends CompositeComponent {
                     changeType: "changeReplacementsToWithhold",
                     replacementsToWithhold,
                 };
-                return { replacementChanges: [replacementInstruction] };
+                return {
+                    replacementChanges: [replacementInstruction],
+                    diagnostics,
+                    nComponents,
+                };
             } else {
-                return { replacementChanges: [] };
+                return { replacementChanges: [], diagnostics, nComponents };
             }
         } else {
             if (component.replacements.length > 0) {
@@ -344,9 +343,13 @@ export default class Group extends CompositeComponent {
                         changeType: "changeReplacementsToWithhold",
                         replacementsToWithhold: 0,
                     };
-                    return { replacementChanges: [replacementInstruction] };
+                    return {
+                        replacementChanges: [replacementInstruction],
+                        diagnostics,
+                        nComponents,
+                    };
                 } else {
-                    return { replacementChanges: [] };
+                    return { replacementChanges: [], diagnostics, nComponents };
                 }
             } else {
                 let createResult = await this.createSerializedReplacements({
@@ -357,8 +360,7 @@ export default class Group extends CompositeComponent {
                 });
 
                 let replacements = createResult.replacements;
-                errors.push(...createResult.errors);
-                warnings.push(...createResult.warnings);
+                diagnostics.push(...createResult.diagnostics);
                 nComponents = createResult.nComponents;
 
                 let replacementInstruction = {
@@ -372,6 +374,7 @@ export default class Group extends CompositeComponent {
 
                 return {
                     replacementChanges: [replacementInstruction],
+                    diagnostics,
                     nComponents,
                 };
             }

@@ -21,7 +21,7 @@ export function convertVectorToPrefigure({
     sv,
     handle,
     styleAttrs,
-    warnings,
+    diagnostics,
     warningPrefix,
     warningPosition,
 }: StyledConverterArgs): string | null {
@@ -57,7 +57,7 @@ export function convertVectorToPrefigure({
         stateValues: sv,
         ep1,
         ep2,
-        warnings,
+        diagnostics,
         warningPrefix,
         warningPosition,
     });

@@ -565,8 +565,7 @@ export default class Select extends CompositeComponent {
             num: workspace.replacementsCreated,
         };
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let errorMessage = await component.stateValues.errorMessage;
         if (errorMessage) {
@@ -582,8 +581,7 @@ export default class Select extends CompositeComponent {
                         children: [],
                     },
                 ],
-                errors,
-                warnings,
+                diagnostics,
                 nComponents,
             };
         }
@@ -655,11 +653,11 @@ export default class Select extends CompositeComponent {
 
         workspace.replacementsCreated = stateIdInfo.num;
 
-        return { replacements, errors, warnings, nComponents };
+        return { replacements, diagnostics, nComponents };
     }
 
-    static calculateReplacementChanges() {
-        return { replacementChanges: [] };
+    static calculateReplacementChanges({ nComponents }) {
+        return { replacementChanges: [], nComponents };
     }
 
     static determineNumberOfUniqueVariants({

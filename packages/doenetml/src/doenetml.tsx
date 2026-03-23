@@ -3,8 +3,12 @@ import seedrandom from "seedrandom";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { DocViewer } from "./Viewer/DocViewer";
 import { MathJaxContext } from "better-react-mathjax";
-import { mathjaxConfig } from "@doenet/utils";
-import type { ErrorRecord, WarningRecord } from "@doenet/utils";
+import { mathjaxConfig, isErrorRecord, isWarningRecord } from "@doenet/utils";
+import type {
+    DiagnosticRecord,
+    ErrorRecord,
+    WarningRecord,
+} from "@doenet/utils";
 import { VirtualKeyboard } from "@doenet/virtual-keyboard";
 import "@doenet/virtual-keyboard/style.css";
 import "@doenet/ui-components/style.css";
@@ -54,6 +58,7 @@ export function DoenetViewer({
     generatedVariantCallback: specifiedGeneratedVariantCallback,
     documentStructureCallback,
     initializedCallback,
+    setDiagnosticsCallback,
     setErrorsAndWarningsCallback,
     forceDisable = false,
     forceShowCorrectness = false,
@@ -91,7 +96,14 @@ export function DoenetViewer({
     generatedVariantCallback?: Function;
     documentStructureCallback?: Function;
     initializedCallback?: Function;
-    setErrorsAndWarningsCallback?: (errorsAndWarnings: unknown) => void;
+    setDiagnosticsCallback?: (diagnostics: DiagnosticRecord[]) => void;
+    /**
+     * @deprecated Use `setDiagnosticsCallback` instead.
+     */
+    setErrorsAndWarningsCallback?: (errorsAndWarnings: {
+        errors: ErrorRecord[];
+        warnings: WarningRecord[];
+    }) => void;
     forceDisable?: boolean;
     forceShowCorrectness?: boolean;
     forceShowSolution?: boolean;
@@ -149,6 +161,24 @@ export function DoenetViewer({
             setHidden(false);
         }
     }, [isOnPage]);
+
+    useEffect(() => {
+        if (setErrorsAndWarningsCallback) {
+            console.warn(
+                "DoenetViewer: setErrorsAndWarningsCallback is deprecated. Use setDiagnosticsCallback instead.",
+            );
+        }
+    }, []);
+
+    const effectiveDiagnosticsCallback = setErrorsAndWarningsCallback
+        ? (diagnostics: DiagnosticRecord[]) => {
+              setDiagnosticsCallback?.(diagnostics);
+              setErrorsAndWarningsCallback({
+                  errors: diagnostics.filter(isErrorRecord),
+                  warnings: diagnostics.filter(isWarningRecord),
+              });
+          }
+        : setDiagnosticsCallback;
 
     const flags: DoenetMLFlags = { ...defaultFlags, ...specifiedFlags };
 
@@ -231,7 +261,7 @@ export function DoenetViewer({
             generatedVariantCallback={generatedVariantCallback}
             documentStructureCallback={documentStructureCallback}
             initializedCallback={initializedCallback}
-            setErrorsAndWarningsCallback={setErrorsAndWarningsCallback}
+            setDiagnosticsCallback={effectiveDiagnosticsCallback}
             forceDisable={forceDisable}
             forceShowCorrectness={forceShowCorrectness}
             forceShowSolution={forceShowSolution}

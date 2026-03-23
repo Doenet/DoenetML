@@ -261,8 +261,7 @@ export default class Split extends CompositeComponent {
             num: workspace.replacementsCreated,
         };
 
-        const errors = [];
-        const warnings = [];
+        const diagnostics = [];
 
         const values = await component.stateValues.values;
 
@@ -292,8 +291,7 @@ export default class Split extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -304,9 +302,7 @@ export default class Split extends CompositeComponent {
         workspace,
         nComponents,
     }) {
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         const values = await component.stateValues.values;
 
@@ -314,7 +310,7 @@ export default class Split extends CompositeComponent {
             values.length === workspace.values.length &&
             workspace.values.every((s, i) => s === values[i])
         ) {
-            return { replacementChanges: [] };
+            return { replacementChanges: [], diagnostics, nComponents };
         }
 
         // recreate if something changed
@@ -326,8 +322,7 @@ export default class Split extends CompositeComponent {
         });
 
         let replacements = replacementResults.replacements;
-        errors.push(...replacementResults.errors);
-        warnings.push(...replacementResults.warnings);
+        diagnostics.push(...replacementResults.diagnostics);
         nComponents = replacementResults.nComponents;
 
         let replacementChanges = [
@@ -340,6 +335,6 @@ export default class Split extends CompositeComponent {
             },
         ];
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 }

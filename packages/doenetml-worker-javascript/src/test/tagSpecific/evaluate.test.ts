@@ -7,6 +7,7 @@ import {
     updateMathInputValue,
 } from "../utils/actions";
 import me from "math-expressions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -5779,9 +5780,9 @@ describe("Evaluate tag tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("4");
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
     });
 });

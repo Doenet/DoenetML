@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { submitAnswer, updateMathInputValue } from "../utils/actions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -127,27 +128,27 @@ describe("Ionic Compounds tests @group3", async () => {
   `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        const diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(2);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(2);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             `Have not implemented ionic compound for anything other than two ions`,
         );
-        expect(errorWarnings.warnings[0].level).eq(1);
-        expect(errorWarnings.warnings[0].position.start.line).eq(4);
-        expect(errorWarnings.warnings[0].position.start.column).eq(3);
-        expect(errorWarnings.warnings[0].position.end.line).eq(4);
-        expect(errorWarnings.warnings[0].position.end.column).eq(42);
+        expect(diagnosticsByType.warnings[0].type).eq("warning");
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(4);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(3);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(4);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(42);
 
-        expect(errorWarnings.warnings[1].message).contain(
+        expect(diagnosticsByType.warnings[1].message).contain(
             `Ionic compound implemented only for one cation and one anion`,
         );
-        expect(errorWarnings.warnings[1].level).eq(1);
-        expect(errorWarnings.warnings[1].position.start.line).eq(5);
-        expect(errorWarnings.warnings[1].position.start.column).eq(3);
-        expect(errorWarnings.warnings[1].position.end.line).eq(5);
-        expect(errorWarnings.warnings[1].position.end.column).eq(40);
+        expect(diagnosticsByType.warnings[1].type).eq("warning");
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(5);
+        expect(diagnosticsByType.warnings[1].position.start.column).eq(3);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(5);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(40);
     });
 });

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { updateMathInputValue, updateTextInputValue } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -2717,26 +2718,26 @@ describe("SideBySide tag tests @group1", async () => {
                 .stateValues.widthsAbsolute,
         ).eq(false);
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(2);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(2);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             `<sideBySide> is not implemented for absolute measurements. Setting widths to relative`,
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.start.column).eq(5);
-        expect(errorWarnings.warnings[0].position.end.line).eq(5);
-        expect(errorWarnings.warnings[0].position.end.column).eq(18);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(5);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(18);
 
-        expect(errorWarnings.warnings[1].message).contain(
+        expect(diagnosticsByType.warnings[1].message).contain(
             `<sideBySide> is not implemented for absolute measurements. Setting margins to relative`,
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(2);
-        expect(errorWarnings.warnings[1].position.start.column).eq(5);
-        expect(errorWarnings.warnings[1].position.end.line).eq(5);
-        expect(errorWarnings.warnings[1].position.end.column).eq(18);
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[1].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(5);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(18);
     });
 
     it("sbsGroup with no arguments, one panel", async () => {
@@ -6146,26 +6147,26 @@ describe("SideBySide tag tests @group1", async () => {
                 .widthsAbsolute,
         ).eq(false);
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(2);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(2);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             `<sbsGroup> is not implemented for absolute measurements. Setting widths to relative`,
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.start.column).eq(5);
-        expect(errorWarnings.warnings[0].position.end.line).eq(7);
-        expect(errorWarnings.warnings[0].position.end.column).eq(16);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(7);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(16);
 
-        expect(errorWarnings.warnings[1].message).contain(
+        expect(diagnosticsByType.warnings[1].message).contain(
             `<sbsGroup> is not implemented for absolute measurements. Setting margins to relative`,
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(2);
-        expect(errorWarnings.warnings[1].position.start.column).eq(5);
-        expect(errorWarnings.warnings[1].position.end.line).eq(7);
-        expect(errorWarnings.warnings[1].position.end.column).eq(16);
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[1].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(7);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(16);
     });
 
     it("sideBySide with a stack", async () => {

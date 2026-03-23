@@ -9,6 +9,7 @@ import {
 import { createFunctionFromDefinition } from "@doenet/utils";
 import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -976,18 +977,18 @@ describe("Function tag tests @group4", async () => {
         expect(f(2)).eqls(NaN);
 
         // calculate line/char begin on all warnings
-        let errorWarnings = core.core!.getErrorWarnings().errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             `Function contains two points with locations too close together. Can't define function`,
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.start.column).eq(5);
-        expect(errorWarnings.warnings[0].position.end.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.column).eq(54);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(54);
     });
 
     it("function with non-numerical points and slope", async () => {
@@ -1009,50 +1010,50 @@ describe("Function tag tests @group4", async () => {
         expect(f(7)).closeTo(fright(7), 1e-12);
 
         // calculate line/char begin on all warnings
-        let errorWarnings = core.core!.getErrorWarnings().errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(5);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(5);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             `Ignoring non-numerical maximum of function`,
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.start.column).eq(5);
-        expect(errorWarnings.warnings[0].position.end.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.column).eq(119);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(119);
 
-        expect(errorWarnings.warnings[1].message).contain(
+        expect(diagnosticsByType.warnings[1].message).contain(
             `Ignoring non-numerical minimum of function`,
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(2);
-        expect(errorWarnings.warnings[1].position.start.column).eq(5);
-        expect(errorWarnings.warnings[1].position.end.line).eq(2);
-        expect(errorWarnings.warnings[1].position.end.column).eq(119);
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[1].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(2);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(119);
 
-        expect(errorWarnings.warnings[2].message).contain(
+        expect(diagnosticsByType.warnings[2].message).contain(
             `Ignoring non-numerical extremum of function`,
         );
-        expect(errorWarnings.warnings[2].position.start.line).eq(2);
-        expect(errorWarnings.warnings[2].position.start.column).eq(5);
-        expect(errorWarnings.warnings[2].position.end.line).eq(2);
-        expect(errorWarnings.warnings[2].position.end.column).eq(119);
+        expect(diagnosticsByType.warnings[2].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[2].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[2].position.end.line).eq(2);
+        expect(diagnosticsByType.warnings[2].position.end.column).eq(119);
 
-        expect(errorWarnings.warnings[3].message).contain(
+        expect(diagnosticsByType.warnings[3].message).contain(
             `Ignoring non-numerical slope of function`,
         );
-        expect(errorWarnings.warnings[3].position.start.line).eq(2);
-        expect(errorWarnings.warnings[3].position.start.column).eq(5);
-        expect(errorWarnings.warnings[3].position.end.line).eq(2);
-        expect(errorWarnings.warnings[3].position.end.column).eq(119);
+        expect(diagnosticsByType.warnings[3].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[3].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[3].position.end.line).eq(2);
+        expect(diagnosticsByType.warnings[3].position.end.column).eq(119);
 
-        expect(errorWarnings.warnings[4].message).contain(
+        expect(diagnosticsByType.warnings[4].message).contain(
             `Ignoring non-numerical point of function`,
         );
-        expect(errorWarnings.warnings[4].position.start.line).eq(2);
-        expect(errorWarnings.warnings[4].position.start.column).eq(5);
-        expect(errorWarnings.warnings[4].position.end.line).eq(2);
-        expect(errorWarnings.warnings[4].position.end.column).eq(119);
+        expect(diagnosticsByType.warnings[4].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[4].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[4].position.end.line).eq(2);
+        expect(diagnosticsByType.warnings[4].position.end.column).eq(119);
     });
 
     it("function with empty maximum", async () => {
@@ -1073,18 +1074,18 @@ describe("Function tag tests @group4", async () => {
 
         // calculate line/char begin on all warnings
 
-        let errorWarnings = core.core!.getErrorWarnings().errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             `Ignoring empty maximum of function`,
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.start.column).eq(7);
-        expect(errorWarnings.warnings[0].position.end.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.column).eq(55);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(7);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(55);
     });
 
     it("copy function and overwrite through points and slopes", async () => {
@@ -1825,26 +1826,26 @@ describe("Function tag tests @group4", async () => {
     `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(2);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(2);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             `Invalid value of a variable: cos(x)`,
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(3);
-        expect(errorWarnings.warnings[0].position.start.column).eq(15);
-        expect(errorWarnings.warnings[0].position.end.line).eq(3);
-        expect(errorWarnings.warnings[0].position.end.column).eq(32);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(3);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(15);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(3);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(32);
 
-        expect(errorWarnings.warnings[1].message).contain(
+        expect(diagnosticsByType.warnings[1].message).contain(
             `Invalid value of a variable: sin(x)`,
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(2);
-        expect(errorWarnings.warnings[1].position.start.column).eq(15);
-        expect(errorWarnings.warnings[1].position.end.line).eq(2);
-        expect(errorWarnings.warnings[1].position.end.column).eq(33);
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[1].position.start.column).eq(15);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(2);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(33);
     });
 
     it("point constrained to function in different variable", async () => {
@@ -5414,66 +5415,66 @@ describe("Function tag tests @group4", async () => {
                 .text,
         ).eq("g5 domain: ( 3, 4 ), ( 5, 6 )");
 
-        let errorWarnings = core.core!.getErrorWarnings().errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(7);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(7);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 1 input.`,
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(3);
-        expect(errorWarnings.warnings[0].position.start.column).eq(25);
-        expect(errorWarnings.warnings[0].position.end.line).eq(3);
-        expect(errorWarnings.warnings[0].position.end.column).eq(35);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(3);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(25);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(3);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(35);
 
-        expect(errorWarnings.warnings[1].message).contain(
+        expect(diagnosticsByType.warnings[1].message).contain(
             `Invalid format for domain for function`,
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(4);
-        expect(errorWarnings.warnings[1].position.start.column).eq(25);
-        expect(errorWarnings.warnings[1].position.end.line).eq(4);
-        expect(errorWarnings.warnings[1].position.end.column).eq(41);
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(4);
+        expect(diagnosticsByType.warnings[1].position.start.column).eq(25);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(4);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(41);
 
-        expect(errorWarnings.warnings[2].message).contain(
+        expect(diagnosticsByType.warnings[2].message).contain(
             `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 1 input.`,
         );
-        expect(errorWarnings.warnings[2].position.start.line).eq(5);
-        expect(errorWarnings.warnings[2].position.start.column).eq(25);
-        expect(errorWarnings.warnings[2].position.end.line).eq(5);
-        expect(errorWarnings.warnings[2].position.end.column).eq(34);
+        expect(diagnosticsByType.warnings[2].position.start.line).eq(5);
+        expect(diagnosticsByType.warnings[2].position.start.column).eq(25);
+        expect(diagnosticsByType.warnings[2].position.end.line).eq(5);
+        expect(diagnosticsByType.warnings[2].position.end.column).eq(34);
 
-        expect(errorWarnings.warnings[3].message).contain(
+        expect(diagnosticsByType.warnings[3].message).contain(
             `Insufficient dimensions for domain for function. Domain has 1 interval but the function has 2 inputs.`,
         );
-        expect(errorWarnings.warnings[3].position.start.line).eq(14);
-        expect(errorWarnings.warnings[3].position.start.column).eq(39);
-        expect(errorWarnings.warnings[3].position.end.line).eq(14);
-        expect(errorWarnings.warnings[3].position.end.column).eq(53);
+        expect(diagnosticsByType.warnings[3].position.start.line).eq(14);
+        expect(diagnosticsByType.warnings[3].position.start.column).eq(39);
+        expect(diagnosticsByType.warnings[3].position.end.line).eq(14);
+        expect(diagnosticsByType.warnings[3].position.end.column).eq(53);
 
-        expect(errorWarnings.warnings[4].message).contain(
+        expect(diagnosticsByType.warnings[4].message).contain(
             `Invalid format for domain for function`,
         );
-        expect(errorWarnings.warnings[4].position.start.line).eq(16);
-        expect(errorWarnings.warnings[4].position.start.column).eq(39);
-        expect(errorWarnings.warnings[4].position.end.line).eq(16);
-        expect(errorWarnings.warnings[4].position.end.column).eq(61);
+        expect(diagnosticsByType.warnings[4].position.start.line).eq(16);
+        expect(diagnosticsByType.warnings[4].position.start.column).eq(39);
+        expect(diagnosticsByType.warnings[4].position.end.line).eq(16);
+        expect(diagnosticsByType.warnings[4].position.end.column).eq(61);
 
-        expect(errorWarnings.warnings[5].message).contain(
+        expect(diagnosticsByType.warnings[5].message).contain(
             `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 2 inputs.`,
         );
-        expect(errorWarnings.warnings[5].position.start.line).eq(17);
-        expect(errorWarnings.warnings[5].position.start.column).eq(39);
-        expect(errorWarnings.warnings[5].position.end.line).eq(17);
-        expect(errorWarnings.warnings[5].position.end.column).eq(48);
+        expect(diagnosticsByType.warnings[5].position.start.line).eq(17);
+        expect(diagnosticsByType.warnings[5].position.start.column).eq(39);
+        expect(diagnosticsByType.warnings[5].position.end.line).eq(17);
+        expect(diagnosticsByType.warnings[5].position.end.column).eq(48);
 
-        expect(errorWarnings.warnings[6].message).contain(
+        expect(diagnosticsByType.warnings[6].message).contain(
             `Invalid format for attribute domain of <function>`,
         );
-        expect(errorWarnings.warnings[6].position.start.line).eq(3);
-        expect(errorWarnings.warnings[6].position.start.column).eq(25);
-        expect(errorWarnings.warnings[6].position.end.line).eq(3);
-        expect(errorWarnings.warnings[6].position.end.column).eq(35);
+        expect(diagnosticsByType.warnings[6].position.start.line).eq(3);
+        expect(diagnosticsByType.warnings[6].position.start.column).eq(25);
+        expect(diagnosticsByType.warnings[6].position.end.line).eq(3);
+        expect(diagnosticsByType.warnings[6].position.end.column).eq(35);
     });
 
     it("copy function and overwrite numInputs", async () => {

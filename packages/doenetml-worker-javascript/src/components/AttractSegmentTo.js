@@ -129,7 +129,7 @@ export default class AttractSegmentTo extends SegmentConstraintComponent {
             definition: function ({ dependencyValues }) {
                 let nearestPointFunctions = [];
                 let nearestPointAsLineFunctions = [];
-                let warnings = [];
+                let diagnostics = [];
 
                 for (let child of dependencyValues.graphicalChildren) {
                     if (!child.stateValues.nearestPoint) {
@@ -141,7 +141,7 @@ export default class AttractSegmentTo extends SegmentConstraintComponent {
                             warning.position = child.position;
                         }
 
-                        warnings.push(warning);
+                        diagnostics.push(warning);
                         continue;
                     }
                     nearestPointFunctions.push(child.stateValues.nearestPoint);
@@ -162,7 +162,7 @@ export default class AttractSegmentTo extends SegmentConstraintComponent {
                         nearestPointFunctions,
                         nearestPointAsLineFunctions,
                     },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };

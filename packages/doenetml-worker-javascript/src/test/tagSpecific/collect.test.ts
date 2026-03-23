@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     movePoint,
     moveVector,
@@ -2492,34 +2493,34 @@ describe("Collect tag tests @group4", async () => {
     `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(3);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(3);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             "No referent found for reference: $nothing",
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(3);
-        expect(errorWarnings.warnings[0].position.start.column).eq(20);
-        expect(errorWarnings.warnings[0].position.end.line).eq(3);
-        expect(errorWarnings.warnings[0].position.end.column).eq(28);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(3);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(20);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(3);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(28);
 
-        expect(errorWarnings.warnings[1].message).contain(
+        expect(diagnosticsByType.warnings[1].message).contain(
             "No source found for collect",
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(3);
-        expect(errorWarnings.warnings[1].position.start.column).eq(5);
-        expect(errorWarnings.warnings[1].position.end.line).eq(3);
-        expect(errorWarnings.warnings[1].position.end.column).eq(32);
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(3);
+        expect(diagnosticsByType.warnings[1].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(3);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(32);
 
-        expect(errorWarnings.warnings[2].message).contain(
+        expect(diagnosticsByType.warnings[2].message).contain(
             "Cannot collect components of type <abc> as it is an invalid component type",
         );
-        expect(errorWarnings.warnings[2].position.start.line).eq(4);
-        expect(errorWarnings.warnings[2].position.start.column).eq(24);
-        expect(errorWarnings.warnings[2].position.end.line).eq(4);
-        expect(errorWarnings.warnings[2].position.end.column).eq(43);
+        expect(diagnosticsByType.warnings[2].position.start.line).eq(4);
+        expect(diagnosticsByType.warnings[2].position.start.column).eq(24);
+        expect(diagnosticsByType.warnings[2].position.end.line).eq(4);
+        expect(diagnosticsByType.warnings[2].position.end.column).eq(43);
     });
 
     it("allChildrenOrdered consistent with dynamic collect and adapters", async () => {

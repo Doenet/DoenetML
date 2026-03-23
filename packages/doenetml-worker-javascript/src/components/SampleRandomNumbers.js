@@ -631,8 +631,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
             num: workspace.replacementsCreated,
         };
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let attributesToConvert = {};
         for (let attr of Object.keys(returnRoundingAttributes())) {
@@ -677,8 +676,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -689,9 +687,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         nComponents,
         workspace,
     }) {
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacementChanges = [];
 
@@ -727,8 +723,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     nComponents,
                     workspace,
                 });
-                errors.push(...result.errors);
-                warnings.push(...result.warnings);
+                diagnostics.push(...result.diagnostics);
                 nComponents = result.nComponents;
 
                 let replacementInstruction = {
@@ -757,7 +752,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
             replacementChanges.push(replacementInstruction);
         }
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 
     static setUpVariant({

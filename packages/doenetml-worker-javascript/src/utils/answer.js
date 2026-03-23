@@ -273,7 +273,7 @@ export function returnStandardAnswerStateVariableDefinition() {
             // even if the object was built in a different order
             // (as can happen when reloading from a database)
 
-            let warnings = [];
+            let diagnostics = [];
 
             let selfDependencies =
                 dependencyValues.currentCreditAchievedDependencies.find(
@@ -287,10 +287,10 @@ export function returnStandardAnswerStateVariableDefinition() {
                         (x) => x.substring(0, 17) === "submittedResponse",
                     )
                 ) {
-                    warnings.push({
+                    diagnostics.push({
                         message:
                             "An award for this answer is based on the answer tag's own submitted response, which will lead to unexpected behavior.",
-                        level: 1,
+                        type: "warning",
                     });
                 }
             }
@@ -306,7 +306,7 @@ export function returnStandardAnswerStateVariableDefinition() {
                         sha1(stringified),
                     ),
                 },
-                sendWarnings: warnings,
+                sendDiagnostics: diagnostics,
             };
         },
         markStale: () => ({ answerCreditPotentiallyChanged: true }),
@@ -598,7 +598,7 @@ export function returnSimplifyExpandOnCompareWarning() {
             },
         }),
         definition({ dependencyValues }) {
-            const sendWarnings = [];
+            const sendDiagnostics = [];
             if (!dependencyValues.symbolicEquality) {
                 const attributesSpecified = [];
 
@@ -611,19 +611,19 @@ export function returnSimplifyExpandOnCompareWarning() {
                 }
 
                 if (attributesSpecified.length > 0) {
-                    sendWarnings.push({
+                    sendDiagnostics.push({
                         message: `The ${attributesSpecified.join(
                             " and ",
                         )} attribute${
                             attributesSpecified.length > 1 ? "s" : ""
                         } will have no effect without symbolicEquality set.`,
-                        level: 1,
+                        type: "warning",
                     });
                 }
             }
 
             return {
-                sendWarnings,
+                sendDiagnostics,
                 setValue: {
                     simplifyExpandOnCompareWarning: null,
                 },

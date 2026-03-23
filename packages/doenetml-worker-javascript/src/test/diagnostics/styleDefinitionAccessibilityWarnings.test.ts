@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -43,7 +44,7 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const { warnings } = getDiagnosticsByType(core);
 
         expect(warnings.length).eq(1);
         expectStyleContrastWarning({
@@ -67,7 +68,7 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const { warnings } = getDiagnosticsByType(core);
 
         expect(warnings.length).eq(0);
     });
@@ -80,7 +81,7 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const { warnings } = getDiagnosticsByType(core);
 
         expect(warnings.length).eq(1);
         expectStyleContrastWarning({
@@ -98,7 +99,7 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const { warnings } = getDiagnosticsByType(core);
 
         expect(warnings.length).eq(1);
         expectStyleContrastWarning({
@@ -116,7 +117,7 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const { warnings } = getDiagnosticsByType(core);
 
         expect(warnings.length).eq(1);
         expectStyleContrastWarning({
@@ -134,7 +135,7 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const { warnings } = getDiagnosticsByType(core);
 
         expect(warnings.length).eq(1);
         expectStyleContrastWarning({
@@ -151,7 +152,7 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const { warnings } = getDiagnosticsByType(core);
 
         expect(warnings.length).eq(0);
     });
@@ -163,7 +164,7 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const { warnings } = getDiagnosticsByType(core);
 
         expect(warnings.length).eq(0);
     });
@@ -184,7 +185,7 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const { warnings } = getDiagnosticsByType(core);
 
         expect(warnings.length).eq(4);
 
@@ -215,7 +216,7 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const { warnings } = getDiagnosticsByType(core);
 
         expect(warnings.length).eq(1);
         expectStyleContrastWarning({
@@ -236,7 +237,7 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const { warnings } = getDiagnosticsByType(core);
 
         expect(warnings.length).eq(0);
     });
@@ -249,7 +250,7 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const { warnings } = getDiagnosticsByType(core);
 
         expect(warnings.length).eq(1);
         expectStyleContrastWarning({
@@ -272,7 +273,7 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const { warnings } = getDiagnosticsByType(core);
 
         expect(warnings.length).eq(1);
         expectStyleContrastWarning({

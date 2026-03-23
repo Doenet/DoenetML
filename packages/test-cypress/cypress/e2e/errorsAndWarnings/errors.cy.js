@@ -1,3 +1,5 @@
+import { getDiagnosticsByType } from "../../support/diagnostics";
+
 describe("Error Tests", { tags: ["@group2"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -52,32 +54,36 @@ describe("Error Tests", { tags: ["@group2"] }, function () {
         );
 
         cy.window().then(async (win) => {
-            let errorWarnings = win.returnErrorWarnings1();
+            let diagnosticsByType = getDiagnosticsByType(
+                win.returnDiagnostics1(),
+            );
 
-            expect(errorWarnings.errors.length).eq(3);
-            expect(errorWarnings.warnings.length).eq(0);
+            expect(diagnosticsByType.errors.length).eq(3);
+            expect(diagnosticsByType.warnings.length).eq(0);
 
-            expect(errorWarnings.errors[0].message).contain(
+            expect(diagnosticsByType.errors[0].message).contain(
                 'The tag `<a name="a1">` has no closing tag.',
             );
-            expect(errorWarnings.errors[0].position.start.line).eq(5);
-            expect(errorWarnings.errors[0].position.start.column).eq(5);
-            expect(errorWarnings.errors[0].position.end.line).eq(5);
-            expect(errorWarnings.errors[0].position.end.column).eq(18);
+            expect(diagnosticsByType.errors[0].position.start.line).eq(5);
+            expect(diagnosticsByType.errors[0].position.start.column).eq(5);
+            expect(diagnosticsByType.errors[0].position.end.line).eq(5);
+            expect(diagnosticsByType.errors[0].position.end.column).eq(18);
 
-            expect(errorWarnings.errors[1].message).contain(
+            expect(diagnosticsByType.errors[1].message).contain(
                 "Invalid component type: <a>",
             );
-            expect(errorWarnings.errors[1].position.start.line).eq(5);
-            expect(errorWarnings.errors[1].position.start.column).eq(5);
-            expect(errorWarnings.errors[1].position.end.line).eq(6);
-            expect(errorWarnings.errors[1].position.end.column).eq(3);
+            expect(diagnosticsByType.errors[1].position.start.line).eq(5);
+            expect(diagnosticsByType.errors[1].position.start.column).eq(5);
+            expect(diagnosticsByType.errors[1].position.end.line).eq(6);
+            expect(diagnosticsByType.errors[1].position.end.column).eq(3);
 
-            expect(errorWarnings.errors[2].message).contain("was not closed");
-            expect(errorWarnings.errors[2].position.start.line).eq(10);
-            expect(errorWarnings.errors[2].position.start.column).eq(3);
-            expect(errorWarnings.errors[2].position.end.line).eq(10);
-            expect(errorWarnings.errors[2].position.end.column).eq(9);
+            expect(diagnosticsByType.errors[2].message).contain(
+                "was not closed",
+            );
+            expect(diagnosticsByType.errors[2].position.start.line).eq(10);
+            expect(diagnosticsByType.errors[2].position.start.column).eq(3);
+            expect(diagnosticsByType.errors[2].position.end.line).eq(10);
+            expect(diagnosticsByType.errors[2].position.end.column).eq(9);
         });
     });
 
@@ -97,10 +103,12 @@ describe("Error Tests", { tags: ["@group2"] }, function () {
 
             cy.get("#ti").should("have.text", "my label");
             cy.window().then(async (win) => {
-                let errorWarnings = win.returnErrorWarnings1();
+                let diagnosticsByType = getDiagnosticsByType(
+                    win.returnDiagnostics1(),
+                );
 
-                expect(errorWarnings.errors.length).eq(0);
-                expect(errorWarnings.warnings.length).eq(0);
+                expect(diagnosticsByType.errors.length).eq(0);
+                expect(diagnosticsByType.warnings.length).eq(0);
             });
 
             cy.get(".doenet-viewer").should(
@@ -114,12 +122,14 @@ describe("Error Tests", { tags: ["@group2"] }, function () {
             cy.get("#ti").should("not.have.text", "my label");
 
             cy.window().then(async (win) => {
-                let errorWarnings = win.returnErrorWarnings1();
+                let diagnosticsByType = getDiagnosticsByType(
+                    win.returnDiagnostics1(),
+                );
 
-                expect(errorWarnings.errors.length).eq(1);
-                expect(errorWarnings.warnings.length).eq(0);
+                expect(diagnosticsByType.errors.length).eq(1);
+                expect(diagnosticsByType.warnings.length).eq(0);
 
-                expect(errorWarnings.errors[0].message).contain(
+                expect(diagnosticsByType.errors[0].message).contain(
                     "<textInput> must have a short description or a label",
                 );
             });

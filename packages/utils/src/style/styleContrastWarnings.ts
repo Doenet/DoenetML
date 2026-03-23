@@ -6,11 +6,12 @@
  * - Parses CSS colors to RGBA where possible,
  * - Composites translucent colors over the light canvas,
  * - Computes contrast ratios for text and graphical style channels,
- * - Returns warnings annotated with source positions.
+ * - Returns diagnostics annotated with source positions.
  */
 import contrast from "get-contrast";
 import rgb from "rgb";
 import type { Position } from "@doenet/parser";
+import type { WarningRecord } from "../errors/diagnostics";
 import {
     getStyleValueNumber,
     getStyleValueString,
@@ -18,13 +19,6 @@ import {
     type StyleDefinition,
     type StyleDefinitions,
 } from "./styleDefinitionHelpers";
-
-export type WarningRecord = {
-    type: "warning";
-    message: string;
-    level: number;
-    position?: Position;
-};
 
 const CANVAS_LIGHT_MODE_COLOR = "#ffffff";
 
@@ -233,7 +227,7 @@ function formatRatio(value: number): string {
  *
  * @param args - Warning details (style number, context, measured ratio,
  * required threshold, and source position).
- * @returns A warning record suitable for sendWarnings.
+ * @returns A warning record suitable for sendDiagnostics.
  */
 function createContrastWarning({
     styleNumber,
@@ -250,7 +244,6 @@ function createContrastWarning({
 }): WarningRecord {
     return {
         type: "warning",
-        level: 1,
         message: `Style definition ${styleNumber} has insufficient contrast for ${context} (${formatRatio(ratio)}:1; requires at least ${threshold}:1).`,
         position,
     };
@@ -261,17 +254,17 @@ function createContrastWarning({
  * and the threshold is not met.
  *
  * @param args - Warning target array and warning-evaluation inputs.
- * @returns Nothing. Mutates the warnings array in place when needed.
+ * @returns Nothing. Mutates the diagnostics array in place when needed.
  */
 function maybePushContrastWarning({
-    warnings,
+    diagnostics,
     styleNumber,
     context,
     ratio,
     threshold,
     position,
 }: {
-    warnings: WarningRecord[];
+    diagnostics: WarningRecord[];
     styleNumber: string;
     context: string;
     ratio: number | null;
@@ -282,7 +275,7 @@ function maybePushContrastWarning({
         return;
     }
 
-    warnings.push(
+    diagnostics.push(
         createContrastWarning({
             styleNumber,
             context,
@@ -346,7 +339,7 @@ function ratioWithOptionalCompositing({
 }
 
 /**
- * Generates all applicable light-mode contrast warnings for one style definition.
+ * Generates all applicable light-mode contrast diagnostics for one style definition.
  *
  * @param styleNumber - Style number being validated.
  * @param styleDef - Resolved style definition values.
@@ -356,7 +349,7 @@ function contrastWarningsForStyleDefinition(
     styleNumber: string,
     styleDef: StyleDefinition,
 ): WarningRecord[] {
-    const warnings: WarningRecord[] = [];
+    const diagnostics: WarningRecord[] = [];
 
     const textColor = getStyleValueString(styleDef, "textColor");
     const backgroundColor =
@@ -375,7 +368,7 @@ function contrastWarningsForStyleDefinition(
         });
 
         maybePushContrastWarning({
-            warnings,
+            diagnostics,
             styleNumber,
             context:
                 backgroundColor === CANVAS_LIGHT_MODE_COLOR
@@ -400,7 +393,7 @@ function contrastWarningsForStyleDefinition(
         });
 
         maybePushContrastWarning({
-            warnings,
+            diagnostics,
             styleNumber,
             context: "high-contrast color against canvas text",
             ratio,
@@ -423,7 +416,7 @@ function contrastWarningsForStyleDefinition(
         });
 
         maybePushContrastWarning({
-            warnings,
+            diagnostics,
             styleNumber,
             context: "line color against the canvas",
             ratio,
@@ -447,7 +440,7 @@ function contrastWarningsForStyleDefinition(
         });
 
         maybePushContrastWarning({
-            warnings,
+            diagnostics,
             styleNumber,
             context: "marker color against the canvas",
             ratio,
@@ -456,7 +449,7 @@ function contrastWarningsForStyleDefinition(
         });
     }
 
-    return warnings;
+    return diagnostics;
 }
 
 /**
@@ -468,10 +461,10 @@ function contrastWarningsForStyleDefinition(
 export function contrastWarningsForStyleDefinitions(
     styleDefinitions: StyleDefinitions,
 ): WarningRecord[] {
-    const warnings: WarningRecord[] = [];
+    const diagnostics: WarningRecord[] = [];
 
     for (const styleNumber in styleDefinitions) {
-        warnings.push(
+        diagnostics.push(
             ...contrastWarningsForStyleDefinition(
                 styleNumber,
                 styleDefinitions[styleNumber],
@@ -479,5 +472,5 @@ export function contrastWarningsForStyleDefinitions(
         );
     }
 
-    return warnings;
+    return diagnostics;
 }

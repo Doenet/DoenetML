@@ -6,6 +6,7 @@ import {
     updateTextInputValue,
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -1659,17 +1660,17 @@ describe("Conditional content tag tests @group2", async () => {
   `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             `Attribute \`condition\` is ignored on a <conditionalContent> component with case or else children`,
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.start.column).eq(29);
-        expect(errorWarnings.warnings[0].position.end.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.column).eq(45);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(29);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(45);
     });
 });

@@ -40,9 +40,7 @@ export default class PostponeRenderContainer extends Group {
         nComponents,
         workspace,
     }) {
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         // if this is the first time rendered, then create the replacements
         if (
@@ -56,8 +54,7 @@ export default class PostponeRenderContainer extends Group {
                 workspace,
             });
             let replacements = replacementResults.replacements;
-            errors.push(...replacementResults.errors);
-            warnings.push(...replacementResults.warnings);
+            diagnostics.push(...replacementResults.diagnostics);
             nComponents = replacementResults.nComponents;
 
             if (replacements.length > 0) {
@@ -71,13 +68,14 @@ export default class PostponeRenderContainer extends Group {
 
                 return {
                     replacementChanges: [replacementInstruction],
+                    diagnostics,
                     nComponents,
                 };
             } else {
-                return { replacementChanges: [], nComponents };
+                return { replacementChanges: [], diagnostics, nComponents };
             }
         } else {
-            return { replacementChanges: [], nComponents };
+            return { replacementChanges: [], diagnostics, nComponents };
         }
     }
 }

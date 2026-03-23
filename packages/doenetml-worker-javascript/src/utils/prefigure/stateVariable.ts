@@ -292,7 +292,7 @@ export function returnGraphPrefigureXMLStateVariableDefinition() {
 
             unsupported.sort(sortDescendantsByOrder);
 
-            const { xml, warnings } = createPrefigureXML({
+            const { xml, diagnostics } = createPrefigureXML({
                 dependencyValues,
                 descendants,
                 unsupported,
@@ -300,7 +300,7 @@ export function returnGraphPrefigureXMLStateVariableDefinition() {
 
             return {
                 setValue: { prefigureXML: xml },
-                sendWarnings: warnings,
+                sendDiagnostics: diagnostics,
             };
         },
     };

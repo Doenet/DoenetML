@@ -1,3 +1,5 @@
+import { getDiagnosticsByType } from "../../support/diagnostics";
+
 describe(
     "Style definition accessibility upgraded to errors",
     { tags: ["@group5"] },
@@ -21,11 +23,13 @@ describe(
 
         function expectContrastErrorForStyle({ styleNumber, messagePart }) {
             cy.window().then((win) => {
-                const errorWarnings = win.returnErrorWarnings1();
+                const diagnosticsByType = getDiagnosticsByType(
+                    win.returnDiagnostics1(),
+                );
 
-                expect(errorWarnings.warnings.length).eq(0);
+                expect(diagnosticsByType.warnings.length).eq(0);
 
-                const styleError = errorWarnings.errors.find(
+                const styleError = diagnosticsByType.errors.find(
                     (x) =>
                         x.message.includes(`Style definition ${styleNumber}`) &&
                         x.message.includes("insufficient contrast") &&

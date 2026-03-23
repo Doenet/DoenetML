@@ -826,7 +826,7 @@ export default class Line extends GraphicalComponent {
                         }
                         return {
                             setValue: { points },
-                            sendWarnings: result.sendWarnings,
+                            sendDiagnostics: result.sendDiagnostics,
                         };
                     } else {
                         return { setValue: { points: result.points } };
@@ -1425,7 +1425,7 @@ export default class Line extends GraphicalComponent {
                                 coeffvar1: blankMath,
                                 coeffvar2: blankMath,
                             },
-                            sendWarnings: result.sendWarnings,
+                            sendDiagnostics: result.sendDiagnostics,
                         };
                     }
 
@@ -1447,7 +1447,7 @@ export default class Line extends GraphicalComponent {
                     let warning = {
                         message:
                             "Line through points of undetermined dimensions.",
-                        level: 1,
+                        type: "warning",
                     };
                     return {
                         setValue: {
@@ -1456,7 +1456,7 @@ export default class Line extends GraphicalComponent {
                             coeffvar1: blankMath,
                             coeffvar2: blankMath,
                         },
-                        sendWarnings: [warning],
+                        sendDiagnostics: [warning],
                     };
                 }
 
@@ -1464,7 +1464,7 @@ export default class Line extends GraphicalComponent {
                     let warning = {
                         message:
                             "Line must be through points of at least two dimensions.",
-                        level: 1,
+                        type: "warning",
                     };
                     return {
                         setValue: {
@@ -1473,7 +1473,7 @@ export default class Line extends GraphicalComponent {
                             coeffvar1: blankMath,
                             coeffvar2: blankMath,
                         },
-                        sendWarnings: [warning],
+                        sendDiagnostics: [warning],
                     };
                 }
 
@@ -1496,7 +1496,7 @@ export default class Line extends GraphicalComponent {
                                 "Line is through points that depend on variables: " +
                                 varStrings.join(", ") +
                                 ".",
-                            level: 1,
+                            type: "warning",
                         };
                         return {
                             setValue: {
@@ -1505,7 +1505,7 @@ export default class Line extends GraphicalComponent {
                                 coeffvar1: blankMath,
                                 coeffvar2: blankMath,
                             },
-                            sendWarnings: [warning],
+                            sendDiagnostics: [warning],
                         };
                     }
                 }
@@ -2389,9 +2389,9 @@ function calculateCoeffsFromEquation({ equation, variables }) {
                     " and " +
                     var2 +
                     ".",
-                level: 1,
+                type: "warning",
             };
-            return { success: false, sendWarnings: [warning] };
+            return { success: false, sendDiagnostics: [warning] };
         } else {
             let operator = term[0];
             let operands = term.slice(1);
@@ -2411,9 +2411,9 @@ function calculateCoeffsFromEquation({ equation, variables }) {
                         " and " +
                         var2 +
                         ".",
-                    level: 1,
+                    type: "warning",
                 };
-                return { success: false, sendWarnings: [warning] };
+                return { success: false, sendDiagnostics: [warning] };
             } else if (operator === "*") {
                 let var1ind = -1,
                     var2ind = -1;
@@ -2500,9 +2500,9 @@ function calculatePointsFromCoeffs({
                 " and " +
                 var2String +
                 ".",
-            level: 1,
+            type: "warning",
         };
-        return { success: false, sendWarnings: [warning] };
+        return { success: false, sendDiagnostics: [warning] };
     }
     let zero = me.fromAst(0);
     if (coeffvar1.equals(zero) && coeffvar2.equals(zero)) {
@@ -2513,9 +2513,9 @@ function calculatePointsFromCoeffs({
                 " and " +
                 var2String +
                 ".",
-            level: 1,
+            type: "warning",
         };
-        return { success: false, sendWarnings: [warning] };
+        return { success: false, sendDiagnostics: [warning] };
     }
 
     // console.log("coefficient of " + var1 + " is " + coeffvar1);

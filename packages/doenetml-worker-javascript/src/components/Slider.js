@@ -616,7 +616,7 @@ export default class Slider extends BaseComponent {
             }),
             definition: function ({ dependencyValues }) {
                 let markers = [];
-                let warnings = [];
+                let diagnostics = [];
 
                 if (dependencyValues.markersChild.length > 0) {
                     let markerType =
@@ -635,7 +635,7 @@ export default class Slider extends BaseComponent {
                             warning.position =
                                 dependencyValues.markersChild[0].position;
                         }
-                        warnings.push(warning);
+                        diagnostics.push(warning);
                         markers = [];
                     } else {
                         markers =
@@ -644,7 +644,7 @@ export default class Slider extends BaseComponent {
                     }
                 }
 
-                return { setValue: { markers }, sendWarnings: warnings };
+                return { setValue: { markers }, sendDiagnostics: diagnostics };
             },
         };
 

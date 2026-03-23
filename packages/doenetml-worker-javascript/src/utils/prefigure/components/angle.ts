@@ -93,7 +93,7 @@ function labelAnchorForAngle({
 export function convertAngleToPrefigure({
     sv,
     handle,
-    warnings,
+    diagnostics,
     warningPrefix,
     warningPosition,
 }: ConverterBaseArgs): string | null {
@@ -141,7 +141,7 @@ export function convertAngleToPrefigure({
 
     const sectorStyleAttrs = styleAttributes({
         selectedStyle: sv.selectedStyle,
-        warnings,
+        diagnostics,
         warningPrefix,
         warningPosition,
         includeFill: true,

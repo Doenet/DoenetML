@@ -8,6 +8,7 @@ import {
     updateTextInputValue,
 } from "../utils/actions";
 import { widthsBySize } from "@doenet/utils";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -526,10 +527,10 @@ describe("Module tag tests @group1", async () => {
             stateVariables[await resolvePathToNodeIdx("m3.p")].stateValues.text,
         ).eq("Disabled? true");
 
-        let errorWarnings = core.core!.errorWarnings;
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
-        expect(errorWarnings.warnings[0].message).contain(
+        let diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.warnings[0].message).contain(
             `The component <boolean name="disabled"> cannot be used as an attribute for a module because the <module> component type already has a "disabled" attribute defined`,
         );
     });

@@ -94,7 +94,7 @@ export default class FunctionIterates extends InlineComponent {
                     }
                     return {
                         setValue: { numDimensions: 0 },
-                        sendWarnings: [warning],
+                        sendDiagnostics: [warning],
                     };
                 } else {
                     return {

@@ -1,3 +1,4 @@
+import { Position } from "../dast/types";
 import { escapeXml, pushWarning } from "./common";
 import type {
     Bounds,
@@ -6,8 +7,8 @@ import type {
     GraphDimensions,
     Point,
     PrefigureStateValues,
-    Warning,
 } from "./types";
+import type { DiagnosticRecord } from "@doenet/utils";
 
 /**
  * Label conversion strategy summary
@@ -757,14 +758,14 @@ function getPointLabelAlignment({
  */
 export function pointLabelAttributes({
     stateValues,
-    warnings,
+    diagnostics,
     warningPrefix,
     warningPosition,
 }: {
     stateValues: PrefigureStateValues;
-    warnings: Warning[];
+    diagnostics: DiagnosticRecord[];
     warningPrefix: string;
-    warningPosition?: unknown;
+    warningPosition?: Position;
 }): { attrs: string[]; label: string } | null {
     const label = labelMarkup({
         label: stateValues?.label,
@@ -806,7 +807,7 @@ export function pointLabelAttributes({
             attrs.push(`alignment="${escapeXml(alignment)}"`);
         } else {
             pushWarning({
-                warnings,
+                diagnostics,
                 message: `${warningPrefix}: unsupported labelPosition '${rawPosition}' for point label; default PreFigure alignment used.`,
                 position: warningPosition,
             });
@@ -1002,16 +1003,16 @@ export function getLabelForLine({
     stateValues,
     ep1,
     ep2,
-    warnings,
+    diagnostics,
     warningPrefix,
     warningPosition,
 }: {
     stateValues: PrefigureStateValues;
     ep1: Point;
     ep2: Point;
-    warnings: Warning[];
+    diagnostics: DiagnosticRecord[];
     warningPrefix: string;
-    warningPosition?: unknown;
+    warningPosition?: Position;
 }): { labelAttrs: string[]; label: string | null } {
     const label = labelMarkup({
         label: stateValues?.label,
@@ -1074,7 +1075,7 @@ export function getLabelForLine({
             labelAttrs.push(`alignment="${escapeXml(alignment)}"`);
         } else if (!KNOWN_LINE_POSITIONS.has(normalizedPosition)) {
             pushWarning({
-                warnings,
+                diagnostics,
                 message: `${warningPrefix}: unsupported labelPosition '${rawPosition}' for line-family label; default PreFigure alignment used.`,
                 position: warningPosition,
             });

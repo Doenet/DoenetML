@@ -409,8 +409,7 @@ export default class IntervalList extends CompositeComponent {
             num: workspace.replacementsCreated,
         };
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacements = [];
         let componentsCopied = [];
@@ -515,8 +514,7 @@ export default class IntervalList extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -528,9 +526,7 @@ export default class IntervalList extends CompositeComponent {
         workspace,
         nComponents,
     }) {
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let numIntervals = await component.stateValues.numIntervals;
 
@@ -554,7 +550,7 @@ export default class IntervalList extends CompositeComponent {
                     (x, i) => x === componentsToCopy[i],
                 )
             ) {
-                return { replacementChanges: [] };
+                return { replacementChanges: [], diagnostics, nComponents };
             }
         }
 
@@ -568,8 +564,7 @@ export default class IntervalList extends CompositeComponent {
         });
 
         let replacements = replacementResults.replacements;
-        errors.push(...replacementResults.errors);
-        warnings.push(...replacementResults.warnings);
+        diagnostics.push(...replacementResults.diagnostics);
         nComponents = replacementResults.nComponents;
 
         let replacementChanges = [
@@ -582,7 +577,7 @@ export default class IntervalList extends CompositeComponent {
             },
         ];
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 }
 

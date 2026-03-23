@@ -381,8 +381,7 @@ export default class Sort extends CompositeComponent {
         workspace,
         nComponents,
     }) {
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacements = [];
 
@@ -424,8 +423,7 @@ export default class Sort extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -437,9 +435,7 @@ export default class Sort extends CompositeComponent {
         workspace,
         nComponents,
     }) {
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let componentsToCopy = [];
 
@@ -465,7 +461,7 @@ export default class Sort extends CompositeComponent {
                 (x, i) => x === componentsToCopy[i],
             )
         ) {
-            return { replacementChanges: [], nComponents };
+            return { replacementChanges: [], diagnostics, nComponents };
         }
 
         // for now, just recreated
@@ -478,9 +474,8 @@ export default class Sort extends CompositeComponent {
         });
 
         let replacements = replacementResults.replacements;
-        errors.push(...replacementResults.errors);
-        warnings.push(...replacementResults.warnings);
-        nComponents = replacements.nComponents;
+        diagnostics.push(...replacementResults.diagnostics);
+        nComponents = replacementResults.nComponents;
 
         let replacementChanges = [
             {
@@ -492,6 +487,6 @@ export default class Sort extends CompositeComponent {
             },
         ];
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 }

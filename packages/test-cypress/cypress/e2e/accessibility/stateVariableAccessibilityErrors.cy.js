@@ -1,3 +1,5 @@
+import { getDiagnosticsByType } from "../../support/diagnostics";
+
 describe(
     "State-variable accessibility errors render upgraded error components",
     { tags: ["@group5"] },
@@ -24,9 +26,11 @@ describe(
             expectedCount = 1,
         ) {
             cy.window().should((win) => {
-                expect(win.returnErrorWarnings1).to.be.a("function");
-                const errorWarnings = win.returnErrorWarnings1();
-                const matchingErrors = errorWarnings.errors.filter((x) =>
+                expect(win.returnDiagnostics1).to.be.a("function");
+                const diagnosticsByType = getDiagnosticsByType(
+                    win.returnDiagnostics1(),
+                );
+                const matchingErrors = diagnosticsByType.errors.filter((x) =>
                     x.message.includes(messagePart),
                 );
                 expect(matchingErrors.length).eq(expectedCount);
@@ -35,9 +39,11 @@ describe(
 
         function expectTotalAccessibilityErrorsInErrorList(expectedCount) {
             cy.window().should((win) => {
-                expect(win.returnErrorWarnings1).to.be.a("function");
-                const errorWarnings = win.returnErrorWarnings1();
-                expect(errorWarnings.errors.length).eq(expectedCount);
+                expect(win.returnDiagnostics1).to.be.a("function");
+                const diagnosticsByType = getDiagnosticsByType(
+                    win.returnDiagnostics1(),
+                );
+                expect(diagnosticsByType.errors.length).eq(expectedCount);
             });
         }
 

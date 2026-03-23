@@ -161,7 +161,7 @@ export default class Shuffle extends CompositeComponent {
                 return dependencies;
             },
             definition({ dependencyValues }) {
-                let warnings = [];
+                let diagnostics = [];
 
                 let numComponents = dependencyValues.numComponents;
 
@@ -170,10 +170,10 @@ export default class Shuffle extends CompositeComponent {
                     dependencyValues.variants?.desiredVariant?.indices;
                 if (desiredComponentOrder !== undefined) {
                     if (desiredComponentOrder.length !== numComponents) {
-                        warnings.push({
+                        diagnostics.push({
                             message:
                                 "Ignoring indices specified for shuffle as number of indices doesn't match number of components.",
-                            level: 2,
+                            type: "info",
                         });
                     } else {
                         desiredComponentOrder =
@@ -188,10 +188,10 @@ export default class Shuffle extends CompositeComponent {
                                 (x) => x >= 1 && x <= numComponents,
                             )
                         ) {
-                            warnings.push({
+                            diagnostics.push({
                                 message:
                                     "Ignoring indices specified for shuffle as some indices out of range.",
-                                level: 2,
+                                type: "info",
                             });
                         } else {
                             return {
@@ -224,7 +224,7 @@ export default class Shuffle extends CompositeComponent {
                     setValue: {
                         componentOrder,
                     },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
@@ -324,8 +324,7 @@ export default class Shuffle extends CompositeComponent {
         workspace,
         nComponents,
     }) {
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacements = [];
 
@@ -364,8 +363,7 @@ export default class Shuffle extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -377,9 +375,7 @@ export default class Shuffle extends CompositeComponent {
         workspace,
         nComponents,
     }) {
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let componentsToCopy = [];
 
@@ -401,7 +397,7 @@ export default class Shuffle extends CompositeComponent {
                 (x, i) => x === componentsToCopy[i],
             )
         ) {
-            return { replacementChanges: [], nComponents };
+            return { replacementChanges: [], diagnostics, nComponents };
         }
 
         // for now, just recreate
@@ -414,9 +410,8 @@ export default class Shuffle extends CompositeComponent {
         });
 
         let replacements = replacementResults.replacements;
-        errors.push(...replacementResults.errors);
-        warnings.push(...replacementResults.warnings);
-        nComponents = replacements.nComponents;
+        diagnostics.push(...replacementResults.diagnostics);
+        nComponents = replacementResults.nComponents;
 
         let replacementChanges = [
             {
@@ -428,7 +423,7 @@ export default class Shuffle extends CompositeComponent {
             },
         ];
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 
     static determineNumberOfUniqueVariants({

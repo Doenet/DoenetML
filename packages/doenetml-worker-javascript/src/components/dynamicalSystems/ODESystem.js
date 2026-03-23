@@ -195,7 +195,7 @@ export default class ODESystem extends InlineComponent {
                 return { globalDependencies };
             },
             arrayDefinitionByKey({ globalDependencyValues }) {
-                let warnings = [];
+                let diagnostics = [];
 
                 let variablesSpecified = [];
                 let validVariables = [];
@@ -226,7 +226,7 @@ export default class ODESystem extends InlineComponent {
                             globalDependencyValues.variables.position;
                     }
 
-                    warnings.push(warning);
+                    diagnostics.push(warning);
                 }
 
                 if (validVariables.length < numDims) {
@@ -237,7 +237,7 @@ export default class ODESystem extends InlineComponent {
 
                 return {
                     setValue: { variables, validVariables },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
@@ -565,7 +565,7 @@ export default class ODESystem extends InlineComponent {
             }),
             definition({ dependencyValues }) {
                 // console.log(dependencyValues);
-                let warnings = [];
+                let diagnostics = [];
 
                 let valid = true;
                 if (!dependencyValues.validIndependentVariable) {
@@ -587,10 +587,10 @@ export default class ODESystem extends InlineComponent {
                 }
 
                 if ([...new Set(varNames)].length !== varNames.length) {
-                    warnings.push({
+                    diagnostics.push({
                         message:
                             "Can't define ODE RHS functions with duplicate dependent variable names.",
-                        level: 1,
+                        type: "warning",
                     });
                     valid = false;
                 }
@@ -601,10 +601,10 @@ export default class ODESystem extends InlineComponent {
                         x.subscripts_to_strings().f(),
                     );
                 } catch (e) {
-                    warnings.push({
+                    diagnostics.push({
                         message:
                             "Cannot define ODE RHS function.  Error creating mathjs function.",
-                        level: 1,
+                        type: "warning",
                     });
                     valid = false;
                 }
@@ -616,7 +616,7 @@ export default class ODESystem extends InlineComponent {
                             numericalRHSf: () => NaN,
                             numericalRHSfDefinitions: Array(n).fill({}),
                         },
-                        sendWarnings: warnings,
+                        sendDiagnostics: diagnostics,
                     };
                 }
 

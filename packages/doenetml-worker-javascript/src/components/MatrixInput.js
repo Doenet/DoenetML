@@ -3066,8 +3066,7 @@ export class MatrixInputGrid extends CompositeComponent {
 
         return {
             replacements: serializedComponents,
-            errors: [],
-            warnings: [],
+            diagnostics: [],
             nComponents,
         };
     }
@@ -3256,8 +3255,7 @@ export class MatrixInputRow extends CompositeComponent {
 
         return {
             replacements: serializedComponents,
-            errors: [],
-            warnings: [],
+            diagnostics: [],
             nComponents,
         };
     }

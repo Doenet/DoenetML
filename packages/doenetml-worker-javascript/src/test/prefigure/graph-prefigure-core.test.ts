@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     getGraphRendererState,
     getPrefigureXML,
@@ -111,22 +112,22 @@ describe("Graph prefigure renderer core @group4", () => {
         expect(prefigureXML).toContain(`<xlabel alignment="nw">time</xlabel>`);
         expect(prefigureXML).toContain(`<ylabel alignment="se">value</ylabel>`);
 
-        const errorWarnings = await getWarnings(
+        const diagnosticsByType = await getWarnings(
             prefigureGraph(
                 "<xLabel>time</xLabel>\n    <yLabel>value</yLabel>",
                 { attrs: 'xLabelPosition="left" yLabelPosition="bottom"' },
             ),
         );
-        expect(errorWarnings.errors.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(0);
         expect(
-            errorWarnings.warnings.some((x) =>
+            diagnosticsByType.warnings.some((x) =>
                 x.message.includes(
                     'xLabelPosition="left" is not supported in prefigure renderer',
                 ),
             ),
         ).eq(true);
         expect(
-            errorWarnings.warnings.some((x) =>
+            diagnosticsByType.warnings.some((x) =>
                 x.message.includes(
                     'yLabelPosition="bottom" is not supported in prefigure renderer',
                 ),
@@ -142,11 +143,11 @@ describe("Graph prefigure renderer core @group4", () => {
             ),
         });
 
-        const errorWarnings = core.core!.errorWarnings;
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).toBeGreaterThan(0);
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).toBeGreaterThan(0);
 
-        const warningWithPosition = errorWarnings.warnings.find(
+        const warningWithPosition = diagnosticsByType.warnings.find(
             (x) => x.position,
         );
 
@@ -164,10 +165,10 @@ describe("Graph prefigure renderer core @group4", () => {
             ),
         });
 
-        const errorWarnings = core.core!.errorWarnings;
-        expect(errorWarnings.errors.length).eq(0);
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
 
-        const triangleWarning = errorWarnings.warnings.find(
+        const triangleWarning = diagnosticsByType.warnings.find(
             (x) =>
                 x.message.includes("marker style") &&
                 x.message.includes("mapped to PreFigure style") &&

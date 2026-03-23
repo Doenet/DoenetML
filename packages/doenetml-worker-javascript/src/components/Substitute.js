@@ -470,8 +470,7 @@ export default class Substitute extends CompositeComponent {
             num: workspace.replacementsCreated,
         };
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let type = await component.stateValues.type;
         let serializedReplacement = {
@@ -543,8 +542,7 @@ export default class Substitute extends CompositeComponent {
 
         return {
             replacements: [serializedReplacement],
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }

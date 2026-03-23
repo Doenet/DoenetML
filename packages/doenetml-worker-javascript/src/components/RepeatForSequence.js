@@ -270,8 +270,7 @@ export default class RepeatForSequence extends CompositeComponent {
     }) {
         // console.log(`create serialized replacements for ${component.componentIdx}`);
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         if (workspace.replacementsCreated === undefined) {
             workspace.replacementsCreated = 0;
@@ -285,7 +284,7 @@ export default class RepeatForSequence extends CompositeComponent {
                 type: null,
                 exclude: null,
             };
-            return { replacements: [], errors, warnings, nComponents };
+            return { replacements: [], diagnostics, nComponents };
         }
 
         let from = await component.stateValues.from;
@@ -318,13 +317,12 @@ export default class RepeatForSequence extends CompositeComponent {
                 workspace,
             });
             replacements.push(...res.replacements);
-            errors.push(...res.errors);
-            warnings.push(...res.warnings);
+            diagnostics.push(...res.diagnostics);
             nComponents = res.nComponents;
             workspace.valueComponentIndices.push(res.valueComponentIdx);
         }
 
-        return { replacements, errors, warnings, nComponents };
+        return { replacements, diagnostics, nComponents };
     }
 
     static async replacementForIter({
@@ -336,8 +334,7 @@ export default class RepeatForSequence extends CompositeComponent {
         nComponents,
         workspace,
     }) {
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacements = [
             {
@@ -410,8 +407,7 @@ export default class RepeatForSequence extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
             valueComponentIdx,
         };
@@ -424,8 +420,7 @@ export default class RepeatForSequence extends CompositeComponent {
         componentInfoObjects,
         nComponents,
     }) {
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacementChanges = [];
 
@@ -458,7 +453,7 @@ export default class RepeatForSequence extends CompositeComponent {
 
             workspace.lastReplacementParameters = lrp;
 
-            return { replacementChanges };
+            return { replacementChanges, diagnostics, nComponents };
         }
 
         let from = await component.stateValues.from;
@@ -480,8 +475,7 @@ export default class RepeatForSequence extends CompositeComponent {
             });
 
             let newSerializedReplacements = replacementResults.replacements;
-            errors.push(...replacementResults.errors);
-            warnings.push(...replacementResults.warnings);
+            diagnostics.push(...replacementResults.diagnostics);
             nComponents = replacementResults.nComponents;
 
             let replacementInstruction = {
@@ -607,8 +601,7 @@ export default class RepeatForSequence extends CompositeComponent {
                         workspace,
                     });
                     newSerializedReplacements.push(...res.replacements);
-                    errors.push(...res.errors);
-                    warnings.push(...res.warnings);
+                    diagnostics.push(...res.diagnostics);
                     nComponents = res.nComponents;
                     workspace.valueComponentIndices[ind] =
                         res.valueComponentIdx;
@@ -633,7 +626,7 @@ export default class RepeatForSequence extends CompositeComponent {
 
         workspace.lastReplacementParameters = lrp;
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 
     static setUpVariant({
