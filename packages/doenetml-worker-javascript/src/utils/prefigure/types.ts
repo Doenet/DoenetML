@@ -1,4 +1,4 @@
-import type { DiagnosticRecord } from "@doenet/utils";
+import type { DiagnosticRecord, Position } from "@doenet/utils";
 
 export type Point = [number, number];
 
@@ -21,7 +21,7 @@ export interface Dimensions {
 export interface PushDiagnosticArgs {
     diagnostics: DiagnosticRecord[];
     message: string;
-    position?: unknown;
+    position?: Position;
 }
 
 export type UsedHandles = Set<string>;
@@ -70,7 +70,7 @@ export interface Descendant {
     componentType: string;
     componentName?: string;
     componentIdx?: number;
-    position?: unknown;
+    position?: Position;
     stateValues?: Record<string, unknown>;
     [key: string]: unknown;
 }
@@ -78,7 +78,7 @@ export interface Descendant {
 export interface ConverterWarningContext {
     diagnostics: DiagnosticRecord[];
     warningPrefix: string;
-    warningPosition?: unknown;
+    warningPosition?: Position;
 }
 
 export interface ConverterBaseArgs extends ConverterWarningContext {
