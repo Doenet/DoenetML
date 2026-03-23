@@ -1213,13 +1213,13 @@ export class ExtractMath extends MathBaseOperatorOneInput {
                     if (dependencyValues.operandNumber === null) {
                         let warning = {
                             message: `Must specify a operandNumber when extracting a math operand.`,
-                            level: 1,
+                            type: "warning",
                         };
                         return {
                             setValue: {
                                 mathOperator: () => me.fromAst("\uff3f"),
                             },
-                            sendWarnings: [warning],
+                            sendDiagnostics: [warning],
                         };
                     }
                     return {

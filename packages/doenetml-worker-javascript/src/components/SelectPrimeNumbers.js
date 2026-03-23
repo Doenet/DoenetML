@@ -252,8 +252,7 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             num: workspace.replacementsCreated,
         };
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let errorMessage = await component.stateValues.errorMessage;
         if (errorMessage) {
@@ -269,8 +268,7 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                         children: [],
                     },
                 ],
-                errors,
-                warnings,
+                diagnostics,
                 nComponents,
             };
         }
@@ -294,8 +292,7 @@ export default class SelectPrimeNumbers extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }

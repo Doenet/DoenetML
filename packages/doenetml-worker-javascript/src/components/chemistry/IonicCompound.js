@@ -68,11 +68,11 @@ export default class IonicCompound extends InlineComponent {
                     let warning = {
                         message:
                             "Have not implemented ionic compound for anything other than two ions.",
-                        level: 1,
+                        type: "warning",
                     };
                     return {
                         setValue: { ionicCompound: null },
-                        sendWarnings: [warning],
+                        sendDiagnostics: [warning],
                     };
                 }
 
@@ -80,11 +80,11 @@ export default class IonicCompound extends InlineComponent {
                     let warning = {
                         message:
                             "Ionic compound implemented only for one cation and one anion.",
-                        level: 1,
+                        type: "warning",
                     };
                     return {
                         setValue: { ionicCompound: null },
-                        sendWarnings: [warning],
+                        sendDiagnostics: [warning],
                     };
                 }
 

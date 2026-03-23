@@ -140,7 +140,7 @@ export default class DataFrame extends BaseComponent {
                 if (foundInconsistentRow) {
                     let warning = {
                         message: `Data has invalid shape.  Rows has inconsistent lengths. Found in componentIdx :${componentIdx}`,
-                        level: 1,
+                        type: "warning",
                     };
                     return {
                         setValue: {
@@ -150,7 +150,7 @@ export default class DataFrame extends BaseComponent {
                             columnTypes,
                             columnNames,
                         },
-                        sendWarnings: [warning],
+                        sendDiagnostics: [warning],
                     };
                 }
 
@@ -183,7 +183,7 @@ export default class DataFrame extends BaseComponent {
                 ) {
                     let warning = {
                         message: `Data has duplicate column names.  Found in componentIdx :${componentIdx}`,
-                        level: 1,
+                        type: "warning",
                     };
                     return {
                         setValue: {
@@ -193,14 +193,14 @@ export default class DataFrame extends BaseComponent {
                             columnTypes,
                             columnNames,
                         },
-                        sendWarnings: [warning],
+                        sendDiagnostics: [warning],
                     };
                 }
 
                 if (dataFrame.columnNames.includes("")) {
                     let warning = {
                         message: `Data is missing a column name.  Found in componentIdx :${componentIdx}`,
-                        level: 1,
+                        type: "warning",
                     };
                     return {
                         setValue: {
@@ -210,7 +210,7 @@ export default class DataFrame extends BaseComponent {
                             columnTypes,
                             columnNames,
                         },
-                        sendWarnings: [warning],
+                        sendDiagnostics: [warning],
                     };
                 }
 

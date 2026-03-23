@@ -155,7 +155,7 @@ export class SideBySide extends BlockComponent {
                 let allWidthsSpecified = [];
                 let widthsAbsolute = null;
                 let foundAbsolute = false;
-                let warnings = [];
+                let diagnostics = [];
 
                 let nWidthsSpecifiedFromAttrs;
                 let usingSingleWidth = false;
@@ -228,9 +228,9 @@ export class SideBySide extends BlockComponent {
                 }
 
                 if (foundAbsolute) {
-                    warnings.push({
+                    diagnostics.push({
                         message: `<sideBySide> is not implemented for absolute measurements. Setting widths to relative.`,
-                        level: 1,
+                        type: "warning",
                     });
                 }
                 widthsAbsolute = false;
@@ -242,7 +242,7 @@ export class SideBySide extends BlockComponent {
 
                 return {
                     setValue: { allWidthsSpecified, widthsAbsolute },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
@@ -317,7 +317,7 @@ export class SideBySide extends BlockComponent {
                 let allMarginsSpecified = [];
                 let marginsAbsolute = null;
                 let secondMarginAbsolute = null;
-                let warnings = [];
+                let diagnostics = [];
 
                 if (dependencyValues.marginsAttr === null) {
                     if (dependencyValues.parentMargins) {
@@ -401,9 +401,9 @@ export class SideBySide extends BlockComponent {
                 }
 
                 if (secondMarginAbsolute || marginsAbsolute) {
-                    warnings.push({
+                    diagnostics.push({
                         message: `<sideBySide> is not implemented for absolute measurements. Setting margins to relative.`,
-                        level: 1,
+                        type: "warning",
                     });
                 }
 
@@ -411,7 +411,7 @@ export class SideBySide extends BlockComponent {
 
                 return {
                     setValue: { allMarginsSpecified, marginsAbsolute },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
@@ -474,7 +474,7 @@ export class SideBySide extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let warnings = [];
+                let diagnostics = [];
 
                 let gapWidth = 0;
                 let allWidths = [...dependencyValues.allWidthsSpecified];
@@ -587,10 +587,10 @@ export class SideBySide extends BlockComponent {
                             allMargins[1] =
                                 100 - (allMargins[0] + allWidths[0]);
                         } else {
-                            warnings.push({
+                            diagnostics.push({
                                 message:
                                     "Invalid <sideBySide>: it must have at least one block child.",
-                                level: 1,
+                                type: "warning",
                             });
                         }
                     }
@@ -600,7 +600,7 @@ export class SideBySide extends BlockComponent {
 
                 return {
                     setValue: { allWidths, allMargins, gapWidth },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
@@ -1448,7 +1448,7 @@ export class SbsGroup extends BlockComponent {
             definition({ dependencyValues }) {
                 let widthsAbsolute = null;
                 let foundAbsolute = false;
-                let warnings = [];
+                let diagnostics = [];
 
                 for (let ind in dependencyValues.widthsAbsoluteArray) {
                     let thisAbsolute =
@@ -1462,14 +1462,17 @@ export class SbsGroup extends BlockComponent {
                 }
 
                 if (foundAbsolute) {
-                    warnings.push({
+                    diagnostics.push({
                         message: `<sbsGroup> is not implemented for absolute measurements. Setting widths to relative.`,
-                        level: 1,
+                        type: "warning",
                     });
                 }
                 widthsAbsolute = false;
 
-                return { setValue: { widthsAbsolute }, sendWarnings: warnings };
+                return {
+                    setValue: { widthsAbsolute },
+                    sendDiagnostics: diagnostics,
+                };
             },
         };
 
@@ -1704,7 +1707,7 @@ export class SbsGroup extends BlockComponent {
             definition({ dependencyValues }) {
                 let marginsAbsolute = null;
                 let foundAbsolute = false;
-                let warnings = [];
+                let diagnostics = [];
 
                 for (let ind in dependencyValues.marginsAbsoluteArray) {
                     let thisAbsolute =
@@ -1719,16 +1722,16 @@ export class SbsGroup extends BlockComponent {
                 }
 
                 if (foundAbsolute) {
-                    warnings.push({
+                    diagnostics.push({
                         message: `<sbsGroup> is not implemented for absolute measurements. Setting margins to relative.`,
-                        level: 1,
+                        type: "warning",
                     });
                 }
                 marginsAbsolute = false;
 
                 return {
                     setValue: { marginsAbsolute },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
@@ -1791,7 +1794,7 @@ export class SbsGroup extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let warnings = [];
+                let diagnostics = [];
 
                 let gapWidth = 0;
                 let allWidths = [...dependencyValues.specifiedWidths];
@@ -1908,10 +1911,10 @@ export class SbsGroup extends BlockComponent {
                             allMargins[1] =
                                 100 - (allMargins[0] + allWidths[0]);
                         } else {
-                            warnings.push({
+                            diagnostics.push({
                                 message:
                                     "Invalid <sbsGroup>: it must have at least one block child.",
-                                level: 1,
+                                type: "warning",
                             });
                         }
                     }
@@ -1921,7 +1924,7 @@ export class SbsGroup extends BlockComponent {
 
                 return {
                     setValue: { allWidths, allMargins, gapWidth },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };

@@ -36,17 +36,17 @@ export default class Variable extends MathComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                let warnings = [];
+                let diagnostics = [];
                 let validVariable = isValidVariable(
                     dependencyValues.valuePreValidate,
                 );
 
                 if (!validVariable) {
-                    warnings.push({
+                    diagnostics.push({
                         message:
                             "Invalid value of a variable: " +
                             dependencyValues.valuePreValidate.toString(),
-                        level: 1,
+                        type: "warning",
                     });
                 }
 
@@ -55,7 +55,7 @@ export default class Variable extends MathComponent {
                         value: dependencyValues.valuePreValidate,
                         validVariable,
                     },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
             inverseDefinition({ desiredStateVariableValues }) {

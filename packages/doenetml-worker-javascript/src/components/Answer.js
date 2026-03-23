@@ -645,7 +645,7 @@ export default class Answer extends InlineComponent {
 
             let newChildren;
             let type;
-            let warnings = [];
+            let diagnostics = [];
 
             if (componentAttributes.type) {
                 type = componentAttributes.type.value;
@@ -653,9 +653,9 @@ export default class Answer extends InlineComponent {
                     if (type.toLowerCase() === "videowatched") {
                         return { success: false };
                     }
-                    warnings.push({
+                    diagnostics.push({
                         message: `Invalid type for answer: ${type}`,
-                        level: 1,
+                        type: "warning",
                     });
                     type = "math";
                 }
@@ -724,7 +724,7 @@ export default class Answer extends InlineComponent {
             return {
                 success: true,
                 newChildren: newChildren,
-                warnings,
+                diagnostics,
                 nComponents,
             };
         };

@@ -160,13 +160,13 @@ export default class Choiceinput extends Input {
                     useEssentialOrDefaultValue.inline = {};
                 }
 
-                const warnings = [];
+                const diagnostics = [];
 
                 if (dependencyValues.labelPositionAttr && !isInline) {
-                    warnings.push({
+                    diagnostics.push({
                         message:
                             "labelPosition is ignored for non-inline choiceInput",
-                        level: 1,
+                        type: "warning",
                         position: dependencyValues.labelPositionAttr.position,
                     });
                 }
@@ -174,7 +174,7 @@ export default class Choiceinput extends Input {
                 return {
                     setValue,
                     useEssentialOrDefaultValue,
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
@@ -230,7 +230,7 @@ export default class Choiceinput extends Input {
             }),
             definition: function ({ dependencyValues }) {
                 let numChoices = dependencyValues.choiceChildren.length;
-                let warnings = [];
+                let diagnostics = [];
                 let choiceOrder;
                 if (!dependencyValues.shuffleOrder) {
                     choiceOrder = [...Array(numChoices).keys()].map(
@@ -242,10 +242,10 @@ export default class Choiceinput extends Input {
                         dependencyValues.variants?.desiredVariant?.indices;
                     if (desiredChoiceOrder !== undefined) {
                         if (desiredChoiceOrder.length !== numChoices) {
-                            warnings.push({
+                            diagnostics.push({
                                 message:
                                     "Ignoring indices specified for choiceInput as number of indices doesn't match number of choice children.",
-                                level: 2,
+                                type: "info",
                             });
                         } else {
                             desiredChoiceOrder = desiredChoiceOrder.map(Number);
@@ -259,10 +259,10 @@ export default class Choiceinput extends Input {
                                     (x) => x >= 1 && x <= numChoices,
                                 )
                             ) {
-                                warnings.push({
+                                diagnostics.push({
                                     message:
                                         "Ignoring indices specified for choiceInput as some indices out of range.",
-                                    level: 2,
+                                    type: "info",
                                 });
                             } else {
                                 return {
@@ -295,7 +295,10 @@ export default class Choiceinput extends Input {
                         ];
                     }
                 }
-                return { setValue: { choiceOrder }, sendWarnings: warnings };
+                return {
+                    setValue: { choiceOrder },
+                    sendDiagnostics: diagnostics,
+                };
             },
         };
 

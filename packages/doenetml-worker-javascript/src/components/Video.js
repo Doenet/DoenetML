@@ -118,7 +118,7 @@ export default class Video extends BlockComponent {
             }),
             definition({ dependencyValues }) {
                 let shortDescription = "";
-                const warnings = [];
+                const diagnostics = [];
                 if (dependencyValues.shortDescriptionChild.length > 0) {
                     const shortDescriptionChild =
                         dependencyValues.shortDescriptionChild[
@@ -129,8 +129,8 @@ export default class Video extends BlockComponent {
                         shortDescriptionChild.stateValues.text.trim();
                 }
                 if (shortDescription === "") {
-                    warnings.push({
-                        level: 1,
+                    diagnostics.push({
+                        type: "warning",
                         message:
                             "For accessibility, <video> must have a short description.",
                     });
@@ -138,7 +138,7 @@ export default class Video extends BlockComponent {
 
                 return accessibilityWarningsResult({
                     setValue: { shortDescription },
-                    warnings,
+                    diagnostics,
                     upgradeWarningsToErrors:
                         dependencyValues.upgradeAccessibilityWarningsToErrors,
                 });

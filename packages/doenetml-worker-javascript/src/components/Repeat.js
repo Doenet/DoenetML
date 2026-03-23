@@ -294,8 +294,7 @@ export default class Repeat extends CompositeComponent {
     }) {
         // console.log(`create serialized replacements for ${component.componentIdx}`);
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         if (workspace.replacementsCreated === undefined) {
             workspace.replacementsCreated = 0;
@@ -324,12 +323,11 @@ export default class Repeat extends CompositeComponent {
                 workspace,
             });
             replacements.push(...res.replacements);
-            errors.push(...res.errors);
-            warnings.push(...res.warnings);
+            diagnostics.push(...res.diagnostics);
             nComponents = res.nComponents;
         }
 
-        return { replacements, errors, warnings, nComponents };
+        return { replacements, diagnostics, nComponents };
     }
 
     static async replacementForIter({
@@ -341,8 +339,7 @@ export default class Repeat extends CompositeComponent {
         nComponents,
         workspace,
     }) {
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacements = [
             {
@@ -412,7 +409,7 @@ export default class Repeat extends CompositeComponent {
 
         workspace.replacementsCreated = stateIdInfo.num;
 
-        return { replacements, errors, warnings, nComponents };
+        return { replacements, diagnostics, nComponents };
     }
 
     static async calculateReplacementChanges({
@@ -424,8 +421,7 @@ export default class Repeat extends CompositeComponent {
     }) {
         // console.log(`calculate replacement changes for ${component.componentIdx}`)
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacementChanges = [];
 
@@ -472,8 +468,7 @@ export default class Repeat extends CompositeComponent {
             });
 
             let newSerializedReplacements = replacementResults.replacements;
-            errors.push(...replacementResults.errors);
-            warnings.push(...replacementResults.warnings);
+            diagnostics.push(...replacementResults.diagnostics);
             nComponents = replacementResults.nComponents;
 
             let replacementInstruction = {
@@ -618,8 +613,7 @@ export default class Repeat extends CompositeComponent {
                         workspace,
                     });
                     replacements.push(...res.replacements);
-                    errors.push(...res.errors);
-                    warnings.push(...res.warnings);
+                    diagnostics.push(...res.diagnostics);
                     nComponents = res.nComponents;
                 }
 

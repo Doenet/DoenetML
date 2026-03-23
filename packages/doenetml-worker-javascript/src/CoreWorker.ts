@@ -19,7 +19,7 @@ import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormal
 export type UpdateRenderersCallback = (arg: {
     updateInstructions: Record<string, any>[];
     actionId?: string;
-    errorWarnings?: { errors: any[]; warnings: any[] };
+    diagnostics?: any[];
     init?: boolean;
 }) => void;
 export type ReportScoreAndStateCallback = (data: {
@@ -63,8 +63,7 @@ export class PublicDoenetMLCore {
         serializedDocument: any;
         nComponentsInit: number;
         allDoenetMLs: any;
-        preliminaryErrors: any;
-        preliminaryWarnings: any;
+        preliminaryDiagnostics: any;
         componentInfoObjects: any;
     };
     initialized = false;
@@ -139,8 +138,7 @@ export class PublicDoenetMLCore {
         const {
             document: root,
             nComponents: nComponentsInit,
-            errors,
-            warnings,
+            diagnostics,
             sources,
         } = await normalizedDastToSerializedComponents(
             normalizedRoot,
@@ -158,8 +156,7 @@ export class PublicDoenetMLCore {
             serializedDocument: root,
             nComponentsInit,
             allDoenetMLs: sources,
-            preliminaryErrors: errors,
-            preliminaryWarnings: warnings,
+            preliminaryDiagnostics: diagnostics,
             componentInfoObjects,
         };
 

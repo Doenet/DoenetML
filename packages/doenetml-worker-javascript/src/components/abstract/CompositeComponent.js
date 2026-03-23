@@ -68,7 +68,7 @@ export default class CompositeComponent extends BaseComponent {
     // This function is called by Core.js in expandCompositeComponent
     // See that invocation for documentation
     static createSerializedReplacements({ nComponents }) {
-        return { replacements: [], errors: [], warnings: [], nComponents };
+        return { replacements: [], diagnostics: [], nComponents };
     }
 
     // This function is called by Core.js in updateCompositeReplacements

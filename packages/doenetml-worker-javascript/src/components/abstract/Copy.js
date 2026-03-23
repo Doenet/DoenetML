@@ -718,11 +718,10 @@ export default class Copy extends CompositeComponent {
                     ) {
                         return {
                             setValue: { numComponentsSpecified: null },
-                            sendWarnings: [
+                            sendDiagnostics: [
                                 {
                                     type: "warning",
                                     message: `Cannot extend or copy an unrecognized component type: ${dependencyValues.typeAttr}.`,
-                                    level: 1,
                                 },
                             ],
                         };
@@ -1032,8 +1031,7 @@ export default class Copy extends CompositeComponent {
             workspace.replacementsCreated = 0;
         }
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         // evaluate numComponentsSpecified so get error if specify numComponents without createComponentOfType
         await component.stateValues.numComponentsSpecified;
@@ -1124,8 +1122,7 @@ export default class Copy extends CompositeComponent {
                     publicCaseInsensitiveAliasSubstitutions,
                 },
             );
-            errors.push(...verificationResult.errors);
-            warnings.push(...verificationResult.warnings);
+            diagnostics.push(...verificationResult.diagnostics);
             nComponents = verificationResult.nComponents;
 
             addAttributesToSingleReplacement(
@@ -1138,8 +1135,7 @@ export default class Copy extends CompositeComponent {
 
             return {
                 replacements: verificationResult.replacements,
-                errors,
-                warnings,
+                diagnostics,
                 nComponents,
             };
         }
@@ -1231,8 +1227,7 @@ export default class Copy extends CompositeComponent {
                     component.attributes.copyInChildren?.primitive.value,
             });
 
-            errors.push(...results.errors);
-            warnings.push(...results.warnings);
+            diagnostics.push(...results.diagnostics);
             nComponents = results.nComponents;
 
             workspace.propVariablesCopiedBySource[sourceNum] =
@@ -1266,8 +1261,7 @@ export default class Copy extends CompositeComponent {
             stateIdInfo,
             publicCaseInsensitiveAliasSubstitutions,
         });
-        errors.push(...verificationResult.errors);
-        warnings.push(...verificationResult.warnings);
+        diagnostics.push(...verificationResult.diagnostics);
         nComponents = verificationResult.nComponents;
         replacements = verificationResult.replacements;
 
@@ -1284,8 +1278,7 @@ export default class Copy extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -1310,8 +1303,7 @@ export default class Copy extends CompositeComponent {
         //   `propName: ${component.stateValues.effectivePropNameBySource[sourceNum]}`,
         // );
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let replacementSource = (
             await component.stateValues.replacementSourceIdentities
@@ -1321,15 +1313,13 @@ export default class Copy extends CompositeComponent {
                 // Cannot get a prop off a non-object (e.g., off a string component)
                 return {
                     serializedReplacements: [],
-                    errors,
-                    warnings,
+                    diagnostics,
                     nComponents,
                 };
             } else {
                 return {
                     serializedReplacements: [replacementSource],
-                    errors,
-                    warnings,
+                    diagnostics,
                     nComponents,
                 };
             }
@@ -1344,8 +1334,7 @@ export default class Copy extends CompositeComponent {
         ) {
             return {
                 serializedReplacements: [],
-                errors,
-                warnings,
+                diagnostics,
                 nComponents,
             };
         }
@@ -1388,8 +1377,7 @@ export default class Copy extends CompositeComponent {
                 numComponentsForSource,
                 publicCaseInsensitiveAliasSubstitutions,
             });
-            errors.push(...results.errors);
-            warnings.push(...results.warnings);
+            diagnostics.push(...results.diagnostics);
             nComponents = results.nComponents;
 
             let serializedReplacements = results.serializedReplacements;
@@ -1456,8 +1444,7 @@ export default class Copy extends CompositeComponent {
             return {
                 serializedReplacements,
                 propVariablesCopiedByReplacement,
-                errors,
-                warnings,
+                diagnostics,
                 nComponents,
             };
         }
@@ -1510,10 +1497,10 @@ export default class Copy extends CompositeComponent {
                     children: [],
                 },
             ];
-            errors.push({
+            diagnostics.push({
                 message,
             });
-            return { serializedReplacements, errors, warnings, nComponents };
+            return { serializedReplacements, diagnostics, nComponents };
         }
 
         // when copying with link=false, ignore fixed if from essential state
@@ -1591,8 +1578,7 @@ export default class Copy extends CompositeComponent {
 
         return {
             serializedReplacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -1612,9 +1598,8 @@ export default class Copy extends CompositeComponent {
         //   "Calculating replacement changes for " + component.componentIdx,
         // );
 
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        // TODO: don't yet have a way to return diagnostics!
+        let diagnostics = [];
 
         if ((await component.stateValues.link) === false) {
             return { replacementChanges: [], nComponents };
@@ -1665,8 +1650,7 @@ export default class Copy extends CompositeComponent {
                     publicCaseInsensitiveAliasSubstitutions,
                 },
             );
-            errors.push(...verificationResult.errors);
-            warnings.push(...verificationResult.warnings);
+            diagnostics.push(...verificationResult.diagnostics);
             nComponents = verificationResult.nComponents;
 
             // Note: this has to run after verify,
@@ -1722,8 +1706,7 @@ export default class Copy extends CompositeComponent {
                         stateIdInfo,
                         publicCaseInsensitiveAliasSubstitutions,
                     });
-                errors.push(...verificationResult.errors);
-                warnings.push(...verificationResult.warnings);
+                diagnostics.push(...verificationResult.diagnostics);
                 nComponents = verificationResult.nComponents;
 
                 replacementChanges = verificationResult.replacementChanges;
@@ -2007,8 +1990,7 @@ export default class Copy extends CompositeComponent {
                     numComponentsForSource,
                     publicCaseInsensitiveAliasSubstitutions,
                 });
-                errors.push(...results.errors);
-                warnings.push(...results.warnings);
+                diagnostics.push(...results.diagnostics);
                 nComponents = results.nComponents;
 
                 numReplacementsSoFar += results.numReplacements;
@@ -2104,8 +2086,7 @@ export default class Copy extends CompositeComponent {
                     Number(sourceNum) === 0 &&
                     component.attributes.copyInChildren?.primitive.value,
             });
-            errors.push(...results.errors);
-            warnings.push(...results.warnings);
+            diagnostics.push(...results.diagnostics);
             const nComponentsForNew = results.nComponents;
 
             let propVariablesCopiedByReplacement =
@@ -2259,8 +2240,7 @@ export default class Copy extends CompositeComponent {
             stateIdInfo,
             publicCaseInsensitiveAliasSubstitutions,
         });
-        errors.push(...verificationResult.errors);
-        warnings.push(...verificationResult.warnings);
+        diagnostics.push(...verificationResult.diagnostics);
         nComponents = verificationResult.nComponents;
         replacementChanges = verificationResult.replacementChanges;
 
@@ -2305,8 +2285,7 @@ export default class Copy extends CompositeComponent {
         numComponentsForSource,
         publicCaseInsensitiveAliasSubstitutions,
     }) {
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let results = await this.createReplacementForSource({
             component,
@@ -2324,8 +2303,7 @@ export default class Copy extends CompositeComponent {
                 Number(sourceNum) === 0 &&
                 component.attributes.copyInChildren?.primitive.value,
         });
-        errors.push(...results.errors);
-        warnings.push(...results.warnings);
+        diagnostics.push(...results.diagnostics);
         nComponents = results.nComponents;
 
         let propVariablesCopiedByReplacement =
@@ -2349,8 +2327,7 @@ export default class Copy extends CompositeComponent {
                 ).length,
                 propVariablesCopiedByReplacement,
                 replacementInstruction,
-                errors,
-                warnings,
+                diagnostics,
                 nComponents,
             };
         } else {
@@ -2359,8 +2336,7 @@ export default class Copy extends CompositeComponent {
                 numNonStringReplacements: 0,
                 propVariablesCopiedByReplacement,
                 replacementInstruction: null,
-                errors,
-                warnings,
+                diagnostics,
                 nComponents,
             };
         }
@@ -2384,8 +2360,7 @@ export async function replacementFromProp({
     // console.log(`replacement from prop for ${component.componentIdx}`)
     // console.log(replacementSource)
 
-    let errors = [];
-    let warnings = [];
+    let diagnostics = [];
 
     let serializedReplacements = [];
     let propVariablesCopiedByReplacement = [];
@@ -2424,21 +2399,20 @@ export async function replacementFromProp({
                     endOffset,
                 );
             }
-            warnings.push({
+            diagnostics.push({
                 message: `Could not find prop ${unresolvedPropName} on a component of type ${replacementSource.componentType}`,
-                level: 2,
+                type: "info",
             });
         } else if (propName !== "__prop_name_not_found") {
-            warnings.push({
+            diagnostics.push({
                 message: `Could not find prop ${propName} on a component of type ${replacementSource.componentType}`,
-                level: 2,
+                type: "info",
             });
         }
         return {
             serializedReplacements: [],
             propVariablesCopiedByReplacement: [],
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -2469,8 +2443,7 @@ export async function replacementFromProp({
                 return {
                     serializedReplacements: [],
                     propVariablesCopiedByReplacement: [],
-                    errors,
-                    warnings,
+                    diagnostics,
                     nComponents,
                 };
             }
@@ -3559,8 +3532,7 @@ export async function replacementFromProp({
             return {
                 serializedReplacements: [],
                 propVariablesCopiedByReplacement: [],
-                errors,
-                warnings,
+                diagnostics,
                 nComponents,
             };
         }
@@ -3833,8 +3805,7 @@ export async function replacementFromProp({
     return {
         serializedReplacements,
         propVariablesCopiedByReplacement,
-        errors,
-        warnings,
+        diagnostics,
         nComponents,
     };
 }

@@ -40,7 +40,7 @@ export default class ConstrainToInterior extends ConstraintComponent {
             }),
             definition: function ({ dependencyValues }) {
                 let constraintFunctions = [];
-                let warnings = [];
+                let diagnostics = [];
 
                 for (let child of dependencyValues.graphicalChildren) {
                     if (!child.stateValues.nearestPoint) {
@@ -52,7 +52,7 @@ export default class ConstrainToInterior extends ConstraintComponent {
                             warning.position = child.position;
                         }
 
-                        warnings.push(warning);
+                        diagnostics.push(warning);
                         continue;
                     }
                     let fs = { nearestPoint: child.stateValues.nearestPoint };
@@ -64,7 +64,7 @@ export default class ConstrainToInterior extends ConstraintComponent {
 
                 return {
                     setValue: { constraintFunctions },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };

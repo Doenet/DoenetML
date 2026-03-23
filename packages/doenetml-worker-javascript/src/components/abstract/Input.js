@@ -610,7 +610,7 @@ export default class Input extends InlineComponent {
             }),
             definition({ dependencyValues }) {
                 let shortDescription = "";
-                const warnings = [];
+                const diagnostics = [];
                 if (dependencyValues.shortDescriptionChild.length > 0) {
                     const shortDescriptionChild =
                         dependencyValues.shortDescriptionChild[
@@ -627,15 +627,15 @@ export default class Input extends InlineComponent {
                             ? `an <answer> creating an input`
                             : `<${componentClass.componentType}>`;
 
-                    warnings.push({
-                        level: 1,
+                    diagnostics.push({
+                        type: "warning",
                         message: `For accessibility, ${objectNeedingLabel} must have a short description or a label.`,
                     });
                 }
 
                 return accessibilityWarningsResult({
                     setValue: { shortDescription },
-                    warnings,
+                    diagnostics,
                     upgradeWarningsToErrors:
                         dependencyValues.upgradeAccessibilityWarningsToErrors,
                 });

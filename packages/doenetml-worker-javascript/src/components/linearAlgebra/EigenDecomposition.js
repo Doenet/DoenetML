@@ -129,11 +129,11 @@ export default class EigenDecomposition extends BaseComponent {
                     );
                     let warning = {
                         message: "Could not calculate eigenvalues of matrix",
-                        level: 1,
+                        type: "warning",
                     };
                     return {
                         setValue: { decomposition: null, numEigenvectors: 0 },
-                        sendWarnings: [warning],
+                        sendDiagnostics: [warning],
                     };
                 }
 

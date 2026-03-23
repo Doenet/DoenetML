@@ -290,7 +290,7 @@ export default class Graph extends BlockComponent {
             }),
             definition({ dependencyValues }) {
                 let shortDescription = "";
-                const warnings = [];
+                const diagnostics = [];
                 if (dependencyValues.shortDescriptionChild.length > 0) {
                     const shortDescriptionChild =
                         dependencyValues.shortDescriptionChild[
@@ -301,8 +301,8 @@ export default class Graph extends BlockComponent {
                         shortDescriptionChild.stateValues.text.trim();
                 }
                 if (shortDescription === "" && !dependencyValues.decorative) {
-                    warnings.push({
-                        level: 1,
+                    diagnostics.push({
+                        type: "warning",
                         message:
                             "For accessibility, <graph> must either have a short description or be specified as decorative.",
                     });
@@ -310,7 +310,7 @@ export default class Graph extends BlockComponent {
 
                 return accessibilityWarningsResult({
                     setValue: { shortDescription },
-                    warnings,
+                    diagnostics,
                     upgradeWarningsToErrors:
                         dependencyValues.upgradeAccessibilityWarningsToErrors,
                 });

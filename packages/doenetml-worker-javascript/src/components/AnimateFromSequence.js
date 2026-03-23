@@ -407,21 +407,21 @@ export default class AnimateFromSequence extends BaseComponent {
                         targetIdentities = [targetIdentities];
                     }
                 }
-                let warnings = [];
+                let diagnostics = [];
                 if (
                     targetIdentities === null ||
                     targetIdentities.length === 0
                 ) {
-                    warnings.push({
+                    diagnostics.push({
                         message:
                             "Invalid target for <animateFromSequence>: cannot find target.",
-                        level: 1,
+                        type: "warning",
                     });
                 }
 
                 return {
                     setValue: { targetIdentities },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
@@ -488,7 +488,7 @@ export default class AnimateFromSequence extends BaseComponent {
             },
             definition({ dependencyValues }) {
                 let targets = null;
-                let warnings = [];
+                let diagnostics = [];
 
                 if (dependencyValues.targetIdentities !== null) {
                     targets = [];
@@ -499,9 +499,9 @@ export default class AnimateFromSequence extends BaseComponent {
                             let message =
                                 "Invalid target for <animateFromSequence>: cannot find target.";
 
-                            warnings.push({
+                            diagnostics.push({
                                 message,
-                                level: 1,
+                                type: "warning",
                             });
                             continue;
                         }
@@ -520,22 +520,22 @@ export default class AnimateFromSequence extends BaseComponent {
                                     }
                                 }
                                 let message = `Invalid target for <animateFromSequence>: cannot find a state variable named "${prop}" on a <${target.componentType}>.`;
-                                warnings.push({
+                                diagnostics.push({
                                     message,
-                                    level: 1,
+                                    type: "warning",
                                 });
                             } else {
                                 let message = `Invalid target for <animateFromSequence>: cannot find a state variable named "value" on a <${target.componentType}>.`;
-                                warnings.push({
+                                diagnostics.push({
                                     message,
-                                    level: 1,
+                                    type: "warning",
                                 });
                             }
                         }
                     }
                 }
 
-                return { setValue: { targets }, sendWarnings: warnings };
+                return { setValue: { targets }, sendDiagnostics: diagnostics };
             },
         };
 

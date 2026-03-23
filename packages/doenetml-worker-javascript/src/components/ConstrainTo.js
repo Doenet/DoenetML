@@ -40,7 +40,7 @@ export default class ConstrainTo extends ConstraintComponent {
             }),
             definition: function ({ dependencyValues }) {
                 let nearestPointFunctions = [];
-                let warnings = [];
+                let diagnostics = [];
 
                 for (let child of dependencyValues.graphicalChildren) {
                     if (!child.stateValues.nearestPoint) {
@@ -52,7 +52,7 @@ export default class ConstrainTo extends ConstraintComponent {
                             warning.position = child.position;
                         }
 
-                        warnings.push(warning);
+                        diagnostics.push(warning);
                         continue;
                     }
                     nearestPointFunctions.push(child.stateValues.nearestPoint);
@@ -60,7 +60,7 @@ export default class ConstrainTo extends ConstraintComponent {
 
                 return {
                     setValue: { nearestPointFunctions },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };

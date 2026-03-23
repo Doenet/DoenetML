@@ -245,7 +245,7 @@ export default class Angle extends GraphicalComponent {
                     if (globalDependencyValues.lineChildren.length > 2) {
                         let warning = {
                             message: `Cannot define an angle between ${globalDependencyValues.lineChildren.length} lines`,
-                            level: 2,
+                            type: "info",
                         };
 
                         let points = {};
@@ -256,7 +256,7 @@ export default class Angle extends GraphicalComponent {
                         }
                         return {
                             setValue: { points },
-                            sendWarnings: [warning],
+                            sendDiagnostics: [warning],
                         };
                     } else if (
                         globalDependencyValues.lineChildren.length === 1
@@ -423,14 +423,14 @@ export default class Angle extends GraphicalComponent {
                     }
                 }
 
-                const warnings = [];
+                const diagnostics = [];
                 if (foundBadThroughPoint) {
-                    warnings.push({
+                    diagnostics.push({
                         message: "Invalid point in through of <angle>",
-                        level: 1,
+                        type: "warning",
                     });
                     if (globalDependencyValues.throughAttr.position) {
-                        warnings[warnings.length - 1].position =
+                        diagnostics[diagnostics.length - 1].position =
                             globalDependencyValues.throughAttr.position;
                     }
                 }
@@ -455,7 +455,7 @@ export default class Angle extends GraphicalComponent {
                             points["2,1"] = me.fromAst("\uff3f");
                             return {
                                 setValue: { points },
-                                sendWarnings: warnings,
+                                sendDiagnostics: diagnostics,
                             };
                         }
                     } else if (globalDependencyValues.degreesAttr) {
@@ -468,7 +468,7 @@ export default class Angle extends GraphicalComponent {
                             points["2,1"] = me.fromAst("\uff3f");
                             return {
                                 setValue: { points },
-                                sendWarnings: warnings,
+                                sendDiagnostics: diagnostics,
                             };
                         }
                     } else {
@@ -487,7 +487,10 @@ export default class Angle extends GraphicalComponent {
                     points["2,1"] = me.fromAst(b2 + Math.sin(desiredAngle));
                 }
 
-                return { setValue: { points }, sendWarnings: warnings };
+                return {
+                    setValue: { points },
+                    sendDiagnostics: diagnostics,
+                };
             },
         };
 

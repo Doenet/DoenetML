@@ -218,21 +218,21 @@ export default class UpdateValue extends InlineComponent {
                         targetIdentities = [targetIdentities];
                     }
                 }
-                let warnings = [];
+                let diagnostics = [];
                 if (
                     targetIdentities === null ||
                     targetIdentities.length === 0
                 ) {
-                    warnings.push({
+                    diagnostics.push({
                         message:
                             "Invalid target for <updateValue>: cannot find target.",
-                        level: 1,
+                        type: "warning",
                     });
                 }
 
                 return {
                     setValue: { targetIdentities },
-                    sendWarnings: warnings,
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
@@ -299,7 +299,7 @@ export default class UpdateValue extends InlineComponent {
             },
             definition({ dependencyValues }) {
                 let targets = null;
-                let warnings = [];
+                let diagnostics = [];
 
                 if (dependencyValues.targetIdentities !== null) {
                     targets = [];
@@ -310,9 +310,9 @@ export default class UpdateValue extends InlineComponent {
                             let message =
                                 "Invalid target for <updateValue>: cannot find target.";
 
-                            warnings.push({
+                            diagnostics.push({
                                 message,
-                                level: 1,
+                                type: "warning",
                             });
                             continue;
                         }
@@ -331,22 +331,22 @@ export default class UpdateValue extends InlineComponent {
                                     }
                                 }
                                 let message = `Invalid target for <updateValue>: cannot find a state variable named "${prop}" on a <${target.componentType}>.`;
-                                warnings.push({
+                                diagnostics.push({
                                     message,
-                                    level: 1,
+                                    type: "warning",
                                 });
                             } else {
                                 let message = `Invalid target for <updateValue>: cannot find a state variable named "value" on a <${target.componentType}>.`;
-                                warnings.push({
+                                diagnostics.push({
                                     message,
-                                    level: 1,
+                                    type: "warning",
                                 });
                             }
                         }
                     }
                 }
 
-                return { setValue: { targets }, sendWarnings: warnings };
+                return { setValue: { targets }, sendDiagnostics: diagnostics };
             },
         };
 

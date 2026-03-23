@@ -485,7 +485,7 @@ export default class Function extends InlineComponent {
                         let domain = Array(numInputs).fill(infDomain);
                         return {
                             setValue: { domain },
-                            sendWarnings: [warning],
+                            sendDiagnostics: [warning],
                         };
                     }
 
@@ -512,7 +512,7 @@ export default class Function extends InlineComponent {
                         let domain = Array(numInputs).fill(infDomain);
                         return {
                             setValue: { domain },
-                            sendWarnings: [warning],
+                            sendDiagnostics: [warning],
                         };
                     }
 
@@ -4402,7 +4402,7 @@ export default class Function extends InlineComponent {
 function calculateInterpolationPoints({ dependencyValues, numerics }) {
     let pointsWithX = [];
     let pointsWithoutX = [];
-    let warnings = [];
+    let diagnostics = [];
 
     let allPoints = {
         maximum: dependencyValues.prescribedMaxima,
@@ -4419,9 +4419,9 @@ function calculateInterpolationPoints({ dependencyValues, numerics }) {
             if (point.x !== null) {
                 x = point.x.evaluate_to_constant();
                 if (!Number.isFinite(x)) {
-                    warnings.push({
+                    diagnostics.push({
                         message: `Ignoring non-numerical ${type} of function.`,
-                        level: 1,
+                        type: "warning",
                     });
                     continue;
                 }
@@ -4429,9 +4429,9 @@ function calculateInterpolationPoints({ dependencyValues, numerics }) {
             if (point.y !== null) {
                 y = point.y.evaluate_to_constant();
                 if (!Number.isFinite(y)) {
-                    warnings.push({
+                    diagnostics.push({
                         message: `Ignoring non-numerical ${type} of function.`,
-                        level: 1,
+                        type: "warning",
                     });
                     continue;
                 }
@@ -4439,18 +4439,18 @@ function calculateInterpolationPoints({ dependencyValues, numerics }) {
             if (point.slope !== null && point.slope !== undefined) {
                 slope = point.slope.evaluate_to_constant();
                 if (!Number.isFinite(slope)) {
-                    warnings.push({
+                    diagnostics.push({
                         message: `Ignoring non-numerical slope of function.`,
-                        level: 1,
+                        type: "warning",
                     });
                     slope = null;
                 }
             }
             if (x === null) {
                 if (y === null) {
-                    warnings.push({
+                    diagnostics.push({
                         message: `Ignoring empty ${type} of function.`,
-                        level: 1,
+                        type: "warning",
                     });
                     continue;
                 }
@@ -4479,13 +4479,13 @@ function calculateInterpolationPoints({ dependencyValues, numerics }) {
     for (let ind = 0; ind < pointsWithX.length; ind++) {
         let p = pointsWithX[ind];
         if (p.x <= xPrev + eps) {
-            warnings.push({
+            diagnostics.push({
                 message: `Function contains two points with locations too close together. Can't define function.`,
-                level: 1,
+                type: "warning",
             });
             return {
                 setValue: { interpolationPoints: null },
-                sendWarnings: warnings,
+                sendDiagnostics: diagnostics,
             };
         }
         xPrev = p.x;
@@ -4781,7 +4781,7 @@ function calculateInterpolationPoints({ dependencyValues, numerics }) {
         }
     }
 
-    return { setValue: { interpolationPoints }, sendWarnings: warnings };
+    return { setValue: { interpolationPoints }, sendDiagnostics: warnings };
 
     function monotonicSlope({ point, prevPoint, nextPoint }) {
         // monotonic cubic interpolation formula from

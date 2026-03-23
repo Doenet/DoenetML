@@ -152,8 +152,7 @@ export default class Lorem extends CompositeComponent {
             num: workspace.replacementsCreated,
         };
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         const lorem = new LoremIpsum({
             sentencesPerParagraph: {
@@ -250,8 +249,7 @@ export default class Lorem extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -262,9 +260,8 @@ export default class Lorem extends CompositeComponent {
         nComponents,
         workspace,
     }) {
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        // TODO: don't yet have a way to return diagnostics and diagnostics!
+        let diagnostics = [];
 
         let replacementResults = await this.createSerializedReplacements({
             component,
@@ -272,8 +269,7 @@ export default class Lorem extends CompositeComponent {
             nComponents,
             workspace,
         });
-        errors.push(...replacementResults.errors);
-        warnings.push(...replacementResults.warnings);
+        diagnostics.push(...replacementResults.diagnostics);
         nComponents = replacementResults.nComponents;
 
         let replacementInstruction = {

@@ -102,8 +102,7 @@ export default class Sequence extends CompositeComponent {
             num: workspace.replacementsCreated,
         };
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         if (!(await component.stateValues.validSequence)) {
             workspace.lastReplacementParameters = {
@@ -113,7 +112,7 @@ export default class Sequence extends CompositeComponent {
                 type: null,
                 exclude: null,
             };
-            return { replacements: [], errors, warnings, nComponents };
+            return { replacements: [], diagnostics, nComponents };
         }
 
         let from = await component.stateValues.from;
@@ -199,8 +198,7 @@ export default class Sequence extends CompositeComponent {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -213,9 +211,8 @@ export default class Sequence extends CompositeComponent {
     }) {
         // console.log(`calculate replacement changes for ${component.componentIdx}`);
 
-        // TODO: don't yet have a way to return errors and warnings!
-        let errors = [];
-        let warnings = [];
+        // TODO: don't yet have a way to return diagnostics and diagnostics!
+        let diagnostics = [];
 
         let lrp = { ...workspace.lastReplacementParameters };
 
@@ -270,8 +267,7 @@ export default class Sequence extends CompositeComponent {
             });
 
             let newSerializedReplacements = replacementResults.replacements;
-            errors.push(...replacementResults.errors);
-            warnings.push(...replacementResults.warnings);
+            diagnostics.push(...replacementResults.diagnostics);
             nComponents = replacementResults.nComponents;
 
             let replacementInstruction = {

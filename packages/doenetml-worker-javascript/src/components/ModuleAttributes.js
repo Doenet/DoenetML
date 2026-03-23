@@ -89,13 +89,12 @@ export default class ModuleAttributes extends CompositeComponent {
             num: workspace.replacementsCreated,
         };
 
-        const errors = [];
-        const warnings = [];
+        const diagnostics = [];
 
         const moduleIdx = await component.stateValues.moduleIdx;
 
         if (moduleIdx === null) {
-            return { replacements: [], errors, warnings, nComponents };
+            return { replacements: [], diagnostics, nComponents };
         }
 
         const module = components[moduleIdx];
@@ -124,7 +123,7 @@ export default class ModuleAttributes extends CompositeComponent {
                 // If the child does not have a name, we can't do anything with it.
                 // Add it to the replacements untouched with a warning
                 componentsForModuleAttributes.push(child);
-                warnings.push({
+                diagnostics.push({
                     type: "warning",
                     message: `Since the component <${child.componentType}> does not have a name, it cannot be used for a module attribute`,
                     position: child.position,
@@ -147,10 +146,9 @@ export default class ModuleAttributes extends CompositeComponent {
             // check if the attribute name is already defined in a module
             // in which case it won't work to use it as a custom module attribute
             if (existingModuleAttrNames.includes(attributeName)) {
-                warnings.push({
+                diagnostics.push({
                     type: "warning",
                     message: `The component <${child.componentType} name="${childName}"> cannot be used as an attribute for a module because the <module> component type already has a "${childName}" attribute defined.`,
-                    level: 1,
                     position: child.position,
                 });
                 componentsForModuleAttributes.push(child);
@@ -170,8 +168,7 @@ export default class ModuleAttributes extends CompositeComponent {
                 nComponents,
                 stateIdInfo,
             });
-            errors.push(...expandResult.errors);
-            warnings.push(...expandResult.warnings);
+            diagnostics.push(...expandResult.diagnostics);
             nComponents = expandResult.nComponents;
 
             child.children = expandResult.components;
@@ -191,8 +188,7 @@ export default class ModuleAttributes extends CompositeComponent {
                 stateIdInfo,
             });
 
-            errors.push(...sugarResult.errors);
-            warnings.push(...sugarResult.warnings);
+            diagnostics.push(...sugarResult.diagnostics);
             nComponents = sugarResult.nComponents;
 
             componentsForModuleAttributes.push(sugarResult.components[0]);
@@ -215,8 +211,7 @@ export default class ModuleAttributes extends CompositeComponent {
 
         return {
             replacements: [setup],
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }

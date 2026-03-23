@@ -659,7 +659,7 @@ export default class Parabola extends Curve {
                         let warning = {
                             message:
                                 "Haven't implemented parabola with vertex through more than 1 point.",
-                            level: 1,
+                            type: "warning",
                         };
                         return {
                             setValue: {
@@ -668,7 +668,7 @@ export default class Parabola extends Curve {
                                 c: NaN,
                                 realValued: false,
                             },
-                            sendWarnings: [warning],
+                            sendDiagnostics: [warning],
                         };
                     }
                 }
@@ -839,7 +839,7 @@ export default class Parabola extends Curve {
                     let warning = {
                         message:
                             "Haven't implemented parabola through more than 3 points.",
-                        level: 1,
+                        type: "warning",
                     };
                     return {
                         setValue: {
@@ -848,7 +848,7 @@ export default class Parabola extends Curve {
                             c: NaN,
                             realValued: false,
                         },
-                        sendWarnings: [warning],
+                        sendDiagnostics: [warning],
                     };
                 }
             },

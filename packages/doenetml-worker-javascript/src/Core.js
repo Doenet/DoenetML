@@ -55,8 +55,7 @@ export default class Core {
         flags,
         allDoenetMLs,
         // Note: we ignore preliminary errors, as we'll gather those from the dast when processing it.
-        preliminaryErrors: _preliminaryErrors,
-        preliminaryWarnings,
+        preliminaryDiagnostics,
         activityId,
         cid,
         docId,
@@ -114,11 +113,15 @@ export default class Core {
 
         this.cid = cid;
 
-        /** @type {{ errors: any[], warnings: any[] }} */
-        this.errorWarnings = {
-            errors: [],
-            warnings: [...preliminaryWarnings],
-        };
+        /** @type {{ type: "error"|"warning"|"info", message: string, position?: any, sourceDoc?: number }[]} */
+        this.diagnostics = preliminaryDiagnostics
+            .filter((diagnostic) => diagnostic.type !== "error")
+            .map((diagnostic) => ({
+                type: diagnostic.type,
+                message: diagnostic.message,
+                position: diagnostic.position,
+                sourceDoc: diagnostic.sourceDoc,
+            }));
 
         this.numerics = new Numerics();
         // this.flags = new Proxy(flags, readOnlyProxyHandler); //components shouldn't modify flags
@@ -181,7 +184,7 @@ export default class Core {
             stateVariablesToEvaluate: [],
         };
 
-        this.newErrorWarning = true;
+        this.hasPendingDiagnostics = true;
 
         this.cumulativeStateVariableChanges = JSON.parse(
             JSON.stringify(stateVariableChanges, serializedComponentsReplacer),
@@ -422,22 +425,21 @@ export default class Core {
         if (Object.keys(this.unmatchedChildren).length > 0) {
             for (const componentIdxStr in this.unmatchedChildren) {
                 let parent = this._components[componentIdxStr];
-                this.addErrorWarning({
+                this.addDiagnostic({
                     type: "warning",
                     message: this.unmatchedChildren[componentIdxStr].message,
-                    level: 1,
                     position: parent.position,
                     sourceDoc: parent.sourceDoc,
                 });
             }
         }
 
-        let errorWarnings = undefined;
-        if (this.newErrorWarning) {
-            errorWarnings = this.getErrorWarnings().errorWarnings;
+        let diagnostics = undefined;
+        if (this.hasPendingDiagnostics) {
+            diagnostics = this.getDiagnostics().diagnostics;
         }
 
-        return { ...returnResult, errorWarnings };
+        return { ...returnResult, diagnostics };
     }
 
     async onDocumentFirstVisible() {
@@ -458,32 +460,31 @@ export default class Core {
     }
 
     callUpdateRenderers(args, init = false) {
-        let errorWarnings = undefined;
-        if (this.newErrorWarning) {
-            errorWarnings = this.getErrorWarnings().errorWarnings;
+        let diagnostics = undefined;
+        if (this.hasPendingDiagnostics) {
+            diagnostics = this.getDiagnostics().diagnostics;
         }
 
-        this.updateRenderersCallback({ ...args, init, errorWarnings });
+        this.updateRenderersCallback({ ...args, init, diagnostics });
     }
 
-    getErrorWarnings() {
-        // keep only the last warnings
-        let warningLimit = 1000;
-        this.errorWarnings.warnings =
-            this.errorWarnings.warnings.slice(-warningLimit);
+    getDiagnostics() {
+        // Keep only the last diagnostics to avoid unbounded growth.
+        let diagnosticsLimit = 1000;
+        this.diagnostics = this.diagnostics.slice(-diagnosticsLimit);
 
-        this.newErrorWarning = false;
+        this.hasPendingDiagnostics = false;
 
-        return { errorWarnings: this.errorWarnings };
+        return { diagnostics: this.diagnostics };
     }
 
     /**
-     * Add an error or warning to `this.errorWarnings`, deduplicating by
-     * message + location (+ level for warnings).
+     * Add a diagnostic record to `this.diagnostics`, deduplicating by
+     * type + message + source location.
      *
      * @returns {boolean} `true` if a new entry was added, `false` if deduped.
      */
-    addErrorWarning({ type, message, position, sourceDoc, level }) {
+    addDiagnostic({ type, message, position, sourceDoc }) {
         const sameLocation = (pointA, pointB) =>
             (pointA?.offset ?? undefined) === (pointB?.offset ?? undefined) &&
             (pointA?.line ?? undefined) === (pointB?.line ?? undefined) &&
@@ -500,48 +501,30 @@ export default class Core {
             );
         };
 
-        if (type === "warning") {
-            const alreadyHaveWarning = this.errorWarnings.warnings.some(
-                (warning) =>
-                    warning.message === message &&
-                    warning.level === level &&
-                    warning.sourceDoc === sourceDoc &&
-                    haveSamePosition(warning.position, position),
-            );
-
-            if (alreadyHaveWarning) {
-                return false;
-            }
-
-            this.errorWarnings.warnings.push({
-                type,
-                message,
-                position,
-                sourceDoc,
-                level,
-            });
-        } else if (type === "error") {
-            const alreadyHaveError = this.errorWarnings.errors.some(
-                (error) =>
-                    error.message === message &&
-                    error.sourceDoc === sourceDoc &&
-                    haveSamePosition(error.position, position),
-            );
-
-            if (alreadyHaveError) {
-                return false;
-            }
-
-            this.errorWarnings.errors.push({
-                type,
-                message,
-                position,
-                sourceDoc,
-            });
-        } else {
-            throw Error("Invalid error or warning: type not specified");
+        if (!["error", "warning", "info"].includes(type)) {
+            throw Error("Invalid diagnostic type");
         }
-        this.newErrorWarning = true;
+
+        const alreadyHaveDiagnostic = this.diagnostics.some(
+            (diagnostic) =>
+                diagnostic.type === type &&
+                diagnostic.message === message &&
+                diagnostic.sourceDoc === sourceDoc &&
+                haveSamePosition(diagnostic.position, position),
+        );
+
+        if (alreadyHaveDiagnostic) {
+            return false;
+        }
+
+        this.diagnostics.push({
+            type,
+            message,
+            position,
+            sourceDoc,
+        });
+
+        this.hasPendingDiagnostics = true;
         return true;
     }
 
@@ -584,10 +567,9 @@ export default class Core {
         if (!initialAdd) {
             parent = this._components[parentIdx];
             if (!parent) {
-                this.addErrorWarning({
+                this.addDiagnostic({
                     type: "warning",
                     message: `Cannot add children to parent ${parentIdx} as ${parentIdx} does not exist`,
-                    level: 1,
                 });
                 return [];
             }
@@ -1424,7 +1406,7 @@ export default class Core {
                 // create a serialized component that doesn't exist.
                 const message = `Invalid component type: <${serializedComponent.componentType}>.`;
 
-                this.newErrorWarning = true;
+                this.hasPendingDiagnostics = true;
 
                 const convertResult = convertToErrorComponent(
                     serializedComponent,
@@ -1728,7 +1710,7 @@ export default class Core {
         if (serializedComponent.componentType === "_error") {
             lastErrorMessage = serializedComponent.state.message;
 
-            this.addErrorWarning({
+            this.addDiagnostic({
                 type: "error",
                 message: serializedComponent.state.message,
                 position: serializedComponent.position,
@@ -1738,9 +1720,9 @@ export default class Core {
             lastErrorMessageFromAttribute ||
             (lastErrorMessage && !componentClass.canDisplayChildErrors)
         ) {
-            // We have to deal with two special cases where errors wouldn't be displayed:
+            // We have to deal with two special cases where diagnostics wouldn't be displayed:
             // 1. there is an error message from an attribute, or
-            // 2. this component cannot display errors from children
+            // 2. this component cannot display diagnostics from children
             // In these cases, we turn this component into an error component
             // to ensure the error message is displayed.
 
@@ -2654,10 +2636,9 @@ export default class Core {
         let sourceDoc = this.components[component.componentIdx].sourceDoc;
         let overwriteDoenetMLRange = component.componentType === "_copy";
 
-        this.gatherErrorsAndAssignDoenetMLRange({
+        this.gatherDiagnosticsAndAssignDoenetMLRange({
             components: result.replacements,
-            errors: result.errors,
-            warnings: result.warnings,
+            diagnostics: result.diagnostics,
             position,
             sourceDoc,
             overwriteDoenetMLRange,
@@ -3070,10 +3051,9 @@ export default class Core {
         }
     }
 
-    gatherErrorsAndAssignDoenetMLRange({
+    gatherDiagnosticsAndAssignDoenetMLRange({
         components,
-        errors,
-        warnings,
+        diagnostics,
         position,
         sourceDoc,
         overwriteDoenetMLRange = false,
@@ -3084,17 +3064,17 @@ export default class Core {
             sourceDoc,
             overwriteDoenetMLRange,
         );
-        assignDoenetMLRange(errors, position, sourceDoc);
-        assignDoenetMLRange(warnings, position, sourceDoc);
+        assignDoenetMLRange(diagnostics, position, sourceDoc);
+        assignDoenetMLRange(diagnostics, position, sourceDoc);
 
-        for (const error of errors) {
-            this.addErrorWarning({
+        for (const error of diagnostics) {
+            this.addDiagnostic({
                 ...error,
                 type: "error",
             });
         }
-        for (const warning of warnings) {
-            this.addErrorWarning({
+        for (const warning of diagnostics) {
+            this.addDiagnostic({
                 ...warning,
                 type: "warning",
             });
@@ -3306,7 +3286,7 @@ export default class Core {
                         sourceDoc: compositeMediatingTheShadow.sourceDoc,
                     },
                 ];
-                this.addErrorWarning({
+                this.addDiagnostic({
                     type: "error",
                     message,
                     position: compositeMediatingTheShadow.position,
@@ -3385,14 +3365,14 @@ export default class Core {
                 },
             );
 
-            for (const error of verificationResult.errors) {
-                this.addErrorWarning({
+            for (const error of verificationResult.diagnostics) {
+                this.addDiagnostic({
                     ...error,
                     type: "error",
                 });
             }
-            for (const warning of verificationResult.warnings) {
-                this.addErrorWarning({
+            for (const warning of verificationResult.diagnostics) {
+                this.addDiagnostic({
                     ...warning,
                     type: "warning",
                 });
@@ -3667,7 +3647,7 @@ export default class Core {
                     ) &&
                     !parent.constructor.canDisplayChildErrors
                 ) {
-                    // The composite returned an error but this parent cannot display child errors,
+                    // The composite returned an error but this parent cannot display child diagnostics,
                     // so remove it from the replacements
                     // (to avoid a confusing warning about an invalid _error child)
                     // and store it in undisplayableErrorChildren.
@@ -3770,13 +3750,13 @@ export default class Core {
         parent,
         undisplayableErrorChildren,
     ) {
-        // If parent had an error added by a composite, but it can't display errors,
-        // then look for an ancestor that can display errors
-        // (which will exist since document can display errors).
-        // Add the errors to the defining children of that ancestor.
+        // If parent had an error added by a composite, but it can't display diagnostics,
+        // then look for an ancestor that can display diagnostics
+        // (which will exist since document can display diagnostics).
+        // Add the diagnostics to the defining children of that ancestor.
         // Note: this breaks the rules of DoenetML and
-        // it is possible that these errors will accumulate in the ancestor
-        // if this code is repeated. But, the DoenetML is broken anyway with errors,
+        // it is possible that these diagnostics will accumulate in the ancestor
+        // if this code is repeated. But, the DoenetML is broken anyway with diagnostics,
         // and the purpose is just to make sure that the error is prominently displayed.
 
         let ancestorToDisplayErrors = parent;
@@ -4182,7 +4162,7 @@ export default class Core {
                 return {
                     setValue: { [varName]: res.value },
                     checkForActualChange: { [varName]: true },
-                    sendWarnings: res.warnings,
+                    sendDiagnostics: res.diagnostics,
                 };
             };
 
@@ -4260,7 +4240,7 @@ export default class Core {
                                             value: res.value,
                                         },
                                     ],
-                                    sendWarnings: res.warnings,
+                                    sendDiagnostics: res.diagnostics,
                                 };
                             }
                         }
@@ -4731,7 +4711,7 @@ export default class Core {
                 return {
                     setValue: { [varName]: res.value },
                     checkForActualChange: { [varName]: true },
-                    sendWarnings: res.warnings,
+                    sendDiagnostics: res.diagnostics,
                 };
             };
 
@@ -4810,7 +4790,7 @@ export default class Core {
                                             value: res.value,
                                         },
                                     ],
-                                    sendWarnings: res.warnings,
+                                    sendDiagnostics: res.diagnostics,
                                 };
                             }
                         }
@@ -5948,14 +5928,13 @@ export default class Core {
                 let index = stateVarObj.keyToIndex(arrayKey);
                 let numDimensionsInArrayKey = index.length;
                 if (!numDimensionsInArrayKey > stateVarObj.numDimensions) {
-                    core.errorWarnings.warnings.push({
+                    core.addDiagnostic({
+                        type: "info",
                         message:
                             "Cannot set array value.  Number of dimensions is too large.",
-                        level: 2,
                         position: component.position,
                         sourceDoc: component.sourceDoc,
                     });
-                    core.newErrorWarning = true;
                     return { nFailures: 1 };
                 }
                 let arrayValuesDrillDown = arrayValues;
@@ -5972,13 +5951,12 @@ export default class Core {
                             arrayValuesDrillDown[indComponent];
                         arraySizeDrillDown = arraySizeDrillDown.slice(1);
                     } else {
-                        core.errorWarnings.warnings.push({
+                        core.addDiagnostic({
+                            type: "info",
                             message: "ignore setting array value out of bounds",
-                            level: 2,
                             position: component.position,
                             sourceDoc: component.sourceDoc,
                         });
-                        core.newErrorWarning = true;
                         return { nFailures: 1 };
                     }
                 }
@@ -5999,14 +5977,13 @@ export default class Core {
                         // given that size of arrayValuesPieces is arraySizePiece
 
                         if (!Array.isArray(desiredValue)) {
-                            core.errorWarnings.warnings.push({
+                            core.addDiagnostic({
+                                type: "info",
                                 message:
                                     "ignoring array values with insufficient dimensions",
-                                level: 2,
                                 position: component.position,
                                 sourceDoc: component.sourceDoc,
                             });
-                            core.newErrorWarning = true;
                             return { nFailures: 1 };
                         }
 
@@ -6014,13 +5991,12 @@ export default class Core {
 
                         let currentSize = arraySizePiece[0];
                         if (desiredValue.length > currentSize) {
-                            core.errorWarnings.warnings.push({
+                            core.addDiagnostic({
+                                type: "info",
                                 message: "ignoring array values of out bounds",
-                                level: 2,
                                 position: component.position,
                                 sourceDoc: component.sourceDoc,
                             });
-                            core.newErrorWarning = true;
                             nFailuresSub += desiredValue.length - currentSize;
                             desiredValue = desiredValue.slice(0, currentSize);
                         }
@@ -6195,13 +6171,12 @@ export default class Core {
                     arrayValues[ind] = value;
                     return { nFailures: 0 };
                 } else {
-                    core.errorWarnings.warnings.push({
+                    core.addDiagnostic({
+                        type: "info",
                         message: `Ignoring setting array values out of bounds: ${arrayKey} of ${stateVariable}`,
-                        level: 2,
                         position: component.position,
                         sourceDoc: component.sourceDoc,
                     });
-                    core.newErrorWarning = true;
                     return { nFailures: 1 };
                 }
             };
@@ -7042,7 +7017,7 @@ export default class Core {
     // (See above description of arrayVarNameFromPropIndex for technical debt commentary.)
     // It calls arrayVarNameFromPropIndex on each of an array of stateVariables,
     // first creating any missing array entry state variables,
-    // logs warnings,
+    // logs diagnostics,
     // and returns an array of the resulting state variables.
     async arrayEntryNamesFromPropIndex({
         stateVariables,
@@ -7084,10 +7059,9 @@ export default class Core {
                     varName,
                 );
             } else {
-                this.addErrorWarning({
+                this.addDiagnostic({
                     type: "warning",
                     message: `Cannot get propIndex from ${varName} of ${component.componentIdx} as it is not an array or array entry state variable`,
-                    level: 1,
                     position: component.position,
                     sourceDoc: component.sourceDoc,
                 });
@@ -7096,10 +7070,9 @@ export default class Core {
             if (newName) {
                 newVarNames.push(newName);
             } else {
-                this.addErrorWarning({
+                this.addDiagnostic({
                     type: "warning",
                     message: `Cannot get propIndex from ${varName} of ${component.componentIdx}`,
-                    level: 1,
                     position: component.position,
                     sourceDoc: component.sourceDoc,
                 });
@@ -7981,40 +7954,27 @@ export default class Core {
             }
         }
 
-        if (result.sendWarnings || result.sendErrors) {
+        if (result.sendDiagnostics) {
             const { position, sourceDoc } =
                 this.getSourceLocationForComponent(component);
 
-            if (result.sendWarnings) {
-                for (let warning of result.sendWarnings) {
-                    this.addErrorWarning({
-                        type: "warning",
+            if (result.sendDiagnostics) {
+                for (const diagnostic of result.sendDiagnostics) {
+                    const addedDiagnostic = this.addDiagnostic({
                         position,
                         sourceDoc,
-                        ...warning,
-                    });
-                }
-            }
-
-            if (result.sendErrors) {
-                for (let error of result.sendErrors) {
-                    const message = error.message;
-                    const errorPosition = error.position ?? position;
-                    const errorSourceDoc = error.sourceDoc ?? sourceDoc;
-
-                    const addedError = this.addErrorWarning({
-                        type: "error",
-                        message,
-                        position: errorPosition,
-                        sourceDoc: errorSourceDoc,
+                        ...diagnostic,
                     });
 
-                    if (addedError && this.initialAddPhase) {
+                    if (
+                        addedDiagnostic?.type === "error" &&
+                        this.initialAddPhase
+                    ) {
                         this.errorComponentsToAdd.push({
                             componentIdx: component.componentIdx,
-                            message,
-                            position: errorPosition,
-                            sourceDoc: errorSourceDoc,
+                            message: addedDiagnostic.message,
+                            position: addedDiagnostic.position,
+                            sourceDoc: addedDiagnostic.sourceDoc,
                         });
                     }
                 }
@@ -10257,10 +10217,9 @@ export default class Core {
                 const overwriteDoenetMLRange =
                     component.componentType === "_copy";
 
-                this.gatherErrorsAndAssignDoenetMLRange({
+                this.gatherDiagnosticsAndAssignDoenetMLRange({
                     components: serializedReplacements,
-                    errors: [],
-                    warnings: [],
+                    diagnostics: [],
                     position,
                     sourceDoc,
                     overwriteDoenetMLRange,
@@ -10523,7 +10482,7 @@ export default class Core {
     async setErrorReplacements({ composite, message }) {
         // display error for replacements and set composite to error state
 
-        this.addErrorWarning({
+        this.addDiagnostic({
             type: "error",
             message,
             position: composite.position,
@@ -11381,10 +11340,9 @@ export default class Core {
         }
 
         if (component) {
-            this.addErrorWarning({
+            this.addDiagnostic({
                 type: "warning",
                 message: `Cannot run action ${actionName} on component ${componentIdx}`,
-                level: 1,
                 position: component.position,
                 sourceDoc: component.sourceDoc,
             });
@@ -11562,7 +11520,7 @@ export default class Core {
 
     async performUpdate({
         updateInstructions,
-        warnings,
+        diagnostics,
         actionId,
         event,
         overrideReadOnly = false,
@@ -11571,9 +11529,9 @@ export default class Core {
         skipRendererUpdate = false,
         sourceInformation = {},
     }) {
-        if (warnings) {
-            for (let warning of warnings) {
-                this.addErrorWarning({
+        if (diagnostics) {
+            for (let warning of diagnostics) {
+                this.addDiagnostic({
                     type: "warning",
                     ...warning,
                 });
@@ -11660,10 +11618,9 @@ export default class Core {
                         if (component) {
                             componentsToDelete.push(component);
                         } else {
-                            this.addErrorWarning({
-                                type: "warning",
+                            this.addDiagnostic({
+                                type: "info",
                                 message: `Cannot delete ${componentIdx} as it doesn't exist.`,
-                                level: 2,
                             });
                         }
                     }
@@ -12289,10 +12246,9 @@ export default class Core {
                         }
                     }
 
-                    this.addErrorWarning({
-                        type: "warning",
+                    this.addDiagnostic({
+                        type: "info",
                         message: `can't update state variable ${vName} of component ${cIdx}, as it doesn't exist.`,
-                        level: 2,
                         position: this._components[cIdx].position,
                         sourceDoc: this._components[cIdx].sourceDoc,
                     });
@@ -12300,10 +12256,9 @@ export default class Core {
                 }
 
                 if (!compStateObj.hasEssential) {
-                    this.addErrorWarning({
-                        type: "warning",
+                    this.addDiagnostic({
+                        type: "info",
                         message: `can't update state variable ${vName} of component ${cIdx}, as it does not have an essential state variable.`,
-                        level: 2,
                         position: this._components[cIdx].position,
                         sourceDoc: this._components[cIdx].sourceDoc,
                     });
@@ -12397,10 +12352,9 @@ export default class Core {
                     // don't have array
 
                     if (!compStateObj.hasEssential) {
-                        this.addErrorWarning({
-                            type: "warning",
+                        this.addDiagnostic({
+                            type: "info",
                             message: `can't update state variable ${vName} of component ${cIdx}, as it does not have an essential state variable.`,
-                            level: 2,
                             position: this._components[cIdx].position,
                             sourceDoc: this._components[cIdx].sourceDoc,
                         });
@@ -12603,10 +12557,9 @@ export default class Core {
                         varName2,
                     )
                 ) {
-                    this.addErrorWarning({
-                        type: "warning",
+                    this.addDiagnostic({
+                        type: "info",
                         message: `Can't invert ${varName2} at the same time as ${stateVariable}, as not an additional state variable defined`,
-                        level: 2,
                         position: component.position,
                         sourceDoc: component.sourceDoc,
                     });
@@ -12620,10 +12573,9 @@ export default class Core {
         }
 
         if (!stateVarObj.inverseDefinition) {
-            this.addErrorWarning({
-                type: "warning",
+            this.addDiagnostic({
+                type: "info",
                 message: `Cannot change state variable ${stateVariable} of ${component.componentIdx} as it doesn't have an inverse definition`,
-                level: 2,
                 position: component.position,
                 sourceDoc: component.sourceDoc,
             });
@@ -12635,10 +12587,9 @@ export default class Core {
             !stateVarObj.ignoreFixed &&
             (await component.stateValues.fixed)
         ) {
-            this.addErrorWarning({
-                type: "warning",
+            this.addDiagnostic({
+                type: "info",
                 message: `Changing ${stateVariable} of ${component.componentIdx} did not succeed because fixed is true.`,
-                level: 2,
                 position: component.position,
                 sourceDoc: component.sourceDoc,
             });
@@ -12650,10 +12601,9 @@ export default class Core {
             stateVarObj.isLocation &&
             (await component.stateValues.fixLocation)
         ) {
-            this.addErrorWarning({
-                type: "warning",
+            this.addDiagnostic({
+                type: "info",
                 message: `Changing ${stateVariable} of ${component.componentIdx} did not succeed because fixLocation is true.`,
-                level: 2,
                 position: component.position,
                 sourceDoc: component.sourceDoc,
             });
@@ -12666,10 +12616,9 @@ export default class Core {
                 (await component.stateValues.modifyIndirectly) !== false
             )
         ) {
-            this.addErrorWarning({
-                type: "warning",
+            this.addDiagnostic({
+                type: "info",
                 message: `Changing ${stateVariable} of ${component.componentIdx} did not succeed because modifyIndirectly is false.`,
-                level: 2,
                 position: component.position,
                 sourceDoc: component.sourceDoc,
             });
@@ -12680,13 +12629,12 @@ export default class Core {
             inverseDefinitionArgs,
         );
 
-        if (inverseResult.sendWarnings) {
-            for (let warning of inverseResult.sendWarnings) {
-                this.addErrorWarning({
-                    type: "warning",
+        if (inverseResult.sendDiagnostics) {
+            for (const diagnostic of inverseResult.sendDiagnostics) {
+                this.addDiagnostic({
                     position: component.position,
                     sourceDoc: component.sourceDoc,
-                    ...warning,
+                    ...diagnostic,
                 });
             }
         }
@@ -13006,10 +12954,9 @@ export default class Core {
                             !stateVarObj.ignoreFixed &&
                             (await baseComponent.stateValues.fixed)
                         ) {
-                            this.addErrorWarning({
-                                type: "warning",
+                            this.addDiagnostic({
+                                type: "info",
                                 message: `Changing ${stateVariable} of ${baseComponent.componentIdx} did not succeed because fixed is true.`,
-                                level: 2,
                                 position: baseComponent.position,
                                 sourceDoc: baseComponent.sourceDoc,
                             });
@@ -13022,10 +12969,9 @@ export default class Core {
                             !stateVarObj.isLocation &&
                             (await baseComponent.stateValues.fixLocation)
                         ) {
-                            this.addErrorWarning({
-                                type: "warning",
+                            this.addDiagnostic({
+                                type: "info",
                                 message: `Changing ${stateVariable} of ${baseComponent.componentIdx} did not succeed because fixLocation is true.`,
-                                level: 2,
                                 position: baseComponent.position,
                                 sourceDoc: baseComponent.sourceDoc,
                             });
@@ -13247,10 +13193,9 @@ export default class Core {
                                     dep2.downstreamComponentIndices.length === 1
                                 )
                             ) {
-                                this.addErrorWarning({
-                                    type: "warning",
+                                this.addDiagnostic({
+                                    type: "info",
                                     message: `Can't simultaneously set additional dependency value ${dependencyName2} if it isn't a state variable`,
-                                    level: 2,
                                     position:
                                         this.components[dComponentIdx].position,
                                     sourceDoc:
@@ -13270,10 +13215,9 @@ export default class Core {
                                     varName2,
                                 )
                             ) {
-                                this.addErrorWarning({
-                                    type: "warning",
+                                this.addDiagnostic({
+                                    type: "info",
                                     message: `Can't simultaneously set additional dependency value ${dependencyName2} if it doesn't correspond to additional state variable defined of ${dependencyName}'s state variable`,
-                                    level: 2,
                                     position:
                                         this.components[dComponentIdx].position,
                                     sourceDoc:
@@ -13726,7 +13670,7 @@ export default class Core {
 }
 
 function validateAttributeValue({ value, attributeSpecification, attribute }) {
-    let warnings = [];
+    let diagnostics = [];
 
     const valueOrig = value;
 
@@ -13759,9 +13703,9 @@ function validateAttributeValue({ value, attributeSpecification, attribute }) {
                     );
                 }
             }
-            warnings.push({
+            diagnostics.push({
                 message: `Invalid value ${valueOrig} for attribute ${attribute}, using value ${defaultValue}`,
-                level: 2,
+                type: "info",
             });
             value = defaultValue;
         }
@@ -13775,7 +13719,7 @@ function validateAttributeValue({ value, attributeSpecification, attribute }) {
         }
     }
 
-    return { value, warnings };
+    return { value, diagnostics };
 }
 
 function calculateAllComponentsShadowing(component) {

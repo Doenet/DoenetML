@@ -7391,7 +7391,7 @@ class RefResolutionDependency extends Dependency {
                         ? `Multiple referents found for reference: $${referenceText}`
                         : `No referent found for reference: $${referenceText}`;
 
-                this.dependencyHandler.core.addErrorWarning({
+                this.dependencyHandler.core.addDiagnostic({
                     type: "warning",
                     message,
                     position: composite.position,
@@ -7489,7 +7489,7 @@ class RefResolutionDependency extends Dependency {
             // then there is no replacement at that index, and we obtained no referent for the reference.
             const referenceText = getDoenetMLStringForReference();
 
-            this.dependencyHandler.core.addErrorWarning({
+            this.dependencyHandler.core.addDiagnostic({
                 type: "warning",
                 message: `No referent found for reference: $${referenceText}`,
                 position: composite.position,

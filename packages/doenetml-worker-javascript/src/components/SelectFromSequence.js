@@ -78,14 +78,14 @@ export default class SelectFromSequence extends Sequence {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                const warnings = [];
+                const diagnostics = [];
                 if (
                     dependencyValues.coprime &&
                     dependencyValues.type !== "number"
                 ) {
-                    warnings.push({
+                    diagnostics.push({
                         message: "coprime ignored since not selecting numbers",
-                        level: 1,
+                        type: "warning",
                     });
                 }
                 if (dependencyValues.excludeCombinations !== null) {
@@ -113,23 +113,23 @@ export default class SelectFromSequence extends Sequence {
                         }
 
                         if (dependencyValues.coprime) {
-                            warnings.push({
+                            diagnostics.push({
                                 message:
                                     "coprime ignored since excludeCombinations specified",
-                                level: 1,
+                                type: "warning",
                             });
                         }
                     }
                     return {
                         setValue: { excludedCombinations },
-                        sendWarnings: warnings,
+                        sendDiagnostics: diagnostics,
                     };
                 } else {
                     return {
                         setValue: {
                             excludedCombinations: [],
                         },
-                        sendWarnings: warnings,
+                        sendDiagnostics: diagnostics,
                     };
                 }
             },
@@ -277,8 +277,7 @@ export default class SelectFromSequence extends Sequence {
             num: workspace.replacementsCreated,
         };
 
-        let errors = [];
-        let warnings = [];
+        let diagnostics = [];
 
         let errorMessage = await component.stateValues.errorMessage;
         if (errorMessage) {
@@ -295,8 +294,7 @@ export default class SelectFromSequence extends Sequence {
                         children: [],
                     },
                 ],
-                errors,
-                warnings,
+                diagnostics,
                 nComponents,
             };
         }
@@ -354,8 +352,7 @@ export default class SelectFromSequence extends Sequence {
 
         return {
             replacements,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }

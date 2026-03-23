@@ -163,8 +163,7 @@ export async function verifyReplacementsMatchSpecifiedType({
     stateIdInfo,
     publicCaseInsensitiveAliasSubstitutions,
 }) {
-    let errors = [];
-    let warnings = [];
+    let diagnostics = [];
 
     if (
         !component.attributes.createComponentOfType?.primitive &&
@@ -173,8 +172,7 @@ export async function verifyReplacementsMatchSpecifiedType({
         return {
             replacements,
             replacementChanges,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -231,8 +229,7 @@ export async function verifyReplacementsMatchSpecifiedType({
             // Note: use `originalReplacements` as may have modified `replacements`, above.
             replacements: originalReplacements,
             replacementChanges,
-            errors,
-            warnings,
+            diagnostics,
             nComponents,
         };
     }
@@ -304,8 +301,7 @@ export async function verifyReplacementsMatchSpecifiedType({
             return {
                 replacements,
                 replacementChanges,
-                errors,
-                warnings,
+                diagnostics,
                 nComponents,
             };
         } else if (
@@ -356,8 +352,7 @@ export async function verifyReplacementsMatchSpecifiedType({
             return {
                 replacements,
                 replacementChanges,
-                errors,
-                warnings,
+                diagnostics,
                 nComponents,
             };
         }
@@ -555,7 +550,7 @@ export async function verifyReplacementsMatchSpecifiedType({
         }
     }
 
-    return { replacements, replacementChanges, errors, warnings, nComponents };
+    return { replacements, replacementChanges, diagnostics, nComponents };
 }
 
 export function calculateReplacementTypesFromChanges(
