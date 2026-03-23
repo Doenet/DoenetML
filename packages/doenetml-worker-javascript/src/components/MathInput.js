@@ -336,7 +336,7 @@ export default class MathInput extends Input {
                                                 parseScientificNotation:
                                                     dependencyValues.parseScientificNotation,
                                             },
-                                        );
+                                        ).expression;
                                     }
                                 },
                             },
@@ -605,6 +605,32 @@ export default class MathInput extends Input {
             },
         };
 
+        stateVariableDefinitions.errorMessageParsingRawRendererValue = {
+            forRenderer: true,
+            hasEssential: true,
+            defaultValue: null,
+            returnDependencies: () => ({}),
+            definition: function () {
+                return {
+                    useEssentialOrDefaultValue: {
+                        errorMessageParsingRawRendererValue: true,
+                    },
+                };
+            },
+            inverseDefinition({ desiredStateVariableValues }) {
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue:
+                                "errorMessageParsingRawRendererValue",
+                            value: desiredStateVariableValues.errorMessageParsingRawRendererValue,
+                        },
+                    ],
+                };
+            },
+        };
+
         // raw value from renderer
         stateVariableDefinitions.rawRendererValue = {
             forRenderer: true,
@@ -626,10 +652,14 @@ export default class MathInput extends Input {
                 },
             ],
             returnDependencies: () => ({
-                // include immediateValue for inverse definition
+                // include immediateValue and errorMessageParsingRawRendererValue for inverse definition
                 immediateValue: {
                     dependencyType: "stateVariable",
                     variableName: "immediateValue",
+                },
+                errorMessageParsingRawRendererValue: {
+                    dependencyType: "stateVariable",
+                    variableName: "errorMessageParsingRawRendererValue",
                 },
                 valueForDisplay: {
                     dependencyType: "stateVariable",
@@ -758,14 +788,20 @@ export default class MathInput extends Input {
                         splitSymbols,
                         parseScientificNotation,
                         removeStrings,
-                    });
-                    let desiredMath = calculateMathExpressionFromLatex({
-                        latex: desiredValue,
-                        unionFromU,
-                        functionSymbols,
-                        splitSymbols,
-                        parseScientificNotation,
-                        removeStrings,
+                    }).expression;
+                    let { expression: desiredMath, errorMessage } =
+                        calculateMathExpressionFromLatex({
+                            latex: desiredValue,
+                            unionFromU,
+                            functionSymbols,
+                            splitSymbols,
+                            parseScientificNotation,
+                            removeStrings,
+                        });
+
+                    instructions.push({
+                        setDependency: "errorMessageParsingRawRendererValue",
+                        desiredValue: errorMessage,
                     });
 
                     // use deepCompare of trees rather than equalsViaSyntax
@@ -1036,11 +1072,16 @@ function calculateMathExpressionFromLatex({
         parseScientificNotation,
     });
 
+    let errorMessage = null;
     try {
         expression = fromLatex(latex);
     } catch (e) {
         // TODO: error on bad latex
         expression = me.fromAst("\uFF3F");
+
+        if (e.name === "ParseError") {
+            errorMessage = e.message;
+        }
     }
-    return expression;
+    return { expression, errorMessage };
 }
