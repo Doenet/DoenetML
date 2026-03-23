@@ -1499,6 +1499,7 @@ export default class Copy extends CompositeComponent {
             ];
             diagnostics.push({
                 message,
+                type: "error",
             });
             return { serializedReplacements, diagnostics, nComponents };
         }

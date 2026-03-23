@@ -475,7 +475,7 @@ export default class Sort extends CompositeComponent {
 
         let replacements = replacementResults.replacements;
         diagnostics.push(...replacementResults.diagnostics);
-        nComponents = replacements.nComponents;
+        nComponents = replacementResults.nComponents;
 
         let replacementChanges = [
             {

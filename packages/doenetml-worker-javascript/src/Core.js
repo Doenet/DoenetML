@@ -7954,30 +7954,28 @@ export default class Core {
             }
         }
 
-        if (result.sendDiagnostics) {
+        if (result.sendDiagnostics?.length > 0) {
             const { position, sourceDoc } =
                 this.getSourceLocationForComponent(component);
 
-            if (result.sendDiagnostics) {
-                for (const diagnostic of result.sendDiagnostics) {
-                    const addedDiagnostic = this.addDiagnostic({
+            for (const diagnostic of result.sendDiagnostics) {
+                const addedDiagnostic = this.addDiagnostic({
+                    position,
+                    sourceDoc,
+                    ...diagnostic,
+                });
+
+                if (
+                    addedDiagnostic &&
+                    diagnostic?.type === "error" &&
+                    this.initialAddPhase
+                ) {
+                    this.errorComponentsToAdd.push({
+                        componentIdx: component.componentIdx,
                         position,
                         sourceDoc,
                         ...diagnostic,
                     });
-
-                    if (
-                        addedDiagnostic &&
-                        diagnostic?.type === "error" &&
-                        this.initialAddPhase
-                    ) {
-                        this.errorComponentsToAdd.push({
-                            componentIdx: component.componentIdx,
-                            message: diagnostic.message,
-                            position: diagnostic.position,
-                            sourceDoc: diagnostic.sourceDoc,
-                        });
-                    }
                 }
             }
         }

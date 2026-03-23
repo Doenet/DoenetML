@@ -6,6 +6,7 @@ describe("AnimateFromSequence Tag Tests", { tags: ["@group4"] }, function () {
         cy.clearIndexedDB();
         cy.visit("/");
     });
+
     it("increase from 1 to 10", () => {
         cy.window().then(async (win) => {
             win.postMessage(

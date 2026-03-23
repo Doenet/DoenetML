@@ -93,11 +93,11 @@ function axesElementFromLabels({
  * Builds the full PreFigure XML document and warning list for a graph.
  *
  * Algorithm outline:
- * 1. Convert unsupported descendants into diagnostics.
+ * 1. Convert unsupported descendants into warnings.
  * 2. Convert supported descendants to element XML in stable order.
  * 3. Compute bbox/dimensions with defensive defaults.
- * 4. Build axis metadata + labels (including unsupported-position diagnostics).
- * 5. Assemble and return final `<diagram>` XML + diagnostics.
+ * 4. Build axis metadata + labels (including unsupported-position warnings).
+ * 5. Assemble and return final `<diagram>` XML + warnings.
  */
 export function createPrefigureXML({
     dependencyValues,
