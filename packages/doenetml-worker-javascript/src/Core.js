@@ -1729,9 +1729,9 @@ export default class Core {
             lastErrorMessageFromAttribute ||
             (lastErrorMessage && !componentClass.canDisplayChildErrors)
         ) {
-            // We have to deal with two special cases where diagnostics wouldn't be displayed:
+            // We have to deal with two special cases where errors wouldn't be displayed:
             // 1. there is an error message from an attribute, or
-            // 2. this component cannot display diagnostics from children
+            // 2. this component cannot display errors from children
             // In these cases, we turn this component into an error component
             // to ensure the error message is displayed.
 
