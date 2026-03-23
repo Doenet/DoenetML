@@ -54,7 +54,6 @@ export default class Core {
         componentInfoObjects,
         flags,
         allDoenetMLs,
-        // Note: we ignore preliminary errors, as we'll gather those from the dast when processing it.
         preliminaryDiagnostics,
         activityId,
         cid,
@@ -115,6 +114,7 @@ export default class Core {
 
         /** @type {{ type: "error"|"warning"|"info", message: string, position?: any, sourceDoc?: number }[]} */
         this.diagnostics = preliminaryDiagnostics
+            // Note: we ignore preliminary errors, as we'll gather those from the dast when processing it.
             .filter((diagnostic) => diagnostic.type !== "error")
             .map((diagnostic) => ({
                 type: diagnostic.type,

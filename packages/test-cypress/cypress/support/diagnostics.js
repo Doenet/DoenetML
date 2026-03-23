@@ -5,6 +5,7 @@ export function getDiagnosticsByType(result) {
 
     return {
         errors: diagnostics.filter((d) => d.type === "error"),
-        warnings: diagnostics.filter((d) => d.type !== "error"),
+        warnings: diagnostics.filter((d) => d.type === "warning"),
+        infos: diagnostics.filter((d) => d.type === "info"),
     };
 }

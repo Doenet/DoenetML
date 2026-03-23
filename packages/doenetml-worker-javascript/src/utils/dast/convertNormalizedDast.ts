@@ -575,11 +575,11 @@ function expandUnflattenedPath({
  * Based on the attribute definitions of `componentClass`,
  * expand all `unflattenedAttributes` into `SerializedAttribute`s.
  *
- * If diagnostics were encountered within an attribute,
+ * If errors were encountered within an attribute,
  * the attribute many contain children that are `_error`s
  * and information about the error appended to `diagnostics`.
  *
- * Throws an Error if diagnostics found in the attribute specifications
+ * Throws an Error if errors found in the attribute specifications
  * (which will be caught and turn the parent component into an `_error`).
  */
 export function expandAllUnflattenedAttributes({
