@@ -36,6 +36,7 @@ describe("Warning Tests @group4", async () => {
 
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(7);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.warnings[0].message).contain(
             "Attribute suppressAutoName is deprecated. It is ignored.",
@@ -109,6 +110,7 @@ describe("Warning Tests @group4", async () => {
 
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.warnings[0].message).contain(
             "Property nSides is deprecated. Use numSides instead.",
@@ -136,16 +138,17 @@ describe("Warning Tests @group4", async () => {
         let diagnosticsByType = getDiagnosticsByType(core);
 
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(1);
 
-        expect(diagnosticsByType.warnings[0].message).contain(
+        expect(diagnosticsByType.infos[0].message).contain(
             "Cannot define an angle between 3 lines",
         );
-        expect(diagnosticsByType.warnings[0].type).eq("info");
-        expect(diagnosticsByType.warnings[0].position.start.line).eq(6);
-        expect(diagnosticsByType.warnings[0].position.start.column).eq(3);
-        expect(diagnosticsByType.warnings[0].position.end.line).eq(6);
-        expect(diagnosticsByType.warnings[0].position.end.column).eq(52);
+        expect(diagnosticsByType.infos[0].type).eq("info");
+        expect(diagnosticsByType.infos[0].position.start.line).eq(6);
+        expect(diagnosticsByType.infos[0].position.start.column).eq(3);
+        expect(diagnosticsByType.infos[0].position.end.line).eq(6);
+        expect(diagnosticsByType.infos[0].position.end.column).eq(52);
     });
 
     it("From state variable inverse definitions", async () => {
@@ -161,6 +164,7 @@ describe("Warning Tests @group4", async () => {
 
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.warnings[0].message).contain(
             "Haven't implemented <circle> through 2 points in case where the points don't have numerical values",
@@ -181,6 +185,7 @@ describe("Warning Tests @group4", async () => {
 
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(2);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.warnings[0].message).contain(
             "Haven't implemented <circle> through 2 points in case where the points don't have numerical values",
@@ -254,52 +259,53 @@ describe("Warning Tests @group4", async () => {
         let diagnosticsByType = getDiagnosticsByType(core);
 
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(5);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(5);
 
-        expect(diagnosticsByType.warnings[0].message).contain(
+        expect(diagnosticsByType.infos[0].message).contain(
             "Invalid value new1 for attribute format",
         );
-        expect(diagnosticsByType.warnings[0].type).eq("info");
-        expect(diagnosticsByType.warnings[0].position.start.line).eq(5);
-        expect(diagnosticsByType.warnings[0].position.start.column).eq(3);
-        expect(diagnosticsByType.warnings[0].position.end.line).eq(5);
-        expect(diagnosticsByType.warnings[0].position.end.column).eq(46);
+        expect(diagnosticsByType.infos[0].type).eq("info");
+        expect(diagnosticsByType.infos[0].position.start.line).eq(5);
+        expect(diagnosticsByType.infos[0].position.start.column).eq(3);
+        expect(diagnosticsByType.infos[0].position.end.line).eq(5);
+        expect(diagnosticsByType.infos[0].position.end.column).eq(46);
 
-        expect(diagnosticsByType.warnings[1].message).contain(
+        expect(diagnosticsByType.infos[1].message).contain(
             "Invalid value bad for attribute type",
         );
-        expect(diagnosticsByType.warnings[1].type).eq("info");
-        expect(diagnosticsByType.warnings[1].position.start.line).eq(2);
-        expect(diagnosticsByType.warnings[1].position.start.column).eq(3);
-        expect(diagnosticsByType.warnings[1].position.end.line).eq(2);
-        expect(diagnosticsByType.warnings[1].position.end.column).eq(26);
+        expect(diagnosticsByType.infos[1].type).eq("info");
+        expect(diagnosticsByType.infos[1].position.start.line).eq(2);
+        expect(diagnosticsByType.infos[1].position.start.column).eq(3);
+        expect(diagnosticsByType.infos[1].position.end.line).eq(2);
+        expect(diagnosticsByType.infos[1].position.end.column).eq(26);
 
-        expect(diagnosticsByType.warnings[2].message).contain(
+        expect(diagnosticsByType.infos[2].message).contain(
             "Invalid value new2 for attribute format",
         );
-        expect(diagnosticsByType.warnings[2].type).eq("info");
-        expect(diagnosticsByType.warnings[2].position.start.line).eq(7);
-        expect(diagnosticsByType.warnings[2].position.start.column).eq(3);
-        expect(diagnosticsByType.warnings[2].position.end.line).eq(7);
-        expect(diagnosticsByType.warnings[2].position.end.column).eq(48);
+        expect(diagnosticsByType.infos[2].type).eq("info");
+        expect(diagnosticsByType.infos[2].position.start.line).eq(7);
+        expect(diagnosticsByType.infos[2].position.start.column).eq(3);
+        expect(diagnosticsByType.infos[2].position.end.line).eq(7);
+        expect(diagnosticsByType.infos[2].position.end.column).eq(48);
 
-        expect(diagnosticsByType.warnings[3].message).contain(
+        expect(diagnosticsByType.infos[3].message).contain(
             "Invalid value new1 for attribute format",
         );
-        expect(diagnosticsByType.warnings[3].type).eq("info");
-        expect(diagnosticsByType.warnings[3].position.start.line).eq(9);
-        expect(diagnosticsByType.warnings[3].position.start.column).eq(3);
-        expect(diagnosticsByType.warnings[3].position.end.line).eq(9);
-        expect(diagnosticsByType.warnings[3].position.end.column).eq(34);
+        expect(diagnosticsByType.infos[3].type).eq("info");
+        expect(diagnosticsByType.infos[3].position.start.line).eq(9);
+        expect(diagnosticsByType.infos[3].position.start.column).eq(3);
+        expect(diagnosticsByType.infos[3].position.end.line).eq(9);
+        expect(diagnosticsByType.infos[3].position.end.column).eq(34);
 
-        expect(diagnosticsByType.warnings[4].message).contain(
+        expect(diagnosticsByType.infos[4].message).contain(
             "Invalid value new3 for attribute format",
         );
-        expect(diagnosticsByType.warnings[4].type).eq("info");
-        expect(diagnosticsByType.warnings[4].position.start.line).eq(10);
-        expect(diagnosticsByType.warnings[4].position.start.column).eq(3);
-        expect(diagnosticsByType.warnings[4].position.end.line).eq(10);
-        expect(diagnosticsByType.warnings[4].position.end.column).eq(48);
+        expect(diagnosticsByType.infos[4].type).eq("info");
+        expect(diagnosticsByType.infos[4].position.start.line).eq(10);
+        expect(diagnosticsByType.infos[4].position.start.column).eq(3);
+        expect(diagnosticsByType.infos[4].position.end.line).eq(10);
+        expect(diagnosticsByType.infos[4].position.end.column).eq(48);
 
         // try to change format
         await updateTextInputValue({
@@ -372,57 +378,58 @@ describe("Warning Tests @group4", async () => {
         ).eq("sin(x)");
 
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(15);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(15);
 
-        expect(diagnosticsByType.warnings[5].message).contain(
+        expect(diagnosticsByType.infos[5].message).contain(
             "Invalid value try1 for attribute format",
         );
-        expect(diagnosticsByType.warnings[5].position.start.line).eq(4);
+        expect(diagnosticsByType.infos[5].position.start.line).eq(4);
 
-        expect(diagnosticsByType.warnings[6].message).contain(
+        expect(diagnosticsByType.infos[6].message).contain(
             "Invalid value try2 for attribute format",
         );
-        expect(diagnosticsByType.warnings[6].position.start.line).eq(5);
+        expect(diagnosticsByType.infos[6].position.start.line).eq(5);
 
-        expect(diagnosticsByType.warnings[7].message).contain(
+        expect(diagnosticsByType.infos[7].message).contain(
             "Invalid value try2 for attribute format",
         );
-        expect(diagnosticsByType.warnings[7].position.start.line).eq(9);
+        expect(diagnosticsByType.infos[7].position.start.line).eq(9);
 
-        expect(diagnosticsByType.warnings[8].message).contain(
+        expect(diagnosticsByType.infos[8].message).contain(
             "Invalid value try3 for attribute format",
         );
-        expect(diagnosticsByType.warnings[8].position.start.line).eq(6);
+        expect(diagnosticsByType.infos[8].position.start.line).eq(6);
 
-        expect(diagnosticsByType.warnings[9].message).contain(
+        expect(diagnosticsByType.infos[9].message).contain(
             "Invalid value try4 for attribute format",
         );
-        expect(diagnosticsByType.warnings[9].position.start.line).eq(7);
+        expect(diagnosticsByType.infos[9].position.start.line).eq(7);
 
-        expect(diagnosticsByType.warnings[10].message).contain(
+        expect(diagnosticsByType.infos[10].message).contain(
             "Invalid value try5 for attribute format",
         );
-        expect(diagnosticsByType.warnings[10].position.start.line).eq(8);
+        expect(diagnosticsByType.infos[10].position.start.line).eq(8);
 
-        expect(diagnosticsByType.warnings[11].message).contain(
+        expect(diagnosticsByType.infos[11].message).contain(
             "Invalid value try6 for attribute format",
         );
-        expect(diagnosticsByType.warnings[11].position.start.line).eq(5);
+        expect(diagnosticsByType.infos[11].position.start.line).eq(5);
 
-        expect(diagnosticsByType.warnings[12].message).contain(
+        expect(diagnosticsByType.infos[12].message).contain(
             "Invalid value try6 for attribute format",
         );
-        expect(diagnosticsByType.warnings[12].position.start.line).eq(9);
+        expect(diagnosticsByType.infos[12].position.start.line).eq(9);
 
-        expect(diagnosticsByType.warnings[13].message).contain(
+        expect(diagnosticsByType.infos[13].message).contain(
             "Invalid value try7 for attribute format",
         );
-        expect(diagnosticsByType.warnings[13].position.start.line).eq(10);
+        expect(diagnosticsByType.infos[13].position.start.line).eq(10);
 
-        expect(diagnosticsByType.warnings[14].message).contain(
+        expect(diagnosticsByType.infos[14].message).contain(
             "Invalid value try8 for attribute format",
         );
-        expect(diagnosticsByType.warnings[14].position.start.line).eq(11);
+        expect(diagnosticsByType.infos[14].position.start.line).eq(11);
     });
 
     it("From action", async () => {
@@ -449,6 +456,7 @@ describe("Warning Tests @group4", async () => {
 
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.warnings[0].message).contain(
             `Invalid target for <updateValue>: cannot find a state variable named "bad" on a <number>`,
@@ -477,6 +485,7 @@ describe("Warning Tests @group4", async () => {
 
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(3);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.warnings[0].message).contain(
             `Invalid children for <p>`,
@@ -523,6 +532,7 @@ describe("Warning Tests @group4", async () => {
 
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.warnings[0].message).contain(
             `Invalid children for <selectFromSequence>`,
@@ -551,6 +561,7 @@ describe("Warning Tests @group4", async () => {
 
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(0);
     });
 
     it("Warning if omit $ in a reference attribute", async () => {
@@ -571,6 +582,7 @@ describe("Warning Tests @group4", async () => {
 
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.warnings[0].message).contain(
             `Invalid value "n1 n2" for attribute referencesAreResponses`,
@@ -599,6 +611,7 @@ describe("Warning Tests @group4", async () => {
 
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(3);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.warnings[0].message).contain(
             "No referent found for reference: $__s",
@@ -637,6 +650,7 @@ describe("Warning Tests @group4", async () => {
 
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(2);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.warnings[0].message).contain(
             "Insufficient dimensions for domain for function.",
@@ -670,6 +684,7 @@ describe("Warning Tests @group4", async () => {
 
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.warnings[0].message).contain(
             "No referent found for reference: $g[1]",
@@ -723,6 +738,7 @@ describe("Warning Tests @group4", async () => {
 
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(12);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         const expectedErrorByLine: Record<string, string> = {
             2: "The simplifyOnCompare attribute",
@@ -775,6 +791,7 @@ describe("Warning Tests @group4", async () => {
 
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(9);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         const expectedWarningByLine: Record<string, string> = {
             2: "<graph> must either have a short description or be specified as decorative",
@@ -821,6 +838,7 @@ describe("Warning Tests @group4", async () => {
 
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(8);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         const warningMsg =
             "<mathInput> must have a short description or a label";
@@ -854,6 +872,7 @@ describe("Warning Tests @group4", async () => {
 
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(3);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         const expectedWarningByLine: Record<string, string> = {
             2: "Short descriptions should not contain math components such as <math>",

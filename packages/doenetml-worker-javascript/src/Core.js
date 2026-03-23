@@ -11548,11 +11548,8 @@ export default class Core {
         sourceInformation = {},
     }) {
         if (diagnostics) {
-            for (let warning of diagnostics) {
-                this.addDiagnostic({
-                    type: "warning",
-                    ...warning,
-                });
+            for (let diagnostic of diagnostics) {
+                this.addDiagnostic(diagnostic);
             }
         }
 

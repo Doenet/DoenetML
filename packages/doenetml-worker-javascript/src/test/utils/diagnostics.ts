@@ -1,21 +1,28 @@
-import { DiagnosticRecord } from "@doenet/utils";
+import {
+    ErrorRecord,
+    InfoRecord,
+    WarningRecord,
+    isErrorRecord,
+    isInfoRecord,
+    isWarningRecord,
+} from "@doenet/utils";
 
-export function getDiagnosticsByType(core: any) {
+type DiagnosticsByType = {
+    readonly errors: ErrorRecord[];
+    readonly warnings: WarningRecord[];
+    readonly infos: InfoRecord[];
+};
+
+export function getDiagnosticsByType(core: any): DiagnosticsByType {
     return {
         get errors() {
-            return core.core!.diagnostics.filter(
-                (d: DiagnosticRecord) => d.type === "error",
-            );
+            return core.core!.diagnostics.filter(isErrorRecord);
         },
         get warnings() {
-            return core.core!.diagnostics.filter(
-                (d: DiagnosticRecord) => d.type === "warning",
-            );
+            return core.core!.diagnostics.filter(isWarningRecord);
         },
         get infos() {
-            return core.core!.diagnostics.filter(
-                (d: DiagnosticRecord) => d.type === "info",
-            );
+            return core.core!.diagnostics.filter(isInfoRecord);
         },
     };
 }

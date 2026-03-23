@@ -31,6 +31,7 @@ describe("Error Tests @group2", async () => {
 
         expect(diagnosticsByType.errors.length).eq(2);
         expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.errors[0].message).contain(
             "has no closing tag",
@@ -74,6 +75,7 @@ describe("Error Tests @group2", async () => {
 
         expect(diagnosticsByType.errors.length).eq(2);
         expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.errors[0].message).contain(
             "has no closing tag",
@@ -124,6 +126,7 @@ describe("Error Tests @group2", async () => {
 
         expect(diagnosticsByType.errors.length).eq(2);
         expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.errors[0].message).contain(
             "has no closing tag",
@@ -181,6 +184,7 @@ describe("Error Tests @group2", async () => {
 
         expect(diagnosticsByType.errors.length).eq(7);
         expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         const firstNoClosingTag = diagnosticsByType.errors.find((error) =>
             error.message.includes("no closing tag"),
@@ -264,6 +268,7 @@ a />
 
         expect(diagnosticsByType.errors.length).eq(7);
         expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.errors[0].message).contain(
             "Invalid component type: <abc>",
@@ -340,6 +345,7 @@ a />
 
         expect(diagnosticsByType.errors.length).eq(3);
         expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.errors[0].message).contain(
             "Invalid attribute name='_p'",
@@ -378,6 +384,7 @@ a />
 
         expect(diagnosticsByType.errors.length).eq(2);
         expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.errors[0].message).contain(
             'Invalid component name "_base"',
@@ -409,6 +416,7 @@ a />
 
         expect(diagnosticsByType.errors.length).eq(1);
         expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.errors[0].message).contain(
             `Invalid attribute "bad" for a component of type <p>`,
@@ -468,6 +476,7 @@ a />
 
         expect(diagnosticsByType.errors.length).eq(4);
         expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.errors[0].message).contain(
             "Circular dependency involving these components: <math> (line 2)",
@@ -558,6 +567,7 @@ a />
 
         expect(diagnosticsByType.errors.length).eq(2);
         expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         const noClosingTagError = diagnosticsByType.errors.find((error) =>
             error.message.includes("has no closing tag"),
@@ -591,6 +601,7 @@ a />
 
         expect(diagnosticsByType.errors.length).eq(1);
         expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.errors[0].message).contain("no closing tag");
         expect(diagnosticsByType.errors[0].position.start.line).eq(3);
@@ -625,6 +636,7 @@ a />
 
         expect(diagnosticsByType.errors.length).eq(9);
         expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         const expectedErrorByLine: Record<string, string> = {
             2: "<graph> must either have a short description or be specified as decorative",
@@ -672,6 +684,7 @@ a />
 
         expect(diagnosticsByType.errors.length).eq(8);
         expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         const errorMsg = "<mathInput> must have a short description or a label";
 
@@ -698,6 +711,7 @@ a />
 
         expect(diagnosticsByType.errors.length).eq(1);
         expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(0);
 
         const errorMsg = "<textInput> must have a short description or a label";
 

@@ -32,6 +32,24 @@ export type InfoRecord = {
     sourceDoc?: number;
 };
 
+export function isErrorRecord(
+    diagnostic: DiagnosticRecord,
+): diagnostic is ErrorRecord {
+    return diagnostic.type === "error";
+}
+
+export function isWarningRecord(
+    diagnostic: DiagnosticRecord,
+): diagnostic is WarningRecord {
+    return diagnostic.type === "warning";
+}
+
+export function isInfoRecord(
+    diagnostic: DiagnosticRecord,
+): diagnostic is InfoRecord {
+    return diagnostic.type === "info";
+}
+
 /**
  * Convert a warning-like record into an error record consumed by Core's
  * `sendDiagnostics` path.
