@@ -3,7 +3,7 @@ import seedrandom from "seedrandom";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { DocViewer } from "./Viewer/DocViewer";
 import { MathJaxContext } from "better-react-mathjax";
-import { mathjaxConfig } from "@doenet/utils";
+import { mathjaxConfig, isErrorRecord, isWarningRecord } from "@doenet/utils";
 import type {
     DiagnosticRecord,
     ErrorRecord,
@@ -59,6 +59,7 @@ export function DoenetViewer({
     documentStructureCallback,
     initializedCallback,
     setDiagnosticsCallback,
+    setErrorsAndWarningsCallback,
     forceDisable = false,
     forceShowCorrectness = false,
     forceShowSolution = false,
@@ -96,6 +97,13 @@ export function DoenetViewer({
     documentStructureCallback?: Function;
     initializedCallback?: Function;
     setDiagnosticsCallback?: (diagnostics: DiagnosticRecord[]) => void;
+    /**
+     * @deprecated Use `setDiagnosticsCallback` instead.
+     */
+    setErrorsAndWarningsCallback?: (errorsAndWarnings: {
+        errors: ErrorRecord[];
+        warnings: WarningRecord[];
+    }) => void;
     forceDisable?: boolean;
     forceShowCorrectness?: boolean;
     forceShowSolution?: boolean;
@@ -153,6 +161,24 @@ export function DoenetViewer({
             setHidden(false);
         }
     }, [isOnPage]);
+
+    useEffect(() => {
+        if (setErrorsAndWarningsCallback) {
+            console.warn(
+                "DoenetViewer: setErrorsAndWarningsCallback is deprecated. Use setDiagnosticsCallback instead.",
+            );
+        }
+    }, []);
+
+    const effectiveDiagnosticsCallback = setErrorsAndWarningsCallback
+        ? (diagnostics: DiagnosticRecord[]) => {
+              setDiagnosticsCallback?.(diagnostics);
+              setErrorsAndWarningsCallback({
+                  errors: diagnostics.filter(isErrorRecord),
+                  warnings: diagnostics.filter(isWarningRecord),
+              });
+          }
+        : setDiagnosticsCallback;
 
     const flags: DoenetMLFlags = { ...defaultFlags, ...specifiedFlags };
 
@@ -235,7 +261,7 @@ export function DoenetViewer({
             generatedVariantCallback={generatedVariantCallback}
             documentStructureCallback={documentStructureCallback}
             initializedCallback={initializedCallback}
-            setDiagnosticsCallback={setDiagnosticsCallback}
+            setDiagnosticsCallback={effectiveDiagnosticsCallback}
             forceDisable={forceDisable}
             forceShowCorrectness={forceShowCorrectness}
             forceShowSolution={forceShowSolution}
