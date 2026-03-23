@@ -4781,7 +4781,7 @@ function calculateInterpolationPoints({ dependencyValues, numerics }) {
         }
     }
 
-    return { setValue: { interpolationPoints }, sendDiagnostics: warnings };
+    return { setValue: { interpolationPoints }, sendDiagnostics: diagnostics };
 
     function monotonicSlope({ point, prevPoint, nextPoint }) {
         // monotonic cubic interpolation formula from

@@ -468,10 +468,19 @@ export default class Core {
         this.updateRenderersCallback({ ...args, init, diagnostics });
     }
 
+    /**
+     * Get pending diagnostics and reset the pending flag.
+     * Automatically trims the diagnostics array to prevent unbounded memory growth.
+     *
+     * @returns {Object} Object containing the current diagnostics array
+     * @note Diagnostics older than the 1000 most recent are discarded to manage memory
+     */
     getDiagnostics() {
-        // Keep only the last diagnostics to avoid unbounded growth.
-        let diagnosticsLimit = 1000;
-        this.diagnostics = this.diagnostics.slice(-diagnosticsLimit);
+        // Keep only the last 1000 diagnostics to avoid unbounded memory growth.
+        // Once the limit is exceeded, older diagnostics are discarded.
+        // This ensures the codebase doesn't accumulate large numbers of stale messages.
+        const MAX_DIAGNOSTICS = 1000;
+        this.diagnostics = this.diagnostics.slice(-MAX_DIAGNOSTICS);
 
         this.hasPendingDiagnostics = false;
 
@@ -3065,19 +3074,10 @@ export default class Core {
             overwriteDoenetMLRange,
         );
         assignDoenetMLRange(diagnostics, position, sourceDoc);
-        assignDoenetMLRange(diagnostics, position, sourceDoc);
 
-        for (const error of diagnostics) {
-            this.addDiagnostic({
-                ...error,
-                type: "error",
-            });
-        }
-        for (const warning of diagnostics) {
-            this.addDiagnostic({
-                ...warning,
-                type: "warning",
-            });
+        // Add all diagnostics, preserving their existing type field
+        for (const diagnostic of diagnostics) {
+            this.addDiagnostic(diagnostic);
         }
     }
 
@@ -7967,14 +7967,15 @@ export default class Core {
                     });
 
                     if (
-                        addedDiagnostic?.type === "error" &&
+                        addedDiagnostic &&
+                        diagnostic?.type === "error" &&
                         this.initialAddPhase
                     ) {
                         this.errorComponentsToAdd.push({
                             componentIdx: component.componentIdx,
-                            message: addedDiagnostic.message,
-                            position: addedDiagnostic.position,
-                            sourceDoc: addedDiagnostic.sourceDoc,
+                            message: diagnostic.message,
+                            position: diagnostic.position,
+                            sourceDoc: diagnostic.sourceDoc,
                         });
                     }
                 }
@@ -10097,7 +10098,7 @@ export default class Core {
         do {
             initialNComponents = this.components.length;
             component.replacementsWorkspace = { ...originalWorkspace };
-            replacementResults =
+            const rawReplacementResults =
                 await component.constructor.calculateReplacementChanges({
                     component: proxiedComponent,
                     componentChanges,
@@ -10112,6 +10113,15 @@ export default class Core {
                     publicCaseInsensitiveAliasSubstitutions:
                         this.publicCaseInsensitiveAliasSubstitutions.bind(this),
                 });
+
+            replacementResults = {
+                replacementChanges:
+                    rawReplacementResults?.replacementChanges ?? [],
+                diagnostics: rawReplacementResults?.diagnostics ?? [],
+                nComponents:
+                    rawReplacementResults?.nComponents ??
+                    this.components.length,
+            };
 
             // If `this.components` changed in length while `calculateReplacementChanges` was executing,
             // it means that some other action (like calling another `calculateReplacementChanges`)
@@ -10137,6 +10147,16 @@ export default class Core {
 
         if (replacementResults.nComponents > this.components.length) {
             this._components[replacementResults.nComponents - 1] = undefined;
+        }
+
+        if (replacementResults.diagnostics.length > 0) {
+            const parent = this.components[component.componentIdx];
+            this.gatherDiagnosticsAndAssignDoenetMLRange({
+                components: [],
+                diagnostics: replacementResults.diagnostics,
+                position: parent.position,
+                sourceDoc: parent.sourceDoc,
+            });
         }
 
         // iterate through all replacement changes

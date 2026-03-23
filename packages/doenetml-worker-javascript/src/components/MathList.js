@@ -704,7 +704,6 @@ export default class MathList extends CompositeComponent {
         workspace,
         nComponents,
     }) {
-        // TODO: don't yet have a way to return diagnostics and diagnostics!
         let diagnostics = [];
 
         let numComponents = await component.stateValues.numComponents;
@@ -735,7 +734,7 @@ export default class MathList extends CompositeComponent {
                     (x, i) => x === componentsToCopy[i],
                 )
             ) {
-                return { replacementChanges: [] };
+                return { replacementChanges: [], diagnostics, nComponents };
             }
         }
 
@@ -762,6 +761,6 @@ export default class MathList extends CompositeComponent {
             },
         ];
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 }

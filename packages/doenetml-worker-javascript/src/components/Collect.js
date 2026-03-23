@@ -466,7 +466,6 @@ export default class Collect extends CompositeComponent {
         // console.log(deepClone(workspace));
         // console.log(component.replacements.map(x => x.componentIdx))
 
-        // TODO: don't yet have a way to return diagnostics and diagnostics!
         let diagnostics = [];
 
         let numReplacementsFoundSoFar = 0;
@@ -667,7 +666,7 @@ export default class Collect extends CompositeComponent {
         );
         workspace.replacementNamesByCollected = replacementNamesByCollected;
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 
     static async recreateReplacements({

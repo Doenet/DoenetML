@@ -435,6 +435,7 @@ export default class PretzelArranger extends CompositeComponent {
                     diagnostics.push({
                         message:
                             'Invalid pretzel: in mode="circuit", the first <problem> cannot be a distractor.',
+                        type: "error",
                     });
                 }
 

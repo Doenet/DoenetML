@@ -211,7 +211,6 @@ export default class Sequence extends CompositeComponent {
     }) {
         // console.log(`calculate replacement changes for ${component.componentIdx}`);
 
-        // TODO: don't yet have a way to return diagnostics and diagnostics!
         let diagnostics = [];
 
         let lrp = { ...workspace.lastReplacementParameters };
@@ -244,7 +243,7 @@ export default class Sequence extends CompositeComponent {
             lrp.length = 0;
             workspace.lastReplacementParameters = lrp;
 
-            return { replacementChanges };
+            return { replacementChanges, diagnostics, nComponents };
         }
 
         let from = await component.stateValues.from;
@@ -466,7 +465,7 @@ export default class Sequence extends CompositeComponent {
 
         workspace.lastReplacementParameters = lrp;
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 
     get allPotentialRendererTypes() {

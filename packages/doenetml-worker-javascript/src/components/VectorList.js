@@ -680,7 +680,6 @@ export default class VectorListComponent extends CompositeComponent {
         workspace,
         nComponents,
     }) {
-        // TODO: don't yet have a way to return diagnostics and diagnostics!
         let diagnostics = [];
 
         let numVectors = await component.stateValues.numVectors;
@@ -705,7 +704,7 @@ export default class VectorListComponent extends CompositeComponent {
                     (x, i) => x === componentsToCopy[i],
                 )
             ) {
-                return { replacementChanges: [] };
+                return { replacementChanges: [], diagnostics, nComponents };
             }
         }
 
@@ -732,6 +731,6 @@ export default class VectorListComponent extends CompositeComponent {
             },
         ];
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 }

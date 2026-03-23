@@ -413,7 +413,6 @@ export default class BooleanList extends CompositeComponent {
         componentInfoObjects,
         workspace,
     }) {
-        // TODO: don't yet have a way to return diagnostics and diagnostics!
         let diagnostics = [];
 
         let numComponents = await component.stateValues.numComponents;
@@ -438,7 +437,7 @@ export default class BooleanList extends CompositeComponent {
                     (x, i) => x === componentsToCopy[i],
                 )
             ) {
-                return [];
+                return { replacementChanges: [], diagnostics, nComponents };
             }
         }
 
@@ -465,6 +464,6 @@ export default class BooleanList extends CompositeComponent {
             },
         ];
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 }

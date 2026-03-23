@@ -656,8 +656,8 @@ export default class Select extends CompositeComponent {
         return { replacements, diagnostics, nComponents };
     }
 
-    static calculateReplacementChanges() {
-        return { replacementChanges: [] };
+    static calculateReplacementChanges({ nComponents }) {
+        return { replacementChanges: [], nComponents };
     }
 
     static determineNumberOfUniqueVariants({

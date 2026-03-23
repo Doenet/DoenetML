@@ -260,7 +260,6 @@ export default class Lorem extends CompositeComponent {
         nComponents,
         workspace,
     }) {
-        // TODO: don't yet have a way to return diagnostics and diagnostics!
         let diagnostics = [];
 
         let replacementResults = await this.createSerializedReplacements({
@@ -280,7 +279,11 @@ export default class Lorem extends CompositeComponent {
             serializedReplacements: replacementResults.replacements,
         };
 
-        return { replacementChanges: [replacementInstruction], nComponents };
+        return {
+            replacementChanges: [replacementInstruction],
+            diagnostics,
+            nComponents,
+        };
     }
 
     static setUpVariant({

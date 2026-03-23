@@ -256,7 +256,6 @@ export default class Intersection extends CompositeComponent {
         nComponents,
         workspace,
     }) {
-        // TODO: don't yet have a way to return diagnostics!
         let diagnostics = [];
 
         let replacementChanges = [];
@@ -320,7 +319,7 @@ export default class Intersection extends CompositeComponent {
         if (recreateReplacements === false) {
             // reset replacementsCreated to overwrite any changes made in createSerializedReplacements
             workspace.replacementsCreated = stateIdInfo.num;
-            return { replacementChanges, nComponents };
+            return { replacementChanges, diagnostics, nComponents };
         }
 
         // replace with new intersection
@@ -335,7 +334,11 @@ export default class Intersection extends CompositeComponent {
 
         // keep the new value of replacementsCreated that was set in createSerializedReplacements
 
-        return { replacementChanges: [replacementInstruction], nComponents };
+        return {
+            replacementChanges: [replacementInstruction],
+            diagnostics,
+            nComponents,
+        };
     }
 }
 

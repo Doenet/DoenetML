@@ -40,7 +40,6 @@ export default class PostponeRenderContainer extends Group {
         nComponents,
         workspace,
     }) {
-        // TODO: don't yet have a way to return diagnostics and diagnostics!
         let diagnostics = [];
 
         // if this is the first time rendered, then create the replacements
@@ -69,13 +68,14 @@ export default class PostponeRenderContainer extends Group {
 
                 return {
                     replacementChanges: [replacementInstruction],
+                    diagnostics,
                     nComponents,
                 };
             } else {
-                return { replacementChanges: [], nComponents };
+                return { replacementChanges: [], diagnostics, nComponents };
             }
         } else {
-            return { replacementChanges: [], nComponents };
+            return { replacementChanges: [], diagnostics, nComponents };
         }
     }
 }

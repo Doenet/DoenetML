@@ -454,7 +454,7 @@ export default class Repeat extends CompositeComponent {
 
         if (allSameChildSubstitutionNames) {
             // if all childSubstitutionNames are unchanged, don't do anything
-            return { replacementChanges: [], nComponents };
+            return { replacementChanges: [], diagnostics, nComponents };
         }
 
         if (recreateReplacements) {
@@ -489,7 +489,7 @@ export default class Repeat extends CompositeComponent {
                 withheldSubstitutionChildNames: [],
             };
 
-            return { replacementChanges, nComponents };
+            return { replacementChanges, diagnostics, nComponents };
         }
 
         let currentNumIterates = await component.stateValues.numIterates;
@@ -635,7 +635,7 @@ export default class Repeat extends CompositeComponent {
             withheldSubstitutionChildNames,
         };
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 
     static setUpVariant({

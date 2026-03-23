@@ -297,8 +297,8 @@ export default class SelectPrimeNumbers extends CompositeComponent {
         };
     }
 
-    static calculateReplacementChanges() {
-        return { replacementChanges: [] };
+    static calculateReplacementChanges({ nComponents }) {
+        return { replacementChanges: [], nComponents };
     }
 
     static determineNumberOfUniqueVariants({ serializedComponent }) {

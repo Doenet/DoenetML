@@ -375,7 +375,6 @@ export default class Shuffle extends CompositeComponent {
         workspace,
         nComponents,
     }) {
-        // TODO: don't yet have a way to return diagnostics!
         let diagnostics = [];
 
         let componentsToCopy = [];
@@ -398,7 +397,7 @@ export default class Shuffle extends CompositeComponent {
                 (x, i) => x === componentsToCopy[i],
             )
         ) {
-            return { replacementChanges: [], nComponents };
+            return { replacementChanges: [], diagnostics, nComponents };
         }
 
         // for now, just recreate
@@ -424,7 +423,7 @@ export default class Shuffle extends CompositeComponent {
             },
         ];
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 
     static determineNumberOfUniqueVariants({

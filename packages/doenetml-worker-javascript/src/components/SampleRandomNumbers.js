@@ -687,7 +687,6 @@ export default class SampleRandomNumbers extends CompositeComponent {
         nComponents,
         workspace,
     }) {
-        // TODO: don't yet have a way to return diagnostics and diagnostics!
         let diagnostics = [];
 
         let replacementChanges = [];
@@ -753,7 +752,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
             replacementChanges.push(replacementInstruction);
         }
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 
     static setUpVariant({

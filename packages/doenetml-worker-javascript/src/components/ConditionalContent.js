@@ -278,13 +278,12 @@ export default class ConditionalContent extends CompositeComponent {
         // console.log(workspace.previousSelectedIndex);
         // console.log(component.stateValues.selectedIndex);
 
-        // TODO: don't yet have a way to return diagnostics and diagnostics!
         const diagnostics = [];
 
         const selectedIndex = await component.stateValues.selectedIndex;
 
         if (workspace.previousSelectedIndex === selectedIndex) {
-            return { replacementChanges: [], nComponents };
+            return { replacementChanges: [], diagnostics, nComponents };
         }
 
         const numCases = await component.stateValues.numCases;
@@ -305,6 +304,7 @@ export default class ConditionalContent extends CompositeComponent {
 
                 return {
                     replacementChanges: [replacementInstruction],
+                    diagnostics,
                     nComponents,
                 };
             } else {
@@ -330,6 +330,7 @@ export default class ConditionalContent extends CompositeComponent {
 
                     return {
                         replacementChanges: [replacementInstruction],
+                        diagnostics,
                         nComponents,
                     };
                 }
@@ -361,7 +362,7 @@ export default class ConditionalContent extends CompositeComponent {
 
         workspace.previousSelectedIndex = selectedIndex;
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 
     static setUpVariant({

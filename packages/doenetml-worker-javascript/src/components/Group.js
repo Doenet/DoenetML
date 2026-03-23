@@ -316,7 +316,6 @@ export default class Group extends CompositeComponent {
         nComponents,
         workspace,
     }) {
-        // TODO: don't yet have a way to return diagnostics and diagnostics!
         let diagnostics = [];
 
         if (!(await component.stateValues.rendered)) {
@@ -329,9 +328,13 @@ export default class Group extends CompositeComponent {
                     changeType: "changeReplacementsToWithhold",
                     replacementsToWithhold,
                 };
-                return { replacementChanges: [replacementInstruction] };
+                return {
+                    replacementChanges: [replacementInstruction],
+                    diagnostics,
+                    nComponents,
+                };
             } else {
-                return { replacementChanges: [] };
+                return { replacementChanges: [], diagnostics, nComponents };
             }
         } else {
             if (component.replacements.length > 0) {
@@ -340,9 +343,13 @@ export default class Group extends CompositeComponent {
                         changeType: "changeReplacementsToWithhold",
                         replacementsToWithhold: 0,
                     };
-                    return { replacementChanges: [replacementInstruction] };
+                    return {
+                        replacementChanges: [replacementInstruction],
+                        diagnostics,
+                        nComponents,
+                    };
                 } else {
-                    return { replacementChanges: [] };
+                    return { replacementChanges: [], diagnostics, nComponents };
                 }
             } else {
                 let createResult = await this.createSerializedReplacements({
@@ -367,6 +374,7 @@ export default class Group extends CompositeComponent {
 
                 return {
                     replacementChanges: [replacementInstruction],
+                    diagnostics,
                     nComponents,
                 };
             }

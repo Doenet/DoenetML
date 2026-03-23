@@ -453,7 +453,7 @@ export default class RepeatForSequence extends CompositeComponent {
 
             workspace.lastReplacementParameters = lrp;
 
-            return { replacementChanges };
+            return { replacementChanges, diagnostics, nComponents };
         }
 
         let from = await component.stateValues.from;
@@ -626,7 +626,7 @@ export default class RepeatForSequence extends CompositeComponent {
 
         workspace.lastReplacementParameters = lrp;
 
-        return { replacementChanges, nComponents };
+        return { replacementChanges, diagnostics, nComponents };
     }
 
     static setUpVariant({

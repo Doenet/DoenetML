@@ -1598,11 +1598,10 @@ export default class Copy extends CompositeComponent {
         //   "Calculating replacement changes for " + component.componentIdx,
         // );
 
-        // TODO: don't yet have a way to return diagnostics!
         let diagnostics = [];
 
         if ((await component.stateValues.link) === false) {
-            return { replacementChanges: [], nComponents };
+            return { replacementChanges: [], diagnostics, nComponents };
         }
 
         let compositeAttributesObj = this.createAttributesObject();
@@ -1660,7 +1659,7 @@ export default class Copy extends CompositeComponent {
                 // didn't have sources before and still don't have sources.
                 // we're just getting filler components being recreated.
                 // Don't actually make those changes
-                return { replacementChanges: [], nComponents };
+                return { replacementChanges: [], diagnostics, nComponents };
             }
 
             addAttributesToSingleReplacementChange(
@@ -1673,6 +1672,7 @@ export default class Copy extends CompositeComponent {
 
             return {
                 replacementChanges: verificationResult.replacementChanges,
+                diagnostics,
                 nComponents,
             };
         }
@@ -1720,7 +1720,7 @@ export default class Copy extends CompositeComponent {
 
             workspace.replacementsCreated = stateIdInfo.num;
 
-            return { replacementChanges, nComponents };
+            return { replacementChanges, diagnostics, nComponents };
         }
 
         // resolve determine dependencies of replacementSources
@@ -2251,7 +2251,7 @@ export default class Copy extends CompositeComponent {
             // didn't have sources before and still don't have sources.
             // we're just getting filler components being recreated.
             // Don't actually make those changes
-            return { replacementChanges: [] };
+            return { replacementChanges: [], diagnostics, nComponents };
         }
 
         addAttributesToSingleReplacementChange(
@@ -2267,6 +2267,7 @@ export default class Copy extends CompositeComponent {
 
         return {
             replacementChanges,
+            diagnostics,
             nComponents,
         };
     }

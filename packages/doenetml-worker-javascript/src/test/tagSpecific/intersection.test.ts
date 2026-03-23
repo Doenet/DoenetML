@@ -257,6 +257,67 @@ describe("Intersection tag tests @group1", async () => {
         expect(diagnosticsByType.warnings[0].position.end.column).eq(41);
     });
 
+    it("show warning generated dynamically by calculateReplacementChanges", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <booleanInput name="showThird" prefill="false"><label>Show third line</label></booleanInput>
+
+  <graph>
+    <shortDescription>intersections</shortDescription>
+    <line name="l1" />
+    <line name="l2" through="(1,2) (3,4)" />
+        <conditionalContent condition="$showThird" name="cc">
+            <line name="l3" through="(-1,2) (-3,4)" />
+        </conditionalContent>
+        <intersection>$l1$l2$cc.l3</intersection>
+  </graph>
+  `,
+        });
+
+        let diagnosticsByType = getDiagnosticsByType(core);
+        const initialRelevantWarningCount = diagnosticsByType.warnings.filter(
+            (w) =>
+                w.message?.includes(
+                    "Haven't implemented intersection for more than two items",
+                ),
+        ).length;
+        expect(initialRelevantWarningCount).eq(0);
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("showThird"),
+            core,
+        });
+
+        diagnosticsByType = getDiagnosticsByType(core);
+        const relevantWarnings = diagnosticsByType.warnings.filter((w) =>
+            w.message?.includes(
+                "Haven't implemented intersection for more than two items",
+            ),
+        );
+        expect(relevantWarnings.length).eq(1);
+        expect(relevantWarnings[0].position).toBeDefined();
+
+        // TODO: determine when warnings become obsolete and remove them,
+        // Then uncomment the following code to check that the warning is removed.
+        // See issue #958.
+
+        // await updateBooleanInputValue({
+        //     boolean: false,
+        //     componentIdx: await resolvePathToNodeIdx("showThird"),
+        //     core,
+        // });
+
+        // diagnosticsByType = getDiagnosticsByType(core);
+        // const relevantWarningsAfterReverting = diagnosticsByType.warnings.filter(
+        //     (w) =>
+        //         w.message?.includes(
+        //             "Haven't implemented intersection for more than two items",
+        //         ),
+        // );
+        // expect(relevantWarningsAfterReverting.length).eq(0);
+    });
+
     it("intersection of two lines hides dynamically", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
