@@ -2,6 +2,15 @@ import type { Position, Point } from "@doenet/parser";
 
 export type { Position, Point };
 
+export type DiagnosticType = "error" | "warning" | "info";
+
+export type DiagnosticRecord = {
+    type: DiagnosticType;
+    message: string;
+    position?: Position;
+    sourceDoc?: number;
+};
+
 export type ErrorRecord = {
     type: "error";
     message: string;
@@ -25,7 +34,7 @@ export type InfoRecord = {
 
 /**
  * Convert a warning-like record into an error record consumed by Core's
- * `sendErrors` path.
+ * `sendDiagnostics` path.
  */
 export function warningRecordToErrorRecord<T extends Record<string, any>>(
     warning: T,
@@ -40,27 +49,27 @@ export function warningRecordToErrorRecord<T extends Record<string, any>>(
  * Build the state-variable definition return payload for accessibility checks.
  *
  * When `upgradeWarningsToErrors` is true, warnings are emitted through
- * `sendErrors` so they are surfaced as errors and can create `_error`
+ * `sendDiagnostics` so they are surfaced as errors and can create `_error`
  * components.
  */
 export function accessibilityWarningsResult<T extends Record<string, any>>({
     setValue,
-    warnings,
+    diagnostics,
     upgradeWarningsToErrors,
 }: {
     setValue: T;
-    warnings: Record<string, any>[];
+    diagnostics: DiagnosticRecord[];
     upgradeWarningsToErrors: boolean;
 }) {
     if (upgradeWarningsToErrors) {
         return {
             setValue,
-            sendErrors: warnings.map(warningRecordToErrorRecord),
+            sendDiagnostics: diagnostics.map(warningRecordToErrorRecord),
         };
     }
 
     return {
         setValue,
-        sendWarnings: warnings,
+        sendDiagnostics: diagnostics,
     };
 }
