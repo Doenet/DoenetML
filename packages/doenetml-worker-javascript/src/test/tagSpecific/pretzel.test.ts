@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { submitAnswer, updateTextInputValue } from "../utils/actions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -202,18 +203,18 @@ describe("Pretzel tag tests @group1", async () => {
     `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             "Invalid pretzel: each <problem> must contain one <statement> and one <answer>.",
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.start.column).eq(5);
-        expect(errorWarnings.warnings[0].position.end.line).eq(15);
-        expect(errorWarnings.warnings[0].position.end.column).eq(15);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(15);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(15);
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         await expectNamedChildrenTextMap({
@@ -729,10 +730,10 @@ describe("Pretzel tag tests @group1", async () => {
     `,
         });
 
-        const errorWarnings = core.core!.errorWarnings;
+        const diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(1);
-        expect(errorWarnings.errors[0].message).contain(
+        expect(diagnosticsByType.errors.length).eq(1);
+        expect(diagnosticsByType.errors[0].message).contain(
             'Invalid pretzel: in mode="circuit", the first <problem> cannot be a distractor.',
         );
 

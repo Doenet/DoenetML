@@ -8,6 +8,7 @@ import {
     updateValue,
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -3944,22 +3945,22 @@ describe("ChoiceInput tag tests @group4", async () => {
             `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(2);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(2);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             `<choiceInput> must have a short description or a label`,
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.line).eq(5);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(5);
 
-        expect(errorWarnings.warnings[1].message).contain(
+        expect(diagnosticsByType.warnings[1].message).contain(
             `<choiceInput> must have a short description or a label`,
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(18);
-        expect(errorWarnings.warnings[1].position.end.line).eq(21);
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(18);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(21);
     });
 
     it("upgrade warning to error if no short description or label", async () => {
@@ -3989,22 +3990,22 @@ describe("ChoiceInput tag tests @group4", async () => {
             flags: { upgradeAccessibilityWarningsToErrors: true },
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(2);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(2);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain(
+        expect(diagnosticsByType.errors[0].message).contain(
             `<choiceInput> must have a short description or a label`,
         );
-        expect(errorWarnings.errors[0].position.start.line).eq(2);
-        expect(errorWarnings.errors[0].position.end.line).eq(5);
+        expect(diagnosticsByType.errors[0].position.start.line).eq(2);
+        expect(diagnosticsByType.errors[0].position.end.line).eq(5);
 
-        expect(errorWarnings.errors[1].message).contain(
+        expect(diagnosticsByType.errors[1].message).contain(
             `<choiceInput> must have a short description or a label`,
         );
-        expect(errorWarnings.errors[1].position.start.line).eq(18);
-        expect(errorWarnings.errors[1].position.end.line).eq(21);
+        expect(diagnosticsByType.errors[1].position.start.line).eq(18);
+        expect(diagnosticsByType.errors[1].position.end.line).eq(21);
     });
 
     it("warning if labelPosition is used on non-inline choiceInput, with attribute-level position", async () => {
@@ -4020,22 +4021,22 @@ ${tagLine}
     `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
-        expect(errorWarnings.warnings[0].message).eq(
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.warnings[0].message).eq(
             "labelPosition is ignored for non-inline choiceInput",
         );
 
         const expectedStartColumn = tagLine.indexOf("labelPosition") + 1;
         const expectedEndColumn = tagLine.indexOf(">") + 1;
-        expect(errorWarnings.warnings[0].position.start.line).eq(2);
-        expect(errorWarnings.warnings[0].position.end.line).eq(2);
-        expect(errorWarnings.warnings[0].position.start.column).eq(
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(
             expectedStartColumn,
         );
-        expect(errorWarnings.warnings[0].position.end.column).eq(
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(
             expectedEndColumn,
         );
     });

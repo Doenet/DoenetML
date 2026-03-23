@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -70,8 +71,8 @@ describe("P tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq("Bye paragraph 2");
 
-        let errorWarnings = core.core!.errorWarnings;
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(0);
+        let diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
     });
 });

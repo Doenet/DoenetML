@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
@@ -384,16 +385,18 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
     `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(1);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(1);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain("Excluded over 70%");
-        expect(errorWarnings.errors[0].position.start.line).eq(2);
-        expect(errorWarnings.errors[0].position.start.column).eq(5);
-        expect(errorWarnings.errors[0].position.end.line).eq(2);
-        expect(errorWarnings.errors[0].position.end.column).eq(113);
+        expect(diagnosticsByType.errors[0].message).contain(
+            "Excluded over 70%",
+        );
+        expect(diagnosticsByType.errors[0].position.start.line).eq(2);
+        expect(diagnosticsByType.errors[0].position.start.column).eq(5);
+        expect(diagnosticsByType.errors[0].position.end.line).eq(2);
+        expect(diagnosticsByType.errors[0].position.end.column).eq(113);
     });
 
     it("select 10 prime numbers from the first 10, without replacement, exclude positions of each number", async () => {

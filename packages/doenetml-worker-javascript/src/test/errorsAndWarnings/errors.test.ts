@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -26,24 +27,26 @@ describe("Error Tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("bad")].componentType,
         ).eq("_error");
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(2);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(2);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain("has no closing tag");
-        expect(errorWarnings.errors[0].position.start.line).eq(4);
-        expect(errorWarnings.errors[0].position.start.column).eq(1);
-        expect(errorWarnings.errors[0].position.end.line).eq(4);
-        expect(errorWarnings.errors[0].position.end.column).eq(18);
+        expect(diagnosticsByType.errors[0].message).contain(
+            "has no closing tag",
+        );
+        expect(diagnosticsByType.errors[0].position.start.line).eq(4);
+        expect(diagnosticsByType.errors[0].position.start.column).eq(1);
+        expect(diagnosticsByType.errors[0].position.end.line).eq(4);
+        expect(diagnosticsByType.errors[0].position.end.column).eq(18);
 
-        expect(errorWarnings.errors[1].message).contain(
+        expect(diagnosticsByType.errors[1].message).contain(
             "Mismatched closing tag",
         );
-        expect(errorWarnings.errors[1].position.start.line).eq(4);
-        expect(errorWarnings.errors[1].position.start.column).eq(21);
-        expect(errorWarnings.errors[1].position.end.line).eq(4);
-        expect(errorWarnings.errors[1].position.end.column).eq(30);
+        expect(diagnosticsByType.errors[1].position.start.line).eq(4);
+        expect(diagnosticsByType.errors[1].position.start.column).eq(21);
+        expect(diagnosticsByType.errors[1].position.end.line).eq(4);
+        expect(diagnosticsByType.errors[1].position.end.column).eq(30);
     });
 
     it("Mismatched tags at base level, component with canDisplayChildErrors", async () => {
@@ -67,24 +70,26 @@ describe("Error Tests @group2", async () => {
             ].stateValues.text.trim(),
         ).eq("bye");
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(2);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(2);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain("has no closing tag");
-        expect(errorWarnings.errors[0].position.start.line).eq(4);
-        expect(errorWarnings.errors[0].position.start.column).eq(1);
-        expect(errorWarnings.errors[0].position.end.line).eq(4);
-        expect(errorWarnings.errors[0].position.end.column).eq(15);
+        expect(diagnosticsByType.errors[0].message).contain(
+            "has no closing tag",
+        );
+        expect(diagnosticsByType.errors[0].position.start.line).eq(4);
+        expect(diagnosticsByType.errors[0].position.start.column).eq(1);
+        expect(diagnosticsByType.errors[0].position.end.line).eq(4);
+        expect(diagnosticsByType.errors[0].position.end.column).eq(15);
 
-        expect(errorWarnings.errors[1].message).contain(
+        expect(diagnosticsByType.errors[1].message).contain(
             "Mismatched closing tag",
         );
-        expect(errorWarnings.errors[1].position.start.line).eq(4);
-        expect(errorWarnings.errors[1].position.start.column).eq(18);
-        expect(errorWarnings.errors[1].position.end.line).eq(4);
-        expect(errorWarnings.errors[1].position.end.column).eq(27);
+        expect(diagnosticsByType.errors[1].position.start.line).eq(4);
+        expect(diagnosticsByType.errors[1].position.start.column).eq(18);
+        expect(diagnosticsByType.errors[1].position.end.line).eq(4);
+        expect(diagnosticsByType.errors[1].position.end.column).eq(27);
     });
 
     it("Mismatched tags in section, later tags outside survive", async () => {
@@ -115,24 +120,26 @@ describe("Error Tests @group2", async () => {
                 .tree,
         ).eq("x");
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(2);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(2);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain("has no closing tag");
-        expect(errorWarnings.errors[0].position.start.line).eq(4);
-        expect(errorWarnings.errors[0].position.start.column).eq(3);
-        expect(errorWarnings.errors[0].position.end.line).eq(4);
-        expect(errorWarnings.errors[0].position.end.column).eq(20);
+        expect(diagnosticsByType.errors[0].message).contain(
+            "has no closing tag",
+        );
+        expect(diagnosticsByType.errors[0].position.start.line).eq(4);
+        expect(diagnosticsByType.errors[0].position.start.column).eq(3);
+        expect(diagnosticsByType.errors[0].position.end.line).eq(4);
+        expect(diagnosticsByType.errors[0].position.end.column).eq(20);
 
-        expect(errorWarnings.errors[1].message).contain(
+        expect(diagnosticsByType.errors[1].message).contain(
             "Mismatched closing tag",
         );
-        expect(errorWarnings.errors[1].position.start.line).eq(4);
-        expect(errorWarnings.errors[1].position.start.column).eq(23);
-        expect(errorWarnings.errors[1].position.end.line).eq(4);
-        expect(errorWarnings.errors[1].position.end.column).eq(32);
+        expect(diagnosticsByType.errors[1].position.start.line).eq(4);
+        expect(diagnosticsByType.errors[1].position.start.column).eq(23);
+        expect(diagnosticsByType.errors[1].position.end.line).eq(4);
+        expect(diagnosticsByType.errors[1].position.end.column).eq(32);
     });
 
     it("More parsing errors", async () => {
@@ -170,60 +177,67 @@ describe("Error Tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("_p3")].stateValues.text,
         ).eq("Hello there!");
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(7);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(7);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain(`no closing tag`);
-        expect(errorWarnings.errors[0].position.start.line).eq(3);
-        expect(errorWarnings.errors[0].position.start.column).eq(3);
-        expect(errorWarnings.errors[0].position.end.line).eq(3);
-        expect(errorWarnings.errors[0].position.end.column).eq(19);
-
-        expect(errorWarnings.errors[1].message).contain(
-            "no corresponding opening tag",
+        const firstNoClosingTag = diagnosticsByType.errors.find((error) =>
+            error.message.includes("no closing tag"),
         );
-        expect(errorWarnings.errors[1].position.start.line).eq(7);
-        expect(errorWarnings.errors[1].position.start.column).eq(1);
-        expect(errorWarnings.errors[1].position.end.line).eq(7);
-        expect(errorWarnings.errors[1].position.end.column).eq(7);
+        expect(firstNoClosingTag?.position.start.line).eq(3);
+        expect(firstNoClosingTag?.position.start.column).eq(3);
+        expect(firstNoClosingTag?.position.end.line).eq(3);
+        expect(firstNoClosingTag?.position.end.column).eq(19);
 
-        expect(errorWarnings.errors[2].message).contain("was not closed");
-        expect(errorWarnings.errors[2].position.start.line).eq(9);
-        expect(errorWarnings.errors[2].position.start.column).eq(1);
-        expect(errorWarnings.errors[2].position.end.line).eq(9);
-        expect(errorWarnings.errors[2].position.end.column).eq(3);
-
-        expect(errorWarnings.errors[3].message).contain("no closing tag");
-        expect(errorWarnings.errors[3].position.start.line).eq(11);
-        expect(errorWarnings.errors[3].position.start.column).eq(1);
-        expect(errorWarnings.errors[3].position.end.line).eq(11);
-        expect(errorWarnings.errors[3].position.end.column).eq(21);
-
-        expect(errorWarnings.errors[4].message).contain(
-            "Invalid component type: <apple>",
+        const noOpeningTag = diagnosticsByType.errors.find((error) =>
+            error.message.includes("no corresponding opening tag"),
         );
-        expect(errorWarnings.errors[4].position.start.line).eq(17);
-        expect(errorWarnings.errors[4].position.start.column).eq(3);
-        expect(errorWarnings.errors[4].position.end.line).eq(17);
-        expect(errorWarnings.errors[4].position.end.column).eq(42);
+        expect(noOpeningTag?.position.start.line).eq(7);
+        expect(noOpeningTag?.position.start.column).eq(1);
+        expect(noOpeningTag?.position.end.line).eq(7);
+        expect(noOpeningTag?.position.end.column).eq(7);
 
-        expect(errorWarnings.errors[5].message).contain(
-            "Invalid component type: <banana>",
+        const notClosedTag = diagnosticsByType.errors.find((error) =>
+            error.message.includes("was not closed"),
         );
-        expect(errorWarnings.errors[5].position.start.line).eq(18);
-        expect(errorWarnings.errors[5].position.start.column).eq(3);
-        expect(errorWarnings.errors[5].position.end.line).eq(18);
-        expect(errorWarnings.errors[5].position.end.column).eq(31);
+        expect(notClosedTag?.position.start.line).eq(9);
+        expect(notClosedTag?.position.start.column).eq(1);
+        expect(notClosedTag?.position.end.line).eq(9);
+        expect(notClosedTag?.position.end.column).eq(3);
 
-        expect(errorWarnings.errors[6].message).contain(
-            `Invalid attribute "h"`,
+        const secondNoClosingTag = diagnosticsByType.errors.find(
+            (error) =>
+                error.message.includes("no closing tag") &&
+                error.position?.start.line === 11,
         );
-        expect(errorWarnings.errors[6].position.start.line).eq(9);
-        expect(errorWarnings.errors[6].position.start.column).eq(1);
-        expect(errorWarnings.errors[6].position.end.line).eq(19);
-        expect(errorWarnings.errors[6].position.end.column).eq(3);
+        expect(secondNoClosingTag?.position.start.column).eq(1);
+        expect(secondNoClosingTag?.position.end.line).eq(11);
+        expect(secondNoClosingTag?.position.end.column).eq(21);
+
+        const invalidApple = diagnosticsByType.errors.find((error) =>
+            error.message.includes("Invalid component type: <apple>"),
+        );
+        expect(invalidApple?.position.start.line).eq(17);
+        expect(invalidApple?.position.start.column).eq(3);
+        expect(invalidApple?.position.end.line).eq(17);
+        expect(invalidApple?.position.end.column).eq(42);
+
+        const invalidBanana = diagnosticsByType.errors.find((error) =>
+            error.message.includes("Invalid component type: <banana>"),
+        );
+        expect(invalidBanana?.position.start.line).eq(18);
+        expect(invalidBanana?.position.start.column).eq(3);
+        expect(invalidBanana?.position.end.line).eq(18);
+        expect(invalidBanana?.position.end.column).eq(31);
+
+        const invalidAttributeH = diagnosticsByType.errors.find((error) =>
+            error.message.includes(`Invalid attribute "h"`),
+        );
+        expect(invalidAttributeH?.position.start.line).eq(9);
+        expect(invalidAttributeH?.position.start.column).eq(1);
+        expect(invalidAttributeH?.position.end.line).eq(19);
+        expect(invalidAttributeH?.position.end.column).eq(3);
     });
 
     it("Parsing errors, correctly find end of self-closing tag", async () => {
@@ -246,66 +260,66 @@ a />
   `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(7);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(7);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain(
+        expect(diagnosticsByType.errors[0].message).contain(
             "Invalid component type: <abc>",
         );
-        expect(errorWarnings.errors[0].position.start.line).eq(2);
-        expect(errorWarnings.errors[0].position.start.column).eq(1);
-        expect(errorWarnings.errors[0].position.end.line).eq(2);
-        expect(errorWarnings.errors[0].position.end.column).eq(8);
+        expect(diagnosticsByType.errors[0].position.start.line).eq(2);
+        expect(diagnosticsByType.errors[0].position.start.column).eq(1);
+        expect(diagnosticsByType.errors[0].position.end.line).eq(2);
+        expect(diagnosticsByType.errors[0].position.end.column).eq(8);
 
-        expect(errorWarnings.errors[1].message).contain(
+        expect(diagnosticsByType.errors[1].message).contain(
             "Invalid component type: <bcd>",
         );
-        expect(errorWarnings.errors[1].position.start.line).eq(3);
-        expect(errorWarnings.errors[1].position.start.column).eq(3);
-        expect(errorWarnings.errors[1].position.end.line).eq(3);
-        expect(errorWarnings.errors[1].position.end.column).eq(12);
+        expect(diagnosticsByType.errors[1].position.start.line).eq(3);
+        expect(diagnosticsByType.errors[1].position.start.column).eq(3);
+        expect(diagnosticsByType.errors[1].position.end.line).eq(3);
+        expect(diagnosticsByType.errors[1].position.end.column).eq(12);
 
-        expect(errorWarnings.errors[2].message).contain(
+        expect(diagnosticsByType.errors[2].message).contain(
             "Invalid component type: <cde>",
         );
-        expect(errorWarnings.errors[2].position.start.line).eq(4);
-        expect(errorWarnings.errors[2].position.start.column).eq(1);
-        expect(errorWarnings.errors[2].position.end.line).eq(5);
-        expect(errorWarnings.errors[2].position.end.column).eq(3);
+        expect(diagnosticsByType.errors[2].position.start.line).eq(4);
+        expect(diagnosticsByType.errors[2].position.start.column).eq(1);
+        expect(diagnosticsByType.errors[2].position.end.line).eq(5);
+        expect(diagnosticsByType.errors[2].position.end.column).eq(3);
 
-        expect(errorWarnings.errors[3].message).contain(
+        expect(diagnosticsByType.errors[3].message).contain(
             "Invalid component type: <def>",
         );
-        expect(errorWarnings.errors[3].position.start.line).eq(6);
-        expect(errorWarnings.errors[3].position.start.column).eq(5);
-        expect(errorWarnings.errors[3].position.end.line).eq(8);
-        expect(errorWarnings.errors[3].position.end.column).eq(3);
+        expect(diagnosticsByType.errors[3].position.start.line).eq(6);
+        expect(diagnosticsByType.errors[3].position.start.column).eq(5);
+        expect(diagnosticsByType.errors[3].position.end.line).eq(8);
+        expect(diagnosticsByType.errors[3].position.end.column).eq(3);
 
-        expect(errorWarnings.errors[4].message).contain(
+        expect(diagnosticsByType.errors[4].message).contain(
             "Invalid component type: <efg>",
         );
-        expect(errorWarnings.errors[4].position.start.line).eq(9);
-        expect(errorWarnings.errors[4].position.start.column).eq(1);
-        expect(errorWarnings.errors[4].position.end.line).eq(10);
-        expect(errorWarnings.errors[4].position.end.column).eq(4);
+        expect(diagnosticsByType.errors[4].position.start.line).eq(9);
+        expect(diagnosticsByType.errors[4].position.start.column).eq(1);
+        expect(diagnosticsByType.errors[4].position.end.line).eq(10);
+        expect(diagnosticsByType.errors[4].position.end.column).eq(4);
 
-        expect(errorWarnings.errors[5].message).contain(
+        expect(diagnosticsByType.errors[5].message).contain(
             "Invalid component type: <fgh>",
         );
-        expect(errorWarnings.errors[5].position.start.line).eq(11);
-        expect(errorWarnings.errors[5].position.start.column).eq(1);
-        expect(errorWarnings.errors[5].position.end.line).eq(12);
-        expect(errorWarnings.errors[5].position.end.column).eq(5);
+        expect(diagnosticsByType.errors[5].position.start.line).eq(11);
+        expect(diagnosticsByType.errors[5].position.start.column).eq(1);
+        expect(diagnosticsByType.errors[5].position.end.line).eq(12);
+        expect(diagnosticsByType.errors[5].position.end.column).eq(5);
 
-        expect(errorWarnings.errors[6].message).contain(
+        expect(diagnosticsByType.errors[6].message).contain(
             "Invalid component type: <ghi>",
         );
-        expect(errorWarnings.errors[6].position.start.line).eq(13);
-        expect(errorWarnings.errors[6].position.start.column).eq(1);
-        expect(errorWarnings.errors[6].position.end.line).eq(14);
-        expect(errorWarnings.errors[6].position.end.column).eq(7);
+        expect(diagnosticsByType.errors[6].position.start.line).eq(13);
+        expect(diagnosticsByType.errors[6].position.start.column).eq(1);
+        expect(diagnosticsByType.errors[6].position.end.line).eq(14);
+        expect(diagnosticsByType.errors[6].position.end.column).eq(7);
     });
 
     it("Naming errors", async () => {
@@ -322,34 +336,34 @@ a />
     `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(3);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(3);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain(
+        expect(diagnosticsByType.errors[0].message).contain(
             "Invalid attribute name='_p'",
         );
-        expect(errorWarnings.errors[0].position.start.line).eq(2);
-        expect(errorWarnings.errors[0].position.start.column).eq(4);
-        expect(errorWarnings.errors[0].position.end.line).eq(2);
-        expect(errorWarnings.errors[0].position.end.column).eq(13);
+        expect(diagnosticsByType.errors[0].position.start.line).eq(2);
+        expect(diagnosticsByType.errors[0].position.start.column).eq(4);
+        expect(diagnosticsByType.errors[0].position.end.line).eq(2);
+        expect(diagnosticsByType.errors[0].position.end.column).eq(13);
 
-        expect(errorWarnings.errors[1].message).contain(
+        expect(diagnosticsByType.errors[1].message).contain(
             "Invalid attribute name='p@'",
         );
-        expect(errorWarnings.errors[1].position.start.line).eq(3);
-        expect(errorWarnings.errors[1].position.start.column).eq(8);
-        expect(errorWarnings.errors[1].position.end.line).eq(3);
-        expect(errorWarnings.errors[1].position.end.column).eq(17);
+        expect(diagnosticsByType.errors[1].position.start.line).eq(3);
+        expect(diagnosticsByType.errors[1].position.start.column).eq(8);
+        expect(diagnosticsByType.errors[1].position.end.line).eq(3);
+        expect(diagnosticsByType.errors[1].position.end.column).eq(17);
 
-        expect(errorWarnings.errors[2].message).contain(
+        expect(diagnosticsByType.errors[2].message).contain(
             "Invalid attribute name=''",
         );
-        expect(errorWarnings.errors[2].position.start.line).eq(8);
-        expect(errorWarnings.errors[2].position.start.column).eq(4);
-        expect(errorWarnings.errors[2].position.end.line).eq(8);
-        expect(errorWarnings.errors[2].position.end.column).eq(8);
+        expect(diagnosticsByType.errors[2].position.start.line).eq(8);
+        expect(diagnosticsByType.errors[2].position.start.column).eq(4);
+        expect(diagnosticsByType.errors[2].position.end.line).eq(8);
+        expect(diagnosticsByType.errors[2].position.end.column).eq(8);
     });
 
     it("Abstract component give invalid component type", async () => {
@@ -360,26 +374,26 @@ a />
     `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(2);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(2);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain(
+        expect(diagnosticsByType.errors[0].message).contain(
             'Invalid component name "_base"',
         );
-        expect(errorWarnings.errors[0].position.start.line).eq(2);
-        expect(errorWarnings.errors[0].position.start.column).eq(1);
-        expect(errorWarnings.errors[0].position.end.line).eq(2);
-        expect(errorWarnings.errors[0].position.end.column).eq(10);
+        expect(diagnosticsByType.errors[0].position.start.line).eq(2);
+        expect(diagnosticsByType.errors[0].position.start.column).eq(1);
+        expect(diagnosticsByType.errors[0].position.end.line).eq(2);
+        expect(diagnosticsByType.errors[0].position.end.column).eq(10);
 
-        expect(errorWarnings.errors[1].message).contain(
+        expect(diagnosticsByType.errors[1].message).contain(
             'Invalid component name "_inline"',
         );
-        expect(errorWarnings.errors[1].position.start.line).eq(3);
-        expect(errorWarnings.errors[1].position.start.column).eq(1);
-        expect(errorWarnings.errors[1].position.end.line).eq(3);
-        expect(errorWarnings.errors[1].position.end.column).eq(25);
+        expect(diagnosticsByType.errors[1].position.start.line).eq(3);
+        expect(diagnosticsByType.errors[1].position.start.column).eq(1);
+        expect(diagnosticsByType.errors[1].position.end.line).eq(3);
+        expect(diagnosticsByType.errors[1].position.end.column).eq(25);
     });
 
     it("Invalid attribute errors", async () => {
@@ -391,18 +405,18 @@ a />
     `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(1);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(1);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain(
+        expect(diagnosticsByType.errors[0].message).contain(
             `Invalid attribute "bad" for a component of type <p>`,
         );
-        expect(errorWarnings.errors[0].position.start.line).eq(3);
-        expect(errorWarnings.errors[0].position.start.column).eq(5);
-        expect(errorWarnings.errors[0].position.end.line).eq(3);
-        expect(errorWarnings.errors[0].position.end.column).eq(34);
+        expect(diagnosticsByType.errors[0].position.start.line).eq(3);
+        expect(diagnosticsByType.errors[0].position.start.column).eq(5);
+        expect(diagnosticsByType.errors[0].position.end.line).eq(3);
+        expect(diagnosticsByType.errors[0].position.end.column).eq(34);
     });
 
     // TODO: decide what to do about circular references
@@ -450,43 +464,43 @@ a />
                 .tree,
         ).eq("＿");
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(4);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(4);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain(
+        expect(diagnosticsByType.errors[0].message).contain(
             "Circular dependency involving these components: <math> (line 2)",
         );
-        expect(errorWarnings.errors[0].position.start.line).eq(2);
-        expect(errorWarnings.errors[0].position.start.column).eq(1);
-        expect(errorWarnings.errors[0].position.end.line).eq(2);
-        expect(errorWarnings.errors[0].position.end.column).eq(34);
+        expect(diagnosticsByType.errors[0].position.start.line).eq(2);
+        expect(diagnosticsByType.errors[0].position.start.column).eq(1);
+        expect(diagnosticsByType.errors[0].position.end.line).eq(2);
+        expect(diagnosticsByType.errors[0].position.end.column).eq(34);
 
         // temporary messages until can better detect circular dependency with copysource
-        expect(errorWarnings.errors[1].message).contain(
+        expect(diagnosticsByType.errors[1].message).contain(
             "Circular dependency involving these components: <math> (line 4)",
         );
-        expect(errorWarnings.errors[1].position.start.line).eq(4);
-        expect(errorWarnings.errors[1].position.start.column).eq(1);
-        expect(errorWarnings.errors[1].position.end.line).eq(4);
-        expect(errorWarnings.errors[1].position.end.column).eq(34);
+        expect(diagnosticsByType.errors[1].position.start.line).eq(4);
+        expect(diagnosticsByType.errors[1].position.start.column).eq(1);
+        expect(diagnosticsByType.errors[1].position.end.line).eq(4);
+        expect(diagnosticsByType.errors[1].position.end.column).eq(34);
 
-        expect(errorWarnings.errors[2].message).contain(
+        expect(diagnosticsByType.errors[2].message).contain(
             "Circular dependency involving these components: <math> (line 7)",
         );
-        expect(errorWarnings.errors[2].position.start.line).eq(7);
-        expect(errorWarnings.errors[2].position.start.column).eq(1);
-        expect(errorWarnings.errors[2].position.end.line).eq(7);
-        expect(errorWarnings.errors[2].position.end.column).eq(34);
+        expect(diagnosticsByType.errors[2].position.start.line).eq(7);
+        expect(diagnosticsByType.errors[2].position.start.column).eq(1);
+        expect(diagnosticsByType.errors[2].position.end.line).eq(7);
+        expect(diagnosticsByType.errors[2].position.end.column).eq(34);
 
-        expect(errorWarnings.errors[3].message).contain(
+        expect(diagnosticsByType.errors[3].message).contain(
             "Circular dependency involving these components: <math> (line 11)",
         );
-        expect(errorWarnings.errors[3].position.start.line).eq(11);
-        expect(errorWarnings.errors[3].position.start.column).eq(1);
-        expect(errorWarnings.errors[3].position.end.line).eq(11);
-        expect(errorWarnings.errors[3].position.end.column).eq(34);
+        expect(diagnosticsByType.errors[3].position.start.line).eq(11);
+        expect(diagnosticsByType.errors[3].position.start.column).eq(1);
+        expect(diagnosticsByType.errors[3].position.end.line).eq(11);
+        expect(diagnosticsByType.errors[3].position.end.column).eq(34);
     });
 
     it.skip("Circular dependency with macro children", async () => {
@@ -540,24 +554,26 @@ a />
             doenetML: `<bad>`,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(2);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(2);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain("has no closing tag");
-        expect(errorWarnings.errors[0].position.start.line).eq(1);
-        expect(errorWarnings.errors[0].position.start.column).eq(1);
-        expect(errorWarnings.errors[0].position.end.line).eq(1);
-        expect(errorWarnings.errors[0].position.end.column).eq(6);
-
-        expect(errorWarnings.errors[1].message).contain(
-            "Invalid component type: <bad>",
+        const noClosingTagError = diagnosticsByType.errors.find((error) =>
+            error.message.includes("has no closing tag"),
         );
-        expect(errorWarnings.errors[1].position.start.line).eq(1);
-        expect(errorWarnings.errors[1].position.start.column).eq(1);
-        expect(errorWarnings.errors[1].position.end.line).eq(1);
-        expect(errorWarnings.errors[1].position.end.column).eq(6);
+        expect(noClosingTagError?.position.start.line).eq(1);
+        expect(noClosingTagError?.position.start.column).eq(1);
+        expect(noClosingTagError?.position.end.line).eq(1);
+        expect(noClosingTagError?.position.end.column).eq(6);
+
+        const invalidBadError = diagnosticsByType.errors.find((error) =>
+            error.message.includes("Invalid component type: <bad>"),
+        );
+        expect(invalidBadError?.position.start.line).eq(1);
+        expect(invalidBadError?.position.start.column).eq(1);
+        expect(invalidBadError?.position.end.line).eq(1);
+        expect(invalidBadError?.position.end.column).eq(6);
     });
 
     it("Copy section with an error", async () => {
@@ -571,16 +587,16 @@ a />
 `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(1);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(1);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain("no closing tag");
-        expect(errorWarnings.errors[0].position.start.line).eq(3);
-        expect(errorWarnings.errors[0].position.start.column).eq(3);
-        expect(errorWarnings.errors[0].position.end.line).eq(3);
-        expect(errorWarnings.errors[0].position.end.column).eq(6);
+        expect(diagnosticsByType.errors[0].message).contain("no closing tag");
+        expect(diagnosticsByType.errors[0].position.start.line).eq(3);
+        expect(diagnosticsByType.errors[0].position.start.column).eq(3);
+        expect(diagnosticsByType.errors[0].position.end.line).eq(3);
+        expect(diagnosticsByType.errors[0].position.end.column).eq(6);
     });
 
     it("Upgrade warning to error if missing or blank short description in graph, image, video", async () => {
@@ -605,10 +621,10 @@ a />
             flags: { upgradeAccessibilityWarningsToErrors: true },
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(9);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(9);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
         const expectedErrorByLine: Record<string, string> = {
             2: "<graph> must either have a short description or be specified as decorative",
@@ -624,7 +640,7 @@ a />
 
         for (const lineNum in expectedErrorByLine) {
             const expectedError = expectedErrorByLine[lineNum];
-            const error = errorWarnings.errors.find(
+            const error = diagnosticsByType.errors.find(
                 (error) => error.position.start.line === parseInt(lineNum),
             );
             expect(error!.message).toContain(expectedError);
@@ -652,17 +668,17 @@ a />
             flags: { upgradeAccessibilityWarningsToErrors: true },
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(8);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(8);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
         const errorMsg = "<mathInput> must have a short description or a label";
 
         const errorsOnLines = [2, 3, 4, 7, 8, 10, 13, 15];
 
         for (const lineNum of errorsOnLines) {
-            const error = errorWarnings.errors.find(
+            const error = diagnosticsByType.errors.find(
                 (error) => error.position.start.line === lineNum,
             );
             expect(error!.message).toContain(errorMsg);
@@ -678,17 +694,17 @@ a />
             flags: { upgradeAccessibilityWarningsToErrors: true },
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(1);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(1);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
         const errorMsg = "<textInput> must have a short description or a label";
 
         const errorsOnLines = [2];
 
         for (const lineNum of errorsOnLines) {
-            const error = errorWarnings.errors.find(
+            const error = diagnosticsByType.errors.find(
                 (error) => error.position.start.line === lineNum,
             );
             expect(error!.message).toContain(errorMsg);

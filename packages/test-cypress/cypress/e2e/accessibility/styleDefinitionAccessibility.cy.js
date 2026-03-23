@@ -1,3 +1,5 @@
+import { getDiagnosticsByType } from "../../support/diagnostics";
+
 describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
     // These tests intentionally target WCAG AA contrast behavior.
     // We enforce this by running axe's `color-contrast` rule only.
@@ -47,8 +49,10 @@ describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
 
     function expectContrastWarningForStyle({ styleNumber, messagePart }) {
         cy.window().then((win) => {
-            const errorWarnings = win.returnErrorWarnings1();
-            const styleWarning = errorWarnings.warnings.find(
+            const diagnosticsByType = getDiagnosticsByType(
+                win.returnDiagnostics1(),
+            );
+            const styleWarning = diagnosticsByType.warnings.find(
                 (x) =>
                     x.message.includes(`Style definition ${styleNumber}`) &&
                     x.message.includes("insufficient contrast") &&
@@ -61,8 +65,10 @@ describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
 
     function expectNoWarnings() {
         cy.window().then((win) => {
-            const errorWarnings = win.returnErrorWarnings1();
-            expect(errorWarnings.warnings.length).eq(0);
+            const diagnosticsByType = getDiagnosticsByType(
+                win.returnDiagnostics1(),
+            );
+            expect(diagnosticsByType.warnings.length).eq(0);
         });
     }
 

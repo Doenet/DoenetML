@@ -43,7 +43,9 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const warnings = core.core!.diagnostics.filter(
+            (d) => d.type !== "error",
+        );
 
         expect(warnings.length).eq(1);
         expectStyleContrastWarning({
@@ -67,7 +69,9 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const warnings = core.core!.diagnostics.filter(
+            (d) => d.type !== "error",
+        );
 
         expect(warnings.length).eq(0);
     });
@@ -80,7 +84,9 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const warnings = core.core!.diagnostics.filter(
+            (d) => d.type !== "error",
+        );
 
         expect(warnings.length).eq(1);
         expectStyleContrastWarning({
@@ -98,7 +104,9 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const warnings = core.core!.diagnostics.filter(
+            (d) => d.type !== "error",
+        );
 
         expect(warnings.length).eq(1);
         expectStyleContrastWarning({
@@ -116,7 +124,9 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const warnings = core.core!.diagnostics.filter(
+            (d) => d.type !== "error",
+        );
 
         expect(warnings.length).eq(1);
         expectStyleContrastWarning({
@@ -134,7 +144,9 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const warnings = core.core!.diagnostics.filter(
+            (d) => d.type !== "error",
+        );
 
         expect(warnings.length).eq(1);
         expectStyleContrastWarning({
@@ -151,7 +163,9 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const warnings = core.core!.diagnostics.filter(
+            (d) => d.type !== "error",
+        );
 
         expect(warnings.length).eq(0);
     });
@@ -163,7 +177,9 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const warnings = core.core!.diagnostics.filter(
+            (d) => d.type !== "error",
+        );
 
         expect(warnings.length).eq(0);
     });
@@ -184,7 +200,9 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const warnings = core.core!.diagnostics.filter(
+            (d) => d.type !== "error",
+        );
 
         expect(warnings.length).eq(4);
 
@@ -215,7 +233,9 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const warnings = core.core!.diagnostics.filter(
+            (d) => d.type !== "error",
+        );
 
         expect(warnings.length).eq(1);
         expectStyleContrastWarning({
@@ -236,7 +256,9 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const warnings = core.core!.diagnostics.filter(
+            (d) => d.type !== "error",
+        );
 
         expect(warnings.length).eq(0);
     });
@@ -249,7 +271,9 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const warnings = core.core!.diagnostics.filter(
+            (d) => d.type !== "error",
+        );
 
         expect(warnings.length).eq(1);
         expectStyleContrastWarning({
@@ -272,7 +296,9 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const warnings = core.core!.errorWarnings.warnings;
+        const warnings = core.core!.diagnostics.filter(
+            (d) => d.type !== "error",
+        );
 
         expect(warnings.length).eq(1);
         expectStyleContrastWarning({

@@ -10,6 +10,7 @@ import {
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import me from "math-expressions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -1548,31 +1549,31 @@ describe("Line tag tests @group3", async () => {
                 .coeffvar2.tree,
         ).eq("\uff3f");
 
-        const errorWarnings = core.core!.errorWarnings;
+        const diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             "Line must be through points of at least two dimensions",
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(3);
-        expect(errorWarnings.warnings[0].position.start.column).eq(5);
-        expect(errorWarnings.warnings[0].position.end.line).eq(3);
-        expect(errorWarnings.warnings[0].position.end.column).eq(35);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(3);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(3);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(35);
 
-        expect(errorWarnings.warnings[1].message).contain(
+        expect(diagnosticsByType.warnings[1].message).contain(
             "Line is through points that depend on variables: x, y",
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(4);
-        expect(errorWarnings.warnings[1].position.start.column).eq(5);
-        expect(errorWarnings.warnings[1].position.end.line).eq(4);
-        expect(errorWarnings.warnings[1].position.end.column).eq(45);
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(4);
+        expect(diagnosticsByType.warnings[1].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(4);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(45);
 
-        expect(errorWarnings.warnings[2].message).contain(
+        expect(diagnosticsByType.warnings[2].message).contain(
             "Line is through points that depend on variables: a, c",
         );
-        expect(errorWarnings.warnings[2].position.start.line).eq(6);
-        expect(errorWarnings.warnings[2].position.start.column).eq(5);
-        expect(errorWarnings.warnings[2].position.end.line).eq(6);
-        expect(errorWarnings.warnings[2].position.end.column).eq(61);
+        expect(diagnosticsByType.warnings[2].position.start.line).eq(6);
+        expect(diagnosticsByType.warnings[2].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[2].position.end.line).eq(6);
+        expect(diagnosticsByType.warnings[2].position.end.column).eq(61);
     });
 
     it("lines with bad equations", async () => {
@@ -1713,42 +1714,42 @@ describe("Line tag tests @group3", async () => {
                 .coeffvar2.tree,
         ).eq(0);
 
-        const errorWarnings = core.core!.errorWarnings;
+        const diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(4);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(4);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             "No referent found for reference: $invalid1",
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(4);
-        expect(errorWarnings.warnings[0].position.start.column).eq(21);
-        expect(errorWarnings.warnings[0].position.end.line).eq(4);
-        expect(errorWarnings.warnings[0].position.end.column).eq(30);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(4);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(21);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(4);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(30);
 
-        expect(errorWarnings.warnings[1].message).contain(
+        expect(diagnosticsByType.warnings[1].message).contain(
             "No referent found for reference: $invalid2",
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(7);
-        expect(errorWarnings.warnings[1].position.start.column).eq(31);
-        expect(errorWarnings.warnings[1].position.end.line).eq(7);
-        expect(errorWarnings.warnings[1].position.end.column).eq(40);
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(7);
+        expect(diagnosticsByType.warnings[1].position.start.column).eq(31);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(7);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(40);
 
-        expect(errorWarnings.warnings[2].message).contain(
+        expect(diagnosticsByType.warnings[2].message).contain(
             "Invalid format for equation of line in variables x and y",
         );
-        expect(errorWarnings.warnings[2].position.start.line).eq(8);
-        expect(errorWarnings.warnings[2].position.start.column).eq(5);
-        expect(errorWarnings.warnings[2].position.end.line).eq(8);
-        expect(errorWarnings.warnings[2].position.end.column).eq(33);
+        expect(diagnosticsByType.warnings[2].position.start.line).eq(8);
+        expect(diagnosticsByType.warnings[2].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[2].position.end.line).eq(8);
+        expect(diagnosticsByType.warnings[2].position.end.column).eq(33);
 
-        expect(errorWarnings.warnings[3].message).contain(
+        expect(diagnosticsByType.warnings[3].message).contain(
             "Invalid format for equation of line in variables x and y",
         );
-        expect(errorWarnings.warnings[3].position.start.line).eq(9);
-        expect(errorWarnings.warnings[3].position.start.column).eq(5);
-        expect(errorWarnings.warnings[3].position.end.line).eq(9);
-        expect(errorWarnings.warnings[3].position.end.column).eq(31);
+        expect(diagnosticsByType.warnings[3].position.start.line).eq(9);
+        expect(diagnosticsByType.warnings[3].position.start.column).eq(5);
+        expect(diagnosticsByType.warnings[3].position.end.line).eq(9);
+        expect(diagnosticsByType.warnings[3].position.end.column).eq(31);
     });
 
     it("line from points with strange constraints", async () => {

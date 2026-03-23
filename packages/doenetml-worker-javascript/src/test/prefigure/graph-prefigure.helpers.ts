@@ -1,6 +1,7 @@
 import "./graph-prefigure.setup";
 
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 export const PREFIGURE_BUILD_URL = "https://prefigure.doenet.org/build";
 export const RUN_LIVE_PREFIGURE_VALIDATION =
@@ -27,7 +28,7 @@ export async function getPrefigureXML(doenetML: string, graphName = "g") {
 
 export async function getWarnings(doenetML: string) {
     const { core } = await createTestCore({ doenetML });
-    return core.core!.errorWarnings;
+    return getDiagnosticsByType(core);
 }
 
 export async function validatePrefigureXMLAgainstBuildService(xml: string) {

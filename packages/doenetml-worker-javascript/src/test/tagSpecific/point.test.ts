@@ -12,6 +12,7 @@ import {
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import me from "math-expressions";
 import { superSubscriptsToUnicode } from "../../utils/math";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -5708,26 +5709,26 @@ describe("Point tag tests @group4", async () => {
     `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(2);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(2);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             "Cannot attract to a <legend> as it doesn't have a nearestPoint state variable",
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(5);
-        expect(errorWarnings.warnings[0].position.start.column).eq(16);
-        expect(errorWarnings.warnings[0].position.end.line).eq(5);
-        expect(errorWarnings.warnings[0].position.end.column).eq(19);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(5);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(16);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(5);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(19);
 
-        expect(errorWarnings.warnings[1].message).contain(
+        expect(diagnosticsByType.warnings[1].message).contain(
             "Cannot constrain to a <legend> as it doesn't have a nearestPoint state variable",
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(11);
-        expect(errorWarnings.warnings[1].position.start.column).eq(18);
-        expect(errorWarnings.warnings[1].position.end.line).eq(11);
-        expect(errorWarnings.warnings[1].position.end.column).eq(21);
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(11);
+        expect(diagnosticsByType.warnings[1].position.start.column).eq(18);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(11);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(21);
     });
 
     it("copy point with no arguments, specify individual coordinates", async () => {

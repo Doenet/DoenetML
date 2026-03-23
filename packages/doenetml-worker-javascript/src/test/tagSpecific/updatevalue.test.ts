@@ -14,6 +14,7 @@ import {
 } from "../utils/actions";
 import me from "math-expressions";
 import { test_in_graph } from "../utils/in-graph";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -3293,34 +3294,34 @@ describe("UpdateValue tag tests @group1", async () => {
             core,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(3);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(3);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             'Invalid target for <updateValue>: cannot find a state variable named "invalid" on a <number>',
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(5);
-        expect(errorWarnings.warnings[0].position.start.column).eq(3);
-        expect(errorWarnings.warnings[0].position.end.line).eq(5);
-        expect(errorWarnings.warnings[0].position.end.column).eq(62);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(5);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(3);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(5);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(62);
 
-        expect(errorWarnings.warnings[1].message).contain(
+        expect(diagnosticsByType.warnings[1].message).contain(
             'Invalid target for <updateValue>: cannot find a state variable named "value" on a <p>',
         );
-        expect(errorWarnings.warnings[1].position.start.line).eq(6);
-        expect(errorWarnings.warnings[1].position.start.column).eq(3);
-        expect(errorWarnings.warnings[1].position.end.line).eq(6);
-        expect(errorWarnings.warnings[1].position.end.column).eq(54);
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(6);
+        expect(diagnosticsByType.warnings[1].position.start.column).eq(3);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(6);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(54);
 
-        expect(errorWarnings.warnings[2].message).contain(
+        expect(diagnosticsByType.warnings[2].message).contain(
             "Invalid target for <updateValue>: cannot find target",
         );
-        expect(errorWarnings.warnings[2].position.start.line).eq(7);
-        expect(errorWarnings.warnings[2].position.start.column).eq(3);
-        expect(errorWarnings.warnings[2].position.end.line).eq(7);
-        expect(errorWarnings.warnings[2].position.end.column).eq(68);
+        expect(diagnosticsByType.warnings[2].position.start.line).eq(7);
+        expect(diagnosticsByType.warnings[2].position.start.column).eq(3);
+        expect(diagnosticsByType.warnings[2].position.end.line).eq(7);
+        expect(diagnosticsByType.warnings[2].position.end.column).eq(68);
     });
 
     it("math in label", async () => {

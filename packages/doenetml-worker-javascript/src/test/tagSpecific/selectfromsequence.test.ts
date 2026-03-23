@@ -6,6 +6,7 @@ import {
     updateTextInputValue,
 } from "../utils/actions";
 import me from "math-expressions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -399,16 +400,18 @@ describe("SelectFromSequence tag tests @group4", async () => {
     `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(1);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(1);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain("Excluded over 70%");
-        expect(errorWarnings.errors[0].position.start.line).eq(2);
-        expect(errorWarnings.errors[0].position.start.column).eq(8);
-        expect(errorWarnings.errors[0].position.end.line).eq(2);
-        expect(errorWarnings.errors[0].position.end.column).eq(123);
+        expect(diagnosticsByType.errors[0].message).contain(
+            "Excluded over 70%",
+        );
+        expect(diagnosticsByType.errors[0].position.start.line).eq(2);
+        expect(diagnosticsByType.errors[0].position.start.column).eq(8);
+        expect(diagnosticsByType.errors[0].position.end.line).eq(2);
+        expect(diagnosticsByType.errors[0].position.end.column).eq(123);
     });
 
     it("select 10 numbers from 1 to 10, without replacement, exclude positions of each number", async () => {
@@ -1718,18 +1721,18 @@ describe("SelectFromSequence tag tests @group4", async () => {
     `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(1);
-        expect(errorWarnings.warnings.length).eq(0);
+        expect(diagnosticsByType.errors.length).eq(1);
+        expect(diagnosticsByType.warnings.length).eq(0);
 
-        expect(errorWarnings.errors[0].message).contain(
+        expect(diagnosticsByType.errors[0].message).contain(
             "Cannot select 3 values from a sequence of length 1",
         );
-        expect(errorWarnings.errors[0].position.start.line).eq(2);
-        expect(errorWarnings.errors[0].position.start.column).eq(17);
-        expect(errorWarnings.errors[0].position.end.line).eq(2);
-        expect(errorWarnings.errors[0].position.end.column).eq(66);
+        expect(diagnosticsByType.errors[0].position.start.line).eq(2);
+        expect(diagnosticsByType.errors[0].position.start.column).eq(17);
+        expect(diagnosticsByType.errors[0].position.end.line).eq(2);
+        expect(diagnosticsByType.errors[0].position.end.column).eq(66);
     });
 
     it("check bugfix for non-constant exclude and unique variants", async () => {
@@ -1935,18 +1938,18 @@ describe("SelectFromSequence tag tests @group4", async () => {
 
         let { core } = await createTestCore({ doenetML });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             "coprime ignored since excludeCombinations specified",
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(1);
-        expect(errorWarnings.warnings[0].position.start.column).eq(1);
-        expect(errorWarnings.warnings[0].position.end.line).eq(1);
-        expect(errorWarnings.warnings[0].position.end.column).eq(106);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(1);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(1);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(1);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(106);
     });
 
     it("coprime ignored when not selecting numbers", async () => {
@@ -1967,18 +1970,18 @@ describe("SelectFromSequence tag tests @group4", async () => {
 
         let { core } = await createTestCore({ doenetML });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             "coprime ignored since not selecting numbers",
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(1);
-        expect(errorWarnings.warnings[0].position.start.column).eq(1);
-        expect(errorWarnings.warnings[0].position.end.line).eq(1);
-        expect(errorWarnings.warnings[0].position.end.column).eq(87);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(1);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(1);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(1);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(87);
     });
 
     it("excludeCombinations gives error when not selecting integers", async () => {
@@ -1997,10 +2000,10 @@ describe("SelectFromSequence tag tests @group4", async () => {
             const { core } = await createTestCore({
                 doenetML,
             });
-            const errorWarnings = core.core!.errorWarnings;
-            expect(errorWarnings.errors.length).eq(1);
-            expect(errorWarnings.warnings.length).eq(0);
-            expect(errorWarnings.errors[0].message).contain(errorMessage);
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors.length).eq(1);
+            expect(diagnosticsByType.warnings.length).eq(0);
+            expect(diagnosticsByType.errors[0].message).contain(errorMessage);
         }
     });
 
@@ -2016,10 +2019,10 @@ describe("SelectFromSequence tag tests @group4", async () => {
             const { core } = await createTestCore({
                 doenetML,
             });
-            const errorWarnings = core.core!.errorWarnings;
-            expect(errorWarnings.errors.length).eq(1);
-            expect(errorWarnings.warnings.length).eq(0);
-            expect(errorWarnings.errors[0].message).contain(errorMessage);
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors.length).eq(1);
+            expect(diagnosticsByType.warnings.length).eq(0);
+            expect(diagnosticsByType.errors[0].message).contain(errorMessage);
         }
     });
 
@@ -2049,10 +2052,10 @@ describe("SelectFromSequence tag tests @group4", async () => {
             const { core } = await createTestCore({
                 doenetML,
             });
-            const errorWarnings = core.core!.errorWarnings;
-            expect(errorWarnings.errors.length).eq(1);
-            expect(errorWarnings.warnings.length).eq(0);
-            expect(errorWarnings.errors[0].message).contain(errorMessage);
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors.length).eq(1);
+            expect(diagnosticsByType.warnings.length).eq(0);
+            expect(diagnosticsByType.errors[0].message).contain(errorMessage);
         }
     });
 
@@ -2068,10 +2071,10 @@ describe("SelectFromSequence tag tests @group4", async () => {
             const { core } = await createTestCore({
                 doenetML,
             });
-            const errorWarnings = core.core!.errorWarnings;
-            expect(errorWarnings.errors.length).eq(1);
-            expect(errorWarnings.warnings.length).eq(0);
-            expect(errorWarnings.errors[0].message).contain(errorMessage);
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors.length).eq(1);
+            expect(diagnosticsByType.warnings.length).eq(0);
+            expect(diagnosticsByType.errors[0].message).contain(errorMessage);
         }
     });
 });

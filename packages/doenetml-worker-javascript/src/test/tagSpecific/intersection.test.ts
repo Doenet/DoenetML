@@ -8,6 +8,7 @@ import {
     updateMathInputValue,
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -242,18 +243,18 @@ describe("Intersection tag tests @group1", async () => {
   `,
         });
 
-        let errorWarnings = core.core!.errorWarnings;
+        let diagnosticsByType = getDiagnosticsByType(core);
 
-        expect(errorWarnings.errors.length).eq(0);
-        expect(errorWarnings.warnings.length).eq(1);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
 
-        expect(errorWarnings.warnings[0].message).contain(
+        expect(diagnosticsByType.warnings[0].message).contain(
             `Haven't implemented intersection for more than two items`,
         );
-        expect(errorWarnings.warnings[0].position.start.line).eq(7);
-        expect(errorWarnings.warnings[0].position.start.column).eq(3);
-        expect(errorWarnings.warnings[0].position.end.line).eq(7);
-        expect(errorWarnings.warnings[0].position.end.column).eq(41);
+        expect(diagnosticsByType.warnings[0].position.start.line).eq(7);
+        expect(diagnosticsByType.warnings[0].position.start.column).eq(3);
+        expect(diagnosticsByType.warnings[0].position.end.line).eq(7);
+        expect(diagnosticsByType.warnings[0].position.end.column).eq(41);
     });
 
     it("intersection of two lines hides dynamically", async () => {
