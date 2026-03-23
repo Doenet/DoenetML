@@ -14,6 +14,7 @@ import {
     data_format_version,
     cidFromText,
 } from "@doenet/utils";
+import type { DiagnosticRecord } from "@doenet/utils";
 import * as Comlink from "comlink";
 
 import { MdError } from "react-icons/md";
@@ -52,7 +53,7 @@ export function DocViewer({
     flags,
     requestedVariantIndex,
     initialState,
-    setErrorsAndWarningsCallback,
+    setDiagnosticsCallback,
     reportScoreAndStateCallback: specifiedReportScoreAndStateCallback,
     documentStructureCallback,
     initializedCallback,
@@ -81,7 +82,7 @@ export function DocViewer({
     flags: DoenetMLFlags;
     requestedVariantIndex: number;
     initialState?: Record<string, any> | null;
-    setErrorsAndWarningsCallback?: Function;
+    setDiagnosticsCallback?: (diagnostics: DiagnosticRecord[]) => void;
     reportScoreAndStateCallback?: (data: {
         score: number;
         state: unknown;
@@ -146,10 +147,7 @@ export function DocViewer({
     const coreCreated = useRef(false);
     const coreCreationInProgress = useRef(false);
     const coreId = useRef<string>("");
-    const errorWarnings = useRef<{
-        errors: any[];
-        warnings: any[];
-    }>({ errors: [], warnings: [] });
+    const diagnostics = useRef<DiagnosticRecord[]>([]);
     const [hasInitialError, setHasInitialError] = useState(false);
 
     const actionsBeforeCoreCreated = useRef<
@@ -330,9 +328,9 @@ export function DocViewer({
                 return allStateVariables;
             };
 
-            (window as any)["returnErrorWarnings" + postfixForWindowFunctions] =
+            (window as any)["returnDiagnostics" + postfixForWindowFunctions] =
                 function () {
-                    return errorWarnings.current;
+                    return diagnostics.current;
                 };
 
             (window as any)["callAction" + postfixForWindowFunctions] =
@@ -736,21 +734,21 @@ export function DocViewer({
     function updateRenderers({
         updateInstructions,
         actionId,
-        errorWarnings: newErrorWarnings,
+        diagnostics: newDiagnostics,
         init = false,
     }: {
         updateInstructions: Record<string, any>[];
         actionId?: string;
-        errorWarnings?: {
-            errors: any[];
-            warnings: any[];
-        };
+        diagnostics?: DiagnosticRecord[];
         init?: boolean;
     }) {
-        if (newErrorWarnings) {
-            errorWarnings.current = newErrorWarnings;
-            setErrorsAndWarningsCallback?.(errorWarnings.current);
-            if (init && newErrorWarnings.errors.length > 0) {
+        if (newDiagnostics) {
+            diagnostics.current = newDiagnostics;
+            setDiagnosticsCallback?.(diagnostics.current);
+            if (
+                init &&
+                newDiagnostics.some((diagnostic) => diagnostic.type === "error")
+            ) {
                 setHasInitialError(true);
             }
         }
@@ -1085,12 +1083,16 @@ export function DocViewer({
                 }
             }
 
-            if (dastResult.errorWarnings) {
-                errorWarnings.current = dastResult.errorWarnings;
-                if (errorWarnings.current.errors.length > 0) {
+            if (dastResult.diagnostics) {
+                diagnostics.current = dastResult.diagnostics;
+                if (
+                    diagnostics.current.some(
+                        (diagnostic) => diagnostic.type === "error",
+                    )
+                ) {
                     setHasInitialError(true);
                 }
-                setErrorsAndWarningsCallback?.(errorWarnings.current);
+                setDiagnosticsCallback?.(diagnostics.current);
             }
         } else {
             setIsInErrorState?.(true);

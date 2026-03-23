@@ -15,7 +15,12 @@ import {
     ErrorWarningResponseTabContents,
     ErrorWarningResponseTabstrip,
 } from "./ErrorWarningResponseTabs";
-import { ErrorRecord, nanInfinityReviver, WarningRecord } from "@doenet/utils";
+import {
+    DiagnosticRecord,
+    ErrorRecord,
+    nanInfinityReviver,
+    WarningRecord,
+} from "@doenet/utils";
 import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser/pretty-printer";
 import { formatResponse } from "../utils/responses";
@@ -136,46 +141,29 @@ export function EditorViewer({
 
     const [infoPanelIsOpen, setInfoPanelIsOpen] = useState(false);
 
-    const [errorsAndWarnings, setErrorsAndWarnings] = useState<{
-        errors: ErrorRecord[];
-        warnings: WarningRecord[];
-    }>({
-        errors: [],
-        warnings: [],
-    });
+    const [diagnostics, setDiagnostics] = useState<DiagnosticRecord[]>([]);
 
     /**
-     * When receive errors and warnings from the viewer,
-     * set `errorsAndWarnings` state variable and send them to the LSP
+     * When receiving diagnostics from the viewer,
+     * store them locally and forward non-info diagnostics to the LSP.
      */
-    function setErrorsAndWarningsCallback({
-        errors,
-        warnings,
-    }: {
-        errors: ErrorRecord[];
-        warnings: WarningRecord[];
-    }) {
-        // TODO: filtering out level 2 is a stopgap solution.
-        // Instead, we need to reformulate to include an info type
-        // @ts-expect-error level does not exist on WarningRecord
-        warnings = warnings.filter((w) => w.level !== 2);
-        setErrorsAndWarnings({
-            errors,
-            warnings,
-        });
+    function setDiagnosticsCallback(newDiagnostics: DiagnosticRecord[]) {
+        setDiagnostics(newDiagnostics);
 
-        const additionalDiagnostics: Diagnostic[] = [
-            ...warnings.map((w) => ({
-                message: w.message,
-                severity: DiagnosticSeverity.Warning,
-                range: w.position,
-            })),
-            ...errors.map((e) => ({
-                message: e.message,
-                severity: DiagnosticSeverity.Error,
-                range: e.position,
-            })),
-        ];
+        const diagnosticsForLsp = newDiagnostics.filter(
+            (diagnostic) => diagnostic.type !== "info",
+        );
+
+        const additionalDiagnostics: Diagnostic[] = diagnosticsForLsp.map(
+            (diagnostic) => ({
+                message: diagnostic.message,
+                severity:
+                    diagnostic.type === "error"
+                        ? DiagnosticSeverity.Error
+                        : DiagnosticSeverity.Warning,
+                range: diagnostic.position,
+            }),
+        );
 
         lspRef.current?.lsp.sendAdditionalDiagnostics(
             lspRef.current.documentUri,
@@ -183,9 +171,21 @@ export function EditorViewer({
         );
     }
 
-    const warningsObjs = [...initialWarnings, ...errorsAndWarnings.warnings];
+    const warningsObjs: WarningRecord[] = [
+        ...initialWarnings,
+        ...diagnostics.filter(
+            (diagnostic): diagnostic is WarningRecord =>
+                diagnostic.type === "warning",
+        ),
+    ];
 
-    const errorsObjs = [...initialErrors, ...errorsAndWarnings.errors];
+    const errorsObjs: ErrorRecord[] = [
+        ...initialErrors,
+        ...diagnostics.filter(
+            (diagnostic): diagnostic is ErrorRecord =>
+                diagnostic.type === "error",
+        ),
+    ];
 
     const [responses, setResponses] = useState<
         {
@@ -613,7 +613,7 @@ export function EditorViewer({
                         setVariantsFromCallback(x, variants, setVariants);
                     }}
                     requestedVariantIndex={variants.index}
-                    setErrorsAndWarningsCallback={setErrorsAndWarningsCallback}
+                    setDiagnosticsCallback={setDiagnosticsCallback}
                     documentStructureCallback={
                         documentStructureThenChangeCallback
                     }
