@@ -1,3 +1,4 @@
+import { Position } from "../dast/types";
 import { escapeXml, formatNumber, pushWarning } from "./common";
 import type { SelectedStyle } from "./types";
 import type { DiagnosticRecord } from "@doenet/utils";
@@ -31,7 +32,7 @@ export function styleAttributes({
     selectedStyle: SelectedStyle | undefined;
     diagnostics: DiagnosticRecord[];
     warningPrefix: string;
-    warningPosition?: unknown;
+    warningPosition?: Position;
     includeFill?: boolean;
 }): string[] {
     const attrs = [];
@@ -98,7 +99,7 @@ export function pointStyleAttributes({
     selectedStyle: SelectedStyle | undefined;
     diagnostics: DiagnosticRecord[];
     warningPrefix: string;
-    warningPosition?: unknown;
+    warningPosition?: Position;
     includeFill?: boolean;
 }): string[] {
     const attrs = [];

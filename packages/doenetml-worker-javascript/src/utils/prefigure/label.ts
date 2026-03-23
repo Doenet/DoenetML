@@ -1,3 +1,4 @@
+import { Position } from "../dast/types";
 import { escapeXml, pushWarning } from "./common";
 import type {
     Bounds,
@@ -764,7 +765,7 @@ export function pointLabelAttributes({
     stateValues: PrefigureStateValues;
     diagnostics: DiagnosticRecord[];
     warningPrefix: string;
-    warningPosition?: unknown;
+    warningPosition?: Position;
 }): { attrs: string[]; label: string } | null {
     const label = labelMarkup({
         label: stateValues?.label,
@@ -1011,7 +1012,7 @@ export function getLabelForLine({
     ep2: Point;
     diagnostics: DiagnosticRecord[];
     warningPrefix: string;
-    warningPosition?: unknown;
+    warningPosition?: Position;
 }): { labelAttrs: string[]; label: string | null } {
     const label = labelMarkup({
         label: stateValues?.label,
