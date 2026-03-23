@@ -121,7 +121,7 @@ export function convertLineToPrefigure({
     sv,
     handle,
     styleAttrs,
-    warnings,
+    diagnostics,
     warningPrefix,
     warningPosition,
 }: StyledConverterArgs): string | null {
@@ -163,7 +163,7 @@ export function convertLineToPrefigure({
         stateValues: sv,
         ep1: labelEp1,
         ep2: labelEp2,
-        warnings,
+        diagnostics,
         warningPrefix,
         warningPosition,
     });
@@ -202,7 +202,7 @@ export function convertLineSegmentToPrefigure({
     sv,
     handle,
     styleAttrs,
-    warnings,
+    diagnostics,
     warningPrefix,
     warningPosition,
 }: StyledConverterArgs): string | null {
@@ -298,7 +298,7 @@ export function convertLineSegmentToPrefigure({
         stateValues: stateValuesForLabel,
         ep1: labelEp1,
         ep2: labelEp2,
-        warnings,
+        diagnostics,
         warningPrefix,
         warningPosition,
     });
@@ -324,7 +324,7 @@ export function convertRayToPrefigure({
     sv,
     handle,
     styleAttrs,
-    warnings,
+    diagnostics,
     warningPrefix,
     warningPosition,
 }: StyledConverterArgs): string | null {
@@ -360,7 +360,7 @@ export function convertRayToPrefigure({
         },
         ep1,
         ep2,
-        warnings,
+        diagnostics,
         warningPrefix,
         warningPosition,
     });

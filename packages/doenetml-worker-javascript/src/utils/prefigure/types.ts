@@ -1,3 +1,5 @@
+import type { DiagnosticRecord } from "@doenet/utils";
+
 export type Point = [number, number];
 
 export type GraphBounds = [number, number, number, number];
@@ -16,15 +18,8 @@ export interface Dimensions {
     height: number;
 }
 
-export interface Warning {
-    type: "warning";
-    level: number;
-    message: string;
-    position?: unknown;
-}
-
-export interface PushWarningArgs {
-    warnings: Warning[];
+export interface PushDiagnosticArgs {
+    diagnostics: DiagnosticRecord[];
     message: string;
     position?: unknown;
 }
@@ -81,7 +76,7 @@ export interface Descendant {
 }
 
 export interface ConverterWarningContext {
-    warnings: Warning[];
+    diagnostics: DiagnosticRecord[];
     warningPrefix: string;
     warningPosition?: unknown;
 }

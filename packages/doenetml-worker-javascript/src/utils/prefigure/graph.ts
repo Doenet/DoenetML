@@ -12,8 +12,8 @@ import type {
     GraphBounds,
     GraphDependencyValues,
     GraphDimensions,
-    Warning,
 } from "./types";
+import type { DiagnosticRecord } from "@doenet/utils";
 
 function axisModeFromVisibility({
     displayXAxis,
@@ -36,24 +36,22 @@ function axisModeFromVisibility({
 
 function pushUnsupportedAxisPositionWarnings({
     dependencyValues,
-    warnings,
+    diagnostics,
 }: {
     dependencyValues: GraphDependencyValues;
-    warnings: Warning[];
+    diagnostics: DiagnosticRecord[];
 }): void {
     if (dependencyValues.xLabelPosition === "left") {
-        warnings.push({
+        diagnostics.push({
             type: "warning",
-            level: 1,
             message:
                 '<graph>: xLabelPosition="left" is not supported in prefigure renderer; using right-position behavior.',
         });
     }
 
     if (dependencyValues.yLabelPosition === "bottom") {
-        warnings.push({
+        diagnostics.push({
             type: "warning",
-            level: 1,
             message:
                 '<graph>: yLabelPosition="bottom" is not supported in prefigure renderer; using top-position behavior.',
         });
@@ -95,11 +93,11 @@ function axesElementFromLabels({
  * Builds the full PreFigure XML document and warning list for a graph.
  *
  * Algorithm outline:
- * 1. Convert unsupported descendants into warnings.
+ * 1. Convert unsupported descendants into diagnostics.
  * 2. Convert supported descendants to element XML in stable order.
  * 3. Compute bbox/dimensions with defensive defaults.
- * 4. Build axis metadata + labels (including unsupported-position warnings).
- * 5. Assemble and return final `<diagram>` XML + warnings.
+ * 4. Build axis metadata + labels (including unsupported-position diagnostics).
+ * 5. Assemble and return final `<diagram>` XML + diagnostics.
  */
 export function createPrefigureXML({
     dependencyValues,
@@ -109,8 +107,8 @@ export function createPrefigureXML({
     dependencyValues: GraphDependencyValues;
     descendants: Descendant[];
     unsupported: Descendant[];
-}): { xml: string; warnings: Warning[] } {
-    const warnings: Warning[] = [];
+}): { xml: string; diagnostics: DiagnosticRecord[] } {
+    const diagnostics: DiagnosticRecord[] = [];
     const usedHandles = new Set<string>();
     const elements = [];
 
@@ -120,9 +118,8 @@ export function createPrefigureXML({
     const rawYMax = asFiniteNumber(dependencyValues.yMax);
 
     if ([rawXMin, rawYMin, rawXMax, rawYMax].some((x) => x === null)) {
-        warnings.push({
+        diagnostics.push({
             type: "warning",
-            level: 1,
             message:
                 "<graph>: invalid axis bounds for prefigure conversion; using default bbox (-10,-10,10,10).",
         });
@@ -138,9 +135,8 @@ export function createPrefigureXML({
 
     let dimensionWidth = asFiniteNumber(dependencyValues.width?.size);
     if (dimensionWidth === null || dimensionWidth <= 0) {
-        warnings.push({
+        diagnostics.push({
             type: "warning",
-            level: 1,
             message:
                 "<graph>: invalid width for prefigure conversion; using default diagram width 425.",
         });
@@ -149,9 +145,8 @@ export function createPrefigureXML({
 
     let diagramAspectRatio = asFiniteNumber(dependencyValues.aspectRatio);
     if (diagramAspectRatio === null || diagramAspectRatio <= 0) {
-        warnings.push({
+        diagnostics.push({
             type: "warning",
-            level: 1,
             message:
                 "<graph>: invalid aspectRatio for prefigure conversion; using default aspect ratio 1.",
         });
@@ -163,7 +158,7 @@ export function createPrefigureXML({
 
     for (const descendant of unsupported ?? []) {
         pushWarning({
-            warnings,
+            diagnostics,
             message: `${warningMessageForDescendant(descendant)}: unsupported in graph prefigure renderer; descendant skipped.`,
             position: descendant?.position,
         });
@@ -174,7 +169,7 @@ export function createPrefigureXML({
             descendant,
             index,
             usedHandles,
-            warnings,
+            diagnostics,
             graphBounds,
             graphDimensions,
         });
@@ -197,11 +192,11 @@ export function createPrefigureXML({
     const axesMode = axisModeFromVisibility(dependencyValues);
 
     if (axesMode) {
-        pushUnsupportedAxisPositionWarnings({ dependencyValues, warnings });
+        pushUnsupportedAxisPositionWarnings({ dependencyValues, diagnostics });
         axesElement = axesElementFromLabels({ dependencyValues, axesMode });
     }
 
     const xml = `<diagram dimensions="${escapeXml(dimensions)}"><coordinates bbox="${escapeXml(bbox)}">${axesElement}${elements.join("")}</coordinates></diagram>`;
 
-    return { xml, warnings };
+    return { xml, diagnostics };
 }

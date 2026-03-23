@@ -2,10 +2,10 @@ import type {
     Descendant,
     GraphBounds,
     Point,
-    PushWarningArgs,
-    Warning,
+    PushDiagnosticArgs,
     UsedHandles,
 } from "./types";
+import type { DiagnosticRecord } from "@doenet/utils";
 
 /**
  * Escapes user-provided text for safe insertion into XML attributes/text nodes.
@@ -101,19 +101,18 @@ export function warningMessageForDescendant(
  * Pushes a warning record and attaches position when available.
  */
 export function pushWarning({
-    warnings,
+    diagnostics,
     message,
     position,
-}: PushWarningArgs): void {
-    const warning: Warning = {
+}: PushDiagnosticArgs): void {
+    const warning: DiagnosticRecord = {
         type: "warning",
-        level: 1,
         message,
     };
     if (position) {
         warning.position = position;
     }
-    warnings.push(warning);
+    diagnostics.push(warning);
 }
 
 /**

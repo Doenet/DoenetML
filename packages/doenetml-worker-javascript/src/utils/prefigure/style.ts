@@ -1,5 +1,6 @@
 import { escapeXml, formatNumber, pushWarning } from "./common";
-import type { SelectedStyle, Warning } from "./types";
+import type { SelectedStyle } from "./types";
+import type { DiagnosticRecord } from "@doenet/utils";
 
 const prefigureDashByLineStyle: Record<string, string | null> = {
     solid: null,
@@ -22,13 +23,13 @@ const prefigurePointStyleByMarkerStyle: Record<string, string> = {
  */
 export function styleAttributes({
     selectedStyle,
-    warnings,
+    diagnostics,
     warningPrefix,
     warningPosition,
     includeFill = true,
 }: {
     selectedStyle: SelectedStyle | undefined;
-    warnings: Warning[];
+    diagnostics: DiagnosticRecord[];
     warningPrefix: string;
     warningPosition?: unknown;
     includeFill?: boolean;
@@ -71,7 +72,7 @@ export function styleAttributes({
             attrs.push(`dash="${escapeXml(dash)}"`);
         } else if (!(lineStyle in prefigureDashByLineStyle)) {
             pushWarning({
-                warnings,
+                diagnostics,
                 message: `${warningPrefix}: unknown line style '${lineStyle}' omitted from PreFigure output.`,
                 position: warningPosition,
             });
@@ -89,13 +90,13 @@ export function styleAttributes({
  */
 export function pointStyleAttributes({
     selectedStyle,
-    warnings,
+    diagnostics,
     warningPrefix,
     warningPosition,
     includeFill = true,
 }: {
     selectedStyle: SelectedStyle | undefined;
-    warnings: Warning[];
+    diagnostics: DiagnosticRecord[];
     warningPrefix: string;
     warningPosition?: unknown;
     includeFill?: boolean;
@@ -112,13 +113,13 @@ export function pointStyleAttributes({
         } else if (markerStyleString.slice(0, 8) === "triangle") {
             attrs.push('style="diamond"');
             pushWarning({
-                warnings,
+                diagnostics,
                 message: `${warningPrefix}: marker style '${markerStyleString}' mapped to PreFigure style 'diamond'.`,
                 position: warningPosition,
             });
         } else {
             pushWarning({
-                warnings,
+                diagnostics,
                 message: `${warningPrefix}: marker style '${markerStyleString}' is unsupported by PreFigure; default style used.`,
                 position: warningPosition,
             });
