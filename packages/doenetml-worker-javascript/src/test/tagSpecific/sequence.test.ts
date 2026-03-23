@@ -2009,79 +2009,80 @@ describe("Sequence tag tests @group1", async () => {
         let diagnosticsByType = getDiagnosticsByType(core);
 
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(9);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(9);
 
-        expect(diagnosticsByType.warnings[0].message).contain(
+        expect(diagnosticsByType.infos[0].message).contain(
             `Invalid length of sequence.  Must be a non-negative integer`,
         );
-        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
-        expect(diagnosticsByType.warnings[0].position.start.column).eq(5);
-        expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
-        expect(diagnosticsByType.warnings[0].position.end.column).eq(28);
+        expect(diagnosticsByType.infos[0].position.start.line).eq(2);
+        expect(diagnosticsByType.infos[0].position.start.column).eq(5);
+        expect(diagnosticsByType.infos[0].position.end.line).eq(2);
+        expect(diagnosticsByType.infos[0].position.end.column).eq(28);
 
-        expect(diagnosticsByType.warnings[1].message).contain(
+        expect(diagnosticsByType.infos[1].message).contain(
             `Invalid step of sequence.  Must be a number for sequence of type number`,
         );
-        expect(diagnosticsByType.warnings[1].position.start.line).eq(3);
-        expect(diagnosticsByType.warnings[1].position.start.column).eq(5);
-        expect(diagnosticsByType.warnings[1].position.end.line).eq(3);
-        expect(diagnosticsByType.warnings[1].position.end.column).eq(25);
+        expect(diagnosticsByType.infos[1].position.start.line).eq(3);
+        expect(diagnosticsByType.infos[1].position.start.column).eq(5);
+        expect(diagnosticsByType.infos[1].position.end.line).eq(3);
+        expect(diagnosticsByType.infos[1].position.end.column).eq(25);
 
-        expect(diagnosticsByType.warnings[2].message).contain(
+        expect(diagnosticsByType.infos[2].message).contain(
             `Invalid step of sequence.  Must be a number for sequence of type letters`,
         );
-        expect(diagnosticsByType.warnings[2].position.start.line).eq(4);
-        expect(diagnosticsByType.warnings[2].position.start.column).eq(5);
-        expect(diagnosticsByType.warnings[2].position.end.line).eq(4);
-        expect(diagnosticsByType.warnings[2].position.end.column).eq(41);
+        expect(diagnosticsByType.infos[2].position.start.line).eq(4);
+        expect(diagnosticsByType.infos[2].position.start.column).eq(5);
+        expect(diagnosticsByType.infos[2].position.end.line).eq(4);
+        expect(diagnosticsByType.infos[2].position.end.column).eq(41);
 
-        expect(diagnosticsByType.warnings[3].message).contain(
+        expect(diagnosticsByType.infos[3].message).contain(
             `Invalid "from" of number sequence.  Must be a number`,
         );
-        expect(diagnosticsByType.warnings[3].position.start.line).eq(5);
-        expect(diagnosticsByType.warnings[3].position.start.column).eq(5);
-        expect(diagnosticsByType.warnings[3].position.end.line).eq(5);
-        expect(diagnosticsByType.warnings[3].position.end.column).eq(26);
+        expect(diagnosticsByType.infos[3].position.start.line).eq(5);
+        expect(diagnosticsByType.infos[3].position.start.column).eq(5);
+        expect(diagnosticsByType.infos[3].position.end.line).eq(5);
+        expect(diagnosticsByType.infos[3].position.end.column).eq(26);
 
-        expect(diagnosticsByType.warnings[4].message).contain(
+        expect(diagnosticsByType.infos[4].message).contain(
             `Invalid "from" of letters sequence.  Must be a letter combination`,
         );
-        expect(diagnosticsByType.warnings[4].position.start.line).eq(6);
-        expect(diagnosticsByType.warnings[4].position.start.column).eq(5);
-        expect(diagnosticsByType.warnings[4].position.end.line).eq(6);
-        expect(diagnosticsByType.warnings[4].position.end.column).eq(41);
+        expect(diagnosticsByType.infos[4].position.start.line).eq(6);
+        expect(diagnosticsByType.infos[4].position.start.column).eq(5);
+        expect(diagnosticsByType.infos[4].position.end.line).eq(6);
+        expect(diagnosticsByType.infos[4].position.end.column).eq(41);
 
-        expect(diagnosticsByType.warnings[5].message).contain(
+        expect(diagnosticsByType.infos[5].message).contain(
             `Invalid "from" of sequence`,
         );
-        expect(diagnosticsByType.warnings[5].position.start.line).eq(7);
-        expect(diagnosticsByType.warnings[5].position.start.column).eq(5);
-        expect(diagnosticsByType.warnings[5].position.end.line).eq(7);
-        expect(diagnosticsByType.warnings[5].position.end.column).eq(41);
+        expect(diagnosticsByType.infos[5].position.start.line).eq(7);
+        expect(diagnosticsByType.infos[5].position.start.column).eq(5);
+        expect(diagnosticsByType.infos[5].position.end.line).eq(7);
+        expect(diagnosticsByType.infos[5].position.end.column).eq(41);
 
-        expect(diagnosticsByType.warnings[6].message).contain(
+        expect(diagnosticsByType.infos[6].message).contain(
             `Invalid "to" of number sequence.  Must be a number.`,
         );
-        expect(diagnosticsByType.warnings[6].position.start.line).eq(8);
-        expect(diagnosticsByType.warnings[6].position.start.column).eq(5);
-        expect(diagnosticsByType.warnings[6].position.end.line).eq(8);
-        expect(diagnosticsByType.warnings[6].position.end.column).eq(24);
+        expect(diagnosticsByType.infos[6].position.start.line).eq(8);
+        expect(diagnosticsByType.infos[6].position.start.column).eq(5);
+        expect(diagnosticsByType.infos[6].position.end.line).eq(8);
+        expect(diagnosticsByType.infos[6].position.end.column).eq(24);
 
-        expect(diagnosticsByType.warnings[7].message).contain(
+        expect(diagnosticsByType.infos[7].message).contain(
             `Invalid "to" of letters sequence.  Must be a letter combination`,
         );
-        expect(diagnosticsByType.warnings[7].position.start.line).eq(9);
-        expect(diagnosticsByType.warnings[7].position.start.column).eq(5);
-        expect(diagnosticsByType.warnings[7].position.end.line).eq(9);
-        expect(diagnosticsByType.warnings[7].position.end.column).eq(39);
+        expect(diagnosticsByType.infos[7].position.start.line).eq(9);
+        expect(diagnosticsByType.infos[7].position.start.column).eq(5);
+        expect(diagnosticsByType.infos[7].position.end.line).eq(9);
+        expect(diagnosticsByType.infos[7].position.end.column).eq(39);
 
-        expect(diagnosticsByType.warnings[8].message).contain(
+        expect(diagnosticsByType.infos[8].message).contain(
             `Invalid "to" of sequence`,
         );
-        expect(diagnosticsByType.warnings[8].position.start.line).eq(10);
-        expect(diagnosticsByType.warnings[8].position.start.column).eq(5);
-        expect(diagnosticsByType.warnings[8].position.end.line).eq(10);
-        expect(diagnosticsByType.warnings[8].position.end.column).eq(39);
+        expect(diagnosticsByType.infos[8].position.start.line).eq(10);
+        expect(diagnosticsByType.infos[8].position.start.column).eq(5);
+        expect(diagnosticsByType.infos[8].position.end.line).eq(10);
+        expect(diagnosticsByType.infos[8].position.end.column).eq(39);
     });
 
     it("sequence displays as list by default", async () => {

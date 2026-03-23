@@ -245,16 +245,17 @@ describe("Angle tag tests @group4", async () => {
         let diagnostics = core.core!.diagnostics;
 
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(1);
 
-        expect(diagnosticsByType.warnings[0].message).contain(
+        expect(diagnosticsByType.infos[0].message).contain(
             "Cannot define an angle between 3 lines",
         );
         expect(diagnostics[0].type).eq("info");
-        expect(diagnosticsByType.warnings[0].position.start.line).eq(7);
-        expect(diagnosticsByType.warnings[0].position.start.column).eq(5);
-        expect(diagnosticsByType.warnings[0].position.end.line).eq(7);
-        expect(diagnosticsByType.warnings[0].position.end.column).eq(41);
+        expect(diagnosticsByType.infos[0].position.start.line).eq(7);
+        expect(diagnosticsByType.infos[0].position.start.column).eq(5);
+        expect(diagnosticsByType.infos[0].position.end.line).eq(7);
+        expect(diagnosticsByType.infos[0].position.end.column).eq(41);
     });
 
     it("parallel and undefined lines", async () => {
