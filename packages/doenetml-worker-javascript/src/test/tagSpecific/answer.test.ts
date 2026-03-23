@@ -1467,11 +1467,10 @@ describe("Answer tag tests @group4", async () => {
   `,
         });
 
-        let diagnosticsByType = getDiagnosticsByType(core);
-        let diagnostics = core.core!.diagnostics;
+        const diagnosticsByType = getDiagnosticsByType(core);
 
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnostics.filter((d) => d.type === "warning").length).eq(1);
+        expect(diagnosticsByType.warnings.length).eq(1);
 
         expect(diagnosticsByType.warnings[0].message).contain(
             "Invalid type for answer: bad",

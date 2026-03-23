@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -35,10 +36,7 @@ describe("Style definition accessibility errors when upgraded @group4", async ()
             flags: { upgradeAccessibilityWarningsToErrors: true },
         });
 
-        const errors = core.core!.diagnostics.filter((d) => d.type === "error");
-        const warnings = core.core!.diagnostics.filter(
-            (d) => d.type !== "error",
-        );
+        const { errors, warnings } = getDiagnosticsByType(core);
 
         expect(errors.length).eq(1);
         expect(warnings.length).eq(0);
@@ -60,10 +58,7 @@ describe("Style definition accessibility errors when upgraded @group4", async ()
             flags: { upgradeAccessibilityWarningsToErrors: true },
         });
 
-        const errors = core.core!.diagnostics.filter((d) => d.type === "error");
-        const warnings = core.core!.diagnostics.filter(
-            (d) => d.type !== "error",
-        );
+        const { errors, warnings } = getDiagnosticsByType(core);
 
         expect(errors.length).eq(1);
         expect(warnings.length).eq(0);
@@ -91,10 +86,7 @@ describe("Style definition accessibility errors when upgraded @group4", async ()
             flags: { upgradeAccessibilityWarningsToErrors: true },
         });
 
-        const errors = core.core!.diagnostics.filter((d) => d.type === "error");
-        const warnings = core.core!.diagnostics.filter(
-            (d) => d.type !== "error",
-        );
+        const { errors, warnings } = getDiagnosticsByType(core);
 
         expect(errors.length).eq(4);
         expect(warnings.length).eq(0);

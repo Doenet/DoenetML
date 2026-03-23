@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { submitAnswer, updateMathInputValue } from "../utils/actions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -127,11 +128,7 @@ describe("Ionic Compounds tests @group3", async () => {
   `,
         });
 
-        const diagnostics = core.core!.diagnostics;
-        const diagnosticsByType = {
-            errors: diagnostics.filter((d: any) => d.type === "error"),
-            warnings: diagnostics.filter((d: any) => d.type !== "error"),
-        };
+        const diagnosticsByType = getDiagnosticsByType(core);
 
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(2);
