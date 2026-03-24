@@ -409,11 +409,9 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
                     stateVariables[await win.resolvePath1("mi")].stateValues;
 
                 expect(miStateValues.immediateValueLatex).eq("\uff3f");
-                expect(
-                    miStateValues.errorMessageParsingRawRendererValue,
-                ).not.eq(null);
+                expect(miStateValues.errorMessageRawRenderer).not.eq(null);
 
-                return miStateValues.errorMessageParsingRawRendererValue;
+                return miStateValues.errorMessageRawRenderer;
             })
             .then((errorMessage) => {
                 cy.get("#mi [data-test='MathInput Preview']").should(
@@ -446,11 +444,11 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
                     stateVariables[await win.resolvePath1("mi")].stateValues;
 
                 expect(miStateValues.immediateValueLatex).eq("\uff3f");
-                expect(
-                    miStateValues.errorMessageParsingRawRendererValue,
-                ).contains("Invalid symbol '@'");
+                expect(miStateValues.errorMessageRawRenderer).contains(
+                    "Invalid symbol '@'",
+                );
 
-                return miStateValues.errorMessageParsingRawRendererValue;
+                return miStateValues.errorMessageRawRenderer;
             })
             .then((errorMessage) => {
                 cy.get("#mi [data-test='MathInput Preview']").should(
@@ -490,11 +488,38 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
                     stateVariables[await win.resolvePath1("mi")].stateValues;
 
                 expect(miStateValues.immediateValueLatex).eq("\uff3f");
-                expect(
-                    miStateValues.errorMessageParsingRawRendererValue,
-                ).contains("Invalid symbol '@'");
+                expect(miStateValues.errorMessageRawRenderer).contains(
+                    "Invalid symbol '@'",
+                );
 
-                return miStateValues.errorMessageParsingRawRendererValue;
+                return miStateValues.errorMessageRawRenderer;
+            })
+            .then((errorMessage) => {
+                cy.get("#mi [data-test='MathInput Preview']").should(
+                    "be.visible",
+                );
+                cy.get("#mi-preview .MathJax").should("not.exist");
+                cy.get("#mi-preview").should("contain.text", errorMessage);
+            });
+    });
+
+    it("preview shows parse error message from prefillLatex", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <p><mathInput name="mi" showPreview prefillLatex="s@g" /></p>huh
+    `);
+
+        cy.get("#mi textarea").focus();
+
+        cy.window()
+            .then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let miStateValues =
+                    stateVariables[await win.resolvePath1("mi")].stateValues;
+
+                expect(miStateValues.immediateValueLatex).eq("\uff3f");
+                expect(miStateValues.errorMessageRawRenderer).not.eq(null);
+
+                return miStateValues.errorMessageRawRenderer;
             })
             .then((errorMessage) => {
                 cy.get("#mi [data-test='MathInput Preview']").should(

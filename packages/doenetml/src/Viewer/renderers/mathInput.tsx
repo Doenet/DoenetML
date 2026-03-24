@@ -46,7 +46,7 @@ function useMathInputPreview({
     showPreview,
     rawRendererValue,
     immediateValueLatex,
-    errorMessageParsingRawRendererValue,
+    errorMessageRawRenderer,
     focused,
     previewUpdateDelayMs,
     onEscapeFromPreview,
@@ -55,7 +55,7 @@ function useMathInputPreview({
     showPreview: boolean;
     rawRendererValue: string;
     immediateValueLatex: string;
-    errorMessageParsingRawRendererValue: string | null;
+    errorMessageRawRenderer: string | null;
     focused: boolean;
     previewUpdateDelayMs: number;
     onEscapeFromPreview: () => void;
@@ -67,7 +67,7 @@ function useMathInputPreview({
     const [debouncedPreview, setDebouncedPreview] = useState({
         rawRendererValue,
         immediateValueLatex,
-        errorMessageParsingRawRendererValue,
+        errorMessageRawRenderer,
     });
 
     const previewRef = useRef<HTMLDivElement | null>(null);
@@ -113,8 +113,8 @@ function useMathInputPreview({
         const hasPendingPreviewUpdate =
             debouncedPreview.rawRendererValue !== rawRendererValue ||
             debouncedPreview.immediateValueLatex !== immediateValueLatex ||
-            debouncedPreview.errorMessageParsingRawRendererValue !==
-                errorMessageParsingRawRendererValue;
+            debouncedPreview.errorMessageRawRenderer !==
+                errorMessageRawRenderer;
 
         if (!focused) {
             setEscapeDismissed(false);
@@ -125,7 +125,7 @@ function useMathInputPreview({
                 setDebouncedPreview({
                     rawRendererValue,
                     immediateValueLatex,
-                    errorMessageParsingRawRendererValue,
+                    errorMessageRawRenderer,
                 });
             }
         } else {
@@ -139,7 +139,7 @@ function useMathInputPreview({
                 setDebouncedPreview({
                     rawRendererValue,
                     immediateValueLatex,
-                    errorMessageParsingRawRendererValue,
+                    errorMessageRawRenderer,
                 });
                 previewUpdateTimeout.current = null;
             }, previewUpdateDelayMs);
@@ -147,7 +147,7 @@ function useMathInputPreview({
     }, [
         rawRendererValue,
         immediateValueLatex,
-        errorMessageParsingRawRendererValue,
+        errorMessageRawRenderer,
         focused,
         previewUpdateDelayMs,
         debouncedPreview,
@@ -232,8 +232,8 @@ function useMathInputPreview({
         handlePreviewKeyDown,
         dismissPreview,
         debouncedImmediateValueLatex: debouncedPreview.immediateValueLatex,
-        debouncedErrorMessageParsingRawRendererValue:
-            debouncedPreview.errorMessageParsingRawRendererValue,
+        debouncedErrorMessageRawRenderer:
+            debouncedPreview.errorMessageRawRenderer,
     };
 }
 
@@ -250,12 +250,12 @@ function MathInputPreviewPopover({
     preview,
     showPreview,
     immediateValueLatex,
-    errorMessageParsingRawRendererValue,
+    errorMessageRawRenderer,
 }: {
     preview: MathInputPreviewState;
     showPreview: boolean;
     immediateValueLatex: string;
-    errorMessageParsingRawRendererValue: string | null;
+    errorMessageRawRenderer: string | null;
 }) {
     if (!showPreview) {
         return null;
@@ -263,7 +263,7 @@ function MathInputPreviewPopover({
 
     const showParseErrorMessage =
         immediateValueLatex === PARSE_ERROR_PLACEHOLDER_LATEX &&
-        errorMessageParsingRawRendererValue !== null;
+        errorMessageRawRenderer !== null;
 
     return (
         <Ariakit.Popover
@@ -294,7 +294,7 @@ function MathInputPreviewPopover({
                 {showParseErrorMessage ? (
                     <div className="mathInputPreviewErrorMessage">
                         <strong>Invalid expression:</strong>{" "}
-                        {errorMessageParsingRawRendererValue}
+                        {errorMessageRawRenderer}
                     </div>
                 ) : (
                     <MathJax hideUntilTypeset={"first"} inline dynamic>
@@ -375,8 +375,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         showPreview: SVs.showPreview,
         rawRendererValue: SVs.rawRendererValue,
         immediateValueLatex: SVs.immediateValueLatex,
-        errorMessageParsingRawRendererValue:
-            SVs.errorMessageParsingRawRendererValue,
+        errorMessageRawRenderer: SVs.errorMessageRawRenderer,
         focused,
         previewUpdateDelayMs: PREVIEW_UPDATE_DELAY_MS,
         onEscapeFromPreview: () => {
@@ -743,8 +742,8 @@ export default function MathInput(props: UseDoenetRendererProps) {
                 preview={preview}
                 showPreview={SVs.showPreview}
                 immediateValueLatex={preview.debouncedImmediateValueLatex}
-                errorMessageParsingRawRendererValue={
-                    preview.debouncedErrorMessageParsingRawRendererValue
+                errorMessageRawRenderer={
+                    preview.debouncedErrorMessageRawRenderer
                 }
             />
             {checkWorkComponent}

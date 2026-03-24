@@ -605,32 +605,6 @@ export default class MathInput extends Input {
             },
         };
 
-        stateVariableDefinitions.errorMessageParsingRawRendererValue = {
-            forRenderer: true,
-            hasEssential: true,
-            defaultValue: null,
-            returnDependencies: () => ({}),
-            definition: function () {
-                return {
-                    useEssentialOrDefaultValue: {
-                        errorMessageParsingRawRendererValue: true,
-                    },
-                };
-            },
-            inverseDefinition({ desiredStateVariableValues }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue:
-                                "errorMessageParsingRawRendererValue",
-                            value: desiredStateVariableValues.errorMessageParsingRawRendererValue,
-                        },
-                    ],
-                };
-            },
-        };
-
         // raw value from renderer
         stateVariableDefinitions.rawRendererValue = {
             forRenderer: true,
@@ -652,14 +626,11 @@ export default class MathInput extends Input {
                 },
             ],
             returnDependencies: () => ({
-                // include immediateValue and errorMessageParsingRawRendererValue for inverse definition
+                // include immediateValue for inverse definition
+                // and to determine if used default value
                 immediateValue: {
                     dependencyType: "stateVariable",
                     variableName: "immediateValue",
-                },
-                errorMessageParsingRawRendererValue: {
-                    dependencyType: "stateVariable",
-                    variableName: "errorMessageParsingRawRendererValue",
                 },
                 valueForDisplay: {
                     dependencyType: "stateVariable",
@@ -789,20 +760,14 @@ export default class MathInput extends Input {
                         parseScientificNotation,
                         removeStrings,
                     }).expression;
-                    let { expression: desiredMath, errorMessage } =
-                        calculateMathExpressionFromLatex({
-                            latex: desiredValue,
-                            unionFromU,
-                            functionSymbols,
-                            splitSymbols,
-                            parseScientificNotation,
-                            removeStrings,
-                        });
-
-                    instructions.push({
-                        setDependency: "errorMessageParsingRawRendererValue",
-                        desiredValue: errorMessage,
-                    });
+                    let desiredMath = calculateMathExpressionFromLatex({
+                        latex: desiredValue,
+                        unionFromU,
+                        functionSymbols,
+                        splitSymbols,
+                        parseScientificNotation,
+                        removeStrings,
+                    }).expression;
 
                     // use deepCompare of trees rather than equalsViaSyntax
                     // so even tiny numerical differences that within double precision are detected
@@ -842,7 +807,7 @@ export default class MathInput extends Input {
                         splitSymbols,
                         parseScientificNotation,
                         removeStrings,
-                    });
+                    }).expression;
 
                     // use deepCompare of trees rather than equalsViaSyntax
                     // so even tiny numerical differences that are within double precision are detected
@@ -886,6 +851,62 @@ export default class MathInput extends Input {
                 return {
                     success: true,
                     instructions,
+                };
+            },
+        };
+
+        stateVariableDefinitions.errorMessageRawRenderer = {
+            forRenderer: true,
+            hasEssential: true,
+            defaultValue: null,
+            returnDependencies: () => ({
+                rawRendererValue: {
+                    dependencyType: "stateVariable",
+                    variableName: "rawRendererValue",
+                },
+                unionFromU: {
+                    dependencyType: "stateVariable",
+                    variableName: "unionFromU",
+                },
+                functionSymbols: {
+                    dependencyType: "stateVariable",
+                    variableName: "functionSymbols",
+                },
+                splitSymbols: {
+                    dependencyType: "stateVariable",
+                    variableName: "splitSymbols",
+                },
+                parseScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "parseScientificNotation",
+                },
+                removeStrings: {
+                    dependencyType: "stateVariable",
+                    variableName: "removeStrings",
+                },
+                showPreview: {
+                    dependencyType: "stateVariable",
+                    variableName: "showPreview",
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                let errorMessage = null;
+                if (dependencyValues.showPreview) {
+                    errorMessage = calculateMathExpressionFromLatex({
+                        latex: dependencyValues.rawRendererValue,
+                        unionFromU: dependencyValues.unionFromU,
+                        functionSymbols: dependencyValues.functionSymbols,
+                        splitSymbols: dependencyValues.splitSymbols,
+                        parseScientificNotation:
+                            dependencyValues.parseScientificNotation,
+                        removeStrings: dependencyValues.removeStrings,
+                    }).errorMessage;
+                }
+
+                return {
+                    setValue: {
+                        errorMessageRawRenderer: errorMessage,
+                    },
                 };
             },
         };
