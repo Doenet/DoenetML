@@ -903,7 +903,7 @@ export default class MathInput extends Input {
 
                     if (dependencyValues.immediateValue?.tree === placeholder) {
                         // if we have a raw renderer value and immediate value is the placeholder,
-                        // then we have we have latex that we could not parse.
+                        // then we have latex that we could not parse.
                         // Show the error message from parsing in the preview instead of the placeholder.
 
                         errorMessage = calculateMathExpressionFromLatex({
