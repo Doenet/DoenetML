@@ -857,8 +857,6 @@ export default class MathInput extends Input {
 
         stateVariableDefinitions.errorMessageRawRenderer = {
             forRenderer: true,
-            hasEssential: true,
-            defaultValue: null,
             returnDependencies: () => ({
                 rawRendererValue: {
                     dependencyType: "stateVariable",
@@ -888,19 +886,36 @@ export default class MathInput extends Input {
                     dependencyType: "stateVariable",
                     variableName: "showPreview",
                 },
+                immediateValue: {
+                    dependencyType: "stateVariable",
+                    variableName: "immediateValue",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 let errorMessage = null;
-                if (dependencyValues.showPreview) {
-                    errorMessage = calculateMathExpressionFromLatex({
-                        latex: dependencyValues.rawRendererValue,
-                        unionFromU: dependencyValues.unionFromU,
-                        functionSymbols: dependencyValues.functionSymbols,
-                        splitSymbols: dependencyValues.splitSymbols,
-                        parseScientificNotation:
-                            dependencyValues.parseScientificNotation,
-                        removeStrings: dependencyValues.removeStrings,
-                    }).errorMessage;
+
+                if (
+                    dependencyValues.showPreview &&
+                    dependencyValues.rawRendererValue !== null &&
+                    dependencyValues.rawRendererValue !== ""
+                ) {
+                    const placeholder = "\uFF3F";
+
+                    if (dependencyValues.immediateValue?.tree === placeholder) {
+                        // if we have a raw renderer value and immediate value is the placeholder,
+                        // then we have we have latex that we could not parse.
+                        // Show the error message from parsing in the preview instead of the placeholder.
+
+                        errorMessage = calculateMathExpressionFromLatex({
+                            latex: dependencyValues.rawRendererValue,
+                            unionFromU: dependencyValues.unionFromU,
+                            functionSymbols: dependencyValues.functionSymbols,
+                            splitSymbols: dependencyValues.splitSymbols,
+                            parseScientificNotation:
+                                dependencyValues.parseScientificNotation,
+                            removeStrings: dependencyValues.removeStrings,
+                        }).errorMessage;
+                    }
                 }
 
                 return {
