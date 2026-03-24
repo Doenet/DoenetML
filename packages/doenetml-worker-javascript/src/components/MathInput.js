@@ -336,7 +336,7 @@ export default class MathInput extends Input {
                                                 parseScientificNotation:
                                                     dependencyValues.parseScientificNotation,
                                             },
-                                        );
+                                        ).expression;
                                     }
                                 },
                             },
@@ -627,6 +627,7 @@ export default class MathInput extends Input {
             ],
             returnDependencies: () => ({
                 // include immediateValue for inverse definition
+                // and to determine if used default value
                 immediateValue: {
                     dependencyType: "stateVariable",
                     variableName: "immediateValue",
@@ -758,7 +759,7 @@ export default class MathInput extends Input {
                         splitSymbols,
                         parseScientificNotation,
                         removeStrings,
-                    });
+                    }).expression;
                     let desiredMath = calculateMathExpressionFromLatex({
                         latex: desiredValue,
                         unionFromU,
@@ -766,7 +767,7 @@ export default class MathInput extends Input {
                         splitSymbols,
                         parseScientificNotation,
                         removeStrings,
-                    });
+                    }).expression;
 
                     // use deepCompare of trees rather than equalsViaSyntax
                     // so even tiny numerical differences that within double precision are detected
@@ -806,7 +807,7 @@ export default class MathInput extends Input {
                         splitSymbols,
                         parseScientificNotation,
                         removeStrings,
-                    });
+                    }).expression;
 
                     // use deepCompare of trees rather than equalsViaSyntax
                     // so even tiny numerical differences that are within double precision are detected
@@ -850,6 +851,77 @@ export default class MathInput extends Input {
                 return {
                     success: true,
                     instructions,
+                };
+            },
+        };
+
+        stateVariableDefinitions.errorMessageRawRenderer = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                rawRendererValue: {
+                    dependencyType: "stateVariable",
+                    variableName: "rawRendererValue",
+                },
+                unionFromU: {
+                    dependencyType: "stateVariable",
+                    variableName: "unionFromU",
+                },
+                functionSymbols: {
+                    dependencyType: "stateVariable",
+                    variableName: "functionSymbols",
+                },
+                splitSymbols: {
+                    dependencyType: "stateVariable",
+                    variableName: "splitSymbols",
+                },
+                parseScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "parseScientificNotation",
+                },
+                removeStrings: {
+                    dependencyType: "stateVariable",
+                    variableName: "removeStrings",
+                },
+                showPreview: {
+                    dependencyType: "stateVariable",
+                    variableName: "showPreview",
+                },
+                immediateValue: {
+                    dependencyType: "stateVariable",
+                    variableName: "immediateValue",
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                let errorMessage = null;
+
+                if (
+                    dependencyValues.showPreview &&
+                    dependencyValues.rawRendererValue !== null &&
+                    dependencyValues.rawRendererValue !== ""
+                ) {
+                    const placeholder = "\uFF3F";
+
+                    if (dependencyValues.immediateValue?.tree === placeholder) {
+                        // if we have a raw renderer value and immediate value is the placeholder,
+                        // then we have latex that we could not parse.
+                        // Show the error message from parsing in the preview instead of the placeholder.
+
+                        errorMessage = calculateMathExpressionFromLatex({
+                            latex: dependencyValues.rawRendererValue,
+                            unionFromU: dependencyValues.unionFromU,
+                            functionSymbols: dependencyValues.functionSymbols,
+                            splitSymbols: dependencyValues.splitSymbols,
+                            parseScientificNotation:
+                                dependencyValues.parseScientificNotation,
+                            removeStrings: dependencyValues.removeStrings,
+                        }).errorMessage;
+                    }
+                }
+
+                return {
+                    setValue: {
+                        errorMessageRawRenderer: errorMessage,
+                    },
                 };
             },
         };
@@ -1036,11 +1108,16 @@ function calculateMathExpressionFromLatex({
         parseScientificNotation,
     });
 
+    let errorMessage = null;
     try {
         expression = fromLatex(latex);
     } catch (e) {
         // TODO: error on bad latex
         expression = me.fromAst("\uFF3F");
+
+        if (e.name === "ParseError") {
+            errorMessage = e.message;
+        }
     }
-    return expression;
+    return { expression, errorMessage };
 }

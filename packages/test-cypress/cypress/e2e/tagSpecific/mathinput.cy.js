@@ -387,6 +387,149 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
         shouldContainMathText("#mi-preview", "x+12");
     });
 
+    it("preview shows parse error message for invalid raw latex", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <p><mathInput name="mi" showPreview /></p>
+    `);
+
+        cy.get("#mi textarea").focus();
+
+        cy.window()
+            .then(async (win) => {
+                await win.callAction1({
+                    actionName: "updateRawValue",
+                    componentIdx: await win.resolvePath1("mi"),
+                    args: {
+                        rawRendererValue: "\\frac{1",
+                    },
+                });
+
+                let stateVariables = await win.returnAllStateVariables1();
+                let miStateValues =
+                    stateVariables[await win.resolvePath1("mi")].stateValues;
+
+                expect(miStateValues.immediateValueLatex).eq("\uff3f");
+                expect(miStateValues.errorMessageRawRenderer).not.eq(null);
+
+                return miStateValues.errorMessageRawRenderer;
+            })
+            .then((errorMessage) => {
+                cy.get("#mi [data-test='MathInput Preview']").should(
+                    "be.visible",
+                );
+                cy.get("#mi-preview .MathJax").should("not.exist");
+                cy.get("#mi-preview").should("contain.text", errorMessage);
+            });
+    });
+
+    it("preview shows parse error message: start with invalid symbol", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <p><mathInput name="mi" showPreview /></p>
+    `);
+
+        cy.get("#mi textarea").focus();
+
+        cy.window()
+            .then(async (win) => {
+                await win.callAction1({
+                    actionName: "updateRawValue",
+                    componentIdx: await win.resolvePath1("mi"),
+                    args: {
+                        rawRendererValue: "@",
+                    },
+                });
+
+                let stateVariables = await win.returnAllStateVariables1();
+                let miStateValues =
+                    stateVariables[await win.resolvePath1("mi")].stateValues;
+
+                expect(miStateValues.immediateValueLatex).eq("\uff3f");
+                expect(miStateValues.errorMessageRawRenderer).contains(
+                    "Invalid symbol '@'",
+                );
+
+                return miStateValues.errorMessageRawRenderer;
+            })
+            .then((errorMessage) => {
+                cy.get("#mi [data-test='MathInput Preview']").should(
+                    "be.visible",
+                );
+                cy.get("#mi-preview .MathJax").should("not.exist");
+                cy.get("#mi-preview").should("contain.text", errorMessage);
+            });
+    });
+
+    it("preview shows parse error message: change to including invalid symbol", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <p><mathInput name="mi" showPreview /></p>
+    `);
+
+        cy.get("#mi textarea").focus();
+
+        cy.window()
+            .then(async (win) => {
+                await win.callAction1({
+                    actionName: "updateRawValue",
+                    componentIdx: await win.resolvePath1("mi"),
+                    args: {
+                        rawRendererValue: "x",
+                    },
+                });
+                await win.callAction1({
+                    actionName: "updateRawValue",
+                    componentIdx: await win.resolvePath1("mi"),
+                    args: {
+                        rawRendererValue: "x@",
+                    },
+                });
+
+                let stateVariables = await win.returnAllStateVariables1();
+                let miStateValues =
+                    stateVariables[await win.resolvePath1("mi")].stateValues;
+
+                expect(miStateValues.immediateValueLatex).eq("\uff3f");
+                expect(miStateValues.errorMessageRawRenderer).contains(
+                    "Invalid symbol '@'",
+                );
+
+                return miStateValues.errorMessageRawRenderer;
+            })
+            .then((errorMessage) => {
+                cy.get("#mi [data-test='MathInput Preview']").should(
+                    "be.visible",
+                );
+                cy.get("#mi-preview .MathJax").should("not.exist");
+                cy.get("#mi-preview").should("contain.text", errorMessage);
+            });
+    });
+
+    it("preview shows parse error message from prefillLatex", () => {
+        postDoenetMLWithMathJaxPrimed(`
+    <p><mathInput name="mi" showPreview prefillLatex="s@g" /></p>huh
+    `);
+
+        cy.get("#mi textarea").focus();
+
+        cy.window()
+            .then(async (win) => {
+                let stateVariables = await win.returnAllStateVariables1();
+                let miStateValues =
+                    stateVariables[await win.resolvePath1("mi")].stateValues;
+
+                expect(miStateValues.immediateValueLatex).eq("\uff3f");
+                expect(miStateValues.errorMessageRawRenderer).not.eq(null);
+
+                return miStateValues.errorMessageRawRenderer;
+            })
+            .then((errorMessage) => {
+                cy.get("#mi [data-test='MathInput Preview']").should(
+                    "be.visible",
+                );
+                cy.get("#mi-preview .MathJax").should("not.exist");
+                cy.get("#mi-preview").should("contain.text", errorMessage);
+            });
+    });
+
     it("debounces preview opening and updates while focused", () => {
         postDoenetMLWithMathJaxPrimed(`
     <p><mathInput name="mi" showPreview /></p>

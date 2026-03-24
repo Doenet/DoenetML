@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { normalizeLatexString } from "../../utils/math";
 
-describe("normalizeLatexString unicode substitutions @group4", () => {
+describe("normalizeLatexString substitutions @group4", () => {
     it("converts Greek letter alpha", () => {
         const input = "α + β";
         const output = normalizeLatexString(input);
@@ -96,6 +96,13 @@ describe("normalizeLatexString unicode substitutions @group4", () => {
         expect(output).toContain("f (x y)");
         expect(output).not.toContain("\u2061");
         expect(output).not.toContain("\u2062");
+    });
+
+    it("\\text replaced with \\operatorname", () => {
+        const input = "\\text{hello} \\textbf{world}";
+        const output = normalizeLatexString(input);
+        expect(output).toContain("\\operatorname{hello}");
+        expect(output).toContain("\\textbf{world}");
     });
 });
 

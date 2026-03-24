@@ -427,6 +427,7 @@ export function normalizeLatexString(
         ["\u2032", "'"], // ′
         ["\u2061", " "], // function application
         ["\u2062", " "], // invisible times
+        ["\\\\text(?=\\{)", "\\operatorname"],
     ];
 
     for (let sub of substitutions) {

@@ -8070,8 +8070,8 @@ describe("MathInput tag tests @group2", async () => {
     <p name="pv2">Value: <math extend="$input2" name="iv2" /></p>
     <p name="pr2">Raw value: $input2.rawRendererValue</p>
 
-    <p>Prefill with a \\text</p>
-    <p>Result: <mathInput prefillLatex="\\text{hello there} (a)(b)" name="input3" /></p>
+    <p>Prefill with a \\bad</p>
+    <p>Result: <mathInput prefillLatex="\\bad{hello there} (a)(b)" name="input3" /></p>
     <p name="pv3">Value: <math extend="$input3" name="iv3" /></p>
     <p name="pr3">Raw value: $input3.rawRendererValue</p>
 
@@ -8142,7 +8142,7 @@ describe("MathInput tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("input3")].stateValues
                 .rawRendererValue,
-        ).eq("\\text{hello there} (a)(b)");
+        ).eq("\\bad{hello there} (a)(b)");
 
         await updateMathInputValue({
             latex: "\\frac{a}{b} \\int_a^b f(x) dx",
@@ -8201,7 +8201,7 @@ describe("MathInput tag tests @group2", async () => {
         ).eq("hello(a)(b)");
 
         await updateMathInputValue({
-            latex: "\\text{h}(a)(b)",
+            latex: "\\bad{h}(a)(b)",
             componentIdx: await resolvePathToNodeIdx("input3"),
             core,
         });
@@ -8215,7 +8215,7 @@ describe("MathInput tag tests @group2", async () => {
         ).eq("\uff3f");
         expect(
             stateVariables[await resolvePathToNodeIdx("pr3")].stateValues.text,
-        ).eq("Raw value: \\text{h}(a)(b)");
+        ).eq("Raw value: \\bad{h}(a)(b)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("input3")].stateValues
@@ -8228,7 +8228,7 @@ describe("MathInput tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("input3")].stateValues
                 .rawRendererValue,
-        ).eq("\\text{h}(a)(b)");
+        ).eq("\\bad{h}(a)(b)");
 
         await updateMathInputValue({
             latex: "(a)(b)",
