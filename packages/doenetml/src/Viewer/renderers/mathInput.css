@@ -29,5 +29,6 @@
 }
 
 .doenet-viewer .mathInputPreviewErrorMessage {
+    color: #8b0000;
     white-space: normal;
 }

@@ -269,6 +269,7 @@ function MathInputPreviewPopover({
         <Ariakit.Popover
             store={preview.previewPopover}
             className="description-popover mathInputPreviewPopover"
+            aria-label="math expression preview"
             gutter={8}
             flip="top bottom left"
             fitViewport

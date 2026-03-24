@@ -1368,4 +1368,59 @@ describe("Basic accessibility tests", { tags: ["@group5"] }, function () {
             onlyWarnImpacts: ["moderate", "minor"],
         });
     });
+
+    it("MathInput preview open with valid math passes accessibility checks", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><mathInput name="mi" showPreview /></p>
+                    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#mi textarea").focus().type("x+1", { force: true });
+        cy.wait(600);
+        cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
+        cy.get("#mi-preview .MathJax").should("exist");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
+
+    it("MathInput preview open with error message passes accessibility checks", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><mathInput name="mi" showPreview /></p>
+                    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#mi textarea").focus();
+        cy.window().then(async (win) => {
+            await win.callAction1({
+                actionName: "updateRawValue",
+                componentIdx: await win.resolvePath1("mi"),
+                args: {
+                    rawRendererValue: "\\frac{1",
+                },
+            });
+        });
+
+        cy.wait(600);
+        cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
+        cy.get("#mi-preview .MathJax").should("not.exist");
+        cy.get("#mi-preview").should("contain.text", "Invalid expression:");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
 });
