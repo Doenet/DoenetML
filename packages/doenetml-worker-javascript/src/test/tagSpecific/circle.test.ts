@@ -5799,7 +5799,7 @@ $c7.radius
         expect(diagnosticsByType.warnings[0].position.end.column).eq(58);
 
         expect(diagnosticsByType.warnings[1].message).contain(
-            "Haven't implemented <circle> through 2 points in case where the points don't have numerical values",
+            "Haven't implemented `<circle>` through 2 points in case where the points don't have numerical values",
         );
         expect(diagnosticsByType.warnings[1].position.start.line).eq(2);
         expect(diagnosticsByType.warnings[1].position.start.column).eq(1);

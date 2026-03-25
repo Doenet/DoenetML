@@ -193,7 +193,7 @@ export default class Collect extends CompositeComponent {
                     } else {
                         const warning = {
                             type: "warning",
-                            message: `Cannot collect components of type <${cType}> as it is an invalid component type.`,
+                            message: `Cannot collect components of type \`<${cType}>\` as it is an invalid component type.`,
                         };
                         if (dependencyValues.componentTypeAttr.position) {
                             warning.position =

@@ -5715,7 +5715,7 @@ describe("Point tag tests @group4", async () => {
         expect(diagnosticsByType.warnings.length).eq(2);
 
         expect(diagnosticsByType.warnings[0].message).contain(
-            "Cannot attract to a <legend> as it doesn't have a nearestPoint state variable",
+            "Cannot attract to a `<legend>` as it doesn't have a nearestPoint state variable",
         );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(5);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(16);
@@ -5723,7 +5723,7 @@ describe("Point tag tests @group4", async () => {
         expect(diagnosticsByType.warnings[0].position.end.column).eq(19);
 
         expect(diagnosticsByType.warnings[1].message).contain(
-            "Cannot constrain to a <legend> as it doesn't have a nearestPoint state variable",
+            "Cannot constrain to a `<legend>` as it doesn't have a nearestPoint state variable",
         );
         expect(diagnosticsByType.warnings[1].position.start.line).eq(11);
         expect(diagnosticsByType.warnings[1].position.start.column).eq(18);

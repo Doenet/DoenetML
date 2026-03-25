@@ -57,7 +57,7 @@ export default class ConditionalContent extends CompositeComponent {
                     const warning = {
                         type: "warning",
                         message:
-                            "Attribute `condition` is ignored on a <conditionalContent> component with case or else children.",
+                            "Attribute `condition` is ignored on a `<conditionalContent>` component with case or else children.",
                     };
                     if (dependencyValues.conditionAttribute.position) {
                         warning.position =

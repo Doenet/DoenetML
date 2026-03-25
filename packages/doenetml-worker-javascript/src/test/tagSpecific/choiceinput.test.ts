@@ -3957,13 +3957,13 @@ describe("ChoiceInput tag tests @group4", async () => {
         ).eq(true);
 
         expect(diagnosticsByType.accessibility[0].message).contain(
-            `<choiceInput> must have a short description or a label`,
+            `\`<choiceInput>\` must have a short description or a label`,
         );
         expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
         expect(diagnosticsByType.accessibility[0].position.end.line).eq(5);
 
         expect(diagnosticsByType.accessibility[1].message).contain(
-            `<choiceInput> must have a short description or a label`,
+            `\`<choiceInput>\` must have a short description or a label`,
         );
         expect(diagnosticsByType.accessibility[1].position.start.line).eq(18);
         expect(diagnosticsByType.accessibility[1].position.end.line).eq(21);

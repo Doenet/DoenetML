@@ -1482,7 +1482,7 @@ export default class Copy extends CompositeComponent {
             console.error("we're calling this circular", e);
             let message = "Circular dependency detected";
             if (component.attributes.createComponentOfType?.primitive) {
-                message += ` involving <${component.attributes.createComponentOfType.primitive.value}> component`;
+                message += ` involving \`<${component.attributes.createComponentOfType.primitive.value}>\` component`;
             }
             message += ".";
             serializedReplacements = [

@@ -1101,7 +1101,7 @@ export default class Circle extends Curve {
             definition: function ({ dependencyValues }) {
                 if (dependencyValues.haveNonNumericalThroughPoints) {
                     let message =
-                        "Haven't implemented <circle> through " +
+                        "Haven't implemented `<circle>` through " +
                         dependencyValues.numThroughPoints +
                         " points";
                     message +=

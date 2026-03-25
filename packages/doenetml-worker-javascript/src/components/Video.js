@@ -128,7 +128,7 @@ export default class Video extends BlockComponent {
                         type: "accessibility",
                         level: 1,
                         message:
-                            "For accessibility, <video> must have a short description.",
+                            "For accessibility, `<video>` must have a short description.",
                     });
                 }
 

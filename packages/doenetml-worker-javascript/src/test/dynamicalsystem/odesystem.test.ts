@@ -948,7 +948,7 @@ describe("odeSystem Tag Tests @group4", async () => {
         expect(diagnosticsByType.warnings[0].position.end.column).eq(54);
 
         expect(diagnosticsByType.warnings[1].message).contain(
-            `Variables of <odeSystem> must be different than independent variable`,
+            `Variables of \`<odeSystem>\` must be different than independent variable`,
         );
         expect(diagnosticsByType.warnings[1].position.start.line).eq(2);
         expect(diagnosticsByType.warnings[1].position.start.column).eq(12);

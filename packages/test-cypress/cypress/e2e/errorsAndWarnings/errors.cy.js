@@ -32,7 +32,7 @@ describe("Error Tests", { tags: ["@group2"] }, function () {
 
         cy.get("#text1").should("contain.text", "hello!");
 
-        cy.get("#a1").should("contain.text", "Invalid component type: <a>");
+        cy.get("#a1").should("contain.text", "Invalid component type: `<a>`");
         cy.get("#a1").should("contain.text", "lines 5–6");
 
         cy.get("#a1").should(
@@ -70,7 +70,7 @@ describe("Error Tests", { tags: ["@group2"] }, function () {
             expect(diagnosticsByType.errors[0].position.end.column).eq(18);
 
             expect(diagnosticsByType.errors[1].message).contain(
-                "Invalid component type: <a>",
+                "Invalid component type: `<a>`",
             );
             expect(diagnosticsByType.errors[1].position.start.line).eq(5);
             expect(diagnosticsByType.errors[1].position.start.column).eq(5);

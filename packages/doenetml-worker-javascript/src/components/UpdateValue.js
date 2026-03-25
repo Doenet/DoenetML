@@ -225,7 +225,7 @@ export default class UpdateValue extends InlineComponent {
                 ) {
                     diagnostics.push({
                         message:
-                            "Invalid target for <updateValue>: cannot find target.",
+                            "Invalid target for `<updateValue>`: cannot find target.",
                         type: "warning",
                     });
                 }
@@ -308,7 +308,7 @@ export default class UpdateValue extends InlineComponent {
                         let target = dependencyValues["target" + ind];
                         if (target == null) {
                             let message =
-                                "Invalid target for <updateValue>: cannot find target.";
+                                "Invalid target for `<updateValue>`: cannot find target.";
 
                             diagnostics.push({
                                 message,
@@ -330,13 +330,13 @@ export default class UpdateValue extends InlineComponent {
                                         prop += `[idx]`;
                                     }
                                 }
-                                let message = `Invalid target for <updateValue>: cannot find a state variable named "${prop}" on a <${target.componentType}>.`;
+                                let message = `Invalid target for \`<updateValue>\`: cannot find a state variable named "${prop}" on a \`<${target.componentType}>\`.`;
                                 diagnostics.push({
                                     message,
                                     type: "warning",
                                 });
                             } else {
-                                let message = `Invalid target for <updateValue>: cannot find a state variable named "value" on a <${target.componentType}>.`;
+                                let message = `Invalid target for \`<updateValue>\`: cannot find a state variable named "value" on a \`<${target.componentType}>\`.`;
                                 diagnostics.push({
                                     message,
                                     type: "warning",

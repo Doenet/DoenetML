@@ -209,7 +209,7 @@ describe("Pretzel tag tests @group1", async () => {
         expect(diagnosticsByType.warnings.length).eq(1);
 
         expect(diagnosticsByType.warnings[0].message).contain(
-            "Invalid pretzel: each <problem> must contain one <statement> and one <answer>.",
+            "Invalid pretzel: each `<problem>` must contain one `<statement>` and one `<answer>`.",
         );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(5);
@@ -734,7 +734,7 @@ describe("Pretzel tag tests @group1", async () => {
 
         expect(diagnosticsByType.errors.length).eq(1);
         expect(diagnosticsByType.errors[0].message).contain(
-            'Invalid pretzel: in mode="circuit", the first <problem> cannot be a distractor.',
+            'Invalid pretzel: in mode="circuit", the first `<problem>` cannot be a distractor.',
         );
 
         const stateVariables = await core.returnAllStateVariables(false, true);

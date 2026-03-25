@@ -5469,7 +5469,7 @@ describe("Function tag tests @group4", async () => {
         expect(diagnosticsByType.warnings[5].position.end.column).eq(48);
 
         expect(diagnosticsByType.warnings[6].message).contain(
-            `Invalid format for attribute domain of <function>`,
+            `Invalid format for attribute domain of \`<function>\``,
         );
         expect(diagnosticsByType.warnings[6].position.start.line).eq(3);
         expect(diagnosticsByType.warnings[6].position.start.column).eq(25);

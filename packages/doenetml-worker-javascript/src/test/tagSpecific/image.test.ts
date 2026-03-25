@@ -315,7 +315,7 @@ describe("Image tag tests @group3", async () => {
         expect(diagnosticsByType.accessibility[0].level).eq(1);
 
         expect(diagnosticsByType.accessibility[0].message).contain(
-            `<image> must either have a short description or be specified as decorative`,
+            "`<image>` must either have a short description or be specified as decorative",
         );
         expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
         expect(diagnosticsByType.accessibility[0].position.start.column).eq(1);

@@ -219,7 +219,7 @@ export default class ODESystem extends InlineComponent {
                     const warning = {
                         type: "warning",
                         message:
-                            "Variables of <odeSystem> must be different than independent variable.",
+                            "Variables of `<odeSystem>` must be different than independent variable.",
                     };
                     if (globalDependencyValues.variables?.position) {
                         warning.position =

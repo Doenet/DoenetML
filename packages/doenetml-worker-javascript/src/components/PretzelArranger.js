@@ -423,7 +423,7 @@ export default class PretzelArranger extends CompositeComponent {
                     // we don't advertise a legacy form planned for deprecation.
                     diagnostics.push({
                         message:
-                            "Invalid pretzel: each <problem> must contain one <statement> and one <answer>.",
+                            "Invalid pretzel: each `<problem>` must contain one `<statement>` and one `<answer>`.",
                         type: "warning",
                     });
                 }
@@ -434,7 +434,7 @@ export default class PretzelArranger extends CompositeComponent {
                 ) {
                     diagnostics.push({
                         message:
-                            'Invalid pretzel: in mode="circuit", the first <problem> cannot be a distractor.',
+                            'Invalid pretzel: in mode="circuit", the first `<problem>` cannot be a distractor.',
                         type: "error",
                     });
                 }

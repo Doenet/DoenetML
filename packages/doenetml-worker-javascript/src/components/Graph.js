@@ -300,7 +300,7 @@ export default class Graph extends BlockComponent {
                         type: "accessibility",
                         level: 1,
                         message:
-                            "For accessibility, <graph> must either have a short description or be specified as decorative.",
+                            "For accessibility, `<graph>` must either have a short description or be specified as decorative.",
                     });
                 }
 

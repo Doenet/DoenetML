@@ -45,7 +45,7 @@ function pushUnsupportedAxisPositionWarnings({
         diagnostics.push({
             type: "warning",
             message:
-                '<graph>: xLabelPosition="left" is not supported in prefigure renderer; using right-position behavior.',
+                '`<graph>`: xLabelPosition="left" is not supported in prefigure renderer; using right-position behavior.',
         });
     }
 
@@ -53,7 +53,7 @@ function pushUnsupportedAxisPositionWarnings({
         diagnostics.push({
             type: "warning",
             message:
-                '<graph>: yLabelPosition="bottom" is not supported in prefigure renderer; using top-position behavior.',
+                '`<graph>`: yLabelPosition="bottom" is not supported in prefigure renderer; using top-position behavior.',
         });
     }
 }
@@ -121,7 +121,7 @@ export function createPrefigureXML({
         diagnostics.push({
             type: "warning",
             message:
-                "<graph>: invalid axis bounds for prefigure conversion; using default bbox (-10,-10,10,10).",
+                "`<graph>`: invalid axis bounds for prefigure conversion; using default bbox (-10,-10,10,10).",
         });
     }
 
@@ -138,7 +138,7 @@ export function createPrefigureXML({
         diagnostics.push({
             type: "warning",
             message:
-                "<graph>: invalid width for prefigure conversion; using default diagram width 425.",
+                "`<graph>`: invalid width for prefigure conversion; using default diagram width 425.",
         });
         dimensionWidth = 425;
     }
@@ -148,7 +148,7 @@ export function createPrefigureXML({
         diagnostics.push({
             type: "warning",
             message:
-                "<graph>: invalid aspectRatio for prefigure conversion; using default aspect ratio 1.",
+                "`<graph>`: invalid aspectRatio for prefigure conversion; using default aspect ratio 1.",
         });
         diagramAspectRatio = 1;
     }

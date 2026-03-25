@@ -619,8 +619,8 @@ export default class Input extends InlineComponent {
                     let objectNeedingLabel =
                         dependencyValues.createdFromSugar &&
                         dependencyValues.answerAncestor
-                            ? `an <answer> creating an input`
-                            : `<${componentClass.componentType}>`;
+                            ? "an `<answer>` creating an input"
+                            : `\`<${componentClass.componentType}>\``;
 
                     diagnostics.push({
                         type: "accessibility",

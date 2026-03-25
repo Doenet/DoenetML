@@ -7591,55 +7591,55 @@ What is the derivative of <function name="f">x^2</function>?
         ).eq(true);
 
         expect(diagnosticsByType.accessibility[0].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
+            `an \`<answer>\` creating an input must have a short description or a label`,
         );
         expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
         expect(diagnosticsByType.accessibility[0].position.end.line).eq(2);
 
         expect(diagnosticsByType.accessibility[1].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
+            `an \`<answer>\` creating an input must have a short description or a label`,
         );
         expect(diagnosticsByType.accessibility[1].position.start.line).eq(3);
         expect(diagnosticsByType.accessibility[1].position.end.line).eq(3);
 
         expect(diagnosticsByType.accessibility[2].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
+            `an \`<answer>\` creating an input must have a short description or a label`,
         );
         expect(diagnosticsByType.accessibility[2].position.start.line).eq(4);
         expect(diagnosticsByType.accessibility[2].position.end.line).eq(4);
 
         expect(diagnosticsByType.accessibility[3].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
+            `an \`<answer>\` creating an input must have a short description or a label`,
         );
         expect(diagnosticsByType.accessibility[3].position.start.line).eq(5);
         expect(diagnosticsByType.accessibility[3].position.end.line).eq(9);
 
         expect(diagnosticsByType.accessibility[4].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
+            `an \`<answer>\` creating an input must have a short description or a label`,
         );
         expect(diagnosticsByType.accessibility[4].position.start.line).eq(11);
         expect(diagnosticsByType.accessibility[4].position.end.line).eq(11);
 
         expect(diagnosticsByType.accessibility[5].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
+            `an \`<answer>\` creating an input must have a short description or a label`,
         );
         expect(diagnosticsByType.accessibility[5].position.start.line).eq(12);
         expect(diagnosticsByType.accessibility[5].position.end.line).eq(12);
 
         expect(diagnosticsByType.accessibility[6].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
+            `an \`<answer>\` creating an input must have a short description or a label`,
         );
         expect(diagnosticsByType.accessibility[6].position.start.line).eq(13);
         expect(diagnosticsByType.accessibility[6].position.end.line).eq(13);
 
         expect(diagnosticsByType.accessibility[7].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
+            `an \`<answer>\` creating an input must have a short description or a label`,
         );
         expect(diagnosticsByType.accessibility[7].position.start.line).eq(15);
         expect(diagnosticsByType.accessibility[7].position.end.line).eq(15);
 
         expect(diagnosticsByType.accessibility[8].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
+            `an \`<answer>\` creating an input must have a short description or a label`,
         );
         expect(diagnosticsByType.accessibility[8].position.start.line).eq(16);
         expect(diagnosticsByType.accessibility[8].position.end.line).eq(16);
@@ -7663,14 +7663,14 @@ What is the derivative of <function name="f">x^2</function>?
         expect(diagnosticsByType.accessibility.length).eq(1);
         expect(diagnosticsByType.accessibility[0].level).eq(1);
         expect(diagnosticsByType.accessibility[0].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
+            `an \`<answer>\` creating an input must have a short description or a label`,
         );
 
         const renderedError = Object.values(stateVariables).find(
             (component: any) =>
                 component.componentType === "_error" &&
                 component.stateValues?.message?.includes(
-                    `an <answer> creating an input must have a short description or a label`,
+                    `an \`<answer>\` creating an input must have a short description or a label`,
                 ),
         );
         expect(renderedError).eq(undefined);

@@ -220,7 +220,7 @@ describe("Error Tests @group2", async () => {
         expect(secondNoClosingTag?.position.end.column).eq(21);
 
         const invalidApple = diagnosticsByType.errors.find((error) =>
-            error.message.includes("Invalid component type: <apple>"),
+            error.message.includes("Invalid component type: `<apple>`"),
         );
         expect(invalidApple?.position.start.line).eq(17);
         expect(invalidApple?.position.start.column).eq(3);
@@ -228,7 +228,7 @@ describe("Error Tests @group2", async () => {
         expect(invalidApple?.position.end.column).eq(42);
 
         const invalidBanana = diagnosticsByType.errors.find((error) =>
-            error.message.includes("Invalid component type: <banana>"),
+            error.message.includes("Invalid component type: `<banana>`"),
         );
         expect(invalidBanana?.position.start.line).eq(18);
         expect(invalidBanana?.position.start.column).eq(3);
@@ -271,7 +271,7 @@ a />
         expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.errors[0].message).contain(
-            "Invalid component type: <abc>",
+            "Invalid component type: `<abc>`",
         );
         expect(diagnosticsByType.errors[0].position.start.line).eq(2);
         expect(diagnosticsByType.errors[0].position.start.column).eq(1);
@@ -279,7 +279,7 @@ a />
         expect(diagnosticsByType.errors[0].position.end.column).eq(8);
 
         expect(diagnosticsByType.errors[1].message).contain(
-            "Invalid component type: <bcd>",
+            "Invalid component type: `<bcd>`",
         );
         expect(diagnosticsByType.errors[1].position.start.line).eq(3);
         expect(diagnosticsByType.errors[1].position.start.column).eq(3);
@@ -287,7 +287,7 @@ a />
         expect(diagnosticsByType.errors[1].position.end.column).eq(12);
 
         expect(diagnosticsByType.errors[2].message).contain(
-            "Invalid component type: <cde>",
+            "Invalid component type: `<cde>`",
         );
         expect(diagnosticsByType.errors[2].position.start.line).eq(4);
         expect(diagnosticsByType.errors[2].position.start.column).eq(1);
@@ -295,7 +295,7 @@ a />
         expect(diagnosticsByType.errors[2].position.end.column).eq(3);
 
         expect(diagnosticsByType.errors[3].message).contain(
-            "Invalid component type: <def>",
+            "Invalid component type: `<def>`",
         );
         expect(diagnosticsByType.errors[3].position.start.line).eq(6);
         expect(diagnosticsByType.errors[3].position.start.column).eq(5);
@@ -303,7 +303,7 @@ a />
         expect(diagnosticsByType.errors[3].position.end.column).eq(3);
 
         expect(diagnosticsByType.errors[4].message).contain(
-            "Invalid component type: <efg>",
+            "Invalid component type: `<efg>`",
         );
         expect(diagnosticsByType.errors[4].position.start.line).eq(9);
         expect(diagnosticsByType.errors[4].position.start.column).eq(1);
@@ -311,7 +311,7 @@ a />
         expect(diagnosticsByType.errors[4].position.end.column).eq(4);
 
         expect(diagnosticsByType.errors[5].message).contain(
-            "Invalid component type: <fgh>",
+            "Invalid component type: `<fgh>`",
         );
         expect(diagnosticsByType.errors[5].position.start.line).eq(11);
         expect(diagnosticsByType.errors[5].position.start.column).eq(1);
@@ -319,7 +319,7 @@ a />
         expect(diagnosticsByType.errors[5].position.end.column).eq(5);
 
         expect(diagnosticsByType.errors[6].message).contain(
-            "Invalid component type: <ghi>",
+            "Invalid component type: `<ghi>`",
         );
         expect(diagnosticsByType.errors[6].position.start.line).eq(13);
         expect(diagnosticsByType.errors[6].position.start.column).eq(1);
@@ -419,7 +419,7 @@ a />
         expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.errors[0].message).contain(
-            `Invalid attribute "bad" for a component of type <p>`,
+            `Invalid attribute "bad" for a component of type \`<p>\``,
         );
         expect(diagnosticsByType.errors[0].position.start.line).eq(3);
         expect(diagnosticsByType.errors[0].position.start.column).eq(5);
@@ -578,7 +578,7 @@ a />
         expect(noClosingTagError?.position.end.column).eq(6);
 
         const invalidBadError = diagnosticsByType.errors.find((error) =>
-            error.message.includes("Invalid component type: <bad>"),
+            error.message.includes("Invalid component type: `<bad>`"),
         );
         expect(invalidBadError?.position.start.line).eq(1);
         expect(invalidBadError?.position.start.column).eq(1);
