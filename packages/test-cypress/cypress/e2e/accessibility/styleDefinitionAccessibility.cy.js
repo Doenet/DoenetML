@@ -1,3 +1,5 @@
+import { getDiagnosticsByType } from "../../support/diagnostics";
+
 describe("Style definition accessibility checks", { tags: ["@group5"] }, () => {
     // These tests intentionally target WCAG AA contrast behavior.
     // We enforce this by running axe's `color-contrast` rule only.
