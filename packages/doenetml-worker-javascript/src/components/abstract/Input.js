@@ -2,7 +2,6 @@ import {
     returnLabelAttributes,
     returnLabelStateVariableDefinitions,
 } from "../../utils/label";
-import { accessibilityWarningsResult } from "@doenet/utils";
 import InlineComponent from "./InlineComponent";
 
 export default class Input extends InlineComponent {
@@ -590,10 +589,6 @@ export default class Input extends InlineComponent {
                     childGroups: ["shortDescriptions"],
                     variableNames: ["text"],
                 },
-                upgradeAccessibilityWarningsToErrors: {
-                    dependencyType: "flag",
-                    flagName: "upgradeAccessibilityWarningsToErrors",
-                },
 
                 label: {
                     dependencyType: "stateVariable",
@@ -628,17 +623,16 @@ export default class Input extends InlineComponent {
                             : `<${componentClass.componentType}>`;
 
                     diagnostics.push({
-                        type: "warning",
+                        type: "accessibility",
+                        level: 1,
                         message: `For accessibility, ${objectNeedingLabel} must have a short description or a label.`,
                     });
                 }
 
-                return accessibilityWarningsResult({
+                return {
                     setValue: { shortDescription },
-                    diagnostics,
-                    upgradeWarningsToErrors:
-                        dependencyValues.upgradeAccessibilityWarningsToErrors,
-                });
+                    sendDiagnostics: diagnostics,
+                };
             },
         };
 

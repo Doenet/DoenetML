@@ -7558,7 +7558,7 @@ What is the derivative of <function name="f">x^2</function>?
         ).eq("enterZ label: enter z");
     });
 
-    it("warning if no short description or label when generates input", async () => {
+    it("accessibility diagnostics if no short description or label when generates input", async () => {
         let { core } = await createTestCore({
             doenetML: `
                 <answer>x</answer>
@@ -7582,162 +7582,87 @@ What is the derivative of <function name="f">x^2</function>?
         let diagnosticsByType = getDiagnosticsByType(core);
 
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(9);
-
-        expect(diagnosticsByType.warnings[0].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
-        );
-        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
-        expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
-
-        expect(diagnosticsByType.warnings[1].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
-        );
-        expect(diagnosticsByType.warnings[1].position.start.line).eq(3);
-        expect(diagnosticsByType.warnings[1].position.end.line).eq(3);
-
-        expect(diagnosticsByType.warnings[2].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
-        );
-        expect(diagnosticsByType.warnings[2].position.start.line).eq(4);
-        expect(diagnosticsByType.warnings[2].position.end.line).eq(4);
-
-        expect(diagnosticsByType.warnings[3].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
-        );
-        expect(diagnosticsByType.warnings[3].position.start.line).eq(5);
-        expect(diagnosticsByType.warnings[3].position.end.line).eq(9);
-
-        expect(diagnosticsByType.warnings[4].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
-        );
-        expect(diagnosticsByType.warnings[4].position.start.line).eq(11);
-        expect(diagnosticsByType.warnings[4].position.end.line).eq(11);
-
-        expect(diagnosticsByType.warnings[5].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
-        );
-        expect(diagnosticsByType.warnings[5].position.start.line).eq(12);
-        expect(diagnosticsByType.warnings[5].position.end.line).eq(12);
-
-        expect(diagnosticsByType.warnings[6].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
-        );
-        expect(diagnosticsByType.warnings[6].position.start.line).eq(13);
-        expect(diagnosticsByType.warnings[6].position.end.line).eq(13);
-
-        expect(diagnosticsByType.warnings[7].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
-        );
-        expect(diagnosticsByType.warnings[7].position.start.line).eq(15);
-        expect(diagnosticsByType.warnings[7].position.end.line).eq(15);
-
-        expect(diagnosticsByType.warnings[8].message).contain(
-            `an <answer> creating an input must have a short description or a label`,
-        );
-        expect(diagnosticsByType.warnings[8].position.start.line).eq(16);
-        expect(diagnosticsByType.warnings[8].position.end.line).eq(16);
-    });
-
-    it("upgrade warning to error if no short description or label when generates input", async () => {
-        let { core } = await createTestCore({
-            doenetML: `
-                <answer>x</answer>
-                <answer type="text">hello</answer>
-                <answer type="boolean">true</answer>
-                <answer>
-                    <choice credit="1">cat</choice>
-                    <choice>dog</choice>
-                    <choice>monkey</choice>
-                </answer>
-                <point name="P" /><answer><award><when>$P.x > 0</when></award></answer>
-                <answer><math>x</math></answer>
-                <answer><award>x</award></answer>
-                <answer><award><math>x</math></award></answer>
-                <answer name="enterX" labelIsName>x</answer>
-                <answer name="myAnswer">x</answer>
-                <answer labelIsName>x</answer>
-            `,
-            flags: { upgradeAccessibilityWarningsToErrors: true },
-        });
-
-        let diagnosticsByType = getDiagnosticsByType(core);
-
-        expect(diagnosticsByType.errors.length).eq(9);
         expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.accessibility.length).eq(9);
+        expect(
+            diagnosticsByType.accessibility.every(
+                (diagnostic) => diagnostic.level === 1,
+            ),
+        ).eq(true);
 
-        expect(diagnosticsByType.errors[0].message).contain(
+        expect(diagnosticsByType.accessibility[0].message).contain(
             `an <answer> creating an input must have a short description or a label`,
         );
-        expect(diagnosticsByType.errors[0].position.start.line).eq(2);
-        expect(diagnosticsByType.errors[0].position.end.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.end.line).eq(2);
 
-        expect(diagnosticsByType.errors[1].message).contain(
+        expect(diagnosticsByType.accessibility[1].message).contain(
             `an <answer> creating an input must have a short description or a label`,
         );
-        expect(diagnosticsByType.errors[1].position.start.line).eq(3);
-        expect(diagnosticsByType.errors[1].position.end.line).eq(3);
+        expect(diagnosticsByType.accessibility[1].position.start.line).eq(3);
+        expect(diagnosticsByType.accessibility[1].position.end.line).eq(3);
 
-        expect(diagnosticsByType.errors[2].message).contain(
+        expect(diagnosticsByType.accessibility[2].message).contain(
             `an <answer> creating an input must have a short description or a label`,
         );
-        expect(diagnosticsByType.errors[2].position.start.line).eq(4);
-        expect(diagnosticsByType.errors[2].position.end.line).eq(4);
+        expect(diagnosticsByType.accessibility[2].position.start.line).eq(4);
+        expect(diagnosticsByType.accessibility[2].position.end.line).eq(4);
 
-        expect(diagnosticsByType.errors[3].message).contain(
+        expect(diagnosticsByType.accessibility[3].message).contain(
             `an <answer> creating an input must have a short description or a label`,
         );
-        expect(diagnosticsByType.errors[3].position.start.line).eq(5);
-        expect(diagnosticsByType.errors[3].position.end.line).eq(9);
+        expect(diagnosticsByType.accessibility[3].position.start.line).eq(5);
+        expect(diagnosticsByType.accessibility[3].position.end.line).eq(9);
 
-        expect(diagnosticsByType.errors[4].message).contain(
+        expect(diagnosticsByType.accessibility[4].message).contain(
             `an <answer> creating an input must have a short description or a label`,
         );
-        expect(diagnosticsByType.errors[4].position.start.line).eq(11);
-        expect(diagnosticsByType.errors[4].position.end.line).eq(11);
+        expect(diagnosticsByType.accessibility[4].position.start.line).eq(11);
+        expect(diagnosticsByType.accessibility[4].position.end.line).eq(11);
 
-        expect(diagnosticsByType.errors[5].message).contain(
+        expect(diagnosticsByType.accessibility[5].message).contain(
             `an <answer> creating an input must have a short description or a label`,
         );
-        expect(diagnosticsByType.errors[5].position.start.line).eq(12);
-        expect(diagnosticsByType.errors[5].position.end.line).eq(12);
+        expect(diagnosticsByType.accessibility[5].position.start.line).eq(12);
+        expect(diagnosticsByType.accessibility[5].position.end.line).eq(12);
 
-        expect(diagnosticsByType.errors[6].message).contain(
+        expect(diagnosticsByType.accessibility[6].message).contain(
             `an <answer> creating an input must have a short description or a label`,
         );
-        expect(diagnosticsByType.errors[6].position.start.line).eq(13);
-        expect(diagnosticsByType.errors[6].position.end.line).eq(13);
+        expect(diagnosticsByType.accessibility[6].position.start.line).eq(13);
+        expect(diagnosticsByType.accessibility[6].position.end.line).eq(13);
 
-        expect(diagnosticsByType.errors[7].message).contain(
+        expect(diagnosticsByType.accessibility[7].message).contain(
             `an <answer> creating an input must have a short description or a label`,
         );
-        expect(diagnosticsByType.errors[7].position.start.line).eq(15);
-        expect(diagnosticsByType.errors[7].position.end.line).eq(15);
+        expect(diagnosticsByType.accessibility[7].position.start.line).eq(15);
+        expect(diagnosticsByType.accessibility[7].position.end.line).eq(15);
 
-        expect(diagnosticsByType.errors[8].message).contain(
+        expect(diagnosticsByType.accessibility[8].message).contain(
             `an <answer> creating an input must have a short description or a label`,
         );
-        expect(diagnosticsByType.errors[8].position.start.line).eq(16);
-        expect(diagnosticsByType.errors[8].position.end.line).eq(16);
+        expect(diagnosticsByType.accessibility[8].position.start.line).eq(16);
+        expect(diagnosticsByType.accessibility[8].position.end.line).eq(16);
     });
 
-    it("regression: upgraded input accessibility error climbs to displayable ancestor", async () => {
+    it("regression: input accessibility diagnostic climbs to displayable ancestor", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
                 <p name="container">
                     <answer name="ans">x</answer>
                 </p>
             `,
-            flags: { upgradeAccessibilityWarningsToErrors: true },
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         const answerIdx = await resolvePathToNodeIdx("ans");
 
         const diagnosticsByType = getDiagnosticsByType(core);
-        expect(diagnosticsByType.errors.length).eq(1);
+        expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(0);
-        expect(diagnosticsByType.errors[0].message).contain(
+        expect(diagnosticsByType.accessibility.length).eq(1);
+        expect(diagnosticsByType.accessibility[0].level).eq(1);
+        expect(diagnosticsByType.accessibility[0].message).contain(
             `an <answer> creating an input must have a short description or a label`,
         );
 
@@ -7748,7 +7673,7 @@ What is the derivative of <function name="f">x^2</function>?
                     `an <answer> creating an input must have a short description or a label`,
                 ),
         );
-        expect(renderedError).not.eq(undefined);
+        expect(renderedError).eq(undefined);
 
         const answerChildComponentTypes = stateVariables[
             answerIdx

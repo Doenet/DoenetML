@@ -1,7 +1,9 @@
 import {
+    AccessibilityRecord,
     ErrorRecord,
     InfoRecord,
     WarningRecord,
+    isAccessibilityRecord,
     isErrorRecord,
     isInfoRecord,
     isWarningRecord,
@@ -11,6 +13,7 @@ type DiagnosticsByType = {
     readonly errors: ErrorRecord[];
     readonly warnings: WarningRecord[];
     readonly infos: InfoRecord[];
+    readonly accessibility: AccessibilityRecord[];
 };
 
 export function getDiagnosticsByType(core: any): DiagnosticsByType {
@@ -23,6 +26,9 @@ export function getDiagnosticsByType(core: any): DiagnosticsByType {
         },
         get infos() {
             return core.core!.diagnostics.filter(isInfoRecord);
+        },
+        get accessibility() {
+            return core.core!.diagnostics.filter(isAccessibilityRecord);
         },
     };
 }

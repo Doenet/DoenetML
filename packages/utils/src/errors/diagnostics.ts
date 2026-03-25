@@ -2,35 +2,38 @@ import type { Position, Point } from "@doenet/parser";
 
 export type { Position, Point };
 
-export type DiagnosticType = "error" | "warning" | "info";
+export type DiagnosticLevel = 1 | 2;
 
-export type DiagnosticRecord = {
-    type: DiagnosticType;
+export type DiagnosticType = "error" | "warning" | "info" | "accessibility";
+
+type BaseDiagnosticRecord = {
     message: string;
     position?: Position;
     sourceDoc?: number;
 };
 
-export type ErrorRecord = {
+export type ErrorRecord = BaseDiagnosticRecord & {
     type: "error";
-    message: string;
-    position?: Position;
-    sourceDoc?: number;
 };
 
-export type WarningRecord = {
+export type WarningRecord = BaseDiagnosticRecord & {
     type: "warning";
-    message: string;
-    position?: Position;
-    sourceDoc?: number;
 };
 
-export type InfoRecord = {
+export type InfoRecord = BaseDiagnosticRecord & {
     type: "info";
-    message: string;
-    position?: Position;
-    sourceDoc?: number;
 };
+
+export type AccessibilityRecord = BaseDiagnosticRecord & {
+    type: "accessibility";
+    level: DiagnosticLevel;
+};
+
+export type DiagnosticRecord =
+    | ErrorRecord
+    | WarningRecord
+    | InfoRecord
+    | AccessibilityRecord;
 
 export function isErrorRecord(
     diagnostic: DiagnosticRecord,
@@ -50,44 +53,11 @@ export function isInfoRecord(
     return diagnostic.type === "info";
 }
 
-/**
- * Convert a warning-like record into an error record consumed by Core's
- * `sendDiagnostics` path.
- */
-export function warningRecordToErrorRecord<T extends Record<string, any>>(
-    warning: T,
-) {
-    return {
-        ...warning,
-        type: "error" as const,
-    };
-}
-
-/**
- * Build the state-variable definition return payload for accessibility checks.
- *
- * When `upgradeWarningsToErrors` is true, warnings are emitted through
- * `sendDiagnostics` so they are surfaced as errors and can create `_error`
- * components.
- */
-export function accessibilityWarningsResult<T extends Record<string, any>>({
-    setValue,
-    diagnostics,
-    upgradeWarningsToErrors,
-}: {
-    setValue: T;
-    diagnostics: DiagnosticRecord[];
-    upgradeWarningsToErrors: boolean;
-}) {
-    if (upgradeWarningsToErrors) {
-        return {
-            setValue,
-            sendDiagnostics: diagnostics.map(warningRecordToErrorRecord),
-        };
-    }
-
-    return {
-        setValue,
-        sendDiagnostics: diagnostics,
-    };
+export function isAccessibilityRecord(
+    diagnostic: DiagnosticRecord,
+): diagnostic is AccessibilityRecord {
+    return (
+        diagnostic.type === "accessibility" &&
+        (diagnostic.level === 1 || diagnostic.level === 2)
+    );
 }

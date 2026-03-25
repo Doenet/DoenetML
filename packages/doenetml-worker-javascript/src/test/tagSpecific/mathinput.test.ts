@@ -12042,7 +12042,7 @@ describe("MathInput tag tests @group2", async () => {
         await check_items(math, i);
     });
 
-    it("warning if no short description or label", async () => {
+    it("accessibility diagnostics if no short description or label", async () => {
         let { core } = await createTestCore({
             doenetML: `
                 <mathInput />
@@ -12056,49 +12056,25 @@ describe("MathInput tag tests @group2", async () => {
         let diagnosticsByType = getDiagnosticsByType(core);
 
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(2);
-
-        expect(diagnosticsByType.warnings[0].message).contain(
-            `<mathInput> must have a short description or a label`,
-        );
-        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
-        expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
-
-        expect(diagnosticsByType.warnings[1].message).contain(
-            `<mathInput> must have a short description or a label`,
-        );
-        expect(diagnosticsByType.warnings[1].position.start.line).eq(6);
-        expect(diagnosticsByType.warnings[1].position.end.line).eq(6);
-    });
-
-    it("upgrade warning to error if no short description or label", async () => {
-        let { core } = await createTestCore({
-            doenetML: `
-                <mathInput />
-                <mathInput><shortDescription>hello</shortDescription></mathInput>
-                <mathInput><label>hello</label></mathInput>
-                <mathInput name="enterSomething" labelIsName />
-                <mathInput labelIsName />
-            `,
-            flags: { upgradeAccessibilityWarningsToErrors: true },
-        });
-
-        let diagnosticsByType = getDiagnosticsByType(core);
-
-        expect(diagnosticsByType.errors.length).eq(2);
         expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.accessibility.length).eq(2);
+        expect(
+            diagnosticsByType.accessibility.every(
+                (diagnostic) => diagnostic.level === 1,
+            ),
+        ).eq(true);
 
-        expect(diagnosticsByType.errors[0].message).contain(
+        expect(diagnosticsByType.accessibility[0].message).contain(
             `<mathInput> must have a short description or a label`,
         );
-        expect(diagnosticsByType.errors[0].position.start.line).eq(2);
-        expect(diagnosticsByType.errors[0].position.end.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.end.line).eq(2);
 
-        expect(diagnosticsByType.errors[1].message).contain(
+        expect(diagnosticsByType.accessibility[1].message).contain(
             `<mathInput> must have a short description or a label`,
         );
-        expect(diagnosticsByType.errors[1].position.start.line).eq(6);
-        expect(diagnosticsByType.errors[1].position.end.line).eq(6);
+        expect(diagnosticsByType.accessibility[1].position.start.line).eq(6);
+        expect(diagnosticsByType.accessibility[1].position.end.line).eq(6);
     });
 
     it("with description", async () => {

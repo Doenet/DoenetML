@@ -6,29 +6,31 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-function expectStyleContrastWarning({
-    warning,
+function expectStyleContrastAccessibility({
+    diagnostic,
     styleNumber,
     context,
     line,
 }: {
-    warning: any;
+    diagnostic: any;
     styleNumber: number;
     context: string;
     line?: number;
 }) {
-    expect(warning.message).toContain(`Style definition ${styleNumber}`);
-    expect(warning.message).toContain(context);
-    expect(warning.message).toContain("insufficient");
-    expect(warning.message).toContain("contrast");
+    expect(diagnostic.message).toContain(`Style definition ${styleNumber}`);
+    expect(diagnostic.message).toContain(context);
+    expect(diagnostic.message).toContain("insufficient");
+    expect(diagnostic.message).toContain("contrast");
+    expect(diagnostic.type).eq("accessibility");
+    expect(diagnostic.level).eq(1);
 
     if (line !== undefined) {
-        expect(warning.position.start.line).eq(line);
+        expect(diagnostic.position.start.line).eq(line);
     }
 }
 
-describe("Style definition accessibility warnings @group4", async () => {
-    it("warns for failing accumulated text/background contrast with position of latest contributor", async () => {
+describe("Style definition accessibility diagnostics @group4", async () => {
+    it("emits accessibility diagnostic for failing accumulated text/background contrast with position of latest contributor", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <styleDefinition styleNumber="3" textColor="#555555" />
@@ -44,18 +46,18 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const { warnings } = getDiagnosticsByType(core);
+        const { accessibility } = getDiagnosticsByType(core);
 
-        expect(warnings.length).eq(1);
-        expectStyleContrastWarning({
-            warning: warnings[0],
+        expect(accessibility.length).eq(1);
+        expectStyleContrastAccessibility({
+            diagnostic: accessibility[0],
             styleNumber: 3,
             context: "text color against background color",
             line: 6,
         });
     });
 
-    it("does not warn when overwritten text restores sufficient contrast", async () => {
+    it("does not emit accessibility diagnostic when overwritten text restores sufficient contrast", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <styleDefinition styleNumber="3" textColor="#555555" />
@@ -68,12 +70,12 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const { warnings } = getDiagnosticsByType(core);
+        const { accessibility } = getDiagnosticsByType(core);
 
-        expect(warnings.length).eq(0);
+        expect(accessibility.length).eq(0);
     });
 
-    it("warns for line contrast failure when opacity lowers contrast", async () => {
+    it("emits accessibility diagnostic for line contrast failure when opacity lowers contrast", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <styleDefinition styleNumber="9" lineColor="#000000" />
@@ -81,29 +83,29 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const { warnings } = getDiagnosticsByType(core);
+        const { accessibility } = getDiagnosticsByType(core);
 
-        expect(warnings.length).eq(1);
-        expectStyleContrastWarning({
-            warning: warnings[0],
+        expect(accessibility.length).eq(1);
+        expectStyleContrastAccessibility({
+            diagnostic: accessibility[0],
             styleNumber: 9,
             context: "line color against the canvas",
             line: 3,
         });
     });
 
-    it("warns for high-contrast color that fails against canvas text", async () => {
+    it("emits accessibility diagnostic for high-contrast color that fails against canvas text", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <styleDefinition styleNumber="10" highContrastColor="#f0f0f0" />
 `,
         });
 
-        const { warnings } = getDiagnosticsByType(core);
+        const { accessibility } = getDiagnosticsByType(core);
 
-        expect(warnings.length).eq(1);
-        expectStyleContrastWarning({
-            warning: warnings[0],
+        expect(accessibility.length).eq(1);
+        expectStyleContrastAccessibility({
+            diagnostic: accessibility[0],
             styleNumber: 10,
             context: "high-contrast color against canvas text",
             line: 2,
@@ -117,17 +119,17 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const { warnings } = getDiagnosticsByType(core);
+        const { accessibility } = getDiagnosticsByType(core);
 
-        expect(warnings.length).eq(1);
-        expectStyleContrastWarning({
-            warning: warnings[0],
+        expect(accessibility.length).eq(1);
+        expectStyleContrastAccessibility({
+            diagnostic: accessibility[0],
             styleNumber: 15,
             context: "text color against background color",
         });
     });
 
-    it("does not duplicate warning when style description variable is referenced", async () => {
+    it("does not duplicate accessibility diagnostic when style description variable is referenced", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <styleDefinition styleNumber="1" textColor="#ff9900"/>
@@ -135,41 +137,41 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const { warnings } = getDiagnosticsByType(core);
+        const { accessibility } = getDiagnosticsByType(core);
 
-        expect(warnings.length).eq(1);
-        expectStyleContrastWarning({
-            warning: warnings[0],
+        expect(accessibility.length).eq(1);
+        expectStyleContrastAccessibility({
+            diagnostic: accessibility[0],
             styleNumber: 1,
             context: "text color against the canvas",
         });
     });
 
-    it("does not warn for near-threshold text contrast that is above 4.5:1", async () => {
+    it("does not emit accessibility diagnostic for near-threshold text contrast that is above 4.5:1", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <styleDefinition styleNumber="16" textColor="#767676" />
 `,
         });
 
-        const { warnings } = getDiagnosticsByType(core);
+        const { accessibility } = getDiagnosticsByType(core);
 
-        expect(warnings.length).eq(0);
+        expect(accessibility.length).eq(0);
     });
 
-    it("does not warn for near-threshold line contrast that is above 3:1", async () => {
+    it("does not emit accessibility diagnostic for near-threshold line contrast that is above 3:1", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <styleDefinition styleNumber="17" lineColor="#949494" lineOpacity="1" />
 `,
         });
 
-        const { warnings } = getDiagnosticsByType(core);
+        const { accessibility } = getDiagnosticsByType(core);
 
-        expect(warnings.length).eq(0);
+        expect(accessibility.length).eq(0);
     });
 
-    it("emits all applicable warnings when one style fails multiple contrast checks", async () => {
+    it("emits all applicable accessibility diagnostics when one style fails multiple contrast checks", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <styleDefinition
@@ -185,11 +187,11 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const { warnings } = getDiagnosticsByType(core);
+        const { accessibility } = getDiagnosticsByType(core);
 
-        expect(warnings.length).eq(4);
+        expect(accessibility.length).eq(4);
 
-        const contexts = warnings.map((x) => x.message);
+        const contexts = accessibility.map((x) => x.message);
         expect(
             contexts.some((m) =>
                 m.includes("text color against background color"),
@@ -208,7 +210,7 @@ describe("Style definition accessibility warnings @group4", async () => {
         ).eq(true);
     });
 
-    it("warns for marker contrast failure when markerOpacity lowers contrast", async () => {
+    it("emits accessibility diagnostic for marker contrast failure when markerOpacity lowers contrast", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <styleDefinition styleNumber="19" markerColor="#000000" />
@@ -216,18 +218,18 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const { warnings } = getDiagnosticsByType(core);
+        const { accessibility } = getDiagnosticsByType(core);
 
-        expect(warnings.length).eq(1);
-        expectStyleContrastWarning({
-            warning: warnings[0],
+        expect(accessibility.length).eq(1);
+        expectStyleContrastAccessibility({
+            diagnostic: accessibility[0],
             styleNumber: 19,
             context: "marker color against the canvas",
             line: 3,
         });
     });
 
-    it("does not warn or crash when color values are not parseable", async () => {
+    it("does not emit accessibility diagnostics or crash when color values are not parseable", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <styleDefinition styleNumber="20" textColor="notARealColor" />
@@ -237,9 +239,9 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const { warnings } = getDiagnosticsByType(core);
+        const { accessibility } = getDiagnosticsByType(core);
 
-        expect(warnings.length).eq(0);
+        expect(accessibility.length).eq(0);
     });
 
     it("uses the latest contributing source position when text and background both contribute", async () => {
@@ -250,18 +252,18 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const { warnings } = getDiagnosticsByType(core);
+        const { accessibility } = getDiagnosticsByType(core);
 
-        expect(warnings.length).eq(1);
-        expectStyleContrastWarning({
-            warning: warnings[0],
+        expect(accessibility.length).eq(1);
+        expectStyleContrastAccessibility({
+            diagnostic: accessibility[0],
             styleNumber: 21,
             context: "text color against background color",
             line: 3,
         });
     });
 
-    it("does not duplicate non-text warning when line style values are referenced", async () => {
+    it("does not duplicate non-text accessibility diagnostic when line style values are referenced", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <styleDefinition styleNumber="22" lineColor="#000000" lineOpacity="0.2" />
@@ -273,11 +275,11 @@ describe("Style definition accessibility warnings @group4", async () => {
 `,
         });
 
-        const { warnings } = getDiagnosticsByType(core);
+        const { accessibility } = getDiagnosticsByType(core);
 
-        expect(warnings.length).eq(1);
-        expectStyleContrastWarning({
-            warning: warnings[0],
+        expect(accessibility.length).eq(1);
+        expectStyleContrastAccessibility({
+            diagnostic: accessibility[0],
             styleNumber: 22,
             context: "line color against the canvas",
         });

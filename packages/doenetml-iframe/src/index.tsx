@@ -320,17 +320,19 @@ export function DoenetEditor({
     const [inErrorState, setInErrorState] = React.useState<string | null>(null);
     const [ignoreDetectedVersion, setIgnoreDetectedVersion] =
         React.useState(false);
-    const [initialErrors, setInitialErrors] = React.useState<ErrorRecord[]>([]);
+    const [initialDiagnostics, setInitialDiagnostics] = React.useState<
+        DiagnosticRecord[]
+    >([]);
 
-    // Augment the DoenetEditor props by adding any initialErrors found
+    // Augment the DoenetEditor props by adding any initial diagnostics found
     const augmentedDoenetEditorProps = { ...doenetEditorProps };
-    if (augmentedDoenetEditorProps.initialErrors) {
-        augmentedDoenetEditorProps.initialErrors = [
-            ...augmentedDoenetEditorProps.initialErrors,
-            ...initialErrors,
+    if (augmentedDoenetEditorProps.initialDiagnostics) {
+        augmentedDoenetEditorProps.initialDiagnostics = [
+            ...augmentedDoenetEditorProps.initialDiagnostics,
+            ...initialDiagnostics,
         ];
     } else {
-        augmentedDoenetEditorProps.initialErrors = initialErrors;
+        augmentedDoenetEditorProps.initialDiagnostics = initialDiagnostics;
     }
 
     let standaloneUrl: string, cssUrl: string;
@@ -433,7 +435,7 @@ export function DoenetEditor({
                 getLineCharRange(detectedDoenetMLrange!, allNewlines),
             );
 
-            setInitialErrors([
+            setInitialDiagnostics([
                 { position: detectedDoenetMLrange!, message, type: "error" },
             ]);
             return null;

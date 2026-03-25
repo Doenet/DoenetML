@@ -161,7 +161,7 @@ describe("Video tag tests @group1", async () => {
         ).eq("block");
     });
 
-    it("warning if no short description specified", async () => {
+    it("accessibility diagnostic if no short description specified", async () => {
         let { core } = await createTestCore({
             doenetML: `
 <video name="video1" />
@@ -171,36 +171,16 @@ describe("Video tag tests @group1", async () => {
         let diagnosticsByType = getDiagnosticsByType(core);
 
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(1);
-
-        expect(diagnosticsByType.warnings[0].message).contain(
-            `<video> must have a short description`,
-        );
-        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
-        expect(diagnosticsByType.warnings[0].position.start.column).eq(1);
-        expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
-        expect(diagnosticsByType.warnings[0].position.end.column).eq(24);
-    });
-
-    it("upgrade warning to error if no short description specified", async () => {
-        let { core } = await createTestCore({
-            doenetML: `
-<video name="video1" />
-            `,
-            flags: { upgradeAccessibilityWarningsToErrors: true },
-        });
-
-        let diagnosticsByType = getDiagnosticsByType(core);
-
-        expect(diagnosticsByType.errors.length).eq(1);
         expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.accessibility.length).eq(1);
+        expect(diagnosticsByType.accessibility[0].level).eq(1);
 
-        expect(diagnosticsByType.errors[0].message).contain(
+        expect(diagnosticsByType.accessibility[0].message).contain(
             `<video> must have a short description`,
         );
-        expect(diagnosticsByType.errors[0].position.start.line).eq(2);
-        expect(diagnosticsByType.errors[0].position.start.column).eq(1);
-        expect(diagnosticsByType.errors[0].position.end.line).eq(2);
-        expect(diagnosticsByType.errors[0].position.end.column).eq(24);
+        expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.start.column).eq(1);
+        expect(diagnosticsByType.accessibility[0].position.end.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.end.column).eq(24);
     });
 });

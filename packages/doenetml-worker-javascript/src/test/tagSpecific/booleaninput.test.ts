@@ -856,7 +856,7 @@ describe("BooleanInput tag tests @group1", async () => {
         );
     });
 
-    it("warning if no short description or label", async () => {
+    it("accessibility diagnostics if no short description or label", async () => {
         let { core } = await createTestCore({
             doenetML: `
                 <booleanInput />
@@ -870,49 +870,25 @@ describe("BooleanInput tag tests @group1", async () => {
         let diagnosticsByType = getDiagnosticsByType(core);
 
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(2);
-
-        expect(diagnosticsByType.warnings[0].message).contain(
-            `<booleanInput> must have a short description or a label`,
-        );
-        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
-        expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
-
-        expect(diagnosticsByType.warnings[1].message).contain(
-            `<booleanInput> must have a short description or a label`,
-        );
-        expect(diagnosticsByType.warnings[1].position.start.line).eq(6);
-        expect(diagnosticsByType.warnings[1].position.end.line).eq(6);
-    });
-
-    it("upgrade warning to error if no short description or label", async () => {
-        let { core } = await createTestCore({
-            doenetML: `
-                <booleanInput />
-                <booleanInput><shortDescription>hello</shortDescription></booleanInput>
-                <booleanInput><label>hello</label></booleanInput>
-                <booleanInput name="selectMe" labelIsName />
-                <booleanInput labelIsName />
-            `,
-            flags: { upgradeAccessibilityWarningsToErrors: true },
-        });
-
-        let diagnosticsByType = getDiagnosticsByType(core);
-
-        expect(diagnosticsByType.errors.length).eq(2);
         expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.accessibility.length).eq(2);
+        expect(
+            diagnosticsByType.accessibility.every(
+                (diagnostic) => diagnostic.level === 1,
+            ),
+        ).eq(true);
 
-        expect(diagnosticsByType.errors[0].message).contain(
+        expect(diagnosticsByType.accessibility[0].message).contain(
             `<booleanInput> must have a short description or a label`,
         );
-        expect(diagnosticsByType.errors[0].position.start.line).eq(2);
-        expect(diagnosticsByType.errors[0].position.end.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.end.line).eq(2);
 
-        expect(diagnosticsByType.errors[1].message).contain(
+        expect(diagnosticsByType.accessibility[1].message).contain(
             `<booleanInput> must have a short description or a label`,
         );
-        expect(diagnosticsByType.errors[1].position.start.line).eq(6);
-        expect(diagnosticsByType.errors[1].position.end.line).eq(6);
+        expect(diagnosticsByType.accessibility[1].position.start.line).eq(6);
+        expect(diagnosticsByType.accessibility[1].position.end.line).eq(6);
     });
 
     it("with description", async () => {

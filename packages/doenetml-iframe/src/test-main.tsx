@@ -69,7 +69,7 @@ function App() {
                 standaloneUrl={STANDALONE_BLOB_URL}
                 cssUrl={STANDALONE_CSS_BLOB_URL}
                 activityId={"a"}
-                showErrorsWarnings={false}
+                showDiagnostics={false}
                 showResponses={false}
                 fetchExternalDoenetML={fetchExternalDoenetML}
             />
