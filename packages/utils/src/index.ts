@@ -1,5 +1,6 @@
 export * from "./ast/logging";
-export * from "./errors/diagnostics";
+export * from "./diagnostics/types";
+export * from "./diagnostics/renderDiagnosticMarkdownHtml";
 export * from "./media/cid";
 export * from "./media/retrieveTextFile";
 export * from "./copy/deepFunctions";

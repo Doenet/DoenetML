@@ -28,7 +28,6 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import { micromark } from "micromark";
 import {
     EditorView,
     PluginValue,
@@ -56,49 +55,13 @@ import {
     getSnippetCursorFromCompletionItemData,
     type CompletionSnippetCursor,
 } from "@doenet/static-assets/completion-snippet-protocol";
+import { renderDiagnosticMarkdownHtml } from "@doenet/utils";
 import type {
     MarkupContent,
     MarkedString,
 } from "vscode-languageserver-protocol";
 import { CompletionItemKind } from "vscode-languageserver-protocol/browser";
 import "./tooltip.css";
-
-const safeMarkdownOptions = {
-    allowDangerousHtml: false,
-    allowDangerousProtocol: false,
-};
-
-const allowedDiagnosticTags = new Set(["P", "CODE", "EM", "STRONG", "BR"]);
-
-function sanitizeDiagnosticHtml(html: string): string {
-    const template = document.createElement("template");
-    template.innerHTML = html;
-
-    const walker = document.createTreeWalker(
-        template.content,
-        NodeFilter.SHOW_ELEMENT,
-    );
-    const elements: Element[] = [];
-
-    while (walker.nextNode()) {
-        elements.push(walker.currentNode as Element);
-    }
-
-    for (const element of elements) {
-        if (!allowedDiagnosticTags.has(element.tagName)) {
-            element.replaceWith(
-                document.createTextNode(element.textContent ?? ""),
-            );
-            continue;
-        }
-
-        for (const { name } of Array.from(element.attributes)) {
-            element.removeAttribute(name);
-        }
-    }
-
-    return template.innerHTML;
-}
 
 /** Escape a string for safe interpolation into an HTML context. */
 function escapeHtml(str: string): string {
@@ -253,7 +216,7 @@ export class LSPPlugin implements PluginValue {
                         "heading " + headingClass
                     }">${escapeHtml(
                         heading,
-                    )}</h4><div class="cm-lint-body">${sanitizeDiagnosticHtml(micromark(message, safeMarkdownOptions))}</div>
+                    )}</h4><div class="cm-lint-body">${renderDiagnosticMarkdownHtml(message)}</div>
                             </div>`;
                     return div.firstChild as HTMLElement;
                 },

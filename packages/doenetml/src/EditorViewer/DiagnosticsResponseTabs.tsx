@@ -16,11 +16,11 @@ import {
 } from "react-icons/bs";
 import { IoAccessibility } from "react-icons/io5";
 import classNames from "classnames";
-import { micromark } from "micromark";
 import {
     AccessibilityRecord,
     ErrorRecord,
     InfoRecord,
+    renderDiagnosticMarkdownHtml,
     WarningRecord,
 } from "@doenet/utils";
 
@@ -30,44 +30,6 @@ type SubmittedResponse = {
     creditAchieved: number;
     submittedAt: string;
 };
-
-// Explicitly disable dangerous markdown features before inserting generated HTML.
-const safeMarkdownOptions = {
-    allowDangerousHtml: false,
-    allowDangerousProtocol: false,
-};
-
-const allowedDiagnosticTags = new Set(["P", "CODE", "EM", "STRONG", "BR"]);
-
-function sanitizeDiagnosticHtml(html: string): string {
-    const template = document.createElement("template");
-    template.innerHTML = html;
-
-    const walker = document.createTreeWalker(
-        template.content,
-        NodeFilter.SHOW_ELEMENT,
-    );
-    const elements: Element[] = [];
-
-    while (walker.nextNode()) {
-        elements.push(walker.currentNode as Element);
-    }
-
-    for (const element of elements) {
-        if (!allowedDiagnosticTags.has(element.tagName)) {
-            element.replaceWith(
-                document.createTextNode(element.textContent ?? ""),
-            );
-            continue;
-        }
-
-        for (const { name } of Array.from(element.attributes)) {
-            element.removeAttribute(name);
-        }
-    }
-
-    return template.innerHTML;
-}
 
 /** Human-readable label for diagnostic source line, when position exists. */
 function diagnosticLocationLabel(diagnostic: {
@@ -105,13 +67,7 @@ function diagnosticIdentityKey(diagnostic: {
 
 /** Helper function to format diagnostic message with markdown rendering. */
 function FormattedDiagnosticMessage({ message }: { message: string }) {
-    // `dangerouslySetInnerHTML` is safe here because micromark escapes raw HTML
-    // and rejects dangerous URL protocols with the options above.
-    // Limit rendered output to basic formatting tags so diagnostic text can't
-    // introduce links/images from user-provided values.
-    const html = sanitizeDiagnosticHtml(
-        micromark(message, safeMarkdownOptions),
-    );
+    const html = renderDiagnosticMarkdownHtml(message);
     return (
         <div
             className="diagnostic-entry-message"
