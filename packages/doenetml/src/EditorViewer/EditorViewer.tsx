@@ -8,7 +8,7 @@ import React, {
 } from "react";
 import { ResizablePanelPair } from "@doenet/ui-components";
 import { CodeMirror, LSP } from "@doenet/codemirror";
-import "@doenet/codemirror/index.css";
+import "@doenet/codemirror/style.css";
 import { DocViewer } from "../Viewer/DocViewer";
 import {
     DiagnosticsResponseTabContents,

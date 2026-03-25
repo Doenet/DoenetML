@@ -14,7 +14,7 @@
         ".": {
             "import": "./dist/index.js"
         },
-        "./index.css": {
+        "./style.css": {
             "import": "./dist/index.css"
         },
         "./*json": {

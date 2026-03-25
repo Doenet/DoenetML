@@ -18,12 +18,10 @@ import { IoAccessibility } from "react-icons/io5";
 import classNames from "classnames";
 import {
     AccessibilityRecord,
-    DiagnosticRecord,
     ErrorRecord,
+    InfoRecord,
     WarningRecord,
 } from "@doenet/utils";
-
-type InfoRecord = DiagnosticRecord & { type: "info" };
 
 type SubmittedResponse = {
     answerId: string;
