@@ -18,6 +18,22 @@ describe(
             });
         }
 
+        function hoverAccessibilityDiagnostic(selector) {
+            cy.get(selector)
+                .should("exist")
+                .then(($marker) => {
+                    const rect = $marker[0].getBoundingClientRect();
+
+                    cy.get(".cm-content")
+                        .trigger("mousemove", {
+                            clientX: rect.left + rect.width / 2,
+                            clientY: rect.top + rect.height / 2,
+                            force: true,
+                        })
+                        .wait(200);
+                });
+        }
+
         it("displays WCAG Violation notification when contrast violations exist", () => {
             postDoenetML(`
 <styleDefinition styleNumber="100" textColor="#ff9900" />
@@ -201,5 +217,36 @@ describe(
                 "exist",
             );
         });
+
+        it("matches the tooltip heading color to level 1 accessibility diagnostics", () => {
+            postDoenetML(`
+<styleDefinition styleNumber="108" textColor="#ff9900" />
+<text name="p108" styleNumber="108">Contrast violation</text>
+`);
+
+            cy.get("#p108").should("contain.text", "Contrast violation");
+            cy.get(".accessibility-status-button").click();
+
+            cy.get(".accessibility-report input[type='checkbox']")
+                .first()
+                .then(($checkbox) => {
+                    if (!$checkbox.prop("checked")) {
+                        cy.wrap($checkbox).click();
+                    }
+                });
+
+            hoverAccessibilityDiagnostic(
+                ".cm-doenet-accessibility-diagnostic-level-1",
+            );
+
+            cy.get(".cm-tooltip-lint .cm-lint-tooltip .heading")
+                .should("contain.text", "WCAG AA Accessibility Violation")
+                .should("have.css", "color", "rgb(180, 35, 24)");
+
+            cy.get(
+                ".cm-tooltip-lint .cm-diagnostic:has(.cm-lint-tooltip .heading.accessibility-level-1)",
+            ).should("have.css", "border-left-color", "rgb(180, 35, 24)");
+        });
+
     },
 );

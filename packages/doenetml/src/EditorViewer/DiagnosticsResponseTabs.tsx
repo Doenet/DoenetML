@@ -170,10 +170,6 @@ export function DiagnosticsResponseTabstrip({
     showDiagnostics?: boolean;
     showResponses?: boolean;
 }) {
-    const accessibilityLevel1Count = accessibility.filter(
-        (diagnostic) => diagnostic.level === 1,
-    ).length;
-
     return (
         <TabProvider store={store}>
             <TabList

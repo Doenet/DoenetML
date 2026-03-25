@@ -1,4 +1,10 @@
-import { DiagnosticRecord, ErrorRecord, WarningRecord } from "@doenet/utils";
+import {
+    DiagnosticRecord,
+    ErrorRecord,
+    InfoRecord,
+    WarningRecord,
+    isAccessibilityRecord,
+} from "@doenet/utils";
 import {
     Diagnostic,
     DiagnosticSeverity,
@@ -6,42 +12,12 @@ import {
 
 /** CodeMirror/LSP diagnostic with optional editor mark class metadata. */
 export type EditorLspDiagnostic = Diagnostic & { markClass?: string };
-type DiagnosticPosition = DiagnosticRecord extends { position?: infer P }
-    ? P
-    : never;
-
-type EditorDiagnosticBase = {
-    message: string;
-    position?: DiagnosticPosition;
-};
-
-export type AccessibilityRecord = EditorDiagnosticBase & {
-    type: "accessibility";
-    level: 1 | 2;
-};
-
-export type InfoRecord = DiagnosticRecord & { type: "info" };
-
-export type EditorDiagnosticRecord =
-    | ErrorRecord
-    | WarningRecord
-    | InfoRecord
-    | AccessibilityRecord;
-
-/** Type guard for accessibility diagnostics in mixed diagnostic arrays. */
-export function isAccessibilityDiagnostic(
-    diagnostic: EditorDiagnosticRecord,
-): diagnostic is AccessibilityRecord {
-    return (diagnostic as { type: string }).type === "accessibility";
-}
 
 /**
  * Converts a single editor diagnostic into an LSP-compatible diagnostic.
  * Accessibility diagnostics are surfaced as warnings with custom source/markClass.
  */
-function toLspDiagnostic(
-    diagnostic: EditorDiagnosticRecord,
-): EditorLspDiagnostic {
+function toLspDiagnostic(diagnostic: DiagnosticRecord): EditorLspDiagnostic {
     if (diagnostic.type === "error") {
         return {
             message: diagnostic.message,
@@ -58,11 +34,12 @@ function toLspDiagnostic(
         };
     }
 
-    if (diagnostic.type === "accessibility") {
+    if (isAccessibilityRecord(diagnostic)) {
         return {
             message: diagnostic.message,
             severity: DiagnosticSeverity.Warning,
             range: diagnostic.position!,
+            code: `accessibility-level-${diagnostic.level}`,
             source:
                 diagnostic.level === 1
                     ? "WCAG AA Accessibility Violation"
@@ -87,7 +64,7 @@ export function toAdditionalDiagnosticsForLsp({
     showInfoAnnotations,
     showAccessibilityAnnotations,
 }: {
-    diagnostics: EditorDiagnosticRecord[];
+    diagnostics: DiagnosticRecord[];
     showWarningAnnotations: boolean;
     showInfoAnnotations: boolean;
     showAccessibilityAnnotations: boolean;
@@ -126,8 +103,8 @@ export function mergeDiagnosticsByType({
     initialDiagnostics,
     diagnostics,
 }: {
-    initialDiagnostics: EditorDiagnosticRecord[];
-    diagnostics: EditorDiagnosticRecord[];
+    initialDiagnostics: DiagnosticRecord[];
+    diagnostics: DiagnosticRecord[];
 }) {
     const warnings = [
         ...initialDiagnostics.filter(
@@ -163,8 +140,8 @@ export function mergeDiagnosticsByType({
     ];
 
     const accessibility = [
-        ...initialDiagnostics.filter(isAccessibilityDiagnostic),
-        ...diagnostics.filter(isAccessibilityDiagnostic),
+        ...initialDiagnostics.filter(isAccessibilityRecord),
+        ...diagnostics.filter(isAccessibilityRecord),
     ];
 
     return {

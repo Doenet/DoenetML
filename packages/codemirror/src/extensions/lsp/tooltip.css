@@ -9,9 +9,42 @@
 .cm-lint-tooltip .heading.error {
     color: #900;
 }
-.cm-lint-tooltip .heading.accessibility {
-    color: #0f766e;
+.cm-lint-tooltip .heading.accessibility-level-1 {
+    color: #b42318;
 }
+.cm-lint-tooltip .heading.accessibility-level-2 {
+    color: #6e3cbc;
+}
+.cm-lintRange.cm-doenet-accessibility-diagnostic {
+    background-image: none !important;
+    text-decoration-line: underline;
+    text-decoration-style: wavy;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 0.18em;
+}
+
+.cm-lintRange.cm-doenet-accessibility-diagnostic-level-1 {
+    text-decoration-color: #b42318;
+}
+
+.cm-lintRange.cm-doenet-accessibility-diagnostic-level-2 {
+    text-decoration-color: #6e3cbc;
+}
+
+.cm-tooltip-lint
+    .cm-diagnostic.cm-diagnostic-warning:has(
+        .cm-lint-tooltip .heading.accessibility-level-1
+    ) {
+    border-left-color: #b42318;
+}
+
+.cm-tooltip-lint
+    .cm-diagnostic.cm-diagnostic-warning:has(
+        .cm-lint-tooltip .heading.accessibility-level-2
+    ) {
+    border-left-color: #6e3cbc;
+}
+
 .cm-diagnostic {
     white-space: unset !important;
 }

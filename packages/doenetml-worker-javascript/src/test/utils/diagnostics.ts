@@ -1,19 +1,13 @@
 import {
+    AccessibilityRecord,
     ErrorRecord,
     InfoRecord,
     WarningRecord,
+    isAccessibilityRecord,
     isErrorRecord,
     isInfoRecord,
     isWarningRecord,
 } from "@doenet/utils";
-
-type AccessibilityRecord = {
-    type: "accessibility";
-    level?: 1 | 2;
-    message: string;
-    position?: any;
-    sourceDoc?: number;
-};
 
 type DiagnosticsByType = {
     readonly errors: ErrorRecord[];
@@ -34,9 +28,7 @@ export function getDiagnosticsByType(core: any): DiagnosticsByType {
             return core.core!.diagnostics.filter(isInfoRecord);
         },
         get accessibility() {
-            return core.core!.diagnostics.filter(
-                (diagnostic: any) => diagnostic.type === "accessibility",
-            );
+            return core.core!.diagnostics.filter(isAccessibilityRecord);
         },
     };
 }

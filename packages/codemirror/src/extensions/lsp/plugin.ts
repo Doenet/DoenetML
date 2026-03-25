@@ -80,6 +80,36 @@ const lspSeverityToCmSeverity = {
     [LSPDiagnosticSeverity.Hint]: "info",
 } as const;
 
+function getDiagnosticHeadingClass({
+    code,
+    source,
+    markClass,
+    cmSeverity,
+}: {
+    code: LSPDiagnostic["code"];
+    source: string | undefined;
+    markClass: string | undefined;
+    cmSeverity: (typeof lspSeverityToCmSeverity)[keyof typeof lspSeverityToCmSeverity];
+}) {
+    if (
+        code === "accessibility-level-1" ||
+        markClass?.includes("cm-doenet-accessibility-diagnostic-level-1") ||
+        source === "WCAG AA Accessibility Violation"
+    ) {
+        return "accessibility-level-1";
+    }
+
+    if (
+        code === "accessibility-level-2" ||
+        markClass?.includes("cm-doenet-accessibility-diagnostic-level-2") ||
+        source === "Accessibility alert"
+    ) {
+        return "accessibility-level-2";
+    }
+
+    return cmSeverity;
+}
+
 type PositionLike =
     | { line: number; character: number }
     | { line: number; column: number };
@@ -142,7 +172,8 @@ export class LSPPlugin implements PluginValue {
         for (const diagnostic of this.diagnostics as Array<
             LSPDiagnostic & { markClass?: string }
         >) {
-            const { range, message, severity, source, markClass } = diagnostic;
+            const { range, message, severity, source, markClass, code } =
+                diagnostic;
             const cmSeverity = lspSeverityToCmSeverity[severity!] ?? "info";
             const offsets = getValidDiagnosticOffsets(
                 this.view.state.doc,
@@ -163,9 +194,12 @@ export class LSPPlugin implements PluginValue {
                     const div = document.createElement("div");
                     const heading =
                         source ?? lspDiagnosticToName[severity!] ?? "Info";
-                    const headingClass = source?.startsWith("Accessibility")
-                        ? "accessibility"
-                        : cmSeverity;
+                    const headingClass = getDiagnosticHeadingClass({
+                        code,
+                        source,
+                        markClass,
+                        cmSeverity,
+                    });
                     // We use renderToString so that we don't have to clean up any
                     // react listeners, etc. when the dom element is deleted by codemirror.
                     div.innerHTML = `<div class="cm-lint-tooltip"><h4 class="${

@@ -264,22 +264,6 @@
     background-color: var(--canvas);
 }
 
-.editor-panel .cm-lintRange.cm-doenet-accessibility-diagnostic {
-    background-image: none !important;
-    text-decoration-line: underline;
-    text-decoration-style: wavy;
-    text-decoration-thickness: 1.5px;
-    text-underline-offset: 0.18em;
-}
-
-.editor-panel .cm-lintRange.cm-doenet-accessibility-diagnostic-level-1 {
-    text-decoration-color: #b42318;
-}
-
-.editor-panel .cm-lintRange.cm-doenet-accessibility-diagnostic-level-2 {
-    text-decoration-color: #6e3cbc;
-}
-
 .editor-panel .formatter-and-version {
     .label {
         min-width: fit-content;

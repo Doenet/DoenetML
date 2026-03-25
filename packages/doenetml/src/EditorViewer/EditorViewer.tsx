@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { ResizablePanelPair } from "@doenet/ui-components";
 import { CodeMirror, LSP } from "@doenet/codemirror";
+import "@doenet/codemirror/index.css";
 import { DocViewer } from "../Viewer/DocViewer";
 import {
     DiagnosticsResponseTabContents,
@@ -24,7 +25,6 @@ import "./editor-viewer.css";
 import { useTabStore } from "@ariakit/react";
 import { setVariantsFromCallback } from "../utils/variants";
 import {
-    EditorDiagnosticRecord,
     mergeDiagnosticsByType,
     toAdditionalDiagnosticsForLsp,
 } from "./diagnostics";
@@ -128,9 +128,7 @@ export function EditorViewer({
 
     const [infoPanelIsOpen, setInfoPanelIsOpen] = useState(false);
 
-    const [diagnostics, setDiagnostics] = useState<EditorDiagnosticRecord[]>(
-        [],
-    );
+    const [diagnostics, setDiagnostics] = useState<DiagnosticRecord[]>([]);
     const [showWarningAnnotations, setShowWarningAnnotations] = useState(true);
     const [showInfoAnnotations, setShowInfoAnnotations] = useState(false);
     const [showAccessibilityAnnotations, setShowAccessibilityAnnotations] =
@@ -138,7 +136,7 @@ export function EditorViewer({
 
     /** Receives diagnostics from DocViewer and stores them for panel/LSP sync. */
     function setDiagnosticsCallback(newDiagnostics: DiagnosticRecord[]) {
-        setDiagnostics(newDiagnostics as EditorDiagnosticRecord[]);
+        setDiagnostics(newDiagnostics);
     }
 
     useEffect(() => {
@@ -160,8 +158,7 @@ export function EditorViewer({
         showWarningAnnotations,
     ]);
 
-    const initialDiagnosticsWithAccessibility =
-        initialDiagnostics as EditorDiagnosticRecord[];
+    const initialDiagnosticsWithAccessibility = initialDiagnostics;
 
     const {
         warnings: warningsObjs,

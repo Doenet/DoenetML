@@ -14,6 +14,9 @@
         ".": {
             "import": "./dist/index.js"
         },
+        "./index.css": {
+            "import": "./dist/index.css"
+        },
         "./*json": {
             "import": "./dist/generated/*.json"
         }
@@ -31,12 +34,14 @@
             "command": "vite build",
             "files": [
                 "src/**/*.ts",
+                "src/**/*.css",
                 "tsconfig.json",
                 "vite.config.ts",
                 "src/**/*.tsx"
             ],
             "output": [
                 "dist/**/*.js",
+                "dist/**/*.css",
                 "dist/**/*.d.ts",
                 "dist/**/*.json"
             ],
