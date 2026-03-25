@@ -6,42 +6,34 @@ export type DiagnosticLevel = 1 | 2;
 
 export type DiagnosticType = "error" | "warning" | "info" | "accessibility";
 
-export type DiagnosticRecord = {
-    type: DiagnosticType;
+type BaseDiagnosticRecord = {
     message: string;
     position?: Position;
     sourceDoc?: number;
-    level?: DiagnosticLevel;
 };
 
-export type ErrorRecord = {
+export type ErrorRecord = BaseDiagnosticRecord & {
     type: "error";
-    message: string;
-    position?: Position;
-    sourceDoc?: number;
 };
 
-export type WarningRecord = {
+export type WarningRecord = BaseDiagnosticRecord & {
     type: "warning";
-    message: string;
-    position?: Position;
-    sourceDoc?: number;
 };
 
-export type InfoRecord = {
+export type InfoRecord = BaseDiagnosticRecord & {
     type: "info";
-    message: string;
-    position?: Position;
-    sourceDoc?: number;
 };
 
-export type AccessibilityRecord = {
+export type AccessibilityRecord = BaseDiagnosticRecord & {
     type: "accessibility";
     level: DiagnosticLevel;
-    message: string;
-    position?: Position;
-    sourceDoc?: number;
 };
+
+export type DiagnosticRecord =
+    | ErrorRecord
+    | WarningRecord
+    | InfoRecord
+    | AccessibilityRecord;
 
 export function isErrorRecord(
     diagnostic: DiagnosticRecord,

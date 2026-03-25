@@ -295,22 +295,26 @@ export function DiagnosticsResponseTabContents({
     }
 
     useEffect(() => {
-        function scrollListener() {
-            if (panels.current) {
-                lastScrolledToBottom.current =
-                    Math.abs(
-                        panels.current.scrollHeight -
-                            panels.current.scrollTop -
-                            panels.current.clientHeight,
-                    ) <= 3.0;
-            }
+        if (!panels.current) {
+            return;
         }
 
-        panels.current?.addEventListener("scroll", scrollListener);
+        const panelElement = panels.current;
+
+        function scrollListener() {
+            lastScrolledToBottom.current =
+                Math.abs(
+                    panelElement.scrollHeight -
+                        panelElement.scrollTop -
+                        panelElement.clientHeight,
+                ) <= 3.0;
+        }
+
+        panelElement.addEventListener("scroll", scrollListener);
         return () => {
-            panels.current?.removeEventListener("scroll", scrollListener);
+            panelElement.removeEventListener("scroll", scrollListener);
         };
-    }, [panels.current]);
+    }, [isOpen]);
 
     useEffect(() => {
         if (isOpen) {

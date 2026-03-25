@@ -172,4 +172,24 @@ describe("Accessibility diagnostics @group4", async () => {
         );
         expect(diagnostic!.message).toContain(accessibilityMsg);
     });
+
+    it("rejects accessibility diagnostics without a level", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<text>hello</text>`,
+        });
+        const workerCore = core.core!;
+
+        expect(() =>
+            workerCore.addDiagnostic({
+                type: "accessibility",
+                message: "Missing accessibility level",
+            } as unknown as {
+                type: any;
+                level: any;
+                message: any;
+                position: any;
+                sourceDoc: any;
+            }),
+        ).toThrow("Missing accessibility diagnostic level");
+    });
 });

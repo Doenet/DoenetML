@@ -112,17 +112,21 @@ export default class Core {
 
         this.cid = cid;
 
-        /** @type {{ type: "error"|"warning"|"info"|"accessibility", level?: 1|2, message: string, position?: any, sourceDoc?: number }[]} */
+        /** @type {({ type: "error"|"warning"|"info", message: string, position?: any, sourceDoc?: number } | { type: "accessibility", level: 1|2, message: string, position?: any, sourceDoc?: number })[]} */
         this.diagnostics = preliminaryDiagnostics
             // Note: we ignore preliminary errors, as we'll gather those from the dast when processing it.
             .filter((diagnostic) => diagnostic.type !== "error")
-            .map((diagnostic) => ({
-                type: diagnostic.type,
-                level: diagnostic.level,
-                message: diagnostic.message,
-                position: diagnostic.position,
-                sourceDoc: diagnostic.sourceDoc,
-            }));
+            .map((diagnostic) => {
+                this.assertDiagnosticIsValid(diagnostic);
+
+                return {
+                    type: diagnostic.type,
+                    level: diagnostic.level,
+                    message: diagnostic.message,
+                    position: diagnostic.position,
+                    sourceDoc: diagnostic.sourceDoc,
+                };
+            });
 
         this.numerics = new Numerics();
         // this.flags = new Proxy(flags, readOnlyProxyHandler); //components shouldn't modify flags
@@ -494,6 +498,22 @@ export default class Core {
      *
      * @returns {boolean} `true` if a new entry was added, `false` if deduped.
      */
+    assertDiagnosticIsValid({ type, level }) {
+        if (!["error", "warning", "info", "accessibility"].includes(type)) {
+            throw Error("Invalid diagnostic type");
+        }
+
+        if (type === "accessibility") {
+            if (level === undefined) {
+                throw Error("Missing accessibility diagnostic level");
+            }
+
+            if (![1, 2].includes(level)) {
+                throw Error("Invalid accessibility diagnostic level");
+            }
+        }
+    }
+
     addDiagnostic({ type, level, message, position, sourceDoc }) {
         const sameLocation = (pointA, pointB) =>
             (pointA?.offset ?? undefined) === (pointB?.offset ?? undefined) &&
@@ -511,17 +531,7 @@ export default class Core {
             );
         };
 
-        if (!["error", "warning", "info", "accessibility"].includes(type)) {
-            throw Error("Invalid diagnostic type");
-        }
-
-        if (
-            type === "accessibility" &&
-            level !== undefined &&
-            ![1, 2].includes(level)
-        ) {
-            throw Error("Invalid accessibility diagnostic level");
-        }
+        this.assertDiagnosticIsValid({ type, level });
 
         const alreadyHaveDiagnostic = this.diagnostics.some(
             (diagnostic) =>

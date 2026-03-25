@@ -16,10 +16,10 @@ describe("diagnostic predicates", () => {
             level: 2,
             message: "Level 2 accessibility issue",
         };
-        const missingLevelDiagnostic: DiagnosticRecord = {
+        const missingLevelDiagnostic = {
             type: "accessibility",
             message: "Missing accessibility level",
-        };
+        } as unknown as DiagnosticRecord;
         const invalidLevelDiagnostic = {
             type: "accessibility",
             level: 3,
