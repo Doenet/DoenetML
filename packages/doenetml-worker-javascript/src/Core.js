@@ -538,7 +538,9 @@ export default class Core {
         const alreadyHaveDiagnostic = this.diagnostics.some(
             (diagnostic) =>
                 diagnostic.type === type &&
-                diagnostic.level === level &&
+                (type === "accessibility"
+                    ? diagnostic.level === level
+                    : true) &&
                 diagnostic.message === message &&
                 diagnostic.sourceDoc === sourceDoc &&
                 haveSamePosition(diagnostic.position, position),
@@ -550,7 +552,7 @@ export default class Core {
 
         this.diagnostics.push({
             type,
-            level,
+            ...(type === "accessibility" ? { level } : {}),
             message,
             position,
             sourceDoc,

@@ -141,7 +141,7 @@ export function EditorViewer({
 
     useEffect(() => {
         const additionalDiagnostics = toAdditionalDiagnosticsForLsp({
-            diagnostics,
+            diagnostics: [...initialDiagnostics, ...diagnostics],
             showWarningAnnotations,
             showInfoAnnotations,
             showAccessibilityAnnotations,
@@ -152,13 +152,12 @@ export function EditorViewer({
             additionalDiagnostics,
         );
     }, [
+        initialDiagnostics,
         diagnostics,
         showAccessibilityAnnotations,
         showInfoAnnotations,
         showWarningAnnotations,
     ]);
-
-    const initialDiagnosticsWithAccessibility = initialDiagnostics;
 
     const {
         warnings: warningsObjs,
@@ -170,10 +169,10 @@ export function EditorViewer({
     } = useMemo(
         () =>
             mergeDiagnosticsByType({
-                initialDiagnostics: initialDiagnosticsWithAccessibility,
+                initialDiagnostics,
                 diagnostics,
             }),
-        [initialDiagnosticsWithAccessibility, diagnostics],
+        [initialDiagnostics, diagnostics],
     );
 
     const [responses, setResponses] = useState<
