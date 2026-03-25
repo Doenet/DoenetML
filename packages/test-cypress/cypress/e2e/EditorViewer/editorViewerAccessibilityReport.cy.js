@@ -248,5 +248,125 @@ describe(
             ).should("have.css", "border-left-color", "rgb(180, 35, 24)");
         });
 
+        it("displays error message with proper contrast for code formatting in backticks", () => {
+            postDoenetML(`<bad />`);
+
+            // Open the errors tab by finding the tab with id="errors"
+            cy.get("#errors").should("exist").click();
+
+            // Verify error message appears in the diagnostic list with backtick formatting
+            cy.contains("Invalid component type:")
+                .should("exist")
+                .invoke("parent")
+                .then(($messageSpan) => {
+                    // Check that the code element exists within the message
+                    cy.wrap($messageSpan)
+                        .find("code")
+                        .should("contain.text", "<bad>");
+                });
+
+            // Find and hover over the error diagnostic in the editor (find any cm-lintRange)
+            cy.get(".cm-lintRange")
+                .should("exist")
+                .first()
+                .then(($marker) => {
+                    const rect = $marker[0].getBoundingClientRect();
+
+                    cy.get(".cm-content")
+                        .trigger("mousemove", {
+                            clientX: rect.left + rect.width / 2,
+                            clientY: rect.top + rect.height / 2,
+                            force: true,
+                        })
+                        .wait(200);
+                });
+
+            // Verify tooltip is visible with the error message
+            // Note: There may be multiple diagnostics (LSP warning + Doenet error),
+            // so we check that at least one contains the error with backtick formatting
+            cy.get(".cm-tooltip-lint .cm-lint-body").should("exist");
+
+            cy.get(".cm-tooltip-lint")
+                .should("contain.text", "Invalid component type:")
+                .find("code")
+                .should("exist")
+                .should("contain.text", "<bad>");
+
+            // Run accessibility checks on the diagnostic list and tooltip
+            // Focus on color-contrast rule to ensure code formatting meets WCAG AA
+            cy.injectAxe();
+            cy.checkA11y(".diagnostics-response-tabs-container", {
+                runOnly: {
+                    type: "rule",
+                    values: ["color-contrast"],
+                },
+                includedImpacts: ["critical", "serious", "moderate", "minor"],
+            });
+            cy.checkA11y(".cm-tooltip-lint", {
+                runOnly: {
+                    type: "rule",
+                    values: ["color-contrast"],
+                },
+                includedImpacts: ["critical", "serious", "moderate", "minor"],
+            });
+        });
+
+        it("displays warning tooltip for figure inside paragraph and passes accessibility scan", () => {
+            postDoenetML(`<p><figure /></p>`);
+
+            // Open warnings panel to show warning list entry
+            cy.get("#warnings").should("exist").click();
+            cy.contains("Warning").should("exist");
+
+            // Hover warning marker for <figure> and verify warning tooltip heading
+            hoverAccessibilityDiagnostic(".cm-lintRange-warning");
+            cy.get(".cm-tooltip-lint .cm-lint-tooltip .heading")
+                .should("exist")
+                .should("contain.text", "Warning");
+
+            // Run accessibility scanner on warning panel and tooltip
+            cy.injectAxe();
+            cy.checkA11y(".diagnostics-response-tabs-container", {
+                runOnly: {
+                    type: "rule",
+                    values: ["color-contrast"],
+                },
+                includedImpacts: ["critical", "serious", "moderate", "minor"],
+            });
+            cy.checkA11y(".cm-tooltip-lint", {
+                runOnly: {
+                    type: "rule",
+                    values: ["color-contrast"],
+                },
+                includedImpacts: ["critical", "serious", "moderate", "minor"],
+            });
+        });
+
+        it("renders diagnostic markdown safely without HTML injection or javascript links", () => {
+            postDoenetML(`
+<updateValue target="[click](javascript:alert(1)) <img src=x onerror=alert(1)>" newValue="1" />
+`);
+
+            cy.get("#warnings").should("exist").click();
+            cy.contains("Invalid value").should("exist");
+
+            cy.get(".diagnostics-response-tabs-container img").should(
+                "not.exist",
+            );
+            cy.get(
+                '.diagnostics-response-tabs-container a[href^="javascript:"]',
+            ).should("not.exist");
+
+            cy.get("body").then(($body) => {
+                if ($body.find(".cm-lintRange-warning").length > 0) {
+                    hoverAccessibilityDiagnostic(".cm-lintRange-warning");
+                    cy.get(".cm-tooltip-lint .cm-lint-body").should("exist");
+                    cy.get(".cm-tooltip-lint img").should("not.exist");
+                    cy.get('.cm-tooltip-lint a[href^="javascript:"]').should(
+                        "not.exist",
+                    );
+                }
+            });
+        });
     },
 );

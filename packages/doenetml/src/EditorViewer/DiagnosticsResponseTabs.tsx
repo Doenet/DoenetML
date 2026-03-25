@@ -16,6 +16,7 @@ import {
 } from "react-icons/bs";
 import { IoAccessibility } from "react-icons/io5";
 import classNames from "classnames";
+import { micromark } from "micromark";
 import {
     AccessibilityRecord,
     ErrorRecord,
@@ -28,6 +29,12 @@ type SubmittedResponse = {
     response: ReactElement;
     creditAchieved: number;
     submittedAt: string;
+};
+
+// Explicitly disable dangerous markdown features before inserting generated HTML.
+const safeMarkdownOptions = {
+    allowDangerousHtml: false,
+    allowDangerousProtocol: false,
 };
 
 /** Human-readable label for diagnostic source line, when position exists. */
@@ -62,6 +69,19 @@ function diagnosticIdentityKey(diagnostic: {
         diagnostic.position?.end?.column ?? "",
         diagnostic.position?.end?.offset ?? "",
     ].join("|");
+}
+
+/** Helper function to format diagnostic message with markdown rendering. */
+function FormattedDiagnosticMessage({ message }: { message: string }) {
+    // `dangerouslySetInnerHTML` is safe here because micromark escapes raw HTML
+    // and rejects dangerous URL protocols with the options above.
+    const html = micromark(message, safeMarkdownOptions);
+    return (
+        <span
+            className="diagnostic-entry-message"
+            dangerouslySetInnerHTML={{ __html: html }}
+        />
+    );
 }
 
 /** Shared list renderer for diagnostics across tab panels. */
@@ -123,7 +143,9 @@ function DiagnosticList({
                                     {location}
                                 </span>
                             ) : null}
-                            {diagnostic.message}
+                            <FormattedDiagnosticMessage
+                                message={diagnostic.message}
+                            />
                         </span>
                     </li>
                 );

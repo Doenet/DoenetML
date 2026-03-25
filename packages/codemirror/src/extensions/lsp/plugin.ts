@@ -63,6 +63,11 @@ import type {
 import { CompletionItemKind } from "vscode-languageserver-protocol/browser";
 import "./tooltip.css";
 
+const safeMarkdownOptions = {
+    allowDangerousHtml: false,
+    allowDangerousProtocol: false,
+};
+
 const completionItemKindMap = Object.fromEntries(
     Object.entries(CompletionItemKind).map(([key, value]) => [value, key]),
 ) as Record<CompletionItemKind, string>;
@@ -206,7 +211,7 @@ export class LSPPlugin implements PluginValue {
                         "heading " + headingClass
                     }">${
                         heading
-                    }</h4><div class="cm-lint-body">${micromark(message)}</div>
+                    }</h4><div class="cm-lint-body">${micromark(message, safeMarkdownOptions)}</div>
                             </div>`;
                     return div.firstChild as HTMLElement;
                 },
