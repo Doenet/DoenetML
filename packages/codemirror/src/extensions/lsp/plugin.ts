@@ -219,9 +219,9 @@ export class LSPPlugin implements PluginValue {
                     // react listeners, etc. when the dom element is deleted by codemirror.
                     div.innerHTML = `<div class="cm-lint-tooltip"><h4 class="${
                         "heading " + headingClass
-                    }">${
-                        escapeHtml(heading)
-                    }</h4><div class="cm-lint-body">${micromark(message, safeMarkdownOptions)}</div>
+                    }">${escapeHtml(
+                        heading,
+                    )}</h4><div class="cm-lint-body">${micromark(message, safeMarkdownOptions)}</div>
                             </div>`;
                     return div.firstChild as HTMLElement;
                 },
