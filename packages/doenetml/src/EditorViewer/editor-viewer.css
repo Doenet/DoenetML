@@ -28,10 +28,14 @@
     gap: 0.2rem;
 }
 
-.editor-panel .error-warning-response-tabs {
+.editor-panel .diagnostics-response-tabs {
     display: flex;
     flex-direction: row;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.2rem;
     background-color: var(--mainGray);
+    padding: 0.2rem;
 
     button.close-button {
         all: unset;
@@ -63,13 +67,17 @@
 
     button {
         all: unset;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.35rem;
         cursor: pointer;
         padding: 0.2rem 0.5rem;
         font-size: 0.9rem;
+        border-radius: 0.4rem;
 
         &:focus-visible {
             outline: 2px solid var(--mainBlue);
-            outline-offset: -4px;
+            outline-offset: 1px;
         }
     }
     button[aria-selected="true"] {
@@ -78,17 +86,128 @@
     }
 }
 
-.editor-panel .error-warning-response-tabs-panels {
+.editor-panel .diagnostic-tab-trigger {
+    min-width: 3.2rem;
+    justify-content: center;
+}
+
+.editor-panel .diagnostic-tab-icon {
+    display: inline-flex;
+    font-size: 1rem;
+}
+
+.editor-panel .diagnostic-tab-count {
+    min-width: 1.5ch;
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+}
+
+.editor-panel .diagnostics-response-tabs-panels {
     flex-grow: 1;
     flex-basis: 0;
     overflow: auto;
 }
 
-.editor-panel .error-warning-response-tabs-container {
+.editor-panel .diagnostics-response-tabs-container {
     display: flex;
     flex-direction: column;
     height: 100%;
     padding: 0rem 0.4rem;
+}
+
+.editor-panel .diagnostic-panel {
+    padding: 0.75rem 0.25rem 1rem;
+}
+
+.editor-panel .diagnostic-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.editor-panel .diagnostic-entry {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.5rem;
+    line-height: 1.4;
+}
+
+.editor-panel .diagnostic-entry-icon {
+    display: inline-flex;
+    margin-top: 0.1rem;
+    font-size: 1rem;
+}
+
+.editor-panel .diagnostic-entry-icon.is-error {
+    color: #b42318;
+}
+
+.editor-panel .diagnostic-entry-icon.is-warning {
+    color: #b54708;
+}
+
+.editor-panel .diagnostic-entry-icon.is-info {
+    color: #175cd3;
+}
+
+.editor-panel .diagnostic-entry-icon.is-accessibility-critical {
+    color: #b42318;
+}
+
+.editor-panel .diagnostic-entry-icon.is-accessibility-advisory {
+    color: #6e3cbc;
+}
+
+.editor-panel .diagnostic-entry-location {
+    font-weight: 600;
+    margin-right: 0.35rem;
+}
+
+.editor-panel .diagnostic-editor-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    margin-bottom: 0.85rem;
+    font-size: 0.9rem;
+}
+
+.editor-panel .diagnostic-editor-toggle input {
+    margin: 0;
+}
+
+.editor-panel .accessibility-report {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.editor-panel .accessibility-report-section {
+    border: 1px solid #d0d5dd;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    background: #fff;
+}
+
+.editor-panel .accessibility-report-heading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.75rem;
+}
+
+.editor-panel .accessibility-report-heading h3 {
+    margin: 0;
+}
+
+.editor-panel .accessibility-report-heading.critical {
+    color: #b42318;
+}
+
+.editor-panel .accessibility-report-heading.advisory {
+    color: #6e3cbc;
 }
 
 .viewer-panel {
@@ -99,14 +218,66 @@
 .viewer-panel .viewer-controls {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
     padding: 0.1rem 0.5rem;
     background-color: var(--mainGray);
     border-bottom: 1px solid #949494;
 }
+
+.viewer-panel .accessibility-status-button {
+    all: unset;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    border-radius: 999px;
+    padding: 0.35rem 0.75rem;
+    font-weight: 600;
+
+    &:focus-visible {
+        outline: 2px solid var(--mainBlue);
+        outline-offset: 2px;
+    }
+}
+
+.viewer-panel .accessibility-status-button.has-level-1-issues {
+    background: #fef3f2;
+    color: #b42318;
+    box-shadow: inset 0 0 0 1px #f04438;
+}
+
+.viewer-panel .accessibility-status-button.no-level-1-issues {
+    background: #ecfdf3;
+    color: #027a48;
+    box-shadow: inset 0 0 0 1px #6ce9a6;
+    font-weight: 500;
+}
+
+.viewer-panel .accessibility-status-button svg {
+    font-size: 1rem;
+}
+
 .viewer-panel .viewer {
     flex-grow: 1;
     overflow: auto;
     background-color: var(--canvas);
+}
+
+.editor-panel .cm-lintRange.cm-doenet-accessibility-diagnostic {
+    background-image: none !important;
+    text-decoration-line: underline;
+    text-decoration-style: wavy;
+    text-decoration-thickness: 1.5px;
+    text-underline-offset: 0.18em;
+}
+
+.editor-panel .cm-lintRange.cm-doenet-accessibility-diagnostic-level-1 {
+    text-decoration-color: #b42318;
+}
+
+.editor-panel .cm-lintRange.cm-doenet-accessibility-diagnostic-level-2 {
+    text-decoration-color: #6e3cbc;
 }
 
 .editor-panel .formatter-and-version {

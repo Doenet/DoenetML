@@ -9,6 +9,9 @@
 .cm-lint-tooltip .heading.error {
     color: #900;
 }
+.cm-lint-tooltip .heading.accessibility {
+    color: #0f766e;
+}
 .cm-diagnostic {
     white-space: unset !important;
 }

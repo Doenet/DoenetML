@@ -300,7 +300,7 @@ describe("Image tag tests @group3", async () => {
         ).eq("q");
     });
 
-    it("warning if no short description specified and decorative is not set", async () => {
+    it("accessibility diagnostic if no short description specified and decorative is not set", async () => {
         let { core } = await createTestCore({
             doenetML: `
 <image name="image1" />
@@ -310,37 +310,17 @@ describe("Image tag tests @group3", async () => {
         let diagnosticsByType = getDiagnosticsByType(core);
 
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(1);
-
-        expect(diagnosticsByType.warnings[0].message).contain(
-            `<image> must either have a short description or be specified as decorative`,
-        );
-        expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
-        expect(diagnosticsByType.warnings[0].position.start.column).eq(1);
-        expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
-        expect(diagnosticsByType.warnings[0].position.end.column).eq(24);
-    });
-
-    it("upgrade warning to error if no short description specified and decorative is not set", async () => {
-        let { core } = await createTestCore({
-            doenetML: `
-<image name="image1" />
-            `,
-            flags: { upgradeAccessibilityWarningsToErrors: true },
-        });
-
-        let diagnosticsByType = getDiagnosticsByType(core);
-
-        expect(diagnosticsByType.errors.length).eq(1);
         expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.accessibility.length).eq(1);
+        expect(diagnosticsByType.accessibility[0].level).eq(1);
 
-        expect(diagnosticsByType.errors[0].message).contain(
+        expect(diagnosticsByType.accessibility[0].message).contain(
             `<image> must either have a short description or be specified as decorative`,
         );
-        expect(diagnosticsByType.errors[0].position.start.line).eq(2);
-        expect(diagnosticsByType.errors[0].position.start.column).eq(1);
-        expect(diagnosticsByType.errors[0].position.end.line).eq(2);
-        expect(diagnosticsByType.errors[0].position.end.column).eq(24);
+        expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.start.column).eq(1);
+        expect(diagnosticsByType.accessibility[0].position.end.line).eq(2);
+        expect(diagnosticsByType.accessibility[0].position.end.column).eq(24);
     });
 
     it("with description", async () => {

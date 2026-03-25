@@ -7,10 +7,19 @@ import {
     isWarningRecord,
 } from "@doenet/utils";
 
+type AccessibilityRecord = {
+    type: "accessibility";
+    level?: 1 | 2;
+    message: string;
+    position?: any;
+    sourceDoc?: number;
+};
+
 type DiagnosticsByType = {
     readonly errors: ErrorRecord[];
     readonly warnings: WarningRecord[];
     readonly infos: InfoRecord[];
+    readonly accessibility: AccessibilityRecord[];
 };
 
 export function getDiagnosticsByType(core: any): DiagnosticsByType {
@@ -23,6 +32,11 @@ export function getDiagnosticsByType(core: any): DiagnosticsByType {
         },
         get infos() {
             return core.core!.diagnostics.filter(isInfoRecord);
+        },
+        get accessibility() {
+            return core.core!.diagnostics.filter(
+                (diagnostic: any) => diagnostic.type === "accessibility",
+            );
         },
     };
 }

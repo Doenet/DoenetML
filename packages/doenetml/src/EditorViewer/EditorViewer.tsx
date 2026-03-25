@@ -2,45 +2,36 @@ import React, {
     ReactElement,
     useCallback,
     useEffect,
+    useMemo,
     useRef,
     useState,
 } from "react";
-import { ResizablePanelPair, UiButton } from "@doenet/ui-components";
-import { RxUpdate } from "react-icons/rx";
-// @ts-ignore
-import VariantSelect from "./VariantSelect";
+import { ResizablePanelPair } from "@doenet/ui-components";
 import { CodeMirror, LSP } from "@doenet/codemirror";
 import { DocViewer } from "../Viewer/DocViewer";
 import {
-    ErrorWarningResponseTabContents,
-    ErrorWarningResponseTabstrip,
-} from "./ErrorWarningResponseTabs";
-import {
-    DiagnosticRecord,
-    ErrorRecord,
-    nanInfinityReviver,
-    WarningRecord,
-} from "@doenet/utils";
+    DiagnosticsResponseTabContents,
+    DiagnosticsResponseTabstrip,
+} from "./DiagnosticsResponseTabs";
+import { DiagnosticRecord, nanInfinityReviver } from "@doenet/utils";
 import { nanoid } from "nanoid";
 import { prettyPrint } from "@doenet/parser/pretty-printer";
 import { formatResponse } from "../utils/responses";
 import { ResizableCollapsiblePanelPair } from "@doenet/ui-components";
-import { BsExclamationTriangleFill } from "react-icons/bs";
+import { FormatterVersionBar } from "./FormatterVersionBar";
+import { ViewerControlsBar } from "./ViewerControlsBar";
 import "./editor-viewer.css";
-import {
-    Select,
-    SelectItem,
-    SelectLabel,
-    SelectPopover,
-    SelectProvider,
-    useTabStore,
-} from "@ariakit/react";
+import { useTabStore } from "@ariakit/react";
 import { setVariantsFromCallback } from "../utils/variants";
 import {
-    Diagnostic,
-    DiagnosticSeverity,
-} from "vscode-languageserver-protocol/browser";
+    EditorDiagnosticRecord,
+    mergeDiagnosticsByType,
+    toAdditionalDiagnosticsForLsp,
+} from "./diagnostics";
 
+/**
+ * Combined DoenetML editor/viewer shell with diagnostics, responses, formatting, and variants.
+ */
 export function EditorViewer({
     doenetML: initialDoenetML,
     activityId: specifiedActivityId,
@@ -59,13 +50,11 @@ export function EditorViewer({
     id: specifiedId,
     readOnly = false,
     showFormatter = true,
-    showErrorsWarnings = true,
+    showDiagnostics = true,
     showResponses = true,
     border = "1px solid",
-    initialErrors = [],
-    initialWarnings = [],
+    initialDiagnostics = [],
     fetchExternalDoenetML,
-    upgradeAccessibilityWarningsToErrors = false,
 }: {
     doenetML: string;
     activityId?: string;
@@ -84,13 +73,11 @@ export function EditorViewer({
     id?: string;
     readOnly?: boolean;
     showFormatter?: boolean;
-    showErrorsWarnings?: boolean;
+    showDiagnostics?: boolean;
     showResponses?: boolean;
     border?: string;
-    initialErrors?: ErrorRecord[];
-    initialWarnings?: WarningRecord[];
+    initialDiagnostics?: DiagnosticRecord[];
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
-    upgradeAccessibilityWarningsToErrors?: boolean;
 }) {
     //Win, Mac or Linux
     let platform = "Linux";
@@ -141,51 +128,56 @@ export function EditorViewer({
 
     const [infoPanelIsOpen, setInfoPanelIsOpen] = useState(false);
 
-    const [diagnostics, setDiagnostics] = useState<DiagnosticRecord[]>([]);
+    const [diagnostics, setDiagnostics] = useState<EditorDiagnosticRecord[]>(
+        [],
+    );
+    const [showWarningAnnotations, setShowWarningAnnotations] = useState(true);
+    const [showInfoAnnotations, setShowInfoAnnotations] = useState(false);
+    const [showAccessibilityAnnotations, setShowAccessibilityAnnotations] =
+        useState(true);
 
-    /**
-     * When receiving diagnostics from the viewer,
-     * store them locally and forward non-info diagnostics to the LSP.
-     */
+    /** Receives diagnostics from DocViewer and stores them for panel/LSP sync. */
     function setDiagnosticsCallback(newDiagnostics: DiagnosticRecord[]) {
-        setDiagnostics(newDiagnostics);
+        setDiagnostics(newDiagnostics as EditorDiagnosticRecord[]);
+    }
 
-        const diagnosticsForLsp = newDiagnostics.filter(
-            (diagnostic) => diagnostic.type !== "info",
-        );
-
-        const additionalDiagnostics: Diagnostic[] = diagnosticsForLsp.map(
-            (diagnostic) => ({
-                message: diagnostic.message,
-                severity:
-                    diagnostic.type === "error"
-                        ? DiagnosticSeverity.Error
-                        : DiagnosticSeverity.Warning,
-                range: diagnostic.position,
-            }),
-        );
+    useEffect(() => {
+        const additionalDiagnostics = toAdditionalDiagnosticsForLsp({
+            diagnostics,
+            showWarningAnnotations,
+            showInfoAnnotations,
+            showAccessibilityAnnotations,
+        });
 
         lspRef.current?.lsp.sendAdditionalDiagnostics(
             lspRef.current.documentUri,
             additionalDiagnostics,
         );
-    }
+    }, [
+        diagnostics,
+        showAccessibilityAnnotations,
+        showInfoAnnotations,
+        showWarningAnnotations,
+    ]);
 
-    const warningsObjs: WarningRecord[] = [
-        ...initialWarnings,
-        ...diagnostics.filter(
-            (diagnostic): diagnostic is WarningRecord =>
-                diagnostic.type === "warning",
-        ),
-    ];
+    const initialDiagnosticsWithAccessibility =
+        initialDiagnostics as EditorDiagnosticRecord[];
 
-    const errorsObjs: ErrorRecord[] = [
-        ...initialErrors,
-        ...diagnostics.filter(
-            (diagnostic): diagnostic is ErrorRecord =>
-                diagnostic.type === "error",
-        ),
-    ];
+    const {
+        warnings: warningsObjs,
+        errors: errorsObjs,
+        infos: infoObjs,
+        accessibility: accessibilityObjs,
+        accessibilityLevel1Count,
+        accessibilityLevel2Count,
+    } = useMemo(
+        () =>
+            mergeDiagnosticsByType({
+                initialDiagnostics: initialDiagnosticsWithAccessibility,
+                diagnostics,
+            }),
+        [initialDiagnosticsWithAccessibility, diagnostics],
+    );
 
     const [responses, setResponses] = useState<
         {
@@ -383,7 +375,24 @@ export function EditorViewer({
         };
     }, []);
 
-    const tabStore = useTabStore();
+    const tabStore = useTabStore({
+        defaultSelectedId: showDiagnostics ? "errors" : "responses",
+    });
+    const selectedTabId = tabStore.useState("selectedId");
+    const isAccessibilityReportOpen =
+        infoPanelIsOpen && selectedTabId === "accessibility";
+
+    /** Opens accessibility diagnostics, or closes the panel if already focused there. */
+    function toggleAccessibilityReport() {
+        if (infoPanelIsOpen && selectedTabId === "accessibility") {
+            setInfoPanelIsOpen(false);
+            return;
+        }
+
+        tabStore.setSelectedId("accessibility");
+        setInfoPanelIsOpen(true);
+    }
+
     const codeMirror = (
         <CodeMirror
             value={editorDoenetML}
@@ -395,30 +404,44 @@ export function EditorViewer({
     );
 
     const editorAndCollapsiblePanel =
-        showErrorsWarnings || showResponses ? (
+        showDiagnostics || showResponses ? (
             <ResizableCollapsiblePanelPair
                 mainPanel={codeMirror}
                 subPanel={
-                    <ErrorWarningResponseTabContents
+                    <DiagnosticsResponseTabContents
                         store={tabStore}
                         warnings={warningsObjs}
                         errors={errorsObjs}
+                        infos={infoObjs}
+                        accessibility={accessibilityObjs}
                         submittedResponses={responses}
                         isOpen={infoPanelIsOpen}
                         setIsOpen={setInfoPanelIsOpen}
-                        showErrorsWarnings={showErrorsWarnings}
+                        showDiagnostics={showDiagnostics}
                         showResponses={showResponses}
+                        showWarningAnnotations={showWarningAnnotations}
+                        setShowWarningAnnotations={setShowWarningAnnotations}
+                        showInfoAnnotations={showInfoAnnotations}
+                        setShowInfoAnnotations={setShowInfoAnnotations}
+                        showAccessibilityAnnotations={
+                            showAccessibilityAnnotations
+                        }
+                        setShowAccessibilityAnnotations={
+                            setShowAccessibilityAnnotations
+                        }
                     />
                 }
                 alwaysVisiblePanel={
-                    <ErrorWarningResponseTabstrip
+                    <DiagnosticsResponseTabstrip
                         store={tabStore}
                         warnings={warningsObjs}
                         errors={errorsObjs}
+                        infos={infoObjs}
+                        accessibility={accessibilityObjs}
                         submittedResponses={responses}
                         isOpen={infoPanelIsOpen}
                         setIsOpen={setInfoPanelIsOpen}
-                        showErrorsWarnings={showErrorsWarnings}
+                        showDiagnostics={showDiagnostics}
                         showResponses={showResponses}
                     />
                 }
@@ -434,66 +457,22 @@ export function EditorViewer({
             <div className="editor-and-collapsible-panel">
                 {editorAndCollapsiblePanel}
             </div>
-            <div className="formatter-and-version">
-                {showFormatter ? (
-                    <>
-                        {/* <div className="label">Format as</div> */}
-
-                        <SelectProvider
-                            defaultValue={"DoenetML"}
-                            setValue={(e) => {
-                                setFormatAsDoenetML(e === "DoenetML");
-                            }}
-                        >
-                            <SelectLabel className="label">
-                                Format as
-                            </SelectLabel>
-                            <div className="wrapper">
-                                <Select
-                                    className="button"
-                                    data-test="Format As Select"
-                                />
-                            </div>
-                            <SelectPopover
-                                sameWidth
-                                gutter={2}
-                                className="popover"
-                                data-test="Format As Select Popover"
-                            >
-                                <SelectItem
-                                    className="select-item"
-                                    value="DoenetML"
-                                />
-                                <SelectItem
-                                    className="select-item"
-                                    value="XML"
-                                />
-                            </SelectPopover>
-                        </SelectProvider>
-                        <UiButton
-                            title="Format your source code"
-                            data-test="Format DoenetML Button"
-                            onClick={async () => {
-                                const printed = await prettyPrint(
-                                    editorDoenetMLRef.current,
-                                    {
-                                        doenetSyntax: formatAsDoenetML,
-                                        tabWidth: 2,
-                                    },
-                                );
-                                onEditorChange(printed);
-                                // also update editorDoenetML so that CodeMirror updates
-                                setEditorDoenetML(printed);
-                            }}
-                        >
-                            Format
-                        </UiButton>
-                    </>
-                ) : null}
-                <div className="doenetml-version" title="DoenetML version">
-                    Version: {DOENETML_VERSION}
-                </div>
-            </div>
+            <FormatterVersionBar
+                showFormatter={showFormatter}
+                setFormatAsDoenetML={setFormatAsDoenetML}
+                onFormat={async () => {
+                    const printed = await prettyPrint(
+                        editorDoenetMLRef.current,
+                        {
+                            doenetSyntax: formatAsDoenetML,
+                            tabWidth: 2,
+                        },
+                    );
+                    onEditorChange(printed);
+                    // also update editorDoenetML so that CodeMirror updates
+                    setEditorDoenetML(printed);
+                }}
+            />
         </div>
     );
 
@@ -513,6 +492,7 @@ export function EditorViewer({
         );
     }
 
+    /** Scroll callback passed to viewer content so deep links align below the control row. */
     function requestScrollTo(offset: number) {
         if (viewerContainer.current) {
             viewerContainer.current.scrollTo({
@@ -524,69 +504,48 @@ export function EditorViewer({
 
     const viewerPanel = (
         <div className="viewer-panel" id={id + "-viewer"}>
-            <div className="viewer-controls" id={id + "-viewer-controls"}>
-                {!readOnly && (
-                    <UiButton
-                        data-test="Viewer Update Button"
-                        disabled={!codeChanged && !documentInteracted}
-                        title={
-                            platform == "Mac"
-                                ? `${updateWord} Viewer cmd+s`
-                                : `${updateWord} Viewer ctrl+s`
-                        }
-                        onClick={() => {
-                            setDocumentInteracted(false);
-                            setResponses([]);
+            <ViewerControlsBar
+                id={id}
+                readOnly={readOnly}
+                codeChanged={codeChanged}
+                documentInteracted={documentInteracted}
+                platform={platform as "Mac" | "Win" | "Linux"}
+                updateWord={updateWord}
+                onUpdateViewer={() => {
+                    setDocumentInteracted(false);
+                    setResponses([]);
 
-                            if (!codeChanged) {
-                                setViewerResetNum((n) => n + 1);
-                            } else {
-                                setViewerDoenetML(editorDoenetMLRef.current);
-                                window.clearTimeout(
-                                    updateValueTimer.current ?? undefined,
+                    if (!codeChanged) {
+                        setViewerResetNum((n) => n + 1);
+                    } else {
+                        setViewerDoenetML(editorDoenetMLRef.current);
+                        window.clearTimeout(
+                            updateValueTimer.current ?? undefined,
+                        );
+                        if (
+                            lastReportedDoenetML.current !==
+                            editorDoenetMLRef.current
+                        ) {
+                            lastReportedDoenetML.current =
+                                editorDoenetMLRef.current;
+                            if (!showViewer) {
+                                doenetmlChangeCallback?.(
+                                    editorDoenetMLRef.current,
                                 );
-                                if (
-                                    lastReportedDoenetML.current !==
-                                    editorDoenetMLRef.current
-                                ) {
-                                    lastReportedDoenetML.current =
-                                        editorDoenetMLRef.current;
-                                    if (!showViewer) {
-                                        doenetmlChangeCallback?.(
-                                            editorDoenetMLRef.current,
-                                        );
-                                    }
-                                }
-                                setCodeChanged(false);
-                                updateValueTimer.current = null;
                             }
-                        }}
-                    >
-                        <RxUpdate /> {updateWord}{" "}
-                        {codeChanged ? (
-                            <BsExclamationTriangleFill
-                                fontSize="18px"
-                                color="var(--mainBlue)"
-                            />
-                        ) : undefined}
-                    </UiButton>
-                )}
-                {variants.numVariants > 1 && (
-                    <VariantSelect
-                        size="sm"
-                        menuWidth="140px"
-                        array={variants.allPossibleVariants}
-                        syncIndex={variants.index}
-                        onChange={(index: number) =>
-                            setVariants((prev) => {
-                                let next = { ...prev };
-                                next.index = index + 1;
-                                return next;
-                            })
                         }
-                    />
-                )}
-            </div>
+                        setCodeChanged(false);
+                        updateValueTimer.current = null;
+                    }
+                }}
+                variants={variants}
+                setVariants={setVariants}
+                showDiagnostics={showDiagnostics}
+                accessibilityLevel1Count={accessibilityLevel1Count}
+                accessibilityLevel2Count={accessibilityLevel2Count}
+                isAccessibilityReportOpen={isAccessibilityReportOpen}
+                onToggleAccessibilityReport={toggleAccessibilityReport}
+            />
             <div className="viewer" id={id + "-viewer"} ref={viewerContainer}>
                 <DocViewer
                     doenetML={viewerDoenetML}
@@ -603,7 +562,6 @@ export function EditorViewer({
                         allowSaveEvents: true,
                         messageParent: false,
                         readOnly: false,
-                        upgradeAccessibilityWarningsToErrors,
                     }}
                     activityId={activityId}
                     key={viewerResetNum}

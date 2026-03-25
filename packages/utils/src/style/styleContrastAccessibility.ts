@@ -1,17 +1,17 @@
 /**
  * Utilities for evaluating style-definition contrast in light mode and
- * producing warning records when WCAG AA thresholds are not met.
+ * producing accessibility diagnostics when WCAG AA thresholds are not met.
  *
  * This module:
  * - Parses CSS colors to RGBA where possible,
  * - Composites translucent colors over the light canvas,
  * - Computes contrast ratios for text and graphical style channels,
- * - Returns diagnostics annotated with source positions.
+ * - Returns accessibility diagnostics annotated with source positions.
  */
 import contrast from "get-contrast";
 import rgb from "rgb";
 import type { Position } from "@doenet/parser";
-import type { WarningRecord } from "../errors/diagnostics";
+import type { AccessibilityRecord } from "../errors/diagnostics";
 import {
     getStyleValueNumber,
     getStyleValueString,
@@ -213,7 +213,7 @@ function ratioOrNull(color1: string, color2: string): number | null {
 }
 
 /**
- * Formats a contrast ratio for warning text.
+ * Formats a contrast ratio for diagnostic text.
  *
  * @param value - Numeric ratio.
  * @returns Ratio string with two decimal places.
@@ -223,13 +223,13 @@ function formatRatio(value: number): string {
 }
 
 /**
- * Creates a standardized style-contrast warning record.
+ * Creates a standardized style-contrast accessibility diagnostic.
  *
- * @param args - Warning details (style number, context, measured ratio,
+ * @param args - Diagnostic details (style number, context, measured ratio,
  * required threshold, and source position).
- * @returns A warning record suitable for sendDiagnostics.
+ * @returns An accessibility diagnostic suitable for sendDiagnostics.
  */
-function createContrastWarning({
+function createContrastAccessibilityDiagnostic({
     styleNumber,
     context,
     ratio,
@@ -241,22 +241,23 @@ function createContrastWarning({
     ratio: number;
     threshold: number;
     position?: Position;
-}): WarningRecord {
+}): AccessibilityRecord {
     return {
-        type: "warning",
+        type: "accessibility",
+        level: 1,
         message: `Style definition ${styleNumber} has insufficient contrast for ${context} (${formatRatio(ratio)}:1; requires at least ${threshold}:1).`,
         position,
     };
 }
 
 /**
- * Conditionally appends a contrast warning when ratio and position are valid
- * and the threshold is not met.
+ * Conditionally appends a contrast accessibility diagnostic when ratio and
+ * position are valid and the threshold is not met.
  *
- * @param args - Warning target array and warning-evaluation inputs.
+ * @param args - Diagnostic target array and contrast-evaluation inputs.
  * @returns Nothing. Mutates the diagnostics array in place when needed.
  */
-function maybePushContrastWarning({
+function appendContrastAccessibilityDiagnosticIfNeeded({
     diagnostics,
     styleNumber,
     context,
@@ -264,7 +265,7 @@ function maybePushContrastWarning({
     threshold,
     position,
 }: {
-    diagnostics: WarningRecord[];
+    diagnostics: AccessibilityRecord[];
     styleNumber: string;
     context: string;
     ratio: number | null;
@@ -276,7 +277,7 @@ function maybePushContrastWarning({
     }
 
     diagnostics.push(
-        createContrastWarning({
+        createContrastAccessibilityDiagnostic({
             styleNumber,
             context,
             ratio,
@@ -339,17 +340,18 @@ function ratioWithOptionalCompositing({
 }
 
 /**
- * Generates all applicable light-mode contrast diagnostics for one style definition.
+ * Generates all applicable light-mode contrast accessibility diagnostics for
+ * one style definition.
  *
  * @param styleNumber - Style number being validated.
  * @param styleDef - Resolved style definition values.
- * @returns Array of warning records for that style number.
+ * @returns Array of accessibility diagnostics for that style number.
  */
-function contrastWarningsForStyleDefinition(
+function contrastAccessibilityDiagnosticsForStyleDefinition(
     styleNumber: string,
     styleDef: StyleDefinition,
-): WarningRecord[] {
-    const diagnostics: WarningRecord[] = [];
+): AccessibilityRecord[] {
+    const diagnostics: AccessibilityRecord[] = [];
 
     const textColor = getStyleValueString(styleDef, "textColor");
     const backgroundColor =
@@ -357,7 +359,7 @@ function contrastWarningsForStyleDefinition(
         CANVAS_LIGHT_MODE_COLOR;
 
     if (textColor) {
-        const warningPosition = latestPosition(
+        const diagnosticPosition = latestPosition(
             styleDef.textColor?.position,
             styleDef.backgroundColor?.position,
         );
@@ -367,7 +369,7 @@ function contrastWarningsForStyleDefinition(
             opacityMultiplier: 1,
         });
 
-        maybePushContrastWarning({
+        appendContrastAccessibilityDiagnosticIfNeeded({
             diagnostics,
             styleNumber,
             context:
@@ -376,7 +378,7 @@ function contrastWarningsForStyleDefinition(
                     : "text color against background color",
             ratio,
             threshold: 4.5,
-            position: warningPosition,
+            position: diagnosticPosition,
         });
     }
 
@@ -385,26 +387,26 @@ function contrastWarningsForStyleDefinition(
         "highContrastColor",
     );
     if (highContrastColor) {
-        const warningPosition = styleDef.highContrastColor?.position;
+        const diagnosticPosition = styleDef.highContrastColor?.position;
         const ratio = ratioWithOptionalCompositing({
             foreground: CANVAS_LIGHT_MODE_COLOR,
             background: highContrastColor,
             opacityMultiplier: 1,
         });
 
-        maybePushContrastWarning({
+        appendContrastAccessibilityDiagnosticIfNeeded({
             diagnostics,
             styleNumber,
             context: "high-contrast color against canvas text",
             ratio,
             threshold: 4.5,
-            position: warningPosition,
+            position: diagnosticPosition,
         });
     }
 
     const lineColor = getStyleValueString(styleDef, "lineColor");
     if (lineColor) {
-        const warningPosition = latestPosition(
+        const diagnosticPosition = latestPosition(
             styleDef.lineColor?.position,
             styleDef.lineOpacity?.position,
         );
@@ -415,19 +417,19 @@ function contrastWarningsForStyleDefinition(
             opacityMultiplier: lineOpacity,
         });
 
-        maybePushContrastWarning({
+        appendContrastAccessibilityDiagnosticIfNeeded({
             diagnostics,
             styleNumber,
             context: "line color against the canvas",
             ratio,
             threshold: 3,
-            position: warningPosition,
+            position: diagnosticPosition,
         });
     }
 
     const markerColor = getStyleValueString(styleDef, "markerColor");
     if (markerColor) {
-        const warningPosition = latestPosition(
+        const diagnosticPosition = latestPosition(
             styleDef.markerColor?.position,
             styleDef.markerOpacity?.position,
         );
@@ -439,13 +441,13 @@ function contrastWarningsForStyleDefinition(
             opacityMultiplier: markerOpacity,
         });
 
-        maybePushContrastWarning({
+        appendContrastAccessibilityDiagnosticIfNeeded({
             diagnostics,
             styleNumber,
             context: "marker color against the canvas",
             ratio,
             threshold: 3,
-            position: warningPosition,
+            position: diagnosticPosition,
         });
     }
 
@@ -453,19 +455,20 @@ function contrastWarningsForStyleDefinition(
 }
 
 /**
- * Generates all light-mode contrast warnings across all style definitions.
+ * Generates all light-mode contrast accessibility diagnostics across all style
+ * definitions.
  *
  * @param styleDefinitions - Map of style numbers to resolved style definitions.
- * @returns Flattened list of warning records for all styles.
+ * @returns Flattened list of accessibility diagnostics for all styles.
  */
-export function contrastWarningsForStyleDefinitions(
+export function contrastAccessibilityDiagnosticsForStyleDefinitions(
     styleDefinitions: StyleDefinitions,
-): WarningRecord[] {
-    const diagnostics: WarningRecord[] = [];
+): AccessibilityRecord[] {
+    const diagnostics: AccessibilityRecord[] = [];
 
     for (const styleNumber in styleDefinitions) {
         diagnostics.push(
-            ...contrastWarningsForStyleDefinition(
+            ...contrastAccessibilityDiagnosticsForStyleDefinition(
                 styleNumber,
                 styleDefinitions[styleNumber],
             ),

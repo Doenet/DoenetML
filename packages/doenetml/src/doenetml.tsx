@@ -24,6 +24,9 @@ import type { DoenetMLFlags } from "./flags";
 export type { DoenetMLFlags } from "./flags";
 export { defaultFlags } from "./flags";
 
+let warnedShowErrorsWarningsDeprecation = false;
+let warnedInitialErrorsWarningsDeprecation = false;
+
 export const version: string = DOENETML_VERSION;
 
 type DoenetMLFlagsSubset = Partial<DoenetMLFlags>;
@@ -323,13 +326,14 @@ export function DoenetEditor({
     id,
     readOnly = false,
     showFormatter = true,
-    showErrorsWarnings = true,
+    showDiagnostics,
+    showErrorsWarnings,
     showResponses = true,
     border = "1px solid",
-    initialErrors = [],
-    initialWarnings = [],
+    initialDiagnostics,
+    initialErrors,
+    initialWarnings,
     fetchExternalDoenetML,
-    upgradeAccessibilityWarningsToErrors = false,
 }: {
     doenetML: string;
     activityId?: string;
@@ -351,14 +355,45 @@ export function DoenetEditor({
     id?: string;
     readOnly?: boolean;
     showFormatter?: boolean;
+    showDiagnostics?: boolean;
     showErrorsWarnings?: boolean;
     showResponses?: boolean;
     border?: string;
+    initialDiagnostics?: DiagnosticRecord[];
     initialErrors?: ErrorRecord[];
     initialWarnings?: WarningRecord[];
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
-    upgradeAccessibilityWarningsToErrors?: boolean;
 }) {
+    const normalizedShowDiagnostics =
+        showDiagnostics ?? showErrorsWarnings ?? true;
+
+    if (
+        showDiagnostics === undefined &&
+        showErrorsWarnings !== undefined &&
+        !warnedShowErrorsWarningsDeprecation
+    ) {
+        warnedShowErrorsWarningsDeprecation = true;
+        console.warn(
+            "DoenetEditor: showErrorsWarnings is deprecated. Use showDiagnostics instead.",
+        );
+    }
+
+    if (
+        initialDiagnostics === undefined &&
+        (initialErrors !== undefined || initialWarnings !== undefined) &&
+        !warnedInitialErrorsWarningsDeprecation
+    ) {
+        warnedInitialErrorsWarningsDeprecation = true;
+        console.warn(
+            "DoenetEditor: initialErrors and initialWarnings are deprecated. Use initialDiagnostics instead.",
+        );
+    }
+
+    const normalizedInitialDiagnostics = initialDiagnostics ?? [
+        ...(initialErrors ?? []),
+        ...(initialWarnings ?? []),
+    ];
+
     useEffect(() => {
         // Add a YouTube iframe api to the document header if it doesn't exist
         if (
@@ -391,15 +426,11 @@ export function DoenetEditor({
             id={id}
             readOnly={readOnly}
             showFormatter={showFormatter}
-            showErrorsWarnings={showErrorsWarnings}
+            showDiagnostics={normalizedShowDiagnostics}
             showResponses={showResponses}
             border={border}
-            initialErrors={initialErrors}
-            initialWarnings={initialWarnings}
+            initialDiagnostics={normalizedInitialDiagnostics}
             fetchExternalDoenetML={fetchExternalDoenetML}
-            upgradeAccessibilityWarningsToErrors={
-                upgradeAccessibilityWarningsToErrors
-            }
         />
     );
 

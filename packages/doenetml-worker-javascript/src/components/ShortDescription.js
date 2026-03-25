@@ -95,7 +95,8 @@ export default class ShortDescription extends TextComponent {
                 const diagnostics = [];
                 if (foundAdaptedFromMath) {
                     diagnostics.push({
-                        type: "warning",
+                        type: "accessibility",
+                        level: 2,
                         message: `Short descriptions should not contain math components such as <${originalType}>. Spell out any math with words.`,
                     });
                 }

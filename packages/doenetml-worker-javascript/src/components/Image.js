@@ -1,6 +1,5 @@
 import BlockComponent from "./abstract/BlockComponent";
 import {
-    accessibilityWarningsResult,
     orderedPercentWidthMidpoints,
     orderedWidthMidpoints,
     widthsBySize,
@@ -160,10 +159,6 @@ export default class Image extends BlockComponent {
                     childGroups: ["shortDescriptions"],
                     variableNames: ["text"],
                 },
-                upgradeAccessibilityWarningsToErrors: {
-                    dependencyType: "flag",
-                    flagName: "upgradeAccessibilityWarningsToErrors",
-                },
                 decorative: {
                     dependencyType: "stateVariable",
                     variableName: "decorative",
@@ -183,18 +178,17 @@ export default class Image extends BlockComponent {
                 }
                 if (shortDescription === "" && !dependencyValues.decorative) {
                     diagnostics.push({
-                        type: "warning",
+                        type: "accessibility",
+                        level: 1,
                         message:
                             "For accessibility, <image> must either have a short description or be specified as decorative.",
                     });
                 }
 
-                return accessibilityWarningsResult({
+                return {
                     setValue: { shortDescription },
-                    diagnostics,
-                    upgradeWarningsToErrors:
-                        dependencyValues.upgradeAccessibilityWarningsToErrors,
-                });
+                    sendDiagnostics: diagnostics,
+                };
             },
         };
 

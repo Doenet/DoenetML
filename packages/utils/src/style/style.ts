@@ -1,5 +1,4 @@
 import { colorValueToWord } from "./colorWords";
-import { accessibilityWarningsResult } from "../errors/diagnostics";
 import {
     getStyleValueNumber,
     getStyleValueString,
@@ -13,7 +12,7 @@ import {
     type StyleDefinitionKey,
     type StyleDefinitions,
 } from "./styleDefinitionHelpers";
-import { contrastWarningsForStyleDefinitions } from "./styleContrastWarnings";
+import { contrastAccessibilityDiagnosticsForStyleDefinitions } from "./styleContrastAccessibility";
 
 /**
  * Style helpers and state-variable definitions shared by renderable components.
@@ -369,10 +368,6 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
                     dependencyType: "ancestor",
                     variableNames: ["styleDefinitions"],
                 },
-                upgradeAccessibilityWarningsToErrors: {
-                    dependencyType: "flag",
-                    flagName: "upgradeAccessibilityWarningsToErrors",
-                },
                 styleDefinitionSetupChildren: {
                     dependencyType: "child",
                     childGroups: ["styleDefinitions", "setups"],
@@ -593,14 +588,14 @@ export function returnStyleDefinitionStateVariables(): StateVariableDefinitions 
             }
 
             const diagnostics =
-                contrastWarningsForStyleDefinitions(styleDefinitions);
+                contrastAccessibilityDiagnosticsForStyleDefinitions(
+                    styleDefinitions,
+                );
 
-            return accessibilityWarningsResult({
+            return {
                 setValue: { styleDefinitions },
-                diagnostics,
-                upgradeWarningsToErrors:
-                    dependencyValues.upgradeAccessibilityWarningsToErrors,
-            });
+                sendDiagnostics: diagnostics,
+            };
         },
     };
 

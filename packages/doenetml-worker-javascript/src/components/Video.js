@@ -1,6 +1,5 @@
 import BlockComponent from "./abstract/BlockComponent";
 import {
-    accessibilityWarningsResult,
     orderedPercentWidthMidpoints,
     orderedWidthMidpoints,
     widthsBySize,
@@ -111,10 +110,6 @@ export default class Video extends BlockComponent {
                     childGroups: ["shortDescriptions"],
                     variableNames: ["text"],
                 },
-                upgradeAccessibilityWarningsToErrors: {
-                    dependencyType: "flag",
-                    flagName: "upgradeAccessibilityWarningsToErrors",
-                },
             }),
             definition({ dependencyValues }) {
                 let shortDescription = "";
@@ -130,18 +125,17 @@ export default class Video extends BlockComponent {
                 }
                 if (shortDescription === "") {
                     diagnostics.push({
-                        type: "warning",
+                        type: "accessibility",
+                        level: 1,
                         message:
                             "For accessibility, <video> must have a short description.",
                     });
                 }
 
-                return accessibilityWarningsResult({
+                return {
                     setValue: { shortDescription },
-                    diagnostics,
-                    upgradeWarningsToErrors:
-                        dependencyValues.upgradeAccessibilityWarningsToErrors,
-                });
+                    sendDiagnostics: diagnostics,
+                };
             },
         };
 

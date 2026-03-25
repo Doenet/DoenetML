@@ -112,12 +112,13 @@ export default class Core {
 
         this.cid = cid;
 
-        /** @type {{ type: "error"|"warning"|"info", message: string, position?: any, sourceDoc?: number }[]} */
+        /** @type {{ type: "error"|"warning"|"info"|"accessibility", level?: 1|2, message: string, position?: any, sourceDoc?: number }[]} */
         this.diagnostics = preliminaryDiagnostics
             // Note: we ignore preliminary errors, as we'll gather those from the dast when processing it.
             .filter((diagnostic) => diagnostic.type !== "error")
             .map((diagnostic) => ({
                 type: diagnostic.type,
+                level: diagnostic.level,
                 message: diagnostic.message,
                 position: diagnostic.position,
                 sourceDoc: diagnostic.sourceDoc,
@@ -493,7 +494,7 @@ export default class Core {
      *
      * @returns {boolean} `true` if a new entry was added, `false` if deduped.
      */
-    addDiagnostic({ type, message, position, sourceDoc }) {
+    addDiagnostic({ type, level, message, position, sourceDoc }) {
         const sameLocation = (pointA, pointB) =>
             (pointA?.offset ?? undefined) === (pointB?.offset ?? undefined) &&
             (pointA?.line ?? undefined) === (pointB?.line ?? undefined) &&
@@ -510,13 +511,22 @@ export default class Core {
             );
         };
 
-        if (!["error", "warning", "info"].includes(type)) {
+        if (!["error", "warning", "info", "accessibility"].includes(type)) {
             throw Error("Invalid diagnostic type");
+        }
+
+        if (
+            type === "accessibility" &&
+            level !== undefined &&
+            ![1, 2].includes(level)
+        ) {
+            throw Error("Invalid accessibility diagnostic level");
         }
 
         const alreadyHaveDiagnostic = this.diagnostics.some(
             (diagnostic) =>
                 diagnostic.type === type &&
+                diagnostic.level === level &&
                 diagnostic.message === message &&
                 diagnostic.sourceDoc === sourceDoc &&
                 haveSamePosition(diagnostic.position, position),
@@ -528,6 +538,7 @@ export default class Core {
 
         this.diagnostics.push({
             type,
+            level,
             message,
             position,
             sourceDoc,
