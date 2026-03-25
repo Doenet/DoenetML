@@ -64,5 +64,8 @@ export function isInfoRecord(
 export function isAccessibilityRecord(
     diagnostic: DiagnosticRecord,
 ): diagnostic is AccessibilityRecord {
-    return diagnostic.type === "accessibility";
+    return (
+        diagnostic.type === "accessibility" &&
+        (diagnostic.level === 1 || diagnostic.level === 2)
+    );
 }
