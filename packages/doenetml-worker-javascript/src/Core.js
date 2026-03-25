@@ -121,7 +121,9 @@ export default class Core {
 
                 return {
                     type: diagnostic.type,
-                    level: diagnostic.level,
+                    ...(diagnostic.type === "accessibility"
+                        ? { level: diagnostic.level }
+                        : {}),
                     message: diagnostic.message,
                     position: diagnostic.position,
                     sourceDoc: diagnostic.sourceDoc,

@@ -53,7 +53,7 @@ export function ViewerControlsBar({
                     data-test="Viewer Update Button"
                     disabled={!codeChanged && !documentInteracted}
                     title={
-                        platform == "Mac"
+                        platform === "Mac"
                             ? `${updateWord} Viewer cmd+s`
                             : `${updateWord} Viewer ctrl+s`
                     }

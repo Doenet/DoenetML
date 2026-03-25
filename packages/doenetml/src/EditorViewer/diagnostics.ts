@@ -87,7 +87,7 @@ export function toAdditionalDiagnosticsForLsp({
                 return showInfoAnnotations;
             }
 
-            if (diagnostic.type === "accessibility") {
+            if (isAccessibilityRecord(diagnostic)) {
                 return showAccessibilityAnnotations;
             }
 
