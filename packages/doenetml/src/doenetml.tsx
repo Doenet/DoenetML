@@ -330,7 +330,7 @@ export function DoenetEditor({
     showErrorsWarnings,
     showResponses = true,
     border = "1px solid",
-    initialDiagnostics,
+    initialDiagnostics = [],
     initialErrors,
     initialWarnings,
     fetchExternalDoenetML,
@@ -379,7 +379,6 @@ export function DoenetEditor({
     }
 
     if (
-        initialDiagnostics === undefined &&
         (initialErrors !== undefined || initialWarnings !== undefined) &&
         !warnedInitialErrorsWarningsDeprecation
     ) {
@@ -389,7 +388,8 @@ export function DoenetEditor({
         );
     }
 
-    const normalizedInitialDiagnostics = initialDiagnostics ?? [
+    const normalizedInitialDiagnostics = [
+        ...initialDiagnostics,
         ...(initialErrors ?? []),
         ...(initialWarnings ?? []),
     ];
