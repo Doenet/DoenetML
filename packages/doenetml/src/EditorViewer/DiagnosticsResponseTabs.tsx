@@ -75,9 +75,10 @@ function diagnosticIdentityKey(diagnostic: {
 function FormattedDiagnosticMessage({ message }: { message: string }) {
     // `dangerouslySetInnerHTML` is safe here because micromark escapes raw HTML
     // and rejects dangerous URL protocols with the options above.
+    // Use a div (not span) since micromark wraps output in block-level <p> tags.
     const html = micromark(message, safeMarkdownOptions);
     return (
-        <span
+        <div
             className="diagnostic-entry-message"
             dangerouslySetInnerHTML={{ __html: html }}
         />
@@ -137,7 +138,7 @@ function DiagnosticList({
                         >
                             {icon}
                         </span>
-                        <span>
+                        <div>
                             {location ? (
                                 <span className="diagnostic-entry-location">
                                     {location}
@@ -146,7 +147,7 @@ function DiagnosticList({
                             <FormattedDiagnosticMessage
                                 message={diagnostic.message}
                             />
-                        </span>
+                        </div>
                     </li>
                 );
             })}

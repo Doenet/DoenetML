@@ -68,6 +68,16 @@ const safeMarkdownOptions = {
     allowDangerousProtocol: false,
 };
 
+/** Escape a string for safe interpolation into an HTML context. */
+function escapeHtml(str: string): string {
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
+
 const completionItemKindMap = Object.fromEntries(
     Object.entries(CompletionItemKind).map(([key, value]) => [value, key]),
 ) as Record<CompletionItemKind, string>;
@@ -210,7 +220,7 @@ export class LSPPlugin implements PluginValue {
                     div.innerHTML = `<div class="cm-lint-tooltip"><h4 class="${
                         "heading " + headingClass
                     }">${
-                        heading
+                        escapeHtml(heading)
                     }</h4><div class="cm-lint-body">${micromark(message, safeMarkdownOptions)}</div>
                             </div>`;
                     return div.firstChild as HTMLElement;

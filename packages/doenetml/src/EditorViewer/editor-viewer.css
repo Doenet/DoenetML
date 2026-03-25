@@ -166,6 +166,8 @@
     margin-right: 0.35rem;
 }
 
+/* TODO: Add dark mode overrides for .diagnostic-entry-message code (background and color)
+ * once dark mode is fully supported. See issue #966 (Complete dark mode). */
 .editor-panel .diagnostic-entry-message code {
     font-family: monospace;
     background-color: #f5f5f5;
