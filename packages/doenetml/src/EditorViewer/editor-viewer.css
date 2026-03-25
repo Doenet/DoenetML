@@ -177,6 +177,15 @@
     white-space: pre-wrap;
 }
 
+.editor-panel .diagnostic-entry-message {
+    display: inline;
+}
+
+.editor-panel .diagnostic-entry-message p {
+    display: inline;
+    margin: 0;
+}
+
 .editor-panel .diagnostic-editor-toggle {
     display: inline-flex;
     align-items: center;

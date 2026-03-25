@@ -37,6 +37,38 @@ const safeMarkdownOptions = {
     allowDangerousProtocol: false,
 };
 
+const allowedDiagnosticTags = new Set(["P", "CODE", "EM", "STRONG", "BR"]);
+
+function sanitizeDiagnosticHtml(html: string): string {
+    const template = document.createElement("template");
+    template.innerHTML = html;
+
+    const walker = document.createTreeWalker(
+        template.content,
+        NodeFilter.SHOW_ELEMENT,
+    );
+    const elements: Element[] = [];
+
+    while (walker.nextNode()) {
+        elements.push(walker.currentNode as Element);
+    }
+
+    for (const element of elements) {
+        if (!allowedDiagnosticTags.has(element.tagName)) {
+            element.replaceWith(
+                document.createTextNode(element.textContent ?? ""),
+            );
+            continue;
+        }
+
+        for (const { name } of Array.from(element.attributes)) {
+            element.removeAttribute(name);
+        }
+    }
+
+    return template.innerHTML;
+}
+
 /** Human-readable label for diagnostic source line, when position exists. */
 function diagnosticLocationLabel(diagnostic: {
     position?: { start: { line: number } };
@@ -75,8 +107,11 @@ function diagnosticIdentityKey(diagnostic: {
 function FormattedDiagnosticMessage({ message }: { message: string }) {
     // `dangerouslySetInnerHTML` is safe here because micromark escapes raw HTML
     // and rejects dangerous URL protocols with the options above.
-    // Use a div (not span) since micromark wraps output in block-level <p> tags.
-    const html = micromark(message, safeMarkdownOptions);
+    // Limit rendered output to basic formatting tags so diagnostic text can't
+    // introduce links/images from user-provided values.
+    const html = sanitizeDiagnosticHtml(
+        micromark(message, safeMarkdownOptions),
+    );
     return (
         <div
             className="diagnostic-entry-message"

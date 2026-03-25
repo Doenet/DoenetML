@@ -68,6 +68,38 @@ const safeMarkdownOptions = {
     allowDangerousProtocol: false,
 };
 
+const allowedDiagnosticTags = new Set(["P", "CODE", "EM", "STRONG", "BR"]);
+
+function sanitizeDiagnosticHtml(html: string): string {
+    const template = document.createElement("template");
+    template.innerHTML = html;
+
+    const walker = document.createTreeWalker(
+        template.content,
+        NodeFilter.SHOW_ELEMENT,
+    );
+    const elements: Element[] = [];
+
+    while (walker.nextNode()) {
+        elements.push(walker.currentNode as Element);
+    }
+
+    for (const element of elements) {
+        if (!allowedDiagnosticTags.has(element.tagName)) {
+            element.replaceWith(
+                document.createTextNode(element.textContent ?? ""),
+            );
+            continue;
+        }
+
+        for (const { name } of Array.from(element.attributes)) {
+            element.removeAttribute(name);
+        }
+    }
+
+    return template.innerHTML;
+}
+
 /** Escape a string for safe interpolation into an HTML context. */
 function escapeHtml(str: string): string {
     return str
@@ -221,7 +253,7 @@ export class LSPPlugin implements PluginValue {
                         "heading " + headingClass
                     }">${escapeHtml(
                         heading,
-                    )}</h4><div class="cm-lint-body">${micromark(message, safeMarkdownOptions)}</div>
+                    )}</h4><div class="cm-lint-body">${sanitizeDiagnosticHtml(micromark(message, safeMarkdownOptions))}</div>
                             </div>`;
                     return div.firstChild as HTMLElement;
                 },
