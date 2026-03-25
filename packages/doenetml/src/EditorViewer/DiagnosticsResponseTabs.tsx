@@ -39,6 +39,31 @@ function diagnosticLocationLabel(diagnostic: {
         : null;
 }
 
+/** Stable identity for diagnostic list rendering keys. */
+function diagnosticIdentityKey(diagnostic: {
+    type?: string;
+    level?: number;
+    message: string;
+    sourceDoc?: number;
+    position?: {
+        start?: { line?: number; column?: number; offset?: number };
+        end?: { line?: number; column?: number; offset?: number };
+    };
+}) {
+    return [
+        diagnostic.type ?? "",
+        diagnostic.level ?? "",
+        diagnostic.message,
+        diagnostic.sourceDoc ?? "",
+        diagnostic.position?.start?.line ?? "",
+        diagnostic.position?.start?.column ?? "",
+        diagnostic.position?.start?.offset ?? "",
+        diagnostic.position?.end?.line ?? "",
+        diagnostic.position?.end?.column ?? "",
+        diagnostic.position?.end?.offset ?? "",
+    ].join("|");
+}
+
 /** Shared list renderer for diagnostics across tab panels. */
 function DiagnosticList({
     diagnostics,
@@ -48,7 +73,10 @@ function DiagnosticList({
     iconClassName,
 }: {
     diagnostics: Array<{
+        type?: string;
+        level?: number;
         message: string;
+        sourceDoc?: number;
         position?: { start: { line: number } };
     }>;
     emptyMessage: string;
@@ -60,14 +88,24 @@ function DiagnosticList({
         return <h3>{emptyMessage}</h3>;
     }
 
+    const diagnosticIdentityCounts = new Map<string, number>();
+
     return (
         <ul className="diagnostic-list">
             {diagnostics.map((diagnostic, i) => {
                 const location = diagnosticLocationLabel(diagnostic);
+                const identity = diagnosticIdentityKey(diagnostic);
+                const currentCount =
+                    diagnosticIdentityCounts.get(identity) ?? 0;
+                diagnosticIdentityCounts.set(identity, currentCount + 1);
+                const key =
+                    currentCount === 0
+                        ? identity
+                        : `${identity}#${currentCount}`;
 
                 return (
                     <li
-                        key={i}
+                        key={key}
                         data-test={`${testPrefix} ${i}`}
                         className="diagnostic-entry"
                     >
