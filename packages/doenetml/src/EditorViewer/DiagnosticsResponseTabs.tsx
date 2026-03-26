@@ -20,9 +20,9 @@ import {
     AccessibilityRecord,
     ErrorRecord,
     InfoRecord,
-    renderDiagnosticMarkdownHtml,
     WarningRecord,
 } from "@doenet/utils";
+import { renderDiagnosticMarkdownHtml } from "@doenet/utils/diagnostics/renderDiagnosticMarkdownHtml";
 
 type SubmittedResponse = {
     answerId: string;

@@ -13,6 +13,9 @@
     "exports": {
         ".": {
             "import": "./dist/index.js"
+        },
+        "./diagnostics/renderDiagnosticMarkdownHtml": {
+            "import": "./dist/diagnosticMarkdown.js"
         }
     },
     "scripts": {

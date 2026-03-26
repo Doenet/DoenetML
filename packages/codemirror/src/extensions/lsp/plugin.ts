@@ -55,7 +55,7 @@ import {
     getSnippetCursorFromCompletionItemData,
     type CompletionSnippetCursor,
 } from "@doenet/static-assets/completion-snippet-protocol";
-import { renderDiagnosticMarkdownHtml } from "@doenet/utils";
+import { renderDiagnosticMarkdownHtml } from "@doenet/utils/diagnostics/renderDiagnosticMarkdownHtml";
 import type {
     MarkupContent,
     MarkedString,
