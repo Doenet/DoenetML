@@ -110,114 +110,6 @@ describe(
             ).should("exist");
         });
 
-        it("shows toggle checkbox for accessibility diagnostics in editor", () => {
-            postDoenetML(`
-<styleDefinition styleNumber="104" textColor="#ff9900" />
-<text name="p104" styleNumber="104">Contrast issue</text>
-`);
-
-            cy.get("#p104").should("contain.text", "Contrast issue");
-
-            cy.get(".accessibility-status-button").click();
-
-            cy.contains("Show accessibility diagnostics in editor").should(
-                "exist",
-            );
-            cy.get(".accessibility-report input[type='checkbox']")
-                .first()
-                .should("exist");
-        });
-
-        it("displays accessibility diagnostics in editor when checkbox is checked", () => {
-            postDoenetML(`
-<styleDefinition styleNumber="105" textColor="#ff9900" />
-<text name="p105" styleNumber="105">Contrast violation</text>
-`);
-
-            cy.get("#p105").should("contain.text", "Contrast violation");
-
-            cy.get(".accessibility-status-button").click();
-
-            cy.get(".accessibility-report input[type='checkbox']")
-                .first()
-                .then(($checkbox) => {
-                    if (!$checkbox.prop("checked")) {
-                        cy.wrap($checkbox).click();
-                    }
-                });
-
-            cy.get(".cm-doenet-accessibility-diagnostic-level-1").should(
-                "exist",
-            );
-        });
-
-        it("hides accessibility diagnostics in editor when checkbox is unchecked", () => {
-            postDoenetML(`
-<styleDefinition styleNumber="106" textColor="#ff9900" />
-<text name="p106" styleNumber="106">Contrast violation</text>
-`);
-
-            cy.get("#p106").should("contain.text", "Contrast violation");
-
-            cy.get(".accessibility-status-button").click();
-
-            cy.get(".accessibility-report input[type='checkbox']")
-                .first()
-                .then(($checkbox) => {
-                    if (!$checkbox.prop("checked")) {
-                        cy.wrap($checkbox).click();
-                    }
-                });
-
-            cy.get(".cm-doenet-accessibility-diagnostic-level-1").should(
-                "exist",
-            );
-
-            cy.get(".accessibility-report input[type='checkbox']")
-                .first()
-                .click();
-
-            cy.get(".cm-doenet-accessibility-diagnostic-level-1").should(
-                "not.exist",
-            );
-        });
-
-        it("toggles accessibility diagnostics visibility multiple times", () => {
-            postDoenetML(`
-<styleDefinition styleNumber="107" textColor="#ff9900" />
-<graph name="g107">
-    <shortDescription>Graph</shortDescription>
-    <text styleNumber="107" >Contrast issue</text>
-</graph>
-`);
-
-            cy.get("#g107").should("be.visible");
-
-            cy.get(".accessibility-status-button").click();
-
-            const checkbox = () =>
-                cy.get(".accessibility-report input[type='checkbox']").first();
-
-            checkbox().then(($cb) => {
-                if (!$cb.prop("checked")) {
-                    checkbox().click();
-                }
-            });
-            cy.get(".cm-doenet-accessibility-diagnostic-level-1").should(
-                "exist",
-            );
-
-            checkbox().click();
-            cy.get(".cm-doenet-accessibility-diagnostic-level-1").should(
-                "not.exist",
-            );
-
-            checkbox().click();
-            cy.get(".cm-doenet-accessibility-diagnostic-level-1").should(
-                "exist",
-            );
-        });
-
         it("matches the tooltip heading color to level 1 accessibility diagnostics", () => {
             postDoenetML(`
 <styleDefinition styleNumber="108" textColor="#ff9900" />
@@ -226,14 +118,6 @@ describe(
 
             cy.get("#p108").should("contain.text", "Contrast violation");
             cy.get(".accessibility-status-button").click();
-
-            cy.get(".accessibility-report input[type='checkbox']")
-                .first()
-                .then(($checkbox) => {
-                    if (!$checkbox.prop("checked")) {
-                        cy.wrap($checkbox).click();
-                    }
-                });
 
             hoverAccessibilityDiagnostic(
                 ".cm-doenet-accessibility-diagnostic-level-1",

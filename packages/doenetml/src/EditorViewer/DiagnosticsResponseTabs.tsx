@@ -8,13 +8,16 @@ import {
     TabStore,
 } from "@ariakit/react";
 import {
-    BsChatSquareTextFill,
+    BsChatSquareText,
+    BsExclamationTriangle,
     BsExclamationTriangleFill,
+    BsInfoCircle,
     BsInfoCircleFill,
     BsX,
+    BsXOctagon,
     BsXOctagonFill,
 } from "react-icons/bs";
-import { IoAccessibility } from "react-icons/io5";
+import { IoAccessibility, IoAccessibilityOutline } from "react-icons/io5";
 import classNames from "classnames";
 import {
     AccessibilityRecord,
@@ -228,13 +231,15 @@ export function DiagnosticsResponseTabstrip({
                         setIsOpen(true);
                     }
                 }}
-                className="diagnostics-response-tabs"
+                className={classNames("diagnostics-response-tabs", {
+                    "is-open": isOpen,
+                })}
                 store={store}
             >
                 {showDiagnostics && (
                     <TabTrigger
                         id="errors"
-                        icon={<BsXOctagonFill />}
+                        icon={<BsXOctagon />}
                         label="Errors"
                         count={errors.length}
                     />
@@ -242,7 +247,7 @@ export function DiagnosticsResponseTabstrip({
                 {showDiagnostics && (
                     <TabTrigger
                         id="warnings"
-                        icon={<BsExclamationTriangleFill />}
+                        icon={<BsExclamationTriangle />}
                         label="Warnings"
                         count={warnings.length}
                     />
@@ -250,32 +255,41 @@ export function DiagnosticsResponseTabstrip({
                 {showDiagnostics && (
                     <TabTrigger
                         id="info"
-                        icon={<BsInfoCircleFill />}
+                        icon={<BsInfoCircle />}
                         label="Info"
                         count={infos.length}
                     />
                 )}
                 {showDiagnostics && (
+                    <div
+                        style={{
+                            flexGrow: 1,
+                        }}
+                    />
+                )}
+                {showDiagnostics && (
                     <TabTrigger
                         id="accessibility"
-                        icon={<IoAccessibility />}
+                        icon={<IoAccessibilityOutline />}
                         label="Accessibility"
                         count={accessibility.length}
+                    />
+                )}
+                {showDiagnostics && (
+                    <div
+                        style={{
+                            flexGrow: 1,
+                        }}
                     />
                 )}
                 {showResponses && (
                     <TabTrigger
                         id="responses"
-                        icon={<BsChatSquareTextFill />}
+                        icon={<BsChatSquareText />}
                         label="Submitted responses"
                         count={submittedResponses.length}
                     />
                 )}
-                <div
-                    style={{
-                        flexGrow: 1,
-                    }}
-                />
                 {isOpen ? (
                     <Button
                         title="Close panel"
@@ -307,12 +321,8 @@ export function DiagnosticsResponseTabContents({
     setIsOpen,
     showDiagnostics = true,
     showResponses = true,
-    showWarningAnnotations,
-    setShowWarningAnnotations,
     showInfoAnnotations,
     setShowInfoAnnotations,
-    showAccessibilityAnnotations,
-    setShowAccessibilityAnnotations,
 }: {
     store: TabStore;
     warnings: WarningRecord[];
@@ -324,12 +334,8 @@ export function DiagnosticsResponseTabContents({
     setIsOpen: (arg: boolean) => void;
     showDiagnostics?: boolean;
     showResponses?: boolean;
-    showWarningAnnotations: boolean;
-    setShowWarningAnnotations: (checked: boolean) => void;
     showInfoAnnotations: boolean;
     setShowInfoAnnotations: (checked: boolean) => void;
-    showAccessibilityAnnotations: boolean;
-    setShowAccessibilityAnnotations: (checked: boolean) => void;
 }) {
     const panels = useRef<HTMLDivElement>(null);
     const lastScrolledToBottom = useRef(true);
@@ -420,11 +426,6 @@ export function DiagnosticsResponseTabContents({
                                 tabId="warnings"
                                 className="diagnostic-panel"
                             >
-                                <AnnotationToggle
-                                    checked={showWarningAnnotations}
-                                    label="Show warnings in editor"
-                                    onChange={setShowWarningAnnotations}
-                                />
                                 <DiagnosticList
                                     diagnostics={warnings}
                                     emptyMessage="No Warnings"
@@ -460,11 +461,6 @@ export function DiagnosticsResponseTabContents({
                                 tabId="accessibility"
                                 className="diagnostic-panel accessibility-report"
                             >
-                                <AnnotationToggle
-                                    checked={showAccessibilityAnnotations}
-                                    label="Show accessibility diagnostics in editor"
-                                    onChange={setShowAccessibilityAnnotations}
-                                />
                                 <section className="accessibility-report-section">
                                     <div className="accessibility-report-heading critical">
                                         <IoAccessibility />

@@ -171,4 +171,39 @@ describe("EditorViewer Tests", { tags: ["@group5"] }, function () {
             '<math expand="true">x < y</math>',
         );
     });
+
+    it("toggles info diagnostics annotations in editor", () => {
+        cy.get("#testRunner_toggleControls").click();
+        cy.get("#testRunner_showEditor").click();
+        cy.wait(100);
+        cy.get("#testRunner_toggleControls").click();
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `<sequence length="n" />`,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#info").click();
+        cy.contains("Invalid length of sequence").should("exist");
+
+        cy.get(".cm-lintRange").should("not.exist");
+
+        cy.contains(
+            "label.diagnostic-editor-toggle",
+            "Show info diagnostics in editor",
+        )
+            .find("input[type='checkbox']")
+            .as("infoCheckbox")
+            .should("not.be.checked");
+
+        cy.get("@infoCheckbox").click().should("be.checked");
+        cy.get(".cm-lintRange").should("exist");
+
+        cy.get("@infoCheckbox").click().should("not.be.checked");
+        cy.get(".cm-lintRange").should("not.exist");
+    });
 });

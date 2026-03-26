@@ -129,10 +129,7 @@ export function EditorViewer({
     const [infoPanelIsOpen, setInfoPanelIsOpen] = useState(false);
 
     const [diagnostics, setDiagnostics] = useState<DiagnosticRecord[]>([]);
-    const [showWarningAnnotations, setShowWarningAnnotations] = useState(true);
     const [showInfoAnnotations, setShowInfoAnnotations] = useState(false);
-    const [showAccessibilityAnnotations, setShowAccessibilityAnnotations] =
-        useState(true);
 
     /** Receives diagnostics from DocViewer and stores them for panel/LSP sync. */
     function setDiagnosticsCallback(newDiagnostics: DiagnosticRecord[]) {
@@ -142,22 +139,14 @@ export function EditorViewer({
     useEffect(() => {
         const additionalDiagnostics = toAdditionalDiagnosticsForLsp({
             diagnostics: [...initialDiagnostics, ...diagnostics],
-            showWarningAnnotations,
             showInfoAnnotations,
-            showAccessibilityAnnotations,
         });
 
         lspRef.current?.lsp.sendAdditionalDiagnostics(
             lspRef.current.documentUri,
             additionalDiagnostics,
         );
-    }, [
-        initialDiagnostics,
-        diagnostics,
-        showAccessibilityAnnotations,
-        showInfoAnnotations,
-        showWarningAnnotations,
-    ]);
+    }, [initialDiagnostics, diagnostics, showInfoAnnotations]);
 
     const {
         warnings: warningsObjs,
@@ -415,16 +404,8 @@ export function EditorViewer({
                         setIsOpen={setInfoPanelIsOpen}
                         showDiagnostics={showDiagnostics}
                         showResponses={showResponses}
-                        showWarningAnnotations={showWarningAnnotations}
-                        setShowWarningAnnotations={setShowWarningAnnotations}
                         showInfoAnnotations={showInfoAnnotations}
                         setShowInfoAnnotations={setShowInfoAnnotations}
-                        showAccessibilityAnnotations={
-                            showAccessibilityAnnotations
-                        }
-                        setShowAccessibilityAnnotations={
-                            setShowAccessibilityAnnotations
-                        }
                     />
                 }
                 alwaysVisiblePanel={

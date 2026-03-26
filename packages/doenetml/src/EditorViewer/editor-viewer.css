@@ -80,7 +80,8 @@
             outline-offset: 1px;
         }
     }
-    button[aria-selected="true"] {
+    &.is-open button[aria-selected="true"],
+    button[aria-selected="true"]:focus-visible {
         background-color: var(--lightBlue);
         border-bottom: 2px solid var(--mainBlue);
     }
