@@ -1,4 +1,4 @@
-import React, { ReactElement, useEffect, useRef } from "react";
+import React, { ReactElement, ReactNode, useEffect, useRef } from "react";
 import {
     Button,
     Tab,
@@ -95,13 +95,13 @@ function DiagnosticList({
         sourceDoc?: number;
         position?: { start: { line: number } };
     }>;
-    emptyMessage: string;
+    emptyMessage: ReactNode;
     testPrefix: string;
     icon: ReactElement;
     iconClassName: string;
 }) {
     if (diagnostics.length === 0) {
-        return <h3>{emptyMessage}</h3>;
+        return <>{emptyMessage}</>;
     }
 
     const diagnosticIdentityCounts = new Map<string, number>();
@@ -178,11 +178,13 @@ function TabTrigger({
     icon,
     label,
     count,
+    iconClassName,
 }: {
     id: string;
     icon: ReactElement;
     label: string;
     count: number;
+    iconClassName?: string;
 }) {
     return (
         <Tab
@@ -191,7 +193,9 @@ function TabTrigger({
             aria-label={`${label}: ${count}`}
             className="diagnostic-tab-trigger"
         >
-            <span className="diagnostic-tab-icon">{icon}</span>
+            <span className={classNames("diagnostic-tab-icon", iconClassName)}>
+                {icon}
+            </span>
             <span className="diagnostic-tab-count">{count}</span>
         </Tab>
     );
@@ -249,16 +253,13 @@ export function DiagnosticsResponseTabstrip({
                         id="errors"
                         icon={
                             errors.length > 0 ? (
-                                <span
-                                    className="error-tab-icon-with-fill"
-                                    aria-hidden="true"
-                                >
-                                    <BsXOctagonFill className="fill" />
-                                    <BsXOctagon className="outline" />
-                                </span>
+                                <BsXOctagonFill />
                             ) : (
                                 <BsXOctagon />
                             )
+                        }
+                        iconClassName={
+                            errors.length > 0 ? "is-error" : undefined
                         }
                         label="Errors"
                         count={errors.length}
@@ -269,16 +270,13 @@ export function DiagnosticsResponseTabstrip({
                         id="warnings"
                         icon={
                             warnings.length > 0 ? (
-                                <span
-                                    className="warning-tab-icon-with-fill"
-                                    aria-hidden="true"
-                                >
-                                    <BsExclamationTriangleFill className="fill" />
-                                    <BsExclamationTriangle className="outline" />
-                                </span>
+                                <BsExclamationTriangleFill />
                             ) : (
                                 <BsExclamationTriangle />
                             )
+                        }
+                        iconClassName={
+                            warnings.length > 0 ? "is-warning" : undefined
                         }
                         label="Warnings"
                         count={warnings.length}
@@ -289,51 +287,32 @@ export function DiagnosticsResponseTabstrip({
                         id="info"
                         icon={
                             infos.length > 0 ? (
-                                <span
-                                    className="info-tab-icon-with-fill"
-                                    aria-hidden="true"
-                                >
-                                    <BsInfoCircleFill className="fill" />
-                                    <BsInfoCircle className="outline" />
-                                </span>
+                                <BsInfoCircleFill />
                             ) : (
                                 <BsInfoCircle />
                             )
                         }
+                        iconClassName={infos.length > 0 ? "is-info" : undefined}
                         label="Info"
                         count={infos.length}
-                    />
-                )}
-                {showDiagnostics && (
-                    <div
-                        style={{
-                            flexGrow: 1,
-                        }}
                     />
                 )}
                 {showDiagnostics && (
                     <TabTrigger
                         id="accessibility"
                         icon={
-                            hasLevel1Accessibility ? (
-                                <span
-                                    className="accessibility-tab-icon-with-fill is-critical"
-                                    aria-hidden="true"
-                                >
-                                    <IoAccessibility className="fill" />
-                                    <IoAccessibilityOutline className="outline" />
-                                </span>
-                            ) : hasLevel2Accessibility ? (
-                                <span
-                                    className="accessibility-tab-icon-with-fill is-advisory"
-                                    aria-hidden="true"
-                                >
-                                    <IoAccessibility className="fill" />
-                                    <IoAccessibilityOutline className="outline" />
-                                </span>
+                            hasLevel1Accessibility || hasLevel2Accessibility ? (
+                                <IoAccessibility />
                             ) : (
                                 <IoAccessibilityOutline />
                             )
+                        }
+                        iconClassName={
+                            hasLevel1Accessibility
+                                ? "is-accessibility-critical"
+                                : hasLevel2Accessibility
+                                  ? "is-accessibility-advisory"
+                                  : undefined
                         }
                         label="Accessibility"
                         count={accessibility.length}
@@ -351,16 +330,15 @@ export function DiagnosticsResponseTabstrip({
                         id="responses"
                         icon={
                             submittedResponses.length > 0 ? (
-                                <span
-                                    className="responses-tab-icon-with-fill"
-                                    aria-hidden="true"
-                                >
-                                    <BsChatSquareTextFill className="fill" />
-                                    <BsChatSquareText className="outline" />
-                                </span>
+                                <BsChatSquareTextFill />
                             ) : (
                                 <BsChatSquareText />
                             )
+                        }
+                        iconClassName={
+                            submittedResponses.length > 0
+                                ? "is-responses"
+                                : undefined
                         }
                         label="Submitted responses"
                         count={submittedResponses.length}
@@ -490,7 +468,7 @@ export function DiagnosticsResponseTabContents({
                             >
                                 <DiagnosticList
                                     diagnostics={errors}
-                                    emptyMessage="No Errors"
+                                    emptyMessage={<h3>No Errors</h3>}
                                     testPrefix="Error"
                                     icon={<BsXOctagonFill />}
                                     iconClassName="is-error"
@@ -505,7 +483,7 @@ export function DiagnosticsResponseTabContents({
                             >
                                 <DiagnosticList
                                     diagnostics={warnings}
-                                    emptyMessage="No Warnings"
+                                    emptyMessage={<h3>No Warnings</h3>}
                                     testPrefix="Warning"
                                     icon={<BsExclamationTriangleFill />}
                                     iconClassName="is-warning"
@@ -525,7 +503,7 @@ export function DiagnosticsResponseTabContents({
                                 />
                                 <DiagnosticList
                                     diagnostics={infos}
-                                    emptyMessage="No Info Diagnostics"
+                                    emptyMessage={<h3>No Info Diagnostics</h3>}
                                     testPrefix="Info"
                                     icon={<BsInfoCircleFill />}
                                     iconClassName="is-info"
@@ -540,12 +518,20 @@ export function DiagnosticsResponseTabContents({
                             >
                                 <section className="accessibility-report-section">
                                     <div className="accessibility-report-heading critical">
-                                        <IoAccessibility />
-                                        <h3>WCAG AA Violations</h3>
+                                        <h3>
+                                            Accessibility violations (
+                                            <a
+                                                href="https://www.w3.org/WAI/standards-guidelines/wcag/"
+                                                target="_blank"
+                                            >
+                                                WCAG AA
+                                            </a>
+                                            )
+                                        </h3>
                                     </div>
                                     <DiagnosticList
                                         diagnostics={level1Accessibility}
-                                        emptyMessage="No WCAG AA violations"
+                                        emptyMessage={<p>None found</p>}
                                         testPrefix="WCAG AA Accessibility Violation"
                                         icon={<IoAccessibility />}
                                         iconClassName="is-accessibility-critical"
@@ -553,12 +539,11 @@ export function DiagnosticsResponseTabContents({
                                 </section>
                                 <section className="accessibility-report-section">
                                     <div className="accessibility-report-heading advisory">
-                                        <IoAccessibility />
-                                        <h3>Other Accessibility Issues</h3>
+                                        <h3>Other accessibility issues</h3>
                                     </div>
                                     <DiagnosticList
                                         diagnostics={level2Accessibility}
-                                        emptyMessage="No additional accessibility issues"
+                                        emptyMessage={<p>None found</p>}
                                         testPrefix="Accessibility alert"
                                         icon={<IoAccessibility />}
                                         iconClassName="is-accessibility-advisory"

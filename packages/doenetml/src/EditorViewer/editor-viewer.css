@@ -97,106 +97,8 @@
     font-size: 1rem;
 }
 
-.editor-panel .error-tab-icon-with-fill {
-    position: relative;
-    display: inline-flex;
-    width: 1em;
-    height: 1em;
-}
-
-.editor-panel .error-tab-icon-with-fill .fill {
-    position: absolute;
-    inset: 0;
-    color: #d94a3a;
-}
-
-.editor-panel .error-tab-icon-with-fill .outline {
-    position: absolute;
-    inset: 0;
-    color: black;
-}
-
-.editor-panel .warning-tab-icon-with-fill {
-    position: relative;
-    display: inline-flex;
-    width: 1em;
-    height: 1em;
-}
-
-.editor-panel .warning-tab-icon-with-fill .fill {
-    position: absolute;
-    inset: 0;
-    color: #d17a16;
-}
-
-.editor-panel .warning-tab-icon-with-fill .outline {
-    position: absolute;
-    inset: 0;
-    color: black;
-}
-
-.editor-panel .info-tab-icon-with-fill {
-    position: relative;
-    display: inline-flex;
-    width: 1em;
-    height: 1em;
-}
-
-.editor-panel .info-tab-icon-with-fill .fill {
-    position: absolute;
-    inset: 0;
-    color: #3b82f6;
-}
-
-.editor-panel .info-tab-icon-with-fill .outline {
-    position: absolute;
-    inset: 0;
-    color: black;
-}
-
-.editor-panel .accessibility-tab-icon-with-fill {
-    position: relative;
-    display: inline-flex;
-    width: 1em;
-    height: 1em;
-}
-
-.editor-panel .accessibility-tab-icon-with-fill .fill {
-    position: absolute;
-    inset: 0;
-}
-
-.editor-panel .accessibility-tab-icon-with-fill.is-critical .fill {
-    color: #d94a3a;
-}
-
-.editor-panel .accessibility-tab-icon-with-fill.is-advisory .fill {
-    color: #8f5ed1;
-}
-
-.editor-panel .accessibility-tab-icon-with-fill .outline {
-    position: absolute;
-    inset: 0;
-    color: black;
-}
-
-.editor-panel .responses-tab-icon-with-fill {
-    position: relative;
-    display: inline-flex;
-    width: 1em;
-    height: 1em;
-}
-
-.editor-panel .responses-tab-icon-with-fill .fill {
-    position: absolute;
-    inset: 0;
-    color: #9ca3af;
-}
-
-.editor-panel .responses-tab-icon-with-fill .outline {
-    position: absolute;
-    inset: 0;
-    color: black;
+.editor-panel .diagnostic-tab-icon.is-responses {
+    color: #667085;
 }
 
 .editor-panel .diagnostic-tab-count {
@@ -244,22 +146,27 @@
     font-size: 1rem;
 }
 
+.editor-panel .diagnostic-tab-icon.is-error,
 .editor-panel .diagnostic-entry-icon.is-error {
     color: #b42318;
 }
 
+.editor-panel .diagnostic-tab-icon.is-warning,
 .editor-panel .diagnostic-entry-icon.is-warning {
-    color: #b54708;
+    color: #c25a1a;
 }
 
+.editor-panel .diagnostic-tab-icon.is-info,
 .editor-panel .diagnostic-entry-icon.is-info {
     color: #175cd3;
 }
 
+.editor-panel .diagnostic-tab-icon.is-accessibility-critical,
 .editor-panel .diagnostic-entry-icon.is-accessibility-critical {
     color: #b42318;
 }
 
+.editor-panel .diagnostic-tab-icon.is-accessibility-advisory,
 .editor-panel .diagnostic-entry-icon.is-accessibility-advisory {
     color: #6e3cbc;
 }
@@ -323,6 +230,10 @@
 
 .editor-panel .accessibility-report-heading h3 {
     margin: 0;
+}
+
+.editor-panel .accessibility-report-heading h3 a {
+    color: inherit;
 }
 
 .editor-panel .accessibility-report-heading.critical {
