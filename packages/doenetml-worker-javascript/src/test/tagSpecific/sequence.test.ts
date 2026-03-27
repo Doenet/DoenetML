@@ -2293,4 +2293,25 @@ describe("Sequence tag tests @group1", async () => {
             stateVariables[await resolvePathToNodeIdx("n4c1")].stateValues.text,
         ).eq("12.0");
     });
+
+    it("number sequence, exclude with roundoff error on zero excluded value", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="p"><sequence from="-1.8" step="0.6" to="1.8" exclude="0" /></p>
+    `,
+        });
+
+        let sequence = [-1.8, -1.2, -0.6, 0.6, 1.2, 1.8];
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        let children = stateVariables[
+            await resolvePathToNodeIdx("p")
+        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
+        expect(children.length).eq(6);
+        for (let i = 0; i < 6; i++) {
+            expect(
+                Math.abs(children[i].stateValues.value - sequence[i]),
+            ).lessThan(1e-14);
+        }
+    });
 });
