@@ -2724,7 +2724,7 @@ describe("SideBySide tag tests @group1", async () => {
         expect(diagnosticsByType.warnings.length).eq(2);
 
         expect(diagnosticsByType.warnings[0].message).contain(
-            `<sideBySide> is not implemented for absolute measurements. Setting widths to relative`,
+            "`<sideBySide>` is not implemented for absolute measurements. Setting widths to relative",
         );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(5);
@@ -2732,7 +2732,7 @@ describe("SideBySide tag tests @group1", async () => {
         expect(diagnosticsByType.warnings[0].position.end.column).eq(18);
 
         expect(diagnosticsByType.warnings[1].message).contain(
-            `<sideBySide> is not implemented for absolute measurements. Setting margins to relative`,
+            "`<sideBySide>` is not implemented for absolute measurements. Setting margins to relative",
         );
         expect(diagnosticsByType.warnings[1].position.start.line).eq(2);
         expect(diagnosticsByType.warnings[1].position.start.column).eq(5);
@@ -6153,7 +6153,7 @@ describe("SideBySide tag tests @group1", async () => {
         expect(diagnosticsByType.warnings.length).eq(2);
 
         expect(diagnosticsByType.warnings[0].message).contain(
-            `<sbsGroup> is not implemented for absolute measurements. Setting widths to relative`,
+            "`<sbsGroup>` is not implemented for absolute measurements. Setting widths to relative",
         );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(5);
@@ -6161,7 +6161,7 @@ describe("SideBySide tag tests @group1", async () => {
         expect(diagnosticsByType.warnings[0].position.end.column).eq(16);
 
         expect(diagnosticsByType.warnings[1].message).contain(
-            `<sbsGroup> is not implemented for absolute measurements. Setting margins to relative`,
+            "`<sbsGroup>` is not implemented for absolute measurements. Setting margins to relative",
         );
         expect(diagnosticsByType.warnings[1].position.start.line).eq(2);
         expect(diagnosticsByType.warnings[1].position.start.column).eq(5);

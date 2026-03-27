@@ -46,7 +46,7 @@ export default class ConstrainTo extends ConstraintComponent {
                     if (!child.stateValues.nearestPoint) {
                         const warning = {
                             type: "warning",
-                            message: `Cannot constrain to a <${child.componentType}> as it doesn't have a nearestPoint state variable.`,
+                            message: `Cannot constrain to a \`<${child.componentType}>\` as it doesn't have a nearestPoint state variable.`,
                         };
                         if (child.position) {
                             warning.position = child.position;

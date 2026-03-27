@@ -4,7 +4,7 @@
     font-size: smaller;
 }
 .cm-lint-tooltip .heading.warning {
-    color: #a60;
+    color: #a26100;
 }
 .cm-lint-tooltip .heading.error {
     color: #900;
@@ -19,8 +19,8 @@
     background-image: none !important;
     text-decoration-line: underline;
     text-decoration-style: wavy;
-    text-decoration-thickness: 1.5px;
-    text-underline-offset: 0.18em;
+    text-decoration-thickness: 0.8px;
+    text-underline-offset: 0.08em;
 }
 
 .cm-lintRange.cm-doenet-accessibility-diagnostic-level-1 {
@@ -51,7 +51,7 @@
 .cm-lint-body code {
     font-size: larger;
     white-space: pre-wrap;
-    color: #f2a;
+    color: #d80085;
     padding: 0px 2px;
 }
 .cm-lint-body p {

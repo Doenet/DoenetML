@@ -176,7 +176,7 @@ describe("Video tag tests @group1", async () => {
         expect(diagnosticsByType.accessibility[0].level).eq(1);
 
         expect(diagnosticsByType.accessibility[0].message).contain(
-            `<video> must have a short description`,
+            "`<video>` must have a short description",
         );
         expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
         expect(diagnosticsByType.accessibility[0].position.start.column).eq(1);

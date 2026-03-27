@@ -41,15 +41,15 @@ describe("Accessibility diagnostics @group4", async () => {
         ).eq(true);
 
         const expectedMessageByLine: Record<string, string> = {
-            2: "<graph> must either have a short description or be specified as decorative",
-            3: "<graph> must either have a short description or be specified as decorative",
-            4: "<graph> must either have a short description or be specified as decorative",
-            7: "<image> must either have a short description or be specified as decorative",
-            8: "<image> must either have a short description or be specified as decorative",
-            9: "<image> must either have a short description or be specified as decorative",
-            12: "<video> must have a short description",
-            13: "<video> must have a short description",
-            14: "<video> must have a short description",
+            2: "`<graph>` must either have a short description or be specified as decorative",
+            3: "`<graph>` must either have a short description or be specified as decorative",
+            4: "`<graph>` must either have a short description or be specified as decorative",
+            7: "`<image>` must either have a short description or be specified as decorative",
+            8: "`<image>` must either have a short description or be specified as decorative",
+            9: "`<image>` must either have a short description or be specified as decorative",
+            12: "`<video>` must have a short description",
+            13: "`<video>` must have a short description",
+            14: "`<video>` must have a short description",
         };
 
         for (const lineNum in expectedMessageByLine) {
@@ -94,7 +94,7 @@ describe("Accessibility diagnostics @group4", async () => {
         ).eq(true);
 
         const accessibilityMsg =
-            "<mathInput> must have a short description or a label";
+            "For accessibility, `<mathInput>` must have a short description or a label";
 
         const diagnosticOnLines = [2, 3, 4, 7, 8, 10, 13, 15];
 
@@ -134,9 +134,9 @@ describe("Accessibility diagnostics @group4", async () => {
         ).eq(true);
 
         const expectedMessageByLine: Record<string, string> = {
-            2: "Short descriptions should not contain math components such as <math>",
-            3: "Short descriptions should not contain math components such as <m>",
-            6: "Short descriptions should not contain math components such as <interval>",
+            2: "Short descriptions should not contain math components such as `<math>`",
+            3: "Short descriptions should not contain math components such as `<m>`",
+            6: "Short descriptions should not contain math components such as `<interval>`",
         };
 
         for (const lineNum in expectedMessageByLine) {
@@ -165,7 +165,7 @@ describe("Accessibility diagnostics @group4", async () => {
         expect(diagnosticsByType.accessibility[0].level).eq(1);
 
         const accessibilityMsg =
-            "<textInput> must have a short description or a label";
+            "For accessibility, `<textInput>` must have a short description or a label";
 
         const diagnostic = diagnosticsByType.accessibility.find(
             (d) => d.position.start.line === 2,

@@ -1438,7 +1438,7 @@ export default class Core {
                 // as it should get caught by the correctComponentTypeCapitalization function.
                 // However, it could get called from Javascript if developers
                 // create a serialized component that doesn't exist.
-                const message = `Invalid component type: <${serializedComponent.componentType}>.`;
+                const message = `Invalid component type: \`<${serializedComponent.componentType}>\`.`;
 
                 this.hasPendingDiagnostics = true;
 
@@ -2114,7 +2114,7 @@ export default class Core {
                     unmatchedChildrenTypes.push("string");
                 } else {
                     unmatchedChildrenTypes.push(
-                        "<" + child.componentType + ">",
+                        "`<" + child.componentType + ">`",
                     );
                     if (
                         this.componentInfoObjects.isInheritedComponentType({
@@ -2131,13 +2131,13 @@ export default class Core {
                 let attributeForComponentType =
                     parent.ancestors[0].componentClass.componentType;
                 this.unmatchedChildren[parent.componentIdx] = {
-                    message: `Invalid format for attribute ${parent.doenetAttributes.isAttributeChildFor} of <${attributeForComponentType}>.`,
+                    message: `Invalid format for attribute ${parent.doenetAttributes.isAttributeChildFor} of \`<${attributeForComponentType}>\`.`,
                 };
             } else {
                 this.unmatchedChildren[parent.componentIdx] = {
-                    message: `Invalid children for <${
+                    message: `Invalid children for \`<${
                         parent.componentType
-                    }>: Found invalid children: ${unmatchedChildrenTypes.join(
+                    }>\`: Found invalid children: ${unmatchedChildrenTypes.join(
                         ", ",
                     )}`,
                 };
@@ -3295,7 +3295,7 @@ export default class Core {
                 foundCircular = true;
                 let message = "Circular dependency detected";
                 if (component.attributes.createComponentOfType?.primitive) {
-                    message += ` involving <${component.attributes.createComponentOfType.primitive.value}> component`;
+                    message += ` involving \`<${component.attributes.createComponentOfType.primitive.value}>\` component`;
                 }
                 message += ".";
                 serializedReplacements = [

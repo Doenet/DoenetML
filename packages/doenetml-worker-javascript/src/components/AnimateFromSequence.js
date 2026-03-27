@@ -414,7 +414,7 @@ export default class AnimateFromSequence extends BaseComponent {
                 ) {
                     diagnostics.push({
                         message:
-                            "Invalid target for <animateFromSequence>: cannot find target.",
+                            "Invalid target for `<animateFromSequence>`: cannot find target.",
                         type: "warning",
                     });
                 }
@@ -497,7 +497,7 @@ export default class AnimateFromSequence extends BaseComponent {
                         let target = dependencyValues["target" + ind];
                         if (target == null) {
                             let message =
-                                "Invalid target for <animateFromSequence>: cannot find target.";
+                                "Invalid target for `<animateFromSequence>`: cannot find target.";
 
                             diagnostics.push({
                                 message,
@@ -519,13 +519,13 @@ export default class AnimateFromSequence extends BaseComponent {
                                         prop += `[idx]`;
                                     }
                                 }
-                                let message = `Invalid target for <animateFromSequence>: cannot find a state variable named "${prop}" on a <${target.componentType}>.`;
+                                let message = `Invalid target for \`<animateFromSequence>\`: cannot find a state variable named "${prop}" on a \`<${target.componentType}>\`.`;
                                 diagnostics.push({
                                     message,
                                     type: "warning",
                                 });
                             } else {
-                                let message = `Invalid target for <animateFromSequence>: cannot find a state variable named "value" on a <${target.componentType}>.`;
+                                let message = `Invalid target for \`<animateFromSequence>\`: cannot find a state variable named "value" on a \`<${target.componentType}>\`.`;
                                 diagnostics.push({
                                     message,
                                     type: "warning",

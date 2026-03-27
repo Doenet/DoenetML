@@ -2,6 +2,7 @@ import type { Position, Point } from "@doenet/parser";
 
 export type { Position, Point };
 
+/** 1 = WCAG AA violation (critical); 2 = advisory recommendation. */
 export type DiagnosticLevel = 1 | 2;
 
 export type DiagnosticType = "error" | "warning" | "info" | "accessibility";

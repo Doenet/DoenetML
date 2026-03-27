@@ -2419,13 +2419,13 @@ describe("MathInput tag tests @group3", async () => {
         ).eq(true);
 
         expect(diagnosticsByType.accessibility[0].message).contain(
-            `<matrixInput> must have a short description or a label`,
+            `\`<matrixInput>\` must have a short description or a label`,
         );
         expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
         expect(diagnosticsByType.accessibility[0].position.end.line).eq(2);
 
         expect(diagnosticsByType.accessibility[1].message).contain(
-            `<matrixInput> must have a short description or a label`,
+            `\`<matrixInput>\` must have a short description or a label`,
         );
         expect(diagnosticsByType.accessibility[1].position.start.line).eq(6);
         expect(diagnosticsByType.accessibility[1].position.end.line).eq(6);

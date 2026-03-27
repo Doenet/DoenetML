@@ -3300,7 +3300,7 @@ describe("UpdateValue tag tests @group1", async () => {
         expect(diagnosticsByType.warnings.length).eq(3);
 
         expect(diagnosticsByType.warnings[0].message).contain(
-            'Invalid target for <updateValue>: cannot find a state variable named "invalid" on a <number>',
+            'Invalid target for `<updateValue>`: cannot find a state variable named "invalid" on a `<number>`',
         );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(5);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(3);
@@ -3308,7 +3308,7 @@ describe("UpdateValue tag tests @group1", async () => {
         expect(diagnosticsByType.warnings[0].position.end.column).eq(62);
 
         expect(diagnosticsByType.warnings[1].message).contain(
-            'Invalid target for <updateValue>: cannot find a state variable named "value" on a <p>',
+            'Invalid target for `<updateValue>`: cannot find a state variable named "value" on a `<p>`',
         );
         expect(diagnosticsByType.warnings[1].position.start.line).eq(6);
         expect(diagnosticsByType.warnings[1].position.start.column).eq(3);
@@ -3316,7 +3316,7 @@ describe("UpdateValue tag tests @group1", async () => {
         expect(diagnosticsByType.warnings[1].position.end.column).eq(54);
 
         expect(diagnosticsByType.warnings[2].message).contain(
-            "Invalid target for <updateValue>: cannot find target",
+            "Invalid target for `<updateValue>`: cannot find target",
         );
         expect(diagnosticsByType.warnings[2].position.start.line).eq(7);
         expect(diagnosticsByType.warnings[2].position.start.column).eq(3);

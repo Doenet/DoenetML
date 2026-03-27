@@ -531,7 +531,7 @@ describe("Module tag tests @group1", async () => {
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(1);
         expect(diagnosticsByType.warnings[0].message).contain(
-            `The component <boolean name="disabled"> cannot be used as an attribute for a module because the <module> component type already has a "disabled" attribute defined`,
+            `The component \`<boolean name="disabled">\` cannot be used as an attribute for a module because the \`<module>\` component type already has a "disabled" attribute defined`,
         );
     });
 

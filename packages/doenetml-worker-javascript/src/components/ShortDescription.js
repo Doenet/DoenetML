@@ -97,7 +97,7 @@ export default class ShortDescription extends TextComponent {
                     diagnostics.push({
                         type: "accessibility",
                         level: 2,
-                        message: `Short descriptions should not contain math components such as <${originalType}>. Spell out any math with words.`,
+                        message: `Short descriptions should not contain math components such as \`<${originalType}>\`. Spell out any math with words.`,
                     });
                 }
 

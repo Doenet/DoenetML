@@ -11,7 +11,7 @@
 import contrast from "get-contrast";
 import rgb from "rgb";
 import type { Position } from "@doenet/parser";
-import type { AccessibilityRecord } from "../errors/diagnostics";
+import type { AccessibilityRecord } from "../diagnostics/types";
 import {
     getStyleValueNumber,
     getStyleValueString,

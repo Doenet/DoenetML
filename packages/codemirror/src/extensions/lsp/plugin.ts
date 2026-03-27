@@ -28,7 +28,6 @@
 // OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 // OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-import { micromark } from "micromark";
 import {
     EditorView,
     PluginValue,
@@ -56,12 +55,23 @@ import {
     getSnippetCursorFromCompletionItemData,
     type CompletionSnippetCursor,
 } from "@doenet/static-assets/completion-snippet-protocol";
+import { renderDiagnosticMarkdownHtml } from "@doenet/utils/diagnostics/renderDiagnosticMarkdownHtml";
 import type {
     MarkupContent,
     MarkedString,
 } from "vscode-languageserver-protocol";
 import { CompletionItemKind } from "vscode-languageserver-protocol/browser";
 import "./tooltip.css";
+
+/** Escape a string for safe interpolation into an HTML context. */
+function escapeHtml(str: string): string {
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+}
 
 const completionItemKindMap = Object.fromEntries(
     Object.entries(CompletionItemKind).map(([key, value]) => [value, key]),
@@ -204,9 +214,9 @@ export class LSPPlugin implements PluginValue {
                     // react listeners, etc. when the dom element is deleted by codemirror.
                     div.innerHTML = `<div class="cm-lint-tooltip"><h4 class="${
                         "heading " + headingClass
-                    }">${
-                        heading
-                    }</h4><div class="cm-lint-body">${micromark(message)}</div>
+                    }">${escapeHtml(
+                        heading,
+                    )}</h4><div class="cm-lint-body">${renderDiagnosticMarkdownHtml(message)}</div>
                             </div>`;
                     return div.firstChild as HTMLElement;
                 },

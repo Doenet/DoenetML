@@ -181,7 +181,7 @@ export default class Image extends BlockComponent {
                         type: "accessibility",
                         level: 1,
                         message:
-                            "For accessibility, <image> must either have a short description or be specified as decorative.",
+                            "For accessibility, `<image>` must either have a short description or be specified as decorative.",
                     });
                 }
 

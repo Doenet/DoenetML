@@ -167,7 +167,7 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.warnings[0].message).contain(
-            "Haven't implemented <circle> through 2 points in case where the points don't have numerical values",
+            "Haven't implemented `<circle>` through 2 points in case where the points don't have numerical values",
         );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(3);
@@ -188,7 +188,7 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.warnings[0].message).contain(
-            "Haven't implemented <circle> through 2 points in case where the points don't have numerical values",
+            "Haven't implemented `<circle>` through 2 points in case where the points don't have numerical values",
         );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(3);
@@ -459,7 +459,7 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.warnings[0].message).contain(
-            `Invalid target for <updateValue>: cannot find a state variable named "bad" on a <number>`,
+            `Invalid target for \`<updateValue>\`: cannot find a state variable named "bad" on a \`<number>\``,
         );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(3);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(3);
@@ -488,10 +488,10 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.warnings[0].message).contain(
-            `Invalid children for <p>`,
+            `Invalid children for \`<p>\``,
         );
         expect(diagnosticsByType.warnings[0].message).contain(
-            `Found invalid children: <graph>`,
+            `Found invalid children: \`<graph>\``,
         );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(3);
@@ -499,10 +499,10 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.warnings[0].position.end.column).eq(79);
 
         expect(diagnosticsByType.warnings[1].message).contain(
-            `Invalid children for <p>`,
+            `Invalid children for \`<p>\``,
         );
         expect(diagnosticsByType.warnings[1].message).contain(
-            `Found invalid children: <graph>, <p>`,
+            `Found invalid children: \`<graph>\`, \`<p>\``,
         );
         expect(diagnosticsByType.warnings[1].position.start.line).eq(6);
         expect(diagnosticsByType.warnings[1].position.start.column).eq(3);
@@ -510,10 +510,10 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.warnings[1].position.end.column).eq(102);
 
         expect(diagnosticsByType.warnings[2].message).contain(
-            `Invalid children for <p>`,
+            `Invalid children for \`<p>\``,
         );
         expect(diagnosticsByType.warnings[2].message).contain(
-            `Found invalid children: <graph>, <figure>`,
+            `Found invalid children: \`<graph>\`, \`<figure>\``,
         );
         expect(diagnosticsByType.warnings[2].position.start.line).eq(8);
         expect(diagnosticsByType.warnings[2].position.start.column).eq(3);
@@ -535,7 +535,7 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.warnings[0].message).contain(
-            `Invalid children for <selectFromSequence>`,
+            `Invalid children for \`<selectFromSequence>\``,
         );
         expect(diagnosticsByType.warnings[0].message).contain(
             `Found invalid children: string`,
@@ -661,7 +661,7 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.warnings[0].position.end.column).eq(34);
 
         expect(diagnosticsByType.warnings[1].message).contain(
-            "Invalid format for attribute domain of <function>",
+            "Invalid format for attribute domain of `<function>`",
         );
         expect(diagnosticsByType.warnings[1].position.start.line).eq(2);
         expect(diagnosticsByType.warnings[1].position.start.column).eq(20);

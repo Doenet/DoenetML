@@ -1,4 +1,4 @@
-import React, { ReactElement, useEffect, useRef } from "react";
+import React, { ReactElement, ReactNode, useEffect, useRef } from "react";
 import {
     Button,
     Tab,
@@ -8,13 +8,17 @@ import {
     TabStore,
 } from "@ariakit/react";
 import {
+    BsChatSquareText,
     BsChatSquareTextFill,
+    BsExclamationTriangle,
     BsExclamationTriangleFill,
+    BsInfoCircle,
     BsInfoCircleFill,
     BsX,
+    BsXOctagon,
     BsXOctagonFill,
 } from "react-icons/bs";
-import { IoAccessibility } from "react-icons/io5";
+import { IoAccessibility, IoAccessibilityOutline } from "react-icons/io5";
 import classNames from "classnames";
 import {
     AccessibilityRecord,
@@ -22,6 +26,7 @@ import {
     InfoRecord,
     WarningRecord,
 } from "@doenet/utils";
+import { renderDiagnosticMarkdownHtml } from "@doenet/utils/diagnostics/renderDiagnosticMarkdownHtml";
 
 type SubmittedResponse = {
     answerId: string;
@@ -64,6 +69,17 @@ function diagnosticIdentityKey(diagnostic: {
     ].join("|");
 }
 
+/** Helper function to format diagnostic message with markdown rendering. */
+function FormattedDiagnosticMessage({ message }: { message: string }) {
+    const html = renderDiagnosticMarkdownHtml(message);
+    return (
+        <div
+            className="diagnostic-entry-message"
+            dangerouslySetInnerHTML={{ __html: html }}
+        />
+    );
+}
+
 /** Shared list renderer for diagnostics across tab panels. */
 function DiagnosticList({
     diagnostics,
@@ -79,13 +95,13 @@ function DiagnosticList({
         sourceDoc?: number;
         position?: { start: { line: number } };
     }>;
-    emptyMessage: string;
+    emptyMessage: ReactNode;
     testPrefix: string;
     icon: ReactElement;
     iconClassName: string;
 }) {
     if (diagnostics.length === 0) {
-        return <h3>{emptyMessage}</h3>;
+        return <>{emptyMessage}</>;
     }
 
     const diagnosticIdentityCounts = new Map<string, number>();
@@ -117,14 +133,16 @@ function DiagnosticList({
                         >
                             {icon}
                         </span>
-                        <span>
+                        <div>
                             {location ? (
                                 <span className="diagnostic-entry-location">
                                     {location}
                                 </span>
                             ) : null}
-                            {diagnostic.message}
-                        </span>
+                            <FormattedDiagnosticMessage
+                                message={diagnostic.message}
+                            />
+                        </div>
                     </li>
                 );
             })}
@@ -160,11 +178,13 @@ function TabTrigger({
     icon,
     label,
     count,
+    iconClassName,
 }: {
     id: string;
     icon: ReactElement;
     label: string;
     count: number;
+    iconClassName?: string;
 }) {
     return (
         <Tab
@@ -173,7 +193,9 @@ function TabTrigger({
             aria-label={`${label}: ${count}`}
             className="diagnostic-tab-trigger"
         >
-            <span className="diagnostic-tab-icon">{icon}</span>
+            <span className={classNames("diagnostic-tab-icon", iconClassName)}>
+                {icon}
+            </span>
             <span className="diagnostic-tab-count">{count}</span>
         </Tab>
     );
@@ -206,6 +228,13 @@ export function DiagnosticsResponseTabstrip({
     showDiagnostics?: boolean;
     showResponses?: boolean;
 }) {
+    const hasLevel1Accessibility = accessibility.some(
+        (diagnostic) => diagnostic.level === 1,
+    );
+    const hasLevel2Accessibility = accessibility.some(
+        (diagnostic) => diagnostic.level === 2,
+    );
+
     return (
         <TabProvider store={store}>
             <TabList
@@ -214,13 +243,24 @@ export function DiagnosticsResponseTabstrip({
                         setIsOpen(true);
                     }
                 }}
-                className="diagnostics-response-tabs"
+                className={classNames("diagnostics-response-tabs", {
+                    "is-open": isOpen,
+                })}
                 store={store}
             >
                 {showDiagnostics && (
                     <TabTrigger
                         id="errors"
-                        icon={<BsXOctagonFill />}
+                        icon={
+                            errors.length > 0 ? (
+                                <BsXOctagonFill />
+                            ) : (
+                                <BsXOctagon />
+                            )
+                        }
+                        iconClassName={
+                            errors.length > 0 ? "is-error" : undefined
+                        }
                         label="Errors"
                         count={errors.length}
                     />
@@ -228,7 +268,16 @@ export function DiagnosticsResponseTabstrip({
                 {showDiagnostics && (
                     <TabTrigger
                         id="warnings"
-                        icon={<BsExclamationTriangleFill />}
+                        icon={
+                            warnings.length > 0 ? (
+                                <BsExclamationTriangleFill />
+                            ) : (
+                                <BsExclamationTriangle />
+                            )
+                        }
+                        iconClassName={
+                            warnings.length > 0 ? "is-warning" : undefined
+                        }
                         label="Warnings"
                         count={warnings.length}
                     />
@@ -236,7 +285,14 @@ export function DiagnosticsResponseTabstrip({
                 {showDiagnostics && (
                     <TabTrigger
                         id="info"
-                        icon={<BsInfoCircleFill />}
+                        icon={
+                            infos.length > 0 ? (
+                                <BsInfoCircleFill />
+                            ) : (
+                                <BsInfoCircle />
+                            )
+                        }
+                        iconClassName={infos.length > 0 ? "is-info" : undefined}
                         label="Info"
                         count={infos.length}
                     />
@@ -244,27 +300,54 @@ export function DiagnosticsResponseTabstrip({
                 {showDiagnostics && (
                     <TabTrigger
                         id="accessibility"
-                        icon={<IoAccessibility />}
+                        icon={
+                            hasLevel1Accessibility || hasLevel2Accessibility ? (
+                                <IoAccessibility />
+                            ) : (
+                                <IoAccessibilityOutline />
+                            )
+                        }
+                        iconClassName={
+                            hasLevel1Accessibility
+                                ? "is-accessibility-critical"
+                                : hasLevel2Accessibility
+                                  ? "is-accessibility-advisory"
+                                  : undefined
+                        }
                         label="Accessibility"
                         count={accessibility.length}
+                    />
+                )}
+                {showDiagnostics && (
+                    <div
+                        style={{
+                            flexGrow: 1,
+                        }}
                     />
                 )}
                 {showResponses && (
                     <TabTrigger
                         id="responses"
-                        icon={<BsChatSquareTextFill />}
+                        icon={
+                            submittedResponses.length > 0 ? (
+                                <BsChatSquareTextFill />
+                            ) : (
+                                <BsChatSquareText />
+                            )
+                        }
+                        iconClassName={
+                            submittedResponses.length > 0
+                                ? "is-responses"
+                                : undefined
+                        }
                         label="Submitted responses"
                         count={submittedResponses.length}
                     />
                 )}
-                <div
-                    style={{
-                        flexGrow: 1,
-                    }}
-                />
                 {isOpen ? (
                     <Button
                         title="Close panel"
+                        aria-label="Close panel"
                         className="close-button"
                         onClick={() => {
                             setIsOpen(false);
@@ -293,12 +376,8 @@ export function DiagnosticsResponseTabContents({
     setIsOpen,
     showDiagnostics = true,
     showResponses = true,
-    showWarningAnnotations,
-    setShowWarningAnnotations,
     showInfoAnnotations,
     setShowInfoAnnotations,
-    showAccessibilityAnnotations,
-    setShowAccessibilityAnnotations,
 }: {
     store: TabStore;
     warnings: WarningRecord[];
@@ -310,12 +389,8 @@ export function DiagnosticsResponseTabContents({
     setIsOpen: (arg: boolean) => void;
     showDiagnostics?: boolean;
     showResponses?: boolean;
-    showWarningAnnotations: boolean;
-    setShowWarningAnnotations: (checked: boolean) => void;
     showInfoAnnotations: boolean;
     setShowInfoAnnotations: (checked: boolean) => void;
-    showAccessibilityAnnotations: boolean;
-    setShowAccessibilityAnnotations: (checked: boolean) => void;
 }) {
     const panels = useRef<HTMLDivElement>(null);
     const lastScrolledToBottom = useRef(true);
@@ -393,7 +468,7 @@ export function DiagnosticsResponseTabContents({
                             >
                                 <DiagnosticList
                                     diagnostics={errors}
-                                    emptyMessage="No Errors"
+                                    emptyMessage={<h3>No Errors</h3>}
                                     testPrefix="Error"
                                     icon={<BsXOctagonFill />}
                                     iconClassName="is-error"
@@ -406,14 +481,9 @@ export function DiagnosticsResponseTabContents({
                                 tabId="warnings"
                                 className="diagnostic-panel"
                             >
-                                <AnnotationToggle
-                                    checked={showWarningAnnotations}
-                                    label="Show warnings in editor"
-                                    onChange={setShowWarningAnnotations}
-                                />
                                 <DiagnosticList
                                     diagnostics={warnings}
-                                    emptyMessage="No Warnings"
+                                    emptyMessage={<h3>No Warnings</h3>}
                                     testPrefix="Warning"
                                     icon={<BsExclamationTriangleFill />}
                                     iconClassName="is-warning"
@@ -433,7 +503,7 @@ export function DiagnosticsResponseTabContents({
                                 />
                                 <DiagnosticList
                                     diagnostics={infos}
-                                    emptyMessage="No Info Diagnostics"
+                                    emptyMessage={<h3>No Info Diagnostics</h3>}
                                     testPrefix="Info"
                                     icon={<BsInfoCircleFill />}
                                     iconClassName="is-info"
@@ -446,19 +516,22 @@ export function DiagnosticsResponseTabContents({
                                 tabId="accessibility"
                                 className="diagnostic-panel accessibility-report"
                             >
-                                <AnnotationToggle
-                                    checked={showAccessibilityAnnotations}
-                                    label="Show accessibility diagnostics in editor"
-                                    onChange={setShowAccessibilityAnnotations}
-                                />
                                 <section className="accessibility-report-section">
                                     <div className="accessibility-report-heading critical">
-                                        <IoAccessibility />
-                                        <h3>WCAG AA Violations</h3>
+                                        <h3>
+                                            Accessibility violations (
+                                            <a
+                                                href="https://www.w3.org/WAI/standards-guidelines/wcag/"
+                                                target="_blank"
+                                            >
+                                                WCAG AA
+                                            </a>
+                                            )
+                                        </h3>
                                     </div>
                                     <DiagnosticList
                                         diagnostics={level1Accessibility}
-                                        emptyMessage="No WCAG AA violations"
+                                        emptyMessage={<p>None found</p>}
                                         testPrefix="WCAG AA Accessibility Violation"
                                         icon={<IoAccessibility />}
                                         iconClassName="is-accessibility-critical"
@@ -466,12 +539,11 @@ export function DiagnosticsResponseTabContents({
                                 </section>
                                 <section className="accessibility-report-section">
                                     <div className="accessibility-report-heading advisory">
-                                        <IoAccessibility />
-                                        <h3>Other Accessibility Issues</h3>
+                                        <h3>Other accessibility issues</h3>
                                     </div>
                                     <DiagnosticList
                                         diagnostics={level2Accessibility}
-                                        emptyMessage="No additional accessibility issues"
+                                        emptyMessage={<p>None found</p>}
                                         testPrefix="Accessibility alert"
                                         icon={<IoAccessibility />}
                                         iconClassName="is-accessibility-advisory"
@@ -492,10 +564,16 @@ export function DiagnosticsResponseTabContents({
                                         <table>
                                             <thead>
                                                 <tr>
-                                                    <td>Answer Id</td>
-                                                    <td>Response</td>
-                                                    <td>Credit</td>
-                                                    <td>Submitted</td>
+                                                    <th scope="col">
+                                                        Answer Id
+                                                    </th>
+                                                    <th scope="col">
+                                                        Response
+                                                    </th>
+                                                    <th scope="col">Credit</th>
+                                                    <th scope="col">
+                                                        Submitted
+                                                    </th>
                                                 </tr>
                                             </thead>
                                             <tbody>

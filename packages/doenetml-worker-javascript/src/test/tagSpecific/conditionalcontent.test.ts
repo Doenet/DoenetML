@@ -1666,7 +1666,7 @@ describe("Conditional content tag tests @group2", async () => {
         expect(diagnosticsByType.warnings.length).eq(1);
 
         expect(diagnosticsByType.warnings[0].message).contain(
-            `Attribute \`condition\` is ignored on a <conditionalContent> component with case or else children`,
+            `Attribute \`condition\` is ignored on a \`<conditionalContent>\` component with case or else children`,
         );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(29);

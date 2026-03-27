@@ -135,7 +135,7 @@ export default class AttractSegmentTo extends SegmentConstraintComponent {
                     if (!child.stateValues.nearestPoint) {
                         const warning = {
                             type: "warning",
-                            message: `Cannot attract to a <${child.componentType}> as it doesn't have a nearestPoint state variable.`,
+                            message: `Cannot attract to a \`<${child.componentType}>\` as it doesn't have a nearestPoint state variable.`,
                         };
                         if (child.position) {
                             warning.position = child.position;

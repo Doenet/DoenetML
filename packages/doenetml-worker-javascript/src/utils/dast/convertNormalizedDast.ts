@@ -362,7 +362,7 @@ export function expandUnflattenedToSerializedComponents({
         try {
             if (componentClass === undefined) {
                 throw Error(
-                    `Invalid component type: <${component.componentType}>`,
+                    `Invalid component type: \`<${component.componentType}>\``,
                 );
             }
 
@@ -643,7 +643,7 @@ export function expandAllUnflattenedAttributes({
             nComponents = res.nComponents;
         } else {
             throw Error(
-                `Invalid attribute "${attr}" for a component of type <${componentClass.componentType}>.`,
+                `Invalid attribute "${attr}" for a component of type \`<${componentClass.componentType}>\`.`,
             );
         }
     }

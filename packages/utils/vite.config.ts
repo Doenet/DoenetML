@@ -11,6 +11,8 @@ export default defineConfig({
         lib: {
             entry: {
                 index: "./src/index.ts",
+                diagnosticMarkdown:
+                    "./src/diagnostics/renderDiagnosticMarkdownHtml.ts",
             },
             formats: ["es"],
         },

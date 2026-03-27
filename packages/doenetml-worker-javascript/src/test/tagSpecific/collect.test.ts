@@ -2515,7 +2515,7 @@ describe("Collect tag tests @group4", async () => {
         expect(diagnosticsByType.warnings[1].position.end.column).eq(32);
 
         expect(diagnosticsByType.warnings[2].message).contain(
-            "Cannot collect components of type <abc> as it is an invalid component type",
+            "Cannot collect components of type `<abc>` as it is an invalid component type",
         );
         expect(diagnosticsByType.warnings[2].position.start.line).eq(4);
         expect(diagnosticsByType.warnings[2].position.start.column).eq(24);

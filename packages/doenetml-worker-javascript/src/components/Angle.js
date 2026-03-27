@@ -426,7 +426,7 @@ export default class Angle extends GraphicalComponent {
                 const diagnostics = [];
                 if (foundBadThroughPoint) {
                     diagnostics.push({
-                        message: "Invalid point in through of <angle>",
+                        message: "Invalid point in through of `<angle>`",
                         type: "warning",
                     });
                     if (globalDependencyValues.throughAttr.position) {

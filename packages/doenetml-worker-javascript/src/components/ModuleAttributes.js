@@ -125,7 +125,7 @@ export default class ModuleAttributes extends CompositeComponent {
                 componentsForModuleAttributes.push(child);
                 diagnostics.push({
                     type: "warning",
-                    message: `Since the component <${child.componentType}> does not have a name, it cannot be used for a module attribute`,
+                    message: `Since the component \`<${child.componentType}>\` does not have a name, it cannot be used for a module attribute`,
                     position: child.position,
                 });
 
@@ -148,7 +148,7 @@ export default class ModuleAttributes extends CompositeComponent {
             if (existingModuleAttrNames.includes(attributeName)) {
                 diagnostics.push({
                     type: "warning",
-                    message: `The component <${child.componentType} name="${childName}"> cannot be used as an attribute for a module because the <module> component type already has a "${childName}" attribute defined.`,
+                    message: `The component \`<${child.componentType} name="${childName}">\` cannot be used as an attribute for a module because the \`<module>\` component type already has a "${childName}" attribute defined.`,
                     position: child.position,
                 });
                 componentsForModuleAttributes.push(child);

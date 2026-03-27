@@ -56,18 +56,14 @@ function toLspDiagnostic(diagnostic: DiagnosticRecord): EditorLspDiagnostic {
 }
 
 /**
- * Filters diagnostics based on per-type annotation toggles and maps them to LSP diagnostics.
+ * Filters diagnostics based on annotation toggles and maps them to LSP diagnostics.
  */
 export function toAdditionalDiagnosticsForLsp({
     diagnostics,
-    showWarningAnnotations,
     showInfoAnnotations,
-    showAccessibilityAnnotations,
 }: {
     diagnostics: DiagnosticRecord[];
-    showWarningAnnotations: boolean;
     showInfoAnnotations: boolean;
-    showAccessibilityAnnotations: boolean;
 }): EditorLspDiagnostic[] {
     return diagnostics
         .filter((diagnostic) => {
@@ -80,7 +76,7 @@ export function toAdditionalDiagnosticsForLsp({
             }
 
             if (diagnostic.type === "warning") {
-                return showWarningAnnotations;
+                return true;
             }
 
             if (diagnostic.type === "info") {
@@ -88,7 +84,7 @@ export function toAdditionalDiagnosticsForLsp({
             }
 
             if (isAccessibilityRecord(diagnostic)) {
-                return showAccessibilityAnnotations;
+                return true;
             }
 
             return false;

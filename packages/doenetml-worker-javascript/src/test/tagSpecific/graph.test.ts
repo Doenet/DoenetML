@@ -1395,7 +1395,7 @@ describe("Graph tag tests @group2", async () => {
         expect(diagnosticsByType.accessibility[0].level).eq(1);
 
         expect(diagnosticsByType.accessibility[0].message).contain(
-            `<graph> must either have a short description or be specified as decorative`,
+            "`<graph>` must either have a short description or be specified as decorative",
         );
         expect(diagnosticsByType.accessibility[0].position.start.line).eq(2);
         expect(diagnosticsByType.accessibility[0].position.start.column).eq(1);

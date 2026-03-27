@@ -229,7 +229,8 @@ export class SideBySide extends BlockComponent {
 
                 if (foundAbsolute) {
                     diagnostics.push({
-                        message: `<sideBySide> is not implemented for absolute measurements. Setting widths to relative.`,
+                        message:
+                            "`<sideBySide>` is not implemented for absolute measurements. Setting widths to relative.",
                         type: "warning",
                     });
                 }
@@ -402,7 +403,8 @@ export class SideBySide extends BlockComponent {
 
                 if (secondMarginAbsolute || marginsAbsolute) {
                     diagnostics.push({
-                        message: `<sideBySide> is not implemented for absolute measurements. Setting margins to relative.`,
+                        message:
+                            "`<sideBySide>` is not implemented for absolute measurements. Setting margins to relative.",
                         type: "warning",
                     });
                 }
@@ -589,7 +591,7 @@ export class SideBySide extends BlockComponent {
                         } else {
                             diagnostics.push({
                                 message:
-                                    "Invalid <sideBySide>: it must have at least one block child.",
+                                    "Invalid `<sideBySide>`: it must have at least one block child.",
                                 type: "warning",
                             });
                         }
@@ -1463,7 +1465,8 @@ export class SbsGroup extends BlockComponent {
 
                 if (foundAbsolute) {
                     diagnostics.push({
-                        message: `<sbsGroup> is not implemented for absolute measurements. Setting widths to relative.`,
+                        message:
+                            "`<sbsGroup>` is not implemented for absolute measurements. Setting widths to relative.",
                         type: "warning",
                     });
                 }
@@ -1723,7 +1726,8 @@ export class SbsGroup extends BlockComponent {
 
                 if (foundAbsolute) {
                     diagnostics.push({
-                        message: `<sbsGroup> is not implemented for absolute measurements. Setting margins to relative.`,
+                        message:
+                            "`<sbsGroup>` is not implemented for absolute measurements. Setting margins to relative.",
                         type: "warning",
                     });
                 }
@@ -1913,7 +1917,7 @@ export class SbsGroup extends BlockComponent {
                         } else {
                             diagnostics.push({
                                 message:
-                                    "Invalid <sbsGroup>: it must have at least one block child.",
+                                    "Invalid `<sbsGroup>`: it must have at least one block child.",
                                 type: "warning",
                             });
                         }

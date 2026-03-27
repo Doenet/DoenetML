@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
     isAccessibilityRecord,
     type DiagnosticRecord,
-} from "../src/errors/diagnostics";
+} from "../src/diagnostics/types";
 
 describe("diagnostic predicates", () => {
     it("accepts accessibility records only when level is 1 or 2", () => {
