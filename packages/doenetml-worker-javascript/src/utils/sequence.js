@@ -767,7 +767,12 @@ export function returnSequenceValueForIndex({
             exclude.some(
                 (x) =>
                     Math.abs(x - value) <=
-                    1e-14 * Math.max(Math.abs(x), Math.abs(value)),
+                    1e-14 *
+                        Math.max(
+                            Math.abs(x),
+                            Math.abs(value),
+                            Math.abs(step),
+                        ),
             )
         ) {
             return null;
