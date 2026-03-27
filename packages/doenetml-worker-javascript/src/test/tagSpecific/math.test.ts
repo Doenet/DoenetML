@@ -4465,7 +4465,7 @@ describe("Math tag tests @group3", async () => {
                 stateVariables[await resolvePathToNodeIdx("m12")].stateValues
                     .latex,
             ),
-        ).eq("\\frac{-6}{-0}");
+        ).eq("-\\frac{6}{-0}");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
@@ -13342,5 +13342,29 @@ describe("Math tag tests @group3", async () => {
             "y",
             ["apply", "nthroot", ["tuple", ["*", 2, ["^", "x", 2], "y"], 4]],
         ]);
+    });
+
+    it("display fraction with negative out front", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<number name="a">-3</number>
+
+<p name="p"><math name="m">2/3 + $a x/4</math></p>
+            `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
+        ).eqls(["+", ["/", 2, 3], ["/", ["*", -3, "x"], 4]]);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.latex,
+        ).eqls("\\frac{2}{3} - \\frac{3 x}{4}");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("2/3 - (3 x)/4");
     });
 });
