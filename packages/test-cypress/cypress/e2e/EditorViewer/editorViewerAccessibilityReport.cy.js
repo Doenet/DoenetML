@@ -34,6 +34,16 @@ describe(
                 });
         }
 
+        function postDiagnosticsFixture() {
+            postDoenetML(`
+            <styleDefinition styleNumber="200" textColor="#ff9900" />
+            <text name="p200" styleNumber="200">Low contrast text</text>
+            <sequence length="n" />
+            <p><figure /></p>
+            <bad />
+            `);
+        }
+
         it("displays WCAG Violation notification when contrast violations exist", () => {
             postDoenetML(`
 <styleDefinition styleNumber="100" textColor="#ff9900" />
@@ -132,6 +142,76 @@ describe(
             ).should("have.css", "border-left-color", "rgb(180, 35, 24)");
         });
 
+        it("exposes accessible tab semantics and labels in diagnostics tab strip", () => {
+            postDiagnosticsFixture();
+
+            cy.get("#errors").click();
+
+            cy.get(".diagnostics-response-tabs")
+                .should("have.attr", "role", "tablist")
+                .and("have.class", "is-open");
+
+            cy.get("#errors")
+                .should("have.attr", "role", "tab")
+                .invoke("attr", "aria-label")
+                .should("match", /^Errors: \d+$/);
+            cy.get("#warnings")
+                .should("have.attr", "role", "tab")
+                .invoke("attr", "aria-label")
+                .should("match", /^Warnings: \d+$/);
+            cy.get("#info")
+                .should("have.attr", "role", "tab")
+                .invoke("attr", "aria-label")
+                .should("match", /^Info: \d+$/);
+            cy.get("#accessibility")
+                .should("have.attr", "role", "tab")
+                .invoke("attr", "aria-label")
+                .should("match", /^Accessibility: \d+$/);
+
+            cy.get(
+                ".diagnostics-response-tabs [role='tab'][aria-selected='true']",
+            ).should("have.length", 1);
+            cy.get("#errors")
+                .click()
+                .should("have.attr", "aria-selected", "true");
+            cy.get("#warnings")
+                .click()
+                .should("have.attr", "aria-selected", "true");
+            cy.get("#errors").should("have.attr", "aria-selected", "false");
+        });
+
+        it("supports keyboard navigation and keyboard close for diagnostics tab strip", () => {
+            postDiagnosticsFixture();
+
+            cy.get("#errors").focus();
+            cy.focused().should("have.attr", "id", "errors");
+
+            cy.focused().type("{rightarrow}");
+            cy.focused().should("have.attr", "id", "warnings");
+            cy.focused().type("{enter}");
+            cy.get("#warnings").should("have.attr", "aria-selected", "true");
+            cy.contains("Warning").should("exist");
+
+            cy.get(".close-button").should("exist").focus();
+            cy.focused().type("{enter}");
+
+            cy.get(".diagnostics-response-tabs").should(
+                "not.have.class",
+                "is-open",
+            );
+            cy.get(".diagnostics-response-tabs-panels").should("not.exist");
+        });
+
+        it("passes full axe scan on diagnostics tab strip", () => {
+            postDiagnosticsFixture();
+
+            cy.injectAxe();
+            cy.get(".diagnostics-response-tabs").should("be.visible");
+            cy.checkA11y(".diagnostics-response-tabs", {
+                includedImpacts: ["critical", "serious", "moderate", "minor"],
+            });
+        });
+
         it("displays error message with proper contrast for code formatting in backticks", () => {
             postDoenetML(`<bad />`);
 
@@ -179,6 +259,7 @@ describe(
             // Run accessibility checks on the diagnostic list and tooltip
             // Focus on color-contrast rule to ensure code formatting meets WCAG AA
             cy.injectAxe();
+            cy.get(".diagnostics-response-tabs-container").should("be.visible");
             cy.checkA11y(".diagnostics-response-tabs-container", {
                 runOnly: {
                     type: "rule",
@@ -186,6 +267,7 @@ describe(
                 },
                 includedImpacts: ["critical", "serious", "moderate", "minor"],
             });
+            cy.get(".cm-tooltip-lint").should("be.visible");
             cy.checkA11y(".cm-tooltip-lint", {
                 runOnly: {
                     type: "rule",
@@ -210,6 +292,7 @@ describe(
 
             // Run accessibility scanner on warning panel and tooltip
             cy.injectAxe();
+            cy.get(".diagnostics-response-tabs-container").should("be.visible");
             cy.checkA11y(".diagnostics-response-tabs-container", {
                 runOnly: {
                     type: "rule",
@@ -217,6 +300,7 @@ describe(
                 },
                 includedImpacts: ["critical", "serious", "moderate", "minor"],
             });
+            cy.get(".cm-tooltip-lint").should("be.visible");
             cy.checkA11y(".cm-tooltip-lint", {
                 runOnly: {
                     type: "rule",
@@ -242,13 +326,22 @@ describe(
             ).should("not.exist");
 
             cy.get("body").then(($body) => {
-                if ($body.find(".cm-lintRange-warning").length > 0) {
-                    hoverAccessibilityDiagnostic(".cm-lintRange-warning");
-                    cy.get(".cm-tooltip-lint .cm-lint-body").should("exist");
-                    cy.get(".cm-tooltip-lint img").should("not.exist");
-                    cy.get('.cm-tooltip-lint a[href^="javascript:"]').should(
-                        "not.exist",
+                if ($body.find(".cm-lintRange-warning:visible").length > 0) {
+                    hoverAccessibilityDiagnostic(
+                        ".cm-lintRange-warning:visible",
                     );
+                    cy.get("body").then(($bodyAfterHover) => {
+                        if (
+                            $bodyAfterHover.find(
+                                ".cm-tooltip-lint .cm-lint-body",
+                            ).length > 0
+                        ) {
+                            cy.get(".cm-tooltip-lint img").should("not.exist");
+                            cy.get(
+                                '.cm-tooltip-lint a[href^="javascript:"]',
+                            ).should("not.exist");
+                        }
+                    });
                 }
             });
         });

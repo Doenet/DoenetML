@@ -369,6 +369,7 @@ export function DiagnosticsResponseTabstrip({
                 {isOpen ? (
                     <Button
                         title="Close panel"
+                        aria-label="Close panel"
                         className="close-button"
                         onClick={() => {
                             setIsOpen(false);
@@ -578,10 +579,16 @@ export function DiagnosticsResponseTabContents({
                                         <table>
                                             <thead>
                                                 <tr>
-                                                    <td>Answer Id</td>
-                                                    <td>Response</td>
-                                                    <td>Credit</td>
-                                                    <td>Submitted</td>
+                                                    <th scope="col">
+                                                        Answer Id
+                                                    </th>
+                                                    <th scope="col">
+                                                        Response
+                                                    </th>
+                                                    <th scope="col">Credit</th>
+                                                    <th scope="col">
+                                                        Submitted
+                                                    </th>
                                                 </tr>
                                             </thead>
                                             <tbody>
