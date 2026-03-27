@@ -1608,7 +1608,7 @@ describe("UpdateValue tag tests @group1", async () => {
             ),
         ).eq("3x");
 
-        // clicking copy with an assignNames does not trigger update
+        // clicking extended point does not trigger update
         await clickPoint({
             componentIdx: await resolvePathToNodeIdx("P2"),
             core,
