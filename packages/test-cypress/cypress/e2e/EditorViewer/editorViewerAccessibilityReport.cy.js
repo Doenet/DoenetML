@@ -57,7 +57,7 @@ describe(
             );
             cy.get(".accessibility-status-button.has-level-1-issues").should(
                 "contain.text",
-                "WCAG Violation!",
+                "WCAG",
             );
             cy.get(".accessibility-status-button")
                 .invoke("attr", "title")
@@ -99,7 +99,9 @@ describe(
 
             cy.get(".accessibility-status-button").click();
 
-            cy.contains("h3", "WCAG AA Violations").should("exist");
+            cy.contains("h3", /Accessibility violations\s*\(WCAG AA\)/i).should(
+                "exist",
+            );
             cy.contains("Style definition 102").should("exist");
             cy.contains("insufficient contrast").should("exist");
         });
@@ -113,8 +115,8 @@ describe(
 
             cy.get(".accessibility-status-button").click();
 
-            cy.contains("No WCAG AA violations").should("exist");
-            cy.contains("h3", "Other Accessibility Issues").should("exist");
+            cy.contains("None found").should("exist");
+            cy.contains("h3", "Other accessibility issues").should("exist");
             cy.contains(
                 "Short descriptions should not contain math components",
             ).should("exist");
