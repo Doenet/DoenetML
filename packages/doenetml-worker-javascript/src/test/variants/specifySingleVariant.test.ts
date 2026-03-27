@@ -2004,7 +2004,7 @@ describe("Specifying single variant tests @group1", async () => {
     <problem name="problem1">
         <variantControl numVariants="10" ${attributes} />
         Selected number: 
-        <selectFromSequence assignNames="n" length="100000" />
+        <selectFromSequence name="n" length="100000" />
     </problem>
             `;
         }

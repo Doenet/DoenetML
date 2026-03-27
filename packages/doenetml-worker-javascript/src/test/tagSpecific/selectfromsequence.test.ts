@@ -631,7 +631,6 @@ describe("SelectFromSequence tag tests @group4", async () => {
     <p>
     <selectFromSequence name="sample2" withReplacement length="$maxNum2" numToSelect="$numToSelect2" />
     </p>
-    <p>$maxNum2.value{assignNames="maxNum2a"}</p>
     `,
         });
 
@@ -2075,6 +2074,36 @@ describe("SelectFromSequence tag tests @group4", async () => {
             expect(diagnosticsByType.errors.length).eq(1);
             expect(diagnosticsByType.warnings.length).eq(0);
             expect(diagnosticsByType.errors[0].message).contain(errorMessage);
+        }
+    });
+
+    it("selectFromSequence, exclude with roundoff error on zero excluded value", async () => {
+        let doenetML = `
+    <p name="p">
+      <selectFromSequence
+        name="s"
+        from="-1.8"
+        step="0.6"
+        to="1.8"
+        exclude="0"
+        numToSelect="30"
+        withReplacement
+      />
+    </p>
+        `;
+
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        for (let i = 1; i <= 30; i++) {
+            let idx = await resolvePathToNodeIdx(`s[${i}]`);
+            let value = stateVariables[idx].stateValues.value;
+
+            // Should not select a value close to zero
+            expect(Math.abs(value)).greaterThan(0.5);
         }
     });
 });

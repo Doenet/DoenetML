@@ -1211,13 +1211,13 @@ describe("PeriodicSet tag tests @group3", async () => {
 
     <periodicSet period="$period" offsets="$offsets" name="pset" />
   
-    <p name="pL1">As list: $pset.asList{assignNames="l1"}</p>
+    <p name="pL1">As list: $pset.asList</p>
 
     <p>Min index: <mathInput name="minIndex" />, <mathInput name="maxIndex" /></p>
 
     <periodicSet period="$period" offsets="$offsets" name="pset2" minIndexAsList="$minIndex" maxIndexAsList="$maxIndex" />
 
-    <p name="pL2">As list with specified min/max: $pset2.asList{assignNames="l2"}</p>
+    <p name="pL2">As list with specified min/max: $pset2.asList</p>
 
     `,
         });
