@@ -2092,15 +2092,11 @@ describe("SelectFromSequence tag tests @group4", async () => {
     </p>
         `;
 
-        let stateVariables = await (
-            await createTestCore({
-                doenetML,
-            })
-        ).core.returnAllStateVariables(false, true);
-
-        let { resolvePathToNodeIdx } = await createTestCore({
+        let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
         });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
 
         for (let i = 1; i <= 30; i++) {
             let idx = await resolvePathToNodeIdx(`s[${i}]`);
