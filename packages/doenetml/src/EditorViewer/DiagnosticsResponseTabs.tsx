@@ -9,6 +9,7 @@ import {
 } from "@ariakit/react";
 import {
     BsChatSquareText,
+    BsChatSquareTextFill,
     BsExclamationTriangle,
     BsExclamationTriangleFill,
     BsInfoCircle,
@@ -223,6 +224,13 @@ export function DiagnosticsResponseTabstrip({
     showDiagnostics?: boolean;
     showResponses?: boolean;
 }) {
+    const hasLevel1Accessibility = accessibility.some(
+        (diagnostic) => diagnostic.level === 1,
+    );
+    const hasLevel2Accessibility = accessibility.some(
+        (diagnostic) => diagnostic.level === 2,
+    );
+
     return (
         <TabProvider store={store}>
             <TabList
@@ -239,7 +247,19 @@ export function DiagnosticsResponseTabstrip({
                 {showDiagnostics && (
                     <TabTrigger
                         id="errors"
-                        icon={<BsXOctagon />}
+                        icon={
+                            errors.length > 0 ? (
+                                <span
+                                    className="error-tab-icon-with-fill"
+                                    aria-hidden="true"
+                                >
+                                    <BsXOctagonFill className="fill" />
+                                    <BsXOctagon className="outline" />
+                                </span>
+                            ) : (
+                                <BsXOctagon />
+                            )
+                        }
                         label="Errors"
                         count={errors.length}
                     />
@@ -247,7 +267,19 @@ export function DiagnosticsResponseTabstrip({
                 {showDiagnostics && (
                     <TabTrigger
                         id="warnings"
-                        icon={<BsExclamationTriangle />}
+                        icon={
+                            warnings.length > 0 ? (
+                                <span
+                                    className="warning-tab-icon-with-fill"
+                                    aria-hidden="true"
+                                >
+                                    <BsExclamationTriangleFill className="fill" />
+                                    <BsExclamationTriangle className="outline" />
+                                </span>
+                            ) : (
+                                <BsExclamationTriangle />
+                            )
+                        }
                         label="Warnings"
                         count={warnings.length}
                     />
@@ -255,7 +287,19 @@ export function DiagnosticsResponseTabstrip({
                 {showDiagnostics && (
                     <TabTrigger
                         id="info"
-                        icon={<BsInfoCircle />}
+                        icon={
+                            infos.length > 0 ? (
+                                <span
+                                    className="info-tab-icon-with-fill"
+                                    aria-hidden="true"
+                                >
+                                    <BsInfoCircleFill className="fill" />
+                                    <BsInfoCircle className="outline" />
+                                </span>
+                            ) : (
+                                <BsInfoCircle />
+                            )
+                        }
                         label="Info"
                         count={infos.length}
                     />
@@ -270,7 +314,27 @@ export function DiagnosticsResponseTabstrip({
                 {showDiagnostics && (
                     <TabTrigger
                         id="accessibility"
-                        icon={<IoAccessibilityOutline />}
+                        icon={
+                            hasLevel1Accessibility ? (
+                                <span
+                                    className="accessibility-tab-icon-with-fill is-critical"
+                                    aria-hidden="true"
+                                >
+                                    <IoAccessibility className="fill" />
+                                    <IoAccessibilityOutline className="outline" />
+                                </span>
+                            ) : hasLevel2Accessibility ? (
+                                <span
+                                    className="accessibility-tab-icon-with-fill is-advisory"
+                                    aria-hidden="true"
+                                >
+                                    <IoAccessibility className="fill" />
+                                    <IoAccessibilityOutline className="outline" />
+                                </span>
+                            ) : (
+                                <IoAccessibilityOutline />
+                            )
+                        }
                         label="Accessibility"
                         count={accessibility.length}
                     />
@@ -285,7 +349,19 @@ export function DiagnosticsResponseTabstrip({
                 {showResponses && (
                     <TabTrigger
                         id="responses"
-                        icon={<BsChatSquareText />}
+                        icon={
+                            submittedResponses.length > 0 ? (
+                                <span
+                                    className="responses-tab-icon-with-fill"
+                                    aria-hidden="true"
+                                >
+                                    <BsChatSquareTextFill className="fill" />
+                                    <BsChatSquareText className="outline" />
+                                </span>
+                            ) : (
+                                <BsChatSquareText />
+                            )
+                        }
                         label="Submitted responses"
                         count={submittedResponses.length}
                     />
