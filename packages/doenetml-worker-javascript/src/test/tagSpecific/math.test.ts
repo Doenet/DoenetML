@@ -13350,6 +13350,9 @@ describe("Math tag tests @group3", async () => {
 <number name="a">-3</number>
 
 <p name="p"><math name="m">2/3 + $a x/4</math></p>
+<p name="p2a"><math name="m2a">$a/4</math></p>
+<p name="p2b"><math name="m2b">-3/4</math></p>
+<p name="p2c"><math name="m2c">(-3)/4</math></p>
             `,
         });
 
@@ -13366,5 +13369,38 @@ describe("Math tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("2/3 - (3 x)/4");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2a")].stateValues.value
+                .tree,
+        ).eqls(["/", -3, 4]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2a")].stateValues.latex,
+        ).eqls("-\\frac{3}{4}");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2a")].stateValues.text,
+        ).eq("-3/4");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2b")].stateValues.value
+                .tree,
+        ).eqls(["-", ["/", 3, 4]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2b")].stateValues.latex,
+        ).eqls("-\\frac{3}{4}");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2b")].stateValues.text,
+        ).eq("-3/4");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2c")].stateValues.value
+                .tree,
+        ).eqls(["/", -3, 4]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2c")].stateValues.latex,
+        ).eqls("-\\frac{3}{4}");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2c")].stateValues.text,
+        ).eq("-3/4");
     });
 });
