@@ -1,0 +1,235 @@
+name: Publish
+
+on:
+    workflow_run:
+        workflows: ["CI"]
+        types: [completed]
+        branches: ["main"]
+    release:
+        types: [published]
+    workflow_dispatch:
+        inputs:
+            channel:
+                description: Release channel
+                required: true
+                type: choice
+                options:
+                    - dev
+                    - production
+            dry_run:
+                description: Skip npm publish
+                required: true
+                type: boolean
+                default: true
+            tag:
+                description: Production tag override for manual runs
+                required: false
+                type: string
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref || github.run_id }}
+    cancel-in-progress: false
+
+env:
+    FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+    dev-release:
+        name: Dev Release
+        runs-on: ubuntu-latest
+        if: >-
+            (github.event_name == 'workflow_run' &&
+            github.event.workflow_run.conclusion == 'success' &&
+            github.event.workflow_run.head_branch == 'main') ||
+            (github.event_name == 'workflow_dispatch' && inputs.channel == 'dev')
+        permissions:
+            id-token: write
+            contents: read
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+              with:
+                  ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+            - name: Use Node.js 24
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24.x
+                  registry-url: https://registry.npmjs.org
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Update versions
+              run: |
+                  CURRENT_VERSION=$(node -p "require('./packages/doenetml/package.json').version")
+                  TIMESTAMP=$(date +%Y%m%d%H%M%S)
+                  COMMIT_HASH=$(git rev-parse --short HEAD)
+                  VERSION="${CURRENT_VERSION}-dev.${TIMESTAMP}.${COMMIT_HASH}"
+                  npm run version -- ${VERSION} --no-git-tag-version
+
+            - name: Build workspaces
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07
+              env:
+                  WIREIT_CACHE: "local"
+
+            - name: Publish dev release
+              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+              run: npm run publish -- --tag dev
+              env:
+                  WIREIT_CACHE: "local"
+
+            - name: Purge jsDelivr cache
+              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+              run: |
+                  echo "Waiting for npm package propagation before purging jsDelivr cache..."
+                  sleep 15
+
+                  echo "Purging jsDelivr cache for @doenet/standalone@dev (package-level)..."
+                  if ! curl -fv https://purge.jsdelivr.net/npm/@doenet/standalone@dev; then
+                      echo "Error: Failed to purge package-level cache for @doenet/standalone@dev" >&2
+                      exit 1
+                  fi
+
+                  echo "Purging jsDelivr cache for @doenet/standalone@dev/doenet-standalone.js..."
+                  if ! curl -fv https://purge.jsdelivr.net/npm/@doenet/standalone@dev/doenet-standalone.js; then
+                      echo "Error: Failed to purge cache for doenet-standalone.js" >&2
+                      exit 1
+                  fi
+
+                  echo "Purging jsDelivr cache for @doenet/standalone@dev/style.css..."
+                  if ! curl -fv https://purge.jsdelivr.net/npm/@doenet/standalone@dev/style.css; then
+                      echo "Error: Failed to purge cache for style.css" >&2
+                      exit 1
+                  fi
+
+    production-release:
+        name: Production Release
+        runs-on: ubuntu-latest
+        environment: production
+        if: >-
+            github.event_name == 'release' ||
+            (github.event_name == 'workflow_dispatch' && inputs.channel == 'production')
+        permissions:
+            id-token: write
+            contents: read
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+              with:
+                  ref: ${{ github.event_name == 'release' && github.event.release.tag_name || (inputs.tag != '' && inputs.tag || github.ref) }}
+                  fetch-depth: 0
+
+            - name: Use Node.js 24
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24.x
+                  registry-url: https://registry.npmjs.org
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Resolve release tag
+              id: release-tag
+              env:
+                  EVENT_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || '' }}
+                  INPUT_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || '' }}
+                  REF_NAME: ${{ github.ref_name }}
+              run: |
+                  TAG="${EVENT_TAG}"
+                  if [ -z "${TAG}" ]; then
+                      TAG="${INPUT_TAG}"
+                  fi
+                  if [ -z "${TAG}" ]; then
+                      TAG="${REF_NAME}"
+                  fi
+
+                  TAG="${TAG#refs/tags/}"
+                  if [ -z "${TAG}" ]; then
+                      echo "Error: Could not determine release tag. For manual production runs, provide the tag input." >&2
+                      exit 1
+                  fi
+
+                  NORMALIZED="${TAG#v}"
+                  echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+                  echo "version=${NORMALIZED}" >> "$GITHUB_OUTPUT"
+                  echo "Resolved release tag: ${TAG}"
+
+            - name: Validate tag matches package versions
+              env:
+                  RELEASE_VERSION: ${{ steps.release-tag.outputs.version }}
+              run: |
+                  node <<'NODE'
+                  const fs = require("node:fs");
+
+                  const releaseVersion = process.env.RELEASE_VERSION;
+                  if (!releaseVersion) {
+                    console.error("Missing RELEASE_VERSION");
+                    process.exit(1);
+                  }
+
+                  const manifests = [
+                    "packages/doenetml/package.json",
+                    "packages/standalone/package.json",
+                    "packages/doenetml-iframe/package.json",
+                    "packages/v06-to-v07/package.json",
+                  ];
+
+                  const mismatches = [];
+                  for (const file of manifests) {
+                    const pkg = JSON.parse(fs.readFileSync(file, "utf8"));
+                    if (pkg.version !== releaseVersion) {
+                      mismatches.push(`${file}: expected ${releaseVersion}, found ${pkg.version}`);
+                    }
+                  }
+
+                  if (mismatches.length > 0) {
+                    console.error("Release tag does not match package versions:\n" + mismatches.join("\n"));
+                    process.exit(1);
+                  }
+
+                  console.log(`Validated release version ${releaseVersion} across all release packages.`);
+                  NODE
+
+            - name: Verify tag commit is on main
+              run: |
+                  git fetch origin main
+                  if ! git merge-base --is-ancestor HEAD origin/main; then
+                      echo "Error: release tag commit is not reachable from origin/main" >&2
+                      exit 1
+                  fi
+
+            - name: Build workspaces
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07
+              env:
+                  WIREIT_CACHE: "local"
+
+            - name: Publish production release
+              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+              run: npm run publish
+              env:
+                  WIREIT_CACHE: "local"
+
+            - name: Purge jsDelivr cache
+              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+              env:
+                  RELEASE_VERSION: ${{ steps.release-tag.outputs.version }}
+              run: |
+                  echo "Waiting for npm package propagation before purging jsDelivr cache..."
+                  sleep 15
+
+                  echo "Purging jsDelivr cache for @doenet/standalone (latest and versioned)..."
+                  curl -fv https://purge.jsdelivr.net/npm/@doenet/standalone || exit 1
+                  curl -fv "https://purge.jsdelivr.net/npm/@doenet/standalone@${RELEASE_VERSION}" || exit 1
+
+                  echo "Purging key standalone assets for latest and versioned tags..."
+                  curl -fv https://purge.jsdelivr.net/npm/@doenet/standalone/doenet-standalone.js || exit 1
+                  curl -fv https://purge.jsdelivr.net/npm/@doenet/standalone/style.css || exit 1
+                  curl -fv "https://purge.jsdelivr.net/npm/@doenet/standalone@${RELEASE_VERSION}/doenet-standalone.js" || exit 1
+                  curl -fv "https://purge.jsdelivr.net/npm/@doenet/standalone@${RELEASE_VERSION}/style.css" || exit 1

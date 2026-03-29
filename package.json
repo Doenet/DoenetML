@@ -37,6 +37,7 @@
         "build:docs": "npm run build --workspace packages/docs-nextra",
         "build:all": "npm run build -ws --if-present",
         "clean": "rimraf packages/*/dist",
+        "changeset": "changeset",
         "dev": "npm run dev --workspace packages/doenetml",
         "docs": "npm run build --workspace packages/docs-nextra & npm run dev --workspace packages/docs-nextra",
         "prettier:check": "prettier --check .",
@@ -51,6 +52,7 @@
         "test:e2e-group5": "npm run test:group5 -w packages/test-cypress",
         "test:e2e-mistagged": "npm run test:mistagged -w packages/test-cypress",
         "test:codemirror-cypress": "npm run test-cypress-all -w packages/codemirror",
+        "version:changesets": "changeset version",
         "version": "npm version -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07"
     },
     "prettier": {
@@ -79,6 +81,7 @@
     },
     "devDependencies": {
         "@ariakit/react": "^0.4.20",
+        "@changesets/cli": "^2.30.0",
         "@codemirror/commands": "^6.10.0",
         "@codemirror/lang-xml": "^6.1.0",
         "@codemirror/language": "^6.11.3",

@@ -1,0 +1,18 @@
+{
+    "$schema": "https://unpkg.com/@changesets/config@3.1.1/schema.json",
+    "changelog": "@changesets/cli/changelog",
+    "commit": false,
+    "fixed": [
+        [
+            "@doenet/doenetml",
+            "@doenet/standalone",
+            "@doenet/doenetml-iframe",
+            "@doenet/v06-to-v07"
+        ]
+    ],
+    "linked": [],
+    "access": "restricted",
+    "baseBranch": "main",
+    "updateInternalDependencies": "patch",
+    "ignore": []
+}
