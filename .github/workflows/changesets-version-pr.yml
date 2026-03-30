@@ -34,7 +34,6 @@ jobs:
             - name: Create or update version PR
               uses: changesets/action@v1
               with:
-                  version: npx @changesets/cli version
-                  publish: false
+                  version: npm run version:changesets
                   title: "chore: version packages"
                   commit: "chore: version packages"

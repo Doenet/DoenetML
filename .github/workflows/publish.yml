@@ -138,22 +138,18 @@ jobs:
               env:
                   EVENT_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || '' }}
                   INPUT_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || '' }}
-                  REF_NAME: ${{ github.ref_name }}
               run: |
                   TAG="${EVENT_TAG}"
                   if [ -z "${TAG}" ]; then
-                      TAG="${INPUT_TAG}"
-                  fi
-                  if [ -z "${TAG}" ]; then
-                      TAG="${REF_NAME}"
+                      if [ -n "${INPUT_TAG}" ]; then
+                          TAG="${INPUT_TAG}"
+                      else
+                          echo "Error: For manual production runs, the 'tag' input is required. Please provide the tag (e.g. v1.2.3)." >&2
+                          exit 1
+                      fi
                   fi
 
                   TAG="${TAG#refs/tags/}"
-                  if [ -z "${TAG}" ]; then
-                      echo "Error: Could not determine release tag. For manual production runs, provide the tag input." >&2
-                      exit 1
-                  fi
-
                   NORMALIZED="${TAG#v}"
                   echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
                   echo "version=${NORMALIZED}" >> "$GITHUB_OUTPUT"
