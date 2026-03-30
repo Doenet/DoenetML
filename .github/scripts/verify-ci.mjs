@@ -39,14 +39,14 @@ if (!response.ok) {
 const data = await response.json();
 const runs = data.workflow_runs ?? [];
 
-if (runs.length === 0) {
+const ciRun = runs.find((run) => run.head_sha === targetSha);
+
+if (!ciRun) {
     console.error(
-        `No completed CI workflow run found for commit ${targetSha}.`,
+        `No completed CI workflow run with matching head_sha found for commit ${targetSha}.`,
     );
     process.exit(1);
 }
-
-const ciRun = runs.find((run) => run.head_sha === targetSha) ?? runs[0];
 
 if (ciRun.conclusion !== "success") {
     console.error(
