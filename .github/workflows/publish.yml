@@ -207,18 +207,13 @@ jobs:
 
             - name: Purge jsDelivr cache
               if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
-              env:
-                  RELEASE_VERSION: ${{ steps.release-tag.outputs.version }}
               run: |
                   echo "Waiting for npm package propagation before purging jsDelivr cache..."
                   sleep 15
 
-                  echo "Purging jsDelivr cache for @doenet/standalone (latest and versioned)..."
-                  curl -fv https://purge.jsdelivr.net/npm/@doenet/standalone || exit 1
-                  curl -fv "https://purge.jsdelivr.net/npm/@doenet/standalone@${RELEASE_VERSION}" || exit 1
+                  echo "Purging jsDelivr cache for @doenet/standalone@latest (package-level)..."
+                  curl -fv https://purge.jsdelivr.net/npm/@doenet/standalone@latest || exit 1
 
-                  echo "Purging key standalone assets for latest and versioned tags..."
-                  curl -fv https://purge.jsdelivr.net/npm/@doenet/standalone/doenet-standalone.js || exit 1
-                  curl -fv https://purge.jsdelivr.net/npm/@doenet/standalone/style.css || exit 1
-                  curl -fv "https://purge.jsdelivr.net/npm/@doenet/standalone@${RELEASE_VERSION}/doenet-standalone.js" || exit 1
-                  curl -fv "https://purge.jsdelivr.net/npm/@doenet/standalone@${RELEASE_VERSION}/style.css" || exit 1
+                  echo "Purging key standalone assets for @latest tag..."
+                  curl -fv https://purge.jsdelivr.net/npm/@doenet/standalone@latest/doenet-standalone.js || exit 1
+                  curl -fv https://purge.jsdelivr.net/npm/@doenet/standalone@latest/style.css || exit 1
