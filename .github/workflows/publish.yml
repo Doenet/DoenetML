@@ -1,0 +1,190 @@
+name: Publish
+
+on:
+    workflow_run:
+        workflows: ["CI"]
+        types: [completed]
+        branches: ["main"]
+    release:
+        types: [published]
+    workflow_dispatch:
+        inputs:
+            channel:
+                description: Release channel
+                required: true
+                type: choice
+                options:
+                    - dev
+                    - production
+            dry_run:
+                description: Skip npm publish
+                required: true
+                type: boolean
+                default: true
+            tag:
+                description: Production tag override for manual runs
+                required: false
+                type: string
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref || github.run_id }}
+    cancel-in-progress: false
+
+env:
+    FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+    dev-release:
+        name: Dev Release
+        runs-on: ubuntu-latest
+        if: >-
+            (github.event_name == 'workflow_run' &&
+            github.event.workflow_run.conclusion == 'success' &&
+            github.event.workflow_run.head_branch == 'main') ||
+            (github.event_name == 'workflow_dispatch' && inputs.channel == 'dev')
+        permissions:
+            actions: read
+            id-token: write
+            contents: read
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+              with:
+                  ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+
+            - name: Determine checked out commit SHA
+              id: checked-sha
+              run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+            - name: Use Node.js 24
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24.x
+                  registry-url: https://registry.npmjs.org
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Verify CI succeeded for target commit
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
+                  REPO: ${{ github.repository }}
+                  TARGET_SHA: ${{ steps.checked-sha.outputs.sha }}
+              run: node .github/scripts/verify-ci.mjs
+
+            - name: Update versions
+              run: |
+                  CURRENT_VERSION=$(node -p "require('./packages/doenetml/package.json').version")
+                  TIMESTAMP=$(date +%Y%m%d%H%M%S)
+                  COMMIT_HASH=$(git rev-parse --short HEAD)
+                  VERSION="${CURRENT_VERSION}-dev.${TIMESTAMP}.${COMMIT_HASH}"
+                  npm run version -- ${VERSION} --no-git-tag-version
+
+            - name: Build workspaces
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07
+              env:
+                  WIREIT_CACHE: "local"
+
+            - name: Publish dev release
+              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+              run: npm run publish -- --tag dev
+              env:
+                  WIREIT_CACHE: "local"
+
+            - name: Purge jsDelivr cache
+              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+              run: bash .github/scripts/purge-jsdelivr.sh dev
+
+    production-release:
+        name: Production Release
+        runs-on: ubuntu-latest
+        environment: production
+        if: >-
+            github.event_name == 'release' ||
+            (github.event_name == 'workflow_dispatch' && inputs.channel == 'production')
+        permissions:
+            actions: read
+            id-token: write
+            contents: read
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+              with:
+                  ref: ${{ github.event_name == 'release' && github.event.release.tag_name || (inputs.tag != '' && inputs.tag || github.ref) }}
+                  fetch-depth: 0
+
+            - name: Determine checked out commit SHA
+              id: checked-sha
+              run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+            - name: Use Node.js 24
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24.x
+                  registry-url: https://registry.npmjs.org
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Verify CI succeeded for target commit
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
+                  REPO: ${{ github.repository }}
+                  TARGET_SHA: ${{ steps.checked-sha.outputs.sha }}
+              run: node .github/scripts/verify-ci.mjs
+
+            - name: Resolve release tag
+              id: release-tag
+              env:
+                  EVENT_TAG: ${{ github.event_name == 'release' && github.event.release.tag_name || '' }}
+                  INPUT_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || '' }}
+              run: |
+                  TAG="${EVENT_TAG}"
+                  if [ -z "${TAG}" ]; then
+                      if [ -n "${INPUT_TAG}" ]; then
+                          TAG="${INPUT_TAG}"
+                      else
+                          echo "Error: For manual production runs, the 'tag' input is required. Please provide the tag (e.g. v1.2.3)." >&2
+                          exit 1
+                      fi
+                  fi
+
+                  TAG="${TAG#refs/tags/}"
+                  NORMALIZED="${TAG#v}"
+                  echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+                  echo "version=${NORMALIZED}" >> "$GITHUB_OUTPUT"
+                  echo "Resolved release tag: ${TAG}"
+
+            - name: Validate tag matches package versions
+              env:
+                  RELEASE_VERSION: ${{ steps.release-tag.outputs.version }}
+              run: node .github/scripts/validate-tag-versions.mjs
+
+            - name: Verify tag commit is on main
+              run: |
+                  git fetch origin main
+                  if ! git merge-base --is-ancestor HEAD origin/main; then
+                      echo "Error: release tag commit is not reachable from origin/main" >&2
+                      exit 1
+                  fi
+
+            - name: Build workspaces
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07
+              env:
+                  WIREIT_CACHE: "local"
+
+            - name: Publish production release
+              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+              run: npm run publish
+              env:
+                  WIREIT_CACHE: "local"
+
+            - name: Purge jsDelivr cache
+              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+              run: bash .github/scripts/purge-jsdelivr.sh latest
