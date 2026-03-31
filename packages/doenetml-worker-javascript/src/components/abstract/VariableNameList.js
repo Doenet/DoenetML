@@ -53,8 +53,9 @@ export default class VariableNameList extends MathList {
                     if (!validVariable) {
                         diagnostics.push({
                             message:
-                                "Invalid value of a variable: " +
-                                variable.toString(),
+                                "Invalid value of a variable: `" +
+                                variable.toString() +
+                                "`",
                             type: "warning",
                         });
                         validVariable = false;

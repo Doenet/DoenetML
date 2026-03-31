@@ -44,10 +44,8 @@ export default function GraphFrame({
     contentStyle.backgroundColor = "var(--canvas)";
     contentStyle.color = "var(--canvasText)";
 
-    let ariaLabel: string | undefined = isPrefigureRenderer
-        ? undefined
-        : SVs.shortDescription;
-    let role: string | undefined = isPrefigureRenderer ? undefined : "img";
+    let ariaLabel: string | undefined = SVs.shortDescription;
+    let role: string | undefined = isPrefigureRenderer ? "group" : "img";
     let ariaHidden = false;
     if (SVs.decorative) {
         ariaLabel = undefined;

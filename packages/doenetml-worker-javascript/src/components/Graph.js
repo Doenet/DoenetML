@@ -255,6 +255,10 @@ export default class Graph extends BlockComponent {
                 group: "graphs",
                 componentTypes: ["graph"],
             },
+            {
+                group: "annotations",
+                componentTypes: ["annotations"],
+            },
         ];
     }
 

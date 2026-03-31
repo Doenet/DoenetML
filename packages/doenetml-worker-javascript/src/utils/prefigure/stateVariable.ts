@@ -1,6 +1,7 @@
 import { createPrefigureXML } from "./graph";
 import { sortDescendantsByOrder } from "./common";
 import type { Descendant, GraphDependencyValues } from "./types";
+import { DiagnosticRecord } from "@doenet/utils";
 
 interface DescendantDependency {
     dependencyType: "descendant";
@@ -256,20 +257,47 @@ export function returnGraphPrefigureXMLStateVariableDefinition() {
         returnDependencies: () => ({
             ...prefigureBaseDependencies(),
             ...prefigureDescendantDependencies(),
+            annotationsChildren: {
+                dependencyType: "child",
+                childGroups: ["annotations"],
+                variableNames: ["annotationSubtrees"],
+            },
             allGraphicalDescendants: {
                 dependencyType: "descendant",
                 componentTypes: ["_graphical"],
             },
+            allDescendants: {
+                dependencyType: "descendant",
+                componentTypes: ["_base"],
+            },
         }),
         definition({
             dependencyValues,
+            componentIdx,
         }: {
             dependencyValues: GraphDependencyValues;
+            componentIdx: number;
         }) {
-            if (
-                dependencyValues.effectiveRenderer !== "prefigure" ||
-                dependencyValues.haveGraphParent
-            ) {
+            // If not rendering with PreFigure and have annotations, warn that annotations won't be rendered.
+            if (dependencyValues.effectiveRenderer !== "prefigure") {
+                const diagnostics = [];
+                if (
+                    dependencyValues.annotationsChildren &&
+                    dependencyValues.annotationsChildren.length > 0
+                ) {
+                    diagnostics.push({
+                        type: "info",
+                        message:
+                            "`<graph>`: annotations will not be rendered when not using the PreFigure renderer.",
+                    });
+                }
+                return {
+                    setValue: { prefigureXML: null },
+                    sendDiagnostics: diagnostics,
+                };
+            }
+
+            if (dependencyValues.haveGraphParent) {
                 return { setValue: { prefigureXML: null } };
             }
 
@@ -292,11 +320,38 @@ export function returnGraphPrefigureXMLStateVariableDefinition() {
 
             unsupported.sort(sortDescendantsByOrder);
 
+            const selectedAnnotationsChild =
+                dependencyValues.annotationsChildren?.[
+                    dependencyValues.annotationsChildren.length - 1
+                ];
+
+            // If have more than one annotations child, warn that only the last one will be rendered.
+            const diagnosticsMultipleAnnotations: DiagnosticRecord[] = [];
+            if (
+                dependencyValues.annotationsChildren &&
+                dependencyValues.annotationsChildren.length > 1
+            ) {
+                diagnosticsMultipleAnnotations.push({
+                    type: "info",
+                    message:
+                        "Multiple `<annotations>` children found in `<graph>`; only the last one will be rendered.",
+                    position: selectedAnnotationsChild?.position,
+                });
+            }
+
+            const annotations =
+                selectedAnnotationsChild?.stateValues?.annotationSubtrees ??
+                null;
+
             const { xml, diagnostics } = createPrefigureXML({
                 dependencyValues,
                 descendants,
                 unsupported,
+                annotations,
+                graphComponentIdx: componentIdx,
             });
+
+            diagnostics.push(...diagnosticsMultipleAnnotations);
 
             return {
                 setValue: { prefigureXML: xml },

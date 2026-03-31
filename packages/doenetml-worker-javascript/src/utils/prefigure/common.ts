@@ -27,7 +27,7 @@ export function asFiniteNumber(value: unknown): number | null {
 }
 
 /**
- * Formats a numeric value for XML serialization.
+ * Formats a numeric value for PreFigure XML output.
  */
 export function formatNumber(value: unknown): string | null {
     const num = asFiniteNumber(value);
@@ -64,7 +64,7 @@ function sanitizeHandle(value: unknown): string {
 /**
  * Creates a deterministic, XML-safe id for emitted PreFigure elements.
  *
- * Handles are based on component type/name when available and are made unique
+ * Handles are based on component type when available and are made unique
  * against `usedHandles` to keep output stable across runs.
  */
 export function createStableHandle(
@@ -72,14 +72,12 @@ export function createStableHandle(
     index: number,
     usedHandles: UsedHandles,
 ): string {
-    const stem = sanitizeHandle(
-        `${descendant.componentType}-${descendant.componentName ?? index}`,
-    );
-    let handle = stem || `graphical-${index}`;
+    const stem = sanitizeHandle(`${descendant.componentType}_${index}`);
+    let handle = stem || `graphical_${index}`;
     let suffix = 1;
     while (usedHandles.has(handle)) {
         suffix += 1;
-        handle = `${stem}-${suffix}`;
+        handle = `${stem}_${suffix}`;
     }
     usedHandles.add(handle);
     return handle;

@@ -64,7 +64,7 @@ export function convertVectorToPrefigure({
     const label = labelInfo?.label;
 
     const attrs = [
-        `id="${escapeXml(handle)}"`,
+        `at="${escapeXml(handle)}"`,
         `tail="${escapeXml(tailText)}"`,
         `v="${escapeXml(`(${dx},${dy})`)}"`,
         ...styleAttrs,

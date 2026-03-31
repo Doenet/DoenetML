@@ -111,8 +111,9 @@ async function buildPrefigureDiagram(
 }
 
 type DiagcessApi = {
-    Base?: {
-        init?: () => void;
+    Base: {
+        init: () => void;
+        molMap: Record<string, unknown>;
     };
 };
 
@@ -495,7 +496,7 @@ function sanitizeAnnotationsMarkup(markup: string): string {
     return sanitizeXmlMarkup({
         markup,
         mimeType: "application/xml",
-        allowedRootNames: new Set(["annotations", "annotation"]),
+        allowedRootNames: new Set(["annotations", "annotation", "diagram"]),
     });
 }
 
@@ -511,6 +512,7 @@ export default React.memo(function Prefigure({
     const [diagcessReady, setDiagcessReady] = useState(Boolean(diagcessApi()));
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const fetchAbortControllerRef = useRef<AbortController | null>(null);
+    const prefigureContainerRef = useRef<HTMLDivElement | null>(null);
     const requestSequenceRef = useRef(0);
     const hasStartedBuildRef = useRef(false);
 
@@ -644,13 +646,29 @@ export default React.memo(function Prefigure({
 
     useEffect(() => {
         // Call diagcess.Base.init() after content is set
+        const diagcess = diagcessApi();
         if (
             diagcessReady &&
             svgMarkup &&
             hasAnnotationsXml(cmlContent) &&
-            diagcessApi()
+            diagcess
         ) {
-            diagcessApi()?.Base?.init?.();
+            const prefigureContainer = prefigureContainerRef.current;
+            if (prefigureContainer) {
+                for (const child of Array.from(prefigureContainer.children)) {
+                    if (
+                        child instanceof HTMLParagraphElement &&
+                        child.classList.contains("cacc-message")
+                    ) {
+                        child.remove();
+                    }
+                }
+
+                diagcess.Base.molMap = {};
+                setTimeout(() => {
+                    diagcess.Base.init();
+                }, 400);
+            }
         }
     }, [svgMarkup, cmlContent, diagcessReady]);
 
@@ -677,22 +695,24 @@ export default React.memo(function Prefigure({
     };
 
     return (
-        <div id={id} className="ChemAccess-element" style={frameStyle}>
-            {svgMarkup ? (
+        <div id={id} ref={prefigureContainerRef}>
+            <div className="ChemAccess-element" style={frameStyle}>
+                {svgMarkup ? (
+                    <div
+                        className="svg"
+                        style={svgContainerStyle}
+                        dangerouslySetInnerHTML={{ __html: svgMarkup }}
+                    />
+                ) : (
+                    <div className="svg" style={svgMessageStyle}>
+                        {svgMessage}
+                    </div>
+                )}
                 <div
-                    className="svg"
-                    style={svgContainerStyle}
-                    dangerouslySetInnerHTML={{ __html: svgMarkup }}
+                    className="cml"
+                    dangerouslySetInnerHTML={{ __html: cmlContent }}
                 />
-            ) : (
-                <div className="svg" style={svgMessageStyle}>
-                    {svgMessage}
-                </div>
-            )}
-            <div
-                className="cml"
-                dangerouslySetInnerHTML={{ __html: cmlContent }}
-            />
+            </div>
         </div>
     );
 });

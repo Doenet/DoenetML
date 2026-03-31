@@ -122,7 +122,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toMatchInlineSnapshot(
-            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><line id="line-0" endpoints="((1,2),(3,4))" infinite="yes" stroke="#648FFF" thickness="4" fill="#648FFF" stroke-opacity="0.7" fill-opacity="0.3" label-location="0.95" alignment="s">A</line></coordinates></diagram>"`,
+            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><line at="line_0" endpoints="((1,2),(3,4))" infinite="yes" stroke="#648FFF" thickness="4" fill="#648FFF" stroke-opacity="0.7" fill-opacity="0.3" label-location="0.95" alignment="s">A</line></coordinates></diagram>"`,
         );
     });
 
@@ -981,7 +981,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toContain(`<line `);
-        expect(prefigureXML).toContain(`id="ray-0"`);
+        expect(prefigureXML).toContain(`at="ray_0"`);
         expect(prefigureXML).toContain(`endpoints="((0,0),(10,10))"`);
         expect(prefigureXML).toContain(`infinite="no"`);
     });
@@ -993,7 +993,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             }),
         );
 
-        expect(prefigureXML).not.toContain(`id="ray-0"`);
+        expect(prefigureXML).not.toContain(`at="ray_0"`);
     });
 
     it("renderer=prefigure clips rays with off-screen finite endpoints when the ray still crosses the graph", async () => {
@@ -1004,7 +1004,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expect(prefigureXML).toContain(`id="ray-0"`);
+        expect(prefigureXML).toContain(`at="ray_0"`);
         expect(prefigureXML).toContain(`endpoints="((-10,0),(10,0))"`);
         expectLabelLocationNearEnd(prefigureXML);
     });
@@ -1017,7 +1017,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expect(prefigureXML).toContain(`id="ray-0"`);
+        expect(prefigureXML).toContain(`at="ray_0"`);
         expect(prefigureXML).toContain(`endpoints="((0,0),(10,0))"`);
         expectLabelLocationNearStart(prefigureXML);
         expect(prefigureXML).toContain(`alignment="n"`);
@@ -1055,7 +1055,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toMatchInlineSnapshot(
-            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><vector id="vector-0" tail="(0,0)" v="(3,3)" stroke="#648FFF" thickness="4" fill="#648FFF" stroke-opacity="0.7" fill-opacity="0.3" /><label p="(2.85,2.85)" alignment="north">V</label></coordinates></diagram>"`,
+            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /><vector at="vector_0" tail="(0,0)" v="(3,3)" stroke="#648FFF" thickness="4" fill="#648FFF" stroke-opacity="0.7" fill-opacity="0.3" /><label p="(2.85,2.85)" alignment="north">V</label></coordinates></diagram>"`,
         );
     });
 
@@ -1108,17 +1108,17 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toContain(
-            `<circle id="circle-0" center="(1,2)" radius="3"`,
+            `<circle at="circle_0" center="(1,2)" radius="3"`,
         );
         expect(prefigureXML).not.toContain(
-            `<circle id="circle-0" center="(1,2)" radius="3" fill="red"`,
+            `<circle at="circle_0" center="(1,2)" radius="3" fill="red"`,
         );
 
         expect(prefigureXML).toContain(
-            `<circle id="circle-1" center="(4,5)" radius="2"`,
+            `<circle at="circle_1" center="(4,5)" radius="2"`,
         );
         expect(prefigureXML).toContain(
-            `<circle id="circle-1" center="(4,5)" radius="2" stroke=`,
+            `<circle at="circle_1" center="(4,5)" radius="2" stroke=`,
         );
         expect(prefigureXML).toContain(`fill="red"`);
         expect(prefigureXML).toContain(`fill-opacity="0.4"`);

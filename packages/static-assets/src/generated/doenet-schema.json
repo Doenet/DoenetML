@@ -951,6 +951,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -2046,6 +2048,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -2469,6 +2473,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -2892,6 +2898,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -4224,6 +4232,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -26164,6 +26174,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -26713,6 +26725,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -27262,6 +27276,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -27811,6 +27827,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -28360,6 +28378,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -28935,6 +28955,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -29484,6 +29506,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -30040,6 +30064,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -30596,6 +30622,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -31152,6 +31180,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -31708,6 +31738,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -32257,6 +32289,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -32806,6 +32840,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -33355,6 +33391,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -33904,6 +33942,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -34453,6 +34493,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -35002,6 +35044,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -35568,6 +35612,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -36108,6 +36154,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -36896,6 +36944,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -41867,6 +41917,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -42720,6 +42772,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -43143,6 +43197,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -43566,6 +43622,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -43902,6 +43960,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -44258,6 +44318,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -45711,6 +45773,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -48731,6 +48795,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -58958,6 +59024,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -60027,7 +60095,8 @@
                 "triggerSet",
                 "booleanInput",
                 "textInput",
-                "graph"
+                "graph",
+                "annotations"
             ],
             "attributes": [
                 {
@@ -60477,6 +60546,269 @@
                 },
                 {
                     "name": "grid",
+                    "isArray": false
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": false
+        },
+        {
+            "name": "annotations",
+            "children": [
+                "annotation",
+                "conditionalContent"
+            ],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "hide",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "disabled",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixed",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": false
+        },
+        {
+            "name": "annotation",
+            "children": [
+                "annotation",
+                "conditionalContent"
+            ],
+            "attributes": [
+                {
+                    "name": "name"
+                },
+                {
+                    "name": "hide",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "disabled",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixed",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixLocation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "styleNumber"
+                },
+                {
+                    "name": "isResponse",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "extend"
+                },
+                {
+                    "name": "copy"
+                },
+                {
+                    "name": "ref"
+                },
+                {
+                    "name": "text"
+                },
+                {
+                    "name": "speech"
+                },
+                {
+                    "name": "sonify",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "circular",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "text",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "speech",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "sonify",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "circular",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
                     "isArray": false
                 }
             ],
@@ -62209,6 +62541,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -63325,6 +63659,8 @@
                 "booleanInput",
                 "choiceInput",
                 "graph",
+                "annotations",
+                "annotation",
                 "slider",
                 "spreadsheet",
                 "row",
@@ -65238,6 +65574,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -65564,6 +65902,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -67509,6 +67849,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -68514,6 +68856,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -70188,6 +70532,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -71598,6 +71944,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -72669,6 +73017,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -73003,6 +73353,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -73339,6 +73691,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -74630,6 +74984,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -74954,6 +75310,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -75273,6 +75631,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -76612,6 +76972,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -76961,6 +77323,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -78373,6 +78737,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -79588,6 +79954,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -82818,6 +83186,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",
@@ -83721,6 +84091,8 @@
                 "number",
                 "integer",
                 "graph",
+                "annotations",
+                "annotation",
                 "function",
                 "piecewiseFunction",
                 "interval",

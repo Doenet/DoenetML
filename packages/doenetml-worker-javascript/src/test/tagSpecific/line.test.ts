@@ -1720,7 +1720,7 @@ describe("Line tag tests @group3", async () => {
         expect(diagnosticsByType.warnings.length).eq(4);
 
         expect(diagnosticsByType.warnings[0].message).contain(
-            "No referent found for reference: $invalid1",
+            "No referent found for reference: `$invalid1`",
         );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(4);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(21);
@@ -1728,7 +1728,7 @@ describe("Line tag tests @group3", async () => {
         expect(diagnosticsByType.warnings[0].position.end.column).eq(30);
 
         expect(diagnosticsByType.warnings[1].message).contain(
-            "No referent found for reference: $invalid2",
+            "No referent found for reference: `$invalid2`",
         );
         expect(diagnosticsByType.warnings[1].position.start.line).eq(7);
         expect(diagnosticsByType.warnings[1].position.start.column).eq(31);

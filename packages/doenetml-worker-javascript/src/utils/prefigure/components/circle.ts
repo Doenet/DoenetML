@@ -15,5 +15,5 @@ export function convertCircleToPrefigure({
         return null;
     }
 
-    return `<circle id="${escapeXml(handle)}" center="${escapeXml(center)}" radius="${escapeXml(radius)}" ${styleAttrs.join(" ")} />`;
+    return `<circle at="${escapeXml(handle)}" center="${escapeXml(center)}" radius="${escapeXml(radius)}" ${styleAttrs.join(" ")} />`;
 }

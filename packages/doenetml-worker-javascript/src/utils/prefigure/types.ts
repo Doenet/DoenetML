@@ -75,6 +75,33 @@ export interface Descendant {
     [key: string]: unknown;
 }
 
+export interface AnnotationRefResolution {
+    componentIdx?: number;
+    unresolvedPath?: unknown;
+    position?: Position;
+    [key: string]: unknown;
+}
+
+export interface AnnotationNode {
+    componentIdx?: number;
+    componentName?: string;
+    text?: unknown;
+    speech?: unknown;
+    sonify?: unknown;
+    circular?: unknown;
+    hasRefAttribute?: boolean;
+    refResolutions?: AnnotationRefResolution[];
+    children?: AnnotationNode[];
+    [key: string]: unknown;
+}
+
+export interface AnnotationContainerChild extends Descendant {
+    stateValues?: {
+        annotationSubtrees?: AnnotationNode[];
+        [key: string]: unknown;
+    };
+}
+
 export interface ConverterWarningContext {
     diagnostics: DiagnosticRecord[];
     warningPrefix: string;
@@ -112,4 +139,6 @@ export interface GraphDependencyValues extends Record<string, unknown> {
     effectiveRenderer?: unknown;
     haveGraphParent?: unknown;
     allGraphicalDescendants?: Descendant[];
+    allDescendants?: Descendant[];
+    annotationsChildren?: AnnotationContainerChild[];
 }

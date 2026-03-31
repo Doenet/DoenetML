@@ -35,7 +35,7 @@ export function convertPointToPrefigure({
     });
 
     const attrs = [
-        `id="${escapeXml(handle)}"`,
+        `at="${escapeXml(handle)}"`,
         `p="${escapeXml(p)}"`,
         ...pointAttrs,
         ...(pointLabel?.attrs ?? []),

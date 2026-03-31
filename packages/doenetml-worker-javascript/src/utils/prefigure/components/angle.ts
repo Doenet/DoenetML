@@ -147,7 +147,7 @@ export function convertAngleToPrefigure({
         includeFill: true,
     });
 
-    const arcXml = `<arc id="${escapeXml(`${handle}-arc`)}" points="${escapeXml(pointsText)}" radius="${escapeXml(radius)}" sector="yes" ${sectorStyleAttrs.join(" ")} />`;
+    const arcXml = `<arc at="${escapeXml(`${handle}-arc`)}" points="${escapeXml(pointsText)}" radius="${escapeXml(radius)}" sector="yes" ${sectorStyleAttrs.join(" ")} />`;
 
     const label = labelMarkup({
         label: sv.label,

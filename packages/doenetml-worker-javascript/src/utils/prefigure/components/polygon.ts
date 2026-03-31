@@ -1,7 +1,7 @@
 import { escapeXml, formatPoint } from "../common";
 import type { StyledConverterArgs } from "../types";
 
-function serializedVertices(vertices: unknown): string[] {
+function prefigurePointsFromVertices(vertices: unknown): string[] {
     if (!Array.isArray(vertices)) {
         return [];
     }
@@ -22,7 +22,7 @@ function polygonElement({
     closed: "yes" | "no";
     styleAttrs: string[];
 }): string {
-    return `<polygon id="${escapeXml(handle)}" points="${escapeXml(`(${points.join(",")})`)}" closed="${closed}" ${styleAttrs.join(" ")} />`;
+    return `<polygon at="${escapeXml(handle)}" points="${escapeXml(`(${points.join(",")})`)}" closed="${closed}" ${styleAttrs.join(" ")} />`;
 }
 
 /**
@@ -33,7 +33,7 @@ export function convertPolylineToPrefigure({
     handle,
     styleAttrs,
 }: StyledConverterArgs): string | null {
-    const points = serializedVertices(sv.numericalVertices);
+    const points = prefigurePointsFromVertices(sv.numericalVertices);
     if (points.length < 2) {
         return null;
     }
@@ -49,7 +49,7 @@ export function convertPolygonToPrefigure({
     handle,
     styleAttrs,
 }: StyledConverterArgs): string | null {
-    const points = serializedVertices(sv.numericalVertices);
+    const points = prefigurePointsFromVertices(sv.numericalVertices);
     if (points.length < 3) {
         return null;
     }

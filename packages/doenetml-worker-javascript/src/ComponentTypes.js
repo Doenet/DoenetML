@@ -70,6 +70,8 @@ import Choice from "./components/Choice";
 import NumberComponent from "./components/Number";
 import Integer from "./components/Integer";
 import Graph from "./components/Graph";
+import Annotations from "./components/Annotations";
+import Annotation from "./components/Annotation";
 import Function from "./components/Function";
 import PiecewiseFunction from "./components/PiecewiseFunction";
 import Interval from "./components/Interval";
@@ -268,6 +270,8 @@ const componentTypeArray = [
     NumberComponent,
     Integer,
     Graph,
+    Annotations,
+    Annotation,
     Function,
     PiecewiseFunction,
     Interval,

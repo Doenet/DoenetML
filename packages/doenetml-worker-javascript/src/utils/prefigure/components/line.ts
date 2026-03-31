@@ -12,7 +12,7 @@ import {
 import type { GraphBounds, Point, StyledConverterArgs } from "../types";
 
 /**
- * Serializes one PreFigure `<line>` XML element.
+ * Builds one PreFigure `<line>` XML element.
  *
  * `labelAttrs` are forwarded from label helpers (for example `label-location`
  * and `alignment`).
@@ -37,7 +37,7 @@ function lineElement({
     label: string | null;
 }): string {
     const attrs = [
-        `id="${escapeXml(handle)}"`,
+        `at="${escapeXml(handle)}"`,
         `endpoints="${escapeXml(`(${p1},${p2})`)}"`,
         `infinite="${infinite}"`,
         ...styleAttrs,

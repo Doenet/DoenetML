@@ -140,7 +140,7 @@ export function convertGraphicalDescendantToPrefigure({
     diagnostics,
     graphBounds,
     graphDimensions,
-}: ConvertGraphicalDescendantArgs): string | null {
+}: ConvertGraphicalDescendantArgs): { xml: string; handle: string } | null {
     const sv: PrefigureStateValues = {
         ...(descendant?.stateValues ?? {}),
         graphBounds,
@@ -185,5 +185,8 @@ export function convertGraphicalDescendantToPrefigure({
         return null;
     }
 
-    return body;
+    return {
+        xml: body,
+        handle,
+    };
 }
