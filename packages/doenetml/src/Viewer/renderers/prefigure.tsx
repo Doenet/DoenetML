@@ -9,6 +9,7 @@ import {
 
 const PREFIGURE_BUILD_DEBOUNCE_COLD_MS = 1000;
 const PREFIGURE_BUILD_DEBOUNCE_WARM_MS = 40;
+const DIAGCESS_REINIT_DELAY_MS = 400;
 
 type PrefigureModule = typeof import("@doenet/prefigure");
 
@@ -254,7 +255,7 @@ function hasAnnotationsXml(value: string): boolean {
         return false;
     }
 
-    return /<annotations?\b|<annotation\b/i.test(trimmed);
+    return /<diagram\b/i.test(trimmed);
 }
 
 const FORBIDDEN_MARKUP_TAGS = new Set([
@@ -512,6 +513,7 @@ export default React.memo(function Prefigure({
     const [diagcessReady, setDiagcessReady] = useState(Boolean(diagcessApi()));
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const fetchAbortControllerRef = useRef<AbortController | null>(null);
+    const diagcessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const prefigureContainerRef = useRef<HTMLDivElement | null>(null);
     const requestSequenceRef = useRef(0);
     const hasStartedBuildRef = useRef(false);
@@ -664,12 +666,27 @@ export default React.memo(function Prefigure({
                     }
                 }
 
+                // diagcess mutates molMap during init, so clear any stale
+                // entries before re-running it against newly inserted markup.
                 diagcess.Base.molMap = {};
-                setTimeout(() => {
+                if (diagcessTimerRef.current) {
+                    clearTimeout(diagcessTimerRef.current);
+                }
+                // Wait briefly for the sanitized SVG/CML markup to be present
+                // in the live DOM before diagcess scans and annotates it.
+                diagcessTimerRef.current = setTimeout(() => {
+                    diagcessTimerRef.current = null;
                     diagcess.Base.init();
-                }, 400);
+                }, DIAGCESS_REINIT_DELAY_MS);
             }
         }
+
+        return () => {
+            if (diagcessTimerRef.current) {
+                clearTimeout(diagcessTimerRef.current);
+                diagcessTimerRef.current = null;
+            }
+        };
     }, [svgMarkup, cmlContent, diagcessReady]);
 
     const frameStyle: React.CSSProperties = {

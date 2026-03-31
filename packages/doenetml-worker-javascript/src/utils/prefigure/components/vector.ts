@@ -1,10 +1,15 @@
-import { escapeXml, formatNumber, formatPoint } from "../common";
+import {
+    escapeXml,
+    extractFinitePointPair,
+    formatNumber,
+    formatPoint,
+} from "../common";
 import {
     getLabelForLine,
     lineLabelLocationValue,
     orientEndpointsForLineLabel,
 } from "../label";
-import type { Point, StyledConverterArgs } from "../types";
+import type { ConverterArgs, Point } from "../types";
 
 /**
  * Converts a vector (tail/head endpoints) to a PreFigure `<vector>` element.
@@ -24,23 +29,12 @@ export function convertVectorToPrefigure({
     diagnostics,
     warningPrefix,
     warningPosition,
-}: StyledConverterArgs): string | null {
-    const endpoints = Array.isArray(sv.numericalEndpoints)
-        ? sv.numericalEndpoints
-        : null;
-    const tailRaw = endpoints?.[0];
-    const headRaw = endpoints?.[1];
-    if (!Array.isArray(tailRaw) || !Array.isArray(headRaw)) {
+}: ConverterArgs): string | null {
+    const endpoints = extractFinitePointPair(sv.numericalEndpoints);
+    if (!endpoints) {
         return null;
     }
-    if (tailRaw.length < 2 || headRaw.length < 2) {
-        return null;
-    }
-    const tail: Point = [Number(tailRaw[0]), Number(tailRaw[1])];
-    const head: Point = [Number(headRaw[0]), Number(headRaw[1])];
-    if ([...tail, ...head].some((x) => !Number.isFinite(x))) {
-        return null;
-    }
+    const [tail, head] = endpoints;
     const tailText = formatPoint(tail);
     if (tailText === null) {
         return null;
@@ -88,6 +82,8 @@ export function convertVectorToPrefigure({
         return vectorXml;
     }
 
+    // TODO: Map vector labelPosition to PreFigure label alignment once we have
+    // parity requirements for vector-native label placement.
     const labelXml = `<label p="${escapeXml(anchorText)}" alignment="north">${label}</label>`;
 
     return `${vectorXml}${labelXml}`;

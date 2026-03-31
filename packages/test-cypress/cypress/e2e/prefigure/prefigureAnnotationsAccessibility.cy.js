@@ -21,9 +21,8 @@ describe(
                             init() {
                                 win.__diagcessInitCount += 1;
 
-                                const container = win.document.querySelector(
-                                    "#prefig",
-                                );
+                                const container =
+                                    win.document.querySelector("#prefig");
                                 if (!container) {
                                     return;
                                 }
@@ -79,8 +78,12 @@ describe(
                 expect(requestBodies[0]).to.include(`text="point summary"`);
             });
 
-            cy.get(cesc("#prefig")).find(".svg").should("contain.text", "svg-1");
-            cy.get(cesc("#prefig")).find(".cml").should("contain.text", "safe-cml-1");
+            cy.get(cesc("#prefig"))
+                .find(".svg")
+                .should("contain.text", "svg-1");
+            cy.get(cesc("#prefig"))
+                .find(".cml")
+                .should("contain.text", "safe-cml-1");
             cy.get(cesc("#prefig"))
                 .find(".cml [onclick], .cml [style]")
                 .should("not.exist");
@@ -107,8 +110,12 @@ describe(
                 expect(requestBodies[1]).to.include(`text="point summary"`);
             });
 
-            cy.get(cesc("#prefig")).find(".svg").should("contain.text", "svg-2");
-            cy.get(cesc("#prefig")).find(".cml").should("contain.text", "safe-cml-2");
+            cy.get(cesc("#prefig"))
+                .find(".svg")
+                .should("contain.text", "svg-2");
+            cy.get(cesc("#prefig"))
+                .find(".cml")
+                .should("contain.text", "safe-cml-2");
             cy.get(cesc("#prefig"))
                 .find(".cml [onclick], .cml [style]")
                 .should("not.exist");

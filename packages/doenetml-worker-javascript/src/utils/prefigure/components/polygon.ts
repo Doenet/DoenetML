@@ -1,5 +1,5 @@
 import { escapeXml, formatPoint } from "../common";
-import type { StyledConverterArgs } from "../types";
+import type { ConverterArgs } from "../types";
 
 function prefigurePointsFromVertices(vertices: unknown): string[] {
     if (!Array.isArray(vertices)) {
@@ -32,7 +32,7 @@ export function convertPolylineToPrefigure({
     sv,
     handle,
     styleAttrs,
-}: StyledConverterArgs): string | null {
+}: ConverterArgs): string | null {
     const points = prefigurePointsFromVertices(sv.numericalVertices);
     if (points.length < 2) {
         return null;
@@ -48,7 +48,7 @@ export function convertPolygonToPrefigure({
     sv,
     handle,
     styleAttrs,
-}: StyledConverterArgs): string | null {
+}: ConverterArgs): string | null {
     const points = prefigurePointsFromVertices(sv.numericalVertices);
     if (points.length < 3) {
         return null;

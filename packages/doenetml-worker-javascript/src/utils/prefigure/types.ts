@@ -72,33 +72,31 @@ export interface Descendant {
     componentIdx?: number;
     position?: Position;
     stateValues?: Record<string, unknown>;
-    [key: string]: unknown;
 }
 
 export interface AnnotationRefResolution {
     componentIdx?: number;
     unresolvedPath?: unknown;
     position?: Position;
-    [key: string]: unknown;
 }
 
+// Produced by the JS worker-side Annotation component before being consumed by
+// the TS prefigure conversion pipeline.
 export interface AnnotationNode {
     componentIdx?: number;
     componentName?: string;
-    text?: unknown;
-    speech?: unknown;
-    sonify?: unknown;
-    circular?: unknown;
+    text?: string;
+    speech?: string;
+    sonify?: boolean;
+    circular?: boolean;
     hasRefAttribute?: boolean;
     refResolutions?: AnnotationRefResolution[];
     children?: AnnotationNode[];
-    [key: string]: unknown;
 }
 
 export interface AnnotationContainerChild extends Descendant {
     stateValues?: {
         annotationSubtrees?: AnnotationNode[];
-        [key: string]: unknown;
     };
 }
 
@@ -108,18 +106,13 @@ export interface ConverterWarningContext {
     warningPosition?: Position;
 }
 
-export interface ConverterBaseArgs extends ConverterWarningContext {
+export interface ConverterArgs extends ConverterWarningContext {
     sv: PrefigureStateValues;
     handle: string;
-}
-
-export interface StyledConverterArgs extends ConverterBaseArgs {
     styleAttrs: string[];
 }
 
-export type WarningOnlyConverter = (args: ConverterBaseArgs) => string | null;
-
-export type StyledConverter = (args: StyledConverterArgs) => string | null;
+export type Converter = (args: ConverterArgs) => string | null;
 
 export interface GraphDependencyValues extends Record<string, unknown> {
     xMin?: unknown;

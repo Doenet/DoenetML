@@ -53,6 +53,42 @@ export function formatPoint(point: unknown): string | null {
     return `(${x},${y})`;
 }
 
+/**
+ * Converts a 2D point-like value to a finite numeric point tuple.
+ */
+export function extractFinitePoint(point: unknown): Point | null {
+    if (!Array.isArray(point) || point.length < 2) {
+        return null;
+    }
+
+    const x = asFiniteNumber(point[0]);
+    const y = asFiniteNumber(point[1]);
+
+    if (x === null || y === null) {
+        return null;
+    }
+
+    return [x, y];
+}
+
+/**
+ * Converts a pair of point-like values into finite numeric point tuples.
+ */
+export function extractFinitePointPair(points: unknown): [Point, Point] | null {
+    if (!Array.isArray(points) || points.length < 2) {
+        return null;
+    }
+
+    const point1 = extractFinitePoint(points[0]);
+    const point2 = extractFinitePoint(points[1]);
+
+    if (point1 === null || point2 === null) {
+        return null;
+    }
+
+    return [point1, point2];
+}
+
 function sanitizeHandle(value: unknown): string {
     return String(value)
         .toLowerCase()

@@ -118,6 +118,8 @@ function pushAnnotationWarning({
     message: string;
     annotation: AnnotationNode;
 }) {
+    // TODO: populate annotation node positions so non-ref warnings can point
+    // to the authored <annotation> node instead of falling back to ref data.
     const warning: DiagnosticRecord = {
         type: "warning",
         message,

@@ -1,7 +1,6 @@
 import { createPrefigureXML } from "./graph";
 import { sortDescendantsByOrder } from "./common";
 import type { Descendant, GraphDependencyValues } from "./types";
-import { DiagnosticRecord } from "@doenet/utils";
 
 interface DescendantDependency {
     dependencyType: "descendant";
@@ -278,7 +277,8 @@ export function returnGraphPrefigureXMLStateVariableDefinition() {
             dependencyValues: GraphDependencyValues;
             componentIdx: number;
         }) {
-            // If not rendering with PreFigure and have annotations, warn that annotations won't be rendered.
+            // If not rendering with PreFigure and have annotations, emit an
+            // info diagnostic that annotations won't be rendered.
             if (dependencyValues.effectiveRenderer !== "prefigure") {
                 const diagnostics = [];
                 if (
@@ -325,20 +325,6 @@ export function returnGraphPrefigureXMLStateVariableDefinition() {
                     dependencyValues.annotationsChildren.length - 1
                 ];
 
-            // If have more than one annotations child, warn that only the last one will be rendered.
-            const diagnosticsMultipleAnnotations: DiagnosticRecord[] = [];
-            if (
-                dependencyValues.annotationsChildren &&
-                dependencyValues.annotationsChildren.length > 1
-            ) {
-                diagnosticsMultipleAnnotations.push({
-                    type: "info",
-                    message:
-                        "Multiple `<annotations>` children found in `<graph>`; only the last one will be rendered.",
-                    position: selectedAnnotationsChild?.position,
-                });
-            }
-
             const annotations =
                 selectedAnnotationsChild?.stateValues?.annotationSubtrees ??
                 null;
@@ -351,7 +337,22 @@ export function returnGraphPrefigureXMLStateVariableDefinition() {
                 graphComponentIdx: componentIdx,
             });
 
-            diagnostics.push(...diagnosticsMultipleAnnotations);
+            if (
+                dependencyValues.annotationsChildren &&
+                dependencyValues.annotationsChildren.length > 1
+            ) {
+                const secondToLastAnnotationsChild =
+                    dependencyValues.annotationsChildren[
+                        dependencyValues.annotationsChildren.length - 2
+                    ];
+
+                diagnostics.push({
+                    type: "info",
+                    message:
+                        "Multiple `<annotations>` children found in `<graph>`; all but the last one are ignored.",
+                    position: secondToLastAnnotationsChild?.position,
+                });
+            }
 
             return {
                 setValue: { prefigureXML: xml },
