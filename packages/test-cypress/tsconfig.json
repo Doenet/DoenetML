@@ -2,7 +2,7 @@
     "extends": "../../tsconfig.build.json",
     "compilerOptions": {
         "outDir": "./dist/",
-        "rootDir": "./src",
+        "rootDir": ".",
         "types": ["cypress", "cypress-axe"]
     },
     "include": ["./**/*.ts", "./**/*.tsx", "./**/*.js", "./**/*.jsx"],

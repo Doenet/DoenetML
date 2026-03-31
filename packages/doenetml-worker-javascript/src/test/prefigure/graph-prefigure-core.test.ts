@@ -398,7 +398,7 @@ describe("Graph prefigure renderer core @group4", () => {
 
         expect(
             diagnosticsByType.infos.some((x) =>
-                x.message.includes("only the last one will be rendered"),
+                x.message.includes("all but the last one are ignored"),
             ),
         ).eq(true);
     });

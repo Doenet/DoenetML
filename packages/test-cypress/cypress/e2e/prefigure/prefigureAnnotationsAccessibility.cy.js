@@ -47,7 +47,7 @@ describe(
                     headers: { "content-type": "application/json" },
                     body: {
                         svg: `<svg xmlns="http://www.w3.org/2000/svg"><text>svg-${requestNumber}</text></svg>`,
-                        annotationsXml: `<?xml version="1.0"?><annotations onclick="alert('xss')"><annotation style="color:red" onclick="alert('bad')">safe-cml-${requestNumber}</annotation></annotations>`,
+                        annotationsXml: `<?xml version="1.0"?><diagram onclick="alert('xss')"><annotation style="color:red" onclick="alert('bad')">safe-cml-${requestNumber}</annotation></diagram>`,
                     },
                 });
             }).as("prefigureBuild");
