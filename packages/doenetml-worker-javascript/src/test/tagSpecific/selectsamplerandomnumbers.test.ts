@@ -18,9 +18,9 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         name,
         numSamplesPerComponent,
         numRepetitions,
-        minValue,
+        from,
         strictMin = true,
-        maxValue,
+        to,
         strictMax = true,
         validValues,
         allowedMeanMid,
@@ -34,9 +34,9 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         name: string;
         numSamplesPerComponent: number;
         numRepetitions: number;
-        minValue?: number;
+        from?: number;
         strictMin?: boolean;
-        maxValue?: number;
+        to?: number;
         strictMax?: boolean;
         validValues?: number[];
         allowedMeanMid?: number;
@@ -129,22 +129,22 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             }
         }
 
-        if (minValue !== undefined) {
+        if (from !== undefined) {
             for (let sample of samples) {
                 if (strictMin) {
-                    expect(sample).gt(minValue);
+                    expect(sample).gt(from);
                 } else {
-                    expect(sample).gte(minValue);
+                    expect(sample).gte(from);
                 }
             }
         }
 
-        if (maxValue !== undefined) {
+        if (to !== undefined) {
             for (let sample of samples) {
                 if (strictMax) {
-                    expect(sample).lt(maxValue);
+                    expect(sample).lt(to);
                 } else {
-                    expect(sample).lte(maxValue);
+                    expect(sample).lte(to);
                 }
             }
         }
@@ -181,9 +181,9 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 name: "s",
                 numSamplesPerComponent: 1,
                 numRepetitions: 10,
-                minValue: 0,
+                from: 0,
                 strictMin: true,
-                maxValue: 1,
+                to: 1,
                 strictMax: false,
                 allowedMeanMid: 0.5,
                 allowedMeanSpread: 0.05,
@@ -207,9 +207,9 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 name: "s",
                 numSamplesPerComponent: 5,
                 numRepetitions: 10,
-                minValue: 0,
+                from: 0,
                 strictMin: true,
-                maxValue: 8,
+                to: 8,
                 strictMax: false,
                 allowedMeanMid: 4,
                 allowedMeanSpread: 0.5,
@@ -233,9 +233,9 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 name: "s",
                 numSamplesPerComponent: 5,
                 numRepetitions: 10,
-                minValue: -5,
+                from: -5,
                 strictMin: true,
-                maxValue: -4,
+                to: -4,
                 strictMax: false,
                 allowedMeanMid: -4.5,
                 allowedMeanSpread: 0.05,
@@ -259,9 +259,9 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 name: "s",
                 numSamplesPerComponent: 10,
                 numRepetitions: 5,
-                minValue: -4,
+                from: -4,
                 strictMin: true,
-                maxValue: -2,
+                to: -2,
                 strictMax: false,
                 allowedMeanMid: -3,
                 allowedMeanSpread: 0.5,
@@ -285,9 +285,9 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 name: "s",
                 numSamplesPerComponent: 10,
                 numRepetitions: 5,
-                minValue: -4,
+                from: -4,
                 strictMin: true,
-                maxValue: -2,
+                to: -2,
                 strictMax: false,
                 allowedMeanMid: -3,
                 allowedMeanSpread: 0.5,

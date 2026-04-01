@@ -150,6 +150,35 @@ describe("Warning Tests @group4", async () => {
         ).eq(true);
     });
 
+    it("Deprecated samplePrimeNumbers attributes", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<samplePrimeNumbers minValue="10" maxValue="50" />
+            `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(2);
+
+        expect(
+            diagnosticsByType.warnings.some((warning) =>
+                warning.message.includes(
+                    "Attribute `minValue` on `<samplePrimeNumbers>` is deprecated; use `from` instead.",
+                ),
+            ),
+        ).eq(true);
+
+        expect(
+            diagnosticsByType.warnings.some((warning) =>
+                warning.message.includes(
+                    "Attribute `maxValue` on `<samplePrimeNumbers>` is deprecated; use `to` instead.",
+                ),
+            ),
+        ).eq(true);
+    });
+
     it("From state variable definitions", async () => {
         let { core } = await createTestCore({
             doenetML: `

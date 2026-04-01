@@ -48,6 +48,22 @@ const DEPRECATION_REGISTRY: DeprecationRegistry = {
                     "[deprecation] Attribute `maxValue` on `<selectPrimeNumbers>` is deprecated and ignored because `to` is also specified.",
             },
         },
+        samplePrimeNumbers: {
+            minValue: {
+                to: "from",
+                warningMessage:
+                    "[deprecation] Attribute `minValue` on `<samplePrimeNumbers>` is deprecated; use `from` instead.",
+                conflictWarningMessage:
+                    "[deprecation] Attribute `minValue` on `<samplePrimeNumbers>` is deprecated and ignored because `from` is also specified.",
+            },
+            maxValue: {
+                to: "to",
+                warningMessage:
+                    "[deprecation] Attribute `maxValue` on `<samplePrimeNumbers>` is deprecated; use `to` instead.",
+                conflictWarningMessage:
+                    "[deprecation] Attribute `maxValue` on `<samplePrimeNumbers>` is deprecated and ignored because `to` is also specified.",
+            },
+        },
     },
     componentRenames: {},
 };
