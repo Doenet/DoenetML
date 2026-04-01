@@ -1832,7 +1832,7 @@ describe("Function tag tests @group4", async () => {
         expect(diagnosticsByType.warnings.length).eq(2);
 
         expect(diagnosticsByType.warnings[0].message).contain(
-            `Invalid value of a variable: cos(x)`,
+            `Invalid value of a variable: \`cos(x)\``,
         );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(3);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(15);
@@ -1840,7 +1840,7 @@ describe("Function tag tests @group4", async () => {
         expect(diagnosticsByType.warnings[0].position.end.column).eq(32);
 
         expect(diagnosticsByType.warnings[1].message).contain(
-            `Invalid value of a variable: sin(x)`,
+            `Invalid value of a variable: \`sin(x)\``,
         );
         expect(diagnosticsByType.warnings[1].position.start.line).eq(2);
         expect(diagnosticsByType.warnings[1].position.start.column).eq(15);

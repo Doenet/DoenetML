@@ -154,6 +154,8 @@
         "number",
         "integer",
         "graph",
+        "annotations",
+        "annotation",
         "function",
         "piecewiseFunction",
         "interval",
@@ -2104,6 +2106,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -4295,6 +4303,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -5198,6 +5212,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -6099,6 +6119,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -8403,6 +8429,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -41472,6 +41504,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -42517,6 +42555,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -43566,6 +43610,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -44611,6 +44661,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -45681,6 +45737,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -46731,6 +46793,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -47787,6 +47855,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -48839,6 +48913,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -49895,6 +49975,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -50949,6 +51035,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -51994,6 +52086,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -53043,6 +53141,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -54088,6 +54192,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -55137,6 +55247,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -56184,6 +56300,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -57229,6 +57351,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -58298,6 +58426,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -59344,6 +59478,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -60383,6 +60523,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -61637,6 +61783,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -68584,6 +68736,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -70337,6 +70495,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -71240,6 +71404,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -72084,6 +72254,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -72886,6 +73062,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -73716,6 +73898,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -76563,6 +76751,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -81813,6 +82007,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -96247,6 +96447,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -98373,6 +98579,9 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
                 }
             ],
             "textChildrenAllowed": false,
@@ -98609,6 +98818,310 @@
                 },
                 {
                     "name": "grid",
+                    "isArray": false
+                }
+            ]
+        },
+        "annotations": {
+            "type": "element",
+            "name": "annotations",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                }
+            },
+            "children": [
+                {
+                    "ref": "annotation"
+                },
+                {
+                    "ref": "conditionalContent"
+                }
+            ],
+            "textChildrenAllowed": false,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false
+                }
+            ]
+        },
+        "annotation": {
+            "type": "element",
+            "name": "annotation",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "ref": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "text": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "speech": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "sonify": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "circular": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                }
+            },
+            "children": [
+                {
+                    "ref": "annotation"
+                },
+                {
+                    "ref": "conditionalContent"
+                }
+            ],
+            "textChildrenAllowed": false,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "text",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "speech",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "sonify",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "circular",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
                     "isArray": false
                 }
             ]
@@ -101203,6 +101716,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -103157,6 +103676,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "slider"
@@ -106587,6 +107112,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -107420,6 +107951,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -110563,6 +111100,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -112447,6 +112990,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -114875,6 +115424,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -116822,6 +117377,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -118785,6 +119346,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -119582,6 +120149,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -120393,6 +120966,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -122347,6 +122926,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -123124,6 +123709,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -123917,6 +124508,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -126681,6 +127278,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -127486,6 +128089,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -129804,6 +130413,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -131670,6 +132285,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"
@@ -136553,6 +137174,12 @@
                     "ref": "graph"
                 },
                 {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
                     "ref": "function"
                 },
                 {
@@ -138319,6 +138946,12 @@
                 },
                 {
                     "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
                 },
                 {
                     "ref": "function"

@@ -853,7 +853,7 @@ export function expandAttribute({
                     if (!attrDef.allowStrings) {
                         diagnostics.push({
                             type: "warning",
-                            message: `Invalid value "${child.trim()}" for attribute ${attribute.name}. Attribute must be composed of references that begin with a $.`,
+                            message: `Invalid value \`${child.trim()}\` for attribute \`${attribute.name}\`. Attribute must be composed of references that begin with a \`$\`.`,
                             position: attribute.position,
                             sourceDoc: attribute.sourceDoc,
                         });

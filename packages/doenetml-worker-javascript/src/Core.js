@@ -13744,7 +13744,7 @@ function validateAttributeValue({ value, attributeSpecification, attribute }) {
                 }
             }
             diagnostics.push({
-                message: `Invalid value ${valueOrig} for attribute ${attribute}, using value ${defaultValue}`,
+                message: `Invalid value \`${valueOrig}\` for attribute \`${attribute}\`, using value \`${defaultValue}\``,
                 type: "info",
             });
             value = defaultValue;

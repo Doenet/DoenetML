@@ -940,7 +940,7 @@ describe("odeSystem Tag Tests @group4", async () => {
         expect(diagnosticsByType.warnings.length).eq(4);
 
         expect(diagnosticsByType.warnings[0].message).contain(
-            `Invalid value of a variable: sin(x)`,
+            `Invalid value of a variable: \`sin(x)\``,
         );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(6);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(26);
@@ -956,7 +956,7 @@ describe("odeSystem Tag Tests @group4", async () => {
         expect(diagnosticsByType.warnings[1].position.end.column).eq(25);
 
         expect(diagnosticsByType.warnings[2].message).contain(
-            `Invalid value of a variable: sin(y)`,
+            `Invalid value of a variable: \`sin(y)\``,
         );
         expect(diagnosticsByType.warnings[2].position.start.line).eq(10);
         expect(diagnosticsByType.warnings[2].position.start.column).eq(12);

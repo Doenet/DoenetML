@@ -256,20 +256,48 @@ export function returnGraphPrefigureXMLStateVariableDefinition() {
         returnDependencies: () => ({
             ...prefigureBaseDependencies(),
             ...prefigureDescendantDependencies(),
+            annotationsChildren: {
+                dependencyType: "child",
+                childGroups: ["annotations"],
+                variableNames: ["annotationSubtrees"],
+            },
             allGraphicalDescendants: {
                 dependencyType: "descendant",
                 componentTypes: ["_graphical"],
             },
+            allDescendants: {
+                dependencyType: "descendant",
+                componentTypes: ["_base"],
+            },
         }),
         definition({
             dependencyValues,
+            componentIdx,
         }: {
             dependencyValues: GraphDependencyValues;
+            componentIdx: number;
         }) {
-            if (
-                dependencyValues.effectiveRenderer !== "prefigure" ||
-                dependencyValues.haveGraphParent
-            ) {
+            // If not rendering with PreFigure and have annotations, emit an
+            // info diagnostic that annotations won't be rendered.
+            if (dependencyValues.effectiveRenderer !== "prefigure") {
+                const diagnostics = [];
+                if (
+                    dependencyValues.annotationsChildren &&
+                    dependencyValues.annotationsChildren.length > 0
+                ) {
+                    diagnostics.push({
+                        type: "info",
+                        message:
+                            "`<graph>`: annotations will not be rendered when not using the PreFigure renderer.",
+                    });
+                }
+                return {
+                    setValue: { prefigureXML: null },
+                    sendDiagnostics: diagnostics,
+                };
+            }
+
+            if (dependencyValues.haveGraphParent) {
                 return { setValue: { prefigureXML: null } };
             }
 
@@ -292,11 +320,39 @@ export function returnGraphPrefigureXMLStateVariableDefinition() {
 
             unsupported.sort(sortDescendantsByOrder);
 
+            const selectedAnnotationsChild =
+                dependencyValues.annotationsChildren?.[
+                    dependencyValues.annotationsChildren.length - 1
+                ];
+
+            const annotations =
+                selectedAnnotationsChild?.stateValues?.annotationSubtrees ??
+                null;
+
             const { xml, diagnostics } = createPrefigureXML({
                 dependencyValues,
                 descendants,
                 unsupported,
+                annotations,
+                graphComponentIdx: componentIdx,
             });
+
+            if (
+                dependencyValues.annotationsChildren &&
+                dependencyValues.annotationsChildren.length > 1
+            ) {
+                const secondToLastAnnotationsChild =
+                    dependencyValues.annotationsChildren[
+                        dependencyValues.annotationsChildren.length - 2
+                    ];
+
+                diagnostics.push({
+                    type: "info",
+                    message:
+                        "Multiple `<annotations>` children found in `<graph>`; all but the last one are ignored.",
+                    position: secondToLastAnnotationsChild?.position,
+                });
+            }
 
             return {
                 setValue: { prefigureXML: xml },

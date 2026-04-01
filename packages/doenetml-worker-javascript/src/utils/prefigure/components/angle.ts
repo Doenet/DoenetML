@@ -1,7 +1,7 @@
 import { escapeXml, formatNumber, formatPoint } from "../common";
 import { labelMarkup } from "../label";
 import { styleAttributes } from "../style";
-import type { ConverterBaseArgs, Point } from "../types";
+import type { ConverterArgs, Point } from "../types";
 
 function anglePointsFromStateValues(
     sv: Record<string, unknown>,
@@ -96,7 +96,7 @@ export function convertAngleToPrefigure({
     diagnostics,
     warningPrefix,
     warningPosition,
-}: ConverterBaseArgs): string | null {
+}: ConverterArgs): string | null {
     const points = anglePointsFromStateValues(sv);
     if (!points) {
         return null;
@@ -147,7 +147,7 @@ export function convertAngleToPrefigure({
         includeFill: true,
     });
 
-    const arcXml = `<arc id="${escapeXml(`${handle}-arc`)}" points="${escapeXml(pointsText)}" radius="${escapeXml(radius)}" sector="yes" ${sectorStyleAttrs.join(" ")} />`;
+    const arcXml = `<arc at="${escapeXml(`${handle}-arc`)}" points="${escapeXml(pointsText)}" radius="${escapeXml(radius)}" sector="yes" ${sectorStyleAttrs.join(" ")} />`;
 
     const label = labelMarkup({
         label: sv.label,

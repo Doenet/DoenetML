@@ -6,6 +6,7 @@ import {
     getPrefigureXML,
     getWarnings,
 } from "./graph-prefigure.helpers";
+import { nextAvailableConceptualAnnotationRef } from "../../utils/prefigure/annotations";
 import {
     prefigureGraph,
     withStyleDefinitions,
@@ -228,8 +229,8 @@ describe("Graph prefigure renderer core @group4", () => {
         );
 
         expect(prefigureXML).toContain(`<point `);
-        expect(prefigureXML).toContain(`id="endpoint-`);
-        expect(prefigureXML).toContain(`id="equilibriumpoint-`);
+        expect(prefigureXML).toContain(`at="endpoint_`);
+        expect(prefigureXML).toContain(`at="equilibriumpoint_`);
         expect(prefigureXML).toContain(`p="(1,2)"`);
         expect(prefigureXML).toContain(`p="(3,4)"`);
     });
@@ -341,5 +342,256 @@ describe("Graph prefigure renderer core @group4", () => {
         expect(inner.renderer).eq("doenet");
         expect(inner.effectiveRenderer).eq("prefigure");
         expect(inner.prefigureXML).eq(null);
+    });
+
+    it("emits authored annotations block for graph annotations child", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<point name="p">(1,2)</point>\n  <annotations><annotation ref="$p" text="point summary" /></annotations>',
+            ),
+        );
+
+        const pointHandleMatch = prefigureXML.match(/<point at="([^"]+)"/);
+        expect(pointHandleMatch).toBeTruthy();
+
+        const pointHandle = pointHandleMatch?.[1];
+        expect(prefigureXML).toContain(`<annotations>`);
+        expect(prefigureXML).toContain(
+            `<annotation ref="${pointHandle}" text="point summary"></annotation>`,
+        );
+    });
+
+    it("serializes speech, sonify, and circular annotation attributes", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<point name="p">(1,2)</point>\n  <annotations><annotation text="group" circular><annotation ref="$p" text="point summary" speech="detailed speech" sonify /></annotation></annotations>',
+            ),
+        );
+
+        const pointHandleMatch = prefigureXML.match(/<point at="([^"]+)"/);
+        expect(pointHandleMatch).toBeTruthy();
+
+        const pointHandle = pointHandleMatch?.[1];
+        expect(prefigureXML).toContain(
+            `<annotation ref="annotation_1" text="group" circular="yes">`,
+        );
+        expect(prefigureXML).toContain(
+            `<annotation ref="${pointHandle}" text="point summary" speech="detailed speech" sonify="yes"></annotation>`,
+        );
+    });
+
+    it("uses only the last annotations child under graph", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<annotations><annotation ref="$g" text="first" /></annotations>\n  <annotations><annotation ref="$g" text="second" /></annotations>',
+            ),
+        );
+
+        expect(prefigureXML).toContain(`text="second"`);
+        expect(prefigureXML).not.toContain(`text="first"`);
+
+        const diagnosticsByType = await getWarnings(
+            prefigureGraph(
+                '<annotations><annotation ref="$g" text="first" /></annotations>\n  <annotations><annotation ref="$g" text="second" /></annotations>',
+            ),
+        );
+
+        expect(
+            diagnosticsByType.infos.some((x) =>
+                x.message.includes("all but the last one are ignored"),
+            ),
+        ).eq(true);
+    });
+
+    it("preserves nested annotation order", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<point name="p1">(1,2)</point>\n  <point name="p2">(3,4)</point>\n  <annotations><annotation ref="$g" text="root"><annotation ref="$p1" text="first" /><annotation ref="$p2" text="second" /></annotation></annotations>',
+            ),
+        );
+
+        const firstIndex = prefigureXML.indexOf('text="first"');
+        const secondIndex = prefigureXML.indexOf('text="second"');
+        expect(firstIndex).toBeGreaterThan(-1);
+        expect(secondIndex).toBeGreaterThan(-1);
+        expect(firstIndex).toBeLessThan(secondIndex);
+    });
+
+    it("missing or empty text emits empty text with warning", async () => {
+        const doenetML = prefigureGraph(
+            '<point name="p">(1,2)</point>\n  <annotations><annotation ref="$p" /></annotations>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).toContain(`text=""`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some((x) =>
+                x.message.includes("missing or empty `text`"),
+            ),
+        ).eq(true);
+    });
+
+    it("unresolved ref omits annotation and emits warning", async () => {
+        const doenetML = prefigureGraph(
+            '<annotations><annotation ref="$missing" text="bad" /></annotations>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).not.toContain(`<annotations>`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some(
+                (x) =>
+                    x.message.includes("invalid `ref`") &&
+                    x.message.includes("cannot resolve target"),
+            ),
+        ).eq(true);
+    });
+
+    it("ref outside graph subtree omits annotation and emits warning", async () => {
+        const doenetML = `
+<graph name="g" renderer="prefigure">
+  <annotations><annotation ref="$outside" text="outside" /></annotations>
+</graph>
+<point name="outside">(4,5)</point>
+`;
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).not.toContain(`<annotations>`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some((x) =>
+                x.message.includes("outside the containing graph"),
+            ),
+        ).eq(true);
+    });
+
+    it("ref to unsupported graph child omits annotation and emits warning", async () => {
+        const doenetML = prefigureGraph(
+            '<textInput name="ti" />\n  <annotations><annotation ref="$ti" text="input summary" /></annotations>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).not.toContain(`<annotations>`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some((x) =>
+                x.message.includes(
+                    "not a supported graphical object in prefigure conversion",
+                ),
+            ),
+        ).eq(true);
+    });
+
+    it("ref to graph emits figure ref", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<annotations><annotation ref="$g" text="overall figure" /></annotations>',
+            ),
+        );
+
+        expect(prefigureXML).toContain(`ref="figure"`);
+    });
+
+    it("raw string ref falls back to conceptual ref and emits invalid attribute warning", async () => {
+        const doenetML = prefigureGraph(
+            '<annotations><annotation ref="hello" text="string ref" /></annotations>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).toContain(`ref="annotation_1"`);
+        expect(prefigureXML).toContain(`text="string ref"`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some((x) =>
+                x.message.includes("must be composed of references"),
+            ),
+        ).eq(true);
+    });
+
+    it("missing ref auto-generates conceptual refs in order", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<annotations><annotation text="first" /><annotation text="second" /></annotations>',
+            ),
+        );
+
+        expect(prefigureXML).toContain(`ref="annotation_1"`);
+        expect(prefigureXML).toContain(`ref="annotation_2"`);
+    });
+
+    it("multiple ref tokens uses first resolved target with warning", async () => {
+        const doenetML = prefigureGraph(
+            '<point name="p1">(1,2)</point>\n  <point name="p2">(3,4)</point>\n  <annotations><annotation ref="$p1 $p2" text="multi" /></annotations>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        const pointHandleMatch = prefigureXML.match(/<point at="([^"]+)"/);
+        expect(pointHandleMatch).toBeTruthy();
+        expect(prefigureXML).toContain(`ref="${pointHandleMatch?.[1]}"`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some((x) =>
+                x.message.includes("resolved to multiple targets"),
+            ),
+        ).eq(true);
+    });
+
+    it("keeps valid annotation siblings when one sibling ref is invalid", async () => {
+        const doenetML = prefigureGraph(
+            '<point name="p">(1,2)</point>\n  <annotations><annotation ref="$p" text="valid" /><annotation ref="$missing" text="bad" /></annotations>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        const pointHandleMatch = prefigureXML.match(/<point at="([^"]+)"/);
+        expect(pointHandleMatch).toBeTruthy();
+
+        expect(prefigureXML).toContain(`<annotations>`);
+        expect(prefigureXML).toContain(
+            `<annotation ref="${pointHandleMatch?.[1]}" text="valid"></annotation>`,
+        );
+        expect(prefigureXML).not.toContain(`text="bad"`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some(
+                (x) =>
+                    x.message.includes("invalid `ref`") &&
+                    x.message.includes("cannot resolve target"),
+            ),
+        ).eq(true);
+    });
+
+    it("conceptual ref generation skips collisions", () => {
+        const usedRefs = new Set(["annotation_1", "line-a"]);
+        const { ref, nextCounter } = nextAvailableConceptualAnnotationRef({
+            initialCounter: 1,
+            usedRefs,
+        });
+
+        expect(ref).eq("annotation_2");
+        expect(nextCounter).eq(3);
+    });
+
+    it("annotations on non-prefigure graph emit info and are not rendered", async () => {
+        const doenetML =
+            '<graph name="g"><point name="p">(1,2)</point><annotations><annotation ref="$p" text="point summary" /></annotations></graph>';
+
+        const { prefigureXML } = await getGraphRendererState(doenetML);
+        expect(prefigureXML).eq(null);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.infos.some((x) =>
+                x.message.includes("annotations will not be rendered"),
+            ),
+        ).eq(true);
     });
 });

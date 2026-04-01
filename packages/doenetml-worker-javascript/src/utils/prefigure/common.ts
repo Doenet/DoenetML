@@ -27,7 +27,7 @@ export function asFiniteNumber(value: unknown): number | null {
 }
 
 /**
- * Formats a numeric value for XML serialization.
+ * Formats a numeric value for PreFigure XML output.
  */
 export function formatNumber(value: unknown): string | null {
     const num = asFiniteNumber(value);
@@ -53,6 +53,42 @@ export function formatPoint(point: unknown): string | null {
     return `(${x},${y})`;
 }
 
+/**
+ * Converts a 2D point-like value to a finite numeric point tuple.
+ */
+export function extractFinitePoint(point: unknown): Point | null {
+    if (!Array.isArray(point) || point.length < 2) {
+        return null;
+    }
+
+    const x = asFiniteNumber(point[0]);
+    const y = asFiniteNumber(point[1]);
+
+    if (x === null || y === null) {
+        return null;
+    }
+
+    return [x, y];
+}
+
+/**
+ * Converts a pair of point-like values into finite numeric point tuples.
+ */
+export function extractFinitePointPair(points: unknown): [Point, Point] | null {
+    if (!Array.isArray(points) || points.length < 2) {
+        return null;
+    }
+
+    const point1 = extractFinitePoint(points[0]);
+    const point2 = extractFinitePoint(points[1]);
+
+    if (point1 === null || point2 === null) {
+        return null;
+    }
+
+    return [point1, point2];
+}
+
 function sanitizeHandle(value: unknown): string {
     return String(value)
         .toLowerCase()
@@ -64,7 +100,7 @@ function sanitizeHandle(value: unknown): string {
 /**
  * Creates a deterministic, XML-safe id for emitted PreFigure elements.
  *
- * Handles are based on component type/name when available and are made unique
+ * Handles are based on component type when available and are made unique
  * against `usedHandles` to keep output stable across runs.
  */
 export function createStableHandle(
@@ -72,14 +108,12 @@ export function createStableHandle(
     index: number,
     usedHandles: UsedHandles,
 ): string {
-    const stem = sanitizeHandle(
-        `${descendant.componentType}-${descendant.componentName ?? index}`,
-    );
-    let handle = stem || `graphical-${index}`;
+    const stem = sanitizeHandle(`${descendant.componentType}_${index}`);
+    let handle = stem || `graphical_${index}`;
     let suffix = 1;
     while (usedHandles.has(handle)) {
         suffix += 1;
-        handle = `${stem}-${suffix}`;
+        handle = `${stem}_${suffix}`;
     }
     usedHandles.add(handle);
     return handle;

@@ -1256,8 +1256,7 @@ function calculateExpressionWithCodes({ dependencyValues, changes }) {
         } catch (e) {
             expressionWithCodes = me.fromAst("\uFF3F"); // long underscore
             console.log(
-                `Invalid value for a math of ${dependencyValues.format} format: ` +
-                    inputString,
+                `Invalid value for a math of ${dependencyValues.format} format: \`${inputString}\``,
             );
         }
     }

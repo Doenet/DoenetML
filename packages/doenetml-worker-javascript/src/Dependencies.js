@@ -3345,6 +3345,8 @@ class Dependency {
                     componentObj.position = JSON.parse(
                         JSON.stringify(depComponent.position),
                     );
+
+                    componentObj.sourceDoc = depComponent.sourceDoc;
                 }
 
                 let originalVarNames;
@@ -7388,8 +7390,8 @@ class RefResolutionDependency extends Dependency {
                 // we could make sure that `ref_resolve` formats the messages in this case, too.
                 const message =
                     e === "NonUniqueReferent"
-                        ? `Multiple referents found for reference: $${referenceText}`
-                        : `No referent found for reference: $${referenceText}`;
+                        ? `Multiple referents found for reference: \`$${referenceText}\``
+                        : `No referent found for reference: \`$${referenceText}\``;
 
                 this.dependencyHandler.core.addDiagnostic({
                     type: "warning",
@@ -7491,7 +7493,7 @@ class RefResolutionDependency extends Dependency {
 
             this.dependencyHandler.core.addDiagnostic({
                 type: "warning",
-                message: `No referent found for reference: $${referenceText}`,
+                message: `No referent found for reference: \`$${referenceText}\``,
                 position: composite.position,
                 sourceDoc: composite.sourceDoc,
             });
@@ -7751,6 +7753,8 @@ class AttributeRefResolutions extends Dependency {
                 componentIdx: extendIdx,
                 unresolvedPath: comp.stateValues.unresolvedPath,
                 originalPath: comp.stateValues.originalPath,
+                position: comp.position,
+                sourceDoc: comp.sourceDoc,
             });
 
             if (extendIdx !== -1) {

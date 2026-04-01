@@ -18,51 +18,13 @@ import {
 } from "./components/polygon";
 import { convertAngleToPrefigure } from "./components/angle";
 import type {
-    ConverterBaseArgs,
+    Converter,
     Descendant,
     GraphBounds,
     GraphDimensions,
     PrefigureStateValues,
-    StyledConverter,
-    WarningOnlyConverter,
 } from "./types";
 import type { DiagnosticRecord } from "@doenet/utils";
-
-/**
- * Normalize warning-related arguments for converters that do not consume style attrs.
- */
-function withWarnings(converter: WarningOnlyConverter): WarningOnlyConverter {
-    return ({
-        sv,
-        handle,
-        diagnostics,
-        warningPrefix,
-        warningPosition,
-    }: ConverterBaseArgs) =>
-        converter({ sv, handle, diagnostics, warningPrefix, warningPosition });
-}
-
-/**
- * Normalize style + warning arguments for converters that consume style attrs.
- */
-function withStyle(converter: StyledConverter): StyledConverter {
-    return ({
-        sv,
-        handle,
-        styleAttrs,
-        diagnostics,
-        warningPrefix,
-        warningPosition,
-    }) =>
-        converter({
-            sv,
-            handle,
-            styleAttrs,
-            diagnostics,
-            warningPrefix,
-            warningPosition,
-        });
-}
 
 const FILLED_COMPONENT_TYPES = new Set([
     "circle",
@@ -84,36 +46,20 @@ function styleIncludesFill(
     return !NO_FILL_COMPONENT_TYPES.has(componentType);
 }
 
-const pointConverter = withWarnings(convertPointToPrefigure);
-const lineConverter = withStyle(convertLineToPrefigure);
-const lineSegmentConverter = withStyle(convertLineSegmentToPrefigure);
-const rayConverter = withStyle(convertRayToPrefigure);
-const vectorConverter = withStyle(convertVectorToPrefigure);
-const circleConverter = withStyle(convertCircleToPrefigure);
-const polylineConverter = withStyle(convertPolylineToPrefigure);
-const polygonConverter = withStyle(convertPolygonToPrefigure);
-const angleConverter = withWarnings(convertAngleToPrefigure);
-
-const baseConverters = {
-    point: pointConverter,
-    line: lineConverter,
-    lineSegment: lineSegmentConverter,
-    ray: rayConverter,
-    vector: vectorConverter,
-    circle: circleConverter,
-    polyline: polylineConverter,
-    polygon: polygonConverter,
-    angle: angleConverter,
-};
-const convertByComponentType: Record<
-    string,
-    StyledConverter | WarningOnlyConverter
-> = {
-    ...baseConverters,
-    endpoint: baseConverters.point,
-    equilibriumPoint: baseConverters.point,
-    triangle: baseConverters.polygon,
-    rectangle: baseConverters.polygon,
+const convertByComponentType: Record<string, Converter> = {
+    point: convertPointToPrefigure,
+    line: convertLineToPrefigure,
+    lineSegment: convertLineSegmentToPrefigure,
+    ray: convertRayToPrefigure,
+    vector: convertVectorToPrefigure,
+    circle: convertCircleToPrefigure,
+    polyline: convertPolylineToPrefigure,
+    polygon: convertPolygonToPrefigure,
+    angle: convertAngleToPrefigure,
+    endpoint: convertPointToPrefigure,
+    equilibriumPoint: convertPointToPrefigure,
+    triangle: convertPolygonToPrefigure,
+    rectangle: convertPolygonToPrefigure,
 };
 
 interface ConvertGraphicalDescendantArgs {
@@ -130,7 +76,8 @@ interface ConvertGraphicalDescendantArgs {
  *
  * This dispatcher centralizes three concerns:
  * - style extraction shared by most components,
- * - routing to component-specific converter functions,
+ * - routing to component-specific converter functions through one shared
+ *   converter signature, even when a specific converter ignores `styleAttrs`,
  * - consistent warning behavior for unsupported/invalid descendants.
  */
 export function convertGraphicalDescendantToPrefigure({
@@ -140,7 +87,7 @@ export function convertGraphicalDescendantToPrefigure({
     diagnostics,
     graphBounds,
     graphDimensions,
-}: ConvertGraphicalDescendantArgs): string | null {
+}: ConvertGraphicalDescendantArgs): { xml: string; handle: string } | null {
     const sv: PrefigureStateValues = {
         ...(descendant?.stateValues ?? {}),
         graphBounds,
@@ -185,5 +132,8 @@ export function convertGraphicalDescendantToPrefigure({
         return null;
     }
 
-    return body;
+    return {
+        xml: body,
+        handle,
+    };
 }

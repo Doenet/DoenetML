@@ -9,6 +9,7 @@ import {
 
 const PREFIGURE_BUILD_DEBOUNCE_COLD_MS = 1000;
 const PREFIGURE_BUILD_DEBOUNCE_WARM_MS = 40;
+const DIAGCESS_REINIT_DELAY_MS = 400;
 
 type PrefigureModule = typeof import("@doenet/prefigure");
 
@@ -111,8 +112,9 @@ async function buildPrefigureDiagram(
 }
 
 type DiagcessApi = {
-    Base?: {
-        init?: () => void;
+    Base: {
+        init: () => void;
+        molMap: Record<string, unknown>;
     };
 };
 
@@ -253,7 +255,7 @@ function hasAnnotationsXml(value: string): boolean {
         return false;
     }
 
-    return /<annotations?\b|<annotation\b/i.test(trimmed);
+    return /<diagram\b/i.test(trimmed);
 }
 
 const FORBIDDEN_MARKUP_TAGS = new Set([
@@ -495,7 +497,7 @@ function sanitizeAnnotationsMarkup(markup: string): string {
     return sanitizeXmlMarkup({
         markup,
         mimeType: "application/xml",
-        allowedRootNames: new Set(["annotations", "annotation"]),
+        allowedRootNames: new Set(["diagram"]),
     });
 }
 
@@ -511,6 +513,8 @@ export default React.memo(function Prefigure({
     const [diagcessReady, setDiagcessReady] = useState(Boolean(diagcessApi()));
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const fetchAbortControllerRef = useRef<AbortController | null>(null);
+    const diagcessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const prefigureContainerRef = useRef<HTMLDivElement | null>(null);
     const requestSequenceRef = useRef(0);
     const hasStartedBuildRef = useRef(false);
 
@@ -644,14 +648,45 @@ export default React.memo(function Prefigure({
 
     useEffect(() => {
         // Call diagcess.Base.init() after content is set
+        const diagcess = diagcessApi();
         if (
             diagcessReady &&
             svgMarkup &&
             hasAnnotationsXml(cmlContent) &&
-            diagcessApi()
+            diagcess
         ) {
-            diagcessApi()?.Base?.init?.();
+            const prefigureContainer = prefigureContainerRef.current;
+            if (prefigureContainer) {
+                for (const child of Array.from(prefigureContainer.children)) {
+                    if (
+                        child instanceof HTMLParagraphElement &&
+                        child.classList.contains("cacc-message")
+                    ) {
+                        child.remove();
+                    }
+                }
+
+                // diagcess mutates molMap during init, so clear any stale
+                // entries before re-running it against newly inserted markup.
+                diagcess.Base.molMap = {};
+                if (diagcessTimerRef.current) {
+                    clearTimeout(diagcessTimerRef.current);
+                }
+                // Wait briefly for the sanitized SVG/CML markup to be present
+                // in the live DOM before diagcess scans and annotates it.
+                diagcessTimerRef.current = setTimeout(() => {
+                    diagcessTimerRef.current = null;
+                    diagcess.Base.init();
+                }, DIAGCESS_REINIT_DELAY_MS);
+            }
         }
+
+        return () => {
+            if (diagcessTimerRef.current) {
+                clearTimeout(diagcessTimerRef.current);
+                diagcessTimerRef.current = null;
+            }
+        };
     }, [svgMarkup, cmlContent, diagcessReady]);
 
     const frameStyle: React.CSSProperties = {
@@ -677,22 +712,24 @@ export default React.memo(function Prefigure({
     };
 
     return (
-        <div id={id} className="ChemAccess-element" style={frameStyle}>
-            {svgMarkup ? (
+        <div id={id} ref={prefigureContainerRef}>
+            <div className="ChemAccess-element" style={frameStyle}>
+                {svgMarkup ? (
+                    <div
+                        className="svg"
+                        style={svgContainerStyle}
+                        dangerouslySetInnerHTML={{ __html: svgMarkup }}
+                    />
+                ) : (
+                    <div className="svg" style={svgMessageStyle}>
+                        {svgMessage}
+                    </div>
+                )}
                 <div
-                    className="svg"
-                    style={svgContainerStyle}
-                    dangerouslySetInnerHTML={{ __html: svgMarkup }}
+                    className="cml"
+                    dangerouslySetInnerHTML={{ __html: cmlContent }}
                 />
-            ) : (
-                <div className="svg" style={svgMessageStyle}>
-                    {svgMessage}
-                </div>
-            )}
-            <div
-                className="cml"
-                dangerouslySetInnerHTML={{ __html: cmlContent }}
-            />
+            </div>
         </div>
     );
 });

@@ -7,7 +7,9 @@ import {
 } from "./common";
 import { labelMarkup } from "./label";
 import { convertGraphicalDescendantToPrefigure } from "./descendant";
+import { convertDoenetMLAnnotationsToPreFigureXml } from "./annotations";
 import type {
+    AnnotationNode,
     Descendant,
     GraphBounds,
     GraphDependencyValues,
@@ -103,13 +105,18 @@ export function createPrefigureXML({
     dependencyValues,
     descendants,
     unsupported,
+    annotations,
+    graphComponentIdx,
 }: {
     dependencyValues: GraphDependencyValues;
     descendants: Descendant[];
     unsupported: Descendant[];
+    annotations: AnnotationNode[] | null;
+    graphComponentIdx: number;
 }): { xml: string; diagnostics: DiagnosticRecord[] } {
     const diagnostics: DiagnosticRecord[] = [];
     const usedHandles = new Set<string>();
+    const handleByComponentIdx = new Map<number, string>();
     const elements = [];
 
     const rawXMin = asFiniteNumber(dependencyValues.xMin);
@@ -174,9 +181,22 @@ export function createPrefigureXML({
             graphDimensions,
         });
         if (converted) {
-            elements.push(converted);
+            elements.push(converted.xml);
+
+            if (Number.isFinite(descendant.componentIdx)) {
+                handleByComponentIdx.set(
+                    descendant.componentIdx as number,
+                    converted.handle,
+                );
+            }
         }
     }
+
+    const graphDescendantComponentIndices = new Set(
+        (dependencyValues.allDescendants ?? [])
+            .map((x) => x.componentIdx)
+            .filter((x): x is number => Number.isFinite(x)),
+    );
 
     const xMin = formatNumber(graphBounds[0]);
     const yMin = formatNumber(graphBounds[1]);
@@ -196,7 +216,15 @@ export function createPrefigureXML({
         axesElement = axesElementFromLabels({ dependencyValues, axesMode });
     }
 
-    const xml = `<diagram dimensions="${escapeXml(dimensions)}"><coordinates bbox="${escapeXml(bbox)}">${axesElement}${elements.join("")}</coordinates></diagram>`;
+    const annotationsElement = convertDoenetMLAnnotationsToPreFigureXml({
+        annotations,
+        diagnostics,
+        handleByComponentIdx,
+        graphComponentIdx,
+        graphDescendantComponentIndices,
+    });
+
+    const xml = `<diagram dimensions="${escapeXml(dimensions)}"><coordinates bbox="${escapeXml(bbox)}">${axesElement}${elements.join("")}</coordinates>${annotationsElement}</diagram>`;
 
     return { xml, diagnostics };
 }

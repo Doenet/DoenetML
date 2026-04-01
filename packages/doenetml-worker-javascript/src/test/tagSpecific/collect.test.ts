@@ -2499,7 +2499,7 @@ describe("Collect tag tests @group4", async () => {
         expect(diagnosticsByType.warnings.length).eq(3);
 
         expect(diagnosticsByType.warnings[0].message).contain(
-            "No referent found for reference: $nothing",
+            "No referent found for reference: `$nothing`",
         );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(3);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(20);

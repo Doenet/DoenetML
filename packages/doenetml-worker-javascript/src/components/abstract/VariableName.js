@@ -44,8 +44,9 @@ export default class Variable extends MathComponent {
                 if (!validVariable) {
                     diagnostics.push({
                         message:
-                            "Invalid value of a variable: " +
-                            dependencyValues.valuePreValidate.toString(),
+                            "Invalid value of a variable: `" +
+                            dependencyValues.valuePreValidate.toString() +
+                            "`",
                         type: "warning",
                     });
                 }

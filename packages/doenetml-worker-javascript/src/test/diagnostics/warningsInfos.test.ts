@@ -263,7 +263,7 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.infos.length).eq(5);
 
         expect(diagnosticsByType.infos[0].message).contain(
-            "Invalid value new1 for attribute format",
+            "Invalid value `new1` for attribute `format`",
         );
         expect(diagnosticsByType.infos[0].type).eq("info");
         expect(diagnosticsByType.infos[0].position.start.line).eq(5);
@@ -272,7 +272,7 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.infos[0].position.end.column).eq(46);
 
         expect(diagnosticsByType.infos[1].message).contain(
-            "Invalid value bad for attribute type",
+            "Invalid value `bad` for attribute `type`",
         );
         expect(diagnosticsByType.infos[1].type).eq("info");
         expect(diagnosticsByType.infos[1].position.start.line).eq(2);
@@ -281,7 +281,7 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.infos[1].position.end.column).eq(26);
 
         expect(diagnosticsByType.infos[2].message).contain(
-            "Invalid value new2 for attribute format",
+            "Invalid value `new2` for attribute `format`",
         );
         expect(diagnosticsByType.infos[2].type).eq("info");
         expect(diagnosticsByType.infos[2].position.start.line).eq(7);
@@ -290,7 +290,7 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.infos[2].position.end.column).eq(48);
 
         expect(diagnosticsByType.infos[3].message).contain(
-            "Invalid value new1 for attribute format",
+            "Invalid value `new1` for attribute `format`",
         );
         expect(diagnosticsByType.infos[3].type).eq("info");
         expect(diagnosticsByType.infos[3].position.start.line).eq(9);
@@ -299,7 +299,7 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.infos[3].position.end.column).eq(34);
 
         expect(diagnosticsByType.infos[4].message).contain(
-            "Invalid value new3 for attribute format",
+            "Invalid value `new3` for attribute `format`",
         );
         expect(diagnosticsByType.infos[4].type).eq("info");
         expect(diagnosticsByType.infos[4].position.start.line).eq(10);
@@ -382,52 +382,52 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.infos.length).eq(15);
 
         expect(diagnosticsByType.infos[5].message).contain(
-            "Invalid value try1 for attribute format",
+            "Invalid value `try1` for attribute `format`",
         );
         expect(diagnosticsByType.infos[5].position.start.line).eq(4);
 
         expect(diagnosticsByType.infos[6].message).contain(
-            "Invalid value try2 for attribute format",
+            "Invalid value `try2` for attribute `format`",
         );
         expect(diagnosticsByType.infos[6].position.start.line).eq(5);
 
         expect(diagnosticsByType.infos[7].message).contain(
-            "Invalid value try2 for attribute format",
+            "Invalid value `try2` for attribute `format`",
         );
         expect(diagnosticsByType.infos[7].position.start.line).eq(9);
 
         expect(diagnosticsByType.infos[8].message).contain(
-            "Invalid value try3 for attribute format",
+            "Invalid value `try3` for attribute `format`",
         );
         expect(diagnosticsByType.infos[8].position.start.line).eq(6);
 
         expect(diagnosticsByType.infos[9].message).contain(
-            "Invalid value try4 for attribute format",
+            "Invalid value `try4` for attribute `format`",
         );
         expect(diagnosticsByType.infos[9].position.start.line).eq(7);
 
         expect(diagnosticsByType.infos[10].message).contain(
-            "Invalid value try5 for attribute format",
+            "Invalid value `try5` for attribute `format`",
         );
         expect(diagnosticsByType.infos[10].position.start.line).eq(8);
 
         expect(diagnosticsByType.infos[11].message).contain(
-            "Invalid value try6 for attribute format",
+            "Invalid value `try6` for attribute `format`",
         );
         expect(diagnosticsByType.infos[11].position.start.line).eq(5);
 
         expect(diagnosticsByType.infos[12].message).contain(
-            "Invalid value try6 for attribute format",
+            "Invalid value `try6` for attribute `format`",
         );
         expect(diagnosticsByType.infos[12].position.start.line).eq(9);
 
         expect(diagnosticsByType.infos[13].message).contain(
-            "Invalid value try7 for attribute format",
+            "Invalid value `try7` for attribute `format`",
         );
         expect(diagnosticsByType.infos[13].position.start.line).eq(10);
 
         expect(diagnosticsByType.infos[14].message).contain(
-            "Invalid value try8 for attribute format",
+            "Invalid value `try8` for attribute `format`",
         );
         expect(diagnosticsByType.infos[14].position.start.line).eq(11);
     });
@@ -585,10 +585,12 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.warnings[0].message).contain(
-            `Invalid value "n1 n2" for attribute referencesAreResponses`,
+            `Invalid value \`n1 n2\` for attribute \`referencesAreResponses\``,
         );
 
-        expect(diagnosticsByType.warnings[0].message).contain(`begin with a $`);
+        expect(diagnosticsByType.warnings[0].message).contain(
+            `begin with a \`$\``,
+        );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(7);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(20);
         expect(diagnosticsByType.warnings[0].position.end.line).eq(7);
@@ -614,7 +616,7 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.warnings[0].message).contain(
-            "No referent found for reference: $__s",
+            "No referent found for reference: `$__s`",
         );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(5);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(20);
@@ -687,7 +689,7 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.warnings[0].message).contain(
-            "No referent found for reference: $g[1]",
+            "No referent found for reference: `$g[1]`",
         );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(3);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(1);
