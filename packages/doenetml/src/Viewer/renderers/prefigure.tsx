@@ -497,7 +497,7 @@ function sanitizeAnnotationsMarkup(markup: string): string {
     return sanitizeXmlMarkup({
         markup,
         mimeType: "application/xml",
-        allowedRootNames: new Set(["annotations", "annotation", "diagram"]),
+        allowedRootNames: new Set(["diagram"]),
     });
 }
 
