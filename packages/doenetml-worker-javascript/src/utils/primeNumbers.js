@@ -1,5 +1,5 @@
 export function createPrimesList({ from = 2, to = 100, exclude = [] }) {
-    // Use Sieve of Eratosthenes to generate list of all prime numbers from from to to
+    // Use Sieve of Eratosthenes to generate list of all prime numbers in the range [from, to]
     // and exclude values from exclude
 
     from = Math.max(from, 2);

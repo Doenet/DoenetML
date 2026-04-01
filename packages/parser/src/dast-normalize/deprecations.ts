@@ -1,5 +1,5 @@
 import { Plugin } from "unified";
-import { DastAttribute, DastElement, DastError, DastRoot } from "../types";
+import { DastElement, DastError, DastRoot } from "../types";
 import { visit } from "../pretty-printer/normalize/utils/visit";
 import { isDastElement } from "../types-util";
 
@@ -13,24 +13,24 @@ type DeprecationDiagnostic = {
     source_doc?: number;
 };
 
-export type AttributeRenameRule = {
+type AttributeRenameRule = {
     to: string;
     warningMessage: string;
     conflictWarningMessage: string;
 };
 
-export type ComponentRenameRule = {
+type ComponentRenameRule = {
     to: string;
     warningMessage: string;
     attributeRenames?: Record<string, AttributeRenameRule>;
 };
 
-export type DeprecationRegistry = {
+type DeprecationRegistry = {
     attributeRenames: Record<string, Record<string, AttributeRenameRule>>;
     componentRenames: Record<string, ComponentRenameRule>;
 };
 
-export const DEPRECATION_REGISTRY: DeprecationRegistry = {
+const DEPRECATION_REGISTRY: DeprecationRegistry = {
     attributeRenames: {
         selectPrimeNumbers: {
             minValue: {
@@ -55,10 +55,14 @@ export const DEPRECATION_REGISTRY: DeprecationRegistry = {
 /**
  * Apply deprecation migrations directly on DAST nodes.
  *
- * This plugin both:
- * 1. mutates deprecated syntax to canonical syntax (e.g. renamed attributes), and
- * 2. emits warning `error` nodes under `<document>` so diagnostics propagate through
- *    the existing Rust->JS warning pipeline.
+ * This plugin:
+ * 1. Mutates deprecated syntax to canonical syntax (e.g., renamed attributes)
+ * 2. Emits warning error nodes for all deprecation issues
+ * 3. Automatically appends warnings to the document element for diagnostics
+ *
+ * Define new deprecations in DEPRECATION_REGISTRY. This plugin runs during
+ * DAST normalization after all initial structure validation, allowing
+ * deprecated syntax to be migrated while still alerting users.
  */
 export const pluginApplyDeprecations: Plugin<[], DastRoot, DastRoot> = () => {
     return (tree) => {
@@ -150,50 +154,39 @@ function applyRenames(
             continue;
         }
 
-        const newAttribute = node.attributes[renameRule.to];
-        if (newAttribute) {
-            delete node.attributes[oldName];
+        const position = oldAttribute.position ?? node.position;
+        const source_doc = oldAttribute.source_doc ?? node.source_doc;
+
+        delete node.attributes[oldName];
+
+        if (node.attributes[renameRule.to]) {
             warnings.push(
                 createWarning(
                     renameRule.conflictWarningMessage,
-                    oldAttribute.position ?? node.position,
-                    oldAttribute.source_doc ?? node.source_doc,
+                    position,
+                    source_doc,
                 ),
             );
-            continue;
+        } else {
+            node.attributes[renameRule.to] = {
+                ...oldAttribute,
+                name: renameRule.to,
+            };
+            warnings.push(
+                createWarning(renameRule.warningMessage, position, source_doc),
+            );
         }
-
-        delete node.attributes[oldName];
-        node.attributes[renameRule.to] = renameAttributeName(
-            oldAttribute,
-            renameRule.to,
-        );
-        warnings.push(
-            createWarning(
-                renameRule.warningMessage,
-                oldAttribute.position ?? node.position,
-                oldAttribute.source_doc ?? node.source_doc,
-            ),
-        );
     }
-}
-
-function renameAttributeName(attribute: DastAttribute, newName: string) {
-    // Preserve children/position/source_doc while only changing the attribute key.
-    return {
-        ...attribute,
-        name: newName,
-    };
 }
 
 function createWarning(
     message: string,
     position: DastElement["position"],
     source_doc?: number,
-) {
+): DeprecationDiagnostic {
     // Internal warning record used while collecting deprecation migrations.
     return {
-        type: "warning" as const,
+        type: "warning",
         message,
         position,
         source_doc,
