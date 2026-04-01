@@ -393,6 +393,7 @@ export interface TextData extends Data {}
 export interface DastError extends DastAbstractNode {
     type: "error";
     message: string;
+    error_type?: "error" | "warning" | "info";
     data?: ErrorData;
 }
 

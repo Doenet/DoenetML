@@ -114548,13 +114548,13 @@
                         "string"
                     ]
                 },
-                "minValue": {
+                "from": {
                     "optional": true,
                     "type": [
                         "string"
                     ]
                 },
-                "maxValue": {
+                "to": {
                     "optional": true,
                     "type": [
                         "string"
@@ -114629,12 +114629,12 @@
                     "isArray": false
                 },
                 {
-                    "name": "minValue",
+                    "name": "from",
                     "type": "integer",
                     "isArray": false
                 },
                 {
-                    "name": "maxValue",
+                    "name": "to",
                     "type": "integer",
                     "isArray": false
                 },

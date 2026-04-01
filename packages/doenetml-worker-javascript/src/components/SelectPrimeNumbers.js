@@ -19,15 +19,15 @@ export default class SelectPrimeNumbers extends CompositeComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        attributes.minValue = {
+        attributes.from = {
             createComponentOfType: "integer",
-            createStateVariable: "minValue",
+            createStateVariable: "from",
             defaultValue: 2,
             public: true,
         };
-        attributes.maxValue = {
+        attributes.to = {
             createComponentOfType: "integer",
-            createStateVariable: "maxValue",
+            createStateVariable: "to",
             defaultValue: 100,
             public: true,
         };
@@ -131,13 +131,13 @@ export default class SelectPrimeNumbers extends CompositeComponent {
 
         stateVariableDefinitions.possibleValues = {
             returnDependencies: () => ({
-                minValue: {
+                from: {
                     dependencyType: "stateVariable",
-                    variableName: "minValue",
+                    variableName: "from",
                 },
-                maxValue: {
+                to: {
                     dependencyType: "stateVariable",
-                    variableName: "maxValue",
+                    variableName: "to",
                 },
                 exclude: {
                     dependencyType: "stateVariable",
@@ -146,8 +146,8 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             }),
             definition({ dependencyValues }) {
                 let primes = createPrimesList({
-                    minValue: dependencyValues.minValue,
-                    maxValue: dependencyValues.maxValue,
+                    from: dependencyValues.from,
+                    to: dependencyValues.to,
                     exclude: dependencyValues.exclude,
                 });
 
@@ -364,49 +364,47 @@ export default class SelectPrimeNumbers extends CompositeComponent {
 
         let primePars = {};
 
-        let minValueComponent =
-            serializedComponent.attributes.minValue?.component;
-        if (minValueComponent) {
+        let fromComponent = serializedComponent.attributes.from?.component;
+        if (fromComponent) {
             // only implemented if have a single string child
             if (
-                minValueComponent.children?.length === 1 &&
-                typeof minValueComponent.children[0] === "string"
+                fromComponent.children?.length === 1 &&
+                typeof fromComponent.children[0] === "string"
             ) {
-                let minValue = Number(minValueComponent.children[0]);
-                if (!Number.isFinite(minValue)) {
+                let from = Number(fromComponent.children[0]);
+                if (!Number.isFinite(from)) {
                     console.log(
-                        `cannot determine unique variants of selectPrimeNumbers as minValue isn't a number.`,
+                        `cannot determine unique variants of selectPrimeNumbers as from isn't a number.`,
                     );
                     return { success: false };
                 }
-                primePars.minValue = minValue;
+                primePars.from = from;
             } else {
                 console.log(
-                    `cannot determine unique variants of selectPrimeNumbers as minValue isn't a constant.`,
+                    `cannot determine unique variants of selectPrimeNumbers as from isn't a constant.`,
                 );
                 return { success: false };
             }
         }
 
-        let maxValueComponent =
-            serializedComponent.attributes.maxValue?.component;
-        if (maxValueComponent) {
+        let toComponent = serializedComponent.attributes.to?.component;
+        if (toComponent) {
             // only implemented if have a single string child
             if (
-                maxValueComponent.children?.length === 1 &&
-                typeof maxValueComponent.children[0] === "string"
+                toComponent.children?.length === 1 &&
+                typeof toComponent.children[0] === "string"
             ) {
-                let maxValue = Number(maxValueComponent.children[0]);
-                if (!Number.isFinite(maxValue)) {
+                let to = Number(toComponent.children[0]);
+                if (!Number.isFinite(to)) {
                     console.log(
-                        `cannot determine unique variants of selectPrimeNumbers as maxValue isn't a number.`,
+                        `cannot determine unique variants of selectPrimeNumbers as to isn't a number.`,
                     );
                     return { success: false };
                 }
-                primePars.maxValue = maxValue;
+                primePars.to = to;
             } else {
                 console.log(
-                    `cannot determine unique variants of selectPrimeNumbers as maxValue isn't a constant.`,
+                    `cannot determine unique variants of selectPrimeNumbers as to isn't a constant.`,
                 );
                 return { success: false };
             }

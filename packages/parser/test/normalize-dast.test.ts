@@ -123,6 +123,64 @@ describe("Normalize dast", async () => {
         );
     });
 
+    it("migrates deprecated selectPrimeNumbers minValue/maxValue attributes", () => {
+        const source = `<selectPrimeNumbers minValue="5" maxValue="19" />`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            '<document><selectPrimeNumbers from="5" to="19" /></document>',
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+
+        expect(warnings).toMatchObject([
+            {
+                type: "error",
+                error_type: "warning",
+                message:
+                    "[deprecation] Attribute `minValue` on `<selectPrimeNumbers>` is deprecated; use `from` instead.",
+            },
+            {
+                type: "error",
+                error_type: "warning",
+                message:
+                    "[deprecation] Attribute `maxValue` on `<selectPrimeNumbers>` is deprecated; use `to` instead.",
+            },
+        ]);
+    });
+
+    it("prefers canonical selectPrimeNumbers attributes when deprecated and new names coexist", () => {
+        const source = `<selectPrimeNumbers minValue="5" from="7" maxValue="19" to="17" />`;
+        const dast = lezerToDast(source);
+        const normalized = normalizeDocumentDast(dast);
+
+        expect(toXml(normalized)).toEqual(
+            '<document><selectPrimeNumbers from="7" to="17" /></document>',
+        );
+
+        const warnings = extractDastErrors(normalized).filter(
+            (error) => error.error_type === "warning",
+        );
+        expect(warnings).toMatchObject([
+            {
+                type: "error",
+                error_type: "warning",
+                message:
+                    "[deprecation] Attribute `minValue` on `<selectPrimeNumbers>` is deprecated and ignored because `from` is also specified.",
+            },
+            {
+                type: "error",
+                error_type: "warning",
+                message:
+                    "[deprecation] Attribute `maxValue` on `<selectPrimeNumbers>` is deprecated and ignored because `to` is also specified.",
+            },
+        ]);
+        expect(warnings?.[0].position).toBeDefined();
+    });
+
     it("Sugars in repeat template and _repeatSetup children", () => {
         let source: string;
         let dast: ReturnType<typeof lezerToDast>;
