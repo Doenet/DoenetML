@@ -1,8 +1,4 @@
-export function createPrimesList({
-    from = 2,
-    to = 100,
-    exclude = [],
-}) {
+export function createPrimesList({ from = 2, to = 100, exclude = [] }) {
     // Use Sieve of Eratosthenes to generate list of all prime numbers from from to to
     // and exclude values from exclude
 
