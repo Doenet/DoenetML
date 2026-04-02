@@ -173,10 +173,19 @@ describe("MathInput aria-labelledby regression tests", () => {
                             "Sum of two variables",
                         );
 
-                        // Should be hidden visually
+                        // Should be hidden visually while remaining available to aria-labelledby.
+                        expect(
+                            shortDescSpan.classList.contains("visually-hidden"),
+                        ).to.eq(true);
+
+                        const autWindow =
+                            shortDescSpan.ownerDocument.defaultView;
+                        expect(autWindow).to.exist;
                         const computedStyle =
-                            window.getComputedStyle(shortDescSpan);
-                        expect(computedStyle.display).to.equal("none");
+                            autWindow.getComputedStyle(shortDescSpan);
+                        expect(computedStyle.position).to.equal("absolute");
+                        expect(computedStyle.width).to.equal("1px");
+                        expect(computedStyle.height).to.equal("1px");
                     });
                 });
         });

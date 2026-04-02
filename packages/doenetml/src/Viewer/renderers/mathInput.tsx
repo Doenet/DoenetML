@@ -694,13 +694,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
                 alignItems: "flex-start",
             }}
         >
-            {/* Hidden span for shortDescription when used as fallback aria-label */}
+            {/* Visually hidden span referenced by aria-labelledby when shortDescription is the fallback label */}
             {shortDescriptionId && (
-                <span
-                    id={shortDescriptionId}
-                    style={{ display: "none" }}
-                    aria-hidden="false"
-                >
+                <span id={shortDescriptionId} className="visually-hidden">
                     {shortDescription}
                 </span>
             )}
