@@ -19,7 +19,14 @@ export function setMinorTicks(axis) {
     ticks.fullUpdate();
 }
 
-export function applyAxisTickHeights({ grid, xaxisRef, yaxisRef }) {
+export function applyAxisTickHeights({
+    grid,
+    xaxisRef,
+    yaxisRef,
+    displayXAxisTicks = true,
+    displayYAxisTicks = true,
+}) {
+    // Only control real ticks (height != -1), not grid lines (height = -1)
     if (grid === "dense") {
         if (xaxisRef.current) {
             xaxisRef.current.defaultTicks.setAttribute({ majorHeight: -1 });
@@ -32,20 +39,32 @@ export function applyAxisTickHeights({ grid, xaxisRef, yaxisRef }) {
     } else if (grid === "medium") {
         if (xaxisRef.current) {
             xaxisRef.current.defaultTicks.setAttribute({ majorHeight: -1 });
-            xaxisRef.current.defaultTicks.setAttribute({ minorHeight: 10 });
+            xaxisRef.current.defaultTicks.setAttribute({
+                minorHeight: displayXAxisTicks ? 10 : 0,
+            });
         }
         if (yaxisRef.current) {
             yaxisRef.current.defaultTicks.setAttribute({ majorHeight: -1 });
-            yaxisRef.current.defaultTicks.setAttribute({ minorHeight: 10 });
+            yaxisRef.current.defaultTicks.setAttribute({
+                minorHeight: displayYAxisTicks ? 10 : 0,
+            });
         }
     } else {
         if (xaxisRef.current) {
-            xaxisRef.current.defaultTicks.setAttribute({ majorHeight: 12 });
-            xaxisRef.current.defaultTicks.setAttribute({ minorHeight: 10 });
+            xaxisRef.current.defaultTicks.setAttribute({
+                majorHeight: displayXAxisTicks ? 12 : 0,
+            });
+            xaxisRef.current.defaultTicks.setAttribute({
+                minorHeight: displayXAxisTicks ? 10 : 0,
+            });
         }
         if (yaxisRef.current) {
-            yaxisRef.current.defaultTicks.setAttribute({ majorHeight: 12 });
-            yaxisRef.current.defaultTicks.setAttribute({ minorHeight: 10 });
+            yaxisRef.current.defaultTicks.setAttribute({
+                majorHeight: displayYAxisTicks ? 12 : 0,
+            });
+            yaxisRef.current.defaultTicks.setAttribute({
+                minorHeight: displayYAxisTicks ? 10 : 0,
+            });
         }
     }
 }
@@ -110,15 +129,16 @@ export function createYAxis({
             yaxisOptions.ticks.scaleSymbol = scaleSymbol;
         }
     }
+    // Only control real ticks (height != -1), not grid lines (height = -1)
     if (SVs.grid === "dense") {
         yaxisOptions.ticks.majorHeight = -1;
         yaxisOptions.ticks.minorHeight = -1;
     } else if (SVs.grid === "medium") {
         yaxisOptions.ticks.majorHeight = -1;
-        yaxisOptions.ticks.minorHeight = 10;
+        yaxisOptions.ticks.minorHeight = SVs.displayYAxisTicks ? 10 : 0;
     } else {
-        yaxisOptions.ticks.majorHeight = 12;
-        yaxisOptions.ticks.minorHeight = 10;
+        yaxisOptions.ticks.majorHeight = SVs.displayYAxisTicks ? 12 : 0;
+        yaxisOptions.ticks.minorHeight = SVs.displayYAxisTicks ? 10 : 0;
     }
 
     if (!SVs.displayXAxis) {
@@ -198,15 +218,16 @@ export function createXAxis({
     xaxisOptions.strokeColor = "var(--canvasText)";
     xaxisOptions.highlight = false;
 
+    // Only control real ticks (height != -1), not grid lines (height = -1)
     if (SVs.grid === "dense") {
         xaxisOptions.ticks.majorHeight = -1;
         xaxisOptions.ticks.minorHeight = -1;
     } else if (SVs.grid === "medium") {
         xaxisOptions.ticks.majorHeight = -1;
-        xaxisOptions.ticks.minorHeight = 10;
+        xaxisOptions.ticks.minorHeight = SVs.displayXAxisTicks ? 10 : 0;
     } else {
-        xaxisOptions.ticks.majorHeight = 12;
-        xaxisOptions.ticks.minorHeight = 10;
+        xaxisOptions.ticks.majorHeight = SVs.displayXAxisTicks ? 12 : 0;
+        xaxisOptions.ticks.minorHeight = SVs.displayXAxisTicks ? 10 : 0;
     }
 
     if (!SVs.displayYAxis) {

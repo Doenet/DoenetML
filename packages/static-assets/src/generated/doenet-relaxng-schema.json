@@ -98068,6 +98068,20 @@
                         "false"
                     ]
                 },
+                "displayXAxisTicks": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "displayYAxisTicks": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "displayXAxisTickLabels": {
                     "optional": true,
                     "type": [
@@ -98649,12 +98663,12 @@
                     "isArray": false
                 },
                 {
-                    "name": "displayXAxisTickLabels",
+                    "name": "displayXAxisTicks",
                     "type": "boolean",
                     "isArray": false
                 },
                 {
-                    "name": "displayYAxisTickLabels",
+                    "name": "displayYAxisTicks",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -98796,6 +98810,16 @@
                 {
                     "name": "effectiveRenderer",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "displayXAxisTickLabels",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "displayYAxisTickLabels",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {

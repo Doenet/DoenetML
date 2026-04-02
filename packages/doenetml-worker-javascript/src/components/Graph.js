@@ -105,19 +105,29 @@ export default class Graph extends BlockComponent {
             public: true,
             forRenderer: true,
         };
-        attributes.displayXAxisTickLabels = {
+        attributes.displayXAxisTicks = {
             createComponentOfType: "boolean",
-            createStateVariable: "displayXAxisTickLabels",
+            createStateVariable: "displayXAxisTicks",
             defaultValue: true,
             public: true,
             forRenderer: true,
         };
-        attributes.displayYAxisTickLabels = {
+        attributes.displayYAxisTicks = {
             createComponentOfType: "boolean",
-            createStateVariable: "displayYAxisTickLabels",
+            createStateVariable: "displayYAxisTicks",
             defaultValue: true,
             public: true,
             forRenderer: true,
+        };
+        attributes.displayXAxisTickLabels = {
+            createComponentOfType: "boolean",
+            createStateVariable: "displayXAxisTickLabelsPrelim",
+            defaultValue: true,
+        };
+        attributes.displayYAxisTickLabels = {
+            createComponentOfType: "boolean",
+            createStateVariable: "displayYAxisTickLabelsPrelim",
+            defaultValue: true,
         };
         attributes.xLabelPosition = {
             createComponentOfType: "text",
@@ -840,6 +850,76 @@ export default class Graph extends BlockComponent {
                             dependencyValues.renderer,
                     },
                 };
+            },
+        };
+
+        stateVariableDefinitions.displayXAxisTickLabels = {
+            public: true,
+            forRenderer: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            returnDependencies: () => ({
+                displayXAxisTickLabelsPrelim: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayXAxisTickLabelsPrelim",
+                },
+                displayXAxisTicks: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayXAxisTicks",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                if (usedDefault.displayXAxisTickLabelsPrelim) {
+                    return {
+                        setValue: {
+                            displayXAxisTickLabels:
+                                dependencyValues.displayXAxisTicks,
+                        },
+                    };
+                } else {
+                    return {
+                        setValue: {
+                            displayXAxisTickLabels:
+                                dependencyValues.displayXAxisTickLabelsPrelim,
+                        },
+                    };
+                }
+            },
+        };
+
+        stateVariableDefinitions.displayYAxisTickLabels = {
+            public: true,
+            forRenderer: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            returnDependencies: () => ({
+                displayYAxisTickLabelsPrelim: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayYAxisTickLabelsPrelim",
+                },
+                displayYAxisTicks: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayYAxisTicks",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                if (usedDefault.displayYAxisTickLabelsPrelim) {
+                    return {
+                        setValue: {
+                            displayYAxisTickLabels:
+                                dependencyValues.displayYAxisTicks,
+                        },
+                    };
+                } else {
+                    return {
+                        setValue: {
+                            displayYAxisTickLabels:
+                                dependencyValues.displayYAxisTickLabelsPrelim,
+                        },
+                    };
+                }
             },
         };
 

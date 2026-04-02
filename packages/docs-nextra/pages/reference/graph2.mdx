@@ -87,6 +87,37 @@ to `true` or `false`.
 
 ---
 
+### Attribute Example: displayXAxisTicks, displayYAxisTicks
+
+
+```doenet-example
+<graph 
+  name="g" 
+  displayXAxisTicks="false" 
+  displayYAxisTicks="false" 
+  size="small"
+  >
+    <shortDescription>A graph without axis tick marks</shortDescription>
+    <point/>
+    <line>y = x</line>
+</graph>
+```
+
+
+
+Use the `displayXAxisTicks` and `displayYAxisTicks` attributes to set 
+rendering of the axes tick marks to `true` or `false`.
+
+If `displayXAxisTickLabels` or `displayYAxisTickLabels` is not specified,
+then the corresponding tick-label setting inherits from the matching tick
+visibility setting. For example, if `displayXAxisTicks="false"` and
+`displayXAxisTickLabels` is omitted, then the x-axis tick labels are also
+hidden.
+
+
+
+---
+
 ### Attribute Example: displayXAxisTickLabels, displayYAxisTickLabels
 
 
@@ -107,6 +138,10 @@ to `true` or `false`.
 
 Use the `displayXAxisTickLabels` and `displayYAxisTickLabels` attributes to set 
 rendering of the axes tick labels to `true` or `false`.
+
+If either tick-label attribute is specified explicitly, it overrides the
+corresponding tick-visibility setting. This means you can independently show or
+hide tick marks and tick labels on each axis.
 
 
 
@@ -336,6 +371,7 @@ The `showBorder` attribute can be set to `false` to suppress rendering of the de
 <p><c>horizontalAlign</c> = $g.horizontalAlign</p>
 <p><c>identicalAxisScales</c> = $g.identicalAxisScales</p>
 <p><c>displayXAxis</c> = $g.displayXAxis</p>
+<p><c>displayXAxisTicks</c> = $g.displayXAxisTicks</p>
 <p><c>displayXAxisTickLabels</c> = $g.displayXAxisTickLabels</p>
 ```
 
