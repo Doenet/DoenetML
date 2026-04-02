@@ -1806,6 +1806,43 @@ describe("Label tag tests @group2", async () => {
         ).include("labelForGroupedAnswer");
     });
 
+    it("label for answer does not target explicitly authored inputs", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<label name="labelForAnswerWithTwoInputs" for="$ansWithTwoInputs">Prompt</label>
+<answer name="ansWithTwoInputs" handGraded>
+  <textInput name="firstInput" />
+  <textInput name="secondInput" />
+</answer>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const firstInputIdx = await resolvePathToNodeIdx("firstInput");
+        const secondInputIdx = await resolvePathToNodeIdx("secondInput");
+        const labelIdx = await resolvePathToNodeIdx(
+            "labelForAnswerWithTwoInputs",
+        );
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(
+            stateVariables[labelIdx].stateValues.forTargetInputComponentIdx,
+        ).eq(null);
+        expect(
+            stateVariables[firstInputIdx].stateValues.externalLabelRendererIds,
+        ).not.include("labelForAnswerWithTwoInputs");
+        expect(
+            stateVariables[secondInputIdx].stateValues.externalLabelRendererIds,
+        ).not.include("labelForAnswerWithTwoInputs");
+        expect(
+            diagnosticsByType.warnings.some((d) =>
+                d.message.includes(
+                    "The `for` attribute on `<label>` references an `<answer>` with explicitly authored inputs; reference the input directly.",
+                ),
+            ),
+        ).eq(true);
+    });
+
     it("label for warnings for unresolved and unsupported labels", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -1840,7 +1877,7 @@ describe("Label tag tests @group2", async () => {
             stateVariables[unsupportedIdx].stateValues.forTargetRendererId,
         ).eq(null);
         expect(stateVariables[graphicalIdx].stateValues.forTargetRendererId).eq(
-            "ti",
+            null,
         );
         expect(stateVariables[multipleIdx].stateValues.forTargetRendererId).eq(
             null,
@@ -1849,21 +1886,28 @@ describe("Label tag tests @group2", async () => {
         expect(
             diagnosticsByType.warnings.some((d) =>
                 d.message.includes(
-                    "`for` on `<label>` could not be resolved to a component.",
+                    "The `for` attribute on `<label>` could not be resolved to a component.",
                 ),
             ),
         ).eq(true);
         expect(
             diagnosticsByType.warnings.some((d) =>
                 d.message.includes(
-                    "`for` on `<label>` must reference an input or an answer.",
+                    "The `for` attribute on graphical `<label>` is ignored.",
                 ),
             ),
         ).eq(true);
         expect(
             diagnosticsByType.warnings.some((d) =>
                 d.message.includes(
-                    "`for` on `<label>` must resolve to exactly one component.",
+                    "The `for` attribute on `<label>` must reference an input or an answer.",
+                ),
+            ),
+        ).eq(true);
+        expect(
+            diagnosticsByType.warnings.some((d) =>
+                d.message.includes(
+                    "The `for` attribute on `<label>` must resolve to exactly one component.",
                 ),
             ),
         ).eq(true);

@@ -503,25 +503,38 @@ export default class Label extends InlineComponent {
                     dependencyType: "attributeRefResolutions",
                     attributeName: "for",
                 },
+                graphAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "graph",
+                },
             }),
             definition({ dependencyValues }) {
                 const diagnostics = [];
                 const forResolutions = dependencyValues.forResolutions ?? [];
                 const hasForAttribute = forResolutions.length > 0;
+                const isGraphicalLabel = Boolean(
+                    dependencyValues.graphAncestor,
+                );
 
                 let targetComponentIdx = null;
 
                 if (hasForAttribute) {
-                    if (forResolutions.length !== 1) {
+                    if (isGraphicalLabel) {
                         diagnostics.push({
                             message:
-                                "`for` on `<label>` must resolve to exactly one component.",
+                                "The `for` attribute on graphical `<label>` is ignored.",
+                            type: "warning",
+                        });
+                    } else if (forResolutions.length !== 1) {
+                        diagnostics.push({
+                            message:
+                                "The `for` attribute on `<label>` must resolve to exactly one component.",
                             type: "warning",
                         });
                     } else if (forResolutions[0].unresolvedPath !== null) {
                         diagnostics.push({
                             message:
-                                "`for` on `<label>` could not be resolved to a component.",
+                                "The `for` attribute on `<label>` could not be resolved to a component.",
                             type: "warning",
                         });
                     } else {
@@ -533,6 +546,7 @@ export default class Label extends InlineComponent {
                     setValue: {
                         forAttributeData: {
                             hasForAttribute,
+                            isGraphicalLabel,
                             targetComponentIdx,
                         },
                     },
@@ -601,15 +615,15 @@ export default class Label extends InlineComponent {
                         baseComponentType: "answer",
                     })
                 ) {
-                    dependencies.answerInputChildWithValues = {
+                    dependencies.answerInputComponentIdxForLabel = {
                         dependencyType: "stateVariable",
                         componentIdx: targetIdentity.componentIdx,
-                        variableName: "inputChildWithValues",
+                        variableName: "inputComponentIdxForLabel",
                     };
-                    dependencies.answerInputChildrenWithValues = {
+                    dependencies.answerHasAuthoredInputChildrenForLabel = {
                         dependencyType: "stateVariable",
                         componentIdx: targetIdentity.componentIdx,
-                        variableName: "inputChildrenWithValues",
+                        variableName: "hasAuthoredInputChildrenForLabel",
                     };
                 }
 
@@ -619,7 +633,10 @@ export default class Label extends InlineComponent {
                 const diagnostics = [];
                 const forAttributeData = dependencyValues.forAttributeData;
 
-                if (!forAttributeData?.hasForAttribute) {
+                if (
+                    !forAttributeData?.hasForAttribute ||
+                    forAttributeData.isGraphicalLabel
+                ) {
                     return { setValue: { forTargetInputComponentIdx: null } };
                 }
 
@@ -649,43 +666,40 @@ export default class Label extends InlineComponent {
                         baseComponentType: "answer",
                     })
                 ) {
-                    // Labels targeting an answer must ultimately point at the
-                    // answer's generated input so the renderer can associate the
-                    // visible text with the actual interactive control.
-                    const inputChildWithValues =
-                        dependencyValues.answerInputChildWithValues;
-                    if (inputChildWithValues?.componentIdx !== undefined) {
+                    const answerInputComponentIdxForLabel =
+                        dependencyValues.answerInputComponentIdxForLabel;
+                    const answerHasAuthoredInputChildrenForLabel =
+                        dependencyValues.answerHasAuthoredInputChildrenForLabel;
+
+                    if (
+                        answerInputComponentIdxForLabel !== null &&
+                        answerInputComponentIdxForLabel !== undefined
+                    ) {
                         return {
                             setValue: {
                                 forTargetInputComponentIdx:
-                                    inputChildWithValues.componentIdx,
+                                    answerInputComponentIdxForLabel,
                             },
+                            sendDiagnostics: diagnostics,
                         };
                     }
 
-                    const inputChildrenWithValues =
-                        dependencyValues.answerInputChildrenWithValues ?? [];
-                    if (inputChildrenWithValues.length > 0) {
-                        if (inputChildrenWithValues.length > 1) {
-                            diagnostics.push({
-                                message:
-                                    "`for` on `<label>` references an `<answer>` with multiple inputs; using the first input.",
-                                type: "warning",
-                            });
-                        }
+                    if (answerHasAuthoredInputChildrenForLabel) {
+                        diagnostics.push({
+                            message:
+                                "The `for` attribute on `<label>` references an `<answer>` with explicitly authored inputs; reference the input directly.",
+                            type: "warning",
+                        });
 
                         return {
-                            setValue: {
-                                forTargetInputComponentIdx:
-                                    inputChildrenWithValues[0].componentIdx,
-                            },
+                            setValue: { forTargetInputComponentIdx: null },
                             sendDiagnostics: diagnostics,
                         };
                     }
 
                     diagnostics.push({
                         message:
-                            "`for` on `<label>` references an `<answer>` without an input to label.",
+                            "The `for` attribute on `<label>` references an `<answer>` without an input to label.",
                         type: "warning",
                     });
 
@@ -697,7 +711,7 @@ export default class Label extends InlineComponent {
 
                 diagnostics.push({
                     message:
-                        "`for` on `<label>` must reference an input or an answer.",
+                        "The `for` attribute on `<label>` must reference an input or an answer.",
                     type: "warning",
                 });
 
@@ -775,6 +789,24 @@ export default class Label extends InlineComponent {
                     setValue: {
                         forTargetInputComponentIdentity:
                             dependencyValues.forTargetInputComponentIdentity ??
+                            null,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.canBeAccessibilityLabel = {
+            returnDependencies: () => ({
+                forTargetInputComponentIdx: {
+                    dependencyType: "stateVariable",
+                    variableName: "forTargetInputComponentIdx",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        canBeAccessibilityLabel:
+                            dependencyValues.forTargetInputComponentIdx !==
                             null,
                     },
                 };

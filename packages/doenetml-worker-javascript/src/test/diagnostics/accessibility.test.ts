@@ -244,6 +244,59 @@ describe("Accessibility diagnostics @group4", async () => {
         expect(matrixInputDiagnostic!.message).toContain("`<matrixInput>`");
     });
 
+    it("graphical for-labels do not satisfy input accessibility requirements", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<textInput name="tiMissing" />
+<graph>
+  <point>
+    (1,2)
+    <label for="$tiMissing">A</label>
+  </point>
+</graph>
+`,
+        });
+
+        let diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.accessibility.length).gte(1);
+        const textInputDiagnostic = diagnosticsByType.accessibility.find(
+            (diagnostic) => diagnostic.position.start.line === 2,
+        );
+        expect(textInputDiagnostic).toBeDefined();
+        expect(textInputDiagnostic!.message).toContain("`<textInput>`");
+    });
+
+    it("answer for-labels do not satisfy accessibility for explicitly authored inputs", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<label for="$ansWithTwoInputs">Prompt</label>
+<answer name="ansWithTwoInputs" handGraded>
+  <textInput name="firstInput" />
+  <textInput name="secondInput" />
+</answer>
+`,
+        });
+
+        let diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(
+            diagnosticsByType.warnings.some((d) =>
+                d.message.includes(
+                    "The `for` attribute on `<label>` references an `<answer>` with explicitly authored inputs; reference the input directly.",
+                ),
+            ),
+        ).eq(true);
+        expect(diagnosticsByType.accessibility.length).gte(2);
+        const diagnosticLines = diagnosticsByType.accessibility.map(
+            (d) => d.position.start.line,
+        );
+        expect(diagnosticLines).include(4);
+        expect(diagnosticLines).include(5);
+    });
+
     it("rejects accessibility diagnostics without a level", async () => {
         const { core } = await createTestCore({
             doenetML: `<text>hello</text>`,

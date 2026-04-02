@@ -626,11 +626,14 @@ export default function MathInput(props: UseDoenetRendererProps) {
 
     // ACCESSIBILITY: Get external labels that reference this input via `for` attribute
     const externalLabelRendererIds = SVs.externalLabelRendererIds ?? [];
+    const hasExplicitLabel = hasLabel || externalLabelRendererIds.length > 0;
 
     // ACCESSIBILITY: Create ID for shortDescription span so it can be
     // referenced by textarea's aria-labelledby via EditableMathField
     const shortDescriptionId =
-        !hasLabel && shortDescription ? `${id}-short-description` : undefined;
+        !hasExplicitLabel && shortDescription
+            ? `${id}-short-description`
+            : undefined;
 
     // description will be the one non-null child
     const descriptionChild = children.find((child) => child);
@@ -722,7 +725,9 @@ export default function MathInput(props: UseDoenetRendererProps) {
                     }
                     shortDescriptionId={shortDescriptionId}
                     // Supplementary annotations (not primary labels)
-                    aria-description={hasLabel ? shortDescription : undefined}
+                    aria-description={
+                        hasExplicitLabel ? shortDescription : undefined
+                    }
                     aria-details={ariaDetailsIds || undefined}
                     config={{
                         autoCommands:
