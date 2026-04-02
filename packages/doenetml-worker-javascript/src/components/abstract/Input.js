@@ -805,11 +805,10 @@ export default class Input extends InlineComponent {
                 // An input is considered labeled for accessibility if it has an
                 // internal label, a non-blank short description, or an external
                 // `<label for="...">` whose resolved target is this input.
-                const hasExternalForLabel =
-                    Boolean(
-                        dependencyValues.externalLabelsReferencingInputByFor
-                            ?.length,
-                    );
+                const hasExternalForLabel = Boolean(
+                    dependencyValues.externalLabelsReferencingInputByFor
+                        ?.length,
+                );
 
                 if (
                     shortDescription === "" &&

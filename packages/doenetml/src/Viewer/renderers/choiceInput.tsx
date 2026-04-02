@@ -163,6 +163,12 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
 
     let shortDescription = SVs.shortDescription || undefined;
     const externalLabelRendererIds = SVs.externalLabelRendererIds ?? [];
+    const inlineLabelledByIds = [
+        hasLabel ? labelId : null,
+        ...externalLabelRendererIds,
+    ]
+        .filter(Boolean)
+        .join(" ");
 
     const descriptionChild =
         SVs.descriptionChildInd !== -1 && children[SVs.descriptionChildInd];
@@ -386,12 +392,16 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                             placeholder={SVs.placeHolder}
                             isDisabled={disabled}
                             isOptionDisabled={(opt) => !!opt.isDisabled}
-                            aria-labelledby={hasLabel ? labelId : undefined}
+                            aria-labelledby={inlineLabelledByIds || undefined}
                             aria-label={
-                                !hasLabel ? shortDescription : undefined
+                                !inlineLabelledByIds
+                                    ? shortDescription
+                                    : undefined
                             }
                             aria-description={
-                                hasLabel ? shortDescription : undefined
+                                inlineLabelledByIds
+                                    ? shortDescription
+                                    : undefined
                             }
                             // Note: aria-details added in CustomInput
                         />

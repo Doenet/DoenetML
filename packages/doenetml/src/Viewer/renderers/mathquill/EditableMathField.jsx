@@ -119,22 +119,12 @@ const EditableMathField = ({
         if (mathquillDidMount) mathquillDidMount(mathField.current);
     }, [wrapperElement]);
 
-    /**
-     * ACCESSIBILITY CUSTOMIZATION (see file header for details)
-     *
-     * After MathQuill initializes, combine external labels with the textarea's
-     * auto-generated aria-labelledby. This ensures screen readers announce the
-     * explicit label first, followed by the math content description.
-     *
-     * Uses a ref to ensure we only set aria-labelledby once, even though labelIds
-     * or shortDescriptionId may change. The actual IDs to combine are captured
-     * in closure when this effect runs after MathQuill setup.
-     */
-    const hasSetAriaLabelledBy = useRef(false);
+    // Preserve MathQuill's own labelled-by ids so we can rebuild a merged value
+    // whenever explicit label inputs change.
+    const mathquillAriaLabelledByIdsRef = useRef(null);
 
     useEffect(() => {
         if (!mathField.current || !wrapperElement.current) return;
-        if (hasSetAriaLabelledBy.current) return; // Only set once
 
         const textarea = wrapperElement.current.querySelector("textarea");
         if (!textarea) return;
@@ -157,29 +147,38 @@ const EditableMathField = ({
             seenIds.add(shortDescriptionId);
         }
 
-        // Get MathQuill's auto-generated aria-labelledby (math speech description)
-        const mathquillAriaLabelledBy =
-            textarea.getAttribute("aria-labelledby");
+        if (mathquillAriaLabelledByIdsRef.current === null) {
+            const mathquillAriaLabelledBy =
+                textarea.getAttribute("aria-labelledby") || "";
+            let mathquillIds = mathquillAriaLabelledBy
+                .split(" ")
+                .filter(Boolean);
 
-        if (allLabelIds.length > 0 && mathquillAriaLabelledBy) {
-            // Prepend our label IDs, then append MathQuill's auto-generated ID
-            // This way the explicit label is announced first, then the math description
-            textarea.setAttribute(
-                "aria-labelledby",
-                [...allLabelIds, mathquillAriaLabelledBy]
-                    .filter(Boolean)
-                    .join(" "),
-            );
-        } else if (allLabelIds.length > 0) {
-            // If MathQuill hasn't set aria-labelledby yet, just use our labels
-            textarea.setAttribute(
-                "aria-labelledby",
-                allLabelIds.filter(Boolean).join(" "),
-            );
+            // Fallback for timing cases where MathQuill hasn't yet reflected
+            // aria-labelledby on the textarea when this effect first runs.
+            if (mathquillIds.length === 0) {
+                const mathspeak =
+                    wrapperElement.current.querySelector(".mq-mathspeak[id]");
+                if (mathspeak?.id) {
+                    mathquillIds = [mathspeak.id];
+                }
+            }
+
+            mathquillAriaLabelledByIdsRef.current = mathquillIds;
         }
-        // If no explicit labels, leave MathQuill's aria-labelledby alone
 
-        hasSetAriaLabelledBy.current = true;
+        const mergedIds = [
+            ...allLabelIds,
+            ...(mathquillAriaLabelledByIdsRef.current || []),
+        ]
+            .filter(Boolean)
+            .filter((id, ind, arr) => arr.indexOf(id) === ind);
+
+        if (mergedIds.length > 0) {
+            textarea.setAttribute("aria-labelledby", mergedIds.join(" "));
+        } else {
+            textarea.removeAttribute("aria-labelledby");
+        }
     }, [labelIds, shortDescriptionId]);
 
     useEffect(() => {

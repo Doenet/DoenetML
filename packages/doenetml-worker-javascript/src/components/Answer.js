@@ -1091,7 +1091,9 @@ export default class Answer extends InlineComponent {
                 const inputChildrenCreatedFromSugar =
                     inputChildrenWithValues.map(
                         (_input, ind) =>
-                            dependencyValues[`inputChildCreatedFromSugar${ind}`],
+                            dependencyValues[
+                                `inputChildCreatedFromSugar${ind}`
+                            ],
                     );
 
                 hasAuthoredInputChildrenForLabel =

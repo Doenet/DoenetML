@@ -732,10 +732,7 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#mi").should("be.visible");
         cy.get("#mi [data-test='Description Button']").should("not.exist");
         cy.get("#mi [data-test='Description']").should("not.exist");
-        cy.get("#mi textarea").should(
-            "not.have.attr",
-            "aria-details",
-        );
+        cy.get("#mi textarea").should("not.have.attr", "aria-details");
     });
 
     it("labelPosition left and right", () => {

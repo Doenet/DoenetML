@@ -204,4 +204,50 @@ describe("MathInput aria-labelledby regression tests", () => {
             onlyWarnImpacts: ["moderate", "minor"],
         });
     });
+
+    // TODO: if remove the label by toggling it off,
+    // it still shows up in the aria-labelledby.
+    // This is because we are not checking for isInactiveCompositeReplacement
+    // If we address that issue, we should change this test to toggle the label off
+    it("textarea aria-labelledby updates when external label appears dynamically", () => {
+        let dynamicLabelId;
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <p><booleanInput name="showLabel"><label>Show label</label></booleanInput></p>
+        <conditionalContent condition="$showLabel">
+          <label name="dynamicExternalLabel" for="$miDynamic">Dynamic external label</label>
+        </conditionalContent>
+        <p><mathInput name="miDynamic" prefill="x" /></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#miDynamic").should("be.visible");
+
+        cy.get("#miDynamic textarea")
+            .invoke("attr", "aria-labelledby")
+            .should("be.a", "string");
+
+        // Toggle label on.
+        cy.contains("label", "Show label").click();
+
+        cy.contains("label", "Dynamic external label")
+            .should("be.visible")
+            .invoke("attr", "id")
+            .then((id) => {
+                dynamicLabelId = id;
+                expect(dynamicLabelId).to.be.a("string").and.not.be.empty;
+            });
+
+        cy.get("#miDynamic textarea")
+            .invoke("attr", "aria-labelledby")
+            .should((ariaLabelledByAfterShow) => {
+                expect(ariaLabelledByAfterShow).to.include(dynamicLabelId);
+            });
+    });
 });
