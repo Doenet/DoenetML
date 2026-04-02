@@ -2499,6 +2499,12 @@
                         "string"
                     ]
                 },
+                "for": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "forObject": {
                     "optional": true,
                     "type": [
@@ -3137,6 +3143,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "for": {
                     "optional": true,
                     "type": [
                         "string"
@@ -133876,6 +133888,12 @@
                     ]
                 },
                 "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "for": {
                     "optional": true,
                     "type": [
                         "string"

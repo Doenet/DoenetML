@@ -125,6 +125,37 @@ describe("MatrixInput Tag Tests", { tags: ["@group4"] }, function () {
         cy.get("#mi table").should("not.have.attr", "aria-details");
     });
 
+    it("matrixInput uses external labels and shortDescription fallback for table labelling", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><label name="matrixExternalLabel" for="$matExternal">Matrix A</label></p>
+    <p><matrixInput name="matExternal" /></p>
+
+    <p>
+        <matrixInput name="matFallback">
+            <shortDescription>Matrix B</shortDescription>
+        </matrixInput>
+    </p>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#matrixExternalLabel").should("contain.text", "Matrix A");
+
+        cy.get("#matExternal table")
+            .should("have.attr", "aria-labelledby", "matrixExternalLabel")
+            .and("not.have.attr", "aria-label");
+
+        cy.get("#matFallback table")
+            .should("have.attr", "aria-label", "Matrix B")
+            .and("not.have.attr", "aria-labelledby");
+    });
+
     it("labelPosition left and right", () => {
         cy.window().then(async (win) => {
             win.postMessage(

@@ -2741,7 +2741,7 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
         cy.get("#ans [data-test='Description Button']").should("be.visible");
         cy.get("#ans [data-test='Description']").should("not.be.visible");
         cy.get("#m").should("not.be.visible");
-        cy.get("#ans .mq-editable-field")
+        cy.get("#ans textarea")
             .should("have.attr", "aria-details")
             .then((ariaDetailsId) => {
                 cy.get(`#${ariaDetailsId}`).should(
@@ -2867,7 +2867,7 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
 
         cy.get("#ans [data-test='Description Button']").should("be.visible");
         cy.get("#ans [data-test='Description']").should("not.be.visible");
-        cy.get("#ans ul")
+        cy.get("#ans fieldset")
             .should("have.attr", "aria-details")
             .then((ariaDetailsId) => {
                 cy.get(`#${ariaDetailsId}`).should(
@@ -3078,26 +3078,60 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             // Math answer
             cy.get("#ansMath textarea").as("mathInput");
             cy.get("#ansMath .mq-editable-field").as("mathInputField");
-            cy.get("@mathInputField")
-                .should("have.css", "border-color", defaultColor)
-                .should("have.attr", "aria-label", "What is x?");
+
+            function checkMathInputLabelText(expectedText) {
+                cy.get("@mathInput")
+                    .should("have.attr", "aria-labelledby")
+                    .then((ariaLabelledBy) => {
+                        const labelIds = ariaLabelledBy.split(" ");
+                        cy.document().then((doc) => {
+                            const hasExpectedLabel = labelIds.some(
+                                (labelId) => {
+                                    const labelElement =
+                                        doc.getElementById(labelId);
+                                    return (
+                                        labelElement &&
+                                        labelElement.textContent.includes(
+                                            expectedText,
+                                        )
+                                    );
+                                },
+                            );
+                            expect(hasExpectedLabel).eq(true);
+                        });
+                    });
+            }
+
+            cy.get("@mathInputField").should(
+                "have.css",
+                "border-color",
+                defaultColor,
+            );
+            checkMathInputLabelText("What is x?");
 
             cy.get("@mathInput").type("x{enter}", { force: true });
-            cy.get("@mathInputField")
-                .should("have.css", "border-color", correctColor)
-                .should("have.attr", "aria-label", "What is x? (Correct)");
+            cy.get("@mathInputField").should(
+                "have.css",
+                "border-color",
+                correctColor,
+            );
+            checkMathInputLabelText("What is x? (Correct)");
+
             cy.get("@mathInput").type("{backspace}y{enter}", { force: true });
-            cy.get("@mathInputField")
-                .should("have.css", "border-color", partialColor)
-                .should(
-                    "have.attr",
-                    "aria-label",
-                    "What is x? (Partially correct)",
-                );
+            cy.get("@mathInputField").should(
+                "have.css",
+                "border-color",
+                partialColor,
+            );
+            checkMathInputLabelText("What is x? (Partially correct)");
+
             cy.get("@mathInput").type("{backspace}z{enter}", { force: true });
-            cy.get("@mathInputField")
-                .should("have.css", "border-color", incorrectColor)
-                .should("have.attr", "aria-label", "What is x? (Incorrect)");
+            cy.get("@mathInputField").should(
+                "have.css",
+                "border-color",
+                incorrectColor,
+            );
+            checkMathInputLabelText("What is x? (Incorrect)");
 
             // Text answer
             cy.get("#ansText input").as("textInput");

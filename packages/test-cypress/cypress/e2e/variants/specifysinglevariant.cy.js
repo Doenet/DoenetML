@@ -640,42 +640,33 @@ describe(
                     cesc("#_id_" + mathInput4Idx) + " textarea";
                 let answer4Button = cesc("#_id_" + mathInput4Idx + "_button");
 
-                cy.get(`label[for=${cesc("ci_choice1_input")}]`).should(
-                    "have.text",
-                    choices[choiceOrder[0] - 1],
-                );
-                cy.get(`label[for=${cesc("ci_choice2_input")}]`).should(
-                    "have.text",
-                    choices[choiceOrder[1] - 1],
-                );
-                cy.get(`label[for=${cesc("ci_choice3_input")}]`).should(
-                    "have.text",
-                    choices[choiceOrder[2] - 1],
-                );
-                cy.get(`label[for=${cesc("g2.ci_choice1_input")}]`).should(
-                    "have.text",
-                    choices[choiceOrder[0] - 1],
-                );
-                cy.get(`label[for=${cesc("g2.ci_choice2_input")}]`).should(
-                    "have.text",
-                    choices[choiceOrder[1] - 1],
-                );
-                cy.get(`label[for=${cesc("g2.ci_choice3_input")}]`).should(
-                    "have.text",
-                    choices[choiceOrder[2] - 1],
-                );
-                cy.get(`label[for=${cesc("g3.ci_choice1_input")}]`).should(
-                    "have.text",
-                    choices[choiceOrder[0] - 1],
-                );
-                cy.get(`label[for=${cesc("g3.ci_choice2_input")}]`).should(
-                    "have.text",
-                    choices[choiceOrder[1] - 1],
-                );
-                cy.get(`label[for=${cesc("g3.ci_choice3_input")}]`).should(
-                    "have.text",
-                    choices[choiceOrder[2] - 1],
-                );
+                cy.get(`#${cesc("ci_choice1_input")}`)
+                    .parent()
+                    .should("have.text", choices[choiceOrder[0] - 1]);
+                cy.get(`#${cesc("ci_choice2_input")}`)
+                    .parent()
+                    .should("have.text", choices[choiceOrder[1] - 1]);
+                cy.get(`#${cesc("ci_choice3_input")}`)
+                    .parent()
+                    .should("have.text", choices[choiceOrder[2] - 1]);
+                cy.get(`#${cesc("g2.ci_choice1_input")}`)
+                    .parent()
+                    .should("have.text", choices[choiceOrder[0] - 1]);
+                cy.get(`#${cesc("g2.ci_choice2_input")}`)
+                    .parent()
+                    .should("have.text", choices[choiceOrder[1] - 1]);
+                cy.get(`#${cesc("g2.ci_choice3_input")}`)
+                    .parent()
+                    .should("have.text", choices[choiceOrder[2] - 1]);
+                cy.get(`#${cesc("g3.ci_choice1_input")}`)
+                    .parent()
+                    .should("have.text", choices[choiceOrder[0] - 1]);
+                cy.get(`#${cesc("g3.ci_choice2_input")}`)
+                    .parent()
+                    .should("have.text", choices[choiceOrder[1] - 1]);
+                cy.get(`#${cesc("g3.ci_choice3_input")}`)
+                    .parent()
+                    .should("have.text", choices[choiceOrder[2] - 1]);
 
                 cy.get(cesc(`#p2`)).should("contain.text", `Enter ${n}`);
                 cy.get(cesc(`#g2.p2`)).should("contain.text", `Enter ${n}`);

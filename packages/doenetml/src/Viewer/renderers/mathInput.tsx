@@ -610,6 +610,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
     );
 
     let label = SVs.label;
+    const inputKey = `${id}_input`;
     const hasLabel =
         typeof SVs.label === "string" ? SVs.label.trim() !== "" : !!SVs.label;
     const labelId = `${id}-input-label`;
@@ -622,6 +623,17 @@ export default function MathInput(props: UseDoenetRendererProps) {
     }
 
     let shortDescription = SVs.shortDescription || undefined;
+
+    // ACCESSIBILITY: Get external labels that reference this input via `for` attribute
+    const externalLabelRendererIds = SVs.externalLabelRendererIds ?? [];
+    const hasExplicitLabel = hasLabel || externalLabelRendererIds.length > 0;
+
+    // ACCESSIBILITY: Create ID for shortDescription span so it can be
+    // referenced by textarea's aria-labelledby via EditableMathField
+    const shortDescriptionId =
+        !hasExplicitLabel && shortDescription
+            ? `${id}-short-description`
+            : undefined;
 
     // description will be the one non-null child
     const descriptionChild = children.find((child) => child);
@@ -665,6 +677,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
     const labelComponent = hasLabel ? (
         <label
             id={labelId}
+            htmlFor={inputKey}
             style={{
                 marginRight: SVs.labelPosition === "right" ? undefined : "2px",
                 marginLeft: SVs.labelPosition === "right" ? "2px" : undefined,
@@ -681,6 +694,12 @@ export default function MathInput(props: UseDoenetRendererProps) {
                 alignItems: "flex-start",
             }}
         >
+            {/* Visually hidden span referenced by aria-labelledby when shortDescription is the fallback label */}
+            {shortDescriptionId && (
+                <span id={shortDescriptionId} className="visually-hidden">
+                    {shortDescription}
+                </span>
+            )}
             <Ariakit.PopoverAnchor
                 store={preview.previewPopover}
                 className="mathInputWrapper"
@@ -692,9 +711,19 @@ export default function MathInput(props: UseDoenetRendererProps) {
                 <EditableMathField
                     style={mathInputStyle}
                     latex={rendererValue.current}
-                    aria-labelledby={hasLabel ? labelId : undefined}
-                    ariaLabel={!hasLabel ? shortDescription : undefined}
-                    aria-description={hasLabel ? shortDescription : undefined}
+                    // ACCESSIBILITY: Pass label IDs (internal + external) so they are prepended
+                    // to the textarea's aria-labelledby (which includes MathQuill's auto-generated
+                    // math speech ID). This ensures explicit labels are announced before math descriptions.
+                    labelIds={
+                        hasLabel
+                            ? [labelId, ...externalLabelRendererIds]
+                            : externalLabelRendererIds
+                    }
+                    shortDescriptionId={shortDescriptionId}
+                    // Supplementary annotations (not primary labels)
+                    aria-description={
+                        hasExplicitLabel ? shortDescription : undefined
+                    }
                     aria-details={ariaDetailsIds || undefined}
                     config={{
                         autoCommands:
@@ -715,6 +744,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
                         substituteTextarea: function () {
                             textareaRef.current =
                                 document.createElement("textarea");
+                            textareaRef.current.id = inputKey;
                             textareaRef.current.disabled = SVs.disabled;
                             textareaRef.current.addEventListener(
                                 "keydown",

@@ -1054,6 +1054,70 @@ export default class Answer extends InlineComponent {
             },
         };
 
+        stateVariableDefinitions.inputComponentIdxForLabel = {
+            stateVariablesDeterminingDependencies: ["inputChildrenWithValues"],
+            additionalStateVariablesDefined: [
+                {
+                    variableName: "hasAuthoredInputChildrenForLabel",
+                },
+            ],
+            returnDependencies({ stateValues }) {
+                const dependencies = {
+                    inputChildrenWithValues: {
+                        dependencyType: "stateVariable",
+                        variableName: "inputChildrenWithValues",
+                    },
+                };
+
+                for (const [ind, input] of (
+                    stateValues.inputChildrenWithValues ?? []
+                ).entries()) {
+                    dependencies[`inputChildCreatedFromSugar${ind}`] = {
+                        dependencyType: "doenetAttribute",
+                        componentIdx: input.componentIdx,
+                        attributeName: "createdFromSugar",
+                    };
+                }
+
+                return dependencies;
+            },
+            definition({ dependencyValues }) {
+                const inputChildrenWithValues =
+                    dependencyValues.inputChildrenWithValues ?? [];
+
+                let inputComponentIdxForLabel = null;
+                let hasAuthoredInputChildrenForLabel = false;
+
+                const inputChildrenCreatedFromSugar =
+                    inputChildrenWithValues.map(
+                        (_input, ind) =>
+                            dependencyValues[
+                                `inputChildCreatedFromSugar${ind}`
+                            ],
+                    );
+
+                hasAuthoredInputChildrenForLabel =
+                    inputChildrenCreatedFromSugar.some(
+                        (createdFromSugar) => !createdFromSugar,
+                    );
+
+                if (
+                    inputChildrenWithValues.length === 1 &&
+                    inputChildrenCreatedFromSugar[0]
+                ) {
+                    inputComponentIdxForLabel =
+                        inputChildrenWithValues[0].componentIdx;
+                }
+
+                return {
+                    setValue: {
+                        inputComponentIdxForLabel,
+                        hasAuthoredInputChildrenForLabel,
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.awardInputResponseChildren = {
             returnDependencies: () => ({
                 awardInputResponseChildren: {
@@ -1107,6 +1171,23 @@ export default class Answer extends InlineComponent {
                 }
 
                 return { setValue: { inputsForAnswer } };
+            },
+        };
+
+        stateVariableDefinitions.labelsForAnswer = {
+            returnDependencies: () => ({
+                labelsReferencing: {
+                    dependencyType: "componentsReferencingAttribute",
+                    attributeName: "for",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        labelsForAnswer:
+                            dependencyValues.labelsReferencing ?? [],
+                    },
+                };
             },
         };
 

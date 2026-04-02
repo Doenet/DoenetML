@@ -1165,6 +1165,47 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         }
     });
 
+    it("block choiceInput uses external labels for fieldset labelling", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><label name="animalLabel" for="$ci1">Favorite animal:</label></p>
+    <p>
+        <choiceInput name="ci1">
+            <choice>dog</choice>
+            <choice>cat</choice>
+        </choiceInput>
+    </p>
+
+    <p><label name="animalsLabel" for="$ci2">Favorite animals:</label></p>
+    <p>
+        <choiceInput name="ci2" selectMultiple>
+            <choice>dog</choice>
+            <choice>cat</choice>
+        </choiceInput>
+    </p>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#animalLabel").should("contain.text", "Favorite animal:");
+        cy.get("#animalsLabel").should("contain.text", "Favorite animals:");
+
+        cy.get("#ci1")
+            .should("have.prop", "tagName", "FIELDSET")
+            .should("have.attr", "aria-labelledby", "animalLabel")
+            .and("not.have.attr", "aria-label");
+
+        cy.get("#ci2")
+            .should("have.prop", "tagName", "FIELDSET")
+            .should("have.attr", "aria-labelledby", "animalsLabel")
+            .and("not.have.attr", "aria-label");
+    });
+
     it("with description", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -1185,10 +1226,8 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get("#ci-label [data-test='Description Button']").should(
-            "be.visible",
-        );
-        cy.get("#ci-label [data-test='Description']").should("not.be.visible");
+        cy.get("#ci [data-test='Description Button']").should("be.visible");
+        cy.get("#ci [data-test='Description']").should("not.be.visible");
         cy.get("#ci").should("have.attr", "aria-label", `Select`);
         cy.get("#ci").should(
             "have.attr",
@@ -1200,15 +1239,15 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             "Select what you like.",
         );
 
-        cy.get("#ci-label [data-test='Description Button']").click();
+        cy.get("#ci [data-test='Description Button']").click();
 
-        cy.get("#ci-label [data-test='Description']").should(
+        cy.get("#ci [data-test='Description']").should(
             "contain.text",
             "Select what you like.",
         );
 
         cy.get("#ci input").eq(0).focus();
-        cy.get("#ci-label [data-test='Description']").should("not.be.visible");
+        cy.get("#ci [data-test='Description']").should("not.be.visible");
     });
 
     it("with description, inline", () => {
@@ -1280,10 +1319,8 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         });
 
         cy.get("#ci").should("be.visible");
-        cy.get("#ci-label [data-test='Description Button']").should(
-            "not.exist",
-        );
-        cy.get("#ci-label [data-test='Description']").should("not.exist");
+        cy.get("#ci [data-test='Description Button']").should("not.exist");
+        cy.get("#ci [data-test='Description']").should("not.exist");
         cy.get("#ci").should("not.have.attr", "aria-details");
     });
 
@@ -1305,10 +1342,8 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         });
 
         cy.get("#ci").should("be.visible");
-        cy.get("#ci-label [data-test='Description Button']").should(
-            "not.exist",
-        );
-        cy.get("#ci-label [data-test='Description']").should("not.exist");
+        cy.get("#ci [data-test='Description Button']").should("not.exist");
+        cy.get("#ci [data-test='Description']").should("not.exist");
         cy.get("#ci input").should("not.have.attr", "aria-details");
     });
 
@@ -1371,11 +1406,11 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         cy.get("#fv").should("have.text", "focused: false");
 
         cy.log("Focus the select input: focused becomes true");
-        cy.get("#ci-input").focus();
+        cy.get("#ci_input").focus();
         cy.get("#fv").should("have.text", "focused: true");
 
         cy.log("Blur the select input: focused becomes false");
-        cy.get("#ci-input").blur();
+        cy.get("#ci_input").blur();
         cy.get("#fv").should("have.text", "focused: false");
     });
 

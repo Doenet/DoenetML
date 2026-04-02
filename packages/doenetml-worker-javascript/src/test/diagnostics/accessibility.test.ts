@@ -173,6 +173,130 @@ describe("Accessibility diagnostics @group4", async () => {
         expect(diagnostic!.message).toContain(accessibilityMsg);
     });
 
+    it("external labels with `for` attribute satisfy input accessibility requirements", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<textInput name="tiMissing" />
+<label for="$tiLabeled">Your name</label>
+<textInput name="tiLabeled" />
+
+<choiceInput name="ciMissing">
+    <choice>A</choice>
+    <choice>B</choice>
+</choiceInput>
+<label for="$ciLabeled">Pick one</label>
+<choiceInput name="ciLabeled">
+    <choice>A</choice>
+    <choice>B</choice>
+</choiceInput>
+
+<matrixInput name="miMissing" />
+<label for="$miLabeled">Matrix A</label>
+<matrixInput name="miLabeled" />
+
+<answer name="ansMissing">2</answer>
+<label for="$ansLabeled">1+1=</label>
+<answer name="ansLabeled">2</answer>
+`,
+        });
+
+        let diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.infos.length).eq(0);
+        expect(diagnosticsByType.accessibility.length).eq(4);
+        expect(
+            diagnosticsByType.accessibility.every(
+                (diagnostic) => diagnostic.level === 1,
+            ),
+        ).eq(true);
+
+        const diagnosticLines = diagnosticsByType.accessibility
+            .map((d) => d.position.start.line)
+            .sort((a, b) => a - b);
+        expect(diagnosticLines).eql([2, 6, 16, 20]);
+
+        const textInputDiagnostic = diagnosticsByType.accessibility.find((d) =>
+            d.message.includes("`<textInput>`"),
+        );
+        expect(textInputDiagnostic).toBeDefined();
+        expect(textInputDiagnostic!.message).toContain("`<textInput>`");
+
+        const answerDiagnostic = diagnosticsByType.accessibility.find((d) =>
+            d.message.includes("an `<answer>` creating an input"),
+        );
+        expect(answerDiagnostic).toBeDefined();
+        expect(answerDiagnostic!.message).toContain(
+            "an `<answer>` creating an input",
+        );
+
+        const choiceInputDiagnostic = diagnosticsByType.accessibility.find(
+            (d) => d.message.includes("`<choiceInput>`"),
+        );
+        expect(choiceInputDiagnostic).toBeDefined();
+        expect(choiceInputDiagnostic!.message).toContain("`<choiceInput>`");
+
+        const matrixInputDiagnostic = diagnosticsByType.accessibility.find(
+            (d) => d.message.includes("`<matrixInput>`"),
+        );
+        expect(matrixInputDiagnostic).toBeDefined();
+        expect(matrixInputDiagnostic!.message).toContain("`<matrixInput>`");
+    });
+
+    it("graphical for-labels do not satisfy input accessibility requirements", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<textInput name="tiMissing" />
+<graph>
+  <point>
+    (1,2)
+    <label for="$tiMissing">A</label>
+  </point>
+</graph>
+`,
+        });
+
+        let diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.accessibility.length).gte(1);
+        const textInputDiagnostic = diagnosticsByType.accessibility.find(
+            (diagnostic) => diagnostic.position.start.line === 2,
+        );
+        expect(textInputDiagnostic).toBeDefined();
+        expect(textInputDiagnostic!.message).toContain("`<textInput>`");
+    });
+
+    it("answer for-labels do not satisfy accessibility for explicitly authored inputs", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<label for="$ansWithTwoInputs">Prompt</label>
+<answer name="ansWithTwoInputs" handGraded>
+  <textInput name="firstInput" />
+  <textInput name="secondInput" />
+</answer>
+`,
+        });
+
+        let diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(
+            diagnosticsByType.warnings.some((d) =>
+                d.message.includes(
+                    "The `for` attribute on `<label>` references an `<answer>` with explicitly authored inputs; reference the input directly.",
+                ),
+            ),
+        ).eq(true);
+        expect(diagnosticsByType.accessibility.length).gte(2);
+        const diagnosticLines = diagnosticsByType.accessibility.map(
+            (d) => d.position.start.line,
+        );
+        expect(diagnosticLines).include(4);
+        expect(diagnosticLines).include(5);
+    });
+
     it("rejects accessibility diagnostics without a level", async () => {
         const { core } = await createTestCore({
             doenetML: `<text>hello</text>`,

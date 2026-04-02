@@ -83,6 +83,7 @@ export default class Input extends InlineComponent {
                         "nextCreditFactor",
                         "forceFullCheckWorkButton",
                         "forceSmallCheckWorkButton",
+                        "labelsForAnswer",
                     ],
                 },
             }),
@@ -577,6 +578,187 @@ export default class Input extends InlineComponent {
             },
         };
 
+        // Raw syntactic references from `<label for="...">` to this input.
+        // This list is intentionally unfiltered: it may include labels that
+        // later prove unusable for accessibility (for example, labels inside a
+        // graph, or labels whose effective target resolves to another input).
+        stateVariableDefinitions.labelsReferencingInputByForRaw = {
+            returnDependencies: () => ({
+                labelsReferencingInputByFor: {
+                    dependencyType: "componentsReferencingAttribute",
+                    attributeName: "for",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        labelsReferencingInputByForRaw:
+                            dependencyValues.labelsReferencingInputByFor ?? [],
+                    },
+                };
+            },
+        };
+
+        // Semantically valid external labels for this input.
+        // Unlike `labelsReferencingInputByForRaw`, this list is filtered to
+        // labels that can actually serve as accessibility labels for this
+        // specific input after target resolution (`forTargetInputComponentIdx`)
+        // and eligibility checks (`canBeAccessibilityLabel`).
+        stateVariableDefinitions.externalLabelsReferencingInputByFor = {
+            stateVariablesDeterminingDependencies: [
+                "answerAncestor",
+                "labelsReferencingInputByForRaw",
+            ],
+            returnDependencies({ stateValues }) {
+                const dependencies = {
+                    answerAncestor: {
+                        dependencyType: "stateVariable",
+                        variableName: "answerAncestor",
+                    },
+                    rawLabelsReferencingInputByFor: {
+                        dependencyType: "stateVariable",
+                        variableName: "labelsReferencingInputByForRaw",
+                    },
+                };
+
+                const answerLabels =
+                    stateValues.answerAncestor?.stateValues?.labelsForAnswer ??
+                    [];
+
+                for (const label of [
+                    ...(stateValues.labelsReferencingInputByForRaw ?? []),
+                    ...answerLabels,
+                ]) {
+                    const labelComponentIdx = label?.componentIdx;
+
+                    if (
+                        labelComponentIdx !== undefined &&
+                        labelComponentIdx !== null
+                    ) {
+                        dependencies[
+                            `externalLabelTargetInputComponentIdx${labelComponentIdx}`
+                        ] = {
+                            dependencyType: "stateVariable",
+                            componentIdx: labelComponentIdx,
+                            variableName: "forTargetInputComponentIdx",
+                        };
+                        dependencies[
+                            `externalLabelCanBeAccessibilityLabel${labelComponentIdx}`
+                        ] = {
+                            dependencyType: "stateVariable",
+                            componentIdx: labelComponentIdx,
+                            variableName: "canBeAccessibilityLabel",
+                        };
+                    }
+                }
+
+                return dependencies;
+            },
+            definition({ dependencyValues, componentIdx }) {
+                const externalLabelsReferencingInputByFor = [];
+                const seenLabelComponentIndices = new Set();
+
+                const candidateLabels = [
+                    ...(dependencyValues.rawLabelsReferencingInputByFor ?? []),
+                    ...(dependencyValues.answerAncestor?.stateValues
+                        ?.labelsForAnswer ?? []),
+                ];
+
+                for (const label of candidateLabels) {
+                    const labelComponentIdx = label?.componentIdx;
+
+                    if (
+                        labelComponentIdx === undefined ||
+                        labelComponentIdx === null ||
+                        seenLabelComponentIndices.has(labelComponentIdx)
+                    ) {
+                        continue;
+                    }
+
+                    seenLabelComponentIndices.add(labelComponentIdx);
+
+                    if (
+                        dependencyValues[
+                            `externalLabelCanBeAccessibilityLabel${labelComponentIdx}`
+                        ] &&
+                        dependencyValues[
+                            `externalLabelTargetInputComponentIdx${labelComponentIdx}`
+                        ] === componentIdx
+                    ) {
+                        externalLabelsReferencingInputByFor.push(label);
+                    }
+                }
+
+                return {
+                    setValue: {
+                        externalLabelsReferencingInputByFor:
+                            externalLabelsReferencingInputByFor,
+                    },
+                };
+            },
+        };
+
+        // Renderer ids of external labels that reference this input. Grouped
+        // widgets such as matrixInput and non-inline choiceInput use these ids
+        // in `aria-labelledby`, while single-control inputs can continue to use
+        // native `htmlFor` from the label side.
+        stateVariableDefinitions.externalLabelRendererIds = {
+            forRenderer: true,
+            stateVariablesDeterminingDependencies: [
+                "externalLabelsReferencingInputByFor",
+            ],
+            returnDependencies({ stateValues }) {
+                const dependencies = {
+                    externalLabelsReferencingInputByFor: {
+                        dependencyType: "stateVariable",
+                        variableName: "externalLabelsReferencingInputByFor",
+                    },
+                };
+
+                const labelsReferencingInput =
+                    stateValues.externalLabelsReferencingInputByFor ?? [];
+
+                for (const label of labelsReferencingInput) {
+                    const componentIdx = label?.componentIdx;
+                    if (componentIdx !== undefined && componentIdx !== null) {
+                        dependencies[`externalLabelRendererId${componentIdx}`] =
+                            {
+                                dependencyType: "rendererId",
+                                componentIdx,
+                            };
+                    }
+                }
+
+                return dependencies;
+            },
+            definition({ dependencyValues }) {
+                const externalLabelRendererIds = [];
+                const seen = new Set();
+
+                const labelsReferencingInput =
+                    dependencyValues.externalLabelsReferencingInputByFor ?? [];
+
+                for (const label of labelsReferencingInput) {
+                    const componentIdx = label?.componentIdx;
+                    if (componentIdx === undefined || componentIdx === null) {
+                        continue;
+                    }
+
+                    const rendererId =
+                        dependencyValues[
+                            `externalLabelRendererId${componentIdx}`
+                        ];
+
+                    if (rendererId && !seen.has(rendererId)) {
+                        seen.add(rendererId);
+                        externalLabelRendererIds.push(rendererId);
+                    }
+                }
+
+                return { setValue: { externalLabelRendererIds } };
+            },
+        };
+
         stateVariableDefinitions.shortDescription = {
             forRenderer: true,
             public: true,
@@ -602,6 +784,10 @@ export default class Input extends InlineComponent {
                     dependencyType: "doenetAttribute",
                     attributeName: "createdFromSugar",
                 },
+                externalLabelsReferencingInputByFor: {
+                    dependencyType: "stateVariable",
+                    variableName: "externalLabelsReferencingInputByFor",
+                },
             }),
             definition({ dependencyValues }) {
                 let shortDescription = "";
@@ -615,7 +801,20 @@ export default class Input extends InlineComponent {
                     shortDescription =
                         shortDescriptionChild.stateValues.text.trim();
                 }
-                if (shortDescription === "" && !dependencyValues.label) {
+
+                // An input is considered labeled for accessibility if it has an
+                // internal label, a non-blank short description, or an external
+                // `<label for="...">` whose resolved target is this input.
+                const hasExternalForLabel = Boolean(
+                    dependencyValues.externalLabelsReferencingInputByFor
+                        ?.length,
+                );
+
+                if (
+                    shortDescription === "" &&
+                    !dependencyValues.label &&
+                    !hasExternalForLabel
+                ) {
                     let objectNeedingLabel =
                         dependencyValues.createdFromSugar &&
                         dependencyValues.answerAncestor
