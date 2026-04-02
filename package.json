@@ -34,6 +34,7 @@
     "scripts": {
         "build": "npm run build --workspace packages/doenetml",
         "build:all-no-docs": "npm run build -w packages/doenetml -w packages/doenetml-prototype -w packages/standalone -w packages/prefigure -w packages/doenetml-iframe -w packages/v06-to-v07 -w packages/vscode-extension -w packages/test-viewer -w packages/test-cypress",
+        "build:docs-prereqs": "npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe",
         "build:docs": "npm run build --workspace packages/docs-nextra",
         "build:all": "npm run build -ws --if-present",
         "clean": "rimraf packages/*/dist",

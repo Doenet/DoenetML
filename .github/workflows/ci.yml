@@ -298,8 +298,18 @@ jobs:
             - name: Debug Build Artifacts
               run: |
                   ls -la ./packages/*/.wireit/ || echo "No .wireit directory found"
+                  du -sh ./packages/*/.wireit/*/
 
-            # with the wireit cache saved, this build step should be fast.
+            # Rebuild only the docs prerequisites first so docs doesn't depend on a perfect artifact restore.
+            # With the wireit cache saved, this should usually be a fast cache hit.
+            - name: Build (cached prerequisites)
+              run: |
+                  export NODE_OPTIONS="--max_old_space_size=6114"
+                  npm run build:docs-prereqs
+              env:
+                  WIREIT_CACHE: "local"
+
+            # With the wireit cache saved, this build step should be fast.
             - name: Build Docs
               run: |
                   export NODE_OPTIONS="--max_old_space_size=6114"
