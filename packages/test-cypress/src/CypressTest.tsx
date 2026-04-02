@@ -120,6 +120,9 @@ export function CypressTest() {
             | null => {
             return isAccessibleRef.current;
         };
+        return () => {
+            delete (window as any).returnIsAccessibleCallbackValue;
+        };
     }, []);
 
     const solutionDisplayMode = "button";
