@@ -110,17 +110,15 @@ export function CypressTest() {
     const [includeVariantSelector, setIncludeVariantSelector] = useState(
         testSettings.includeVariantSelector,
     );
-    const [hasAccessibilityIssues, setHasAccessibilityIssues] = useState<
-        boolean | null
-    >(null);
-    const hasAccessibilityIssuesRef = useRef<boolean | null>(null);
-    hasAccessibilityIssuesRef.current = hasAccessibilityIssues;
+    const [isAccessible, setIsAccessible] = useState<boolean | null>(null);
+    const isAccessibleRef = useRef<boolean | null>(null);
+    isAccessibleRef.current = isAccessible;
 
     useEffect(() => {
         (window as any).returnIsAccessibleCallbackValue = ():
             | boolean
             | null => {
-            return hasAccessibilityIssuesRef.current;
+            return isAccessibleRef.current;
         };
     }, []);
 
@@ -589,8 +587,8 @@ export function CypressTest() {
                 showAnswerResponseButton={answerResponseCounts !== undefined}
                 answerResponseCounts={answerResponseCounts}
                 readOnly={readOnly}
-                isAccessibleCallback={(nextHasAccessibilityIssues: boolean) => {
-                    setHasAccessibilityIssues(nextHasAccessibilityIssues);
+                isAccessibleCallback={(nextIsAccessible: boolean) => {
+                    setIsAccessible(nextIsAccessible);
                 }}
             />
         );
