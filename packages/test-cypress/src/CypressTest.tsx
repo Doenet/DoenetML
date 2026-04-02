@@ -110,6 +110,19 @@ export function CypressTest() {
     const [includeVariantSelector, setIncludeVariantSelector] = useState(
         testSettings.includeVariantSelector,
     );
+    const [hasAccessibilityIssues, setHasAccessibilityIssues] = useState<
+        boolean | null
+    >(null);
+    const hasAccessibilityIssuesRef = useRef<boolean | null>(null);
+    hasAccessibilityIssuesRef.current = hasAccessibilityIssues;
+
+    useEffect(() => {
+        (window as any).returnIsAccessibleCallbackValue = ():
+            | boolean
+            | null => {
+            return hasAccessibilityIssuesRef.current;
+        };
+    }, []);
 
     const solutionDisplayMode = "button";
 
@@ -576,6 +589,9 @@ export function CypressTest() {
                 showAnswerResponseButton={answerResponseCounts !== undefined}
                 answerResponseCounts={answerResponseCounts}
                 readOnly={readOnly}
+                isAccessibleCallback={(nextHasAccessibilityIssues: boolean) => {
+                    setHasAccessibilityIssues(nextHasAccessibilityIssues);
+                }}
             />
         );
         const viewer = (
