@@ -20,10 +20,10 @@ Agents working in this repository should read [TEST_RUN_INSTRUCTIONS_FOR_AGENTS.
 
 - Changesets are configured in `.changeset/config.json`.
 - The repo currently uses one `fixed` group containing four published packages:
-	- `@doenet/doenetml`
-	- `@doenet/standalone`
-	- `@doenet/doenetml-iframe`
-	- `@doenet/v06-to-v07`
+  - `@doenet/doenetml`
+  - `@doenet/standalone`
+  - `@doenet/doenetml-iframe`
+  - `@doenet/v06-to-v07`
 - User-facing changes in `@doenet/doenetml` are also apparent in `@doenet/standalone` and `@doenet/doenetml-iframe`.
 - User-facing changes in `@doenet/standalone` are also apparent in `@doenet/doenetml-iframe`.
 - When writing a changeset, include the published package or packages where the user-facing change is apparent, not just the package where the implementation lives.
