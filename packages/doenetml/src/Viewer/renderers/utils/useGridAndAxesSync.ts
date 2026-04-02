@@ -48,7 +48,13 @@ export default function useGridAndAxesSync({
         }
 
         // Update tick display style after any grid-mode changes.
-        applyAxisTickHeights({ grid: SVs.grid, xaxisRef, yaxisRef });
+        applyAxisTickHeights({
+            grid: SVs.grid,
+            xaxisRef,
+            yaxisRef,
+            displayXAxisTicks: SVs.displayXAxisTicks,
+            displayYAxisTicks: SVs.displayYAxisTicks,
+        });
 
         const displayXAxisChanged = SVs.displayXAxis
             ? !Boolean(xaxisRef.current)

@@ -894,6 +894,185 @@ describe("Graph tag tests @group2", async () => {
         ).eq(true);
     });
 
+    it("display axis ticks defaults", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .displayXAxisTicks,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .displayYAxisTicks,
+        ).eq(true);
+    });
+
+    it("display ticks and tick fallback behavior", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g1" displayXAxisTicks="$ticks1" displayYAxisTicks="$ticks1" />
+    <graph name="g2" displayXAxisTicks="$ticks2" displayYAxisTicks="$ticks2" displayXAxisTickLabels="$labels2" />
+    <booleanInput name="ticks1" prefill="true" />
+    <booleanInput name="ticks2" prefill="false" />
+    <booleanInput name="labels2" prefill="true" />
+    `,
+        });
+
+        // Test initial values for displayXAxisTicks and displayYAxisTicks
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g1")].stateValues
+                .displayXAxisTicks,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g1")].stateValues
+                .displayYAxisTicks,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayXAxisTicks,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayYAxisTicks,
+        ).eq(false);
+
+        // Test inheritance: when displayXAxisTickLabels is not specified, it inherits from displayXAxisTicks
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g1")].stateValues
+                .displayXAxisTickLabels,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g1")].stateValues
+                .displayYAxisTickLabels,
+        ).eq(true);
+
+        // Test override: when displayXAxisTickLabels is explicitly set, it does not follow displayXAxisTicks
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayXAxisTickLabels,
+        ).eq(true);
+        // displayYAxisTickLabels is not specified, so it inherits from displayYAxisTicks
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayYAxisTickLabels,
+        ).eq(false);
+
+        // Toggle ticks1 to false
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("ticks1"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        // displayXAxisTickLabels and displayYAxisTickLabels should now follow displayXAxisTicks = false
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g1")].stateValues
+                .displayXAxisTicks,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g1")].stateValues
+                .displayXAxisTickLabels,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g1")].stateValues
+                .displayYAxisTicks,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g1")].stateValues
+                .displayYAxisTickLabels,
+        ).eq(false);
+
+        // g2: displayXAxisTickLabels explicitly set to true should remain true even though displayXAxisTicks is false
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayXAxisTickLabels,
+        ).eq(true);
+        // displayYAxisTickLabels should follow displayYAxisTicks = false
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayYAxisTickLabels,
+        ).eq(false);
+
+        // Toggle ticks2 to true - displayYAxisTickLabels should now inherit and become true
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("ticks2"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayXAxisTicks,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayYAxisTicks,
+        ).eq(true);
+        // displayXAxisTickLabels still explicitly true
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayXAxisTickLabels,
+        ).eq(true);
+        // displayYAxisTickLabels now inherits from displayYAxisTicks (true)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayYAxisTickLabels,
+        ).eq(true);
+
+        // Toggle labels2 to false - displayXAxisTickLabels should now be false (explicit override applies)
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("labels2"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayXAxisTickLabels,
+        ).eq(false);
+        // displayYAxisTickLabels still true (inherits from displayYAxisTicks)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayYAxisTickLabels,
+        ).eq(true);
+
+        // Toggle ticks2 back to false - displayYAxisTickLabels should now be false (inherited)
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("ticks2"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayXAxisTicks,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayYAxisTicks,
+        ).eq(false);
+        // displayXAxisTickLabels still false (explicit)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayXAxisTickLabels,
+        ).eq(false);
+        // displayYAxisTickLabels now false (inherited from displayYAxisTicks)
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                .displayYAxisTickLabels,
+        ).eq(false);
+    });
+
     it("graph sizes", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

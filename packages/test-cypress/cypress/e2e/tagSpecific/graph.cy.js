@@ -362,6 +362,103 @@ describe("Graph Tag Tests", { tags: ["@group1"] }, function () {
         cy.get(cesc("#ignoreBad")).should("contain.text", "−10");
     });
 
+    it("display axis ticks and tick labels combinations", () => {
+        function assertVisibleTickLabelCount(graphName, matcher) {
+            cy.get(cesc(`#${graphName}`)).should(($graph) => {
+                const visibleLabels = [
+                    ...$graph[0].querySelectorAll(".JXGtext"),
+                ].filter((label) => {
+                    const style = window.getComputedStyle(label);
+                    return (
+                        style.display !== "none" &&
+                        style.visibility !== "hidden"
+                    );
+                });
+
+                matcher(visibleLabels.length);
+            });
+        }
+
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <text name="a">a</text>
+    
+    <graph name="g1" showNavigation="false" displayYAxis="false" displayXAxisTicks="true" displayXAxisTickLabels="true" xMin="-5" xMax="5" yMin="-5" yMax="5" />
+    <graph name="g2" showNavigation="false" displayYAxis="false" displayXAxisTicks="true" displayXAxisTickLabels="false" xMin="-5" xMax="5" yMin="-5" yMax="5" />
+    <graph name="g3" showNavigation="false" displayYAxis="false" displayXAxisTicks="false" displayXAxisTickLabels="true" xMin="-5" xMax="5" yMin="-5" yMax="5" />
+    <graph name="g4" showNavigation="false" displayYAxis="false" displayXAxisTicks="false" displayXAxisTickLabels="false" xMin="-5" xMax="5" yMin="-5" yMax="5" />
+    
+    <graph name="g5" showNavigation="false" displayXAxis="false" displayYAxisTicks="true" displayYAxisTickLabels="true" xMin="-5" xMax="5" yMin="-5" yMax="5" />
+    <graph name="g6" showNavigation="false" displayXAxis="false" displayYAxisTicks="false" displayYAxisTickLabels="false" xMin="-5" xMax="5" yMin="-5" yMax="5" />
+    
+    <booleanInput name="xTicks" prefill="true" />
+    <booleanInput name="xLabels" prefill="true" />
+    <graph name="dynamic" showNavigation="false" displayYAxis="false" displayXAxisTicks="$xTicks" displayXAxisTickLabels="$xLabels" xMin="-5" xMax="5" yMin="-5" yMax="5" />
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
+
+        // g1: ticks and labels both on - should have tick marks with labels
+        assertVisibleTickLabelCount("g1", (count) =>
+            expect(count).to.be.greaterThan(0),
+        );
+
+        // g2: ticks on, labels off - should have tick marks but no labels
+        assertVisibleTickLabelCount("g2", (count) => expect(count).to.equal(0));
+
+        // g3: ticks off, labels on - should have labels but no tick marks
+        assertVisibleTickLabelCount("g3", (count) =>
+            expect(count).to.be.greaterThan(0),
+        );
+
+        // g4: ticks and labels both off - should have neither
+        assertVisibleTickLabelCount("g4", (count) => expect(count).to.equal(0));
+
+        // g5: Y-axis with ticks and labels on
+        assertVisibleTickLabelCount("g5", (count) =>
+            expect(count).to.be.greaterThan(0),
+        );
+
+        // g6: Y-axis with ticks and labels off
+        assertVisibleTickLabelCount("g6", (count) => expect(count).to.equal(0));
+
+        // Test dynamic toggling
+        // Initial: both on - should have labels
+        assertVisibleTickLabelCount("dynamic", (count) =>
+            expect(count).to.be.greaterThan(0),
+        );
+
+        // Turn off labels
+        cy.get(cesc("#xLabels_input")).click({ force: true });
+        assertVisibleTickLabelCount("dynamic", (count) =>
+            expect(count).to.equal(0),
+        );
+
+        // Turn off ticks
+        cy.get(cesc("#xTicks_input")).click({ force: true });
+        assertVisibleTickLabelCount("dynamic", (count) =>
+            expect(count).to.equal(0),
+        );
+
+        // Turn on labels (ticks still off)
+        cy.get(cesc("#xLabels_input")).click({ force: true });
+        assertVisibleTickLabelCount("dynamic", (count) =>
+            expect(count).to.be.greaterThan(0),
+        );
+
+        // Turn on ticks (labels already on)
+        cy.get(cesc("#xTicks_input")).click({ force: true });
+        assertVisibleTickLabelCount("dynamic", (count) =>
+            expect(count).to.be.greaterThan(0),
+        );
+    });
+
     it("changing show navigation", () => {
         cy.window().then(async (win) => {
             win.postMessage(
