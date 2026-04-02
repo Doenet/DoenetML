@@ -379,6 +379,45 @@ describe("Graph Tag Tests", { tags: ["@group1"] }, function () {
             });
         }
 
+        function assertAxisTickHeights(graphName, axis, matcher) {
+            cy.get(cesc(`#${graphName}`)).then(($graph) => {
+                const graphElement = $graph[0];
+                cy.window().should((win) => {
+                    const boardRegistry =
+                        win.JXG?.boards || win.JXG?.JSXGraph?.boards || {};
+                    const boards = Object.values(boardRegistry);
+                    const board = boards.find(
+                        (b) => b?.containerObj === graphElement,
+                    );
+                    expect(board, `board for ${graphName}`).to.exist;
+
+                    const axisObjects = Object.values(
+                        board.objects || {},
+                    ).filter(
+                        (obj) => obj?.elType === "axis" && obj?.defaultTicks,
+                    );
+                    const axisObj = axisObjects.find((obj) => {
+                        const p1 = obj.point1?.coords?.usrCoords;
+                        const p2 = obj.point2?.coords?.usrCoords;
+                        if (!p1 || !p2) return false;
+
+                        const dx = Math.abs(p2[1] - p1[1]);
+                        const dy = Math.abs(p2[2] - p1[2]);
+                        return axis === "x" ? dx > dy : dy > dx;
+                    });
+                    expect(axisObj, `${axis} axis for ${graphName}`).to.exist;
+
+                    const ticks = axisObj.defaultTicks;
+                    expect(ticks, `${axis} ticks for ${graphName}`).to.exist;
+
+                    matcher({
+                        majorHeight: ticks.visProp.majorheight,
+                        minorHeight: ticks.visProp.minorheight,
+                    });
+                });
+            });
+        }
+
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -408,30 +447,62 @@ describe("Graph Tag Tests", { tags: ["@group1"] }, function () {
         assertVisibleTickLabelCount("g1", (count) =>
             expect(count).to.be.greaterThan(0),
         );
+        assertAxisTickHeights("g1", "x", ({ majorHeight, minorHeight }) => {
+            expect(majorHeight).to.equal(12);
+            expect(minorHeight).to.equal(10);
+        });
 
         // g2: ticks on, labels off - should have tick marks but no labels
         assertVisibleTickLabelCount("g2", (count) => expect(count).to.equal(0));
+        assertAxisTickHeights("g2", "x", ({ majorHeight, minorHeight }) => {
+            expect(majorHeight).to.equal(12);
+            expect(minorHeight).to.equal(10);
+        });
 
         // g3: ticks off, labels on - should have labels but no tick marks
         assertVisibleTickLabelCount("g3", (count) =>
             expect(count).to.be.greaterThan(0),
         );
+        assertAxisTickHeights("g3", "x", ({ majorHeight, minorHeight }) => {
+            expect(majorHeight).to.equal(0);
+            expect(minorHeight).to.equal(0);
+        });
 
         // g4: ticks and labels both off - should have neither
         assertVisibleTickLabelCount("g4", (count) => expect(count).to.equal(0));
+        assertAxisTickHeights("g4", "x", ({ majorHeight, minorHeight }) => {
+            expect(majorHeight).to.equal(0);
+            expect(minorHeight).to.equal(0);
+        });
 
         // g5: Y-axis with ticks and labels on
         assertVisibleTickLabelCount("g5", (count) =>
             expect(count).to.be.greaterThan(0),
         );
+        assertAxisTickHeights("g5", "y", ({ majorHeight, minorHeight }) => {
+            expect(majorHeight).to.equal(12);
+            expect(minorHeight).to.equal(10);
+        });
 
         // g6: Y-axis with ticks and labels off
         assertVisibleTickLabelCount("g6", (count) => expect(count).to.equal(0));
+        assertAxisTickHeights("g6", "y", ({ majorHeight, minorHeight }) => {
+            expect(majorHeight).to.equal(0);
+            expect(minorHeight).to.equal(0);
+        });
 
         // Test dynamic toggling
-        // Initial: both on - should have labels
+        // Initial: both on - should have labels and tick marks
         assertVisibleTickLabelCount("dynamic", (count) =>
             expect(count).to.be.greaterThan(0),
+        );
+        assertAxisTickHeights(
+            "dynamic",
+            "x",
+            ({ majorHeight, minorHeight }) => {
+                expect(majorHeight).to.equal(12);
+                expect(minorHeight).to.equal(10);
+            },
         );
 
         // Turn off labels
@@ -439,11 +510,27 @@ describe("Graph Tag Tests", { tags: ["@group1"] }, function () {
         assertVisibleTickLabelCount("dynamic", (count) =>
             expect(count).to.equal(0),
         );
+        assertAxisTickHeights(
+            "dynamic",
+            "x",
+            ({ majorHeight, minorHeight }) => {
+                expect(majorHeight).to.equal(12);
+                expect(minorHeight).to.equal(10);
+            },
+        );
 
-        // Turn off ticks
+        // Turn off ticks (labels are already off)
         cy.get(cesc("#xTicks_input")).click({ force: true });
         assertVisibleTickLabelCount("dynamic", (count) =>
             expect(count).to.equal(0),
+        );
+        assertAxisTickHeights(
+            "dynamic",
+            "x",
+            ({ majorHeight, minorHeight }) => {
+                expect(majorHeight).to.equal(0);
+                expect(minorHeight).to.equal(0);
+            },
         );
 
         // Turn on labels (ticks still off)
@@ -451,11 +538,27 @@ describe("Graph Tag Tests", { tags: ["@group1"] }, function () {
         assertVisibleTickLabelCount("dynamic", (count) =>
             expect(count).to.be.greaterThan(0),
         );
+        assertAxisTickHeights(
+            "dynamic",
+            "x",
+            ({ majorHeight, minorHeight }) => {
+                expect(majorHeight).to.equal(0);
+                expect(minorHeight).to.equal(0);
+            },
+        );
 
         // Turn on ticks (labels already on)
         cy.get(cesc("#xTicks_input")).click({ force: true });
         assertVisibleTickLabelCount("dynamic", (count) =>
             expect(count).to.be.greaterThan(0),
+        );
+        assertAxisTickHeights(
+            "dynamic",
+            "x",
+            ({ majorHeight, minorHeight }) => {
+                expect(majorHeight).to.equal(12);
+                expect(minorHeight).to.equal(10);
+            },
         );
     });
 
