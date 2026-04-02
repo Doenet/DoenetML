@@ -368,7 +368,10 @@ describe("Graph Tag Tests", { tags: ["@group1"] }, function () {
                 const visibleLabels = [
                     ...$graph[0].querySelectorAll(".JXGtext"),
                 ].filter((label) => {
-                    const style = window.getComputedStyle(label);
+                    const labelWindow = label.ownerDocument?.defaultView;
+                    const style = (labelWindow || window).getComputedStyle(
+                        label,
+                    );
                     return (
                         style.display !== "none" &&
                         style.visibility !== "hidden"
