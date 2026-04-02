@@ -353,7 +353,7 @@ export function DoenetEditor({
     doenetmlChangeCallback?: Function;
     immediateDoenetmlChangeCallback?: Function;
     documentStructureCallback?: Function;
-    isAccessibleCallback?: (hasAccessibilityIssues: boolean) => void;
+    isAccessibleCallback?: (isAccessible: boolean) => void;
     id?: string;
     readOnly?: boolean;
     showFormatter?: boolean;

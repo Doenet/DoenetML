@@ -89,7 +89,7 @@ describe(
                 );
         });
 
-        it("isAccessibleCallback reports true when level 1 accessibility issues exist", () => {
+        it("isAccessibleCallback reports false when level 1 accessibility issues exist", () => {
             postDoenetML(`
 <styleDefinition styleNumber="112" textColor="#ff9900" />
 <text name="p112" styleNumber="112">Low contrast text</text>
@@ -98,11 +98,11 @@ describe(
             cy.get("#p112").should("contain.text", "Low contrast text");
 
             cy.window().should((win) => {
-                expect(win.returnIsAccessibleCallbackValue()).eq(true);
+                expect(win.returnIsAccessibleCallbackValue()).eq(false);
             });
         });
 
-        it("isAccessibleCallback reports false when no level 1 accessibility issues exist", () => {
+        it("isAccessibleCallback reports true when no level 1 accessibility issues exist", () => {
             postDoenetML(`
 <styleDefinition styleNumber="113" textColor="#111111" />
 <text name="p113" styleNumber="113">Good contrast text</text>
@@ -111,7 +111,7 @@ describe(
             cy.get("#p113").should("contain.text", "Good contrast text");
 
             cy.window().should((win) => {
-                expect(win.returnIsAccessibleCallbackValue()).eq(false);
+                expect(win.returnIsAccessibleCallbackValue()).eq(true);
             });
         });
 

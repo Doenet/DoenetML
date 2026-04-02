@@ -71,7 +71,7 @@ export function EditorViewer({
     doenetmlChangeCallback?: Function;
     immediateDoenetmlChangeCallback?: Function;
     documentStructureCallback?: Function;
-    isAccessibleCallback?: (hasAccessibilityIssues: boolean) => void;
+    isAccessibleCallback?: (isAccessible: boolean) => void;
     id?: string;
     readOnly?: boolean;
     showFormatter?: boolean;
@@ -167,7 +167,7 @@ export function EditorViewer({
     );
 
     useEffect(() => {
-        isAccessibleCallback?.(accessibilityLevel1Count > 0);
+        isAccessibleCallback?.(accessibilityLevel1Count === 0);
     }, [accessibilityLevel1Count, isAccessibleCallback]);
 
     const [responses, setResponses] = useState<
