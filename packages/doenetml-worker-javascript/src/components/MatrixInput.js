@@ -3937,9 +3937,11 @@ export default class MatrixComponentInput extends BaseComponent {
             },
         };
 
-        // Provide an accessible name for each cell's textarea.
-        // The mathInput renderer uses shortDescription as aria-label when no
-        // explicit label is present, which is always the case for matrix cells.
+        // Provide an accessible name/description for each cell's textarea.
+        // The mathInput renderer now exposes this text via a visually-hidden
+        // element referenced with aria-labelledby (and may use aria-description
+        // for supplemental text) when no explicit label is present, which is
+        // always the case for matrix cells.
         stateVariableDefinitions.shortDescription = {
             forRenderer: true,
             returnDependencies: () => ({

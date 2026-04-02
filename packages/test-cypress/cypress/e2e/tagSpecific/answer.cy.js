@@ -3084,12 +3084,21 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
                     .should("have.attr", "aria-labelledby")
                     .then((ariaLabelledBy) => {
                         const labelIds = ariaLabelledBy.split(" ");
-                        const hasExpectedLabel = labelIds.some((labelId) =>
-                            Cypress.$(`#${labelId}`)
-                                .text()
-                                .includes(expectedText),
-                        );
-                        expect(hasExpectedLabel).eq(true);
+                        cy.document().then((doc) => {
+                            const hasExpectedLabel = labelIds.some(
+                                (labelId) => {
+                                    const labelElement =
+                                        doc.getElementById(labelId);
+                                    return (
+                                        labelElement &&
+                                        labelElement.textContent.includes(
+                                            expectedText,
+                                        )
+                                    );
+                                },
+                            );
+                            expect(hasExpectedLabel).eq(true);
+                        });
                     });
             }
 
