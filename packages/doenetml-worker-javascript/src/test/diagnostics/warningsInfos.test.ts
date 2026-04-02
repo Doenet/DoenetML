@@ -121,6 +121,64 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.warnings[0].position.end.column).eq(43);
     });
 
+    it("Deprecated selectPrimeNumbers attributes", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<selectPrimeNumbers minValue="10" maxValue="50" />
+            `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(2);
+
+        expect(
+            diagnosticsByType.warnings.some((warning) =>
+                warning.message.includes(
+                    "Attribute `minValue` on `<selectPrimeNumbers>` is deprecated; use `from` instead.",
+                ),
+            ),
+        ).eq(true);
+
+        expect(
+            diagnosticsByType.warnings.some((warning) =>
+                warning.message.includes(
+                    "Attribute `maxValue` on `<selectPrimeNumbers>` is deprecated; use `to` instead.",
+                ),
+            ),
+        ).eq(true);
+    });
+
+    it("Deprecated samplePrimeNumbers attributes", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<samplePrimeNumbers minValue="10" maxValue="50" />
+            `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(2);
+
+        expect(
+            diagnosticsByType.warnings.some((warning) =>
+                warning.message.includes(
+                    "Attribute `minValue` on `<samplePrimeNumbers>` is deprecated; use `from` instead.",
+                ),
+            ),
+        ).eq(true);
+
+        expect(
+            diagnosticsByType.warnings.some((warning) =>
+                warning.message.includes(
+                    "Attribute `maxValue` on `<samplePrimeNumbers>` is deprecated; use `to` instead.",
+                ),
+            ),
+        ).eq(true);
+    });
+
     it("From state variable definitions", async () => {
         let { core } = await createTestCore({
             doenetML: `

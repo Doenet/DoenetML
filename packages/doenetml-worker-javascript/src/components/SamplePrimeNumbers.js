@@ -32,15 +32,15 @@ export default class SamplePrimeNumbers extends CompositeComponent {
             public: true,
         };
 
-        attributes.minValue = {
+        attributes.from = {
             createComponentOfType: "integer",
-            createStateVariable: "minValue",
+            createStateVariable: "from",
             defaultValue: 2,
             public: true,
         };
-        attributes.maxValue = {
+        attributes.to = {
             createComponentOfType: "integer",
-            createStateVariable: "maxValue",
+            createStateVariable: "to",
             defaultValue: 100,
             public: true,
         };
@@ -73,13 +73,13 @@ export default class SamplePrimeNumbers extends CompositeComponent {
 
         stateVariableDefinitions.possibleValues = {
             returnDependencies: () => ({
-                minValue: {
+                from: {
                     dependencyType: "stateVariable",
-                    variableName: "minValue",
+                    variableName: "from",
                 },
-                maxValue: {
+                to: {
                     dependencyType: "stateVariable",
-                    variableName: "maxValue",
+                    variableName: "to",
                 },
                 exclude: {
                     dependencyType: "stateVariable",
@@ -88,8 +88,8 @@ export default class SamplePrimeNumbers extends CompositeComponent {
             }),
             definition({ dependencyValues }) {
                 let primes = createPrimesList({
-                    minValue: dependencyValues.minValue,
-                    maxValue: dependencyValues.maxValue,
+                    from: dependencyValues.from,
+                    to: dependencyValues.to,
                     exclude: dependencyValues.exclude,
                 });
 

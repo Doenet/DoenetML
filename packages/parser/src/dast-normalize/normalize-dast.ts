@@ -19,6 +19,7 @@ import { pretzelSugar } from "./component-sugar/pretzel";
 import { descriptionAttributeSugar } from "./component-sugar/descriptionAttribute";
 import { graphSugar } from "./component-sugar/graph";
 import { answerSugar } from "./component-sugar/answer";
+import { pluginApplyDeprecations } from "./deprecations";
 
 /**
  * Normalize the DAST tree so that it is contained in a single `<document>` element.
@@ -34,7 +35,8 @@ export function normalizeDocumentDast(
         .use(pluginEnsureDocumentElement)
         .use(pluginConvertPretextAttributes)
         .use(pluginEnforceValidNames)
-        .use(pluginExpandAliasedElements);
+        .use(pluginExpandAliasedElements)
+        .use(pluginApplyDeprecations);
     if (addCompatibilityNames) {
         processor = processor.use(pluginAddCompatibilityNames);
     }

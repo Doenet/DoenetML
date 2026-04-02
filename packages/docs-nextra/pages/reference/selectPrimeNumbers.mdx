@@ -39,8 +39,8 @@ editor to see different variants of the document.
 ```doenet-editor-horiz
 <selectPrimeNumbers 
   name="x"
-  minValue="2" 
-  maxValue="50" 
+  from="2" 
+  to="50" 
   numToSelect="3"
 />
 
@@ -65,8 +65,8 @@ selections can be accessed using array notation.
 <setup>
   <selectPrimeNumbers 
     name="s" 
-    minValue="4" 
-    maxValue="50" 
+    from="4" 
+    to="50" 
     numToSelect="4"
   />
   <number name="a" extend="$s[1]"/>
@@ -98,8 +98,8 @@ editor to see different variants of the document.
 <selectPrimeNumbers 
   name="s" 
   sortResults 
-  minValue="2" 
-  maxValue="50" 
+  from="2" 
+  to="50" 
   numToSelect="5"
 />
 
@@ -119,14 +119,14 @@ editor to see different variants of the document.
 
 ---
 
-### Example: minValue, maxValue
+### Example: from, to
 
 
 ```doenet-editor-horiz
 <selectPrimeNumbers
   name="s" 
-  minValue="10" 
-  maxValue="30" 
+  from="10" 
+  to="30" 
   numToSelect="4"
 />
 
@@ -135,7 +135,7 @@ editor to see different variants of the document.
 
 
 
-The `minValue` and `maxValue` attributes specify the endpoints of the selection interval. These endpoints are not required to be prime numbers.
+The `from` and `to` attributes specify the endpoints of the selection interval. These endpoints are not required to be prime numbers.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.
@@ -148,8 +148,8 @@ editor to see different variants of the document.
 ```doenet-editor-horiz
 <selectPrimeNumbers 
   name="s" 
-  minValue="2" 
-  maxValue="10" 
+  from="2" 
+  to="10" 
   exclude="3"
   numToSelect="5"
   withReplacement
@@ -176,8 +176,8 @@ editor to see different variants of the document.
 ```doenet-editor-horiz
 <selectPrimeNumbers
   name="s" 
-  minValue="2" 
-  maxValue="13" 
+  from="2" 
+  to="13" 
   withReplacement
   numToSelect="10"
 />
@@ -200,8 +200,8 @@ editor to see different variants of the document.
 <selectPrimeNumbers 
   name="s" 
   numToSelect="2"  
-  minValue="3" 
-  maxValue="7"
+  from="3" 
+  to="7"
   excludecombinations="(3 7) (7 3)" 
 />
 

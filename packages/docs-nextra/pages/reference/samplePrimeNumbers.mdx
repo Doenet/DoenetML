@@ -79,15 +79,15 @@ to select multiple random values in the default interval $[2,97]$.
 
 ---
 
-### Attribute Example: minValue, maxValue
+### Attribute Example: from, to
 
 
 ```doenet-example
 <p>
   <samplePrimeNumbers 
     name="x" 
-    minValue="5" 
-    maxValue="25" 
+    from="5" 
+    to="25" 
     numSamples="5" 
   />
 </p>
@@ -103,8 +103,8 @@ to select multiple random values in the default interval $[2,97]$.
 
 
 
-The ` <samplePrimeNumbers/>{:dn}` component is used with the `minValue` and the `maxValue` attributes 
-to modify the default selection interval. Note that the interval endpoints provided do no need to 
+The ` <samplePrimeNumbers/>{:dn}` component is used with the `from` and the `to` attributes 
+to modify the default selection interval. Note that the interval endpoints provided do not need to 
 be primes.
 
 
@@ -118,8 +118,8 @@ be primes.
 <p>
   <samplePrimeNumbers 
     name="x" 
-    minValue="2" 
-    maxValue="10" 
+    from="2" 
+    to="10" 
     numSamples="10" 
     exclude="3"
   />

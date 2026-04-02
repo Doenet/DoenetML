@@ -316,7 +316,7 @@ describe("Sectioning Tag Tests", { tags: ["@group4"] }, function () {
 <aside name="aside" postponeRendering>
   <title>An aside</title>
   <p>The aside</p>
-  <samplePrimeNumbers minValue="1" maxValue="10000000" />
+  <samplePrimeNumbers from="1" to="10000000" />
 </aside>
 
 `,
@@ -346,7 +346,7 @@ describe("Sectioning Tag Tests", { tags: ["@group4"] }, function () {
 <proof name="proof" postponeRendering>
 <title>An proof</title>
 <p>The proof</p>
-<samplePrimeNumbers minValue="1" maxValue="10000000" />
+<samplePrimeNumbers from="1" to="10000000" />
 </proof>
 
 `,
