@@ -336,7 +336,7 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#mi [data-test='Description']").should("not.be.visible");
         cy.get("#m").should("not.be.visible");
 
-        cy.get("#mi .mq-editable-field").should(
+        cy.get("#mi textarea").should(
             "have.attr",
             "aria-details",
             `mi-description-content`,
@@ -627,7 +627,7 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
     <p><textInput name="ti" /></p>
         `);
 
-        cy.get("#mi .mq-editable-field").should(
+        cy.get("#mi textarea").should(
             "have.attr",
             "aria-details",
             "mi-description-content",
@@ -635,13 +635,13 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
 
         cy.get("#mi textarea").type("x", { force: true });
         cy.get("#mi [data-test='MathInput Preview']").should("be.visible");
-        cy.get("#mi .mq-editable-field")
+        cy.get("#mi textarea")
             .invoke("attr", "aria-details")
             .should("eq", "mi-description-content mi-preview");
 
         cy.get("#ti_input").focus();
         cy.get("#mi [data-test='MathInput Preview']").should("not.be.visible");
-        cy.get("#mi .mq-editable-field").should(
+        cy.get("#mi textarea").should(
             "have.attr",
             "aria-details",
             "mi-description-content",
@@ -732,7 +732,7 @@ describe("MathInput Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#mi").should("be.visible");
         cy.get("#mi [data-test='Description Button']").should("not.exist");
         cy.get("#mi [data-test='Description']").should("not.exist");
-        cy.get("#mi .mq-editable-field").should(
+        cy.get("#mi textarea").should(
             "not.have.attr",
             "aria-details",
         );

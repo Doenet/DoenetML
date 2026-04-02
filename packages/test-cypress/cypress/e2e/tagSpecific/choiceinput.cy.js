@@ -1185,10 +1185,10 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get("#ci-label [data-test='Description Button']").should(
+        cy.get("#ci [data-test='Description Button']").should(
             "be.visible",
         );
-        cy.get("#ci-label [data-test='Description']").should("not.be.visible");
+        cy.get("#ci [data-test='Description']").should("not.be.visible");
         cy.get("#ci").should("have.attr", "aria-label", `Select`);
         cy.get("#ci").should(
             "have.attr",
@@ -1200,15 +1200,15 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
             "Select what you like.",
         );
 
-        cy.get("#ci-label [data-test='Description Button']").click();
+        cy.get("#ci [data-test='Description Button']").click();
 
-        cy.get("#ci-label [data-test='Description']").should(
+        cy.get("#ci [data-test='Description']").should(
             "contain.text",
             "Select what you like.",
         );
 
         cy.get("#ci input").eq(0).focus();
-        cy.get("#ci-label [data-test='Description']").should("not.be.visible");
+        cy.get("#ci [data-test='Description']").should("not.be.visible");
     });
 
     it("with description, inline", () => {
@@ -1371,11 +1371,11 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         cy.get("#fv").should("have.text", "focused: false");
 
         cy.log("Focus the select input: focused becomes true");
-        cy.get("#ci-input").focus();
+        cy.get("#ci_input").focus();
         cy.get("#fv").should("have.text", "focused: true");
 
         cy.log("Blur the select input: focused becomes false");
-        cy.get("#ci-input").blur();
+        cy.get("#ci_input").blur();
         cy.get("#fv").should("have.text", "focused: false");
     });
 
