@@ -1780,6 +1780,32 @@ describe("Label tag tests @group2", async () => {
         ).toBeTruthy();
     });
 
+    it("label for answer propagates to grouped input external labels", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<p><label name="labelForGroupedAnswer" for="$ansGrouped">Pick one:</label></p>
+<p>
+  <answer name="ansGrouped">
+    <choice>A</choice>
+    <choice>B</choice>
+  </answer>
+</p>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const ansGroupedIdx = await resolvePathToNodeIdx("ansGrouped");
+
+        const groupedInputIdx =
+            stateVariables[ansGroupedIdx].stateValues.inputChildWithValues
+                .componentIdx;
+
+        expect(
+            stateVariables[groupedInputIdx].stateValues
+                .externalLabelRendererIds,
+        ).include("labelForGroupedAnswer");
+    });
+
     it("label for warnings for unresolved and unsupported labels", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

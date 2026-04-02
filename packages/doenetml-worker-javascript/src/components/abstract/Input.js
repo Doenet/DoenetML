@@ -606,6 +606,7 @@ export default class Input extends InlineComponent {
             forRenderer: true,
             stateVariablesDeterminingDependencies: [
                 "externalLabelsReferencingInputByFor",
+                "answerAncestor",
             ],
             returnDependencies({ stateValues }) {
                 const dependencies = {
@@ -613,10 +614,22 @@ export default class Input extends InlineComponent {
                         dependencyType: "stateVariable",
                         variableName: "externalLabelsReferencingInputByFor",
                     },
+                    answerAncestor: {
+                        dependencyType: "stateVariable",
+                        variableName: "answerAncestor",
+                    },
                 };
 
-                for (const label of stateValues.externalLabelsReferencingInputByFor ??
-                    []) {
+                const labelsReferencingInput =
+                    stateValues.externalLabelsReferencingInputByFor ?? [];
+                const labelsReferencingAnswer =
+                    stateValues.answerAncestor?.stateValues?.labelsForAnswer ??
+                    [];
+
+                for (const label of [
+                    ...labelsReferencingInput,
+                    ...labelsReferencingAnswer,
+                ]) {
                     const componentIdx = label?.componentIdx;
                     if (componentIdx !== undefined && componentIdx !== null) {
                         dependencies[`externalLabelRendererId${componentIdx}`] =
@@ -633,8 +646,16 @@ export default class Input extends InlineComponent {
                 const externalLabelRendererIds = [];
                 const seen = new Set();
 
-                for (const label of dependencyValues.externalLabelsReferencingInputByFor ??
-                    []) {
+                const labelsReferencingInput =
+                    dependencyValues.externalLabelsReferencingInputByFor ?? [];
+                const labelsReferencingAnswer =
+                    dependencyValues.answerAncestor?.stateValues
+                        ?.labelsForAnswer ?? [];
+
+                for (const label of [
+                    ...labelsReferencingInput,
+                    ...labelsReferencingAnswer,
+                ]) {
                     const componentIdx = label?.componentIdx;
                     if (componentIdx === undefined || componentIdx === null) {
                         continue;
