@@ -1319,10 +1319,8 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         });
 
         cy.get("#ci").should("be.visible");
-        cy.get("#ci-label [data-test='Description Button']").should(
-            "not.exist",
-        );
-        cy.get("#ci-label [data-test='Description']").should("not.exist");
+        cy.get("#ci [data-test='Description Button']").should("not.exist");
+        cy.get("#ci [data-test='Description']").should("not.exist");
         cy.get("#ci").should("not.have.attr", "aria-details");
     });
 
@@ -1344,10 +1342,8 @@ describe("ChoiceInput Tag Tests", { tags: ["@group3"] }, function () {
         });
 
         cy.get("#ci").should("be.visible");
-        cy.get("#ci-label [data-test='Description Button']").should(
-            "not.exist",
-        );
-        cy.get("#ci-label [data-test='Description']").should("not.exist");
+        cy.get("#ci [data-test='Description Button']").should("not.exist");
+        cy.get("#ci [data-test='Description']").should("not.exist");
         cy.get("#ci input").should("not.have.attr", "aria-details");
     });
 

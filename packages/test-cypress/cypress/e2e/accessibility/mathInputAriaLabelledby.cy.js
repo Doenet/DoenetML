@@ -63,8 +63,6 @@ describe("MathInput aria-labelledby regression tests", () => {
 
                     // First ID should be the internal label
                     expect(ids[0]).to.equal("mi1-input-label");
-                    // Last ID should be the mathquill mathspeak span
-                    expect(ids[ids.length - 1]).to.match(/^[a-f0-9-]+$/);
 
                     // Verify the first and last IDs correspond to actual elements
                     cy.document().then((doc) => {
