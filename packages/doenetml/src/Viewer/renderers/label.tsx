@@ -491,6 +491,26 @@ export default React.memo(function Label(props) {
             </MathJax>
         );
     }
+    if (SVs.forTargetRendererId) {
+        if (SVs.forTargetIsGroup) {
+            return (
+                <span style={style} id={id}>
+                    {label}
+                </span>
+            );
+        }
+
+        return (
+            <label
+                style={style}
+                id={id}
+                htmlFor={`${SVs.forTargetRendererId}_input`}
+            >
+                {label}
+            </label>
+        );
+    }
+
     return (
         <span style={style} id={id}>
             {label}

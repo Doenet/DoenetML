@@ -158,6 +158,13 @@ export default React.memo(function MatrixInput(props) {
     }
 
     const shortDescription = SVs.shortDescription || undefined;
+    const externalLabelRendererIds = SVs.externalLabelRendererIds ?? [];
+    const groupLabelledByIds = [
+        hasLabel ? labelId : null,
+        ...externalLabelRendererIds,
+    ]
+        .filter(Boolean)
+        .join(" ");
 
     const descriptionChild =
         SVs.descriptionChildInd !== -1 && children[SVs.descriptionChildInd];
@@ -190,9 +197,13 @@ export default React.memo(function MatrixInput(props) {
         <span style={{ display: "inline-flex", alignItems: "flex-start" }}>
             <div className="matrix-input" id={id}>
                 <table
-                    aria-labelledby={hasLabel ? labelId : undefined}
-                    aria-label={!hasLabel ? shortDescription : undefined}
-                    aria-description={hasLabel ? shortDescription : undefined}
+                    aria-labelledby={groupLabelledByIds || undefined}
+                    aria-label={
+                        !groupLabelledByIds ? shortDescription : undefined
+                    }
+                    aria-description={
+                        groupLabelledByIds ? shortDescription : undefined
+                    }
                     aria-details={descriptionId}
                 >
                     <tbody>{matrixInputs}</tbody>

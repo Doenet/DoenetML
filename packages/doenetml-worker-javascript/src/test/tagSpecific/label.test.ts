@@ -11,6 +11,7 @@ import {
 import { test_in_graph } from "../utils/in-graph";
 import { latexToText } from "../../utils/math";
 import me from "math-expressions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -1737,5 +1738,108 @@ describe("Label tag tests @group2", async () => {
             "\\frac{Q}{3}",
             "\\frac{Q}{4}",
         );
+    });
+
+    it("label for resolves to input and answer input", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<p><label name="labelForInput" for="$ti">Name:</label></p>
+<p><textInput name="ti" /></p>
+
+<p><label name="labelForAnswer" for="$ans">1+1=</label></p>
+<p><answer name="ans">2</answer></p>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const tiIdx = await resolvePathToNodeIdx("ti");
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        const labelForInputIdx = await resolvePathToNodeIdx("labelForInput");
+        const labelForAnswerIdx = await resolvePathToNodeIdx("labelForAnswer");
+
+        expect(
+            stateVariables[labelForInputIdx].stateValues
+                .forTargetInputComponentIdx,
+        ).eq(tiIdx);
+
+        expect(
+            stateVariables[labelForInputIdx].stateValues.forTargetRendererId,
+        ).eq("ti");
+
+        const answerInputComponentIdx =
+            stateVariables[ansIdx].stateValues.inputChildWithValues
+                .componentIdx;
+
+        expect(
+            stateVariables[labelForAnswerIdx].stateValues
+                .forTargetInputComponentIdx,
+        ).eq(answerInputComponentIdx);
+
+        expect(
+            stateVariables[labelForAnswerIdx].stateValues.forTargetRendererId,
+        ).toBeTruthy();
+    });
+
+    it("label for warnings for unresolved and unsupported labels", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<label name="unresolved" for="$missing">Missing target</label>
+<p name="targetP">Hello</p>
+<label name="unsupported" for="$targetP">Unsupported target</label>
+
+<textInput name="ti" />
+<textInput name="ti2" />
+<label name="multiple" for="$ti $ti2">Multiple targets</label>
+<graph>
+  <point>
+    (1,2)
+    <label name="graphical" for="$ti">A</label>
+  </point>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        const unresolvedIdx = await resolvePathToNodeIdx("unresolved");
+        const unsupportedIdx = await resolvePathToNodeIdx("unsupported");
+        const multipleIdx = await resolvePathToNodeIdx("multiple");
+        const graphicalIdx = await resolvePathToNodeIdx("graphical");
+
+        expect(
+            stateVariables[unresolvedIdx].stateValues.forTargetRendererId,
+        ).eq(null);
+        expect(
+            stateVariables[unsupportedIdx].stateValues.forTargetRendererId,
+        ).eq(null);
+        expect(stateVariables[graphicalIdx].stateValues.forTargetRendererId).eq(
+            "ti",
+        );
+        expect(stateVariables[multipleIdx].stateValues.forTargetRendererId).eq(
+            null,
+        );
+
+        expect(
+            diagnosticsByType.warnings.some((d) =>
+                d.message.includes(
+                    "`for` on `<label>` could not be resolved to a component.",
+                ),
+            ),
+        ).eq(true);
+        expect(
+            diagnosticsByType.warnings.some((d) =>
+                d.message.includes(
+                    "`for` on `<label>` must reference an input or an answer.",
+                ),
+            ),
+        ).eq(true);
+        expect(
+            diagnosticsByType.warnings.some((d) =>
+                d.message.includes(
+                    "`for` on `<label>` must resolve to exactly one component.",
+                ),
+            ),
+        ).eq(true);
     });
 });

@@ -152,7 +152,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     const hasLabel =
         typeof SVs.label === "string" ? SVs.label.trim() !== "" : !!SVs.label;
     const labelId = `${id}-label`;
-    const inlineInputId = `${id}-input`;
+    const inlineInputId = `${id}_input`;
     if (SVs.labelHasLatex) {
         label = (
             <MathJax hideUntilTypeset={"first"} inline dynamic>
@@ -162,6 +162,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     }
 
     let shortDescription = SVs.shortDescription || undefined;
+    const externalLabelRendererIds = SVs.externalLabelRendererIds ?? [];
 
     const descriptionChild =
         SVs.descriptionChildInd !== -1 && children[SVs.descriptionChildInd];
@@ -460,12 +461,21 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             </span>
         );
     } else {
+        // Non-inline choice input
+
         let inputKey = id;
         let listStyle = {
             listStyleType: "none",
-            marginTop: label ? "10px" : "0px",
+            marginTop: hasLabel ? "10px" : "0px",
             marginBottom: checkWorkComponent ? "10px" : "0px",
         };
+
+        const groupLabelledByIds = [
+            hasLabel ? labelId : null,
+            ...externalLabelRendererIds,
+        ]
+            .filter(Boolean)
+            .join(" ");
 
         let keyBeginning = inputKey + "_choice";
         let inputType = "radio";
@@ -511,12 +521,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                                     disabled={radioDisabled}
                                 />
                                 <span className={radioClassName} />
-                                <label
-                                    htmlFor={keyBeginning + (i + 1) + "_input"}
-                                    style={{ marginLeft: "2px" }}
-                                >
+                                <span style={{ marginLeft: "2px" }}>
                                     {child}
-                                </label>
+                                </span>
                             </label>
                         </li>
                     );
@@ -550,48 +557,52 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                                     }
                                 />
                                 <span className={checkboxClassName} />
-                                <label
-                                    htmlFor={keyBeginning + (i + 1) + "_input"}
-                                    style={{ marginLeft: "2px" }}
-                                >
+                                <span style={{ marginLeft: "2px" }}>
                                     {child}
-                                </label>
+                                </span>
                             </label>
                         </li>
                     );
                 }
             });
 
+        const nonInlineLabelComponent = hasLabel ? (
+            <legend id={labelId}>{label}</legend>
+        ) : null;
+
         return (
-            <div id={inputKey + "-label"} style={{ margin: "16px 0" }}>
-                {label}
-                <ul
-                    id={inputKey}
-                    style={listStyle}
-                    aria-label={shortDescription}
-                    aria-details={descriptionId}
-                    onFocus={(e) => {
-                        if (
-                            !e.currentTarget.contains(e.relatedTarget as Node)
-                        ) {
-                            onFocusChanged(true);
-                        }
-                    }}
-                    onBlur={(e) => {
-                        if (
-                            !e.currentTarget.contains(e.relatedTarget as Node)
-                        ) {
-                            onFocusChanged(false);
-                        }
-                    }}
-                >
-                    {choiceDoenetTags}
-                </ul>
+            <fieldset
+                id={inputKey}
+                style={{
+                    margin: "16px 0",
+                    padding: 0,
+                    border: "none",
+                    minInlineSize: 0,
+                }}
+                aria-labelledby={groupLabelledByIds || undefined}
+                aria-label={!groupLabelledByIds ? shortDescription : undefined}
+                aria-description={
+                    groupLabelledByIds ? shortDescription : undefined
+                }
+                aria-details={descriptionId}
+                onFocus={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        onFocusChanged(true);
+                    }
+                }}
+                onBlur={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget as Node)) {
+                        onFocusChanged(false);
+                    }
+                }}
+            >
+                {nonInlineLabelComponent}
+                <ul style={listStyle}>{choiceDoenetTags}</ul>
                 <span style={{ display: "inline-flex", alignItems: "start" }}>
                     {checkWorkComponent}
                     {description}
                 </span>
-            </div>
+            </fieldset>
         );
     }
 });

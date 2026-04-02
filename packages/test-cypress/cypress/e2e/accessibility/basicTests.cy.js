@@ -516,6 +516,78 @@ describe("Basic accessibility tests", { tags: ["@group5"] }, function () {
         });
     });
 
+    it("answers with external labels", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <p name="p"><label for="$a1">1+1=</label></p>
+        <p><answer name="a1">2</answer></p>
+
+        <p><label for="$a2">1+1=</label></p>
+        <p><answer name="a2" forceFullCheckWorkButton>2</answer></p>
+
+        <p><label for="$a3">hello:</label></p>
+        <p><answer name="a3" type="text">hello</answer></p>
+
+        <p><label for="$a4">bye:</label></p>
+        <p><answer name="a4" type="text" forceFullCheckWorkButton>bye</answer></p>
+
+        <p><label for="$a5">now:</label></p>
+        <p><answer name="a5" type="text" expanded forceFullCheckWorkButton>now</answer></p>
+
+        <p><label for="$a6">Favorite animal:</label></p>
+        <p>
+            <answer name="a6">
+                <choice credit="1">dog</choice>
+                <choice>cat</choice>
+                <choice>monkey</choice>
+            </answer>
+        </p>
+
+        <p><label for="$a7">Favorite animals:</label></p>
+        <p>
+            <answer name="a7" selectMultiple>
+                <choice credit="1">dog</choice>
+                <choice>cat</choice>
+                <choice>monkey</choice>
+            </answer>
+        </p>
+
+        <p><label for="$a8">Favorite fruit:</label></p>
+        <p>
+            <answer name="a8" inline>
+                <choice credit="1">apple</choice>
+                <choice>banana</choice>
+                <choice>grape</choice>
+            </answer>
+        </p>
+
+        <p><label for="$a9">Favorite fruits:</label></p>
+        <p>
+            <answer name="a9" inline selectMultiple>
+                <choice credit="1">apple</choice>
+                <choice>banana</choice>
+                <choice>grape</choice>
+            </answer>
+        </p>
+
+        <p><label for="$a10">yes</label></p>
+        <p><answer name="a10" type="boolean">true</answer></p>
+
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#p").should("be.visible");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
+
     it("inputs with labels", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -560,6 +632,60 @@ describe("Basic accessibility tests", { tags: ["@group5"] }, function () {
     <p><matrixInput><label>A:</label></matrixInput></p>
 
   `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#p").should("be.visible");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
+
+    it("inputs with external labels", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <p name="p"><label for="$mi">1+1=</label></p>
+        <p><mathInput name="mi"/></p>
+
+        <p><label for="$ti">hello:</label></p>
+        <p><textInput name="ti"/></p>
+
+        <p><label for="$ci">Favorite animal:</label></p>
+        <p>
+            <choiceInput name="ci">
+                <choice>dog</choice>
+                <choice>cat</choice>
+            </choiceInput>
+        </p>
+
+        <p><label for="$cim">Favorite animals:</label></p>
+        <p>
+            <choiceInput name="cim" selectMultiple>
+                <choice>dog</choice>
+                <choice>cat</choice>
+            </choiceInput>
+        </p>
+
+        <p><label for="$cii">Favorite fruit:</label></p>
+        <p>
+            <choiceInput name="cii" inline>
+                <choice>apple</choice>
+                <choice>banana</choice>
+            </choiceInput>
+        </p>
+
+        <p><label for="$b">yes</label></p>
+        <p><booleanInput name="b"/></p>
+
+        <p><label for="$mat">A:</label></p>
+        <p><matrixInput name="mat"/></p>
+
+    `,
                 },
                 "*",
             );

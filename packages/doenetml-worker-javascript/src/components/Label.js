@@ -36,6 +36,10 @@ export default class Label extends InlineComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
+        attributes.for = {
+            createReferences: true,
+        };
+
         attributes.forObject = {
             createReferences: true,
         };
@@ -490,6 +494,352 @@ export default class Label extends InlineComponent {
                 }
 
                 return { setValue: { forObjectComponentIdx } };
+            },
+        };
+
+        stateVariableDefinitions.forAttributeData = {
+            returnDependencies: () => ({
+                forResolutions: {
+                    dependencyType: "attributeRefResolutions",
+                    attributeName: "for",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const diagnostics = [];
+                const forResolutions = dependencyValues.forResolutions ?? [];
+                const hasForAttribute = forResolutions.length > 0;
+
+                let targetComponentIdx = null;
+
+                if (hasForAttribute) {
+                    if (forResolutions.length !== 1) {
+                        diagnostics.push({
+                            message:
+                                "`for` on `<label>` must resolve to exactly one component.",
+                            type: "warning",
+                        });
+                    } else if (forResolutions[0].unresolvedPath !== null) {
+                        diagnostics.push({
+                            message:
+                                "`for` on `<label>` could not be resolved to a component.",
+                            type: "warning",
+                        });
+                    } else {
+                        targetComponentIdx = forResolutions[0].componentIdx;
+                    }
+                }
+
+                return {
+                    setValue: {
+                        forAttributeData: {
+                            hasForAttribute,
+                            targetComponentIdx,
+                        },
+                    },
+                    sendDiagnostics: diagnostics,
+                };
+            },
+        };
+
+        stateVariableDefinitions.forTargetComponentIdentity = {
+            stateVariablesDeterminingDependencies: ["forAttributeData"],
+            returnDependencies({ stateValues }) {
+                const targetComponentIdx =
+                    stateValues.forAttributeData?.targetComponentIdx;
+
+                if (
+                    targetComponentIdx !== null &&
+                    targetComponentIdx !== undefined
+                ) {
+                    return {
+                        targetComponentIdentity: {
+                            dependencyType: "componentIdentity",
+                            componentIdx: targetComponentIdx,
+                        },
+                    };
+                }
+
+                return {};
+            },
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        forTargetComponentIdentity:
+                            dependencyValues.targetComponentIdentity ?? null,
+                    },
+                };
+            },
+        };
+
+        // `forTargetComponentIdentity` is the component named by the author's
+        // `for` reference exactly as written. That can be an input directly, or
+        // it can be an `<answer>`. We keep this identity separate from the final
+        // input target because answers are labeled through the input they create,
+        // not through the answer container itself.
+        stateVariableDefinitions.forTargetInputComponentIdx = {
+            stateVariablesDeterminingDependencies: [
+                "forAttributeData",
+                "forTargetComponentIdentity",
+            ],
+            returnDependencies({ stateValues, componentInfoObjects }) {
+                const dependencies = {
+                    forAttributeData: {
+                        dependencyType: "stateVariable",
+                        variableName: "forAttributeData",
+                    },
+                    forTargetComponentIdentity: {
+                        dependencyType: "stateVariable",
+                        variableName: "forTargetComponentIdentity",
+                    },
+                };
+
+                const targetIdentity = stateValues.forTargetComponentIdentity;
+                if (
+                    targetIdentity &&
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: targetIdentity.componentType,
+                        baseComponentType: "answer",
+                    })
+                ) {
+                    dependencies.answerInputChildWithValues = {
+                        dependencyType: "stateVariable",
+                        componentIdx: targetIdentity.componentIdx,
+                        variableName: "inputChildWithValues",
+                    };
+                    dependencies.answerInputChildrenWithValues = {
+                        dependencyType: "stateVariable",
+                        componentIdx: targetIdentity.componentIdx,
+                        variableName: "inputChildrenWithValues",
+                    };
+                }
+
+                return dependencies;
+            },
+            definition({ dependencyValues, componentInfoObjects }) {
+                const diagnostics = [];
+                const forAttributeData = dependencyValues.forAttributeData;
+
+                if (!forAttributeData?.hasForAttribute) {
+                    return { setValue: { forTargetInputComponentIdx: null } };
+                }
+
+                const targetIdentity =
+                    dependencyValues.forTargetComponentIdentity;
+                if (!targetIdentity) {
+                    return { setValue: { forTargetInputComponentIdx: null } };
+                }
+
+                if (
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: targetIdentity.componentType,
+                        baseComponentType: "_input",
+                    })
+                ) {
+                    return {
+                        setValue: {
+                            forTargetInputComponentIdx:
+                                targetIdentity.componentIdx,
+                        },
+                    };
+                }
+
+                if (
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: targetIdentity.componentType,
+                        baseComponentType: "answer",
+                    })
+                ) {
+                    // Labels targeting an answer must ultimately point at the
+                    // answer's generated input so the renderer can associate the
+                    // visible text with the actual interactive control.
+                    const inputChildWithValues =
+                        dependencyValues.answerInputChildWithValues;
+                    if (inputChildWithValues?.componentIdx !== undefined) {
+                        return {
+                            setValue: {
+                                forTargetInputComponentIdx:
+                                    inputChildWithValues.componentIdx,
+                            },
+                        };
+                    }
+
+                    const inputChildrenWithValues =
+                        dependencyValues.answerInputChildrenWithValues ?? [];
+                    if (inputChildrenWithValues.length > 0) {
+                        if (inputChildrenWithValues.length > 1) {
+                            diagnostics.push({
+                                message:
+                                    "`for` on `<label>` references an `<answer>` with multiple inputs; using the first input.",
+                                type: "warning",
+                            });
+                        }
+
+                        return {
+                            setValue: {
+                                forTargetInputComponentIdx:
+                                    inputChildrenWithValues[0].componentIdx,
+                            },
+                            sendDiagnostics: diagnostics,
+                        };
+                    }
+
+                    diagnostics.push({
+                        message:
+                            "`for` on `<label>` references an `<answer>` without an input to label.",
+                        type: "warning",
+                    });
+
+                    return {
+                        setValue: { forTargetInputComponentIdx: null },
+                        sendDiagnostics: diagnostics,
+                    };
+                }
+
+                diagnostics.push({
+                    message:
+                        "`for` on `<label>` must reference an input or an answer.",
+                    type: "warning",
+                });
+
+                return {
+                    setValue: { forTargetInputComponentIdx: null },
+                    sendDiagnostics: diagnostics,
+                };
+            },
+        };
+
+        // This renderer id is only meaningful for single-control targets where
+        // the renderer can expose a concrete DOM control id such as `${id}_input`.
+        // Grouped widgets like non-inline choiceInput and matrixInput still need
+        // the input component identity above, but they are labeled through
+        // `aria-labelledby` rather than `htmlFor`.
+        stateVariableDefinitions.forTargetRendererId = {
+            forRenderer: true,
+            stateVariablesDeterminingDependencies: [
+                "forTargetInputComponentIdx",
+            ],
+            returnDependencies({ stateValues }) {
+                const dependencies = {
+                    forTargetInputComponentIdx: {
+                        dependencyType: "stateVariable",
+                        variableName: "forTargetInputComponentIdx",
+                    },
+                };
+
+                if (stateValues.forTargetInputComponentIdx !== null) {
+                    dependencies.forTargetRendererId = {
+                        dependencyType: "rendererId",
+                        componentIdx: stateValues.forTargetInputComponentIdx,
+                    };
+                }
+
+                return dependencies;
+            },
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        forTargetRendererId:
+                            dependencyValues.forTargetRendererId ?? null,
+                    },
+                };
+            },
+        };
+
+        // Preserve the resolved input component identity so the renderer can
+        // distinguish single DOM controls from grouped widgets that still extend
+        // `_input` at the worker level.
+        stateVariableDefinitions.forTargetInputComponentIdentity = {
+            stateVariablesDeterminingDependencies: [
+                "forTargetInputComponentIdx",
+            ],
+            returnDependencies({ stateValues }) {
+                const forTargetInputComponentIdx =
+                    stateValues.forTargetInputComponentIdx;
+
+                if (
+                    forTargetInputComponentIdx !== null &&
+                    forTargetInputComponentIdx !== undefined
+                ) {
+                    return {
+                        forTargetInputComponentIdentity: {
+                            dependencyType: "componentIdentity",
+                            componentIdx: forTargetInputComponentIdx,
+                        },
+                    };
+                }
+
+                return {};
+            },
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        forTargetInputComponentIdentity:
+                            dependencyValues.forTargetInputComponentIdentity ??
+                            null,
+                    },
+                };
+            },
+        };
+
+        // Group targets are widgets that should consume an external label via
+        // `aria-labelledby` on the group container instead of `htmlFor` on a
+        // single DOM control. Today that applies to matrixInput and non-inline
+        // choiceInput. Inline choiceInput remains a single control because the
+        // react-select input exposes a concrete input id.
+        stateVariableDefinitions.forTargetIsGroup = {
+            forRenderer: true,
+            stateVariablesDeterminingDependencies: [
+                "forTargetInputComponentIdentity",
+            ],
+            returnDependencies({ stateValues }) {
+                const dependencies = {
+                    forTargetInputComponentIdentity: {
+                        dependencyType: "stateVariable",
+                        variableName: "forTargetInputComponentIdentity",
+                    },
+                };
+
+                const inputIdentity =
+                    stateValues.forTargetInputComponentIdentity;
+
+                if (inputIdentity?.componentType === "choiceInput") {
+                    dependencies.choiceInputInline = {
+                        dependencyType: "stateVariable",
+                        componentIdx: inputIdentity.componentIdx,
+                        variableName: "inline",
+                    };
+                }
+
+                return dependencies;
+            },
+            definition({ dependencyValues, componentInfoObjects }) {
+                const inputIdentity =
+                    dependencyValues.forTargetInputComponentIdentity;
+
+                if (!inputIdentity) {
+                    return { setValue: { forTargetIsGroup: false } };
+                }
+
+                let forTargetIsGroup = false;
+
+                if (
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: inputIdentity.componentType,
+                        baseComponentType: "matrixInput",
+                    })
+                ) {
+                    forTargetIsGroup = true;
+                } else if (
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: inputIdentity.componentType,
+                        baseComponentType: "choiceInput",
+                    })
+                ) {
+                    forTargetIsGroup =
+                        dependencyValues.choiceInputInline === false;
+                }
+
+                return { setValue: { forTargetIsGroup } };
             },
         };
 

@@ -1110,6 +1110,23 @@ export default class Answer extends InlineComponent {
             },
         };
 
+        stateVariableDefinitions.labelsForAnswer = {
+            returnDependencies: () => ({
+                labelsReferencing: {
+                    dependencyType: "componentsReferencingAttribute",
+                    attributeName: "for",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        labelsForAnswer:
+                            dependencyValues.labelsReferencing ?? [],
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.focused = {
             public: true,
             shadowingInstructions: {
