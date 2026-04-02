@@ -323,6 +323,7 @@ export function DoenetEditor({
     doenetmlChangeCallback,
     immediateDoenetmlChangeCallback,
     documentStructureCallback,
+    isAccessibleCallback,
     id,
     readOnly = false,
     showFormatter = true,
@@ -352,6 +353,7 @@ export function DoenetEditor({
     doenetmlChangeCallback?: Function;
     immediateDoenetmlChangeCallback?: Function;
     documentStructureCallback?: Function;
+    isAccessibleCallback?: (isAccessible: boolean) => void;
     id?: string;
     readOnly?: boolean;
     showFormatter?: boolean;
@@ -423,6 +425,7 @@ export function DoenetEditor({
             doenetmlChangeCallback={doenetmlChangeCallback}
             immediateDoenetmlChangeCallback={immediateDoenetmlChangeCallback}
             documentStructureCallback={documentStructureCallback}
+            isAccessibleCallback={isAccessibleCallback}
             id={id}
             readOnly={readOnly}
             showFormatter={showFormatter}
