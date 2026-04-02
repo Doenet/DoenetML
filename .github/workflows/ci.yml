@@ -298,7 +298,7 @@ jobs:
             - name: Debug Build Artifacts
               run: |
                   ls -la ./packages/*/.wireit/ || echo "No .wireit directory found"
-                  du -sh ./packages/*/.wireit/*/
+                  du -sh ./packages/*/.wireit/*/ || echo "No .wireit cache entries found"
 
             # Rebuild only the docs prerequisites first so docs doesn't depend on a perfect artifact restore.
             # With the wireit cache saved, this should usually be a fast cache hit.
