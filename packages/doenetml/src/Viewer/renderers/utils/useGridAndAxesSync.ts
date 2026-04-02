@@ -47,7 +47,7 @@ export default function useGridAndAxesSync({
             board.grids = [];
         }
 
-        // Update tick display style after any grid-mode changes.
+        // Keep axis tick heights synchronized with current grid mode and tick-visibility SVs.
         applyAxisTickHeights({
             grid: SVs.grid,
             xaxisRef,
