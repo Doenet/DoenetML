@@ -16,6 +16,14 @@ Agents working in this repository should read [TEST_RUN_INSTRUCTIONS_FOR_AGENTS.
 - Ignore changes to `packages/doenetml/dev/main.tsx`. Do not commit them.
 - Ignore changes to any untracked `*.md` files in the repository root. Do not commit them.
 
+## PR Creation
+
+- This checkout may use a personal fork as `origin` and the canonical repository as `upstream`.
+- Do not assume `origin/main` matches the PR base. Base pull requests on `upstream/main`.
+- Push the branch to your fork, then create the PR in `Doenet/DoenetML` with your fork branch as the head.
+- For GitHub CLI, prefer: `gh pr create --repo Doenet/DoenetML --base main --head <your-fork>:<branch>`.
+- Before creating the PR, confirm that only intended files are staged and committed, since this repository often has unrelated local work in the tree.
+
 ## Changesets
 
 - Changesets are configured in `.changeset/config.json`.
