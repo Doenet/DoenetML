@@ -168,7 +168,6 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
             workspace: VectorWorkspace;
             arraySize: number[];
         }) {
-            console.log("Initial workspace:", deepClone(workspace));
             // in case just one ind specified, merge with previous values
             if (!workspace.desiredVector) {
                 workspace.desiredVector = [];
@@ -185,8 +184,6 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                 }
             }
 
-            console.log("workspace 2:", deepClone(workspace));
-
             let desiredValue: Expression | undefined;
             let tree = globalDependencyValues.value.tree;
             if (Array.isArray(tree)) {
@@ -200,10 +197,6 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                     if (size[0] === 1) {
                         let desiredMatrixVals: Tree = ["tuple"];
                         for (let ind = 0; ind < arraySize[0]; ind++) {
-                            console.log(
-                                `form rows matrix from vector. desiredVector[${ind}]:`,
-                                deepClone(workspace.desiredVector[ind]),
-                            );
                             desiredMatrixVals.push(
                                 workspace.desiredVector[ind].tree,
                             );
@@ -217,10 +210,6 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                     } else if (size[1] === 1) {
                         let desiredMatrixVals: Tree = ["tuple"];
                         for (let ind = 0; ind < arraySize[0]; ind++) {
-                            console.log(
-                                `form column matrix from vector. desiredVector[${ind}]:`,
-                                deepClone(workspace.desiredVector[ind]),
-                            );
                             desiredMatrixVals.push([
                                 "tuple",
                                 workspace.desiredVector[ind].tree,
@@ -257,8 +246,6 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                 desiredValue = workspace.desiredVector[0];
             }
 
-            console.log("workspace 3:", deepClone(workspace));
-
             let instructions = [
                 {
                     setDependency: "value",
@@ -266,7 +253,6 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                 },
             ];
 
-            console.log("instructions:", deepClone(instructions));
             return {
                 success: true,
                 instructions,
@@ -678,11 +664,6 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
             workspace: MatrixWorkspace;
             arraySize: number[];
         }) {
-            console.log(
-                "inverting matrix! desiredStateVariableValues:",
-                deepClone(desiredStateVariableValues),
-            );
-
             // in case just one ind specified, merge with previous values
             if (!workspace.desiredMatrix) {
                 workspace.desiredMatrix = {};
