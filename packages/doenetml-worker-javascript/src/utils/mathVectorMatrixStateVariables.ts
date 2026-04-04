@@ -1,7 +1,7 @@
 import { convertValueToMathExpression, vectorOperators } from "@doenet/utils";
 import { returnRoundingAttributeComponentShadowing } from "./rounding";
 //@ts-ignore
-import me from "math-expressions";
+import me, { Tree, Expression } from "math-expressions";
 
 const vectorAndListOperators = ["list", ...vectorOperators];
 
@@ -173,7 +173,7 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                 }
             }
 
-            let desiredValue;
+            let desiredValue: Expression | undefined;
             let tree = globalDependencyValues.value.tree;
             if (Array.isArray(tree)) {
                 if (vectorAndListOperators.includes(tree[0])) {
@@ -184,7 +184,7 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                 } else if (tree[0] === "matrix") {
                     let size = tree[1].slice(1);
                     if (size[0] === 1) {
-                        let desiredMatrixVals: any[] = ["tuple"];
+                        let desiredMatrixVals: Tree = ["tuple"];
                         for (let ind = 0; ind < arraySize[0]; ind++) {
                             desiredMatrixVals.push(
                                 workspace.desiredVector[ind],
@@ -197,7 +197,7 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                             desiredMatrixVals,
                         ]);
                     } else if (size[1] === 1) {
-                        let desiredMatrixVals: any[] = ["tuple"];
+                        let desiredMatrixVals: Tree = ["tuple"];
                         for (let ind = 0; ind < arraySize[0]; ind++) {
                             desiredMatrixVals.push([
                                 "tuple",
@@ -215,7 +215,7 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                     ((tree[0] === "^" && tree[2] === "T") ||
                         tree[0] === "prime")
                 ) {
-                    desiredValue = [
+                    const desiredTree: Tree = [
                         tree[0],
                         [
                             tree[1][0],
@@ -223,9 +223,9 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                         ],
                     ];
                     if (tree[2]) {
-                        desiredValue.push(tree[2]);
+                        desiredTree.push(tree[2]);
                     }
-                    desiredValue = me.fromAst(desiredValue);
+                    desiredValue = me.fromAst(desiredTree);
                 }
             }
 
@@ -426,6 +426,10 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
         isArray: true,
         numDimensions: 2,
         entryPrefixes: ["matrixEntry", "row", "column", "rows", "columns"],
+        schemaSubarrays: {
+            rows: { numDimensions: 2 },
+            columns: { numDimensions: 2 },
+        },
         returnEntryDimensions: (prefix: string | undefined) => {
             if (prefix === "matrixEntry") {
                 return 0;
@@ -683,10 +687,10 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                         );
                     }
                 } else if (tree[0] === "matrix") {
-                    let desiredMatrixVals: any[] = ["tuple"];
+                    let desiredMatrixVals: Tree = ["tuple"];
 
                     for (let i = 0; i < arraySize[0]; i++) {
-                        let row = ["tuple"];
+                        let row: Tree = ["tuple"];
                         for (let j = 0; j < arraySize[1]; j++) {
                             row.push(workspace.desiredMatrix[`${i},${j}`].tree);
                         }
@@ -702,18 +706,18 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                     ((tree[0] === "^" && tree[2] === "T") ||
                         tree[0] === "prime")
                 ) {
-                    desiredValue = [tree[0]];
-                    let desiredVector = [tree[1][0]];
+                    let desiredTree: Tree = [tree[0]];
+                    let desiredVector: Tree = [tree[1][0]];
                     for (let ind = 0; ind < arraySize[1]; ind++) {
                         desiredVector.push(
                             workspace.desiredMatrix["0," + ind].tree,
                         );
                     }
-                    desiredValue = [tree[0], desiredVector];
+                    desiredTree = [tree[0], desiredVector];
                     if (tree[2]) {
-                        desiredValue.push(tree[2]);
+                        desiredTree.push(tree[2]);
                     }
-                    desiredValue = me.fromAst(desiredValue);
+                    desiredValue = me.fromAst(desiredTree);
                 }
             }
 

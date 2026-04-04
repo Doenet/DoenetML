@@ -3035,6 +3035,10 @@ export default class Function extends InlineComponent {
                 "minimumValues",
                 "minimumValue",
             ],
+            schemaSubarrays: {
+                minimumLocations: { numDimensions: 1 },
+                minimumValues: { numDimensions: 1 },
+            },
             returnEntryDimensions: (prefix) => {
                 if (["minimumLocation", "minimumValue"].includes(prefix)) {
                     return 0;
@@ -3531,6 +3535,10 @@ export default class Function extends InlineComponent {
                 "maximumValues",
                 "maximumValue",
             ],
+            schemaSubarrays: {
+                maximumLocations: { numDimensions: 1 },
+                maximumValues: { numDimensions: 1 },
+            },
             returnEntryDimensions: (prefix) => {
                 if (["maximumLocation", "maximumValue"].includes(prefix)) {
                     return 0;
@@ -3957,6 +3965,10 @@ export default class Function extends InlineComponent {
                 "extremumValues",
                 "extremumValue",
             ],
+            schemaSubarrays: {
+                extremumLocations: { numDimensions: 1 },
+                extremumValues: { numDimensions: 1 },
+            },
             returnEntryDimensions: (prefix) => {
                 if (["extremumLocation", "extremumValue"].includes(prefix)) {
                     return 0;

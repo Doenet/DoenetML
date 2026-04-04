@@ -1170,6 +1170,8 @@ export default class BaseComponent {
                         theStateDef.numDimensions === undefined
                             ? 1
                             : theStateDef.numDimensions;
+                    stateVariableDescriptions[varName].schemaSubarrays =
+                        theStateDef.schemaSubarrays;
                     stateVariableDescriptions[varName].wrappingComponents =
                         theStateDef.shadowingInstructions
                             ?.returnWrappingComponents

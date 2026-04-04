@@ -2527,6 +2527,10 @@ export class MatrixInput extends Input {
             isArray: true,
             numDimensions: 2,
             entryPrefixes: ["matrixEntry", "row", "column", "rows", "columns"],
+            schemaSubarrays: {
+                columns: { numDimensions: 2 },
+                rows: { numDimensions: 2 },
+            },
             returnEntryDimensions: (prefix) => {
                 if (prefix === "matrixEntry") {
                     return 0;
@@ -2618,7 +2622,7 @@ export class MatrixInput extends Input {
                     // (rows and matrix are the same, but rows is added to be parallel to columns)
 
                     if (!arraySize) {
-                        // If don't have array size, we justr eturn the first entry
+                        // If don't have array size, we just return the first entry
                         return ["0,0"];
                     }
                     let keys = [];

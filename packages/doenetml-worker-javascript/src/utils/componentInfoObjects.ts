@@ -69,6 +69,7 @@ type StateVariableDescription = {
     isArray: boolean;
     createComponentOfType?: string;
     numDimensions?: number;
+    schemaSubarrays?: Record<string, { numDimensions: number }>;
     /** See description of returnWrappingComponents in Core.js */
     wrappingComponents?: (
         | string

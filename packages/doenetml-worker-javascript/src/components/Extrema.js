@@ -406,6 +406,14 @@ export class Extrema extends BaseComponent {
                 extremaClass.componentTypeSingular + "Values",
                 extremaClass.componentTypeSingular + "Value",
             ],
+            schemaSubarrays: {
+                [extremaClass.componentTypeSingular + "Locations"]: {
+                    numDimensions: 1,
+                },
+                [extremaClass.componentTypeSingular + "Values"]: {
+                    numDimensions: 1,
+                },
+            },
             stateVariablesDeterminingDependencies: ["childIdentities"],
             getArrayKeysFromVarName({
                 arrayEntryPrefix,

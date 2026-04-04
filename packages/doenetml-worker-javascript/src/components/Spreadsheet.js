@@ -314,6 +314,10 @@ export default class Spreadsheet extends BlockComponent {
                 "rows",
                 "columns",
             ],
+            schemaSubarrays: {
+                rows: { numDimensions: 2 },
+                columns: { numDimensions: 2 },
+            },
             numDimensions: 2,
             defaultValueByArrayKey: () => "",
             hasEssential: true,
@@ -735,6 +739,10 @@ export default class Spreadsheet extends BlockComponent {
                 "evaluatedRows",
                 "evaluatedColumns",
             ],
+            schemaSubarrays: {
+                evaluatedRows: { numDimensions: 2 },
+                evaluatedColumns: { numDimensions: 2 },
+            },
             numDimensions: 2,
             stateVariablesDeterminingDependencies: ["cellIndicesByRowCol"],
             returnArraySizeDependencies: () => ({
@@ -1083,6 +1091,11 @@ export default class Spreadsheet extends BlockComponent {
                 "pointsInRows",
                 "pointsInColumns",
             ],
+            schemaSubarrays: {
+                pointsInRows: { numDimensions: 2 },
+                pointsInColumns: { numDimensions: 2 },
+            },
+            stateVariablesDeterminingDependencies: ["cellIndicesByRowCol"],
             returnArraySizeDependencies: () => ({
                 numRows: {
                     dependencyType: "stateVariable",
