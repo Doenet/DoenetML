@@ -69,13 +69,20 @@ type StateVariableDescription = {
     isArray: boolean;
     createComponentOfType?: string;
     numDimensions?: number;
-    schemaSubarrays?: Record<string, { numDimensions: number }>;
+    schemaSubarrays?: Record<string, SchemaSubarrayDescription>;
     /** See description of returnWrappingComponents in Core.js */
     wrappingComponents?: (
         | string
         | { componentType: string; isAttributeNamed: string }
     )[][];
     entryPrefixes: string[];
+};
+
+/**
+ * Information about a subarray of a state variable
+ */
+export type SchemaSubarrayDescription = {
+    numDimensions: number;
 };
 
 /**

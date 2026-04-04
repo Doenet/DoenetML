@@ -1,4 +1,7 @@
-import { createComponentInfoObjects } from "../../doenetml-worker-javascript/src/utils/componentInfoObjects";
+import {
+    createComponentInfoObjects,
+    SchemaSubarrayDescription,
+} from "../../doenetml-worker-javascript/src/utils/componentInfoObjects";
 
 // Create schema of DoenetML by extracting component, attributes and children
 // from component classes.
@@ -95,10 +98,6 @@ type ArrayEntryPrefixDescription = {
     arrayVariableName: string;
     numDimensions: number;
     wrappingComponents: WrappingComponentElement[][];
-};
-
-type SchemaSubarrayDescription = {
-    numDimensions: number;
 };
 
 type StateVariableDescription = {
@@ -481,10 +480,24 @@ function propFromDescription({
         description.isArray &&
         description.schemaSubarrays
     ) {
+        /*
+         * Contract: All entries in schemaSubarrays must have corresponding entries in arrayEntryPrefixes.
+         *
+         * schemaSubarrays defines alternative array representations with their dimensions,
+         * while arrayEntryPrefixes defines the naming convention and wrapping components for accessing array entries.
+         * Each subarray name requires both definitions to generate complete schema information.
+         */
         for (const subarrayName in description.schemaSubarrays) {
             const schemaSubarrayDescription =
                 description.schemaSubarrays[subarrayName];
             const prefixDescription = arrayEntryPrefixes[subarrayName];
+
+            if (!prefixDescription) {
+                throw new Error(
+                    `schemaSubarray "${subarrayName}" for state variable "${varName}" ` +
+                        `is not defined in arrayEntryPrefixes`,
+                );
+            }
 
             props.push(
                 singlePropFromDescription({
@@ -494,8 +507,7 @@ function propFromDescription({
                         isArray: schemaSubarrayDescription.numDimensions > 0,
                         numDimensions: schemaSubarrayDescription.numDimensions,
                         wrappingComponents:
-                            prefixDescription?.wrappingComponents ||
-                            description.wrappingComponents,
+                            prefixDescription.wrappingComponents,
                     },
                     arrayEntryPrefixes,
                 }),

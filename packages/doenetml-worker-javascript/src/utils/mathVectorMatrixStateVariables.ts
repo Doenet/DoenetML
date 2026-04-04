@@ -1,9 +1,20 @@
-import { convertValueToMathExpression, vectorOperators } from "@doenet/utils";
+import {
+    convertValueToMathExpression,
+    deepClone,
+    vectorOperators,
+} from "@doenet/utils";
 import { returnRoundingAttributeComponentShadowing } from "./rounding";
-//@ts-ignore
 import me, { Tree, Expression } from "math-expressions";
 
 const vectorAndListOperators = ["list", ...vectorOperators];
+
+interface VectorWorkspace {
+    desiredVector?: Expression[];
+}
+
+interface MatrixWorkspace {
+    desiredMatrix?: Record<string, Expression>;
+}
 
 export function returnMathVectorMatrixStateVariableDefinitions() {
     let stateVariableDefinitions: any = {};
@@ -153,10 +164,11 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
         }: {
             desiredStateVariableValues: { vector: any[] };
             globalDependencyValues: { value: any };
-            stateValues: { vector: Promise<any[]> };
-            workspace: any;
+            stateValues: { vector: Promise<Expression[]> };
+            workspace: VectorWorkspace;
             arraySize: number[];
         }) {
+            console.log("Initial workspace:", deepClone(workspace));
             // in case just one ind specified, merge with previous values
             if (!workspace.desiredVector) {
                 workspace.desiredVector = [];
@@ -173,21 +185,27 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                 }
             }
 
+            console.log("workspace 2:", deepClone(workspace));
+
             let desiredValue: Expression | undefined;
             let tree = globalDependencyValues.value.tree;
             if (Array.isArray(tree)) {
                 if (vectorAndListOperators.includes(tree[0])) {
                     desiredValue = me.fromAst([
                         tree[0],
-                        ...workspace.desiredVector.map((x: any) => x.tree),
+                        ...workspace.desiredVector.map((x) => x.tree),
                     ]);
                 } else if (tree[0] === "matrix") {
                     let size = tree[1].slice(1);
                     if (size[0] === 1) {
                         let desiredMatrixVals: Tree = ["tuple"];
                         for (let ind = 0; ind < arraySize[0]; ind++) {
+                            console.log(
+                                `form rows matrix from vector. desiredVector[${ind}]:`,
+                                deepClone(workspace.desiredVector[ind]),
+                            );
                             desiredMatrixVals.push(
-                                workspace.desiredVector[ind],
+                                workspace.desiredVector[ind].tree,
                             );
                         }
                         desiredMatrixVals = ["tuple", desiredMatrixVals];
@@ -199,9 +217,13 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                     } else if (size[1] === 1) {
                         let desiredMatrixVals: Tree = ["tuple"];
                         for (let ind = 0; ind < arraySize[0]; ind++) {
+                            console.log(
+                                `form column matrix from vector. desiredVector[${ind}]:`,
+                                deepClone(workspace.desiredVector[ind]),
+                            );
                             desiredMatrixVals.push([
                                 "tuple",
-                                workspace.desiredVector[ind],
+                                workspace.desiredVector[ind].tree,
                             ]);
                         }
                         desiredValue = me.fromAst([
@@ -219,7 +241,9 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                         tree[0],
                         [
                             tree[1][0],
-                            ...workspace.desiredVector.map((x: any) => x.tree),
+                            ...workspace.desiredVector.map(
+                                (x: Expression) => x.tree,
+                            ),
                         ],
                     ];
                     if (tree[2]) {
@@ -233,6 +257,8 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                 desiredValue = workspace.desiredVector[0];
             }
 
+            console.log("workspace 3:", deepClone(workspace));
+
             let instructions = [
                 {
                     setDependency: "value",
@@ -240,6 +266,7 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                 },
             ];
 
+            console.log("instructions:", deepClone(instructions));
             return {
                 success: true,
                 instructions,
@@ -647,13 +674,18 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
         }: {
             desiredStateVariableValues: { matrix: Record<string, any> };
             globalDependencyValues: { value: any };
-            stateValues: { matrix: Promise<any> };
-            workspace: any;
+            stateValues: { matrix: Promise<Expression[][]> };
+            workspace: MatrixWorkspace;
             arraySize: number[];
         }) {
+            console.log(
+                "inverting matrix! desiredStateVariableValues:",
+                deepClone(desiredStateVariableValues),
+            );
+
             // in case just one ind specified, merge with previous values
             if (!workspace.desiredMatrix) {
-                workspace.desiredMatrix = [];
+                workspace.desiredMatrix = {};
             }
             for (let i = 0; i < arraySize[0]; i++) {
                 for (let j = 0; j < arraySize[1]; j++) {
@@ -676,23 +708,27 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                 }
             }
 
-            let desiredValue;
+            let desiredValue: Expression | undefined;
             let tree = globalDependencyValues.value.tree;
             if (Array.isArray(tree)) {
                 if (vectorAndListOperators.includes(tree[0])) {
-                    desiredValue = [tree[0]];
-                    for (let ind = 0; ind < arraySize[0]; ind++) {
-                        desiredValue.push(
-                            workspace.desiredMatrix[ind + ",0"].tree,
-                        );
-                    }
+                    desiredValue = me.fromAst([
+                        tree[0],
+                        ...Array.from(
+                            { length: arraySize[0] },
+                            (_, ind) =>
+                                workspace.desiredMatrix![`${ind},0`].tree,
+                        ),
+                    ]);
                 } else if (tree[0] === "matrix") {
                     let desiredMatrixVals: Tree = ["tuple"];
 
                     for (let i = 0; i < arraySize[0]; i++) {
                         let row: Tree = ["tuple"];
                         for (let j = 0; j < arraySize[1]; j++) {
-                            row.push(workspace.desiredMatrix[`${i},${j}`].tree);
+                            row.push(
+                                workspace.desiredMatrix![`${i},${j}`].tree,
+                            );
                         }
                         desiredMatrixVals.push(row);
                     }
@@ -710,7 +746,7 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                     let desiredVector: Tree = [tree[1][0]];
                     for (let ind = 0; ind < arraySize[1]; ind++) {
                         desiredVector.push(
-                            workspace.desiredMatrix["0," + ind].tree,
+                            workspace.desiredMatrix!["0," + ind].tree,
                         );
                     }
                     desiredTree = [tree[0], desiredVector];
@@ -722,7 +758,7 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
             }
 
             if (!desiredValue) {
-                desiredValue = workspace.desiredMatrix["0,0"];
+                desiredValue = workspace.desiredMatrix!["0,0"];
             }
 
             let instructions = [
