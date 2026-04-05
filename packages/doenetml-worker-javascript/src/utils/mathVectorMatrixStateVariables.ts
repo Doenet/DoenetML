@@ -1,9 +1,20 @@
-import { convertValueToMathExpression, vectorOperators } from "@doenet/utils";
+import {
+    convertValueToMathExpression,
+    deepClone,
+    vectorOperators,
+} from "@doenet/utils";
 import { returnRoundingAttributeComponentShadowing } from "./rounding";
-//@ts-ignore
-import me from "math-expressions";
+import me, { Tree, Expression } from "math-expressions";
 
 const vectorAndListOperators = ["list", ...vectorOperators];
+
+interface VectorWorkspace {
+    desiredVector?: Expression[];
+}
+
+interface MatrixWorkspace {
+    desiredMatrix?: Record<string, Expression>;
+}
 
 export function returnMathVectorMatrixStateVariableDefinitions() {
     let stateVariableDefinitions: any = {};
@@ -153,8 +164,8 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
         }: {
             desiredStateVariableValues: { vector: any[] };
             globalDependencyValues: { value: any };
-            stateValues: { vector: Promise<any[]> };
-            workspace: any;
+            stateValues: { vector: Promise<Expression[]> };
+            workspace: VectorWorkspace;
             arraySize: number[];
         }) {
             // in case just one ind specified, merge with previous values
@@ -173,21 +184,21 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                 }
             }
 
-            let desiredValue;
+            let desiredValue: Expression | undefined;
             let tree = globalDependencyValues.value.tree;
             if (Array.isArray(tree)) {
                 if (vectorAndListOperators.includes(tree[0])) {
                     desiredValue = me.fromAst([
                         tree[0],
-                        ...workspace.desiredVector.map((x: any) => x.tree),
+                        ...workspace.desiredVector.map((x) => x.tree),
                     ]);
                 } else if (tree[0] === "matrix") {
                     let size = tree[1].slice(1);
                     if (size[0] === 1) {
-                        let desiredMatrixVals: any[] = ["tuple"];
+                        let desiredMatrixVals: Tree = ["tuple"];
                         for (let ind = 0; ind < arraySize[0]; ind++) {
                             desiredMatrixVals.push(
-                                workspace.desiredVector[ind],
+                                workspace.desiredVector[ind].tree,
                             );
                         }
                         desiredMatrixVals = ["tuple", desiredMatrixVals];
@@ -197,11 +208,11 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                             desiredMatrixVals,
                         ]);
                     } else if (size[1] === 1) {
-                        let desiredMatrixVals: any[] = ["tuple"];
+                        let desiredMatrixVals: Tree = ["tuple"];
                         for (let ind = 0; ind < arraySize[0]; ind++) {
                             desiredMatrixVals.push([
                                 "tuple",
-                                workspace.desiredVector[ind],
+                                workspace.desiredVector[ind].tree,
                             ]);
                         }
                         desiredValue = me.fromAst([
@@ -215,17 +226,19 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                     ((tree[0] === "^" && tree[2] === "T") ||
                         tree[0] === "prime")
                 ) {
-                    desiredValue = [
+                    const desiredTree: Tree = [
                         tree[0],
                         [
                             tree[1][0],
-                            ...workspace.desiredVector.map((x: any) => x.tree),
+                            ...workspace.desiredVector.map(
+                                (x: Expression) => x.tree,
+                            ),
                         ],
                     ];
                     if (tree[2]) {
-                        desiredValue.push(tree[2]);
+                        desiredTree.push(tree[2]);
                     }
-                    desiredValue = me.fromAst(desiredValue);
+                    desiredValue = me.fromAst(desiredTree);
                 }
             }
 
@@ -426,6 +439,10 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
         isArray: true,
         numDimensions: 2,
         entryPrefixes: ["matrixEntry", "row", "column", "rows", "columns"],
+        schemaSubarrays: {
+            rows: { numDimensions: 2 },
+            columns: { numDimensions: 2 },
+        },
         returnEntryDimensions: (prefix: string | undefined) => {
             if (prefix === "matrixEntry") {
                 return 0;
@@ -643,13 +660,13 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
         }: {
             desiredStateVariableValues: { matrix: Record<string, any> };
             globalDependencyValues: { value: any };
-            stateValues: { matrix: Promise<any> };
-            workspace: any;
+            stateValues: { matrix: Promise<Expression[][]> };
+            workspace: MatrixWorkspace;
             arraySize: number[];
         }) {
             // in case just one ind specified, merge with previous values
             if (!workspace.desiredMatrix) {
-                workspace.desiredMatrix = [];
+                workspace.desiredMatrix = {};
             }
             for (let i = 0; i < arraySize[0]; i++) {
                 for (let j = 0; j < arraySize[1]; j++) {
@@ -672,23 +689,27 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                 }
             }
 
-            let desiredValue;
+            let desiredValue: Expression | undefined;
             let tree = globalDependencyValues.value.tree;
             if (Array.isArray(tree)) {
                 if (vectorAndListOperators.includes(tree[0])) {
-                    desiredValue = [tree[0]];
-                    for (let ind = 0; ind < arraySize[0]; ind++) {
-                        desiredValue.push(
-                            workspace.desiredMatrix[ind + ",0"].tree,
-                        );
-                    }
+                    desiredValue = me.fromAst([
+                        tree[0],
+                        ...Array.from(
+                            { length: arraySize[0] },
+                            (_, ind) =>
+                                workspace.desiredMatrix![`${ind},0`].tree,
+                        ),
+                    ]);
                 } else if (tree[0] === "matrix") {
-                    let desiredMatrixVals: any[] = ["tuple"];
+                    let desiredMatrixVals: Tree = ["tuple"];
 
                     for (let i = 0; i < arraySize[0]; i++) {
-                        let row = ["tuple"];
+                        let row: Tree = ["tuple"];
                         for (let j = 0; j < arraySize[1]; j++) {
-                            row.push(workspace.desiredMatrix[`${i},${j}`].tree);
+                            row.push(
+                                workspace.desiredMatrix![`${i},${j}`].tree,
+                            );
                         }
                         desiredMatrixVals.push(row);
                     }
@@ -702,23 +723,23 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
                     ((tree[0] === "^" && tree[2] === "T") ||
                         tree[0] === "prime")
                 ) {
-                    desiredValue = [tree[0]];
-                    let desiredVector = [tree[1][0]];
+                    let desiredTree: Tree = [tree[0]];
+                    let desiredVector: Tree = [tree[1][0]];
                     for (let ind = 0; ind < arraySize[1]; ind++) {
                         desiredVector.push(
-                            workspace.desiredMatrix["0," + ind].tree,
+                            workspace.desiredMatrix!["0," + ind].tree,
                         );
                     }
-                    desiredValue = [tree[0], desiredVector];
+                    desiredTree = [tree[0], desiredVector];
                     if (tree[2]) {
-                        desiredValue.push(tree[2]);
+                        desiredTree.push(tree[2]);
                     }
-                    desiredValue = me.fromAst(desiredValue);
+                    desiredValue = me.fromAst(desiredTree);
                 }
             }
 
             if (!desiredValue) {
-                desiredValue = workspace.desiredMatrix["0,0"];
+                desiredValue = workspace.desiredMatrix!["0,0"];
             }
 
             let instructions = [

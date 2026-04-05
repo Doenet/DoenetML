@@ -773,6 +773,38 @@
                     ]
                 },
                 {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
                     "name": "x",
                     "type": "math",
                     "isArray": false
@@ -8833,6 +8865,38 @@
                     ]
                 },
                 {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
                     "name": "x",
                     "type": "math",
                     "isArray": false
@@ -9377,6 +9441,38 @@
                 },
                 {
                     "name": "matrix",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
                     "type": "math",
                     "isArray": true,
                     "numDimensions": 2,
@@ -9943,6 +10039,38 @@
                     ]
                 },
                 {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
                     "name": "x",
                     "type": "math",
                     "isArray": false
@@ -10479,6 +10607,38 @@
                 },
                 {
                     "name": "matrix",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
                     "type": "math",
                     "isArray": true,
                     "numDimensions": 2,
@@ -11045,6 +11205,38 @@
                     ]
                 },
                 {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
                     "name": "x",
                     "type": "math",
                     "isArray": false
@@ -11588,6 +11780,38 @@
                     ]
                 },
                 {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
                     "name": "x",
                     "type": "math",
                     "isArray": false
@@ -12096,6 +12320,38 @@
                 },
                 {
                     "name": "matrix",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
                     "type": "math",
                     "isArray": true,
                     "numDimensions": 2,
@@ -12646,6 +12902,38 @@
                     ]
                 },
                 {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
                     "name": "x",
                     "type": "math",
                     "isArray": false
@@ -13166,6 +13454,38 @@
                 },
                 {
                     "name": "matrix",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
                     "type": "math",
                     "isArray": true,
                     "numDimensions": 2,
@@ -13716,6 +14036,38 @@
                     ]
                 },
                 {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
                     "name": "x",
                     "type": "math",
                     "isArray": false
@@ -14236,6 +14588,38 @@
                 },
                 {
                     "name": "matrix",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
                     "type": "math",
                     "isArray": true,
                     "numDimensions": 2,
@@ -14810,6 +15194,38 @@
                     ]
                 },
                 {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
                     "name": "x",
                     "type": "math",
                     "isArray": false
@@ -15354,6 +15770,38 @@
                 },
                 {
                     "name": "matrix",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
                     "type": "math",
                     "isArray": true,
                     "numDimensions": 2,
@@ -15940,6 +16388,38 @@
                     ]
                 },
                 {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
                     "name": "x",
                     "type": "math",
                     "isArray": false
@@ -16496,6 +16976,38 @@
                 },
                 {
                     "name": "matrix",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
                     "type": "math",
                     "isArray": true,
                     "numDimensions": 2,
@@ -17070,6 +17582,38 @@
                     ]
                 },
                 {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
                     "name": "x",
                     "type": "math",
                     "isArray": false
@@ -17614,6 +18158,38 @@
                 },
                 {
                     "name": "matrix",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
                     "type": "math",
                     "isArray": true,
                     "numDimensions": 2,
@@ -18188,6 +18764,38 @@
                     ]
                 },
                 {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
                     "name": "x",
                     "type": "math",
                     "isArray": false
@@ -18732,6 +19340,38 @@
                 },
                 {
                     "name": "matrix",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
                     "type": "math",
                     "isArray": true,
                     "numDimensions": 2,
@@ -19306,6 +19946,38 @@
                     ]
                 },
                 {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
                     "name": "x",
                     "type": "math",
                     "isArray": false
@@ -19850,6 +20522,38 @@
                 },
                 {
                     "name": "matrix",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
                     "type": "math",
                     "isArray": true,
                     "numDimensions": 2,
@@ -20426,6 +21130,38 @@
                     ]
                 },
                 {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
                     "name": "x",
                     "type": "math",
                     "isArray": false
@@ -20939,6 +21675,32 @@
                     ]
                 },
                 {
+                    "name": "minimumLocations",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "minimumValues",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "globalMinimum",
                     "type": "number",
                     "isArray": true,
@@ -20985,6 +21747,32 @@
                     ]
                 },
                 {
+                    "name": "maximumLocations",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "maximumValues",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "globalMaximum",
                     "type": "number",
                     "isArray": true,
@@ -21027,6 +21815,32 @@
                         {
                             "isArray": false,
                             "type": "point"
+                        }
+                    ]
+                },
+                {
+                    "name": "extremumLocations",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "extremumValues",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
                         }
                     ]
                 },
@@ -21529,6 +22343,32 @@
                     ]
                 },
                 {
+                    "name": "minimumLocations",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "minimumValues",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "globalMinimum",
                     "type": "number",
                     "isArray": true,
@@ -21575,6 +22415,32 @@
                     ]
                 },
                 {
+                    "name": "maximumLocations",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "maximumValues",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "globalMaximum",
                     "type": "number",
                     "isArray": true,
@@ -21617,6 +22483,32 @@
                         {
                             "isArray": false,
                             "type": "point"
+                        }
+                    ]
+                },
+                {
+                    "name": "extremumLocations",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "extremumValues",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
                         }
                     ]
                 },
@@ -22109,6 +23001,32 @@
                     ]
                 },
                 {
+                    "name": "minimumLocations",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "minimumValues",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "globalMinimum",
                     "type": "number",
                     "isArray": true,
@@ -22155,6 +23073,32 @@
                     ]
                 },
                 {
+                    "name": "maximumLocations",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "maximumValues",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "globalMaximum",
                     "type": "number",
                     "isArray": true,
@@ -22197,6 +23141,32 @@
                         {
                             "isArray": false,
                             "type": "point"
+                        }
+                    ]
+                },
+                {
+                    "name": "extremumLocations",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "extremumValues",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
                         }
                     ]
                 },
@@ -40680,6 +41650,38 @@
                     ]
                 },
                 {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
                     "name": "x",
                     "type": "math",
                     "isArray": false
@@ -44994,6 +45996,38 @@
                             "type": "matrix"
                         }
                     ]
+                },
+                {
+                    "name": "columns",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
                 }
             ],
             "top": true,
@@ -47860,6 +48894,38 @@
                     ]
                 },
                 {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
                     "name": "x",
                     "type": "math",
                     "isArray": false
@@ -49931,6 +50997,38 @@
                 },
                 {
                     "name": "matrix",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
                     "type": "math",
                     "isArray": true,
                     "numDimensions": 2,
@@ -57783,6 +58881,38 @@
                     ]
                 },
                 {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
                     "name": "x",
                     "type": "math",
                     "isArray": false
@@ -61319,6 +62449,32 @@
                     ]
                 },
                 {
+                    "name": "minimumLocations",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "minimumValues",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "globalMinimum",
                     "type": "number",
                     "isArray": true,
@@ -61365,6 +62521,32 @@
                     ]
                 },
                 {
+                    "name": "maximumLocations",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "maximumValues",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "globalMaximum",
                     "type": "number",
                     "isArray": true,
@@ -61407,6 +62589,32 @@
                         {
                             "isArray": false,
                             "type": "point"
+                        }
+                    ]
+                },
+                {
+                    "name": "extremumLocations",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "extremumValues",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
                         }
                     ]
                 },
@@ -61788,6 +62996,32 @@
                     ]
                 },
                 {
+                    "name": "minimumLocations",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "minimumValues",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "globalMinimum",
                     "type": "number",
                     "isArray": true,
@@ -61834,6 +63068,32 @@
                     ]
                 },
                 {
+                    "name": "maximumLocations",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "maximumValues",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "globalMaximum",
                     "type": "number",
                     "isArray": true,
@@ -61876,6 +63136,32 @@
                         {
                             "isArray": false,
                             "type": "point"
+                        }
+                    ]
+                },
+                {
+                    "name": "extremumLocations",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "extremumValues",
+                    "type": "number",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "number",
+                            "numDimensions": 1
                         }
                     ]
                 },
@@ -62373,6 +63659,38 @@
                 },
                 {
                     "name": "matrix",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
                     "type": "math",
                     "isArray": true,
                     "numDimensions": 2,
@@ -63472,6 +64790,38 @@
                     ]
                 },
                 {
+                    "name": "rows",
+                    "type": "cell",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "cellBlock"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "row"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
+                    "type": "cell",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "cellBlock"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "column"
+                        }
+                    ]
+                },
+                {
                     "name": "evaluatedCells",
                     "type": "cell",
                     "isArray": true,
@@ -63488,7 +64838,75 @@
                     ]
                 },
                 {
+                    "name": "evaluatedRows",
+                    "type": "cell",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "cellBlock"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "row"
+                        }
+                    ]
+                },
+                {
+                    "name": "evaluatedColumns",
+                    "type": "cell",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "cellBlock"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "column"
+                        }
+                    ]
+                },
+                {
                     "name": "pointsInCells",
+                    "type": "point",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "point",
+                            "numDimensions": 2
+                        },
+                        {
+                            "isArray": true,
+                            "type": "point",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "pointsInRows",
+                    "type": "point",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "point",
+                            "numDimensions": 2
+                        },
+                        {
+                            "isArray": true,
+                            "type": "point",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "pointsInColumns",
                     "type": "point",
                     "isArray": true,
                     "numDimensions": 2,
@@ -69720,6 +71138,38 @@
                     ]
                 },
                 {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
                     "name": "formula",
                     "type": "math",
                     "isArray": false
@@ -71289,6 +72739,38 @@
                 },
                 {
                     "name": "matrix",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
                     "type": "math",
                     "isArray": true,
                     "numDimensions": 2,
@@ -78537,6 +80019,38 @@
                     ]
                 },
                 {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
                     "name": "points",
                     "type": "math",
                     "isArray": true,
@@ -82392,6 +83906,38 @@
                 },
                 {
                     "name": "matrix",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "rows",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 2,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        },
+                        {
+                            "isArray": false,
+                            "type": "matrix"
+                        }
+                    ]
+                },
+                {
+                    "name": "columns",
                     "type": "math",
                     "isArray": true,
                     "numDimensions": 2,

@@ -1,4 +1,7 @@
-import { createComponentInfoObjects } from "../../doenetml-worker-javascript/src/utils/componentInfoObjects";
+import {
+    createComponentInfoObjects,
+    SchemaSubarrayDescription,
+} from "../../doenetml-worker-javascript/src/utils/componentInfoObjects";
 
 // Create schema of DoenetML by extracting component, attributes and children
 // from component classes.
@@ -102,6 +105,7 @@ type StateVariableDescription = {
     createComponentOfType?: string;
     isArray: boolean;
     numDimensions?: number;
+    schemaSubarrays?: Record<string, SchemaSubarrayDescription>;
     wrappingComponents?: WrappingComponentElement[][];
     getArrayKeysFromVarName?: Function;
     arrayVarNameFromPropIndex?: Function;
@@ -112,6 +116,7 @@ type PublicStateVariableDescription = {
     createComponentOfType: string;
     isArray: boolean;
     numDimensions?: number;
+    schemaSubarrays?: Record<string, SchemaSubarrayDescription>;
     wrappingComponents?: WrappingComponentElement[][];
     getArrayKeysFromVarName?: Function;
     arrayVarNameFromPropIndex?: Function;
@@ -369,10 +374,11 @@ export function getSchema() {
             const description = publicStateVariableDescriptions[varName];
 
             properties.push(
-                propFromDescription({
+                ...propFromDescription({
                     varName,
                     description,
                     arrayEntryPrefixes,
+                    includeSchemaSubarrays: true,
                 }),
             );
         }
@@ -387,10 +393,11 @@ export function getSchema() {
                 publicStateVariableDescriptions[aliasTargetName];
             if (aliasTarget) {
                 properties.push(
-                    propFromDescription({
+                    ...propFromDescription({
                         varName: aliasName,
                         description: aliasTarget,
                         arrayEntryPrefixes,
+                        includeSchemaSubarrays: false,
                     }),
                 );
             } else {
@@ -420,10 +427,11 @@ export function getSchema() {
                             };
 
                         properties.push(
-                            propFromDescription({
+                            ...propFromDescription({
                                 varName: aliasName,
                                 description: arrayEntryDescription,
                                 arrayEntryPrefixes,
+                                includeSchemaSubarrays: false,
                             }),
                         );
 
@@ -452,11 +460,73 @@ function propFromDescription({
     varName,
     description,
     arrayEntryPrefixes,
+    includeSchemaSubarrays,
 }: {
     varName: string;
     description: PublicStateVariableDescription;
     arrayEntryPrefixes: Record<string, ArrayEntryPrefixDescription>;
-}) {
+    includeSchemaSubarrays: boolean;
+}): PropertyDescription[] {
+    const props = [
+        singlePropFromDescription({
+            varName,
+            description,
+            arrayEntryPrefixes,
+        }),
+    ];
+
+    if (
+        includeSchemaSubarrays &&
+        description.isArray &&
+        description.schemaSubarrays
+    ) {
+        /*
+         * Contract: All entries in schemaSubarrays must have corresponding entries in arrayEntryPrefixes.
+         *
+         * schemaSubarrays defines alternative array representations with their dimensions,
+         * while arrayEntryPrefixes defines the naming convention and wrapping components for accessing array entries.
+         * Each subarray name requires both definitions to generate complete schema information.
+         */
+        for (const subarrayName in description.schemaSubarrays) {
+            const schemaSubarrayDescription =
+                description.schemaSubarrays[subarrayName];
+            const prefixDescription = arrayEntryPrefixes[subarrayName];
+
+            if (!prefixDescription) {
+                throw new Error(
+                    `schemaSubarray "${subarrayName}" for state variable "${varName}" ` +
+                        `is not defined in arrayEntryPrefixes`,
+                );
+            }
+
+            props.push(
+                singlePropFromDescription({
+                    varName: subarrayName,
+                    description: {
+                        ...description,
+                        isArray: schemaSubarrayDescription.numDimensions > 0,
+                        numDimensions: schemaSubarrayDescription.numDimensions,
+                        wrappingComponents:
+                            prefixDescription.wrappingComponents,
+                    },
+                    arrayEntryPrefixes,
+                }),
+            );
+        }
+    }
+
+    return props;
+}
+
+function singlePropFromDescription({
+    varName,
+    description,
+    arrayEntryPrefixes,
+}: {
+    varName: string;
+    description: PublicStateVariableDescription;
+    arrayEntryPrefixes: Record<string, ArrayEntryPrefixDescription>;
+}): PropertyDescription {
     const componentType = description.createComponentOfType;
 
     const prop: PropertyDescription = {
