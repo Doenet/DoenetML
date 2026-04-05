@@ -404,8 +404,8 @@ export function getCompletionItems(
 
         const componentType = this.normalizeElementName(resolvedNode.name);
         const propertyNames =
-            this.schemaElementsByName[componentType]?.attributes.map(
-                (attr) => attr.name,
+            this.schemaElementsByName[componentType]?.properties?.map(
+                (property) => property.name,
             ) || [];
 
         const prefix = completionContext.typedPrefix.toLowerCase();

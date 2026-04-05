@@ -11,6 +11,7 @@ type ElementSchema = {
     name: string;
     top: boolean;
     attributes: { name: string; values?: string[] }[];
+    properties?: { name: string }[];
     children: string[];
     acceptsStringChildren: boolean;
 };

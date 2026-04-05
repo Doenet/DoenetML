@@ -172,6 +172,16 @@ export function getCompletionContext(
             pathStart--;
         }
 
+        // Pattern: `$identifier.member`
+        if (source.charAt(pathStart - 1) === "$") {
+            return {
+                cursorPos: "refMember",
+                typedPrefix: macroTypedPrefix,
+                replaceFromOffset: macroTokenStart,
+                pathParts: source.slice(pathStart, offset).split("."),
+            };
+        }
+
         // Pattern: `$(identifier.member` or `$(identifier).member`
         if (
             source.charAt(pathStart - 1) === "(" &&
@@ -209,7 +219,7 @@ export function getCompletionContext(
 
     // Check for simple `$identifier` pattern (when not in parentheses yet)
     if (prevChar === "$" || source.charAt(tokenStart - 1) === "$") {
-        if (typedPrefix && /^\w+$/.test(typedPrefix)) {
+        if (prevChar === "$" || /^\w+$/.test(typedPrefix)) {
             return {
                 cursorPos: "refName",
                 typedPrefix,

@@ -348,14 +348,16 @@ describe("AutoCompleter", () => {
                 {
                     name: "section",
                     children: ["p"],
-                    attributes: [{ name: "myP" }, { name: "sectionProp" }],
+                    attributes: [],
+                    properties: [{ name: "myP" }, { name: "sectionProp" }],
                     top: true,
                     acceptsStringChildren: true,
                 },
                 {
                     name: "p",
                     children: [],
-                    attributes: [{ name: "pProp" }],
+                    attributes: [],
+                    properties: [{ name: "pProp" }],
                     top: true,
                     acceptsStringChildren: true,
                 },

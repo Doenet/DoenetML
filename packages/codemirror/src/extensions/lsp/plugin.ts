@@ -296,23 +296,32 @@ export class LSPPlugin implements PluginValue {
     async getCompletions(context: CompletionContext) {
         let { state, pos, explicit } = context;
         const requestToken = ++this.completionRequestToken;
-        const requestState = state;
+        const requestDocVersion = this.docVersion;
         const line = state.doc.lineAt(pos);
         let triggerKind: LSPCompletionTriggerKind =
             LSPCompletionTriggerKind.Invoked;
         let triggerCharacter: string | undefined;
-        const precedingTriggerCharacter =
+        const charBeforeCursor = line.text[pos - line.from - 1];
+        const charBeforeParen =
+            charBeforeCursor === "(" ? line.text[pos - line.from - 2] : "";
+        const precedingServerTriggerCharacter =
             uniqueLanguageServerInstance.completionTriggers.includes(
-                line.text[pos - line.from - 1],
+                charBeforeCursor,
             );
-        if (!explicit && precedingTriggerCharacter) {
+        const precedingLocalRefTriggerCharacter =
+            charBeforeCursor === "$" ||
+            charBeforeCursor === "." ||
+            (charBeforeCursor === "(" && charBeforeParen === "$");
+
+        if (!explicit && precedingServerTriggerCharacter) {
             triggerKind = LSPCompletionTriggerKind.TriggerCharacter;
-            triggerCharacter = line.text[pos - line.from - 1];
+            triggerCharacter = charBeforeCursor;
         }
         if (
             triggerKind === LSPCompletionTriggerKind.Invoked &&
             !context.matchBefore(/\w+$/) &&
-            !precedingTriggerCharacter &&
+            !precedingServerTriggerCharacter &&
+            !precedingLocalRefTriggerCharacter &&
             !explicit
         ) {
             return null;
@@ -331,7 +340,7 @@ export class LSPPlugin implements PluginValue {
         if (
             !this.view ||
             requestToken !== this.completionRequestToken ||
-            this.view.state !== requestState
+            this.docVersion !== requestDocVersion
         ) {
             return null;
         }
