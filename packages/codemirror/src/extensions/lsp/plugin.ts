@@ -558,10 +558,6 @@ type AutocompleteReopenState = {
     shouldRestartCompletion: boolean;
 };
 
-/**
- * Summarize the net insert/delete shape across the transactions in one editor
- * update so reopen-latch decisions can stay agnostic to CodeMirror internals.
- */
 function getTransactionChangeSummary(
     update: ViewUpdate,
 ): TransactionChangeSummary {
@@ -643,7 +639,8 @@ function getAutocompleteReopenState({
     });
 
     if (latchEvaluation.keepReopenLatchForNextChange && nextReopenLatch) {
-        // Keep the latch alive for exactly the next related tail edit.
+        // Keep the latch alive for the next related tail edit. Consecutive
+        // related tail edits can continue to refresh this latch.
         keepReopenLatchForNextChange = true;
         nextReopenLatch = {
             ...nextReopenLatch,
@@ -651,8 +648,8 @@ function getAutocompleteReopenState({
         };
     }
 
-    // If completion closed due to a single-character extension of the same token,
-    // remember one immediate undo step that can reopen the menu.
+    // If completion closes due to a single-character extension of the same token,
+    // arm a latch keyed to the previous matched token text.
     const reopenedFromCloseTransition = createReopenLatchFromCloseTransition({
         prevCompletionStatus,
         nextCompletionStatus,
@@ -665,8 +662,9 @@ function getAutocompleteReopenState({
     });
 
     if (reopenedFromCloseTransition) {
-        // Transition from "has options" to "no options" on a one-char
-        // tail extension arms a one-step reopen latch.
+        // Transition from "has options" to "no options" on a one-char tail
+        // extension arms a reopen latch. Subsequent related tail edits may
+        // keep this latch active until the typed text returns to a match.
         nextReopenLatch = reopenedFromCloseTransition;
         keepReopenLatchForNextChange = true;
     }

@@ -1,6 +1,35 @@
 type CompletionStatus = string | null;
 
 /**
+ * Latch contract for Doenet reference autocomplete reopen behavior.
+ *
+ * Motivation:
+ * - CodeMirror completion can close when a ref token temporarily stops matching
+ *   any option (for example: `$P.coorx`).
+ * - For Doenet refs, users expect autocomplete to reopen as soon as they delete
+ *   back to a previously matching prefix (for example: back to `$P.coor`).
+ *
+ * Contract:
+ * - A latch is armed only when completion transitions from open -> closed after
+ *   a single-character tail insert on the same ref token.
+ * - While armed, related tail edits (single-character tail insert/delete in the
+ *   same token, with `$`/`.` prefix context) can refresh the latch.
+ * - Reopen is requested only on a qualifying tail delete that returns token text
+ *   to the previously matched prefix captured in the latch.
+ *
+ * Non-goals and invalidation:
+ * - No reopen after cursor movement, non-tail edits, unrelated edits, explicit
+ *   dismissal, or token/prefix-context changes.
+ * - This mechanism only models in-token ref editing; it does not provide a
+ *   general completion reopen policy.
+ *
+ * Behavioral coverage:
+ * - See Cypress component tests in
+ *   `packages/codemirror/test/cypress/component/autocomplete.cy.tsx`, especially
+ *   the reopen and no-reopen scenarios around `$P.coor...` transitions.
+ */
+
+/**
  * The trailing word segment currently being edited inside a ref path.
  *
  * For `$P.coords`, the token tracked near the cursor is `coords`, while `$P.`
@@ -12,11 +41,11 @@ export type WordToken = {
 };
 
 /**
- * One in-token reopen opportunity after completion closes on an unmatched
- * tail extension (e.g. "$P.coorx").
+ * In-token reopen state after completion closes on an unmatched tail
+ * extension (e.g. "$P.coorx").
  *
- * If the user immediately backspaces to the last matched prefix ("$P.coor"),
- * autocomplete may reopen.
+ * If the user backspaces to the last matched prefix ("$P.coor"), autocomplete
+ * may reopen. Consecutive related tail edits can keep this latch alive.
  */
 export type ReopenLatch = {
     tokenFrom: number;
@@ -37,7 +66,7 @@ export type ReopenLatchTransitionInput = {
 
 /**
  * Whether the current edit should reopen autocomplete now, and whether the
- * latch remains eligible for exactly one more related tail edit.
+ * latch remains eligible for the next related tail edit.
  */
 export type ReopenLatchTransitionResult = {
     shouldReopenFromLatch: boolean;
@@ -67,7 +96,7 @@ function isRefTokenPrefixChar(char: string) {
  * Evaluate whether the current doc change should preserve or consume a reopen latch.
  *
  * The latch is only valid for edits that stay in the same token and are simple
- * tail insert/delete operations. Reopen is requested only on a tail delete that
+ * tail insert/delete operations. Reopen is requested on a tail delete that
  * returns to the previously matched token text.
  */
 export function evaluateReopenLatchTransition({
