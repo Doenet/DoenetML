@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import util from "util";
+import { CompletionItemKind } from "vscode-languageserver/browser";
 
 import { filterPositionInfo, DastMacro, DastElement } from "@doenet/parser";
 import { DoenetSourceObject, isOldMacro } from "../src/doenet-source-object";
@@ -327,18 +328,200 @@ describe("AutoCompleter", () => {
             offset = source.indexOf("$foo") + 4;
             elm = autoCompleter.getCompletionContext(offset);
             expect(elm).toMatchObject({
-                complete: true,
-                cursorPos: "macro",
+                cursorPos: "refName",
+                typedPrefix: "foo",
             });
 
             // Matching at the . following the macro.
             offset = source.indexOf("bar") + 4;
             elm = autoCompleter.getCompletionContext(offset);
             expect(elm).toMatchObject({
-                complete: false,
-                cursorPos: "macro",
+                cursorPos: "refMember",
+                typedPrefix: "",
             });
         }
+    });
+
+    describe("Reference completions", () => {
+        const refSchema = {
+            elements: [
+                {
+                    name: "section",
+                    children: ["p"],
+                    attributes: [{ name: "myP" }, { name: "sectionProp" }],
+                    top: true,
+                    acceptsStringChildren: true,
+                },
+                {
+                    name: "p",
+                    children: [],
+                    attributes: [{ name: "pProp" }],
+                    top: true,
+                    acceptsStringChildren: true,
+                },
+            ],
+        };
+
+        it("Suggests reference names after $ with prefix filtering", () => {
+            const source = `<section name="mySection"><p name="myP" /></section><p name="other" />\n$myS`;
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+
+            const offset = source.length;
+            const items = autoCompleter.getCompletionItems(offset);
+
+            expect(items.length).toBeGreaterThan(0);
+            expect(
+                items.every(
+                    (item) => item.kind === CompletionItemKind.Reference,
+                ),
+            ).toBe(true);
+            expect(
+                items.every((item) =>
+                    item.label.toLowerCase().startsWith("mys"),
+                ),
+            ).toBe(true);
+            expect(items.some((item) => item.label === "mySection")).toBe(true);
+            expect(
+                items.every((item) => !String(item.label).includes(".")),
+            ).toBe(true);
+        });
+
+        it("Suggests descendant names and properties after dot, with descendants winning collisions", () => {
+            const source = `<section name="mySection"><p name="myP" /></section>\n$mySection.`;
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+
+            const offset = source.length;
+            const items = autoCompleter.getCompletionItems(offset);
+
+            expect(items.some((item) => item.label === "myP")).toBe(true);
+            expect(items.some((item) => item.label === "sectionProp")).toBe(
+                true,
+            );
+
+            const myPItems = items.filter((item) => item.label === "myP");
+            expect(myPItems).toHaveLength(1);
+            expect(myPItems[0].kind).toBe(CompletionItemKind.Reference);
+        });
+
+        it("Suggests descendant names and properties after dot at the start of the file", () => {
+            const source = `$mySection.\n<section name="mySection"><p name="myP" /></section>`;
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+
+            const offset = source.indexOf("\n");
+            const items = autoCompleter.getCompletionItems(offset);
+
+            expect(items.some((item) => item.label === "myP")).toBe(true);
+            expect(items.some((item) => item.label === "sectionProp")).toBe(
+                true,
+            );
+        });
+
+        it("Suggests members after chained descendant access", () => {
+            const source = `<section name="mySection"><p name="myP" /></section>\n$mySection.myP.`;
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+
+            const offset = source.length;
+            const items = autoCompleter.getCompletionItems(offset);
+
+            expect(items.some((item) => item.label === "pProp")).toBe(true);
+            expect(items.every((item) => item.label !== "sectionProp")).toBe(
+                true,
+            );
+        });
+
+        it("Suggests reference names inside attribute values after $", () => {
+            const source = `<section name="mySection" /><line through="$myS" />`;
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+
+            const offset = source.indexOf("$myS") + "$myS".length;
+            const items = autoCompleter.getCompletionItems(offset);
+
+            expect(items.length).toBeGreaterThan(0);
+            expect(
+                items.every(
+                    (item) => item.kind === CompletionItemKind.Reference,
+                ),
+            ).toBe(true);
+            expect(items.some((item) => item.label === "mySection")).toBe(true);
+        });
+
+        it("Suggests descendant members inside attribute values after dot with member prefix", () => {
+            const source = `<section name="mySection"><p name="myP" /></section><line through="$mySection.my" />`;
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+
+            const offset =
+                source.indexOf("$mySection.my") + "$mySection.my".length;
+            const completionContext =
+                autoCompleter.getCompletionContext(offset);
+            expect(completionContext).toMatchObject({ cursorPos: "refMember" });
+            const items = autoCompleter.getCompletionItems(offset);
+
+            expect(items.some((item) => item.label === "myP")).toBe(true);
+            expect(items.every((item) => item.label !== "sectionProp")).toBe(
+                true,
+            );
+        });
+
+        it("Keeps completion visible when a descendant member is fully typed", () => {
+            const pointSchema = {
+                elements: [
+                    {
+                        name: "point",
+                        children: ["math"],
+                        attributes: [{ name: "coords" }],
+                        top: true,
+                        acceptsStringChildren: true,
+                    },
+                    {
+                        name: "math",
+                        children: [],
+                        attributes: [],
+                        top: true,
+                        acceptsStringChildren: true,
+                    },
+                ],
+            };
+
+            const source = `<point name="P"><math name="coords">(3,4)</math></point><point name="Q">(3,2)</point>\n$P.coords`;
+            const autoCompleter = new AutoCompleter(
+                source,
+                pointSchema.elements,
+            );
+
+            const offset = source.length;
+            const items = autoCompleter.getCompletionItems(offset);
+            const coordsItems = items.filter((item) => item.label === "coords");
+
+            expect(coordsItems).toHaveLength(1);
+            expect(coordsItems[0].kind).toBe(CompletionItemKind.Reference);
+            expect(coordsItems[0].detail).toBe("Descendant reference name");
+        });
+
+        it("Returns no ref completions in invalid or unresolved contexts", () => {
+            {
+                const source = `<section $`;
+                const autoCompleter = new AutoCompleter(
+                    source,
+                    refSchema.elements,
+                );
+                const items = autoCompleter.getCompletionItems(source.length);
+                expect(
+                    items.some(
+                        (item) => item.kind === CompletionItemKind.Reference,
+                    ),
+                ).toBe(false);
+            }
+
+            {
+                const source = `<section name="mySection" />\n$missing.`;
+                const autoCompleter = new AutoCompleter(
+                    source,
+                    refSchema.elements,
+                );
+                const items = autoCompleter.getCompletionItems(source.length);
+                expect(items).toEqual([]);
+            }
+        });
     });
 
     describe("Snippet completions", () => {

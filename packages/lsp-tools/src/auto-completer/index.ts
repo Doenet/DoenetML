@@ -51,6 +51,9 @@ function adjustCursorForTrimStart(
 
 /**
  * A class to make auto-completion queries on DoenetML source.
+ *
+ * The completer covers both XML editing workflows and ref workflows such as
+ * `$name` and `$name.member`, using the current parsed source plus schema data.
  */
 export class AutoCompleter {
     sourceObj: DoenetSourceObject = new DoenetSourceObject();
@@ -134,7 +137,8 @@ export class AutoCompleter {
     }
 
     /**
-     * Get a list of completion items at the given offset.
+     * Get completion items at the given offset, including XML, snippet, and
+     * ref-specific completions.
      */
     getCompletionItems = getCompletionItems;
 
@@ -144,8 +148,8 @@ export class AutoCompleter {
     getSchemaViolations = getSchemaViolations;
 
     /**
-     * Get context about the current cursor position to determine whether completions should be offered or not,
-     * and what type of completions should be offered.
+     * Get the high-level completion context at the given cursor position,
+     * including incomplete ref contexts that may not yet parse as full macros.
      */
     getCompletionContext = getCompletionContext;
 

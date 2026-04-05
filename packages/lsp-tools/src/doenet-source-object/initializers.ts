@@ -105,7 +105,7 @@ export function initOffsetToNodeMapLeft(this: DoenetSourceObject) {
 }
 
 export type AccessList = { name: string; element: DastElementV6 }[];
-export function initDescendentNamesMap(this: DoenetSourceObject) {
+export function initDescendantNamesMap(this: DoenetSourceObject) {
     const dast = this.dast;
     const namesInScope: Map<DastElementV6 | DastRootV6, AccessList> = new Map();
     const rootAccessList: AccessList = [];

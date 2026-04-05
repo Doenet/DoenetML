@@ -36,7 +36,8 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
         });
     }
 
-    const allPairs = getElementPairs(this.sourceObj.dast);
+    // Schema checks operate on the normalized v07-style element tree.
+    const allPairs = getElementPairs(this.sourceObj.dast as DastRoot);
 
     const ret: Diagnostic[] = allPairs.flatMap(({ node, parent }) => {
         const ret: Diagnostic[] = [];

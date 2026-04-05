@@ -223,22 +223,79 @@ function createElementAndSnippetCompletionItems(
 }
 
 /**
+ * Build reference-name completion items that replace only the actively typed
+ * portion of a `$ref` or `$ref.member` segment.
+ */
+function createReferenceCompletionItems(
+    autoCompleter: AutoCompleter,
+    labels: string[],
+    startOffset: number,
+    endOffset: number,
+    detail: string,
+): CompletionItem[] {
+    return labels.map((label) => ({
+        label,
+        kind: CompletionItemKind.Reference,
+        detail,
+        textEdit: {
+            range: createTextEditRange(
+                autoCompleter.sourceObj,
+                startOffset,
+                endOffset,
+            ),
+            newText: label,
+        },
+    }));
+}
+
+/**
+ * Build schema-property completions for the currently resolved ref target.
+ * These are shown only after descendant-name candidates so concrete named
+ * children win label collisions.
+ */
+function createPropertyCompletionItems(
+    autoCompleter: AutoCompleter,
+    labels: string[],
+    startOffset: number,
+    endOffset: number,
+    componentType: string,
+): CompletionItem[] {
+    return labels.map((label) => ({
+        label,
+        kind: CompletionItemKind.Property,
+        detail: `Property on ${componentType}`,
+        textEdit: {
+            range: createTextEditRange(
+                autoCompleter.sourceObj,
+                startOffset,
+                endOffset,
+            ),
+            newText: label,
+        },
+    }));
+}
+
+/**
  * Get a list of completion items at the given offset in the source document.
  *
  * This function analyzes the cursor context to determine what type of completions
  * are appropriate and returns a combination of:
+ * - Ref-name completions after `$` in text content or attribute values
+ * - Ref-member completions after `.` on a resolved ref chain
  * - Schema-based element completions (allowed elements based on parent/context)
  * - Snippet completions (templates associated with allowed elements)
  * - Attribute name completions (when inside an opening tag)
- * - Attribute value completions (when editing attribute values)
+ * - Attribute value completions for enumerated schema values
  * - Closing tag completions (when appropriate)
  *
  * The completion behavior varies depending on the cursor position context:
+ * - Body or attribute-value ref context after `$` or `.`: in-scope ref names,
+ *   descendant names, and schema properties on resolved referents
  * - Root level after `<`: top-level elements and their snippets
  * - Inside element body after `<`: allowed children and their snippets
  * - While typing element name (`openTagName`): filtered schema elements and snippets
  * - Inside opening tag (`openTag`): attribute names
- * - After `=` in attribute: attribute value suggestions
+ * - Inside an attribute value without ref syntax: schema value suggestions
  * - After `</`: closing tag suggestion
  *
  * Snippet completions include textEdit ranges that replace from the `<` character
@@ -274,6 +331,95 @@ export function getCompletionItems(
     let containingElement = this.sourceObj.elementAtOffsetWithContext(offset);
     const element = containingElement.node;
     let cursorPosition = containingElement.cursorPosition;
+
+    const completionContext = this.getCompletionContext(offset);
+    const allowRefCompletion =
+        cursorPosition === "body" ||
+        cursorPosition === "attributeValue" ||
+        (!element && containingNode && containingNode.type === "text");
+
+    if (allowRefCompletion && completionContext.cursorPos === "refName") {
+        // Offer only top-level addressable names after `$namePrefix`.
+        const prefix = completionContext.typedPrefix.toLowerCase();
+        const addressableNames = this.sourceObj
+            .getAddressableNamesAtOffset(offset)
+            .filter((parts) => parts.length === 1)
+            .map((parts) => parts[0]);
+        const filteredNames = [...new Set(addressableNames)].filter((name) =>
+            prefix ? name.toLowerCase().startsWith(prefix) : true,
+        );
+
+        return createReferenceCompletionItems(
+            this,
+            filteredNames,
+            completionContext.replaceFromOffset,
+            offset,
+            "Reference name",
+        );
+    }
+
+    if (allowRefCompletion && completionContext.cursorPos === "refMember") {
+        // Resolve the ref chain up to the container of the member currently
+        // being typed, then merge named descendants with schema properties.
+        let resolvedNode = null;
+        if (completionContext.pathParts.length > 0) {
+            const [baseName, ...memberPath] = completionContext.pathParts;
+            let referent = this.sourceObj.getReferentAtOffset(offset, baseName);
+            // Resolve only up to the container of the currently typed member.
+            // Example: for $P.coords (no trailing dot), complete members on P.
+            // For $P.coords. (trailing dot), complete members on coords.
+            for (const part of memberPath.slice(0, -1)) {
+                referent = this.sourceObj.getNamedDescendant(referent, part);
+                if (!referent) {
+                    break;
+                }
+            }
+            resolvedNode = referent;
+        }
+
+        if (!resolvedNode) {
+            return [];
+        }
+
+        const descendantNames = new Set(
+            (this.sourceObj._descendantNamesMap().get(resolvedNode) || []).map(
+                ({ name }) => name,
+            ),
+        );
+
+        const componentType = this.normalizeElementName(resolvedNode.name);
+        const propertyNames =
+            this.schemaElementsByName[componentType]?.attributes.map(
+                (attr) => attr.name,
+            ) || [];
+
+        const prefix = completionContext.typedPrefix.toLowerCase();
+        const filteredDescendantNames = [...descendantNames].filter((name) =>
+            prefix ? name.toLowerCase().startsWith(prefix) : true,
+        );
+        const filteredPropertyNames = propertyNames.filter(
+            (name) =>
+                (!prefix || name.toLowerCase().startsWith(prefix)) &&
+                !descendantNames.has(name),
+        );
+
+        return [
+            ...createReferenceCompletionItems(
+                this,
+                filteredDescendantNames,
+                completionContext.replaceFromOffset,
+                offset,
+                "Descendant reference name",
+            ),
+            ...createPropertyCompletionItems(
+                this,
+                filteredPropertyNames,
+                completionContext.replaceFromOffset,
+                offset,
+                resolvedNode.name,
+            ),
+        ];
+    }
 
     if (!containingNode && cursorPosition === "unknown" && prevChar === "<") {
         return createElementAndSnippetCompletionItems(

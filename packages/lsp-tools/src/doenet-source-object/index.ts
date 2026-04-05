@@ -13,7 +13,7 @@ import {
     initDast,
     initLezer,
     initLezerCursor,
-    initDescendentNamesMap,
+    initDescendantNamesMap,
     initOffsetToNodeMapRight,
     initOffsetToRowCache,
     initParentMap,
@@ -67,7 +67,7 @@ export class DoenetSourceObject extends LazyDataObject {
     _parentMap = this._lazyDataGetter(initParentMap);
     _offsetToNodeMapRight = this._lazyDataGetter(initOffsetToNodeMapRight);
     _offsetToNodeMapLeft = this._lazyDataGetter(initOffsetToNodeMapLeft);
-    _descendentNamesMap = this._lazyDataGetter(initDescendentNamesMap);
+    _descendantNamesMap = this._lazyDataGetter(initDescendantNamesMap);
 
     constructor(source?: string) {
         super();
@@ -291,17 +291,17 @@ export class DoenetSourceObject extends LazyDataObject {
     }
 
     /**
-     * Get the unique descendent of `node` with name `name`.
+     * Get the unique descendant of `node` with name `name`.
      */
-    getNamedDescendent(
+    getNamedDescendant(
         node: DastElementV6 | DastRootV6 | undefined | null,
         name: string,
     ) {
         if (!node) {
             return null;
         }
-        const descendentNamesMap = this._descendentNamesMap();
-        const accessibleNames = (descendentNamesMap.get(node) || []).filter(
+        const descendantNamesMap = this._descendantNamesMap();
+        const accessibleNames = (descendantNamesMap.get(node) || []).filter(
             (e) => e.name === name,
         );
         if (accessibleNames.length === 1) {
@@ -316,14 +316,14 @@ export class DoenetSourceObject extends LazyDataObject {
     getReferentAtOffset(offset: number | RowCol, name: string) {
         const { node } = this.elementAtOffsetWithContext(offset);
         let parent: DastElementV6 | DastRootV6 | undefined | null = node;
-        let referent = this.getNamedDescendent(parent, name);
+        let referent = this.getNamedDescendant(parent, name);
         while (parent && parent.type !== "root" && !referent) {
             parent = this._parentMap().get(parent);
-            referent = this.getNamedDescendent(parent, name);
+            referent = this.getNamedDescendant(parent, name);
         }
         if (!parent && !referent) {
             // We need to search the root!
-            referent = this.getNamedDescendent(this.dast, name);
+            referent = this.getNamedDescendant(this.dast, name);
         }
         return referent || null;
     }

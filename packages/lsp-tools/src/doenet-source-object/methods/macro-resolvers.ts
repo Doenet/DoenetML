@@ -56,7 +56,7 @@ export function getMacroReferentAtOffset(
                 accessedProp: prop,
             };
         }
-        propReferent = this.getNamedDescendent(referent, prop.path[0].name);
+        propReferent = this.getNamedDescendant(referent, prop.path[0].name);
         if (!propReferent) {
             return {
                 node: referent,
@@ -83,15 +83,15 @@ export function getAddressableNamesAtOffset(
 ) {
     const currElement =
         this.elementAtOffsetWithContext(offset).node || this.dast;
-    const descendentNamesMap = this._descendentNamesMap();
+    const descendantNamesMap = this._descendantNamesMap();
 
     const addressableChildren = getMacroAddressableChildrenAtElement(
         currElement,
-        descendentNamesMap,
+        descendantNamesMap,
     );
     const parents = this.getParents(currElement);
     const addressableParents = parents.map((ancestor) =>
-        getMacroAddressableChildrenAtElement(ancestor, descendentNamesMap),
+        getMacroAddressableChildrenAtElement(ancestor, descendantNamesMap),
     );
 
     return mergeLeftUniquePrefixes(addressableChildren, addressableParents);
@@ -104,9 +104,9 @@ export function getAddressableNamesAtOffset(
  */
 export function getMacroAddressableChildrenAtElement(
     currElement: DastElementV6 | DastRootV6,
-    descendentNamesMap: Map<DastElementV6 | DastRootV6, AccessList>,
+    descendantNamesMap: Map<DastElementV6 | DastRootV6, AccessList>,
 ): string[][] {
-    const accessList = descendentNamesMap.get(currElement);
+    const accessList = descendantNamesMap.get(currElement);
     if (!accessList) {
         throw new Error(
             `Expected accessList to be defined for ${
@@ -128,7 +128,7 @@ export function getMacroAddressableChildrenAtElement(
     )) {
         const childNames = getMacroAddressableChildrenAtElement(
             element,
-            descendentNamesMap,
+            descendantNamesMap,
         );
         ret.push(...childNames.map((childName) => [name, ...childName]));
     }
