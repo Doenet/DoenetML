@@ -386,6 +386,36 @@ describe("AutoCompleter", () => {
             ).toBe(true);
         });
 
+        it("Inserts parenthesized macro text for hyphenated names after $", () => {
+            const source = `<math name="foo-bar" />\n$f`;
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+
+            const items = autoCompleter.getCompletionItems(source.length);
+            const fooBarItem = items.find((item) => item.label === "foo-bar");
+
+            expect(fooBarItem).toBeDefined();
+            expect(fooBarItem?.textEdit).toBeDefined();
+            const textEdit = fooBarItem?.textEdit;
+            if (textEdit && "newText" in textEdit) {
+                expect(textEdit.newText).toBe("(foo-bar)");
+            }
+        });
+
+        it("Keeps plain macro text for simple names after $", () => {
+            const source = `<math name="foo_bar" />\n$f`;
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+
+            const items = autoCompleter.getCompletionItems(source.length);
+            const fooBarItem = items.find((item) => item.label === "foo_bar");
+
+            expect(fooBarItem).toBeDefined();
+            expect(fooBarItem?.textEdit).toBeDefined();
+            const textEdit = fooBarItem?.textEdit;
+            if (textEdit && "newText" in textEdit) {
+                expect(textEdit.newText).toBe("foo_bar");
+            }
+        });
+
         it("Suggests descendant names and properties after dot, with descendants winning collisions", () => {
             const source = `<section name="mySection"><p name="myP" /></section>\n$mySection.`;
             const autoCompleter = new AutoCompleter(source, refSchema.elements);
@@ -458,6 +488,62 @@ describe("AutoCompleter", () => {
 
             expect(items.some((item) => item.label === "myP")).toBe(true);
             expect(items.every((item) => item.label !== "sectionProp")).toBe(
+                true,
+            );
+        });
+
+        it("Suggests reference names in parenthesized macros with hyphenated prefixes", () => {
+            const source = `<math name="foo-bar" /><math name="foo-baz" />\n$(foo-ba`;
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+
+            const offset = source.length;
+            const completionContext =
+                autoCompleter.getCompletionContext(offset);
+            expect(completionContext).toMatchObject({
+                cursorPos: "refName",
+                typedPrefix: "foo-ba",
+            });
+
+            const items = autoCompleter.getCompletionItems(offset);
+
+            expect(items.some((item) => item.label === "foo-bar")).toBe(true);
+            expect(items.some((item) => item.label === "foo-baz")).toBe(true);
+        });
+
+        it("Suggests member completions in parenthesized macros with hyphenated names", () => {
+            const source = `<section name="foo-bar"><p name="myP" /></section>\n$(foo-bar.my`;
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+
+            const offset = source.length;
+            const completionContext =
+                autoCompleter.getCompletionContext(offset);
+            expect(completionContext).toMatchObject({
+                cursorPos: "refMember",
+                typedPrefix: "my",
+            });
+
+            const items = autoCompleter.getCompletionItems(offset);
+
+            expect(items.some((item) => item.label === "myP")).toBe(true);
+        });
+
+        it("Suggests member completions after dot on completed parenthesized macros", () => {
+            const source = `<section name="foo-bar"><p name="myP" /></section>\n$(foo-bar).`;
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+
+            const offset = source.length;
+            const completionContext =
+                autoCompleter.getCompletionContext(offset);
+            expect(completionContext).toMatchObject({
+                cursorPos: "refMember",
+                typedPrefix: "",
+            });
+
+            const items = autoCompleter.getCompletionItems(offset);
+
+            // Descendant and property suggestions should both be present.
+            expect(items.some((item) => item.label === "myP")).toBe(true);
+            expect(items.some((item) => item.label === "sectionProp")).toBe(
                 true,
             );
         });

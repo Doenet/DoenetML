@@ -475,7 +475,7 @@ export class LSPPlugin implements PluginValue {
         return {
             from: pos,
             options: finalOptions,
-            validFor: /^\w*$/,
+            validFor: /^[A-Za-z0-9_-]*$/,
         };
     }
 }
@@ -535,7 +535,7 @@ function getCurrentWordToken(doc: Text, head: number): WordToken | null {
     const safeHead = Math.max(0, Math.min(head, doc.length));
     const line = doc.lineAt(safeHead);
     const beforeCursor = line.text.slice(0, safeHead - line.from);
-    const match = beforeCursor.match(/\w+$/);
+    const match = beforeCursor.match(/[A-Za-z0-9_-]+$/);
     if (!match) {
         return null;
     }
@@ -609,6 +609,8 @@ function getAutocompleteReopenState({
     const head = update.state.selection.main.head;
     const line = update.state.doc.lineAt(head);
     const charBefore = line.text.charAt(head - line.from - 1);
+    const charBeforeParen =
+        charBefore === "(" ? line.text.charAt(head - line.from - 2) : "";
     const { isDeleteEvent, deletedCount, insertedCount } =
         getTransactionChangeSummary(update);
     const currentToken = getCurrentWordToken(update.state.doc, head);
@@ -675,6 +677,7 @@ function getAutocompleteReopenState({
         shouldRestartCompletion:
             charBefore === "$" ||
             charBefore === "." ||
+            (charBefore === "(" && charBeforeParen === "$") ||
             latchEvaluation.shouldReopenFromLatch,
     };
 }

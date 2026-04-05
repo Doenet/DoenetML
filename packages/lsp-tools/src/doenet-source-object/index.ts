@@ -311,6 +311,20 @@ export class DoenetSourceObject extends LazyDataObject {
     }
 
     /**
+     * Get all descendant names directly addressable from `node`.
+     */
+    getDescendantNamesForNode(
+        node: DastElementV6 | DastRootV6 | undefined | null,
+    ): string[] {
+        if (!node) {
+            return [];
+        }
+        return (this._descendantNamesMap().get(node) || []).map(
+            ({ name }) => name,
+        );
+    }
+
+    /**
      * Get the unique item with name `name` resolved from position `offset`.
      */
     getReferentAtOffset(offset: number | RowCol, name: string) {

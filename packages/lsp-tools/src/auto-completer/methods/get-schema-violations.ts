@@ -5,10 +5,10 @@ import {
     DiagnosticSeverity,
 } from "vscode-languageserver/browser";
 import {
-    DastAttribute,
-    DastElement,
-    DastNodes,
-    DastRoot,
+    DastAttributeV6,
+    DastElementV6,
+    DastNodesV6,
+    DastRootV6,
     showCursor,
     toXml,
     visit,
@@ -23,8 +23,8 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
      * Get all pairs of elements and their parent.
      */
     function getElementPairs(
-        node: DastElement | DastRoot,
-    ): { node: DastElement; parent: DastElement | DastRoot }[] {
+        node: DastElementV6 | DastRootV6,
+    ): { node: DastElementV6; parent: DastElementV6 | DastRootV6 }[] {
         return node.children.flatMap((child) => {
             if (child.type === "element") {
                 return [
@@ -36,8 +36,7 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
         });
     }
 
-    // Schema checks operate on the normalized v07-style element tree.
-    const allPairs = getElementPairs(this.sourceObj.dast as DastRoot);
+    const allPairs = getElementPairs(this.sourceObj.dast);
 
     const ret: Diagnostic[] = allPairs.flatMap(({ node, parent }) => {
         const ret: Diagnostic[] = [];
@@ -192,7 +191,7 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
 /**
  * Determine if the list of nodes contains a macro or function descendant.
  */
-function hasMacroOrFunctionChild(nodes: DastNodes[]): boolean {
+function hasMacroOrFunctionChild(nodes: DastNodesV6[]): boolean {
     let ret = false;
     visit(nodes, (node) => {
         if (node.type === "macro" || node.type === "function") {
@@ -206,7 +205,7 @@ function hasMacroOrFunctionChild(nodes: DastNodes[]): boolean {
 /**
  * Get the offset of the start and end of the attribute value.
  */
-function getAttributeValueRange(node: DastAttribute): {
+function getAttributeValueRange(node: DastAttributeV6): {
     start: number;
     end: number;
 } {

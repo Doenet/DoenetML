@@ -232,6 +232,7 @@ function createReferenceCompletionItems(
     startOffset: number,
     endOffset: number,
     detail: string,
+    toNewText: (label: string) => string = (label) => label,
 ): CompletionItem[] {
     return labels.map((label) => ({
         label,
@@ -243,7 +244,7 @@ function createReferenceCompletionItems(
                 startOffset,
                 endOffset,
             ),
-            newText: label,
+            newText: toNewText(label),
         },
     }));
 }
@@ -341,6 +342,21 @@ export function getCompletionItems(
     if (allowRefCompletion && completionContext.cursorPos === "refName") {
         // Offer only top-level addressable names after `$namePrefix`.
         const prefix = completionContext.typedPrefix.toLowerCase();
+        const source = this.sourceObj.source;
+        const isParenthesizedContext =
+            source.charAt(completionContext.replaceFromOffset - 1) === "(" &&
+            source.charAt(completionContext.replaceFromOffset - 2) === "$";
+
+        // `$name` form only supports SimpleIdent. When a suggestion needs
+        // richer Ident syntax (e.g. hyphen), insert parentheses so `$f`
+        // can become `$(foo-bar)`.
+        const toRefNameInsertText = (name: string) => {
+            if (isParenthesizedContext) {
+                return name;
+            }
+            return /^\w+$/.test(name) ? name : `(${name})`;
+        };
+
         const addressableNames = this.sourceObj
             .getAddressableNamesAtOffset(offset)
             .filter((parts) => parts.length === 1)
@@ -355,6 +371,7 @@ export function getCompletionItems(
             completionContext.replaceFromOffset,
             offset,
             "Reference name",
+            toRefNameInsertText,
         );
     }
 
@@ -382,9 +399,7 @@ export function getCompletionItems(
         }
 
         const descendantNames = new Set(
-            (this.sourceObj._descendantNamesMap().get(resolvedNode) || []).map(
-                ({ name }) => name,
-            ),
+            this.sourceObj.getDescendantNamesForNode(resolvedNode),
         );
 
         const componentType = this.normalizeElementName(resolvedNode.name);
