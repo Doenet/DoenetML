@@ -41,7 +41,7 @@ import {
     DiagnosticSeverity as LSPDiagnosticSeverity,
     CompletionTriggerKind as LSPCompletionTriggerKind,
 } from "vscode-languageserver-protocol/browser";
-import { Text } from "@codemirror/state";
+import { Text, Transaction } from "@codemirror/state";
 import {
     setDiagnostics,
     Diagnostic as CodeMirrorDiagnostic,
@@ -50,11 +50,19 @@ import {
     autocompletion,
     CompletionContext,
     Completion,
+    completionStatus,
+    startCompletion,
 } from "@codemirror/autocomplete";
 import {
     getSnippetCursorFromCompletionItemData,
     type CompletionSnippetCursor,
 } from "@doenet/static-assets/completion-snippet-protocol";
+import {
+    createReopenLatchFromCloseTransition,
+    evaluateReopenLatchTransition,
+    type ReopenLatch,
+    type WordToken,
+} from "./reopen-latch";
 import { renderDiagnosticMarkdownHtml } from "@doenet/utils/diagnostics/renderDiagnosticMarkdownHtml";
 import type {
     MarkupContent,
@@ -147,6 +155,9 @@ export class LSPPlugin implements PluginValue {
     uri: string = "";
     value: string = "";
     diagnostics: LSPDiagnostic[] = [];
+    completionRequestToken = 0;
+    docVersion = 0;
+    reopenLatch: ReopenLatch | null = null;
     view?: EditorView;
     unsubscribeDiagnostics?: () => void;
 
@@ -156,9 +167,52 @@ export class LSPPlugin implements PluginValue {
     }
 
     update(update: ViewUpdate): void {
+        const prevCompletionStatus = completionStatus(update.startState);
+        const nextCompletionStatus = completionStatus(update.state);
+        const startSel = update.startState.selection.main;
+        const nextSel = update.state.selection.main;
+        const selectionMoved =
+            startSel.head !== nextSel.head ||
+            startSel.anchor !== nextSel.anchor;
+
+        if (
+            update.selectionSet &&
+            selectionMoved &&
+            !update.docChanged &&
+            !prevCompletionStatus
+        ) {
+            this.reopenLatch = null;
+        }
+
         const value = update.state.doc.toString();
         if (update.docChanged) {
             this.setValue(value);
+
+            const reopenState = getAutocompleteReopenState({
+                update,
+                reopenLatch: this.reopenLatch,
+                docVersion: this.docVersion,
+                prevCompletionStatus,
+                nextCompletionStatus,
+            });
+
+            this.reopenLatch = reopenState.reopenLatch;
+
+            if (reopenState.shouldRestartCompletion) {
+                setTimeout(() => {
+                    if (!this.view || this.view !== update.view) {
+                        return;
+                    }
+                    startCompletion(update.view);
+                }, 0);
+            }
+
+            // Latch is single-use and must be immediate.
+            if (!reopenState.keepReopenLatchForNextChange) {
+                // Any non-related interaction invalidates the reopen opportunity.
+                this.reopenLatch = null;
+            }
+            this.docVersion += 1;
         }
     }
 
@@ -241,6 +295,8 @@ export class LSPPlugin implements PluginValue {
     }
     async getCompletions(context: CompletionContext) {
         let { state, pos, explicit } = context;
+        const requestToken = ++this.completionRequestToken;
+        const requestState = state;
         const line = state.doc.lineAt(pos);
         let triggerKind: LSPCompletionTriggerKind =
             LSPCompletionTriggerKind.Invoked;
@@ -270,6 +326,15 @@ export class LSPPlugin implements PluginValue {
                 triggerCharacter,
             },
         );
+
+        // Guard against out-of-order async responses from older completion requests.
+        if (
+            !this.view ||
+            requestToken !== this.completionRequestToken ||
+            this.view.state !== requestState
+        ) {
+            return null;
+        }
 
         if (!result) {
             return null;
@@ -354,6 +419,10 @@ export class LSPPlugin implements PluginValue {
             }
         }
 
+        if (options.length === 0) {
+            return null;
+        }
+
         const finalOptions = options.map((opt) => {
             if (opt._lspTextEditRange) {
                 const startPos = normalizePos(opt._lspTextEditRange.start);
@@ -372,20 +441,30 @@ export class LSPPlugin implements PluginValue {
                             startPos,
                         );
                         const rangeEnd = posToOffset(view.state.doc, endPos);
-                        const replaceFrom = rangeStart ?? from;
-                        const replaceTo = rangeEnd ?? to;
+                        // Merge LSP textEdit bounds with live completion bounds.
+                        // This avoids stale-range duplication when the completion
+                        // session stays open as the user types additional prefix chars.
+                        const replaceFrom =
+                            rangeStart == null
+                                ? from
+                                : Math.min(rangeStart, from);
+                        const replaceTo =
+                            rangeEnd == null ? to : Math.max(rangeEnd, to);
                         const selection = getSelectionFromSnippetCursor(
                             opt._snippetCursor,
                             replaceFrom,
                             insertText.length,
-                        );
+                        ) || {
+                            anchor: replaceFrom + insertText.length,
+                            head: replaceFrom + insertText.length,
+                        };
                         view.dispatch({
                             changes: {
                                 from: replaceFrom,
                                 to: replaceTo,
                                 insert: insertText,
                             },
-                            ...(selection ? { selection } : {}),
+                            selection,
                         });
                     };
                 }
@@ -396,6 +475,7 @@ export class LSPPlugin implements PluginValue {
         return {
             from: pos,
             options: finalOptions,
+            validFor: /^\w*$/,
         };
     }
 }
@@ -442,6 +522,162 @@ function offsetToPos(doc: Text, offset: number) {
     return {
         line: line.number - 1,
         character: offset - line.from,
+    };
+}
+
+/**
+ * Return the contiguous word token immediately to the left of the cursor.
+ *
+ * The reopen-latch logic only tracks simple word tokens inside ref paths,
+ * so this intentionally ignores punctuation and earlier path segments.
+ */
+function getCurrentWordToken(doc: Text, head: number): WordToken | null {
+    const safeHead = Math.max(0, Math.min(head, doc.length));
+    const line = doc.lineAt(safeHead);
+    const beforeCursor = line.text.slice(0, safeHead - line.from);
+    const match = beforeCursor.match(/\w+$/);
+    if (!match) {
+        return null;
+    }
+
+    return {
+        text: match[0],
+        from: safeHead - match[0].length,
+    };
+}
+
+type TransactionChangeSummary = {
+    isDeleteEvent: boolean;
+    deletedCount: number;
+    insertedCount: number;
+};
+
+type AutocompleteReopenState = {
+    reopenLatch: ReopenLatch | null;
+    keepReopenLatchForNextChange: boolean;
+    shouldRestartCompletion: boolean;
+};
+
+/**
+ * Summarize the net insert/delete shape across the transactions in one editor
+ * update so reopen-latch decisions can stay agnostic to CodeMirror internals.
+ */
+function getTransactionChangeSummary(
+    update: ViewUpdate,
+): TransactionChangeSummary {
+    const isDeleteEvent = update.transactions.every((tr) => {
+        const userEvent = tr.annotation(Transaction.userEvent);
+        return typeof userEvent === "string" && userEvent.startsWith("delete");
+    });
+
+    let deletedCount = 0;
+    let insertedCount = 0;
+    for (const tr of update.transactions) {
+        tr.changes.iterChanges((fromA, toA, fromB, toB) => {
+            if (toA > fromA) {
+                deletedCount += toA - fromA;
+            }
+            if (toB > fromB) {
+                insertedCount += toB - fromB;
+            }
+        });
+    }
+
+    return {
+        isDeleteEvent,
+        deletedCount,
+        insertedCount,
+    };
+}
+
+/**
+ * Decide whether a document change should immediately restart autocomplete and
+ * whether the one-step reopen latch should be preserved, replaced, or cleared.
+ *
+ * This is the bridge between CodeMirror update semantics and the smaller,
+ * token-level rules in reopen-latch.ts.
+ */
+function getAutocompleteReopenState({
+    update,
+    reopenLatch,
+    docVersion,
+    prevCompletionStatus,
+    nextCompletionStatus,
+}: {
+    update: ViewUpdate;
+    reopenLatch: ReopenLatch | null;
+    docVersion: number;
+    prevCompletionStatus: string | null;
+    nextCompletionStatus: string | null;
+}): AutocompleteReopenState {
+    const head = update.state.selection.main.head;
+    const line = update.state.doc.lineAt(head);
+    const charBefore = line.text.charAt(head - line.from - 1);
+    const { isDeleteEvent, deletedCount, insertedCount } =
+        getTransactionChangeSummary(update);
+    const currentToken = getCurrentWordToken(update.state.doc, head);
+    const tokenPrefixChar = currentToken
+        ? update.state.doc.sliceString(
+              Math.max(0, currentToken.from - 1),
+              currentToken.from,
+          )
+        : "";
+    const previousHead = update.startState.selection.main.head;
+    const previousToken = getCurrentWordToken(
+        update.startState.doc,
+        previousHead,
+    );
+
+    let nextReopenLatch = reopenLatch;
+    let keepReopenLatchForNextChange = false;
+
+    const latchEvaluation = evaluateReopenLatchTransition({
+        reopenLatch,
+        docVersion,
+        previousToken,
+        currentToken,
+        tokenPrefixChar,
+        isDeleteEvent,
+        deletedCount,
+        insertedCount,
+    });
+
+    if (latchEvaluation.keepReopenLatchForNextChange && nextReopenLatch) {
+        // Keep the latch alive for exactly the next related tail edit.
+        keepReopenLatchForNextChange = true;
+        nextReopenLatch = {
+            ...nextReopenLatch,
+            docVersion: docVersion + 1,
+        };
+    }
+
+    // If completion closed due to a single-character extension of the same token,
+    // remember one immediate undo step that can reopen the menu.
+    const reopenedFromCloseTransition = createReopenLatchFromCloseTransition({
+        prevCompletionStatus,
+        nextCompletionStatus,
+        insertedCount,
+        deletedCount,
+        currentToken,
+        previousToken,
+        tokenPrefixChar,
+        docVersion,
+    });
+
+    if (reopenedFromCloseTransition) {
+        // Transition from "has options" to "no options" on a one-char
+        // tail extension arms a one-step reopen latch.
+        nextReopenLatch = reopenedFromCloseTransition;
+        keepReopenLatchForNextChange = true;
+    }
+
+    return {
+        reopenLatch: nextReopenLatch,
+        keepReopenLatchForNextChange,
+        shouldRestartCompletion:
+            charBefore === "$" ||
+            charBefore === "." ||
+            latchEvaluation.shouldReopenFromLatch,
     };
 }
 
