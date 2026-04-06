@@ -300,9 +300,9 @@ impl Resolver {
                                         // then the parent supersedes the name of the descendant.
                                         // We don't change the name map, and we stop looping to additional parents
                                         break;
-                                    } else if let Some(Ref::Unique(descendent_idx)) =
+                                    } else if let Some(Ref::Unique(descendant_idx)) =
                                         descendant_ref_of_own_name
-                                        && *idx == descendent_idx
+                                        && *idx == descendant_idx
                                     {
                                         // If the `name_with_source` resolves to the descendant that `element` is superseding,
                                         // then replace it with `element`
