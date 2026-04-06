@@ -853,7 +853,7 @@ describe("AutoCompleter", () => {
                                 attributes: {},
                                 children: [],
                                 type: "element",
-                            } as DastElementV6,
+                            } as DastElement,
                             unresolvedPathParts: [],
                         };
                     }

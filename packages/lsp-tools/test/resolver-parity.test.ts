@@ -95,6 +95,17 @@ describe("Resolver Parity - Member Completion Resolution", () => {
             // The current behavior focuses on children, not ancestor properties
         });
 
+        it("Resolves nested member access when a non-first segment has a hyphen", () => {
+            const source = `<section name="s"><subsection name="sub-sec"><p name="p1" /></subsection></section>\n$s.sub-sec.`;
+            const sourceObj = new DoenetSourceObject(source);
+            const completer = new AutoCompleter(source, testSchema);
+
+            const items = completer.getCompletionItems(source.length);
+
+            // The child name should still resolve even with a hyphenated member segment.
+            expect(items.some((item) => item.label === "p1")).toBe(true);
+        });
+
         it("Stops resolution at unresolved path segment", () => {
             const source = `<section name="s" />\n$s.nonexistent.`;
             const sourceObj = new DoenetSourceObject(source);
@@ -116,8 +127,8 @@ describe("Resolver Parity - Member Completion Resolution", () => {
             const items = completer.getCompletionItems(offset);
 
             // p1.textProp path is unresolved (text is a property name, not a child)
-            // Should have no completions or fallback behavior
-            expect(items.length).toBeGreaterThanOrEqual(0); // May be empty or fallback
+            // and completion resolution should stop.
+            expect(items.length).toBe(0);
         });
     });
 

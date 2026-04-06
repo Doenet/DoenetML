@@ -2,7 +2,7 @@ import { DoenetSourceObject, RowCol } from "../doenet-source-object";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import { COMPLETION_SNIPPETS } from "@doenet/static-assets/completion-snippets";
 import type { CompletionSnippetCursor } from "@doenet/static-assets/completion-snippet-protocol";
-import { DastAttributeV6, DastElementV6, DastMacroV6 } from "@doenet/parser";
+import { DastAttributeV6, DastElementV6 } from "@doenet/parser";
 import { getCompletionItems } from "./methods/get-completion-items";
 import { getSchemaViolations } from "./methods/get-schema-violations";
 import { getCompletionContext } from "./methods/get-completion-context";
@@ -24,34 +24,6 @@ type ProcessedSnippet = {
     description: string;
     cursor?: CompletionSnippetCursor;
 };
-
-const SIMPLE_IDENTIFIER_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
-
-function serializeMacroPath(pathParts: string[]) {
-    if (pathParts.length === 0) {
-        return "$";
-    }
-
-    const [first, ...rest] = pathParts;
-    const firstPart = SIMPLE_IDENTIFIER_REGEX.test(first)
-        ? `$${first}`
-        : `$(${first})`;
-
-    return rest.reduce((acc, part) => {
-        const encoded = SIMPLE_IDENTIFIER_REGEX.test(part) ? part : `(${part})`;
-        return `${acc}.${encoded}`;
-    }, firstPart);
-}
-
-function getUnresolvedPathParts(accessedProp: DastMacroV6 | null): string[] {
-    const unresolved: string[] = [];
-    let curr: DastMacroV6 | null = accessedProp;
-    while (curr) {
-        unresolved.push(curr.path[0]?.name ?? "");
-        curr = curr.accessedProp;
-    }
-    return unresolved;
-}
 
 export type ResolveRefMemberContainerArgs = {
     /** Character offset into the source string (0-based) */
@@ -194,34 +166,35 @@ export class AutoCompleter {
             };
         }
 
-        const macroSource = serializeMacroPath(lookupPathParts);
-        const parsedMacro = new DoenetSourceObject(macroSource).dast
-            .children[0] as DastMacroV6 | undefined;
-
-        if (!parsedMacro || parsedMacro.type !== "macro") {
-            return {
-                node: null,
-                unresolvedPathParts: lookupPathParts,
-            };
-        }
-
-        const resolution = this.sourceObj.getMacroReferentAtOffset(
+        let referent = this.sourceObj.getReferentAtOffset(
             offset,
-            parsedMacro,
+            lookupPathParts[0],
         );
-        if (!resolution) {
+        if (!referent) {
             return {
                 node: null,
                 unresolvedPathParts: lookupPathParts,
             };
         }
 
-        const unresolvedPathParts = getUnresolvedPathParts(
-            resolution.accessedProp,
-        );
+        let firstUnresolvedPartIndex = -1;
+        for (let i = 1; i < lookupPathParts.length; i++) {
+            const part = lookupPathParts[i];
+            const child = this.sourceObj.getNamedDescendant(referent, part);
+            if (!child) {
+                firstUnresolvedPartIndex = i;
+                break;
+            }
+            referent = child;
+        }
+
+        const unresolvedPathParts =
+            firstUnresolvedPartIndex === -1
+                ? []
+                : lookupPathParts.slice(firstUnresolvedPartIndex);
 
         return {
-            node: unresolvedPathParts.length > 0 ? null : resolution.node,
+            node: unresolvedPathParts.length > 0 ? null : referent,
             unresolvedPathParts,
         };
     }

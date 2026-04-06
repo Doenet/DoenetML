@@ -136,15 +136,15 @@ export class DoenetSourceObject extends LazyDataObject {
     }
 
     /**
-     * Get the flat-tree node index for the node at the given offset.
-     * Returns the index of the deepest node (right-biased) containing the offset,
+     * Get a Rust-compatible root/element index at the given offset.
+     * Returns the index of the nearest containing element (or root),
      * or `null` if no node exists at that position.
      *
      * This mapping is used for Rust resolver integration to identify nodes by stable indices
      * rather than object references.
      *
      * @param offset The 0-based character offset into the source string
-     * @returns The node index, or null if no node at offset
+     * @returns The root/element index, or null if no node at offset
      */
     getNodeIndexAtOffset(offset: number): number | null {
         const offsetToIndexMap = this._offsetToNodeIndexMap();
