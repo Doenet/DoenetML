@@ -21,8 +21,11 @@ Agents working in this repository should read [TEST_RUN_INSTRUCTIONS_FOR_AGENTS.
 - This checkout may use a personal fork as `origin` and the canonical repository as `upstream`.
 - Do not assume `origin/main` matches the PR base. Base pull requests on `upstream/main`.
 - Push the branch to your fork, then create the PR in `Doenet/DoenetML` with your fork branch as the head.
-- For GitHub CLI, prefer: `gh pr create --repo Doenet/DoenetML --base main --head <your-fork>:<branch>`.
+- **Preferred method: Use GitHub CLI (`gh`).** The `mcp_gitkraken_pull_request_create` tool requires authentication that may not be available.
+- Command format: `gh pr create --repo Doenet/DoenetML --base main --head <fork-owner>:<branch>`. Replace `<fork-owner>` with your GitHub username (e.g., `dqnykamp:my-branch`).
+- Before pushing, run `prettier` to format modified files and ensure formatting compliance.
 - Before creating the PR, confirm that only intended files are staged and committed, since this repository often has unrelated local work in the tree.
+- After creating the PR, verify the branch has been pushed to `origin` and the PR links to the correct target branch (`Doenet/DoenetML:main`).
 
 ## Changesets
 
@@ -32,7 +35,8 @@ Agents working in this repository should read [TEST_RUN_INSTRUCTIONS_FOR_AGENTS.
   - `@doenet/standalone`
   - `@doenet/doenetml-iframe`
   - `@doenet/v06-to-v07`
+- Additionally, `@doenet/prefigure` is published but with an independent version (not part of the fixed group).
 - User-facing changes in `@doenet/doenetml` are also apparent in `@doenet/standalone` and `@doenet/doenetml-iframe`.
 - User-facing changes in `@doenet/standalone` are also apparent in `@doenet/doenetml-iframe`.
 - When writing a changeset, include the published package or packages where the user-facing change is apparent, not just the package where the implementation lives.
-- The fixed-group configuration still coordinates versioning across these four packages.
+- The fixed-group configuration still coordinates versioning across the four fixed-group packages.
