@@ -735,6 +735,7 @@ describe("AutoCompleter", () => {
 
         it("Uses injected resolver hook for member completion", () => {
             const source = `<section name="mySection"><p name="myP" /></section>\n$missing.`;
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
             const resolver = vi.fn(({ offset }: { offset: number }) => ({
                 node: autoCompleter.sourceObj.getReferentAtOffset(
                     offset,
@@ -742,13 +743,7 @@ describe("AutoCompleter", () => {
                 ),
                 unresolvedPathParts: [],
             }));
-            const autoCompleter = new AutoCompleter(
-                source,
-                refSchema.elements,
-                {
-                    resolveRefMemberContainerAtOffset: resolver,
-                },
-            );
+            autoCompleter.setResolveRefMemberContainerAtOffset(resolver);
 
             const items = autoCompleter.getCompletionItems(source.length);
 

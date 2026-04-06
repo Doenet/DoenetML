@@ -7,8 +7,8 @@ import { DastElementV6 } from "@doenet/parser";
  * Resolver parity tests verify that member completion resolution behavior
  * matches the semantics we expect from the production Rust resolver.
  *
- * These tests focus on simple identifiers (no hyphens) and document expected
- * resolution behavior for various path structures.
+ * These tests focus on resolver parity for common member-chain paths,
+ * including hyphenated non-first path segments.
  *
  * When Rust resolver is integrated via RustResolverAdapter, these tests
  * should pass for both TypeScript and Rust resolution backends.
