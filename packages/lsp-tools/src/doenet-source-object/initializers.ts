@@ -104,6 +104,46 @@ export function initOffsetToNodeMapLeft(this: DoenetSourceObject) {
     return offsetToNodeMap;
 }
 
+/**
+ * Create a mapping from character offsets to node indices (flat array positions).
+ * This enables translation from editor offsets to stable node references needed for
+ * Rust-backed resolution.
+ *
+ * Assigns sequential indices to all nodes in depth-first order via `visit()`,
+ * then maps offsets to those indices. An offset maps to the index of the deepest
+ * node covering that position (right-biased, same as `_offsetToNodeMapRight`).
+ *
+ * Returns array where `map[offset]` = node index or `null` if no node at offset.
+ */
+export function initOffsetToNodeIndexMap(this: DoenetSourceObject) {
+    const nodeToIndexMap = new Map<DastNodesV6, number>();
+    const dast = this.dast;
+    let nextIndex = 0;
+
+    // Build node → index mapping via depth-first traversal
+    const assignIndices = (node: DastNodesV6) => {
+        nodeToIndexMap.set(node, nextIndex++);
+        if (node.type === "element") {
+            for (const child of node.children) {
+                assignIndices(child as DastNodesV6);
+            }
+        }
+    };
+
+    nodeToIndexMap.set(dast, nextIndex++);
+    for (const child of dast.children) {
+        assignIndices(child as DastNodesV6);
+    }
+
+    // Map offsets to indices using existing right-biased offset→node map
+    const offsetToNodeMap = this._offsetToNodeMapRight();
+    const offsetToIndexMap: (number | null)[] = offsetToNodeMap.map((node) =>
+        node ? (nodeToIndexMap.get(node) ?? null) : null,
+    );
+
+    return offsetToIndexMap;
+}
+
 export type AccessList = { name: string; element: DastElementV6 }[];
 export function initDescendantNamesMap(this: DoenetSourceObject) {
     const dast = this.dast;

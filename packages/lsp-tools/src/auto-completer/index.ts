@@ -2,7 +2,7 @@ import { DoenetSourceObject, RowCol } from "../doenet-source-object";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import { COMPLETION_SNIPPETS } from "@doenet/static-assets/completion-snippets";
 import type { CompletionSnippetCursor } from "@doenet/static-assets/completion-snippet-protocol";
-import { DastAttributeV6, DastElementV6 } from "@doenet/parser";
+import { DastAttributeV6, DastElementV6, DastMacroV6 } from "@doenet/parser";
 import { getCompletionItems } from "./methods/get-completion-items";
 import { getSchemaViolations } from "./methods/get-schema-violations";
 import { getCompletionContext } from "./methods/get-completion-context";
@@ -23,6 +23,56 @@ type ProcessedSnippet = {
     snippet: string;
     description: string;
     cursor?: CompletionSnippetCursor;
+};
+
+const SIMPLE_IDENTIFIER_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+function serializeMacroPath(pathParts: string[]) {
+    if (pathParts.length === 0) {
+        return "$";
+    }
+
+    const [first, ...rest] = pathParts;
+    const firstPart = SIMPLE_IDENTIFIER_REGEX.test(first)
+        ? `$${first}`
+        : `$(${first})`;
+
+    return rest.reduce((acc, part) => {
+        const encoded = SIMPLE_IDENTIFIER_REGEX.test(part) ? part : `(${part})`;
+        return `${acc}.${encoded}`;
+    }, firstPart);
+}
+
+function getUnresolvedPathParts(accessedProp: DastMacroV6 | null): string[] {
+    const unresolved: string[] = [];
+    let curr: DastMacroV6 | null = accessedProp;
+    while (curr) {
+        unresolved.push(curr.path[0]?.name ?? "");
+        curr = curr.accessedProp;
+    }
+    return unresolved;
+}
+
+export type ResolveRefMemberContainerArgs = {
+    /** Character offset into the source string (0-based) */
+    offset: number;
+    /** Path segments to resolve (e.g., ["foo", "bar"] for $foo.bar) */
+    pathParts: string[];
+    /** Optional flat-tree node index at the given offset, for Rust-backed resolution */
+    nodeIndex?: number | null;
+};
+
+export type RefMemberContainerResolution = {
+    node: DastElementV6 | null;
+    unresolvedPathParts: string[];
+};
+
+export type ResolveRefMemberContainer = (
+    args: ResolveRefMemberContainerArgs,
+) => RefMemberContainerResolution | null;
+
+export type AutoCompleterOptions = {
+    resolveRefMemberContainerAtOffset?: ResolveRefMemberContainer;
 };
 
 /**
@@ -59,6 +109,7 @@ function adjustCursorForTrimStart(
 export class AutoCompleter {
     sourceObj: DoenetSourceObject = new DoenetSourceObject();
     schema: ElementSchema[] = [];
+    private resolveRefMemberContainerAtOffsetImpl?: ResolveRefMemberContainer;
     /**
      * A map of element names (in lower case) to their canonical capitalization.
      */
@@ -82,15 +133,97 @@ export class AutoCompleter {
     constructor(
         source?: string,
         schema: ElementSchema[] = doenetSchema.elements,
+        options?: AutoCompleterOptions,
     ) {
         if (source != null) {
             // Adding a space at the end of the source so that a final "<"
             // will be parsed as a text "<" rather than an invalid element.
             this.sourceObj.setSource(source + " ");
         }
+        this.resolveRefMemberContainerAtOffsetImpl =
+            options?.resolveRefMemberContainerAtOffset;
         if (schema) {
             this.setSchema(schema);
         }
+    }
+
+    /**
+     * Replace the ref-member container resolver used during completion.
+     * Pass `undefined` to restore default in-process resolution.
+     */
+    setResolveRefMemberContainerAtOffset(resolver?: ResolveRefMemberContainer) {
+        this.resolveRefMemberContainerAtOffsetImpl = resolver;
+        return this;
+    }
+
+    /**
+     * Resolve the ref container for member completion from parsed path parts.
+     *
+     * `pathParts` includes the currently edited segment as its last item.
+     * For example, in `$P.coords` this resolves to `P`, while in `$P.coords.`
+     * it resolves to `coords`.
+     */
+    resolveRefMemberContainerAtOffset(
+        offset: number,
+        pathParts: string[],
+    ): RefMemberContainerResolution {
+        if (this.resolveRefMemberContainerAtOffsetImpl) {
+            const nodeIndex = this.sourceObj.getNodeIndexAtOffset(offset);
+            const resolved = this.resolveRefMemberContainerAtOffsetImpl({
+                offset,
+                pathParts,
+                nodeIndex,
+            });
+            if (resolved) {
+                return resolved;
+            }
+        }
+
+        if (pathParts.length === 0) {
+            return {
+                node: null,
+                unresolvedPathParts: [],
+            };
+        }
+
+        const lookupPathParts = pathParts.slice(0, -1);
+        if (lookupPathParts.length === 0) {
+            return {
+                node: null,
+                unresolvedPathParts: [],
+            };
+        }
+
+        const macroSource = serializeMacroPath(lookupPathParts);
+        const parsedMacro = new DoenetSourceObject(macroSource).dast
+            .children[0] as DastMacroV6 | undefined;
+
+        if (!parsedMacro || parsedMacro.type !== "macro") {
+            return {
+                node: null,
+                unresolvedPathParts: lookupPathParts,
+            };
+        }
+
+        const resolution = this.sourceObj.getMacroReferentAtOffset(
+            offset,
+            parsedMacro,
+        );
+        if (!resolution) {
+            return {
+                node: null,
+                unresolvedPathParts: lookupPathParts,
+            };
+        }
+
+        const unresolvedPathParts = getUnresolvedPathParts(
+            resolution.accessedProp,
+        );
+
+        return {
+            node: unresolvedPathParts.length > 0 ? null : resolution.node,
+            unresolvedPathParts,
+        };
     }
 
     /**
@@ -349,3 +482,10 @@ export class AutoCompleter {
         return results;
     }
 }
+
+// Export resolver adapter for external use
+export { RustResolverAdapter } from "./rust-resolver-adapter";
+export type {
+    RustResolverCore,
+    RustResolverAdapterOptions,
+} from "./rust-resolver-adapter";
