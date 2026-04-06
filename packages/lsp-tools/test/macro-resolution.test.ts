@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import util from "util";
 
 import { DastMacro, DastElement } from "@doenet/parser";
-import { DoenetSourceObject, isOldMacro } from "../src/doenet-source-object";
+import { DoenetSourceObject } from "../src/doenet-source-object";
 import {
     getPrefixes,
     mergeLeftUniquePrefixes,
@@ -78,27 +78,6 @@ describe("DoenetSourceObject", () => {
             expect(elm?.node).toMatchObject({ type: "element", name: "c" });
             expect(elm?.unresolvedPath).toEqual([]);
         }
-    });
-
-    it("Can determine if a macro is an old-style macro with slashes in the path", () => {
-        let source: string;
-        let sourceObj: DoenetSourceObject;
-        let macro: DastMacro;
-
-        source = `$foo.bar[2].baz`;
-        sourceObj = new DoenetSourceObject(source);
-        macro = sourceObj.dast.children[0] as any as DastMacro;
-        expect(isOldMacro(macro)).toEqual(false);
-
-        source = `$(foo.bar[2].baz)`;
-        sourceObj = new DoenetSourceObject(source);
-        macro = sourceObj.dast.children[0] as any as DastMacro;
-        expect(isOldMacro(macro)).toEqual(false);
-
-        source = `$(foo/x.bar[2].baz)`;
-        sourceObj = new DoenetSourceObject(source);
-        macro = sourceObj.dast.children[0] as any as DastMacro;
-        expect(isOldMacro(macro)).toEqual(false);
     });
 
     it("Can uniquely merge prefixes", () => {

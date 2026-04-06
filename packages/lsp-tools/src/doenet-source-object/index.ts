@@ -1,12 +1,10 @@
 import {
     DastElement,
-    DastFunctionMacro,
     DastNodes,
     DastRoot,
     LezerSyntaxNodeName,
     Position,
     toXml,
-    DastMacro,
 } from "@doenet/parser";
 import {
     initDast,
@@ -441,25 +439,3 @@ export type OffsetToPositionMap = {
     rowMap: Uint32Array;
     columnMap: Uint32Array;
 };
-
-/**
- * Returns `true` if the macro is an "old-style" macro with slashes
- * in its path.
- */
-export function isOldMacro(macro: DastMacro | DastFunctionMacro): boolean {
-    if (!("version" in macro) || macro.version !== "0.6") {
-        return false;
-    }
-    switch (macro.type) {
-        case "macro": {
-            return macro.path.length !== 1;
-        }
-        case "function": {
-            const innerMacro =
-                "macro" in macro && typeof macro.macro === "object"
-                    ? macro.macro
-                    : null;
-            return innerMacro ? isOldMacro(innerMacro as any) : false;
-        }
-    }
-}

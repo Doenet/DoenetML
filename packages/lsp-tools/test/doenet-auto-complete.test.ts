@@ -3,7 +3,7 @@ import util from "util";
 import { CompletionItemKind } from "vscode-languageserver/browser";
 
 import { filterPositionInfo, DastMacro, DastElement } from "@doenet/parser";
-import { DoenetSourceObject, isOldMacro } from "../src/doenet-source-object";
+import { DoenetSourceObject } from "../src/doenet-source-object";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import { AutoCompleter, RustResolverAdapter } from "../src";
 import type { RustResolverCore } from "../src";

@@ -67,9 +67,9 @@ export function initParentMap(this: DoenetSourceObject) {
  */
 export function initOffsetToNodeMapRight(this: DoenetSourceObject) {
     const dast = this.dast;
-    const offsetToNodeMap: (DastNodes | null)[] = Array.from(this.source).map(
-        () => null,
-    );
+    const offsetToNodeMap: (DastNodes | null)[] = new Array(
+        this.source.length,
+    ).fill(null);
     visit(dast, (_node) => {
         const node = _node as DastNodes;
         if (node.type === "error") {
