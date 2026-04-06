@@ -16,6 +16,7 @@ const MACRO_PATH_CHAR_REGEX = /[A-Za-z0-9_.-]/;
  * High-level cursor contexts used to choose between XML completions and
  * ref-specific completions.
  *
+ * Returned cursor positions are `body`, `macro`, `refName`, and `refMember`.
  * `refName` covers `$foo`, while `refMember` covers member segments after a
  * dot such as `$foo.bar` or `$foo.bar.`. These ref contexts may be detected
  * either from a parsed macro node or from partially typed plain text before
@@ -23,7 +24,6 @@ const MACRO_PATH_CHAR_REGEX = /[A-Za-z0-9_.-]/;
  */
 export type CompletionContext =
     | { cursorPos: "body" }
-    | { cursorPos: "element"; complete: boolean }
     | { cursorPos: "macro"; complete: boolean; node: MacroNode | null }
     | {
           cursorPos: "refName";
