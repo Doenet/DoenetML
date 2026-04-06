@@ -32,7 +32,8 @@ Agents working in this repository should read [TEST_RUN_INSTRUCTIONS_FOR_AGENTS.
   - `@doenet/standalone`
   - `@doenet/doenetml-iframe`
   - `@doenet/v06-to-v07`
+- Additionally, `@doenet/prefigure` is published but with an independent version (not part of the fixed group).
 - User-facing changes in `@doenet/doenetml` are also apparent in `@doenet/standalone` and `@doenet/doenetml-iframe`.
 - User-facing changes in `@doenet/standalone` are also apparent in `@doenet/doenetml-iframe`.
 - When writing a changeset, include the published package or packages where the user-facing change is apparent, not just the package where the implementation lives.
-- The fixed-group configuration still coordinates versioning across these four packages.
+- The fixed-group configuration still coordinates versioning across the four fixed-group packages.
