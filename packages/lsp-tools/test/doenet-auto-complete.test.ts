@@ -435,6 +435,56 @@ describe("AutoCompleter", () => {
             expect(myPItems[0].kind).toBe(CompletionItemKind.Reference);
         });
 
+        it("Only suggests uniquely addressable descendant names after dot", () => {
+            const source = `<section name="mySection"><p name="dup" /><p name="dup" /><p name="unique" /></section>\n$mySection.`;
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+
+            const offset = source.length;
+            const items = autoCompleter.getCompletionItems(offset);
+
+            // `dup` is ambiguous under `mySection` and should not be suggested.
+            expect(items.some((item) => item.label === "dup")).toBe(false);
+            // Unique descendant names remain valid suggestions.
+            expect(items.some((item) => item.label === "unique")).toBe(true);
+        });
+
+        it("Only suggests member names that resolve uniquely from the same context", () => {
+            const source = `<section name="mySection"><p name="dup" /><p name="dup" /><p name="unique" /></section>\n$mySection.`;
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+
+            const offset = source.length;
+            const section = autoCompleter.sourceObj.getReferentAtOffset(
+                offset,
+                "mySection",
+            );
+            expect(section).toBeTruthy();
+
+            const items = autoCompleter
+                .getCompletionItems(offset)
+                .filter((item) => item.kind === CompletionItemKind.Reference);
+
+            for (const item of items) {
+                const resolved = autoCompleter.sourceObj.getNamedDescendant(
+                    section,
+                    String(item.label),
+                );
+                expect(resolved).toBeTruthy();
+            }
+        });
+
+        it("Excludes ambiguous names in top-level completions after $", () => {
+            const source = `<section><p name="dup" /><p name="dup" /><p name="unique" /></section>\n$`;
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+
+            const items = autoCompleter
+                .getCompletionItems(source.length)
+                .filter((item) => item.kind === CompletionItemKind.Reference)
+                .map((item) => String(item.label));
+
+            expect(items).not.toContain("dup");
+            expect(items).toContain("unique");
+        });
+
         it("Suggests descendant names and properties after dot at the start of the file", () => {
             const source = `$mySection.\n<section name="mySection"><p name="myP" /></section>`;
             const autoCompleter = new AutoCompleter(source, refSchema.elements);

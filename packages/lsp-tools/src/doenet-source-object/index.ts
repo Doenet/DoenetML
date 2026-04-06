@@ -325,6 +325,23 @@ export class DoenetSourceObject extends LazyDataObject {
     }
 
     /**
+     * Get descendant names that are uniquely addressable from `node`.
+     *
+     * This mirrors `getNamedDescendant` semantics: names that occur more than
+     * once under the same node are excluded.
+     */
+    getUniqueDescendantNamesForNode(
+        node: DastElementV6 | DastRootV6 | undefined | null,
+    ): string[] {
+        const names = this.getDescendantNamesForNode(node);
+        const counts = new Map<string, number>();
+        for (const name of names) {
+            counts.set(name, (counts.get(name) || 0) + 1);
+        }
+        return names.filter((name) => counts.get(name) === 1);
+    }
+
+    /**
      * Get the unique item with name `name` resolved from position `offset`.
      */
     getReferentAtOffset(offset: number | RowCol, name: string) {

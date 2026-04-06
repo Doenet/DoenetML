@@ -420,7 +420,7 @@ export function getCompletionItems(
         }
 
         const descendantNames = new Set(
-            this.sourceObj.getDescendantNamesForNode(resolvedNode),
+            this.sourceObj.getUniqueDescendantNamesForNode(resolvedNode),
         );
 
         const componentType = this.normalizeElementName(resolvedNode.name);
