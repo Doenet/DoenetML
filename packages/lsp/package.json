@@ -39,7 +39,8 @@
             ],
             "dependencies": [
                 "../lsp-tools:build",
-                "../parser:build"
+                "../parser:build",
+                "../doenetml-worker-rust:build"
             ]
         }
     }

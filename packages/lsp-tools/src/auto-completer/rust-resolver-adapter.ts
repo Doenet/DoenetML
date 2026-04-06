@@ -13,6 +13,12 @@ import type {
 export interface RustResolverCore {
     set_source(dast: unknown, source: string): void;
     /**
+     * Set runtime flags (as a JSON string). Must be called at least once
+     * before `return_dast()`.  An empty object `"{}"` is sufficient for
+     * pure path-resolution use-cases.
+     */
+    set_flags(flags: string): void;
+    /**
      * Triggers Rust core initialization and returns the flat DAST.
      * The adapter uses the returned elements to build position-based index mappings.
      */
@@ -81,6 +87,13 @@ export class RustResolverAdapter {
      */
     private syncSource(): void {
         if (!this.core) {
+            this.enabled = false;
+            return;
+        }
+        // The Rust core panics on empty source (index-out-of-bounds on a
+        // zero-length collection).  Skip the sync — there is nothing to
+        // resolve when the document is empty.
+        if (!this.sourceObj.source.trim()) {
             this.enabled = false;
             return;
         }
@@ -179,9 +192,52 @@ export class RustResolverAdapter {
                     resolution.unresolvedPath ?? []
                 ).map((p) => p.name);
 
+                if (unresolvedPathParts.length > 0) {
+                    return { node: null, unresolvedPathParts };
+                }
+
+                // Determine which descendant names are actually visible
+                // from the resolved node using the Rust name_map (which
+                // respects ChildrenInvisibleToTheirGrandparents etc.).
+                const resolvedIdx = resolution.nodeIdx;
+                const allNames =
+                    this.sourceObj.getUniqueDescendantNamesForNode(
+                        resolvedNode,
+                    );
+                const visibleDescendantNames = allNames.filter((name) => {
+                    try {
+                        const probe = this.core!.resolve_path(
+                            {
+                                path: [
+                                    {
+                                        type: "flatPathPart" as const,
+                                        name,
+                                        index: [],
+                                    },
+                                ],
+                            },
+                            resolvedIdx,
+                            true,
+                        );
+                        // A fully-resolved path (no unresolved parts whose
+                        // first segment equals the original name) means the
+                        // name matched a visible descendant.
+                        if (
+                            probe.unresolvedPath &&
+                            probe.unresolvedPath.length > 0
+                        ) {
+                            return false;
+                        }
+                        return true;
+                    } catch {
+                        return false;
+                    }
+                });
+
                 return {
-                    node: unresolvedPathParts.length > 0 ? null : resolvedNode,
-                    unresolvedPathParts,
+                    node: resolvedNode,
+                    unresolvedPathParts: [],
+                    visibleDescendantNames,
                 };
             } catch {
                 // Resolution error (NoReferent, NonUniqueReferent, etc.)
@@ -193,7 +249,7 @@ export class RustResolverAdapter {
     /**
      * Get the Rust flat index to use as the origin for resolve_path.
      * Uses the nearest enclosing element of the given offset, falling
-     * back to 0 when the cursor is at root level.
+     * back to a mapped top-level element when the cursor is at root level.
      */
     private getOriginIndex(offset: number): number | null {
         const containingElement = this.sourceObj.elementAtOffset(offset);
@@ -201,11 +257,97 @@ export class RustResolverAdapter {
             const idx = this.dastElementToRustIndex.get(containingElement);
             if (idx != null) return idx;
         }
-        // Root level — use first element if available.
-        if (this.rustIndexToDastElement.size > 0) {
-            return 0;
+        return this.getRootOriginIndex();
+    }
+
+    /**
+     * Pick a deterministic mapped index for root-level resolution.
+     * Prefer top-level elements from the parsed DAST root; fall back to any
+     * mapped element if top-level mappings are unavailable.
+     */
+    private getRootOriginIndex(): number | null {
+        const topLevelIndices: number[] = [];
+        for (const child of this.sourceObj.dast.children) {
+            if (child.type !== "element") continue;
+            const idx = this.dastElementToRustIndex.get(child);
+            if (idx != null) {
+                topLevelIndices.push(idx);
+            }
+        }
+        if (topLevelIndices.length > 0) {
+            return Math.min(...topLevelIndices);
+        }
+
+        const mappedIndices = [...this.rustIndexToDastElement.keys()];
+        if (mappedIndices.length > 0) {
+            return Math.min(...mappedIndices);
         }
         return null;
+    }
+
+    /**
+     * Test whether `name` can be resolved from the cursor position at
+     * `offset` using the Rust resolver (with full parent search).
+     * This respects `ChildrenInvisibleToTheirGrandparents` etc.
+     */
+    isNameAddressableFromOffset(offset: number, name: string): boolean {
+        if (!this.enabled || !this.core) return true; // fallback: allow
+
+        // A $name reference typed at `offset` will become a child of the
+        // element whose body contains the cursor.  resolve_path with
+        // skip_parent_search=false searches from the origin's PARENT scope
+        // upward, so to correctly probe the containing element's scope we
+        // must resolve from one of its existing children rather than the
+        // container itself.
+        const containingElement = this.sourceObj.elementAtOffset(offset);
+        let resolveFromIndex: number | null = null;
+
+        if (containingElement) {
+            // Find the first child element that has a Rust index.
+            for (const child of containingElement.children) {
+                if (child.type === "element") {
+                    const ci = this.dastElementToRustIndex.get(child);
+                    if (ci != null) {
+                        resolveFromIndex = ci;
+                        break;
+                    }
+                }
+            }
+            // If the container has no mapped child elements, fall back to the
+            // container itself.  There are no named children to be hidden, so
+            // the parent-scope walk is still correct.
+            if (resolveFromIndex == null) {
+                resolveFromIndex =
+                    this.dastElementToRustIndex.get(containingElement) ?? null;
+            }
+        } else {
+            // Root level — use the first top-level element (a child of the
+            // document root).  resolve_path from it with skip_parent_search=
+            // false searches root scope, which is what a reference at root
+            // level would see.
+            resolveFromIndex = this.getRootOriginIndex();
+        }
+
+        if (resolveFromIndex == null) return true;
+
+        try {
+            this.core.resolve_path(
+                {
+                    path: [
+                        {
+                            type: "flatPathPart" as const,
+                            name,
+                            index: [],
+                        },
+                    ],
+                },
+                resolveFromIndex,
+                false,
+            );
+            return true;
+        } catch {
+            return false;
+        }
     }
 
     isEnabled(): boolean {

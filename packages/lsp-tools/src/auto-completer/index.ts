@@ -37,6 +37,13 @@ export type ResolveRefMemberContainerArgs = {
 export type RefMemberContainerResolution = {
     node: DastElement | null;
     unresolvedPathParts: string[];
+    /**
+     * When provided by the resolver, this is the list of descendant names
+     * that are actually visible from the resolved node (respecting
+     * visibility rules like `ChildrenInvisibleToTheirGrandparents`).
+     * If absent, the caller falls back to the JS descendant name walk.
+     */
+    visibleDescendantNames?: string[];
 };
 
 export type ResolveRefMemberContainer = (
@@ -45,6 +52,12 @@ export type ResolveRefMemberContainer = (
 
 export type AutoCompleterOptions = {
     resolveRefMemberContainerAtOffset?: ResolveRefMemberContainer;
+    /**
+     * Optional callback that tests whether a given name is addressable
+     * (visible) from the cursor position.  Used to filter `$name`
+     * completions according to Rust resolver visibility rules.
+     */
+    isNameAddressable?: (offset: number, name: string) => boolean;
 };
 
 /**
@@ -82,6 +95,7 @@ export class AutoCompleter {
     sourceObj: DoenetSourceObject = new DoenetSourceObject();
     schema: ElementSchema[] = [];
     private resolveRefMemberContainerAtOffsetImpl?: ResolveRefMemberContainer;
+    private isNameAddressableImpl?: (offset: number, name: string) => boolean;
     /**
      * A map of element names (in lower case) to their canonical capitalization.
      */
@@ -114,6 +128,7 @@ export class AutoCompleter {
         }
         this.resolveRefMemberContainerAtOffsetImpl =
             options?.resolveRefMemberContainerAtOffset;
+        this.isNameAddressableImpl = options?.isNameAddressable;
         if (schema) {
             this.setSchema(schema);
         }
@@ -126,6 +141,26 @@ export class AutoCompleter {
     setResolveRefMemberContainerAtOffset(resolver?: ResolveRefMemberContainer) {
         this.resolveRefMemberContainerAtOffsetImpl = resolver;
         return this;
+    }
+
+    /**
+     * Replace the name-addressability checker used during `$name` completion.
+     * Pass `undefined` to restore default (allow all names).
+     */
+    setIsNameAddressable(fn?: (offset: number, name: string) => boolean) {
+        this.isNameAddressableImpl = fn;
+        return this;
+    }
+
+    /**
+     * Test whether `name` is addressable from `offset`.
+     * Falls back to `true` when no checker is set.
+     */
+    isNameAddressable(offset: number, name: string): boolean {
+        if (this.isNameAddressableImpl) {
+            return this.isNameAddressableImpl(offset, name);
+        }
+        return true;
     }
 
     /**

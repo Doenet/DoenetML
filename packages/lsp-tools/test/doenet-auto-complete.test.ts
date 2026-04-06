@@ -1256,6 +1256,9 @@ describe("AutoCompleter", () => {
                 unresolvedPath: Array<{ name: string }> | null;
                 originalPath: Array<{ name: string }>;
             },
+            options?: {
+                startId?: number;
+            },
         ): {
             core: RustResolverCore;
             calls: { path: unknown; origin: number; skip: boolean }[];
@@ -1269,7 +1272,7 @@ describe("AutoCompleter", () => {
                 data: { id: number };
                 position?: { start: { offset?: number } };
             }> = [];
-            let nextId = 0;
+            let nextId = options?.startId ?? 0;
             const collectElements = (node: any) => {
                 if (node.type === "element") {
                     elements.push({
@@ -1287,6 +1290,7 @@ describe("AutoCompleter", () => {
 
             const core: RustResolverCore = {
                 set_source: () => {},
+                set_flags: () => {},
                 return_dast: () => ({ elements }),
                 resolve_path: (path, origin, skip) => {
                     calls.push({ path, origin, skip });
@@ -1332,7 +1336,9 @@ describe("AutoCompleter", () => {
                 pathParts: ["s1", ""],
             });
 
-            expect(calls.length).toBe(1);
+            // First call resolves the container ("s1"), subsequent calls
+            // probe descendant visibility (one per unique descendant name).
+            expect(calls.length).toBeGreaterThanOrEqual(1);
             expect(calls[0].path).toEqual({
                 path: [{ type: "flatPathPart", name: "s1", index: [] }],
             });
@@ -1343,6 +1349,8 @@ describe("AutoCompleter", () => {
                 (result!.node as any)?.attributes?.name?.children?.[0]?.value,
             ).toBe("s1");
             expect(result!.unresolvedPathParts).toEqual([]);
+            // Visibility probing returns names the mock considers resolvable
+            expect(result!.visibleDescendantNames).toBeDefined();
         });
 
         it("Returns null when resolve_path throws", () => {
@@ -1351,6 +1359,7 @@ describe("AutoCompleter", () => {
 
             const core: RustResolverCore = {
                 set_source: () => {},
+                set_flags: () => {},
                 return_dast: () => {
                     const elements: Array<{
                         data: { id: number };
@@ -1459,6 +1468,34 @@ describe("AutoCompleter", () => {
             expect(adapter.isEnabled()).toBe(true);
         });
 
+        it("Uses mapped root origin index when Rust ids are non-zero", () => {
+            const source = `<section name="s1"><p name="p1" /></section>\n$s1.`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core, calls } = createMockCore(
+                source,
+                sourceObj,
+                {
+                    nodeIdx: 10,
+                    nodesInResolvedPath: [10],
+                    unresolvedPath: null,
+                    originalPath: [{ name: "s1" }],
+                },
+                { startId: 10 },
+            );
+
+            const adapter = new RustResolverAdapter(sourceObj, { core });
+            const resolver = adapter.createResolver();
+
+            const result = resolver({
+                offset: source.indexOf("$s1.") + 4,
+                pathParts: ["s1", ""],
+            });
+
+            expect(result).not.toBeNull();
+            expect(calls.length).toBeGreaterThan(0);
+            expect(calls[0].origin).toBe(10);
+        });
+
         it("Disables adapter when set_source throws", () => {
             const source = `<section name="s1"></section>`;
             const sourceObj = new DoenetSourceObject(source);
@@ -1467,6 +1504,7 @@ describe("AutoCompleter", () => {
                 set_source: () => {
                     throw new Error("WASM error");
                 },
+                set_flags: () => {},
                 return_dast: () => ({ elements: [] }),
                 resolve_path: () => ({
                     nodeIdx: 0,

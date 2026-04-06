@@ -4,7 +4,7 @@ import {
     TextDocuments,
 } from "vscode-languageserver/browser";
 import { TextDocument } from "vscode-languageserver-textdocument";
-import { AutoCompleter } from "@doenet/lsp-tools";
+import { AutoCompleter, RustResolverAdapter } from "@doenet/lsp-tools";
 
 export interface DoenetDocumentSettings {
     formatMode: "doenet" | "xml";
@@ -46,6 +46,10 @@ export const documentInfo: Map<
          * like an externally-running version of Core.
          */
         additionalDiagnostics: Diagnostic[];
+        /**
+         * Rust WASM resolver adapter, created lazily once the WASM module loads.
+         */
+        rustAdapter?: RustResolverAdapter;
     }
 > = new Map();
 export type DocumentInfo = typeof documentInfo;

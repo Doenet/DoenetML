@@ -1,5 +1,12 @@
-// @ts-ignore
-import LSPWorker from "@doenet/lsp/language-server.js?worker";
+// @ts-ignore — ?raw loads the pre-built IIFE as a string so we can create
+// a blob: URL Worker.  This avoids the double-base64 encoding that Vite's
+// ?worker inline produces (data: URL of the entire IIFE), which bloated
+// downstream bundles and broke WASM loading inside the worker.
+import lspSource from "@doenet/lsp/language-server.js?raw";
+
+const lspWorkerBlobUrl = URL.createObjectURL(
+    new Blob([lspSource], { type: "application/javascript" }),
+);
 import { initWorker } from "./utils/init-message-connection";
 import {
     Diagnostic,
@@ -60,7 +67,7 @@ export class LSP {
         }
         if (this.initStatus === "uninitialized") {
             this.initStatus = "initializing";
-            this.worker = new LSPWorker();
+            this.worker = new Worker(lspWorkerBlobUrl);
             const { lspConn, workerConn } = await initWorker(this.worker!);
             this.lspConn = lspConn;
             this.workerConn = workerConn;

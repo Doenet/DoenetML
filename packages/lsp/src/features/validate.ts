@@ -12,8 +12,9 @@ import {
     documentSettings,
     documents,
 } from "../globals";
-import { AutoCompleter } from "@doenet/lsp-tools";
+import { AutoCompleter, RustResolverAdapter } from "@doenet/lsp-tools";
 import { TextDocument } from "vscode-languageserver-textdocument";
+import { getRustCore } from "../rust-core";
 
 export function addValidationSupport(
     connection: Connection,
@@ -59,15 +60,48 @@ export function addValidationSupport(
     // The content of a text document has changed. This event is emitted
     // when the text document first opened or when its content has changed.
     documents.onDidChangeContent((change) => {
-        let info = documentInfo.get(change.document.uri);
+        const uri = change.document.uri;
+        let info = documentInfo.get(uri);
         if (!info) {
             const autoCompleter = new AutoCompleter();
             info = { autoCompleter, additionalDiagnostics: [] };
-            documentInfo.set(change.document.uri, info);
+            documentInfo.set(uri, info);
         }
         info.autoCompleter.setSource(change.document.getText());
         // Additional diagnostics may no longer be relevant after the contents of the file changes
         info.additionalDiagnostics.length = 0;
+
+        if (info.rustAdapter) {
+            // Adapter already wired — just resync source.
+            info.rustAdapter.updateSource(info.autoCompleter.sourceObj);
+        } else {
+            // Fire-and-forget: first completions use the JS fallback until
+            // the WASM module finishes loading, then the Rust resolver
+            // activates for subsequent requests.
+            const capturedInfo = info;
+            getRustCore()
+                .then((core) => {
+                    const currentInfo = documentInfo.get(uri);
+                    if (!currentInfo || currentInfo !== capturedInfo) return;
+                    if (capturedInfo.rustAdapter) return;
+                    const adapter = new RustResolverAdapter(
+                        capturedInfo.autoCompleter.sourceObj,
+                        { core: core as any },
+                    );
+                    capturedInfo.rustAdapter = adapter;
+                    capturedInfo.autoCompleter.setResolveRefMemberContainerAtOffset(
+                        adapter.createResolver(),
+                    );
+                    capturedInfo.autoCompleter.setIsNameAddressable(
+                        (offset, name) =>
+                            adapter.isNameAddressableFromOffset(offset, name),
+                    );
+                })
+                .catch(() => {
+                    // WASM unavailable — JS fallback is fine.
+                });
+        }
+
         validateTextDocument(change.document);
     });
 

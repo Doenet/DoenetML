@@ -375,7 +375,11 @@ export function getCompletionItems(
             .getAddressableNamesAtOffset(offset)
             .filter((parts) => parts.length === 1)
             .map((parts) => parts[0]);
-        const filteredNames = [...new Set(addressableNames)].filter((name) =>
+        const uniqueNames = [...new Set(addressableNames)];
+        const visibleNames = uniqueNames.filter((name) =>
+            this.isNameAddressable(offset, name),
+        );
+        const filteredNames = visibleNames.filter((name) =>
             prefix ? name.toLowerCase().startsWith(prefix) : true,
         );
 
@@ -410,7 +414,8 @@ export function getCompletionItems(
         }
 
         const descendantNames = new Set(
-            this.sourceObj.getUniqueDescendantNamesForNode(resolvedNode),
+            resolved.visibleDescendantNames ??
+                this.sourceObj.getUniqueDescendantNamesForNode(resolvedNode),
         );
 
         const componentType = this.normalizeElementName(resolvedNode.name);
