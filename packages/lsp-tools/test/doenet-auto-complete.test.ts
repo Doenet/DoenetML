@@ -1085,6 +1085,19 @@ describe("AutoCompleter", () => {
             expect(index1).toBe(index2);
         });
 
+        it("Uses left-of-cursor semantics at EOF", () => {
+            const source = `<aa><b></b></aa>`;
+            const sourceObj = new DoenetSourceObject(source);
+
+            const eofIndex = sourceObj.getNodeIndexAtOffset(source.length);
+            const lastCharIndex = sourceObj.getNodeIndexAtOffset(
+                source.length - 1,
+            );
+
+            expect(eofIndex).toBe(lastCharIndex);
+            expect(eofIndex).not.toBeNull();
+        });
+
         it("Differentiates nested nodes with different indices", () => {
             const source = `<aa><b></b></aa>`;
             const sourceObj = new DoenetSourceObject(source);

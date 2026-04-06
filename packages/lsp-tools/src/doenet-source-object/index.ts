@@ -136,6 +136,11 @@ export class DoenetSourceObject extends LazyDataObject {
      * Returns the index of the nearest containing element (or root),
      * or `null` if no node exists at that position.
      *
+     * Offsets are cursor positions, so `offset === source.length` is valid
+     * (cursor at end-of-file). For that case we use left-of-cursor semantics
+     * and return the same index as `source.length - 1` when the source is
+     * non-empty.
+     *
      * This mapping is used for Rust resolver integration to identify nodes by stable indices
      * rather than object references.
      *
@@ -144,6 +149,15 @@ export class DoenetSourceObject extends LazyDataObject {
      */
     getNodeIndexAtOffset(offset: number): number | null {
         const offsetToIndexMap = this._offsetToNodeIndexMap();
+        if (offset < 0 || offset > this.source.length) {
+            return null;
+        }
+        if (offset === this.source.length) {
+            if (this.source.length === 0) {
+                return null;
+            }
+            return offsetToIndexMap[this.source.length - 1] ?? null;
+        }
         return offsetToIndexMap[offset] ?? null;
     }
 
