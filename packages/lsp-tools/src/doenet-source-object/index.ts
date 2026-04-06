@@ -19,6 +19,7 @@ import {
     initParentMap,
     initRowToOffsetCache,
     initOffsetToNodeMapLeft,
+    initOffsetToNodeIndexMap,
 } from "./initializers";
 import { LazyDataObject } from "./lazy-data";
 import { elementAtOffsetWithContext } from "./methods/element-at-offset";
@@ -67,6 +68,7 @@ export class DoenetSourceObject extends LazyDataObject {
     _parentMap = this._lazyDataGetter(initParentMap);
     _offsetToNodeMapRight = this._lazyDataGetter(initOffsetToNodeMapRight);
     _offsetToNodeMapLeft = this._lazyDataGetter(initOffsetToNodeMapLeft);
+    _offsetToNodeIndexMap = this._lazyDataGetter(initOffsetToNodeIndexMap);
     _descendantNamesMap = this._lazyDataGetter(initDescendantNamesMap);
 
     constructor(source?: string) {
@@ -131,6 +133,22 @@ export class DoenetSourceObject extends LazyDataObject {
         }
 
         return _rowToOffsetCache[row] + col;
+    }
+
+    /**
+     * Get a Rust-compatible root/element index at the given offset.
+     * Returns the index of the nearest containing element (or root),
+     * or `null` if no node exists at that position.
+     *
+     * This mapping is used for Rust resolver integration to identify nodes by stable indices
+     * rather than object references.
+     *
+     * @param offset The 0-based character offset into the source string
+     * @returns The root/element index, or null if no node at offset
+     */
+    getNodeIndexAtOffset(offset: number): number | null {
+        const offsetToIndexMap = this._offsetToNodeIndexMap();
+        return offsetToIndexMap[offset] ?? null;
     }
 
     /**

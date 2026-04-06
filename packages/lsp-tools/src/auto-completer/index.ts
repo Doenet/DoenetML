@@ -25,6 +25,28 @@ type ProcessedSnippet = {
     cursor?: CompletionSnippetCursor;
 };
 
+export type ResolveRefMemberContainerArgs = {
+    /** Character offset into the source string (0-based) */
+    offset: number;
+    /** Path segments to resolve (e.g., ["foo", "bar"] for $foo.bar) */
+    pathParts: string[];
+    /** Optional flat-tree node index at the given offset, for Rust-backed resolution */
+    nodeIndex?: number | null;
+};
+
+export type RefMemberContainerResolution = {
+    node: DastElementV6 | null;
+    unresolvedPathParts: string[];
+};
+
+export type ResolveRefMemberContainer = (
+    args: ResolveRefMemberContainerArgs,
+) => RefMemberContainerResolution | null;
+
+export type AutoCompleterOptions = {
+    resolveRefMemberContainerAtOffset?: ResolveRefMemberContainer;
+};
+
 /**
  * Shift snippet cursor offsets after trimming leading whitespace.
  */
@@ -59,6 +81,7 @@ function adjustCursorForTrimStart(
 export class AutoCompleter {
     sourceObj: DoenetSourceObject = new DoenetSourceObject();
     schema: ElementSchema[] = [];
+    private resolveRefMemberContainerAtOffsetImpl?: ResolveRefMemberContainer;
     /**
      * A map of element names (in lower case) to their canonical capitalization.
      */
@@ -82,15 +105,98 @@ export class AutoCompleter {
     constructor(
         source?: string,
         schema: ElementSchema[] = doenetSchema.elements,
+        options?: AutoCompleterOptions,
     ) {
         if (source != null) {
             // Adding a space at the end of the source so that a final "<"
             // will be parsed as a text "<" rather than an invalid element.
             this.sourceObj.setSource(source + " ");
         }
+        this.resolveRefMemberContainerAtOffsetImpl =
+            options?.resolveRefMemberContainerAtOffset;
         if (schema) {
             this.setSchema(schema);
         }
+    }
+
+    /**
+     * Replace the ref-member container resolver used during completion.
+     * Pass `undefined` to restore default in-process resolution.
+     */
+    setResolveRefMemberContainerAtOffset(resolver?: ResolveRefMemberContainer) {
+        this.resolveRefMemberContainerAtOffsetImpl = resolver;
+        return this;
+    }
+
+    /**
+     * Resolve the ref container for member completion from parsed path parts.
+     *
+     * `pathParts` includes the currently edited segment as its last item.
+     * For example, in `$P.coords` this resolves to `P`, while in `$P.coords.`
+     * it resolves to `coords`.
+     */
+    resolveRefMemberContainerAtOffset(
+        offset: number,
+        pathParts: string[],
+    ): RefMemberContainerResolution {
+        if (this.resolveRefMemberContainerAtOffsetImpl) {
+            const nodeIndex = this.sourceObj.getNodeIndexAtOffset(offset);
+            const resolved = this.resolveRefMemberContainerAtOffsetImpl({
+                offset,
+                pathParts,
+                nodeIndex,
+            });
+            if (resolved) {
+                return resolved;
+            }
+        }
+
+        if (pathParts.length === 0) {
+            return {
+                node: null,
+                unresolvedPathParts: [],
+            };
+        }
+
+        const lookupPathParts = pathParts.slice(0, -1);
+        if (lookupPathParts.length === 0) {
+            return {
+                node: null,
+                unresolvedPathParts: [],
+            };
+        }
+
+        let referent = this.sourceObj.getReferentAtOffset(
+            offset,
+            lookupPathParts[0],
+        );
+        if (!referent) {
+            return {
+                node: null,
+                unresolvedPathParts: lookupPathParts,
+            };
+        }
+
+        let firstUnresolvedPartIndex = -1;
+        for (let i = 1; i < lookupPathParts.length; i++) {
+            const part = lookupPathParts[i];
+            const child = this.sourceObj.getNamedDescendant(referent, part);
+            if (!child) {
+                firstUnresolvedPartIndex = i;
+                break;
+            }
+            referent = child;
+        }
+
+        const unresolvedPathParts =
+            firstUnresolvedPartIndex === -1
+                ? []
+                : lookupPathParts.slice(firstUnresolvedPartIndex);
+
+        return {
+            node: unresolvedPathParts.length > 0 ? null : referent,
+            unresolvedPathParts,
+        };
     }
 
     /**
@@ -349,3 +455,10 @@ export class AutoCompleter {
         return results;
     }
 }
+
+// Export resolver adapter for external use
+export { RustResolverAdapter } from "./rust-resolver-adapter";
+export type {
+    RustResolverCore,
+    RustResolverAdapterOptions,
+} from "./rust-resolver-adapter";

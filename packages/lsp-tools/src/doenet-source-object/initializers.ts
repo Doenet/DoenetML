@@ -104,6 +104,63 @@ export function initOffsetToNodeMapLeft(this: DoenetSourceObject) {
     return offsetToNodeMap;
 }
 
+/**
+ * Create a mapping from character offsets to Rust-compatible root/element indices.
+ *
+ * Indices are assigned to the root and element nodes only, in depth-first order.
+ * When an offset lands on a non-element node (text/macro/function/etc.), the index
+ * of the nearest containing element is returned, or root when no containing element
+ * exists. This keeps index space aligned with Rust's element-oriented flat DAST.
+ *
+ * Returns array where `map[offset]` = root/element index or `null` if no node.
+ */
+export function initOffsetToNodeIndexMap(this: DoenetSourceObject) {
+    const nodeToIndexMap = new Map<DastRootV6 | DastElementV6, number>();
+    const containingElementMap = new Map<
+        DastNodesV6,
+        DastRootV6 | DastElementV6
+    >();
+    const dast = this.dast;
+    let nextIndex = 0;
+
+    // Build root/element -> index mapping and record containing element for each node.
+    const assignIndices = (
+        node: DastNodesV6,
+        containingElement: DastRootV6 | DastElementV6,
+    ) => {
+        const nextContaining =
+            node.type === "element" ? node : containingElement;
+        containingElementMap.set(node, nextContaining);
+
+        if (node.type === "element") {
+            nodeToIndexMap.set(node, nextIndex++);
+            for (const child of node.children) {
+                assignIndices(child as DastNodesV6, node);
+            }
+        }
+    };
+
+    nodeToIndexMap.set(dast, nextIndex++);
+    for (const child of dast.children) {
+        assignIndices(child as DastNodesV6, dast);
+    }
+
+    // Map offsets to indices using existing right-biased offset→node map.
+    const offsetToNodeMap = this._offsetToNodeMapRight();
+    const offsetToIndexMap: (number | null)[] = offsetToNodeMap.map((node) => {
+        if (!node) {
+            return null;
+        }
+        const target =
+            node.type === "element"
+                ? node
+                : (containingElementMap.get(node) ?? dast);
+        return nodeToIndexMap.get(target) ?? null;
+    });
+
+    return offsetToIndexMap;
+}
+
 export type AccessList = { name: string; element: DastElementV6 }[];
 export function initDescendantNamesMap(this: DoenetSourceObject) {
     const dast = this.dast;

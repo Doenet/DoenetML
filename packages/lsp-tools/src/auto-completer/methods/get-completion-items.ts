@@ -399,21 +399,11 @@ export function getCompletionItems(
         const toRefMemberInsertText = (name: string) =>
             isParenthesizedMemberContext ? name : toRefSegmentInsertText(name);
 
-        let resolvedNode = null;
-        if (completionContext.pathParts.length > 0) {
-            const [baseName, ...memberPath] = completionContext.pathParts;
-            let referent = this.sourceObj.getReferentAtOffset(offset, baseName);
-            // Resolve only up to the container of the currently typed member.
-            // Example: for $P.coords (no trailing dot), complete members on P.
-            // For $P.coords. (trailing dot), complete members on coords.
-            for (const part of memberPath.slice(0, -1)) {
-                referent = this.sourceObj.getNamedDescendant(referent, part);
-                if (!referent) {
-                    break;
-                }
-            }
-            resolvedNode = referent;
-        }
+        const resolved = this.resolveRefMemberContainerAtOffset(
+            offset,
+            completionContext.pathParts,
+        );
+        const resolvedNode = resolved.node;
 
         if (!resolvedNode) {
             return [];
