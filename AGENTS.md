@@ -23,7 +23,7 @@ Agents working in this repository should read [TEST_RUN_INSTRUCTIONS_FOR_AGENTS.
 - Push the branch to your fork, then create the PR in `Doenet/DoenetML` with your fork branch as the head.
 - **Preferred method: Use GitHub CLI (`gh`).** The `mcp_gitkraken_pull_request_create` tool requires authentication that may not be available.
 - Command format: `gh pr create --repo Doenet/DoenetML --base main --head <fork-owner>:<branch>`. Replace `<fork-owner>` with your GitHub username (e.g., `dqnykamp:my-branch`).
-- Before pushing, run `npm run prettier:format` on modified files to ensure formatting compliance.
+- Before pushing, run `prettier` to format modified files and ensure formatting compliance.
 - Before creating the PR, confirm that only intended files are staged and committed, since this repository often has unrelated local work in the tree.
 - After creating the PR, verify the branch has been pushed to `origin` and the PR links to the correct target branch (`Doenet/DoenetML:main`).
 
