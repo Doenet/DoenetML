@@ -91,9 +91,17 @@ export class RustResolverAdapter {
             return;
         }
         // The Rust core panics on empty source (index-out-of-bounds on a
-        // zero-length collection).  Skip the sync — there is nothing to
-        // resolve when the document is empty.
+        // zero-length collection).  It also panics when the DAST contains
+        // no elements (e.g. source is just "a" — only text nodes, zero
+        // elements).  Skip the sync in both cases.
         if (!this.sourceObj.source.trim()) {
+            this.enabled = false;
+            return;
+        }
+        const hasElements = this.sourceObj.dast.children.some(
+            (c) => c.type === "element",
+        );
+        if (!hasElements) {
             this.enabled = false;
             return;
         }
@@ -142,10 +150,12 @@ export class RustResolverAdapter {
         for (const flatElm of flatDast.elements) {
             const startOffset = flatElm.position?.start?.offset;
             if (startOffset == null) continue;
+            const id = flatElm.data?.id;
+            if (id == null) continue;
             const dastElm = dastByStartOffset.get(startOffset);
             if (!dastElm) continue;
-            this.rustIndexToDastElement.set(flatElm.data.id, dastElm);
-            this.dastElementToRustIndex.set(dastElm, flatElm.data.id);
+            this.rustIndexToDastElement.set(id, dastElm);
+            this.dastElementToRustIndex.set(dastElm, id);
         }
     }
 

@@ -291,5 +291,36 @@ describe.skipIf(!wasmAvailable)(
                 expect(labels).toContain("inside");
             }
         });
+
+        it("does not crash on empty source", () => {
+            const { adapter } = createCoreAndAdapter("");
+            expect(adapter.isEnabled()).toBe(false);
+        });
+
+        it("does not crash on source with no elements (text only)", () => {
+            const { adapter } = createCoreAndAdapter("a");
+            expect(adapter.isEnabled()).toBe(false);
+        });
+
+        it("does not crash on incomplete element markup", () => {
+            const { adapter } = createCoreAndAdapter("<a");
+            // May or may not be enabled depending on how the Rust core
+            // handles the incomplete element, but must not throw.
+            expect(typeof adapter.isEnabled()).toBe("boolean");
+        });
+
+        it("recovers after blank document receives first element", () => {
+            // Simulates: blank document → user types "<p>"
+            const core = PublicDoenetMLCore.new() as RustResolverCore;
+            core.set_flags("{}");
+            const sourceObj = new DoenetSourceObject("");
+            const adapter = new RustResolverAdapter(sourceObj, { core });
+            expect(adapter.isEnabled()).toBe(false);
+
+            // User types "<p name='x'>hi</p>"
+            sourceObj.setSource('<p name="x">hi</p>');
+            adapter.updateSource(sourceObj);
+            expect(adapter.isEnabled()).toBe(true);
+        });
     },
 );
