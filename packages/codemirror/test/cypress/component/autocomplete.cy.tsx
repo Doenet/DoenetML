@@ -337,6 +337,24 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
             .should("be.greaterThan", 0);
     });
 
+    it("shows member autocomplete after .( transition on a completed ref", () => {
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={
+                    '<point name="P"><math name="coords">(3,4)</math></point>\n$P.'
+                }
+            />,
+        );
+
+        cy.get(".cm-content")
+            .click()
+            .type("{ctrl}{end}(co", { force: true, delay: 200 });
+
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").contains(
+            "coords",
+        );
+    });
+
     it("reopens autocomplete after deleting back from an unmatched suffix in the same token", () => {
         cy.mount(
             <AutocompleteTestHarness

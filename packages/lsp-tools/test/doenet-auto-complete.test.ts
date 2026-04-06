@@ -550,6 +550,77 @@ describe("AutoCompleter", () => {
             );
         });
 
+        it("Inserts parenthesized member text for hyphenated names after dot", () => {
+            const source = `<section name="base"><p name="my-p" /><p name="my_p" /></section>\n$base.my`;
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+
+            const items = autoCompleter.getCompletionItems(source.length);
+            const hyphenItem = items.find((item) => item.label === "my-p");
+            const underscoreItem = items.find((item) => item.label === "my_p");
+
+            expect(hyphenItem).toBeDefined();
+            expect(underscoreItem).toBeDefined();
+
+            const hyphenTextEdit = hyphenItem?.textEdit;
+            if (hyphenTextEdit && "newText" in hyphenTextEdit) {
+                expect(hyphenTextEdit.newText).toBe("(my-p)");
+            }
+
+            const underscoreTextEdit = underscoreItem?.textEdit;
+            if (underscoreTextEdit && "newText" in underscoreTextEdit) {
+                expect(underscoreTextEdit.newText).toBe("my_p");
+            }
+        });
+
+        it("Applies same member insertion policy after dot in parenthesized refs", () => {
+            const source = `<section name="base"><p name="my-p" /><p name="my_p" /></section>\n$(base).my`;
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+
+            const items = autoCompleter.getCompletionItems(source.length);
+            const hyphenItem = items.find((item) => item.label === "my-p");
+            const underscoreItem = items.find((item) => item.label === "my_p");
+
+            expect(hyphenItem).toBeDefined();
+            expect(underscoreItem).toBeDefined();
+
+            const hyphenTextEdit = hyphenItem?.textEdit;
+            if (hyphenTextEdit && "newText" in hyphenTextEdit) {
+                expect(hyphenTextEdit.newText).toBe("(my-p)");
+            }
+
+            const underscoreTextEdit = underscoreItem?.textEdit;
+            if (underscoreTextEdit && "newText" in underscoreTextEdit) {
+                expect(underscoreTextEdit.newText).toBe("my_p");
+            }
+        });
+
+        it("Classifies parenthesized member-segment syntax after dot as refMember", () => {
+            const source = `<section name="base"><p name="my-p" /></section>\n$(base).(my`;
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+
+            const completionContext = autoCompleter.getCompletionContext(
+                source.length,
+            );
+            expect(completionContext).toMatchObject({
+                cursorPos: "refMember",
+                typedPrefix: "my",
+            });
+        });
+
+        it("Does not double-parenthesize insertion in .(member) contexts", () => {
+            const source = `<section name="base"><p name="my-p" /></section>\n$(base).(my`;
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+
+            const items = autoCompleter.getCompletionItems(source.length);
+            const hyphenItem = items.find((item) => item.label === "my-p");
+
+            expect(hyphenItem).toBeDefined();
+            const textEdit = hyphenItem?.textEdit;
+            if (textEdit && "newText" in textEdit) {
+                expect(textEdit.newText).toBe("my-p");
+            }
+        });
+
         it("Keeps completion visible when a descendant member is fully typed", () => {
             const pointSchema = {
                 elements: [

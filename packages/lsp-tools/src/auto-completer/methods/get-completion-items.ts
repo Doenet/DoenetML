@@ -7,6 +7,10 @@ import type {
 } from "@doenet/static-assets/completion-snippet-protocol";
 import { AutoCompleter } from "../index";
 
+// Keep these aligned with parser grammar in `packages/parser/src/macros/macros.peggy`:
+// - SimpleIdent = [a-zA-Z_][a-zA-Z0-9_]*
+const SIMPLE_IDENTIFIER_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
 /**
  * Create an LSP Range from source offset positions.
  * Converts character offset positions in the source string to an LSP Range
@@ -250,6 +254,15 @@ function createReferenceCompletionItems(
 }
 
 /**
+ * Segment insertion policy for ref completion after `$` and `.`:
+ * - Simple identifiers insert as-is.
+ * - Hyphenated or otherwise non-simple identifiers insert parenthesized.
+ */
+function toRefSegmentInsertText(label: string) {
+    return SIMPLE_IDENTIFIER_REGEX.test(label) ? label : `(${label})`;
+}
+
+/**
  * Build schema-property completions for the currently resolved ref target.
  * These are shown only after descendant-name candidates so concrete named
  * children win label collisions.
@@ -260,6 +273,7 @@ function createPropertyCompletionItems(
     startOffset: number,
     endOffset: number,
     componentType: string,
+    toNewText: (label: string) => string = (label) => label,
 ): CompletionItem[] {
     return labels.map((label) => ({
         label,
@@ -271,7 +285,7 @@ function createPropertyCompletionItems(
                 startOffset,
                 endOffset,
             ),
-            newText: label,
+            newText: toNewText(label),
         },
     }));
 }
@@ -354,7 +368,7 @@ export function getCompletionItems(
             if (isParenthesizedContext) {
                 return name;
             }
-            return /^\w+$/.test(name) ? name : `(${name})`;
+            return toRefSegmentInsertText(name);
         };
 
         const addressableNames = this.sourceObj
@@ -378,6 +392,13 @@ export function getCompletionItems(
     if (allowRefCompletion && completionContext.cursorPos === "refMember") {
         // Resolve the ref chain up to the container of the member currently
         // being typed, then merge named descendants with schema properties.
+        const source = this.sourceObj.source;
+        const isParenthesizedMemberContext =
+            source.charAt(completionContext.replaceFromOffset - 1) === "(" &&
+            source.charAt(completionContext.replaceFromOffset - 2) === ".";
+        const toRefMemberInsertText = (name: string) =>
+            isParenthesizedMemberContext ? name : toRefSegmentInsertText(name);
+
         let resolvedNode = null;
         if (completionContext.pathParts.length > 0) {
             const [baseName, ...memberPath] = completionContext.pathParts;
@@ -425,6 +446,7 @@ export function getCompletionItems(
                 completionContext.replaceFromOffset,
                 offset,
                 "Descendant reference name",
+                toRefMemberInsertText,
             ),
             ...createPropertyCompletionItems(
                 this,
@@ -432,6 +454,7 @@ export function getCompletionItems(
                 completionContext.replaceFromOffset,
                 offset,
                 resolvedNode.name,
+                toRefMemberInsertText,
             ),
         ];
     }

@@ -4,7 +4,11 @@ import { AutoCompleter } from "../index";
 
 type MacroNode = DastMacro | DastMacroV6;
 
-const SIMPLE_IDENTIFIER_CHAR_REGEX = /\w/;
+// Keep these aligned with parser grammar in `packages/parser/src/macros/macros.peggy`:
+// - SimpleIdent = [a-zA-Z_][a-zA-Z0-9_]*
+// - Ident = [a-zA-Z0-9_-]+
+const SIMPLE_IDENTIFIER_CHAR_REGEX = /[A-Za-z0-9_]/;
+const SIMPLE_IDENTIFIER_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
 const MACRO_IDENTIFIER_CHAR_REGEX = /[A-Za-z0-9_-]/;
 const MACRO_PATH_CHAR_REGEX = /[A-Za-z0-9_.-]/;
 
@@ -50,6 +54,23 @@ function getIdentifierPrefixInfo(
         tokenStart,
         typedPrefix: source.slice(tokenStart, offset),
     };
+}
+
+function normalizeMacroPathForMemberResolution(pathSource: string) {
+    // Normalize `$(a).b`, `$(a).(b)`, and mixed forms into dot-delimited parts.
+    let normalized = pathSource
+        .replace(/\)\.\(/g, ".")
+        .replace(/\)\./g, ".")
+        .replace(/\.\(/g, ".");
+
+    if (normalized.startsWith("(")) {
+        normalized = normalized.slice(1);
+    }
+    if (normalized.endsWith(")")) {
+        normalized = normalized.slice(0, -1);
+    }
+
+    return normalized;
 }
 
 /**
@@ -103,19 +124,18 @@ export function getCompletionContext(
             ? macroTypedPrefix
             : typedPrefix;
 
-        if (prevChar === "." || source.charAt(activeTokenStart - 1) === ".") {
-            let pathSource = source.slice(
-                macroStartOffset + (isParenthesizedMacro ? 2 : 1),
-                offset,
+        if (
+            prevChar === "." ||
+            source.charAt(activeTokenStart - 1) === "." ||
+            (source.charAt(activeTokenStart - 1) === "(" &&
+                source.charAt(activeTokenStart - 2) === ".")
+        ) {
+            const pathSource = normalizeMacroPathForMemberResolution(
+                source.slice(
+                    macroStartOffset + (isParenthesizedMacro ? 2 : 1),
+                    offset,
+                ),
             );
-            if (isParenthesizedMacro) {
-                // Member access typed after a completed `$(...)` appears in source
-                // as `...).member`; normalize it back to dot-delimited path parts.
-                pathSource = pathSource.replace(/\)\./g, ".");
-            }
-            if (pathSource.endsWith(")")) {
-                pathSource = pathSource.slice(0, -1);
-            }
             return {
                 cursorPos: "refMember",
                 typedPrefix: activeTypedPrefix,
@@ -163,7 +183,12 @@ export function getCompletionContext(
     }
 
     // Check for macro path member access: `$(foo.` or `$(foo-bar).member`
-    if (prevChar === "." || source.charAt(macroTokenStart - 1) === ".") {
+    if (
+        prevChar === "." ||
+        source.charAt(macroTokenStart - 1) === "." ||
+        (source.charAt(macroTokenStart - 1) === "(" &&
+            source.charAt(macroTokenStart - 2) === ".")
+    ) {
         let pathStart = macroTokenStart - 1;
         while (
             pathStart > 0 &&
@@ -215,11 +240,59 @@ export function getCompletionContext(
                 };
             }
         }
+
+        // Pattern: `$identifier.(member` or `$(identifier).(member`
+        if (
+            source.charAt(pathStart - 1) === "(" &&
+            source.charAt(pathStart - 2) === "."
+        ) {
+            // Non-parenthesized base: `$identifier.(member`
+            let baseStart = pathStart - 2;
+            while (
+                baseStart > 0 &&
+                MACRO_PATH_CHAR_REGEX.test(source.charAt(baseStart - 1))
+            ) {
+                baseStart--;
+            }
+            if (source.charAt(baseStart - 1) === "$") {
+                const basePath = source.slice(baseStart, pathStart - 2);
+                return {
+                    cursorPos: "refMember",
+                    typedPrefix: macroTypedPrefix,
+                    replaceFromOffset: macroTokenStart,
+                    pathParts: `${basePath}.${source
+                        .slice(pathStart, offset)
+                        .replace(/^\(/, "")}`.split("."),
+                };
+            }
+
+            // Parenthesized base: `$(identifier).(member`
+            if (source.charAt(baseStart - 1) === ")") {
+                const macroOpenParen = source.lastIndexOf("(", baseStart - 1);
+                if (
+                    macroOpenParen > 0 &&
+                    source.charAt(macroOpenParen - 1) === "$"
+                ) {
+                    const basePath = source.slice(
+                        macroOpenParen + 1,
+                        baseStart - 1,
+                    );
+                    return {
+                        cursorPos: "refMember",
+                        typedPrefix: macroTypedPrefix,
+                        replaceFromOffset: macroTokenStart,
+                        pathParts: `${basePath}.${source
+                            .slice(pathStart, offset)
+                            .replace(/^\(/, "")}`.split("."),
+                    };
+                }
+            }
+        }
     }
 
     // Check for simple `$identifier` pattern (when not in parentheses yet)
     if (prevChar === "$" || source.charAt(tokenStart - 1) === "$") {
-        if (prevChar === "$" || /^\w+$/.test(typedPrefix)) {
+        if (prevChar === "$" || SIMPLE_IDENTIFIER_REGEX.test(typedPrefix)) {
             return {
                 cursorPos: "refName",
                 typedPrefix,
@@ -236,14 +309,17 @@ export function getCompletionContext(
     ) {
         // Walk back to after the `$`
         let dollarPos = tokenStart - 2;
-        while (dollarPos > 0 && /[\w.]/.test(source.charAt(dollarPos - 1))) {
+        while (
+            dollarPos > 0 &&
+            /[A-Za-z0-9_.]/.test(source.charAt(dollarPos - 1))
+        ) {
             dollarPos--;
         }
         if (source.charAt(dollarPos - 1) === "$") {
             const pathStart = dollarPos;
             const pathStr = source.slice(pathStart, offset).trim();
             const pathParts = pathStr.split(".").filter((p) => p.length > 0);
-            if (pathParts.length > 0 && /^\w+/.test(pathStr)) {
+            if (pathParts.length > 0 && /^[A-Za-z0-9_]/.test(pathStr)) {
                 return {
                     cursorPos: "refMember",
                     typedPrefix,

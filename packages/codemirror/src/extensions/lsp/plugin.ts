@@ -71,6 +71,10 @@ import type {
 import { CompletionItemKind } from "vscode-languageserver-protocol/browser";
 import "./tooltip.css";
 
+// Keep identifier policy aligned with macro parsing/completion rules.
+const MACRO_IDENTIFIER_CHAR_REGEX = /[A-Za-z0-9_-]/;
+const MACRO_IDENTIFIER_SEGMENT_REGEX = /[A-Za-z0-9_-]+$/;
+
 /** Escape a string for safe interpolation into an HTML context. */
 function escapeHtml(str: string): string {
     return str
@@ -311,7 +315,8 @@ export class LSPPlugin implements PluginValue {
         const precedingLocalRefTriggerCharacter =
             charBeforeCursor === "$" ||
             charBeforeCursor === "." ||
-            (charBeforeCursor === "(" && charBeforeParen === "$");
+            (charBeforeCursor === "(" &&
+                (charBeforeParen === "$" || charBeforeParen === "."));
 
         if (!explicit && precedingServerTriggerCharacter) {
             triggerKind = LSPCompletionTriggerKind.TriggerCharacter;
@@ -319,7 +324,7 @@ export class LSPPlugin implements PluginValue {
         }
         if (
             triggerKind === LSPCompletionTriggerKind.Invoked &&
-            !context.matchBefore(/\w+$/) &&
+            !context.matchBefore(MACRO_IDENTIFIER_SEGMENT_REGEX) &&
             !precedingServerTriggerCharacter &&
             !precedingLocalRefTriggerCharacter &&
             !explicit
@@ -400,7 +405,7 @@ export class LSPPlugin implements PluginValue {
             }
             pos = token.from + fromOffset;
             const wordLower = word.toLowerCase();
-            if (wordLower && /^\w+$/.test(wordLower)) {
+            if (wordLower && MACRO_IDENTIFIER_SEGMENT_REGEX.test(wordLower)) {
                 options = options
                     .filter(({ filterText }) =>
                         filterText.toLowerCase().startsWith(wordLower),
@@ -484,7 +489,7 @@ export class LSPPlugin implements PluginValue {
         return {
             from: pos,
             options: finalOptions,
-            validFor: /^[A-Za-z0-9_-]*$/,
+            validFor: new RegExp(`^${MACRO_IDENTIFIER_CHAR_REGEX.source}*$`),
         };
     }
 }
@@ -544,7 +549,7 @@ function getCurrentWordToken(doc: Text, head: number): WordToken | null {
     const safeHead = Math.max(0, Math.min(head, doc.length));
     const line = doc.lineAt(safeHead);
     const beforeCursor = line.text.slice(0, safeHead - line.from);
-    const match = beforeCursor.match(/[A-Za-z0-9_-]+$/);
+    const match = beforeCursor.match(MACRO_IDENTIFIER_SEGMENT_REGEX);
     if (!match) {
         return null;
     }
@@ -624,10 +629,20 @@ function getAutocompleteReopenState({
         getTransactionChangeSummary(update);
     const currentToken = getCurrentWordToken(update.state.doc, head);
     const tokenPrefixChar = currentToken
-        ? update.state.doc.sliceString(
-              Math.max(0, currentToken.from - 1),
-              currentToken.from,
-          )
+        ? (() => {
+              const immediatePrefix = update.state.doc.sliceString(
+                  Math.max(0, currentToken.from - 1),
+                  currentToken.from,
+              );
+              if (immediatePrefix !== "(") {
+                  return immediatePrefix;
+              }
+              // Treat `$(name` and `.(` member forms as ref-prefix contexts.
+              return update.state.doc.sliceString(
+                  Math.max(0, currentToken.from - 2),
+                  Math.max(0, currentToken.from - 1),
+              );
+          })()
         : "";
     const previousHead = update.startState.selection.main.head;
     const previousToken = getCurrentWordToken(
@@ -686,7 +701,8 @@ function getAutocompleteReopenState({
         shouldRestartCompletion:
             charBefore === "$" ||
             charBefore === "." ||
-            (charBefore === "(" && charBeforeParen === "$") ||
+            (charBefore === "(" &&
+                (charBeforeParen === "$" || charBeforeParen === ".")) ||
             latchEvaluation.shouldReopenFromLatch,
     };
 }
