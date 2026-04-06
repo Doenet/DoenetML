@@ -109,6 +109,8 @@ export function evaluateReopenLatchTransition({
     deletedCount,
     insertedCount,
 }: ReopenLatchTransitionInput): ReopenLatchTransitionResult {
+    // Ignore latch transitions unless this edit is still in the same
+    // ref-token context and for the current latch version.
     if (
         !reopenLatch ||
         reopenLatch.docVersion !== docVersion ||
@@ -161,6 +163,8 @@ export function createReopenLatchFromCloseTransition({
     tokenPrefixChar,
     docVersion,
 }: CreateLatchFromCloseTransitionInput): ReopenLatch | null {
+    // Arm a latch only on an open->closed completion transition caused by a
+    // one-char tail insert in ref-token context.
     if (
         !prevCompletionStatus ||
         nextCompletionStatus ||

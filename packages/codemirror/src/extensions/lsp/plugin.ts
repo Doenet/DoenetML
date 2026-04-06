@@ -173,17 +173,12 @@ export class LSPPlugin implements PluginValue {
     update(update: ViewUpdate): void {
         const prevCompletionStatus = completionStatus(update.startState);
         const nextCompletionStatus = completionStatus(update.state);
-        const startSel = update.startState.selection.main;
-        const nextSel = update.state.selection.main;
-        const selectionMoved =
-            startSel.head !== nextSel.head ||
-            startSel.anchor !== nextSel.anchor;
 
         if (
-            update.selectionSet &&
-            selectionMoved &&
-            !update.docChanged &&
-            !prevCompletionStatus
+            shouldInvalidateLatchDueToCursorNavigation(
+                update,
+                prevCompletionStatus,
+            )
         ) {
             this.reopenLatch = null;
         }
@@ -571,6 +566,28 @@ type AutocompleteReopenState = {
     keepReopenLatchForNextChange: boolean;
     shouldRestartCompletion: boolean;
 };
+
+/**
+ * Clear a stale reopen latch after pure cursor navigation.
+ *
+ * This only applies when the document did not change, the selection actually
+ * moved, and completion was already closed in the previous state.
+ */
+function shouldInvalidateLatchDueToCursorNavigation(
+    update: ViewUpdate,
+    prevCompletionStatus: string | null,
+): boolean {
+    const startSel = update.startState.selection.main;
+    const nextSel = update.state.selection.main;
+    const selectionMoved =
+        startSel.head !== nextSel.head || startSel.anchor !== nextSel.anchor;
+    return (
+        update.selectionSet &&
+        selectionMoved &&
+        !update.docChanged &&
+        !prevCompletionStatus
+    );
+}
 
 function getTransactionChangeSummary(
     update: ViewUpdate,
