@@ -2,7 +2,7 @@ import { DoenetSourceObject, RowCol } from "../doenet-source-object";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import { COMPLETION_SNIPPETS } from "@doenet/static-assets/completion-snippets";
 import type { CompletionSnippetCursor } from "@doenet/static-assets/completion-snippet-protocol";
-import { DastAttributeV6, DastElementV6 } from "@doenet/parser";
+import { DastAttribute, DastElement } from "@doenet/parser";
 import { getCompletionItems } from "./methods/get-completion-items";
 import { getSchemaViolations } from "./methods/get-schema-violations";
 import { getCompletionContext } from "./methods/get-completion-context";
@@ -35,7 +35,7 @@ export type ResolveRefMemberContainerArgs = {
 };
 
 export type RefMemberContainerResolution = {
-    node: DastElementV6 | null;
+    node: DastElement | null;
     unresolvedPathParts: string[];
 };
 
@@ -273,9 +273,9 @@ export class AutoCompleter {
      * Gets the attribute where offset is between its start and end position, if one exists.
      */
     _getAttributeContainsOffset(
-        node: DastElementV6,
+        node: DastElement,
         offset: number,
-    ): DastAttributeV6 | null {
+    ): DastAttribute | null {
         const candidate = Object.values(node.attributes).find((attr) => {
             const start = attr.position?.start.offset;
             const end = attr.position?.end.offset;
