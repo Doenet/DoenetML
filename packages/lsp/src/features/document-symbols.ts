@@ -3,7 +3,7 @@ import {
     DocumentSymbol,
     SymbolKind,
 } from "vscode-languageserver/browser";
-import { DastNodesV6, toXml } from "@doenet/parser";
+import { DastNodes, toXml } from "@doenet/parser";
 import { DocumentInfo } from "../globals";
 import { DoenetSourceObject } from "@doenet/lsp-tools";
 
@@ -28,7 +28,7 @@ export function addDocumentSymbolsSupport(
  * Get a document symbol for the given node.
  */
 function nodeToSymbol(
-    node: DastNodesV6,
+    node: DastNodes,
     sourceObj: DoenetSourceObject,
 ): DocumentSymbol | undefined {
     switch (node.type) {
@@ -73,7 +73,7 @@ function nodeToSymbol(
  * Recursively get all symbols for the given node's children.
  */
 function getChildrenSymbols(
-    node: DastNodesV6,
+    node: DastNodes,
     sourceObj: DoenetSourceObject,
 ): DocumentSymbol[] {
     const ret: DocumentSymbol[] = [];

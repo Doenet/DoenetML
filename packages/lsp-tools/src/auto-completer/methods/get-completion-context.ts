@@ -1,8 +1,8 @@
 import { RowCol } from "../../doenet-source-object";
-import type { DastMacro, DastMacroV6 } from "@doenet/parser";
+import type { DastMacro } from "@doenet/parser";
 import { AutoCompleter } from "../index";
 
-type MacroNode = DastMacro | DastMacroV6;
+type MacroNode = DastMacro;
 
 // Keep these aligned with parser grammar in `packages/parser/src/macros/macros.peggy`:
 // - SimpleIdent = [a-zA-Z_][a-zA-Z0-9_]*

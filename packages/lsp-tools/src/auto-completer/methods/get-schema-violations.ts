@@ -5,10 +5,10 @@ import {
     DiagnosticSeverity,
 } from "vscode-languageserver/browser";
 import {
-    DastAttributeV6,
-    DastElementV6,
-    DastNodesV6,
-    DastRootV6,
+    DastAttribute,
+    DastElement,
+    DastNodes,
+    DastRoot,
     showCursor,
     toXml,
     visit,
@@ -23,8 +23,8 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
      * Get all pairs of elements and their parent.
      */
     function getElementPairs(
-        node: DastElementV6 | DastRootV6,
-    ): { node: DastElementV6; parent: DastElementV6 | DastRootV6 }[] {
+        node: DastElement | DastRoot,
+    ): { node: DastElement; parent: DastElement | DastRoot }[] {
         return node.children.flatMap((child) => {
             if (child.type === "element") {
                 return [
@@ -191,7 +191,7 @@ export function getSchemaViolations(this: AutoCompleter): Diagnostic[] {
 /**
  * Determine if the list of nodes contains a macro or function descendant.
  */
-function hasMacroOrFunctionChild(nodes: DastNodesV6[]): boolean {
+function hasMacroOrFunctionChild(nodes: DastNodes[]): boolean {
     let ret = false;
     visit(nodes, (node) => {
         if (node.type === "macro" || node.type === "function") {
@@ -205,7 +205,7 @@ function hasMacroOrFunctionChild(nodes: DastNodesV6[]): boolean {
 /**
  * Get the offset of the start and end of the attribute value.
  */
-function getAttributeValueRange(node: DastAttributeV6): {
+function getAttributeValueRange(node: DastAttribute): {
     start: number;
     end: number;
 } {
@@ -217,9 +217,17 @@ function getAttributeValueRange(node: DastAttributeV6): {
     }
     const first = node.children[0];
     const last = node.children[node.children.length - 1];
+    const firstStart = first.position?.start.offset || 0;
+    const lastEnd = last.position?.end.offset || 0;
+    const attrStart = node.position?.start.offset;
+    const attrEnd = node.position?.end.offset;
 
     return {
-        start: first.position?.start.offset || 0,
-        end: last.position?.end.offset || 0,
+        // Include the surrounding quote characters when present.
+        start:
+            attrStart == null
+                ? Math.max(0, firstStart - 1)
+                : Math.max(attrStart, firstStart - 1),
+        end: attrEnd == null ? lastEnd + 1 : Math.min(attrEnd, lastEnd + 1),
     };
 }

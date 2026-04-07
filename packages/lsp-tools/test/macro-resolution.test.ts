@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import util from "util";
 
-import { DastMacro, DastElement, DastMacroV6 } from "@doenet/parser";
-import { DoenetSourceObject, isOldMacro } from "../src/doenet-source-object";
+import { DastMacro, DastElement } from "@doenet/parser";
+import { DoenetSourceObject } from "../src/doenet-source-object";
 import {
     getPrefixes,
     mergeLeftUniquePrefixes,
@@ -46,7 +46,7 @@ describe("DoenetSourceObject", () => {
     it("Can find named referents from macros", () => {
         let source: string;
         let sourceObj: DoenetSourceObject;
-        let macro: DastMacroV6;
+        let macro: DastMacro;
 
         source = `<a name="x">
             <b name="y">
@@ -58,48 +58,26 @@ describe("DoenetSourceObject", () => {
         {
             let offset = source.indexOf("<d") + 1;
             macro = new DoenetSourceObject("$x.y").dast
-                .children[0] as any as DastMacroV6;
+                .children[0] as any as DastMacro;
             let elm = sourceObj.getMacroReferentAtOffset(offset, macro);
             expect(elm?.node).toMatchObject({ type: "element", name: "b" });
         }
         {
             let offset = source.indexOf("<d") + 1;
             macro = new DoenetSourceObject("$x.y.w").dast
-                .children[0] as any as DastMacroV6;
+                .children[0] as any as DastMacro;
             let elm = sourceObj.getMacroReferentAtOffset(offset, macro);
             expect(elm?.node).toMatchObject({ type: "element", name: "b" });
-            expect(elm?.accessedProp).toMatchObject(
-                macro.accessedProp!.accessedProp!,
-            );
+            expect(elm?.unresolvedPath.map((p) => p.name)).toEqual(["w"]);
         }
         {
             let offset = source.indexOf("<d") + 1;
             macro = new DoenetSourceObject("$x.y.z").dast
-                .children[0] as any as DastMacroV6;
+                .children[0] as any as DastMacro;
             let elm = sourceObj.getMacroReferentAtOffset(offset, macro);
             expect(elm?.node).toMatchObject({ type: "element", name: "c" });
+            expect(elm?.unresolvedPath).toEqual([]);
         }
-    });
-
-    it("Can determine if a macro is an old-style macro with slashes in the path", () => {
-        let source: string;
-        let sourceObj: DoenetSourceObject;
-        let macro: DastMacro;
-
-        source = `$foo.bar[2].baz`;
-        sourceObj = new DoenetSourceObject(source);
-        macro = sourceObj.dast.children[0] as any as DastMacro;
-        expect(isOldMacro(macro)).toEqual(false);
-
-        source = `$(foo.bar[2].baz)`;
-        sourceObj = new DoenetSourceObject(source);
-        macro = sourceObj.dast.children[0] as any as DastMacro;
-        expect(isOldMacro(macro)).toEqual(false);
-
-        source = `$(foo/x.bar[2].baz)`;
-        sourceObj = new DoenetSourceObject(source);
-        macro = sourceObj.dast.children[0] as any as DastMacro;
-        expect(isOldMacro(macro)).toEqual(true);
     });
 
     it("Can uniquely merge prefixes", () => {

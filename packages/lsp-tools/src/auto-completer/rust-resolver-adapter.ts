@@ -1,4 +1,4 @@
-import type { DastElementV6, DastNodesV6 } from "@doenet/parser";
+import type { DastElement, DastNodes } from "@doenet/parser";
 import type { DoenetSourceObject } from "../doenet-source-object";
 import type {
     ResolveRefMemberContainer,
@@ -61,9 +61,9 @@ export class RustResolverAdapter {
     private enabled = false;
 
     /** Rust flat index → JS DAST element (matched by source position). */
-    private rustIndexToDastElement: Map<number, DastElementV6> = new Map();
+    private rustIndexToDastElement: Map<number, DastElement> = new Map();
     /** JS DAST element → Rust flat index. */
-    private dastElementToRustIndex: Map<DastElementV6, number> = new Map();
+    private dastElementToRustIndex: Map<DastElement, number> = new Map();
 
     constructor(
         sourceObj: DoenetSourceObject,
@@ -109,20 +109,20 @@ export class RustResolverAdapter {
         this.dastElementToRustIndex.clear();
 
         // Collect JS DAST elements keyed by start offset.
-        const dastByStartOffset = new Map<number, DastElementV6>();
-        const collectElements = (node: DastNodesV6) => {
+        const dastByStartOffset = new Map<number, DastElement>();
+        const collectElements = (node: DastNodes) => {
             if (node.type === "element") {
                 const off = node.position?.start?.offset;
                 if (off != null) {
                     dastByStartOffset.set(off, node);
                 }
                 for (const child of node.children) {
-                    collectElements(child as DastNodesV6);
+                    collectElements(child as DastNodes);
                 }
             }
         };
         for (const child of this.sourceObj.dast.children) {
-            collectElements(child as DastNodesV6);
+            collectElements(child as DastNodes);
         }
 
         // Match flat DAST elements to JS DAST elements by start offset.

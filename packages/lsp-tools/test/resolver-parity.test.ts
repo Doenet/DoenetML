@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { DoenetSourceObject } from "../src/doenet-source-object";
 import { AutoCompleter } from "../src";
-import { DastElementV6 } from "@doenet/parser";
+import { DastElement } from "@doenet/parser";
 
 /**
  * Resolver parity tests verify that member completion resolution behavior
@@ -223,7 +223,7 @@ describe("Resolver Parity - Member Completion Resolution", () => {
                         type: "element",
                         attributes: {},
                         children: [],
-                    } as DastElementV6,
+                    } as DastElement,
                     unresolvedPathParts: [],
                 }),
             });

@@ -3,7 +3,7 @@ import util from "util";
 import { CompletionItemKind } from "vscode-languageserver/browser";
 
 import { filterPositionInfo, DastMacro, DastElement } from "@doenet/parser";
-import { DoenetSourceObject, isOldMacro } from "../src/doenet-source-object";
+import { DoenetSourceObject } from "../src/doenet-source-object";
 import { doenetSchema } from "@doenet/static-assets/schema";
 import { AutoCompleter, RustResolverAdapter } from "../src";
 import type { RustResolverCore } from "../src";
@@ -1083,6 +1083,19 @@ describe("AutoCompleter", () => {
             const index2 = sourceObj.getNodeIndexAtOffset(offset);
 
             expect(index1).toBe(index2);
+        });
+
+        it("Uses left-of-cursor semantics at EOF", () => {
+            const source = `<aa><b></b></aa>`;
+            const sourceObj = new DoenetSourceObject(source);
+
+            const eofIndex = sourceObj.getNodeIndexAtOffset(source.length);
+            const lastCharIndex = sourceObj.getNodeIndexAtOffset(
+                source.length - 1,
+            );
+
+            expect(eofIndex).toBe(lastCharIndex);
+            expect(eofIndex).not.toBeNull();
         });
 
         it("Differentiates nested nodes with different indices", () => {

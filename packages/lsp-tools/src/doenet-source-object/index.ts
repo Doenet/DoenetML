@@ -1,10 +1,7 @@
 import {
     DastElement,
-    DastElementV6,
-    DastFunctionMacroV6,
-    DastMacroV6,
-    DastNodesV6,
-    DastRootV6,
+    DastNodes,
+    DastRoot,
     LezerSyntaxNodeName,
     Position,
     toXml,
@@ -27,7 +24,6 @@ import {
     getAddressableNamesAtOffset,
     getMacroReferentAtOffset,
 } from "./methods/macro-resolvers";
-import { DastMacro } from "@doenet/parser";
 import type {
     Position as LSPPosition,
     Range as LSPRange,
@@ -140,6 +136,11 @@ export class DoenetSourceObject extends LazyDataObject {
      * Returns the index of the nearest containing element (or root),
      * or `null` if no node exists at that position.
      *
+     * Offsets are cursor positions, so `offset === source.length` is valid
+     * (cursor at end-of-file). For that case we use left-of-cursor semantics
+     * and return the same index as `source.length - 1` when the source is
+     * non-empty.
+     *
      * This mapping is used for Rust resolver integration to identify nodes by stable indices
      * rather than object references.
      *
@@ -148,6 +149,15 @@ export class DoenetSourceObject extends LazyDataObject {
      */
     getNodeIndexAtOffset(offset: number): number | null {
         const offsetToIndexMap = this._offsetToNodeIndexMap();
+        if (offset < 0 || offset > this.source.length) {
+            return null;
+        }
+        if (offset === this.source.length) {
+            if (this.source.length === 0) {
+                return null;
+            }
+            return offsetToIndexMap[this.source.length - 1] ?? null;
+        }
         return offsetToIndexMap[offset] ?? null;
     }
 
@@ -205,7 +215,7 @@ export class DoenetSourceObject extends LazyDataObject {
      * partially complete (`false`). Complete elements are valid xml.
      * Incomplete elements are `<abc` or `<abc>`.
      */
-    isCompleteElement(node: DastElementV6): {
+    isCompleteElement(node: DastElement): {
         tagComplete: boolean;
         closed: boolean;
     } {
@@ -265,9 +275,7 @@ export class DoenetSourceObject extends LazyDataObject {
      *
      * Note: these values are given as **offsets**.
      */
-    getElementTagRanges(
-        node: DastElementV6 | DastElement,
-    ): { start: number; end: number }[] {
+    getElementTagRanges(node: DastElement): { start: number; end: number }[] {
         const start = node.position?.start?.offset || 0;
         const end = node.position?.end?.offset || 0;
         const childrenStart = node.children[0]?.position?.start?.offset;
@@ -285,7 +293,7 @@ export class DoenetSourceObject extends LazyDataObject {
     /**
      * Get the parent of `node`. Node must be in `this.dast`.
      */
-    getParent(node: DastNodesV6): DastElementV6 | DastRootV6 | null {
+    getParent(node: DastNodes): DastElement | DastRoot | null {
         const parentMap = this._parentMap();
         return parentMap.get(node) || null;
     }
@@ -296,8 +304,8 @@ export class DoenetSourceObject extends LazyDataObject {
      *
      * Node must be in `this.dast`.
      */
-    getParents(node: DastNodesV6): (DastElementV6 | DastRootV6)[] {
-        const ret: (DastElementV6 | DastRootV6)[] = [];
+    getParents(node: DastNodes): (DastElement | DastRoot)[] {
+        const ret: (DastElement | DastRoot)[] = [];
 
         let parent = this.getParent(node);
         while (parent && parent.type !== "root") {
@@ -312,7 +320,7 @@ export class DoenetSourceObject extends LazyDataObject {
      * Get the unique descendant of `node` with name `name`.
      */
     getNamedDescendant(
-        node: DastElementV6 | DastRootV6 | undefined | null,
+        node: DastElement | DastRoot | undefined | null,
         name: string,
     ) {
         if (!node) {
@@ -332,7 +340,7 @@ export class DoenetSourceObject extends LazyDataObject {
      * Get all descendant names directly addressable from `node`.
      */
     getDescendantNamesForNode(
-        node: DastElementV6 | DastRootV6 | undefined | null,
+        node: DastElement | DastRoot | undefined | null,
     ): string[] {
         if (!node) {
             return [];
@@ -349,7 +357,7 @@ export class DoenetSourceObject extends LazyDataObject {
      * once under the same node are excluded.
      */
     getUniqueDescendantNamesForNode(
-        node: DastElementV6 | DastRootV6 | undefined | null,
+        node: DastElement | DastRoot | undefined | null,
     ): string[] {
         const names = this.getDescendantNamesForNode(node);
         const counts = new Map<string, number>();
@@ -364,7 +372,7 @@ export class DoenetSourceObject extends LazyDataObject {
      */
     getReferentAtOffset(offset: number | RowCol, name: string) {
         const { node } = this.elementAtOffsetWithContext(offset);
-        let parent: DastElementV6 | DastRootV6 | undefined | null = node;
+        let parent: DastElement | DastRoot | undefined | null = node;
         let referent = this.getNamedDescendant(parent, name);
         while (parent && parent.type !== "root" && !referent) {
             parent = this._parentMap().get(parent);
@@ -395,7 +403,7 @@ export class DoenetSourceObject extends LazyDataObject {
      * Return the smallest range that contains all of the nodes in `nodes`.
      */
     getNodeRange<Style extends "default" | "lsp">(
-        nodes: DastNodesV6 | DastNodesV6[],
+        nodes: DastNodes | DastNodes[],
         style?: Style,
     ): Style extends "lsp" ? LSPRange : Position {
         if (!Array.isArray(nodes)) {
@@ -429,7 +437,7 @@ export class DoenetSourceObject extends LazyDataObject {
     /**
      * The DAST representation of `source`.
      */
-    get dast(): DastRootV6 {
+    get dast(): DastRoot {
         return this._dast();
     }
 
@@ -445,29 +453,3 @@ export type OffsetToPositionMap = {
     rowMap: Uint32Array;
     columnMap: Uint32Array;
 };
-
-/**
- * Returns `true` if the macro is an "old-style" macro with slashes
- * in its path.
- */
-export function isOldMacro(
-    macro: DastMacro | DastFunctionMacroV6 | DastMacroV6 | DastFunctionMacroV6,
-): boolean {
-    if (!("version" in macro) || macro.version !== "0.6") {
-        return false;
-    }
-    switch (macro.type) {
-        case "macro": {
-            if (macro.path.length !== 1) {
-                return true;
-            }
-            if ("accessedProp" in macro && macro.accessedProp) {
-                return isOldMacro(macro.accessedProp);
-            }
-            return false;
-        }
-        case "function": {
-            return "macro" in macro && isOldMacro(macro.macro);
-        }
-    }
-}

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import util from "util";
 
 import { filterPositionInfo, DastMacro, DastElement } from "@doenet/parser";
-import { DoenetSourceObject, isOldMacro } from "../src/doenet-source-object";
+import { DoenetSourceObject } from "../src/doenet-source-object";
 
 const origLog = console.log;
 console.log = (...args) => {
