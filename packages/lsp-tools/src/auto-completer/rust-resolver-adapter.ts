@@ -6,6 +6,123 @@ import type {
 } from "./index";
 
 /**
+ * Wrapper elements whose children should be treated as direct children of
+ * the composite for autocomplete purposes.  At runtime, sugar inserts these
+ * wrappers and then strips them during replacement expansion.
+ */
+const COMPOSITE_WRAPPER_NAMES = new Set(["case", "else", "option"]);
+
+/**
+ * Walk all descendants of `root`, returning an array of `{ name, element }`
+ * for every element with a `name` attribute.
+ */
+function collectAllNamedDescendants(
+    root: DastElement,
+): Array<{ name: string; element: DastElement }> {
+    const result: Array<{ name: string; element: DastElement }> = [];
+    const walk = (node: DastNodes) => {
+        if (node.type === "element") {
+            const nameAttr = node.attributes?.name;
+            if (nameAttr) {
+                // name attribute value is stored in children[0].value
+                const nameVal =
+                    nameAttr.children?.length === 1 &&
+                    nameAttr.children[0].type === "text"
+                        ? nameAttr.children[0].value
+                        : undefined;
+                if (nameVal) {
+                    result.push({ name: nameVal, element: node });
+                }
+            }
+            for (const child of node.children) {
+                walk(child as DastNodes);
+            }
+        }
+    };
+    for (const child of root.children) {
+        walk(child as DastNodes);
+    }
+    return result;
+}
+
+/**
+ * Collect descendant names from a composite element (conditionalContent or
+ * select) by walking through wrapper children (case/else/option)
+ * transparently.
+ *
+ * A name is included if **at least one** wrapper child has it as a unique
+ * descendant.  If a name appears multiple times within a single wrapper
+ * (ambiguous within that wrapper), that wrapper does not contribute the name
+ * — but another wrapper where it is unique still contributes it.
+ *
+ * Direct children of the composite that are NOT wrapper elements are also
+ * walked (sugared cc without explicit case/else).
+ */
+function collectNamesFromCompositeChildren(
+    composite: DastElement,
+): Set<string> {
+    const result = new Set<string>();
+
+    for (const child of composite.children) {
+        if (child.type !== "element") continue;
+
+        if (COMPOSITE_WRAPPER_NAMES.has(child.name)) {
+            // Walk inside the wrapper transparently
+            const descendants = collectAllNamedDescendants(child);
+            const counts = new Map<string, number>();
+            for (const { name } of descendants) {
+                counts.set(name, (counts.get(name) ?? 0) + 1);
+            }
+            for (const [name, count] of counts) {
+                if (count === 1) result.add(name);
+            }
+        } else {
+            // Direct child of composite (not a wrapper) — collect its names
+            // plus the child itself if named.
+            const nameAttr = child.attributes?.name;
+            if (nameAttr) {
+                const nameVal =
+                    nameAttr.children?.length === 1 &&
+                    nameAttr.children[0].type === "text"
+                        ? nameAttr.children[0].value
+                        : undefined;
+                if (nameVal) result.add(nameVal);
+            }
+            const descendants = collectAllNamedDescendants(child);
+            const counts = new Map<string, number>();
+            for (const { name } of descendants) {
+                counts.set(name, (counts.get(name) ?? 0) + 1);
+            }
+            for (const [name, count] of counts) {
+                if (count === 1) result.add(name);
+            }
+        }
+    }
+
+    return result;
+}
+
+/**
+ * Extract `valueName`/`indexName` attribute values from a repeat or
+ * repeatForSequence element.  Returns an empty array for other elements.
+ */
+function getSyntheticNamesFromElement(el: DastElement): string[] {
+    if (el.name !== "repeat" && el.name !== "repeatForSequence") return [];
+    const names: string[] = [];
+    for (const attrName of ["valueName", "indexName"]) {
+        const attr = el.attributes[attrName];
+        if (
+            attr &&
+            attr.children.length === 1 &&
+            attr.children[0].type === "text"
+        ) {
+            names.push(attr.children[0].value);
+        }
+    }
+    return names;
+}
+
+/**
  * Minimal interface matching the subset of PublicDoenetMLCore methods needed
  * for path resolution. Consumers provide an initialized WASM-backed instance;
  * lsp-tools does not depend on the WASM package directly.
@@ -50,6 +167,12 @@ interface FlatPathPartForResolver {
 export interface RustResolverAdapterOptions {
     /** An initialized PublicDoenetMLCore (or compatible) instance. */
     core?: RustResolverCore;
+    /**
+     * Optional callback to check whether a component type takes an index.
+     * When provided, the resolver suppresses descendant names for elements
+     * whose type returns `true`, forcing member access through `$name[n].`.
+     */
+    takesIndex?: (componentType: string) => boolean;
 }
 
 /**
@@ -65,6 +188,7 @@ export class RustResolverAdapter {
     private core: RustResolverCore | null = null;
     private sourceObj: DoenetSourceObject;
     private enabled = false;
+    private takesIndexFn: ((componentType: string) => boolean) | null = null;
 
     /** Rust flat index → JS DAST element (matched by source position). */
     private rustIndexToDastElement: Map<number, DastElement> = new Map();
@@ -76,6 +200,7 @@ export class RustResolverAdapter {
         options?: RustResolverAdapterOptions,
     ) {
         this.sourceObj = sourceObj;
+        this.takesIndexFn = options?.takesIndex ?? null;
         if (options?.core) {
             this.core = options.core;
             this.syncSource();
@@ -167,7 +292,7 @@ export class RustResolverAdapter {
         return (args: ResolveRefMemberContainerArgs) => {
             if (!this.enabled || !this.core) return null;
 
-            const { offset, pathParts } = args;
+            const { offset, pathParts, hasIndex } = args;
             if (pathParts.length === 0) return null;
 
             // Resolve up to but not including the last part (being edited).
@@ -202,8 +327,52 @@ export class RustResolverAdapter {
                     resolution.unresolvedPath ?? []
                 ).map((p) => p.name);
 
+                // When there are unresolved parts, the path is invalid —
+                // return null so the caller offers no completions.
                 if (unresolvedPathParts.length > 0) {
-                    return { node: null, unresolvedPathParts };
+                    return {
+                        node: null,
+                        unresolvedPathParts,
+                    };
+                }
+
+                // When the resolved element takes an index, descendants
+                // are only accessible via $name[n].member — suppress them
+                // unless the user has already provided a bracket index.
+                if (
+                    this.takesIndexFn &&
+                    this.takesIndexFn(resolvedNode.name) &&
+                    !hasIndex
+                ) {
+                    return {
+                        node: resolvedNode,
+                        unresolvedPathParts: [],
+                        visibleDescendantNames: [],
+                    };
+                }
+
+                // For composites (conditionalContent, and any
+                // takesIndex composite with an index present), compute
+                // visible descendants by walking through wrapper children
+                // (case/else/option) transparently.
+                if (
+                    resolvedNode.name === "conditionalContent" ||
+                    (hasIndex &&
+                        this.takesIndexFn &&
+                        this.takesIndexFn(resolvedNode.name))
+                ) {
+                    const names =
+                        collectNamesFromCompositeChildren(resolvedNode);
+                    // For repeat/repeatForSequence, also expose
+                    // valueName/indexName as member completions when
+                    // accessed with an index (e.g. $rep[1].v).
+                    const syntheticNames =
+                        getSyntheticNamesFromElement(resolvedNode);
+                    return {
+                        node: resolvedNode,
+                        unresolvedPathParts: [],
+                        visibleDescendantNames: [...names, ...syntheticNames],
+                    };
                 }
 
                 // Determine which descendant names are actually visible
@@ -303,6 +472,11 @@ export class RustResolverAdapter {
     isNameAddressableFromOffset(offset: number, name: string): boolean {
         if (!this.enabled || !this.core) return true; // fallback: allow
 
+        // Synthetic names from repeat valueName/indexName are always
+        // addressable from inside the repeat — they bypass resolve_path.
+        const syntheticNames = this.getRepeatSyntheticNames(offset);
+        if (syntheticNames.includes(name)) return true;
+
         // A $name reference typed at `offset` will become a child of the
         // element whose body contains the cursor.  resolve_path with
         // skip_parent_search=false searches from the origin's PARENT scope
@@ -341,7 +515,7 @@ export class RustResolverAdapter {
         if (resolveFromIndex == null) return true;
 
         try {
-            this.core.resolve_path(
+            const resolution = this.core.resolve_path(
                 {
                     path: [
                         {
@@ -354,14 +528,103 @@ export class RustResolverAdapter {
                 resolveFromIndex,
                 false,
             );
+
+            // Post-filter: check whether the resolved element is hidden
+            // by sugar at runtime.  In raw DAST (no sugar),
+            // conditionalContent and select children are direct children,
+            // but at runtime sugar wraps them in <case>/<option>, making
+            // deeper descendants invisible from outside the composite.
+            if (this.isHiddenBySugar(resolution.nodeIdx, offset)) {
+                return false;
+            }
+
             return true;
         } catch {
             return false;
         }
     }
 
+    /**
+     * Check whether a resolved node at `rustIdx` would be hidden by
+     * `conditionalContent` / `select` sugar when the cursor is at `offset`.
+     *
+     * In raw DAST, children of `<conditionalContent>` that are NOT wrapped
+     * in explicit `<case>`/`<else>` are direct children.  At runtime,
+     * `conditionalContentSugar` wraps them in `<case><group>…</group></case>`,
+     * and `<case>` is in `CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS`, so those
+     * children become invisible from outside.  Explicit `<case name="…">`
+     * children remain accessible because they ARE direct children of cc.
+     *
+     * The same pattern applies to `<select>` / `<option>` via `selectSugar`.
+     */
+    private isHiddenBySugar(rustIdx: number, cursorOffset: number): boolean {
+        const resolvedElement = this.rustIndexToDastElement.get(rustIdx);
+        if (!resolvedElement) return false;
+
+        let current: DastElement | DastNodes = resolvedElement;
+        let parent = this.sourceObj.getParent(current);
+
+        while (parent && parent.type !== "root") {
+            if (
+                parent.type === "element" &&
+                (parent.name === "conditionalContent" ||
+                    parent.name === "select")
+            ) {
+                const start = parent.position?.start?.offset;
+                const end = parent.position?.end?.offset;
+                // Cursor is outside this composite element
+                if (
+                    start != null &&
+                    end != null &&
+                    (cursorOffset < start || cursorOffset >= end)
+                ) {
+                    // Only direct children that are wrapper elements
+                    // (case/else/option) remain visible from outside — these
+                    // are NOT re-wrapped by sugar.  Everything else (direct
+                    // non-wrapper children that sugar will wrap, or deeper
+                    // descendants already behind a wrapper barrier) is hidden.
+                    const resolvedParent =
+                        this.sourceObj.getParent(resolvedElement);
+                    if (
+                        resolvedParent &&
+                        resolvedParent.type === "element" &&
+                        resolvedParent === parent &&
+                        COMPOSITE_WRAPPER_NAMES.has(resolvedElement.name)
+                    ) {
+                        // resolvedElement is a direct case/else/option child
+                        // of cc/select — not hidden by sugar.
+                    } else {
+                        return true;
+                    }
+                }
+            }
+            current = parent;
+            parent = this.sourceObj.getParent(parent);
+        }
+        return false;
+    }
+
     isEnabled(): boolean {
         return this.enabled;
+    }
+
+    /**
+     * Return synthetic names from `valueName`/`indexName` attributes of
+     * enclosing `<repeat>` elements at the given offset.  These names
+     * don't exist in the raw DAST but are created by repeat sugar at
+     * runtime, so they must be injected into the completion pipeline.
+     */
+    getRepeatSyntheticNames(offset: number): string[] {
+        const names: string[] = [];
+        let current: DastElement | undefined =
+            this.sourceObj.elementAtOffset(offset) ?? undefined;
+        while (current) {
+            names.push(...getSyntheticNamesFromElement(current));
+            const p = this.sourceObj.getParent(current);
+            current =
+                p && p.type === "element" ? (p as DastElement) : undefined;
+        }
+        return names;
     }
 
     /**

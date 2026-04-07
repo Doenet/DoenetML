@@ -14,6 +14,7 @@ type ElementSchema = {
     properties?: { name: string }[];
     children: string[];
     acceptsStringChildren: boolean;
+    takesIndex?: boolean;
 };
 
 type ProcessedSnippet = {
@@ -32,6 +33,11 @@ export type ResolveRefMemberContainerArgs = {
     pathParts: string[];
     /** Optional flat-tree node index at the given offset, for Rust-backed resolution */
     nodeIndex?: number | null;
+    /**
+     * Whether any resolved path part used a bracket index (e.g. `$sel[1].`).
+     * When true, `takesIndex` elements should expose descendant names.
+     */
+    hasIndex?: boolean;
 };
 
 export type RefMemberContainerResolution = {
@@ -96,6 +102,7 @@ export class AutoCompleter {
     schema: ElementSchema[] = [];
     private resolveRefMemberContainerAtOffsetImpl?: ResolveRefMemberContainer;
     private isNameAddressableImpl?: (offset: number, name: string) => boolean;
+    private getAdditionalRefNamesImpl?: (offset: number) => string[];
     /**
      * A map of element names (in lower case) to their canonical capitalization.
      */
@@ -153,6 +160,23 @@ export class AutoCompleter {
     }
 
     /**
+     * Set a callback that returns additional ref names (e.g. repeat
+     * `valueName`/`indexName`) that should appear in `$name` completions
+     * at the given offset even though they are not in the raw DAST.
+     */
+    setGetAdditionalRefNames(fn?: (offset: number) => string[]) {
+        this.getAdditionalRefNamesImpl = fn;
+        return this;
+    }
+
+    /**
+     * Return any additional ref names injected for this offset.
+     */
+    getAdditionalRefNames(offset: number): string[] {
+        return this.getAdditionalRefNamesImpl?.(offset) ?? [];
+    }
+
+    /**
      * Test whether `name` is addressable from `offset`.
      * Falls back to `true` when no checker is set.
      */
@@ -173,6 +197,7 @@ export class AutoCompleter {
     resolveRefMemberContainerAtOffset(
         offset: number,
         pathParts: string[],
+        hasIndex?: boolean,
     ): RefMemberContainerResolution {
         if (this.resolveRefMemberContainerAtOffsetImpl) {
             const nodeIndex = this.sourceObj.getNodeIndexAtOffset(offset);
@@ -180,6 +205,7 @@ export class AutoCompleter {
                 offset,
                 pathParts,
                 nodeIndex,
+                hasIndex,
             });
             if (resolved) {
                 return resolved;
@@ -228,9 +254,18 @@ export class AutoCompleter {
                 ? []
                 : lookupPathParts.slice(firstUnresolvedPartIndex);
 
+        // When there are unresolved parts, the path is invalid —
+        // return null so the caller offers no completions.
+        if (unresolvedPathParts.length > 0) {
+            return {
+                node: null,
+                unresolvedPathParts,
+            };
+        }
+
         return {
-            node: unresolvedPathParts.length > 0 ? null : referent,
-            unresolvedPathParts,
+            node: referent,
+            unresolvedPathParts: [],
         };
     }
 

@@ -259,7 +259,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "rightHandSide",
@@ -826,7 +827,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "description",
@@ -1251,7 +1253,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "xLabel",
@@ -1590,7 +1593,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "yLabel",
@@ -1929,7 +1933,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "statement",
@@ -2354,7 +2359,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "introduction",
@@ -2779,7 +2785,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "conclusion",
@@ -3204,7 +3211,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "topic",
@@ -3554,7 +3562,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "br",
@@ -3661,7 +3670,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "hr",
@@ -3768,7 +3778,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "cascadeMessage",
@@ -4113,7 +4124,8 @@
                 }
             ],
             "top": false,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "else",
@@ -4463,7 +4475,8 @@
                 }
             ],
             "top": false,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "m",
@@ -4791,7 +4804,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "me",
@@ -5119,7 +5133,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "men",
@@ -5452,7 +5467,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "md",
@@ -5634,7 +5650,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "mdn",
@@ -5816,7 +5833,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "mrow",
@@ -6156,7 +6174,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "not",
@@ -6510,7 +6529,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "and",
@@ -6776,7 +6796,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "or",
@@ -7042,7 +7063,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "xor",
@@ -7308,7 +7330,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "isInteger",
@@ -7641,7 +7664,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "isNumber",
@@ -7974,7 +7998,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "isBetween",
@@ -8327,7 +8352,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "sum",
@@ -8918,7 +8944,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "product",
@@ -9509,7 +9536,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "clampNumber",
@@ -10092,7 +10120,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "wrapNumberPeriodic",
@@ -10675,7 +10704,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "round",
@@ -11258,7 +11288,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "setSmallToZero",
@@ -11833,7 +11864,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "convertSetToList",
@@ -12388,7 +12420,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "ceil",
@@ -12955,7 +12988,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "floor",
@@ -13522,7 +13556,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "abs",
@@ -14089,7 +14124,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "sign",
@@ -14656,7 +14692,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "mean",
@@ -15247,7 +15284,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "median",
@@ -15838,7 +15876,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "variance",
@@ -16441,7 +16480,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "standardDeviation",
@@ -17044,7 +17084,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "count",
@@ -17635,7 +17676,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "min",
@@ -18226,7 +18268,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "max",
@@ -18817,7 +18860,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "mod",
@@ -19408,7 +19452,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "gcd",
@@ -19999,7 +20044,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "lcm",
@@ -20590,7 +20636,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "extractMath",
@@ -21183,7 +21230,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "clampFunction",
@@ -21851,7 +21899,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "wrapFunctionPeriodic",
@@ -22519,7 +22568,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "derivative",
@@ -23195,7 +23245,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "extractMathOperator",
@@ -23531,7 +23582,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "em",
@@ -23787,7 +23839,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "alert",
@@ -24043,7 +24096,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "q",
@@ -24299,7 +24353,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "sq",
@@ -24555,7 +24610,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "term",
@@ -24811,7 +24867,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "c",
@@ -25067,7 +25124,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "tag",
@@ -25323,7 +25381,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "tage",
@@ -25579,7 +25638,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "tagc",
@@ -25835,7 +25895,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "attr",
@@ -26091,7 +26152,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "ndash",
@@ -26203,7 +26265,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "mdash",
@@ -26315,7 +26378,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "nbsp",
@@ -26427,7 +26491,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "ellipsis",
@@ -26539,7 +26604,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "lq",
@@ -26651,7 +26717,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "rq",
@@ -26763,7 +26830,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "lsq",
@@ -26875,7 +26943,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "rsq",
@@ -26987,7 +27056,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "section",
@@ -27538,7 +27608,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "subsection",
@@ -28089,7 +28160,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "subsubsection",
@@ -28640,7 +28712,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "paragraphs",
@@ -29191,7 +29264,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "aside",
@@ -29768,7 +29842,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "objectives",
@@ -30319,7 +30394,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "problem",
@@ -30877,7 +30953,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "exercise",
@@ -31435,7 +31512,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "question",
@@ -31993,7 +32071,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "activity",
@@ -32551,7 +32630,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "example",
@@ -33102,7 +33182,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "definition",
@@ -33653,7 +33734,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "note",
@@ -34204,7 +34286,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "theorem",
@@ -34755,7 +34838,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "part",
@@ -35306,7 +35390,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "task",
@@ -35857,7 +35942,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "proof",
@@ -36425,7 +36511,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "problems",
@@ -36967,7 +37054,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "exercises",
@@ -37509,7 +37597,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "ol",
@@ -37636,7 +37725,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "ul",
@@ -37763,7 +37853,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "li",
@@ -38193,7 +38284,8 @@
                 }
             ],
             "top": false,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "odeSystem",
@@ -38527,7 +38619,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "cobwebPolyline",
@@ -39001,7 +39094,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "equilibriumPoint",
@@ -39454,7 +39548,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "equilibriumLine",
@@ -39896,7 +39991,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "equilibriumCurve",
@@ -40528,7 +40624,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "atom",
@@ -40797,7 +40894,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "ion",
@@ -40986,7 +41084,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "ionicCompound",
@@ -41136,7 +41235,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "electronConfiguration",
@@ -41703,7 +41803,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "orbitalDiagram",
@@ -41900,7 +42001,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "orbitalDiagramInput",
@@ -42038,7 +42140,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "feedbackDefinition",
@@ -42151,7 +42254,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "styleDefinition",
@@ -42355,7 +42459,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "sideBySide",
@@ -42594,7 +42699,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "sbsGroup",
@@ -42768,7 +42874,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "stack",
@@ -43106,7 +43213,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "h",
@@ -43459,7 +43567,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "idx",
@@ -43623,7 +43732,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "div",
@@ -44048,7 +44158,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "span",
@@ -44473,7 +44584,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "pre",
@@ -44811,7 +44923,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "displayDoenetML",
@@ -45169,7 +45282,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "paginator",
@@ -45520,7 +45634,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "paginatorControls",
@@ -45659,7 +45774,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "matrixInput",
@@ -46031,7 +46147,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "solution",
@@ -46341,7 +46458,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "givenAnswer",
@@ -46651,7 +46769,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "document",
@@ -47023,7 +47142,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "text",
@@ -47373,7 +47493,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "textList",
@@ -47561,7 +47682,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": true
         },
         {
             "name": "p",
@@ -47906,7 +48028,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "boolean",
@@ -48255,7 +48378,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "booleanList",
@@ -48380,7 +48504,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": true
         },
         {
             "name": "math",
@@ -48947,7 +49072,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "mathList",
@@ -49198,7 +49324,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": true
         },
         {
             "name": "tupleList",
@@ -49449,7 +49576,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": true
         },
         {
             "name": "numberList",
@@ -49653,7 +49781,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": true
         },
         {
             "name": "collect",
@@ -49710,7 +49839,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": true
         },
         {
             "name": "ref",
@@ -50081,7 +50211,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "point",
@@ -50510,7 +50641,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "coords",
@@ -51070,7 +51202,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "line",
@@ -51488,7 +51621,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "lineSegment",
@@ -51773,7 +51907,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "ray",
@@ -52049,7 +52184,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "polyline",
@@ -52407,7 +52543,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "polygon",
@@ -52797,7 +52934,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "triangle",
@@ -53187,7 +53325,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "rectangle",
@@ -53608,7 +53747,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "regularPolygon",
@@ -54058,7 +54198,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "circle",
@@ -54559,7 +54700,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "parabola",
@@ -55023,7 +55165,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "curve",
@@ -55631,7 +55774,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "bezierControls",
@@ -55832,7 +55976,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "controlVectors",
@@ -56059,7 +56204,8 @@
                 }
             ],
             "top": false,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "vector",
@@ -56514,7 +56660,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "angle",
@@ -56855,7 +57002,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "answer",
@@ -57583,7 +57731,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "award",
@@ -58034,7 +58183,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "when",
@@ -58405,7 +58555,8 @@
                 }
             ],
             "top": false,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "mathInput",
@@ -58934,7 +59085,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "textInput",
@@ -59324,7 +59476,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "booleanInput",
@@ -59661,7 +59814,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "choiceInput",
@@ -60003,7 +60157,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "choice",
@@ -60402,7 +60557,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "number",
@@ -60745,7 +60901,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "integer",
@@ -61093,7 +61250,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "graph",
@@ -61710,7 +61868,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "annotations",
@@ -61820,7 +61979,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "annotation",
@@ -61973,7 +62133,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "function",
@@ -62625,7 +62786,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "piecewiseFunction",
@@ -63172,7 +63334,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "interval",
@@ -63732,7 +63895,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "option",
@@ -64086,7 +64250,8 @@
                 }
             ],
             "top": false,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "sequence",
@@ -64211,7 +64376,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": true
         },
         {
             "name": "slider",
@@ -64563,7 +64729,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "spreadsheet",
@@ -64925,7 +65092,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "cell",
@@ -65339,7 +65507,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "row",
@@ -65521,7 +65690,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "column",
@@ -65659,7 +65829,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "cellBlock",
@@ -65788,7 +65959,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "tabular",
@@ -65997,7 +66169,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "table",
@@ -66331,7 +66504,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "figure",
@@ -66665,7 +66839,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "markers",
@@ -66865,7 +67040,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "repeat",
@@ -67193,7 +67369,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": true
         },
         {
             "name": "repeatForSequence",
@@ -67538,7 +67715,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": true
         },
         {
             "name": "pegboard",
@@ -67719,7 +67897,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "constrainToGrid",
@@ -67874,7 +68053,8 @@
                 }
             ],
             "top": false,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "constrainToGraph",
@@ -67989,7 +68169,8 @@
                 }
             ],
             "top": false,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "attractToGrid",
@@ -68180,7 +68361,8 @@
                 }
             ],
             "top": false,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "constrainTo",
@@ -68382,7 +68564,8 @@
                 }
             ],
             "top": false,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "attractTo",
@@ -68592,7 +68775,8 @@
                 }
             ],
             "top": false,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "constraintUnion",
@@ -68709,7 +68893,8 @@
                 }
             ],
             "top": false,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "attractToConstraint",
@@ -68834,7 +69019,8 @@
                 }
             ],
             "top": false,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "constrainToInterior",
@@ -69036,7 +69222,8 @@
                 }
             ],
             "top": false,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "intersection",
@@ -69138,7 +69325,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "conditionalContent",
@@ -69465,7 +69653,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "asList",
@@ -69726,7 +69915,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "variantControl",
@@ -69855,7 +70045,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "selectFromSequence",
@@ -70027,7 +70218,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": true
         },
         {
             "name": "select",
@@ -70147,7 +70339,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": true
         },
         {
             "name": "group",
@@ -70481,7 +70674,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "animateFromSequence",
@@ -70675,7 +70869,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "evaluate",
@@ -71196,7 +71391,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "selectRandomNumbers",
@@ -71374,7 +71570,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": true
         },
         {
             "name": "sampleRandomNumbers",
@@ -71564,7 +71761,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": true
         },
         {
             "name": "selectPrimeNumbers",
@@ -71717,7 +71915,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": true
         },
         {
             "name": "samplePrimeNumbers",
@@ -71855,7 +72054,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": true
         },
         {
             "name": "substitute",
@@ -72278,7 +72478,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": true
         },
         {
             "name": "periodicSet",
@@ -72822,7 +73023,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "image",
@@ -73085,7 +73287,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "video",
@@ -73298,7 +73501,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "hint",
@@ -73646,7 +73850,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "intComma",
@@ -74001,7 +74206,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "pluralize",
@@ -74372,7 +74578,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "feedback",
@@ -74708,7 +74915,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "considerAsResponses",
@@ -75046,7 +75254,8 @@
                 }
             ],
             "top": false,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "case",
@@ -75396,7 +75605,8 @@
                 }
             ],
             "top": false,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "lorem",
@@ -75524,7 +75734,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "updateValue",
@@ -75738,7 +75949,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "callAction",
@@ -75939,7 +76151,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "triggerSet",
@@ -76125,7 +76338,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "functionIterates",
@@ -76339,7 +76553,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "module",
@@ -76665,7 +76880,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "moduleAttributes",
@@ -76983,7 +77199,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "setup",
@@ -77303,7 +77520,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "footnote",
@@ -77564,7 +77782,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "caption",
@@ -77874,7 +78093,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "endpoint",
@@ -78327,7 +78547,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "sort",
@@ -78678,7 +78899,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": true
         },
         {
             "name": "shuffle",
@@ -79006,7 +79228,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": true
         },
         {
             "name": "solveEquations",
@@ -79247,7 +79470,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "subsetOfRealsInput",
@@ -79490,7 +79714,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "subsetOfReals",
@@ -80124,7 +80349,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "split",
@@ -80463,7 +80689,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "bestFitLine",
@@ -80806,7 +81033,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "regionBetweenCurveXAxis",
@@ -80976,7 +81204,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "regionBetweenCurves",
@@ -81160,7 +81389,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "regionHalfPlane",
@@ -81341,7 +81571,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "codeEditor",
@@ -81789,7 +82020,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "hasSameFactoring",
@@ -82146,7 +82378,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "dataFrame",
@@ -82309,7 +82542,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "summaryStatistics",
@@ -82539,7 +82773,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "legend",
@@ -82714,7 +82949,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "label",
@@ -83053,7 +83289,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "matchesPattern",
@@ -83475,7 +83712,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "matrix",
@@ -83974,7 +84212,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "eigenDecomposition",
@@ -84233,7 +84472,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "latex",
@@ -84608,7 +84848,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "blockQuote",
@@ -84946,7 +85187,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "stickyGroup",
@@ -85209,7 +85451,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "pretzel",
@@ -85507,7 +85750,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": false
+            "acceptsStringChildren": false,
+            "takesIndex": false
         },
         {
             "name": "cascade",
@@ -86080,7 +86324,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "shortDescription",
@@ -86435,7 +86680,8 @@
                 }
             ],
             "top": false,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "pointList",
@@ -86639,7 +86885,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "intervalList",
@@ -86843,7 +87090,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         },
         {
             "name": "vectorList",
@@ -87047,7 +87295,8 @@
                 }
             ],
             "top": true,
-            "acceptsStringChildren": true
+            "acceptsStringChildren": true,
+            "takesIndex": false
         }
     ]
 }

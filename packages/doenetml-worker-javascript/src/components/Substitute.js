@@ -8,6 +8,8 @@ import {
 export default class Substitute extends CompositeComponent {
     static componentType = "substitute";
 
+    static takesIndex = true;
+
     static allowInSchemaAsComponent = ["math", "text"];
 
     static stateVariableToEvaluateAfterReplacements =

@@ -15,6 +15,8 @@ import { copyStateFromUnlinkedSource, remapExtendIndices } from "./Repeat";
 export default class RepeatForSequence extends CompositeComponent {
     static componentType = "repeatForSequence";
 
+    static takesIndex = true;
+
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
     static createsVariants = true;

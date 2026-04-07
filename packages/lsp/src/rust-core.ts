@@ -1,5 +1,5 @@
 import init, { PublicDoenetMLCore } from "@doenet/doenetml-worker-rust";
-// @ts-ignore — Vite ?url resolves to a data-URL string at build time
+// @ts-expect-error — Vite ?url resolves to a data-URL string at build time
 import WASM_BYTES_DATA_URL from "@doenet/doenetml-worker-rust/lib_doenetml_worker_bg.wasm?url";
 
 // Convert data-URL to a blob URL so fetch() works regardless of the
@@ -36,6 +36,10 @@ function ensureRustWasmInitialized(): Promise<void> {
 /**
  * Lazily initialize the WASM module and return a fresh
  * `PublicDoenetMLCore` instance for each caller.
+ *
+ * Important: this intentionally does NOT return a global core singleton.
+ * The LSP keeps one adapter/core per open document so Rust-side source state
+ * and JS-side index mappings stay aligned in multi-document sessions.
  */
 export function getRustCore(): Promise<PublicDoenetMLCore> {
     return (async () => {

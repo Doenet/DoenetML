@@ -8,6 +8,8 @@ import { createNewComponentIndices } from "../utils/componentIndices";
 export default class Shuffle extends CompositeComponent {
     static componentType = "shuffle";
 
+    static takesIndex = true;
+
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
     static createsVariants = true;

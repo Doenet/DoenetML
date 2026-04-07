@@ -108,7 +108,6 @@ describe("Resolver Parity - Member Completion Resolution", () => {
 
         it("Stops resolution at unresolved path segment", () => {
             const source = `<section name="s" />\n$s.nonexistent.`;
-            const sourceObj = new DoenetSourceObject(source);
             const completer = new AutoCompleter(source, testSchema);
 
             const items = completer.getCompletionItems(source.length);

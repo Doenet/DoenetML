@@ -12,6 +12,8 @@ import CompositeComponent from "./abstract/CompositeComponent";
 export default class SelectPrimeNumbers extends CompositeComponent {
     static componentType = "selectPrimeNumbers";
 
+    static takesIndex = true;
+
     static allowInSchemaAsComponent = ["integer"];
 
     static createsVariants = true;

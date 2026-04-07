@@ -534,4 +534,41 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.wait(300);
         cy.get(".cm-tooltip-autocomplete").should("not.exist");
     });
+
+    it("inserts $name[] snippet with cursor between brackets for takesIndex elements", () => {
+        cy.mount(
+            <AutocompleteTestHarness
+                initialValue={
+                    '<repeat name="rep" numRepetitions="3"><math>x</math></repeat>\n'
+                }
+            />,
+        );
+
+        cy.get(".cm-content").click().type("{ctrl}{end}", { force: true });
+        cy.get(".cm-content").type("$re", { force: true });
+        openAutocomplete();
+
+        // Select the "rep[]" indexed completion item
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel")
+            .contains("rep[]")
+            .click();
+
+        cy.get(".cm-content")
+            .invoke("text")
+            .then((text) => {
+                // Should insert $rep[], NOT $rep[$1]
+                expect(text).to.contain("$rep[");
+                expect(text).to.contain("]");
+                expect(text).to.not.contain("$1");
+            });
+
+        // The cursor should be between the brackets, so typing inserts there.
+        cy.get(".cm-content").type("1", { force: true });
+
+        cy.get(".cm-content")
+            .invoke("text")
+            .then((text) => {
+                expect(text).to.contain("$rep[1]");
+            });
+    });
 });

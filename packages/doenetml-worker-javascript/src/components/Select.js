@@ -10,6 +10,8 @@ import { createNewComponentIndices } from "../utils/componentIndices";
 export default class Select extends CompositeComponent {
     static componentType = "select";
 
+    static takesIndex = true;
+
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
     static createsVariants = true;

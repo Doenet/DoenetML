@@ -1,6 +1,7 @@
 import { DoenetSourceObject, RowCol } from "../../doenet-source-object";
 import type { CompletionItem, Range } from "vscode-languageserver/browser";
 import { CompletionItemKind } from "vscode-languageserver/browser";
+import type { DastElement, DastRoot } from "@doenet/parser";
 import type {
     CompletionSnippetCompletionItemData,
     CompletionSnippetCursor,
@@ -10,6 +11,10 @@ import { AutoCompleter } from "../index";
 // Keep these aligned with parser grammar in `packages/parser/src/macros/macros.peggy`:
 // - SimpleIdent = [a-zA-Z_][a-zA-Z0-9_]*
 const SIMPLE_IDENTIFIER_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
+const NAME_TO_ELEMENT_TYPE_MAP_CACHE = new WeakMap<
+    DastRoot | DastElement,
+    Map<string, string>
+>();
 
 /**
  * Create an LSP Range from source offset positions.
@@ -263,6 +268,47 @@ function toRefSegmentInsertText(label: string) {
 }
 
 /**
+ * Walk the DAST and build a map from user-assigned `name` attribute values
+ * to the element's tag name (component type).  Used to look up whether
+ * a named element has `takesIndex`.
+ */
+function buildNameToElementTypeMap(
+    root: DastRoot | DastElement,
+): Map<string, string> {
+    const cachedMap = NAME_TO_ELEMENT_TYPE_MAP_CACHE.get(root);
+    if (cachedMap) {
+        return cachedMap;
+    }
+
+    const map = new Map<string, string>();
+    function walk(node: DastRoot | DastElement) {
+        if (node.type === "element") {
+            const nameAttr = node.attributes?.name;
+            if (nameAttr) {
+                const nameVal =
+                    nameAttr.children.length === 1 &&
+                    nameAttr.children[0].type === "text"
+                        ? nameAttr.children[0].value
+                        : undefined;
+                if (nameVal) {
+                    map.set(nameVal, node.name);
+                }
+            }
+        }
+        if ("children" in node) {
+            for (const child of node.children) {
+                if (child.type === "element") {
+                    walk(child);
+                }
+            }
+        }
+    }
+    walk(root);
+    NAME_TO_ELEMENT_TYPE_MAP_CACHE.set(root, map);
+    return map;
+}
+
+/**
  * Build schema-property completions for the currently resolved ref target.
  * These are shown only after descendant-name candidates so concrete named
  * children win label collisions.
@@ -375,7 +421,12 @@ export function getCompletionItems(
             .getAddressableNamesAtOffset(offset)
             .filter((parts) => parts.length === 1)
             .map((parts) => parts[0]);
-        const uniqueNames = [...new Set(addressableNames)];
+        // Inject additional names (e.g. repeat valueName/indexName) that
+        // don't exist in the raw DAST but are valid at runtime.
+        const additionalNames = this.getAdditionalRefNames(offset);
+        const uniqueNames = [
+            ...new Set([...addressableNames, ...additionalNames]),
+        ];
         const visibleNames = uniqueNames.filter((name) =>
             this.isNameAddressable(offset, name),
         );
@@ -383,7 +434,7 @@ export function getCompletionItems(
             prefix ? name.toLowerCase().startsWith(prefix) : true,
         );
 
-        return createReferenceCompletionItems(
+        const baseItems = createReferenceCompletionItems(
             this,
             filteredNames,
             completionContext.replaceFromOffset,
@@ -391,6 +442,44 @@ export function getCompletionItems(
             "Reference name",
             toRefNameInsertText,
         );
+
+        // For names that refer to takesIndex elements (repeat, select, …),
+        // offer an additional "$name[]" snippet with cursor between the
+        // brackets so the user can type the index directly.
+        const nameToElementType = buildNameToElementTypeMap(
+            this.sourceObj.dast,
+        );
+        const replaceRange = createTextEditRange(
+            this.sourceObj,
+            completionContext.replaceFromOffset,
+            offset,
+        );
+        for (const name of filteredNames) {
+            const elementType = nameToElementType.get(name);
+            if (!elementType) continue;
+            const normalized = this.normalizeElementName(elementType);
+            const schema = this.schemaElementsByName[normalized];
+            if (!schema?.takesIndex) continue;
+            const insertText = isParenthesizedContext
+                ? `${name}[]`
+                : `${toRefSegmentInsertText(name)}[]`;
+            baseItems.push({
+                label: `${name}[]`,
+                kind: CompletionItemKind.Reference,
+                detail: "Indexed reference",
+                textEdit: {
+                    range: replaceRange,
+                    newText: insertText,
+                },
+                data: {
+                    snippetCursor: {
+                        caretOffset: insertText.length - 1,
+                    },
+                } satisfies CompletionSnippetCompletionItemData,
+            });
+        }
+
+        return baseItems;
     }
 
     if (allowRefCompletion && completionContext.cursorPos === "refMember") {
@@ -406,6 +495,7 @@ export function getCompletionItems(
         const resolved = this.resolveRefMemberContainerAtOffset(
             offset,
             completionContext.pathParts,
+            completionContext.hasIndex,
         );
         const resolvedNode = resolved.node;
 
@@ -413,16 +503,46 @@ export function getCompletionItems(
             return [];
         }
 
-        const descendantNames = new Set(
-            resolved.visibleDescendantNames ??
-                this.sourceObj.getUniqueDescendantNamesForNode(resolvedNode),
-        );
-
         const componentType = this.normalizeElementName(resolvedNode.name);
+        const schema = this.schemaElementsByName[componentType];
+
+        // When the resolved element has `takesIndex: true` AND the user has
+        // NOT entered a bracket index, descendants are accessible only via
+        // index (e.g. $name[1].member), not via bare $name.member.
+        // Offer only property completions in that case.
+        // Conversely, if the element does NOT take an index but the user
+        // wrote one (e.g. $sec[1].), the access is invalid — return nothing.
+        //
+        // These checks only apply to direct references (pathParts has two
+        // entries: the root name and the empty segment being typed).
+        // For deeper paths like $rep[1].myMath., the index was consumed at
+        // the first segment and the final resolved node is a concrete
+        // descendant that should be treated normally.
+        const isDirectRef = completionContext.pathParts.length <= 2;
+        const takesIndex = schema?.takesIndex ?? false;
+
+        if (isDirectRef && !takesIndex && completionContext.hasIndex) {
+            return [];
+        }
+
+        const descendantNames =
+            isDirectRef && takesIndex && !completionContext.hasIndex
+                ? new Set<string>()
+                : new Set(
+                      resolved.visibleDescendantNames ??
+                          this.sourceObj.getUniqueDescendantNamesForNode(
+                              resolvedNode,
+                          ),
+                  );
+
+        // When the user has provided an index on a takesIndex composite
+        // (e.g. $rep[1].), the referent is a replacement child — not the
+        // composite itself.  We don't know the replacement's component type,
+        // so we can only offer descendant name completions, not properties.
         const propertyNames =
-            this.schemaElementsByName[componentType]?.properties?.map(
-                (property) => property.name,
-            ) || [];
+            isDirectRef && takesIndex && completionContext.hasIndex
+                ? []
+                : schema?.properties?.map((property) => property.name) || [];
 
         const prefix = completionContext.typedPrefix.toLowerCase();
         const filteredDescendantNames = [...descendantNames].filter((name) =>

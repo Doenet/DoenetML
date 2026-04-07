@@ -53,6 +53,11 @@ type ComponentClass = {
      * (It is assumed, but not checked, that the component actually does inherit from those types.)
      */
     inSchemaOnlyInheritAs?: string[];
+    /**
+     * If true, descendants are accessible only via index (e.g. $name[1].member).
+     * Autocomplete uses this to decide whether `$name.` offers descendant names.
+     */
+    takesIndex?: boolean;
     getAdapterComponentType: (...args: any[]) => string;
     numAdapters: number;
     /**
@@ -137,6 +142,8 @@ type SchemaElement = {
     top: boolean;
     /** Whether this component accepts string children */
     acceptsStringChildren: boolean;
+    /** Whether descendants are accessible only via index */
+    takesIndex: boolean;
 };
 
 /**
@@ -450,6 +457,7 @@ export function getSchema() {
                 cClass.componentType === "document" ||
                 documentChildrenSet.has(cClass.componentType),
             acceptsStringChildren,
+            takesIndex: cClass.takesIndex ?? false,
         });
     }
 

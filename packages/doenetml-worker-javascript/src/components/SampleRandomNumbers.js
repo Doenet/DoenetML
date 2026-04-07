@@ -13,6 +13,8 @@ export default class SampleRandomNumbers extends CompositeComponent {
     }
     static componentType = "sampleRandomNumbers";
 
+    static takesIndex = true;
+
     static allowInSchemaAsComponent = ["number"];
 
     static createsVariants = true;

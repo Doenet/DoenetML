@@ -13,6 +13,8 @@ import { createNewComponentIndices } from "../utils/componentIndices";
 export default class Repeat extends CompositeComponent {
     static componentType = "repeat";
 
+    static takesIndex = true;
+
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
     static createsVariants = true;

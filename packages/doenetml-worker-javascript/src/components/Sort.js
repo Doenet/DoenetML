@@ -6,6 +6,8 @@ import { createNewComponentIndices } from "../utils/componentIndices";
 export default class Sort extends CompositeComponent {
     static componentType = "sort";
 
+    static takesIndex = true;
+
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
     static stateVariableToEvaluateAfterReplacements =

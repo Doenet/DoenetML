@@ -12,7 +12,11 @@ import {
     documentSettings,
     documents,
 } from "../globals";
-import { AutoCompleter, RustResolverAdapter } from "@doenet/lsp-tools";
+import {
+    AutoCompleter,
+    RustResolverAdapter,
+    type RustResolverCore,
+} from "@doenet/lsp-tools";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { getRustCore } from "../rust-core";
 
@@ -84,9 +88,21 @@ export function addValidationSupport(
                     const currentInfo = documentInfo.get(uri);
                     if (!currentInfo || currentInfo !== capturedInfo) return;
                     if (capturedInfo.rustAdapter) return;
+                    // Intentionally create a dedicated core/adapter for this
+                    // document. This avoids cross-document source switching
+                    // complexity and keeps Rust state aligned with this
+                    // document's AutoCompleter mappings.
                     const adapter = new RustResolverAdapter(
                         capturedInfo.autoCompleter.sourceObj,
-                        { core: core as any },
+                        {
+                            core: core as RustResolverCore,
+                            takesIndex: (componentType: string) => {
+                                const s =
+                                    capturedInfo.autoCompleter
+                                        .schemaElementsByName[componentType];
+                                return s?.takesIndex ?? false;
+                            },
+                        },
                     );
                     capturedInfo.rustAdapter = adapter;
                     capturedInfo.autoCompleter.setResolveRefMemberContainerAtOffset(
@@ -95,6 +111,9 @@ export function addValidationSupport(
                     capturedInfo.autoCompleter.setIsNameAddressable(
                         (offset, name) =>
                             adapter.isNameAddressableFromOffset(offset, name),
+                    );
+                    capturedInfo.autoCompleter.setGetAdditionalRefNames(
+                        (offset) => adapter.getRepeatSyntheticNames(offset),
                     );
                 })
                 .catch(() => {

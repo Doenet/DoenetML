@@ -752,6 +752,7 @@ describe("AutoCompleter", () => {
                 offset: source.length,
                 pathParts: ["missing", ""],
                 nodeIndex: expect.any(Number), // Index may vary based on structure
+                hasIndex: false,
             });
             expect(items.some((item) => item.label === "myP")).toBe(true);
             expect(items.some((item) => item.label === "sectionProp")).toBe(
@@ -778,7 +779,7 @@ describe("AutoCompleter", () => {
             expect(items.some((item) => item.label === "myP")).toBe(true);
         });
 
-        it("Reports unresolved path segments from default member resolution", () => {
+        it("Reports unresolved path segments from default member resolution with null node", () => {
             const source = `<section name="mySection"><p name="myP" /></section>\n$mySection.missing.`;
             const autoCompleter = new AutoCompleter(source, refSchema.elements);
 
@@ -787,6 +788,7 @@ describe("AutoCompleter", () => {
                 ["mySection", "missing", ""],
             );
 
+            // Invalid path — node is null so no completions are offered.
             expect(resolution.node).toBeNull();
             expect(resolution.unresolvedPathParts).toEqual(["missing"]);
         });
@@ -1415,7 +1417,7 @@ describe("AutoCompleter", () => {
                 pathParts: ["s1", "p1", "x"],
             });
 
-            // Unresolved path means node is null (can't complete from an unresolved member)
+            // Invalid path — node is null so no completions are offered.
             expect(result).not.toBeNull();
             expect(result!.node).toBeNull();
             expect(result!.unresolvedPathParts).toEqual(["remaining"]);
