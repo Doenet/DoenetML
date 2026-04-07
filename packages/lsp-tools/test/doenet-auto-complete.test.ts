@@ -263,6 +263,23 @@ describe("AutoCompleter", () => {
             `);
         }
     });
+    it("Suggests child elements (not attributes) when < is typed inside a closed element", () => {
+        // Regression: typing `<` inside `<aa>...</aa>` used to return
+        // aa's attributes instead of its allowed child elements.
+        const source = `<aa><</aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("><") + 2;
+        const items = autoCompleter.getCompletionItems(offset);
+        const labels = items.map((i) => i.label);
+        // Should contain child elements, not attribute names
+        expect(labels).toContain("b");
+        expect(labels).toContain("c");
+        expect(labels).toContain("d");
+        expect(labels).not.toContain("x");
+        expect(labels).not.toContain("y");
+        expect(labels).not.toContain("xyx");
+    });
+
     it("Can suggest completions for closing tags at the end of the string", () => {
         let source: string;
         let autoCompleter: AutoCompleter;
