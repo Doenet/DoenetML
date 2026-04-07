@@ -15,6 +15,25 @@ console.log = (...args) => {
     origLog(...args.map((x) => util.inspect(x, false, 10, true)));
 };
 
+async function waitForCompletions(
+    lspConn: Awaited<ReturnType<typeof initWorker>>["lspConn"],
+    textDocument: { uri: string },
+    position: { line: number; character: number },
+): Promise<CompletionItem[]> {
+    const maxAttempts = 40;
+    for (let i = 0; i < maxAttempts; i++) {
+        const completions = (await lspConn.getCompletion({
+            textDocument,
+            position,
+        })) as CompletionItem[];
+        if (completions.length > 0) {
+            return completions;
+        }
+        await new Promise((resolve) => setTimeout(resolve, 50));
+    }
+    return [];
+}
+
 describe("Doenet Language Server", async () => {
     it("can initialize language server as a webworker", async () => {
         const worker: Worker = new LSPWorker();
@@ -65,15 +84,16 @@ describe("Doenet Language Server", async () => {
                 text: "<gra  ",
             },
         });
-        const diags = await lspConn.getCompletion({
-            textDocument: {
+        const diags = await waitForCompletions(
+            lspConn,
+            {
                 uri: "file:///test.doenet",
             },
-            position: {
+            {
                 line: 0,
                 character: 3,
             },
-        });
+        );
         expect(diags).toMatchInlineSnapshot(`
           [
             {
@@ -106,15 +126,16 @@ describe("Doenet Language Server", async () => {
                 },
             ],
         });
-        const diags = await lspConn.getCompletion({
-            textDocument: {
+        const diags = await waitForCompletions(
+            lspConn,
+            {
                 uri: "file:///test.doenet",
             },
-            position: {
+            {
                 line: 0,
                 character: 3,
             },
-        });
+        );
         expect(diags).toMatchInlineSnapshot(`
           [
             {
@@ -151,10 +172,11 @@ describe("Doenet Language Server", async () => {
             },
         });
 
-        const completionA1 = (await lspConn.getCompletion({
-            textDocument: { uri: uriA },
-            position: { line: 1, character: 6 },
-        })) as CompletionItem[];
+        const completionA1 = await waitForCompletions(
+            lspConn,
+            { uri: uriA },
+            { line: 1, character: 6 },
+        );
 
         expect(completionA1.some((item) => item.label === "fromA")).toBe(true);
         expect(completionA1.some((item) => item.label === "fromB")).toBe(false);
@@ -172,10 +194,11 @@ describe("Doenet Language Server", async () => {
             ],
         });
 
-        const completionA2 = (await lspConn.getCompletion({
-            textDocument: { uri: uriA },
-            position: { line: 1, character: 6 },
-        })) as CompletionItem[];
+        const completionA2 = await waitForCompletions(
+            lspConn,
+            { uri: uriA },
+            { line: 1, character: 6 },
+        );
 
         expect(completionA2.some((item) => item.label === "fromA")).toBe(true);
         expect(completionA2.some((item) => item.label === "fromB2")).toBe(
@@ -352,15 +375,16 @@ describe("Doenet Language Server", async () => {
                 text: "<",
             },
         });
-        const completions = (await lspConn.getCompletion({
-            textDocument: {
+        const completions = await waitForCompletions(
+            lspConn,
+            {
                 uri: "file:///test-snippet.doenet",
             },
-            position: {
+            {
                 line: 0,
                 character: 1,
             },
-        })) as CompletionItem[];
+        );
 
         // The test schema should have some elements
         // Check that we get completion items back

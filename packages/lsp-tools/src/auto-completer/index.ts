@@ -6,6 +6,7 @@ import { DastAttribute, DastElement } from "@doenet/parser";
 import { getCompletionItems } from "./methods/get-completion-items";
 import { getSchemaViolations } from "./methods/get-schema-violations";
 import { getCompletionContext } from "./methods/get-completion-context";
+import type { RustResolverAdapter } from "./rust-resolver-adapter";
 
 type ElementSchema = {
     name: string;
@@ -47,7 +48,7 @@ export type RefMemberContainerResolution = {
      * When provided by the resolver, this is the list of descendant names
      * that are actually visible from the resolved node (respecting
      * visibility rules like `ChildrenInvisibleToTheirGrandparents`).
-     * If absent, the caller falls back to the JS descendant name walk.
+     * The completion pipeline expects this to be provided by the resolver.
      */
     visibleDescendantNames?: string[];
 };
@@ -57,13 +58,7 @@ export type ResolveRefMemberContainer = (
 ) => RefMemberContainerResolution | null;
 
 export type AutoCompleterOptions = {
-    resolveRefMemberContainerAtOffset?: ResolveRefMemberContainer;
-    /**
-     * Optional callback that tests whether a given name is addressable
-     * (visible) from the cursor position.  Used to filter `$name`
-     * completions according to Rust resolver visibility rules.
-     */
-    isNameAddressable?: (offset: number, name: string) => boolean;
+    rustResolverAdapter?: RustResolverAdapter;
 };
 
 /**
@@ -100,8 +95,7 @@ function adjustCursorForTrimStart(
 export class AutoCompleter {
     sourceObj: DoenetSourceObject = new DoenetSourceObject();
     schema: ElementSchema[] = [];
-    private resolveRefMemberContainerAtOffsetImpl?: ResolveRefMemberContainer;
-    private isNameAddressableImpl?: (offset: number, name: string) => boolean;
+    private rustResolverAdapter?: RustResolverAdapter;
     private getAdditionalRefNamesImpl?: (offset: number) => string[];
     /**
      * A map of element names (in lower case) to their canonical capitalization.
@@ -133,29 +127,17 @@ export class AutoCompleter {
             // will be parsed as a text "<" rather than an invalid element.
             this.sourceObj.setSource(source + " ");
         }
-        this.resolveRefMemberContainerAtOffsetImpl =
-            options?.resolveRefMemberContainerAtOffset;
-        this.isNameAddressableImpl = options?.isNameAddressable;
+        this.rustResolverAdapter = options?.rustResolverAdapter;
         if (schema) {
             this.setSchema(schema);
         }
     }
 
     /**
-     * Replace the ref-member container resolver used during completion.
-     * Pass `undefined` to restore default in-process resolution.
+     * Set the Rust resolver adapter used for `$name` visibility filtering.
      */
-    setResolveRefMemberContainerAtOffset(resolver?: ResolveRefMemberContainer) {
-        this.resolveRefMemberContainerAtOffsetImpl = resolver;
-        return this;
-    }
-
-    /**
-     * Replace the name-addressability checker used during `$name` completion.
-     * Pass `undefined` to restore default (allow all names).
-     */
-    setIsNameAddressable(fn?: (offset: number, name: string) => boolean) {
-        this.isNameAddressableImpl = fn;
+    setRustResolverAdapter(adapter?: RustResolverAdapter) {
+        this.rustResolverAdapter = adapter;
         return this;
     }
 
@@ -178,13 +160,16 @@ export class AutoCompleter {
 
     /**
      * Test whether `name` is addressable from `offset`.
-     * Falls back to `true` when no checker is set.
+     * Returns `false` when no Rust resolver adapter is set.
      */
     isNameAddressable(offset: number, name: string): boolean {
-        if (this.isNameAddressableImpl) {
-            return this.isNameAddressableImpl(offset, name);
+        if (this.rustResolverAdapter) {
+            return this.rustResolverAdapter.isNameAddressableFromOffset(
+                offset,
+                name,
+            );
         }
-        return true;
+        return false;
     }
 
     /**
@@ -199,73 +184,22 @@ export class AutoCompleter {
         pathParts: string[],
         hasIndex?: boolean,
     ): RefMemberContainerResolution {
-        if (this.resolveRefMemberContainerAtOffsetImpl) {
-            const nodeIndex = this.sourceObj.getNodeIndexAtOffset(offset);
-            const resolved = this.resolveRefMemberContainerAtOffsetImpl({
-                offset,
-                pathParts,
-                nodeIndex,
-                hasIndex,
-            });
+        if (this.rustResolverAdapter) {
+            const resolved =
+                this.rustResolverAdapter.resolveRefMemberContainerAtOffset(
+                    offset,
+                    pathParts,
+                    hasIndex,
+                );
             if (resolved) {
                 return resolved;
             }
         }
-
-        if (pathParts.length === 0) {
-            return {
-                node: null,
-                unresolvedPathParts: [],
-            };
-        }
-
-        const lookupPathParts = pathParts.slice(0, -1);
-        if (lookupPathParts.length === 0) {
-            return {
-                node: null,
-                unresolvedPathParts: [],
-            };
-        }
-
-        let referent = this.sourceObj.getReferentAtOffset(
-            offset,
-            lookupPathParts[0],
-        );
-        if (!referent) {
-            return {
-                node: null,
-                unresolvedPathParts: lookupPathParts,
-            };
-        }
-
-        let firstUnresolvedPartIndex = -1;
-        for (let i = 1; i < lookupPathParts.length; i++) {
-            const part = lookupPathParts[i];
-            const child = this.sourceObj.getNamedDescendant(referent, part);
-            if (!child) {
-                firstUnresolvedPartIndex = i;
-                break;
-            }
-            referent = child;
-        }
-
         const unresolvedPathParts =
-            firstUnresolvedPartIndex === -1
-                ? []
-                : lookupPathParts.slice(firstUnresolvedPartIndex);
-
-        // When there are unresolved parts, the path is invalid —
-        // return null so the caller offers no completions.
-        if (unresolvedPathParts.length > 0) {
-            return {
-                node: null,
-                unresolvedPathParts,
-            };
-        }
-
+            pathParts.length > 0 ? pathParts.slice(0, -1) : [];
         return {
-            node: referent,
-            unresolvedPathParts: [],
+            node: null,
+            unresolvedPathParts,
         };
     }
 

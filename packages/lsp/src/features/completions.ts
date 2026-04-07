@@ -11,6 +11,9 @@ export function addDocumentCompletionSupport(
         if (!info) {
             return [];
         }
+        if (info.rustState !== "ready" || !info.rustAdapter) {
+            return [];
+        }
         const completions = info.autoCompleter.getCompletionItems(
             params.position,
         );

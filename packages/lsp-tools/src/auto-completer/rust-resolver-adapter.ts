@@ -1,6 +1,7 @@
 import type { DastElement, DastNodes } from "@doenet/parser";
 import type { DoenetSourceObject } from "../doenet-source-object";
 import type {
+    RefMemberContainerResolution,
     ResolveRefMemberContainer,
     ResolveRefMemberContainerArgs,
 } from "./index";
@@ -180,9 +181,9 @@ export interface RustResolverAdapterOptions {
  * with the AutoCompleter's pluggable resolver seam.
  *
  * When constructed without a `core`, the adapter is disabled and its resolver
- * returns `null`, allowing the JS fallback to handle resolution. When a core
- * is supplied, source is synced to the Rust side, position-based index mappings
- * are built, and the resolver calls resolve_path() for each completion request.
+ * returns `null`. When a core is supplied, source is synced to the Rust side,
+ * position-based index mappings are built, and the resolver calls
+ * resolve_path() for each completion request.
  */
 export class RustResolverAdapter {
     private core: RustResolverCore | null = null;
@@ -282,6 +283,22 @@ export class RustResolverAdapter {
             this.rustIndexToDastElement.set(id, dastElm);
             this.dastElementToRustIndex.set(dastElm, id);
         }
+    }
+
+    /**
+     * Resolve a ref-member container for AutoCompleter member completion.
+     */
+    resolveRefMemberContainerAtOffset(
+        offset: number,
+        pathParts: string[],
+        hasIndex?: boolean,
+    ): RefMemberContainerResolution | null {
+        return this.createResolver()({
+            offset,
+            pathParts,
+            nodeIndex: this.sourceObj.getNodeIndexAtOffset(offset),
+            hasIndex,
+        });
     }
 
     /**
@@ -470,7 +487,7 @@ export class RustResolverAdapter {
      * This respects `ChildrenInvisibleToTheirGrandparents` etc.
      */
     isNameAddressableFromOffset(offset: number, name: string): boolean {
-        if (!this.enabled || !this.core) return true; // fallback: allow
+        if (!this.enabled || !this.core) return false;
 
         // Synthetic names from repeat valueName/indexName are always
         // addressable from inside the repeat — they bypass resolve_path.
@@ -512,7 +529,7 @@ export class RustResolverAdapter {
             resolveFromIndex = this.getRootOriginIndex();
         }
 
-        if (resolveFromIndex == null) return true;
+        if (resolveFromIndex == null) return false;
 
         try {
             const resolution = this.core.resolve_path(

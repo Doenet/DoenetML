@@ -528,12 +528,7 @@ export function getCompletionItems(
         const descendantNames =
             isDirectRef && takesIndex && !completionContext.hasIndex
                 ? new Set<string>()
-                : new Set(
-                      resolved.visibleDescendantNames ??
-                          this.sourceObj.getUniqueDescendantNamesForNode(
-                              resolvedNode,
-                          ),
-                  );
+                : new Set(resolved.visibleDescendantNames ?? []);
 
         // When the user has provided an index on a takesIndex composite
         // (e.g. $rep[1].), the referent is a replacement child — not the

@@ -50,6 +50,10 @@ export const documentInfo: Map<
          * Rust WASM resolver adapter, created lazily once the WASM module loads.
          */
         rustAdapter?: RustResolverAdapter;
+        /**
+         * Rust resolver lifecycle state for this document.
+         */
+        rustState: "uninitialized" | "initializing" | "ready" | "unavailable";
     }
 > = new Map();
 export type DocumentInfo = typeof documentInfo;

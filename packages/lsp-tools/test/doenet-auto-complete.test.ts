@@ -382,9 +382,83 @@ describe("AutoCompleter", () => {
             ],
         };
 
+        function createRefAutoCompleter(source: string) {
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            autoCompleter.setRustResolverAdapter({
+                isNameAddressableFromOffset: () => true,
+                resolveRefMemberContainerAtOffset: (
+                    offset: number,
+                    pathParts: string[],
+                ) => {
+                    if (pathParts.length === 0) {
+                        return {
+                            node: null,
+                            unresolvedPathParts: [],
+                        };
+                    }
+
+                    const lookupPathParts = pathParts.slice(0, -1);
+                    if (lookupPathParts.length === 0) {
+                        return {
+                            node: null,
+                            unresolvedPathParts: [],
+                        };
+                    }
+
+                    let referent = autoCompleter.sourceObj.getReferentAtOffset(
+                        offset,
+                        lookupPathParts[0],
+                    );
+                    if (!referent) {
+                        return {
+                            node: null,
+                            unresolvedPathParts: lookupPathParts,
+                        };
+                    }
+
+                    let firstUnresolvedPartIndex = -1;
+                    for (let i = 1; i < lookupPathParts.length; i++) {
+                        const part = lookupPathParts[i];
+                        const child =
+                            autoCompleter.sourceObj.getNamedDescendant(
+                                referent,
+                                part,
+                            );
+                        if (!child) {
+                            firstUnresolvedPartIndex = i;
+                            break;
+                        }
+                        referent = child;
+                    }
+
+                    const unresolvedPathParts =
+                        firstUnresolvedPartIndex === -1
+                            ? []
+                            : lookupPathParts.slice(firstUnresolvedPartIndex);
+
+                    if (unresolvedPathParts.length > 0) {
+                        return {
+                            node: null,
+                            unresolvedPathParts,
+                        };
+                    }
+
+                    return {
+                        node: referent,
+                        unresolvedPathParts: [],
+                        visibleDescendantNames:
+                            autoCompleter.sourceObj.getUniqueDescendantNamesForNode(
+                                referent,
+                            ),
+                    };
+                },
+            } as unknown as RustResolverAdapter);
+            return autoCompleter;
+        }
+
         it("Suggests reference names after $ with prefix filtering", () => {
             const source = `<section name="mySection"><p name="myP" /></section><p name="other" />\n$myS`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset = source.length;
             const items = autoCompleter.getCompletionItems(offset);
@@ -408,7 +482,7 @@ describe("AutoCompleter", () => {
 
         it("Inserts parenthesized macro text for hyphenated names after $", () => {
             const source = `<math name="foo-bar" />\n$f`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const items = autoCompleter.getCompletionItems(source.length);
             const fooBarItem = items.find((item) => item.label === "foo-bar");
@@ -423,7 +497,7 @@ describe("AutoCompleter", () => {
 
         it("Keeps plain macro text for simple names after $", () => {
             const source = `<math name="foo_bar" />\n$f`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const items = autoCompleter.getCompletionItems(source.length);
             const fooBarItem = items.find((item) => item.label === "foo_bar");
@@ -438,7 +512,7 @@ describe("AutoCompleter", () => {
 
         it("Suggests descendant names and properties after dot, with descendants winning collisions", () => {
             const source = `<section name="mySection"><p name="myP" /></section>\n$mySection.`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset = source.length;
             const items = autoCompleter.getCompletionItems(offset);
@@ -455,7 +529,7 @@ describe("AutoCompleter", () => {
 
         it("Only suggests uniquely addressable descendant names after dot", () => {
             const source = `<section name="mySection"><p name="dup" /><p name="dup" /><p name="unique" /></section>\n$mySection.`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset = source.length;
             const items = autoCompleter.getCompletionItems(offset);
@@ -468,7 +542,7 @@ describe("AutoCompleter", () => {
 
         it("Only suggests member names that resolve uniquely from the same context", () => {
             const source = `<section name="mySection"><p name="dup" /><p name="dup" /><p name="unique" /></section>\n$mySection.`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset = source.length;
             const section = autoCompleter.sourceObj.getReferentAtOffset(
@@ -492,7 +566,7 @@ describe("AutoCompleter", () => {
 
         it("Excludes ambiguous names in top-level completions after $", () => {
             const source = `<section><p name="dup" /><p name="dup" /><p name="unique" /></section>\n$`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const items = autoCompleter
                 .getCompletionItems(source.length)
@@ -505,7 +579,7 @@ describe("AutoCompleter", () => {
 
         it("Suggests descendant names and properties after dot at the start of the file", () => {
             const source = `$mySection.\n<section name="mySection"><p name="myP" /></section>`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset = source.indexOf("\n");
             const items = autoCompleter.getCompletionItems(offset);
@@ -518,7 +592,7 @@ describe("AutoCompleter", () => {
 
         it("Suggests members after chained descendant access", () => {
             const source = `<section name="mySection"><p name="myP" /></section>\n$mySection.myP.`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset = source.length;
             const items = autoCompleter.getCompletionItems(offset);
@@ -531,7 +605,7 @@ describe("AutoCompleter", () => {
 
         it("Suggests reference names inside attribute values after $", () => {
             const source = `<section name="mySection" /><line through="$myS" />`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset = source.indexOf("$myS") + "$myS".length;
             const items = autoCompleter.getCompletionItems(offset);
@@ -547,7 +621,7 @@ describe("AutoCompleter", () => {
 
         it("Suggests descendant members inside attribute values after dot with member prefix", () => {
             const source = `<section name="mySection"><p name="myP" /></section><line through="$mySection.my" />`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset =
                 source.indexOf("$mySection.my") + "$mySection.my".length;
@@ -564,7 +638,7 @@ describe("AutoCompleter", () => {
 
         it("Suggests reference names in parenthesized macros with hyphenated prefixes", () => {
             const source = `<math name="foo-bar" /><math name="foo-baz" />\n$(foo-ba`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset = source.length;
             const completionContext =
@@ -582,7 +656,7 @@ describe("AutoCompleter", () => {
 
         it("Suggests member completions in parenthesized macros with hyphenated names", () => {
             const source = `<section name="foo-bar"><p name="myP" /></section>\n$(foo-bar.my`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset = source.length;
             const completionContext =
@@ -599,7 +673,7 @@ describe("AutoCompleter", () => {
 
         it("Suggests member completions after dot on completed parenthesized macros", () => {
             const source = `<section name="foo-bar"><p name="myP" /></section>\n$(foo-bar).`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset = source.length;
             const completionContext =
@@ -620,7 +694,7 @@ describe("AutoCompleter", () => {
 
         it("Inserts parenthesized member text for hyphenated names after dot", () => {
             const source = `<section name="base"><p name="my-p" /><p name="my_p" /></section>\n$base.my`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const items = autoCompleter.getCompletionItems(source.length);
             const hyphenItem = items.find((item) => item.label === "my-p");
@@ -642,7 +716,7 @@ describe("AutoCompleter", () => {
 
         it("Applies same member insertion policy after dot in parenthesized refs", () => {
             const source = `<section name="base"><p name="my-p" /><p name="my_p" /></section>\n$(base).my`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const items = autoCompleter.getCompletionItems(source.length);
             const hyphenItem = items.find((item) => item.label === "my-p");
@@ -664,7 +738,7 @@ describe("AutoCompleter", () => {
 
         it("Classifies parenthesized member-segment syntax after dot as refMember", () => {
             const source = `<section name="base"><p name="my-p" /></section>\n$(base).(my`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const completionContext = autoCompleter.getCompletionContext(
                 source.length,
@@ -677,7 +751,7 @@ describe("AutoCompleter", () => {
 
         it("Does not double-parenthesize insertion in .(member) contexts", () => {
             const source = `<section name="base"><p name="my-p" /></section>\n$(base).(my`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const items = autoCompleter.getCompletionItems(source.length);
             const hyphenItem = items.find((item) => item.label === "my-p");
@@ -689,7 +763,7 @@ describe("AutoCompleter", () => {
             }
         });
 
-        it("Keeps completion visible when a descendant member is fully typed", () => {
+        it("Returns no ref-member completion when no resolver is configured", () => {
             const pointSchema = {
                 elements: [
                     {
@@ -717,11 +791,7 @@ describe("AutoCompleter", () => {
 
             const offset = source.length;
             const items = autoCompleter.getCompletionItems(offset);
-            const coordsItems = items.filter((item) => item.label === "coords");
-
-            expect(coordsItems).toHaveLength(1);
-            expect(coordsItems[0].kind).toBe(CompletionItemKind.Reference);
-            expect(coordsItems[0].detail).toBe("Descendant reference name");
+            expect(items).toEqual([]);
         });
 
         it("Returns no ref completions in invalid or unresolved contexts", () => {
@@ -750,45 +820,52 @@ describe("AutoCompleter", () => {
             }
         });
 
-        it("Uses injected resolver hook for member completion", () => {
+        it("Uses adapter-provided member resolution for completions", () => {
             const source = `<section name="mySection"><p name="myP" /></section>\n$missing.`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
-            const resolver = vi.fn(({ offset }: { offset: number }) => ({
+            const autoCompleter = createRefAutoCompleter(source);
+            const resolver = vi.fn((offset: number) => ({
                 node: autoCompleter.sourceObj.getReferentAtOffset(
                     offset,
                     "mySection",
                 ),
                 unresolvedPathParts: [],
+                visibleDescendantNames: ["myP"],
             }));
-            autoCompleter.setResolveRefMemberContainerAtOffset(resolver);
+            autoCompleter.setRustResolverAdapter({
+                isNameAddressableFromOffset: () => true,
+                resolveRefMemberContainerAtOffset: resolver,
+            } as unknown as RustResolverAdapter);
 
             const items = autoCompleter.getCompletionItems(source.length);
 
             expect(resolver).toHaveBeenCalledOnce();
-            expect(resolver).toHaveBeenCalledWith({
-                offset: source.length,
-                pathParts: ["missing", ""],
-                nodeIndex: expect.any(Number), // Index may vary based on structure
-                hasIndex: false,
-            });
+            expect(resolver).toHaveBeenCalledWith(
+                source.length,
+                ["missing", ""],
+                false,
+            );
             expect(items.some((item) => item.label === "myP")).toBe(true);
             expect(items.some((item) => item.label === "sectionProp")).toBe(
                 true,
             );
         });
 
-        it("Allows setting resolver hook after construction", () => {
+        it("Allows attaching a Rust resolver adapter after construction", () => {
             const source = `<section name="mySection"><p name="myP" /></section>\n$missing.`;
             const autoCompleter = new AutoCompleter(source, refSchema.elements);
-            const resolver = vi.fn(({ offset }: { offset: number }) => ({
+            const resolver = vi.fn((offset: number) => ({
                 node: autoCompleter.sourceObj.getReferentAtOffset(
                     offset,
                     "mySection",
                 ),
                 unresolvedPathParts: [],
+                visibleDescendantNames: ["myP"],
             }));
 
-            autoCompleter.setResolveRefMemberContainerAtOffset(resolver);
+            autoCompleter.setRustResolverAdapter({
+                isNameAddressableFromOffset: () => true,
+                resolveRefMemberContainerAtOffset: resolver,
+            } as unknown as RustResolverAdapter);
 
             const items = autoCompleter.getCompletionItems(source.length);
 
@@ -798,7 +875,7 @@ describe("AutoCompleter", () => {
 
         it("Reports unresolved path segments from default member resolution with null node", () => {
             const source = `<section name="mySection"><p name="myP" /></section>\n$mySection.missing.`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const resolution = autoCompleter.resolveRefMemberContainerAtOffset(
                 source.length,
@@ -812,28 +889,22 @@ describe("AutoCompleter", () => {
 
         it("Passes node index to resolver for index-based resolution", () => {
             const source = `<section name="mySection"><p name="myP" /></section>\n$missing.`;
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
 
             // Mock resolver that captures the nodeIndex parameter
             const indexCapture: (number | null)[] = [];
             const resolver = vi.fn(
-                ({
-                    nodeIndex,
-                }: {
-                    offset: number;
-                    pathParts: string[];
-                    nodeIndex?: number | null;
-                }) => {
-                    indexCapture.push(nodeIndex ?? null);
-                    // Return no resolution (mock behavior)
+                (offset: number, _pathParts: string[], _hasIndex?: boolean) => {
+                    indexCapture.push(
+                        autoCompleter.sourceObj.getNodeIndexAtOffset(offset),
+                    );
                     return null;
                 },
             );
-
-            const autoCompleter = new AutoCompleter(
-                source,
-                refSchema.elements,
-                { resolveRefMemberContainerAtOffset: resolver },
-            );
+            autoCompleter.setRustResolverAdapter({
+                isNameAddressableFromOffset: () => true,
+                resolveRefMemberContainerAtOffset: resolver,
+            } as unknown as RustResolverAdapter);
 
             autoCompleter.getCompletionItems(source.length);
 
@@ -846,21 +917,21 @@ describe("AutoCompleter", () => {
         it("Allows Rust-backed resolver to use node index directly", () => {
             const source = `<section name="mySection"><p name="myP" /></section>\n$missing.`;
 
-            // Simulate Rust resolver: receives offset and index, performs resolution
+            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+
+            // Simulate Rust resolver: receives offset/path, then derives node index.
             const rustSimulator = vi.fn(
-                ({
-                    offset,
-                    nodeIndex,
-                    pathParts,
-                }: {
-                    offset: number;
-                    nodeIndex?: number | null;
-                    pathParts: string[];
-                }) => {
-                    // In real Rust implementation, would call:
-                    // resolve_path(origin_index, path_parts) -> {node_index, unresolved_path}
+                (offset: number, pathParts: string[]) => {
+                    const nodeIndex =
+                        autoCompleter.sourceObj.getNodeIndexAtOffset(offset);
+                    // In real Rust implementation, adapter would call
+                    // resolve_path(origin_index, path_parts).
                     // For this test, simulate successful resolution to the root element
-                    if (nodeIndex !== null && nodeIndex !== undefined) {
+                    if (
+                        nodeIndex !== null &&
+                        nodeIndex !== undefined &&
+                        pathParts.length > 0
+                    ) {
                         return {
                             node: {
                                 name: "section",
@@ -874,23 +945,19 @@ describe("AutoCompleter", () => {
                     return null;
                 },
             );
-
-            const autoCompleter = new AutoCompleter(
-                source,
-                refSchema.elements,
-                { resolveRefMemberContainerAtOffset: rustSimulator },
-            );
+            autoCompleter.setRustResolverAdapter({
+                isNameAddressableFromOffset: () => true,
+                resolveRefMemberContainerAtOffset: rustSimulator,
+            } as unknown as RustResolverAdapter);
 
             const items = autoCompleter.getCompletionItems(source.length);
 
-            // Verify the Rust-backed resolver was called with the node index
+            // Verify the Rust-backed resolver was called with the source context.
             expect(rustSimulator).toHaveBeenCalledOnce();
             expect(rustSimulator).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    offset: source.length,
-                    nodeIndex: expect.any(Number),
-                    pathParts: expect.any(Array),
-                }),
+                source.length,
+                expect.any(Array),
+                false,
             );
             // Since resolver provided a section node with properties, should have completion items
             expect(items.length).toBeGreaterThan(0);
@@ -1131,62 +1198,36 @@ describe("AutoCompleter", () => {
         });
     });
 
-    describe("RustResolverAdapter architecture", () => {
-        it("Creates a resolver callback compatible with AutoCompleter", () => {
+    describe("RustResolverAdapter contract", () => {
+        it("Creates a disabled resolver callback when no core is attached", () => {
             const source = `<section name="mySection"><p name="myP" /></section>`;
             const sourceObj = new DoenetSourceObject(source);
 
             const adapter = new RustResolverAdapter(sourceObj);
-            const resolver = adapter.createResolver();
+            expect(adapter.isEnabled()).toBe(false);
 
-            // Verify resolver is a function
+            const resolver = adapter.createResolver();
             expect(typeof resolver).toBe("function");
 
-            // Verify it accepts resolver args and returns RefMemberContainerResolution
             const result = resolver({
                 offset: 10,
                 pathParts: ["foo", "bar"],
                 nodeIndex: 2,
             });
 
-            // When Rust backend is not initialized, resolver returns null (fallback)
+            // Without a core, the adapter exposes a disabled resolver.
             expect(result).toBeNull();
         });
 
-        it("Provides disabled resolver when WASM not initialized", () => {
-            const source = `<aa><b></b></aa>`;
-            const sourceObj = new DoenetSourceObject(source);
-
-            const adapter = new RustResolverAdapter(sourceObj);
-
-            // Resolver should be disabled by default if WASM not available
-            expect(adapter.isEnabled()).toBe(false);
-
-            const resolver = adapter.createResolver();
-            const result = resolver({
-                offset: 5,
-                pathParts: ["x", "y"],
-                nodeIndex: 3,
-            });
-
-            // Disabled resolver returns null, allowing JS fallback
-            expect(result).toBeNull();
-        });
-
-        it("Demonstrates node index flow to resolver", () => {
+        it("Passes node index through resolver args", () => {
             const source = `<section name="root"><p name="child" /></section>\n$root.`;
             const sourceObj = new DoenetSourceObject(source);
 
-            // Get node index at offset
             const offset = source.length - 1; // At the dot
             const nodeIndex = sourceObj.getNodeIndexAtOffset(offset);
 
             expect(typeof nodeIndex).toBe("number");
 
-            // Create adapter and resolver
-            const adapter = new RustResolverAdapter(sourceObj);
-
-            // Resolver receives the node index - demonstrate flow
             const testResolver = (args: any) => {
                 expect(args.nodeIndex).toBe(nodeIndex);
                 return null;
@@ -1199,7 +1240,7 @@ describe("AutoCompleter", () => {
             });
         });
 
-        it("Integrates with AutoCompleter via dependency injection", () => {
+        it("Returns no ref completions when the adapter is disabled", () => {
             const source = `<section name="s1"><p name="p1" /></section>\n$s1.`;
             const sourceObj = new DoenetSourceObject(source);
 
@@ -1224,40 +1265,13 @@ describe("AutoCompleter", () => {
             ];
 
             const adapter = new RustResolverAdapter(sourceObj);
-            const resolver = adapter.createResolver();
-
-            // Pass resolver to AutoCompleter
             const autoCompleter = new AutoCompleter(source, testSchema, {
-                resolveRefMemberContainerAtOffset: resolver,
+                rustResolverAdapter: adapter,
             });
 
-            // Resolver will be called during completion lookup
-            // When WASM not initialized, falls back to JS resolver
             const items = autoCompleter.getCompletionItems(source.length);
 
-            // Should have completion items (from JS fallback)
-            expect(items.length).toBeGreaterThan(0);
-        });
-
-        it("Documents architecture for Rust resolver integration", () => {
-            // This test documents the integration point for Rust resolver
-            // When PublicDoenetMLCore.resolve_path() is called, interface will be:
-            //
-            // Current incomplete adapter returns null -> JS fallback
-            // Future: Load WASM, call resolve_path(), map results back to DAST
-            //
-            // Architecture pattern:
-            // 1. Offset -> getNodeIndexAtOffset() -> node index
-            // 2. Node index + pathParts -> resolver callback
-            // 3. Resolver calls resolve_path(origin_index) with Rust PathToCheck format
-            // 4. Maps result.node_idx back to DAST for completions
-
-            const sourceObj = new DoenetSourceObject("<aa></aa>");
-            const adapter = new RustResolverAdapter(sourceObj);
-
-            // Without a core, adapter is disabled
-            expect(adapter.isEnabled()).toBe(false);
-            expect(typeof adapter.createResolver).toBe("function");
+            expect(items).toEqual([]);
         });
     });
 
@@ -1438,39 +1452,6 @@ describe("AutoCompleter", () => {
             expect(result).not.toBeNull();
             expect(result!.node).toBeNull();
             expect(result!.unresolvedPathParts).toEqual(["remaining"]);
-        });
-
-        it("Falls back to JS resolver when adapter disabled", () => {
-            const source = `<section name="s1"><p name="p1" /></section>\n$s1.`;
-            const sourceObj = new DoenetSourceObject(source + " ");
-            const testSchema = [
-                {
-                    name: "section",
-                    children: ["p"],
-                    attributes: [],
-                    properties: [{ name: "p1" }],
-                    top: true,
-                    acceptsStringChildren: true,
-                },
-                {
-                    name: "p",
-                    children: [],
-                    attributes: [],
-                    properties: [],
-                    top: false,
-                    acceptsStringChildren: true,
-                },
-            ];
-
-            // No core → disabled adapter → falls back to JS
-            const adapter = new RustResolverAdapter(sourceObj);
-            const resolver = adapter.createResolver();
-
-            const autoCompleter = new AutoCompleter(source, testSchema, {
-                resolveRefMemberContainerAtOffset: resolver,
-            });
-            const items = autoCompleter.getCompletionItems(source.length);
-            expect(items.length).toBeGreaterThan(0);
         });
 
         it("Handles updateSource to re-sync with core", () => {

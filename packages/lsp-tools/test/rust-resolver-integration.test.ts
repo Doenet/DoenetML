@@ -66,10 +66,7 @@ function createCompleterWithAdapter(
         core,
         takesIndex: (name: string) => takesIndexSet.has(name),
     });
-    completer.setResolveRefMemberContainerAtOffset(adapter.createResolver());
-    completer.setIsNameAddressable((offset, name) =>
-        adapter.isNameAddressableFromOffset(offset, name),
-    );
+    completer.setRustResolverAdapter(adapter);
     if (options?.includeAdditionalRefNames) {
         completer.setGetAdditionalRefNames((offset) =>
             adapter.getRepeatSyntheticNames(offset),
@@ -163,16 +160,9 @@ describe.skipIf(!wasmAvailable)(
             ).toBe("s2");
         });
 
-        it("Rust resolver produces same result as JS fallback for basic refs", () => {
+        it("Rust resolver resolves basic refs", () => {
             const source = `<section name="sec"><p name="para">stuff</p></section>\n$sec.`;
             const sourceObj = new DoenetSourceObject(source);
-
-            const acJS = new AutoCompleter();
-            acJS.setSource(source);
-            const jsResult = acJS.resolveRefMemberContainerAtOffset(
-                source.indexOf("$sec.") + 5,
-                ["sec", ""],
-            );
 
             const core = PublicDoenetMLCore.new() as RustResolverCore;
             core.set_flags("{}");
@@ -184,18 +174,12 @@ describe.skipIf(!wasmAvailable)(
             });
 
             expect(rustResult).not.toBeNull();
-            expect(jsResult.node?.type).toBe("element");
             expect(rustResult!.node?.type).toBe("element");
-            expect(
-                (jsResult.node as any)?.attributes?.name?.children?.[0]?.value,
-            ).toBe("sec");
             expect(
                 (rustResult!.node as any)?.attributes?.name?.children?.[0]
                     ?.value,
             ).toBe("sec");
-            expect(rustResult!.unresolvedPathParts).toEqual(
-                jsResult.unresolvedPathParts,
-            );
+            expect(rustResult!.unresolvedPathParts).toEqual([]);
         });
 
         it("visibleDescendantNames respects ChildrenInvisibleToTheirGrandparents for <repeat>", () => {

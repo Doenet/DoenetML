@@ -23,12 +23,49 @@ try {
 
 let wasmInitPromise: Promise<unknown> | null = null;
 
+type NodeProcessLike = {
+    cwd(): string;
+    versions?: {
+        node?: unknown;
+    };
+};
+
+function getNodeProcess(): NodeProcessLike | undefined {
+    return (globalThis as typeof globalThis & { process?: NodeProcessLike })
+        .process;
+}
+
+async function initWasmWithNodePathWorkaround(): Promise<void> {
+    try {
+        await init(wasmBlobUrl);
+        return;
+    } catch (error) {
+        const nodeProcess = getNodeProcess();
+        const runningInNode = !!nodeProcess?.versions?.node;
+        const canTryFsPath = runningInNode && wasmBlobUrl.startsWith("/");
+        if (!canTryFsPath) {
+            throw error;
+        }
+
+        // In Node-based test runners, Vite may resolve `?url` as a
+        // workspace-root-relative path (e.g. `/packages/...wasm`) rather
+        // than a fetchable URL. Load bytes from disk in that case.
+        // @ts-expect-error Node-only import in a browser-targeted package.
+        const fs = await import("node:fs/promises");
+        // @ts-expect-error Node-only import in a browser-targeted package.
+        const path = await import("node:path");
+        const wasmPath = path.resolve(nodeProcess.cwd(), `.${wasmBlobUrl}`);
+        const wasmBytes = await fs.readFile(wasmPath);
+        await init(wasmBytes);
+    }
+}
+
 /**
  * Lazily initialize the WASM module once per worker runtime.
  */
 function ensureRustWasmInitialized(): Promise<void> {
     if (!wasmInitPromise) {
-        wasmInitPromise = init(wasmBlobUrl);
+        wasmInitPromise = initWasmWithNodePathWorkaround();
     }
     return wasmInitPromise.then(() => {});
 }

@@ -68,20 +68,24 @@ export function addValidationSupport(
         let info = documentInfo.get(uri);
         if (!info) {
             const autoCompleter = new AutoCompleter();
-            info = { autoCompleter, additionalDiagnostics: [] };
+            info = {
+                autoCompleter,
+                additionalDiagnostics: [],
+                rustState: "uninitialized",
+            };
             documentInfo.set(uri, info);
         }
         info.autoCompleter.setSource(change.document.getText());
         // Additional diagnostics may no longer be relevant after the contents of the file changes
         info.additionalDiagnostics.length = 0;
 
-        if (info.rustAdapter) {
+        if (info.rustState === "ready" && info.rustAdapter) {
             // Adapter already wired — just resync source.
             info.rustAdapter.updateSource(info.autoCompleter.sourceObj);
-        } else {
-            // Fire-and-forget: first completions use the JS fallback until
-            // the WASM module finishes loading, then the Rust resolver
-            // activates for subsequent requests.
+        } else if (info.rustState === "uninitialized") {
+            // Fire-and-forget initialization. Completions remain disabled
+            // until Rust is ready.
+            info.rustState = "initializing";
             const capturedInfo = info;
             getRustCore()
                 .then((core) => {
@@ -105,19 +109,21 @@ export function addValidationSupport(
                         },
                     );
                     capturedInfo.rustAdapter = adapter;
-                    capturedInfo.autoCompleter.setResolveRefMemberContainerAtOffset(
-                        adapter.createResolver(),
-                    );
-                    capturedInfo.autoCompleter.setIsNameAddressable(
-                        (offset, name) =>
-                            adapter.isNameAddressableFromOffset(offset, name),
-                    );
+                    capturedInfo.autoCompleter.setRustResolverAdapter(adapter);
                     capturedInfo.autoCompleter.setGetAdditionalRefNames(
                         (offset) => adapter.getRepeatSyntheticNames(offset),
                     );
+                    capturedInfo.rustState = "ready";
                 })
-                .catch(() => {
-                    // WASM unavailable — JS fallback is fine.
+                .catch((error) => {
+                    console.warn(
+                        "Rust autocomplete unavailable; completions disabled for this document.",
+                        error,
+                    );
+                    const currentInfo = documentInfo.get(uri);
+                    if (currentInfo === capturedInfo) {
+                        capturedInfo.rustState = "unavailable";
+                    }
                 });
         }
 
