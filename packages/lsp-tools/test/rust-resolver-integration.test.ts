@@ -805,5 +805,59 @@ describe.skipIf(!wasmAvailable)(
             // Unresolved parts reported
             expect(result!.unresolvedPathParts.length).toBeGreaterThan(0);
         });
+
+        // ---- repeatForSequence / else visibility ----
+
+        it("isNameAddressableFromOffset returns false for names inside repeatForSequence from outside", () => {
+            const source = `<repeatForSequence name="rep"><math name="myMath">x</math></repeatForSequence>\n$my`;
+            const { adapter } = createCoreAndAdapter(source);
+
+            const outsideOffset = source.lastIndexOf("$my") + 1;
+            expect(
+                adapter.isNameAddressableFromOffset(outsideOffset, "myMath"),
+            ).toBe(false);
+            expect(
+                adapter.isNameAddressableFromOffset(outsideOffset, "rep"),
+            ).toBe(true);
+        });
+
+        it("names inside repeatForSequence are accessible from INSIDE", () => {
+            const source = `<repeatForSequence name="rep"><math name="myMath">x</math>$my</repeatForSequence>`;
+            const { adapter } = createCoreAndAdapter(source);
+
+            const insideOffset = source.indexOf("$my") + 1;
+            expect(
+                adapter.isNameAddressableFromOffset(insideOffset, "myMath"),
+            ).toBe(true);
+        });
+
+        it("end-to-end: getCompletionItems omits names inside repeatForSequence from outside", () => {
+            const source = `<repeatForSequence name="rep"><math name="myMath">x</math></repeatForSequence>\n$`;
+            const { completer } = createCompleterWithAdapter(source);
+            const items = completer.getCompletionItems(source.length);
+            const labels = items.map((i) => i.label);
+            expect(labels).toContain("rep");
+            expect(labels).toContain("rep[]");
+            expect(labels).not.toContain("myMath");
+        });
+
+        it("isNameAddressableFromOffset returns false for names inside else from outside", () => {
+            // Raw DAST keeps <else> as-is (sugar is not applied in the LSP).
+            // Adding "else" to CHILDREN_INVISIBLE means its children are
+            // hidden from grandparent scopes in the resolver.
+            const source = `<conditionalContent name="cc"><case condition="true"><text name="caseChild">a</text></case><else><text name="elseChild">b</text></else></conditionalContent>\n$`;
+            const { adapter } = createCoreAndAdapter(source);
+
+            const outsideOffset = source.lastIndexOf("$") + 1;
+            expect(
+                adapter.isNameAddressableFromOffset(outsideOffset, "caseChild"),
+            ).toBe(false);
+            expect(
+                adapter.isNameAddressableFromOffset(outsideOffset, "elseChild"),
+            ).toBe(false);
+            expect(
+                adapter.isNameAddressableFromOffset(outsideOffset, "cc"),
+            ).toBe(true);
+        });
     },
 );

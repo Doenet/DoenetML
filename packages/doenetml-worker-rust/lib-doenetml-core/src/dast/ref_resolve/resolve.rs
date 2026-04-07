@@ -61,7 +61,8 @@ pub(super) enum Visibility {
     ChildrenInvisibleToTheirGrandparents,
 }
 
-const CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS: [&str; 3] = ["repeat", "option", "case"];
+const CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS: [&str; 5] =
+    ["repeat", "repeatForSequence", "option", "case", "else"];
 
 impl Visibility {
     fn lookup_by_name(name: &str) -> Self {
