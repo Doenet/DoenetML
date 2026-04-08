@@ -396,6 +396,30 @@ export class RustResolverAdapter {
                 };
             }
 
+            // If any intermediate segment resolves through a takesIndex
+            // component without an index (e.g. $rep.myMath.), block member
+            // completions for that path. Indexed traversal must use
+            // $rep[n].member.
+            if (!hasIndex && resolution.nodesInResolvedPath.length > 1) {
+                const intermediatePathNodeIndices =
+                    resolution.nodesInResolvedPath.slice(0, -1);
+                const blockedPathPartIndex =
+                    intermediatePathNodeIndices.findIndex((nodeIdx) => {
+                        const pathNode =
+                            this._rustIndexToDastElement.get(nodeIdx);
+                        return !!(
+                            pathNode && this.componentTakesIndex(pathNode.name)
+                        );
+                    });
+                if (blockedPathPartIndex >= 0) {
+                    return {
+                        node: null,
+                        unresolvedPathParts:
+                            lookupParts.slice(blockedPathPartIndex),
+                    };
+                }
+            }
+
             // When the resolved element takes an index, descendants
             // are only accessible via $name[n].member — suppress them
             // unless the user has already provided a bracket index.

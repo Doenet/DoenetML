@@ -705,6 +705,18 @@ describe.skipIf(!wasmAvailable)(
                 expect(propertyItems.length).toBeGreaterThan(0);
             }
 
+            // $rep.myMath. — unindexed traversal through takesIndex composite
+            // should be blocked.
+            {
+                const source = `<repeatForSequence name="rep"><math name="myMath">x<math name="dec">y</math></math></repeatForSequence>\n$rep.myMath.`;
+                const { completer } = createCompleterWithAdapter(source, {
+                    includeAdditionalRefNames: true,
+                });
+                const offset = source.length;
+                const items = completer.getCompletionItems(offset);
+                expect(items).toHaveLength(0);
+            }
+
             // $rep[1]. should include valueName/indexName as completions
             {
                 const source = `<repeat name="rep" valueName="v" indexName="i"><math name="m">x</math></repeat>\n$rep[1].`;
