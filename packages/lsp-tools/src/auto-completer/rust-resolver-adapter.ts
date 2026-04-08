@@ -216,18 +216,18 @@ export class RustResolverAdapter {
             options?.takesIndexComponentTypes ?? null;
         if (options?.core) {
             this._core = options.core;
-            this.syncSource();
+            this._syncSource();
         }
     }
 
-    private componentTakesIndex(componentType: string): boolean {
+    _componentTakesIndex(componentType: string): boolean {
         return this._takesIndexComponentTypes?.has(componentType) ?? false;
     }
 
     /**
      * Sync the DAST/source to the Rust core and rebuild index mappings.
      */
-    private syncSource(): void {
+    _syncSource(): void {
         this._sourceRevision += 1;
         this._visibleDescendantNamesCache.clear();
         if (!this._core) {
@@ -252,7 +252,7 @@ export class RustResolverAdapter {
         try {
             this._core.set_source(this._sourceObj.dast, this._sourceObj.source);
             const flatDast = this._core.return_dast();
-            this.buildMappings(flatDast);
+            this._buildMappings(flatDast);
             this._enabled = true;
         } catch (e) {
             console.warn("RustResolverAdapter: failed to sync source:", e);
@@ -260,15 +260,12 @@ export class RustResolverAdapter {
         }
     }
 
-    private getCachedVisibleDescendantNames(resolvedIdx: number) {
+    _getCachedVisibleDescendantNames(resolvedIdx: number) {
         const key = `${this._sourceRevision}:${resolvedIdx}`;
         return this._visibleDescendantNamesCache.get(key);
     }
 
-    private setCachedVisibleDescendantNames(
-        resolvedIdx: number,
-        names: string[],
-    ) {
+    _setCachedVisibleDescendantNames(resolvedIdx: number, names: string[]) {
         const key = `${this._sourceRevision}:${resolvedIdx}`;
         this._visibleDescendantNamesCache.set(key, names);
     }
@@ -277,7 +274,7 @@ export class RustResolverAdapter {
      * Build bidirectional mappings between Rust flat indices and JS DAST
      * elements by matching on source position (start offset).
      */
-    private buildMappings(flatDast: {
+    _buildMappings(flatDast: {
         elements: Array<{
             data: { id: number };
             position?: { start: { offset?: number } };
@@ -321,22 +318,19 @@ export class RustResolverAdapter {
      *
      * @param offset — The character offset in the source for scope resolution.
      * @param pathParts — The path segments (e.g. ["rep", "myMath", ""] for `$rep.myMath.`).
-     * @param hasIndex — When true, indicates a bracket index was present in the path
-     *                     (e.g. `$sel[1].`), enabling descendant access for takesIndex
-     *                     elements. If false or undefined, takesIndex elements hide their
-     *                     descendants unless accessed via index notation.
+     * @param pathPartHasIndex — Per-path-part index flags aligned with `pathParts`.
      * @returns The resolved node and visible descendant names, or null if resolution fails.
      */
     resolveRefMemberContainerAtOffset(
         offset: number,
         pathParts: string[],
-        hasIndex?: boolean,
+        pathPartHasIndex?: boolean[],
     ): RefMemberContainerResolution | null {
         return this._resolveRefMemberContainer({
             offset,
             pathParts,
+            pathPartHasIndex,
             nodeIndex: this._sourceObj.getNodeIndexAtOffset(offset),
-            hasIndex,
         });
     }
 
@@ -354,7 +348,7 @@ export class RustResolverAdapter {
     ): RefMemberContainerResolution | null {
         if (!this._enabled || !this._core) return null;
 
-        const { offset, pathParts, hasIndex } = args;
+        const { offset, pathParts, pathPartHasIndex } = args;
         if (pathParts.length === 0) return null;
 
         // Resolve up to but not including the last part (being edited).
@@ -362,8 +356,11 @@ export class RustResolverAdapter {
         if (lookupParts.length === 0) return null;
 
         // Determine origin: the Rust index of the enclosing element.
-        const originIndex = this.getOriginIndex(offset);
+        const originIndex = this._getOriginIndex(offset);
         if (originIndex == null) return null;
+
+        const effectivePathPartHasIndex =
+            pathPartHasIndex ?? lookupParts.map(() => false);
 
         const flatPath: FlatPathPartForResolver[] = lookupParts.map((name) => ({
             type: "flatPathPart" as const,
@@ -400,30 +397,44 @@ export class RustResolverAdapter {
             // component without an index (e.g. $rep.myMath.), block member
             // completions for that path. Indexed traversal must use
             // $rep[n].member.
-            if (!hasIndex && resolution.nodesInResolvedPath.length > 1) {
+            if (resolution.nodesInResolvedPath.length > 1) {
                 const intermediatePathNodeIndices =
                     resolution.nodesInResolvedPath.slice(0, -1);
-                const blockedPathPartIndex =
-                    intermediatePathNodeIndices.findIndex((nodeIdx) => {
-                        const pathNode =
-                            this._rustIndexToDastElement.get(nodeIdx);
-                        return !!(
-                            pathNode && this.componentTakesIndex(pathNode.name)
-                        );
-                    });
-                if (blockedPathPartIndex >= 0) {
-                    return {
-                        node: null,
-                        unresolvedPathParts:
-                            lookupParts.slice(blockedPathPartIndex),
-                    };
+                for (
+                    let pathPartIndex = 0;
+                    pathPartIndex < intermediatePathNodeIndices.length;
+                    pathPartIndex++
+                ) {
+                    const pathNode = this._rustIndexToDastElement.get(
+                        intermediatePathNodeIndices[pathPartIndex],
+                    );
+                    const segmentHasIndex =
+                        effectivePathPartHasIndex[pathPartIndex] ?? false;
+                    if (
+                        pathNode &&
+                        this._componentTakesIndex(pathNode.name) &&
+                        !segmentHasIndex
+                    ) {
+                        return {
+                            node: null,
+                            unresolvedPathParts:
+                                lookupParts.slice(pathPartIndex),
+                        };
+                    }
                 }
             }
+
+            const resolvedPathPartIndex = lookupParts.length - 1;
+            const resolvedPartHasIndex =
+                effectivePathPartHasIndex[resolvedPathPartIndex] ?? false;
 
             // When the resolved element takes an index, descendants
             // are only accessible via $name[n].member — suppress them
             // unless the user has already provided a bracket index.
-            if (this.componentTakesIndex(resolvedNode.name) && !hasIndex) {
+            if (
+                this._componentTakesIndex(resolvedNode.name) &&
+                !resolvedPartHasIndex
+            ) {
                 return {
                     node: resolvedNode,
                     unresolvedPathParts: [],
@@ -437,7 +448,8 @@ export class RustResolverAdapter {
             // (case/else/option) transparently.
             if (
                 resolvedNode.name === "conditionalContent" ||
-                (hasIndex && this.componentTakesIndex(resolvedNode.name))
+                (resolvedPartHasIndex &&
+                    this._componentTakesIndex(resolvedNode.name))
             ) {
                 const names = collectNamesFromCompositeChildren(resolvedNode);
                 // For repeat/repeatForSequence, also expose
@@ -457,7 +469,7 @@ export class RustResolverAdapter {
             // respects ChildrenInvisibleToTheirGrandparents etc.).
             const resolvedIdx = resolution.nodeIdx;
             let visibleDescendantNames =
-                this.getCachedVisibleDescendantNames(resolvedIdx);
+                this._getCachedVisibleDescendantNames(resolvedIdx);
             if (!visibleDescendantNames) {
                 const allNames =
                     this._sourceObj.getUniqueDescendantNamesForNode(
@@ -492,7 +504,7 @@ export class RustResolverAdapter {
                         return false;
                     }
                 });
-                this.setCachedVisibleDescendantNames(
+                this._setCachedVisibleDescendantNames(
                     resolvedIdx,
                     visibleDescendantNames,
                 );
@@ -514,13 +526,13 @@ export class RustResolverAdapter {
      * Uses the nearest enclosing element of the given offset, falling
      * back to a mapped top-level element when the cursor is at root level.
      */
-    private getOriginIndex(offset: number): number | null {
+    _getOriginIndex(offset: number): number | null {
         const containingElement = this._sourceObj.elementAtOffset(offset);
         if (containingElement) {
             const idx = this._dastElementToRustIndex.get(containingElement);
             if (idx != null) return idx;
         }
-        return this.getRootOriginIndex();
+        return this._getRootOriginIndex();
     }
 
     /**
@@ -528,7 +540,7 @@ export class RustResolverAdapter {
      * Prefer top-level elements from the parsed DAST root; fall back to any
      * mapped element if top-level mappings are unavailable.
      */
-    private getRootOriginIndex(): number | null {
+    _getRootOriginIndex(): number | null {
         const topLevelIndices: number[] = [];
         for (const child of this._sourceObj.dast.children) {
             if (child.type !== "element") continue;
@@ -595,7 +607,7 @@ export class RustResolverAdapter {
             // document root).  resolve_path from it with skip_parent_search=
             // false searches root scope, which is what a reference at root
             // level would see.
-            resolveFromIndex = this.getRootOriginIndex();
+            resolveFromIndex = this._getRootOriginIndex();
         }
 
         if (resolveFromIndex == null) return false;
@@ -620,7 +632,7 @@ export class RustResolverAdapter {
             // conditionalContent and select children are direct children,
             // but at runtime sugar wraps them in <case>/<option>, making
             // deeper descendants invisible from outside the composite.
-            if (this.isHiddenBySugar(resolution.nodeIdx, offset)) {
+            if (this._isHiddenBySugar(resolution.nodeIdx, offset)) {
                 return false;
             }
 
@@ -643,7 +655,7 @@ export class RustResolverAdapter {
      *
      * The same pattern applies to `<select>` / `<option>` via `selectSugar`.
      */
-    private isHiddenBySugar(rustIdx: number, cursorOffset: number): boolean {
+    _isHiddenBySugar(rustIdx: number, cursorOffset: number): boolean {
         const resolvedElement = this._rustIndexToDastElement.get(rustIdx);
         if (!resolvedElement) return false;
 
@@ -715,6 +727,6 @@ export class RustResolverAdapter {
      */
     updateSource(sourceObj: DoenetSourceObject): void {
         this._sourceObj = sourceObj;
-        this.syncSource();
+        this._syncSource();
     }
 }

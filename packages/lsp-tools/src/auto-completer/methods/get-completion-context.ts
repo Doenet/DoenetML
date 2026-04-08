@@ -16,22 +16,25 @@ const MACRO_PATH_CHAR_REGEX = /[A-Za-z0-9_.[\]-]/;
 const BRACKET_INDEX_SUFFIX_REGEX = /(\[[^\]]*\])+$/;
 
 /**
- * Strip bracket indices from path parts and report whether any were present.
- * For example: `["sel[1]", "member", ""]` → `{ parts: ["sel", "member", ""], hasIndex: true }`.
+ * Strip bracket indices from path parts and report index usage per segment.
+ * For example:
+ * `["sel[1]", "member", ""]` →
+ * `{ parts: ["sel", "member", ""], pathPartHasIndex: [true, false, false] }`.
  */
 function stripIndicesFromPathParts(parts: string[]): {
     parts: string[];
-    hasIndex: boolean;
+    pathPartHasIndex: boolean[];
 } {
-    let hasIndex = false;
+    const pathPartHasIndex: boolean[] = [];
     const stripped = parts.map((p) => {
-        if (BRACKET_INDEX_SUFFIX_REGEX.test(p)) {
-            hasIndex = true;
+        const indexed = BRACKET_INDEX_SUFFIX_REGEX.test(p);
+        pathPartHasIndex.push(indexed);
+        if (indexed) {
             return p.replace(BRACKET_INDEX_SUFFIX_REGEX, "");
         }
         return p;
     });
-    return { parts: stripped, hasIndex };
+    return { parts: stripped, pathPartHasIndex };
 }
 
 /**
@@ -58,11 +61,10 @@ export type CompletionContext =
           replaceFromOffset: number;
           pathParts: string[];
           /**
-           * Whether any path part (before the currently-typed segment)
-           * contained a bracket index, e.g. `$sel[1].`.  When true,
-           * `takesIndex` elements should expose descendant names.
+           * Per-segment index flags aligned with `pathParts`.
+           * Example: `$rep[1].myMath.` -> pathPartHasIndex `[true, false, false]`.
            */
-          hasIndex: boolean;
+          pathPartHasIndex: boolean[];
       };
 
 /**
@@ -73,13 +75,13 @@ function makeRefMemberContext(
     replaceFromOffset: number,
     rawPathParts: string[],
 ): CompletionContext & { cursorPos: "refMember" } {
-    const { parts, hasIndex } = stripIndicesFromPathParts(rawPathParts);
+    const { parts, pathPartHasIndex } = stripIndicesFromPathParts(rawPathParts);
     return {
         cursorPos: "refMember",
         typedPrefix,
         replaceFromOffset,
         pathParts: parts,
-        hasIndex,
+        pathPartHasIndex,
     };
 }
 

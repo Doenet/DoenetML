@@ -868,7 +868,7 @@ describe("AutoCompleter", () => {
             expect(resolver!).toHaveBeenCalledWith(
                 source.length,
                 ["missing", ""],
-                false,
+                [false, false],
             );
             expect(items.some((item) => item.label === "myP")).toBe(true);
             expect(items.some((item) => item.label === "sectionProp")).toBe(
@@ -930,6 +930,7 @@ describe("AutoCompleter", () => {
                             (
                                 offset: number,
                                 _pathParts: string[],
+                                _pathPartHasIndex?: boolean[],
                                 _hasIndex?: boolean,
                             ) => {
                                 indexCapture.push(
@@ -994,7 +995,7 @@ describe("AutoCompleter", () => {
             expect(rustSimulator!).toHaveBeenCalledWith(
                 source.length,
                 expect.any(Array),
-                false,
+                expect.any(Array),
             );
             // Since resolver provided a section node with properties, should have completion items
             expect(items.length).toBeGreaterThan(0);

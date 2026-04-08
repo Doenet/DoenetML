@@ -32,13 +32,10 @@ export type ResolveRefMemberContainerArgs = {
     offset: number;
     /** Path segments to resolve (e.g., ["foo", "bar"] for $foo.bar) */
     pathParts: string[];
+    /** Per-path-part index flags aligned with pathParts. */
+    pathPartHasIndex?: boolean[];
     /** Optional flat-tree node index at the given offset, for Rust-backed resolution */
     nodeIndex?: number | null;
-    /**
-     * Whether any resolved path part used a bracket index (e.g. `$sel[1].`).
-     * When true, `takesIndex` elements should expose descendant names.
-     */
-    hasIndex?: boolean;
 };
 
 export type RefMemberContainerResolution = {
@@ -168,14 +165,14 @@ export class AutoCompleter {
     resolveRefMemberContainerAtOffset(
         offset: number,
         pathParts: string[],
-        hasIndex?: boolean,
+        pathPartHasIndex?: boolean[],
     ): RefMemberContainerResolution {
         if (this._rustResolverAdapter) {
             const resolved =
                 this._rustResolverAdapter.resolveRefMemberContainerAtOffset(
                     offset,
                     pathParts,
-                    hasIndex,
+                    pathPartHasIndex,
                 );
             if (resolved) {
                 return resolved;
@@ -362,7 +359,7 @@ export class AutoCompleter {
      * Initialize snippets map after schema is set.
      * Processes all snippets and indexes them by their normalized element name for quick lookup.
      */
-    private _initializeSnippets() {
+    _initializeSnippets() {
         this.snippetsByNormalizedElement.clear();
 
         Object.entries(COMPLETION_SNIPPETS).forEach(([key, snippet]) => {

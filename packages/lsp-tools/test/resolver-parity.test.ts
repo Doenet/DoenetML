@@ -184,7 +184,7 @@ describe("Resolver Parity - Member Completion Resolution", () => {
     });
 
     describe("Resolver interface contract", () => {
-        it("Resolver callback receives offset/path/hasIndex", () => {
+        it("Resolver callback receives offset/path/pathPartHasIndex", () => {
             const source = `<section name="s"><p name="p1" /></section>\n$s.`;
             const capturedArgs: any[] = [];
             const completer = new AutoCompleter(source, testSchema, {
@@ -193,9 +193,13 @@ describe("Resolver Parity - Member Completion Resolution", () => {
                     resolveRefMemberContainerAtOffset: (
                         offset: number,
                         pathParts: string[],
-                        hasIndex?: boolean,
+                        pathPartHasIndex?: boolean[],
                     ) => {
-                        capturedArgs.push({ offset, pathParts, hasIndex });
+                        capturedArgs.push({
+                            offset,
+                            pathParts,
+                            pathPartHasIndex,
+                        });
                         return null;
                     },
                 } as any,
@@ -210,7 +214,7 @@ describe("Resolver Parity - Member Completion Resolution", () => {
             const lastCall = capturedArgs[capturedArgs.length - 1];
             expect(lastCall).toHaveProperty("offset");
             expect(lastCall).toHaveProperty("pathParts");
-            expect(lastCall).toHaveProperty("hasIndex");
+            expect(lastCall).toHaveProperty("pathPartHasIndex");
         });
 
         it("Resolver can provide resolution for member completions", () => {

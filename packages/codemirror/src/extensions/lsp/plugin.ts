@@ -225,9 +225,7 @@ export class LSPPlugin implements PluginValue {
 
     destroy() {
         this.unsubscribeDiagnostics?.();
-        void uniqueLanguageServerInstance
-            .closeDocument(this.uri)
-            .catch(() => {});
+        uniqueLanguageServerInstance.closeDocument(this.uri).catch(() => {});
     }
 
     processDiagnostics() {

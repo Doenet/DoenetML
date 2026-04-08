@@ -594,14 +594,14 @@ describe.skipIf(!wasmAvailable)(
             expect(result!.visibleDescendantNames).toContain("m2");
         });
 
-        // ---- Index bracket parsing & hasIndex wiring ----
+        // ---- Index bracket parsing & pathPartHasIndex wiring ----
 
-        it("$sel[1]. with hasIndex shows descendants inside select options", () => {
+        it("$sel[1]. with pathPartHasIndex shows descendants inside select options", () => {
             const source = `<select name="sel"><option><math name="a">1</math></option><option><math name="b">2</math></option></select>\n$sel[1].`;
             const { adapter } = createCoreAndAdapter(source);
 
             const resolver = adapter.createResolver();
-            // Without hasIndex (bare $sel.) — descendants suppressed
+            // Without per-part index info (bare $sel.) — descendants suppressed
             const noIndex = resolver({
                 offset: source.indexOf("$sel[1].") + "$sel[1].".length,
                 pathParts: ["sel", ""],
@@ -609,23 +609,23 @@ describe.skipIf(!wasmAvailable)(
             expect(noIndex).not.toBeNull();
             expect(noIndex!.visibleDescendantNames).toEqual([]);
 
-            // With hasIndex — descendants should be visible
+            // With per-part index info — descendants should be visible
             const withIndex = resolver({
                 offset: source.indexOf("$sel[1].") + "$sel[1].".length,
                 pathParts: ["sel", ""],
-                hasIndex: true,
+                pathPartHasIndex: [true, false],
             });
             expect(withIndex).not.toBeNull();
             expect(withIndex!.visibleDescendantNames).toContain("a");
             expect(withIndex!.visibleDescendantNames).toContain("b");
         });
 
-        it("$rep[2]. with hasIndex shows descendants inside repeat", () => {
+        it("$rep[2]. with pathPartHasIndex shows descendants inside repeat", () => {
             const source = `<repeat name="rep" numRepetitions="3"><math name="inner">x</math></repeat>\n$rep[2].`;
             const { adapter } = createCoreAndAdapter(source);
 
             const resolver = adapter.createResolver();
-            // Without hasIndex — descendants suppressed
+            // Without per-part index info — descendants suppressed
             const noIndex = resolver({
                 offset: source.indexOf("$rep[2].") + "$rep[2].".length,
                 pathParts: ["rep", ""],
@@ -633,17 +633,17 @@ describe.skipIf(!wasmAvailable)(
             expect(noIndex).not.toBeNull();
             expect(noIndex!.visibleDescendantNames).toEqual([]);
 
-            // With hasIndex — descendants visible
+            // With per-part index info — descendants visible
             const withIndex = resolver({
                 offset: source.indexOf("$rep[2].") + "$rep[2].".length,
                 pathParts: ["rep", ""],
-                hasIndex: true,
+                pathPartHasIndex: [true, false],
             });
             expect(withIndex).not.toBeNull();
             expect(withIndex!.visibleDescendantNames).toContain("inner");
         });
 
-        it("context parser strips bracket indices and sets hasIndex", () => {
+        it("context parser strips bracket indices and sets pathPartHasIndex", () => {
             // $sel[1]. should show descendants of select option children
             // but NOT properties of select (the referent is a child, not the select)
             {
@@ -687,7 +687,7 @@ describe.skipIf(!wasmAvailable)(
 
             // $rep[1].myMath. — deeper path through indexed composite
             // The resolved node is myMath (a math), so we should see its
-            // descendants (dec) AND math properties, NOT blocked by hasIndex.
+            // descendants (dec) AND math properties, NOT blocked by pathPartHasIndex.
             {
                 const source = `<repeatForSequence name="rep"><math name="myMath">x<math name="dec">y</math></math></repeatForSequence>\n$rep[1].myMath.`;
                 const { completer } = createCompleterWithAdapter(source, {
@@ -759,7 +759,7 @@ describe.skipIf(!wasmAvailable)(
                 pathParts: ["sel", ""],
             });
             expect(result).not.toBeNull();
-            // select takesIndex, so without hasIndex, descendants suppressed
+            // select takesIndex, so without per-part index info, descendants suppressed
             expect(result!.visibleDescendantNames).toEqual([]);
         });
 
