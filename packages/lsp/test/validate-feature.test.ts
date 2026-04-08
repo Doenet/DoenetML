@@ -12,13 +12,18 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { TextDocument } from "vscode-languageserver-textdocument";
 
 type ChangeHandler = (change: { document: TextDocument }) => void;
+type CloseHandler = (event: { document: TextDocument }) => void;
 
 let onDidChangeContentHandler: ChangeHandler | undefined;
+let onDidCloseHandler: CloseHandler | undefined;
 let activeDocument: TextDocument | undefined;
 
 const documentsMock = {
     onDidChangeContent: vi.fn((handler: ChangeHandler) => {
         onDidChangeContentHandler = handler;
+    }),
+    onDidClose: vi.fn((handler: CloseHandler) => {
+        onDidCloseHandler = handler;
     }),
     all: vi.fn(() => []),
     get: vi.fn((uri: string) =>
@@ -114,8 +119,10 @@ async function flushMicrotasks() {
 describe("addValidationSupport", () => {
     beforeEach(() => {
         onDidChangeContentHandler = undefined;
+        onDidCloseHandler = undefined;
         activeDocument = undefined;
         documentsMock.onDidChangeContent.mockClear();
+        documentsMock.onDidClose.mockClear();
         documentsMock.all.mockClear();
         documentsMock.get.mockClear();
         getRustCoreMock.mockClear();
