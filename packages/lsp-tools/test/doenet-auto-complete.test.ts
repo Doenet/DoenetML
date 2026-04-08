@@ -358,6 +358,17 @@ describe("AutoCompleter", () => {
                 typedPrefix: "",
             });
         }
+
+        source = ` $foo . `;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        {
+            const offset = source.indexOf(".") + 1;
+            const elm = autoCompleter.getCompletionContext(offset);
+            expect(elm).toMatchObject({
+                cursorPos: "refMember",
+                typedPrefix: "",
+            });
+        }
     });
 
     describe("Reference completions", () => {

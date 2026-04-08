@@ -351,7 +351,7 @@ export function getCompletionContext(
         let dollarPos = tokenStart - 2;
         while (
             dollarPos > 0 &&
-            /[A-Za-z0-9_.[\]$-]/.test(source.charAt(dollarPos - 1))
+            /[A-Za-z0-9_.[\]-]/.test(source.charAt(dollarPos - 1))
         ) {
             dollarPos--;
         }

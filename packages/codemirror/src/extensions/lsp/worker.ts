@@ -4,9 +4,11 @@
 // downstream bundles and broke WASM loading inside the worker.
 import lspSource from "@doenet/lsp/language-server.js?raw";
 
-const lspWorkerBlobUrl = URL.createObjectURL(
-    new Blob([lspSource], { type: "application/javascript" }),
-);
+function createLspWorkerBlobUrl() {
+    return URL.createObjectURL(
+        new Blob([lspSource], { type: "application/javascript" }),
+    );
+}
 import { initWorker } from "./utils/init-message-connection";
 import {
     Diagnostic,
@@ -67,7 +69,18 @@ export class LSP {
         }
         if (this.initStatus === "uninitialized") {
             this.initStatus = "initializing";
-            this.worker = new Worker(lspWorkerBlobUrl);
+            let workerBlobUrl: string | null = null;
+            try {
+                workerBlobUrl = createLspWorkerBlobUrl();
+                this.worker = new Worker(workerBlobUrl);
+            } finally {
+                if (workerBlobUrl) {
+                    const urlToRevoke = workerBlobUrl;
+                    // Revoke after construction to avoid accumulating blob URLs
+                    // across long sessions and hot-reload cycles.
+                    queueMicrotask(() => URL.revokeObjectURL(urlToRevoke));
+                }
+            }
             const { lspConn, workerConn } = await initWorker(this.worker!);
             this.lspConn = lspConn;
             this.workerConn = workerConn;

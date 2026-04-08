@@ -5,6 +5,7 @@ import WASM_BYTES_DATA_URL from "@doenet/doenetml-worker-rust/lib_doenetml_worke
 // Convert data-URL to a blob URL so fetch() works regardless of the
 // Worker's origin (data: URLs lack a usable base for relative fetches).
 let wasmBlobUrl: string = WASM_BYTES_DATA_URL;
+let createdWasmBlobUrl = false;
 try {
     if (wasmBlobUrl.match(/^data:.*;base64,/)) {
         const base64 = wasmBlobUrl.split(",")[1];
@@ -16,9 +17,20 @@ try {
         wasmBlobUrl = URL.createObjectURL(
             new Blob([byteNumbers], { type: "application/wasm" }),
         );
+        createdWasmBlobUrl = true;
     }
 } catch (e) {
     console.warn("Error while creating blob URL for wasm bundle", e);
+}
+
+let wasmBlobUrlRevoked = false;
+
+function revokeWasmBlobUrlIfNeeded() {
+    if (!createdWasmBlobUrl || wasmBlobUrlRevoked) {
+        return;
+    }
+    URL.revokeObjectURL(wasmBlobUrl);
+    wasmBlobUrlRevoked = true;
 }
 
 let wasmInitPromise: Promise<unknown> | null = null;
@@ -99,6 +111,10 @@ async function initWasmWithNodePathWorkaround(): Promise<void> {
         }
 
         throw error;
+    } finally {
+        // The module is initialized once per worker runtime, so this blob URL
+        // is no longer needed after the first init attempt completes.
+        revokeWasmBlobUrlIfNeeded();
     }
 }
 
