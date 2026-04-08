@@ -25,15 +25,14 @@ describe("Autocompletion via $ref.member", { tags: ["@group5"] }, function () {
             "hello",
         );
 
-        // Wait for the LSP worker to initialize and process the document
-        cy.wait(2000);
+        // Avoid fixed LSP startup sleeps; completion assertions below are retryable.
 
         // Move cursor to end and type a ref with a dot
         cy.get(".cm-content").click();
         cy.get(".cm-activeLine").type("{ctrl+end}$s1.");
+        cy.get(".cm-activeLine").should("contain.text", "$s1.");
 
         // Explicitly trigger autocompletion with Ctrl+Space
-        cy.wait(500);
         cy.get(".cm-activeLine").type("{ctrl} ");
 
         // The autocomplete tooltip should appear with member completions
@@ -71,17 +70,16 @@ describe(
                 win.postMessage({ doenetML }, "*");
             });
 
-            // Wait for the viewer to render and LSP to boot
+            // Wait for the viewer to render; avoid fixed LSP startup sleeps.
             cy.get(".doenet-viewer", { timeout: 10000 }).should("exist");
-            cy.wait(3000);
 
             // ------ Inside the repeat: $ins should offer "inside" ------
             // Place cursor at the blank line inside the repeat (line 2)
             cy.get(".cm-content").click();
             // Go to line 2 (the newline inside <repeat>, before </repeat>)
             cy.get(".cm-activeLine").type("{ctrl+home}{downArrow}{end}$ins");
+            cy.get(".cm-activeLine").should("contain.text", "$ins");
 
-            cy.wait(500);
             cy.get(".cm-activeLine").type("{ctrl} ");
 
             cy.get(".cm-tooltip-autocomplete", { timeout: 10000 }).should(
@@ -99,8 +97,8 @@ describe(
             // ------ Outside the repeat: $ins should NOT offer "inside" ------
             // Move to the very end (root level, after </section>)
             cy.get(".cm-activeLine").type("{ctrl+end}$ins");
+            cy.get(".cm-activeLine").should("contain.text", "$ins");
 
-            cy.wait(500);
             cy.get(".cm-activeLine").type("{ctrl} ");
 
             // Either no autocomplete tooltip at all, or it exists but
