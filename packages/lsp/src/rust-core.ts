@@ -97,11 +97,11 @@ async function initWasmWithNodePathWorkaround(): Promise<void> {
 /**
  * Lazily initialize the WASM module once per worker runtime.
  */
-function ensureRustWasmInitialized(): Promise<void> {
+async function ensureRustWasmInitialized(): Promise<void> {
     if (!wasmInitPromise) {
         wasmInitPromise = initWasmWithNodePathWorkaround();
     }
-    return wasmInitPromise.then(() => {});
+    await wasmInitPromise;
 }
 
 /**
@@ -112,13 +112,11 @@ function ensureRustWasmInitialized(): Promise<void> {
  * The LSP keeps one adapter/core per open document so Rust-side source state
  * and JS-side index mappings stay aligned in multi-document sessions.
  */
-export function getRustCore(): Promise<PublicDoenetMLCore> {
-    return (async () => {
-        await ensureRustWasmInitialized();
-        const core = PublicDoenetMLCore.new();
-        // Flags must be set before the core can process source.
-        // An empty flags object is sufficient for path resolution.
-        core.set_flags("{}");
-        return core;
-    })();
+export async function getRustCore(): Promise<PublicDoenetMLCore> {
+    await ensureRustWasmInitialized();
+    const core = PublicDoenetMLCore.new();
+    // Flags must be set before the core can process source.
+    // An empty flags object is sufficient for path resolution.
+    core.set_flags("{}");
+    return core;
 }

@@ -78,7 +78,7 @@ export function addValidationSupport(
 
     // The content of a text document has changed. This event is emitted
     // when the text document first opened or when its content has changed.
-    documents.onDidChangeContent((change) => {
+    documents.onDidChangeContent(async (change) => {
         const uri = change.document.uri;
         let info = documentInfo.get(uri);
         if (!info) {
@@ -102,48 +102,47 @@ export function addValidationSupport(
             // until Rust is ready.
             info.rustState = "initializing";
             const capturedInfo = info;
-            getRustCore()
-                .then((core) => {
-                    const currentInfo = documentInfo.get(uri);
-                    if (!currentInfo || currentInfo !== capturedInfo) return;
-                    if (capturedInfo.rustAdapter) return;
-                    const sourceObj = capturedInfo.autoCompleter.sourceObj;
-                    // Intentionally create a dedicated core/adapter for this
-                    // document. This avoids cross-document source switching
-                    // complexity and keeps Rust state aligned with this
-                    // document's AutoCompleter mappings.
-                    const adapter = new RustResolverAdapter(sourceObj, {
-                        core: core as RustResolverCore,
-                        takesIndexComponentTypes: getTakesIndexComponentTypes(
-                            capturedInfo.autoCompleter,
-                        ),
-                    });
-                    capturedInfo.rustAdapter = adapter;
-                    capturedInfo.autoCompleter = new AutoCompleter(
-                        undefined,
-                        undefined,
-                        {
-                            sourceObj,
-                            rustResolverAdapter: adapter,
-                            getAdditionalRefNames: (offset: number) =>
-                                adapter.getDerivedRepeatNames(offset),
-                        },
-                    );
-                    capturedInfo.rustState = "ready";
-                })
-                .catch((error) => {
-                    console.warn(
-                        "Rust autocomplete unavailable; completions disabled for this document.",
-                        error,
-                    );
-                    const currentInfo = documentInfo.get(uri);
-                    if (currentInfo === capturedInfo) {
-                        capturedInfo.rustState = "unavailable";
-                    }
+            try {
+                const core = await getRustCore();
+                const currentInfo = documentInfo.get(uri);
+                if (!currentInfo || currentInfo !== capturedInfo) return;
+                if (capturedInfo.rustAdapter) return;
+                const sourceObj = capturedInfo.autoCompleter.sourceObj;
+                // Intentionally create a dedicated core/adapter for this
+                // document. This avoids cross-document source switching
+                // complexity and keeps Rust state aligned with this
+                // document's AutoCompleter mappings.
+                const adapter = new RustResolverAdapter(sourceObj, {
+                    core: core as RustResolverCore,
+                    takesIndexComponentTypes: getTakesIndexComponentTypes(
+                        capturedInfo.autoCompleter,
+                    ),
                 });
+                capturedInfo.rustAdapter = adapter;
+                capturedInfo.autoCompleter = new AutoCompleter(
+                    undefined,
+                    undefined,
+                    {
+                        sourceObj,
+                        rustResolverAdapter: adapter,
+                        getAdditionalRefNames: (offset: number) =>
+                            adapter.getDerivedRepeatNames(offset),
+                    },
+                );
+                capturedInfo.rustState = "ready";
+            } catch (error) {
+                console.warn(
+                    "Rust autocomplete unavailable; completions disabled for this document.",
+                    error,
+                );
+                const currentInfo = documentInfo.get(uri);
+                if (currentInfo === capturedInfo) {
+                    capturedInfo.rustState = "unavailable";
+                }
+            }
         }
 
-        validateTextDocument(change.document);
+        await validateTextDocument(change.document);
     });
 
     async function validateTextDocument(
