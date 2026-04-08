@@ -142,6 +142,11 @@ export function addValidationSupport(
         validateTextDocument(change.document).catch(() => undefined);
     });
 
+    // Release per-document validation/autocomplete state when a document closes.
+    documents.onDidClose((event) => {
+        documentInfo.delete(event.document.uri);
+    });
+
     async function validateTextDocument(
         textDocument: TextDocument,
     ): Promise<void> {
