@@ -40,9 +40,21 @@ async function initWasmWithNodePathWorkaround(): Promise<void> {
         await init(wasmBlobUrl);
         return;
     } catch (error) {
+        function stripQueryAndHash(value: string) {
+            return value.replace(/[?#].*$/, "");
+        }
+
         const nodeProcess = getNodeProcess();
         const runningInNode = !!nodeProcess?.versions?.node;
-        const canTryFsPath = runningInNode && wasmBlobUrl.startsWith("/");
+        const normalizedForGate = stripQueryAndHash(wasmBlobUrl);
+        const looksLikeWindowsAbsPath = /^[A-Za-z]:[\\/]/.test(
+            normalizedForGate,
+        );
+        const canTryFsPath =
+            runningInNode &&
+            (normalizedForGate.startsWith("/") ||
+                normalizedForGate.startsWith("file://") ||
+                looksLikeWindowsAbsPath);
         if (!canTryFsPath) {
             throw error;
         }
@@ -54,10 +66,6 @@ async function initWasmWithNodePathWorkaround(): Promise<void> {
         const fs = await import("node:fs/promises");
         // @ts-expect-error Node-only import in a browser-targeted package.
         const path = await import("node:path");
-
-        function stripQueryAndHash(value: string) {
-            return value.replace(/[?#].*$/, "");
-        }
 
         const normalized = stripQueryAndHash(wasmBlobUrl);
         const candidatePaths: string[] = [];

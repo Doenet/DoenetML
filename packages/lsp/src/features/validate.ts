@@ -64,13 +64,13 @@ export function addValidationSupport(
                 return;
             }
 
-            void validateTextDocument(textDocument);
+            validateTextDocument(textDocument).catch(() => undefined);
         },
     );
 
     // The content of a text document has changed. This event is emitted
     // when the text document first opened or when its content has changed.
-    documents.onDidChangeContent(async (change) => {
+    documents.onDidChangeContent((change) => {
         const uri = change.document.uri;
         let info = documentInfo.get(uri);
         if (!info) {
@@ -90,48 +90,56 @@ export function addValidationSupport(
             // Adapter already wired — just resync source.
             info.rustAdapter.updateSource(info.autoCompleter.sourceObj);
         } else if (info.rustState === "uninitialized") {
-            // Fire-and-forget initialization. Completions remain disabled
-            // until Rust is ready.
+            // Fire-and-forget initialization. Diagnostics should not wait
+            // for Rust to load.
             info.rustState = "initializing";
             const capturedInfo = info;
-            try {
-                const core = await getRustCore();
-                const currentInfo = documentInfo.get(uri);
-                if (!currentInfo || currentInfo !== capturedInfo) return;
-                const sourceObj = capturedInfo.autoCompleter.sourceObj;
-                // Intentionally create a dedicated core/adapter for this
-                // document. This avoids cross-document source switching
-                // complexity and keeps Rust state aligned with this
-                // document's AutoCompleter mappings.
-                const adapter = new RustResolverAdapter(sourceObj, {
-                    core: core as RustResolverCore,
-                    takesIndexComponentTypes: TAKES_INDEX_COMPONENT_TYPES,
-                });
-                capturedInfo.rustAdapter = adapter;
-                capturedInfo.autoCompleter = new AutoCompleter(
-                    undefined,
-                    undefined,
-                    {
-                        sourceObj,
-                        rustResolverAdapter: adapter,
-                        getAdditionalRefNames: (offset: number) =>
-                            adapter.getDerivedRepeatNames(offset),
-                    },
-                );
-                capturedInfo.rustState = "ready";
-            } catch (error) {
-                console.warn(
-                    "Rust autocomplete unavailable; completions disabled for this document.",
-                    error,
-                );
-                const currentInfo = documentInfo.get(uri);
-                if (currentInfo === capturedInfo) {
-                    capturedInfo.rustState = "unavailable";
+            (async () => {
+                try {
+                    const core = await getRustCore();
+                    const currentInfo = documentInfo.get(uri);
+                    if (!currentInfo || currentInfo !== capturedInfo) return;
+                    const sourceObj = capturedInfo.autoCompleter.sourceObj;
+                    // Intentionally create a dedicated core/adapter for this
+                    // document. This avoids cross-document source switching
+                    // complexity and keeps Rust state aligned with this
+                    // document's AutoCompleter mappings.
+                    const adapter = new RustResolverAdapter(sourceObj, {
+                        core: core as RustResolverCore,
+                        takesIndexComponentTypes: TAKES_INDEX_COMPONENT_TYPES,
+                    });
+                    capturedInfo.rustAdapter = adapter;
+                    capturedInfo.autoCompleter = new AutoCompleter(
+                        undefined,
+                        undefined,
+                        {
+                            sourceObj,
+                            rustResolverAdapter: adapter,
+                            getAdditionalRefNames: (offset: number) =>
+                                adapter.getDerivedRepeatNames(offset),
+                        },
+                    );
+                    capturedInfo.rustState = "ready";
+                    const latestDocument = documents.get(uri);
+                    if (latestDocument) {
+                        validateTextDocument(latestDocument).catch(
+                            () => undefined,
+                        );
+                    }
+                } catch (error) {
+                    console.warn(
+                        "Rust autocomplete unavailable; completions disabled for this document.",
+                        error,
+                    );
+                    const currentInfo = documentInfo.get(uri);
+                    if (currentInfo === capturedInfo) {
+                        capturedInfo.rustState = "unavailable";
+                    }
                 }
-            }
+            })().catch(() => undefined);
         }
 
-        await validateTextDocument(change.document);
+        validateTextDocument(change.document).catch(() => undefined);
     });
 
     async function validateTextDocument(

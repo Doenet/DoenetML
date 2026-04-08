@@ -22,10 +22,13 @@ async function waitForCompletions(
 ): Promise<CompletionItem[]> {
     const maxAttempts = 40;
     for (let i = 0; i < maxAttempts; i++) {
-        const completions = (await lspConn.getCompletion({
+        const completionResult = await lspConn.getCompletion({
             textDocument,
             position,
-        })) as CompletionItem[];
+        });
+        const completions = Array.isArray(completionResult)
+            ? completionResult
+            : (completionResult?.items ?? []);
         if (completions.length > 0) {
             return completions;
         }

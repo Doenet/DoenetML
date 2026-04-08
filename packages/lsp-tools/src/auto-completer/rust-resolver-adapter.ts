@@ -195,15 +195,15 @@ export interface RustResolverAdapterOptions {
  * resolve_path() for each completion request.
  */
 export class RustResolverAdapter {
-    _core: RustResolverCore | null = null;
+    readonly _core: RustResolverCore | null = null;
     _sourceObj: DoenetSourceObject;
     _enabled = false;
-    _takesIndexComponentTypes: ReadonlySet<string> | null = null;
+    readonly _takesIndexComponentTypes: ReadonlySet<string> | null = null;
 
     /** Rust flat index → JS DAST element (matched by source position). */
-    _rustIndexToDastElement: Map<number, DastElement> = new Map();
+    readonly _rustIndexToDastElement: Map<number, DastElement> = new Map();
     /** JS DAST element → Rust flat index. */
-    _dastElementToRustIndex: Map<DastElement, number> = new Map();
+    readonly _dastElementToRustIndex: Map<DastElement, number> = new Map();
 
     constructor(
         sourceObj: DoenetSourceObject,
