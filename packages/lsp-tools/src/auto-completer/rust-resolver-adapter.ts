@@ -204,6 +204,8 @@ export class RustResolverAdapter {
     readonly _rustIndexToDastElement: Map<number, DastElement> = new Map();
     /** JS DAST element → Rust flat index. */
     readonly _dastElementToRustIndex: Map<DastElement, number> = new Map();
+    _sourceRevision = 0;
+    readonly _visibleDescendantNamesCache: Map<string, string[]> = new Map();
 
     constructor(
         sourceObj: DoenetSourceObject,
@@ -226,6 +228,8 @@ export class RustResolverAdapter {
      * Sync the DAST/source to the Rust core and rebuild index mappings.
      */
     private syncSource(): void {
+        this._sourceRevision += 1;
+        this._visibleDescendantNamesCache.clear();
         if (!this._core) {
             this._enabled = false;
             return;
@@ -254,6 +258,19 @@ export class RustResolverAdapter {
             console.warn("RustResolverAdapter: failed to sync source:", e);
             this._enabled = false;
         }
+    }
+
+    private getCachedVisibleDescendantNames(resolvedIdx: number) {
+        const key = `${this._sourceRevision}:${resolvedIdx}`;
+        return this._visibleDescendantNamesCache.get(key);
+    }
+
+    private setCachedVisibleDescendantNames(
+        resolvedIdx: number,
+        names: string[],
+    ) {
+        const key = `${this._sourceRevision}:${resolvedIdx}`;
+        this._visibleDescendantNamesCache.set(key, names);
     }
 
     /**
@@ -415,37 +432,47 @@ export class RustResolverAdapter {
             // from the resolved node using the Rust name_map (which
             // respects ChildrenInvisibleToTheirGrandparents etc.).
             const resolvedIdx = resolution.nodeIdx;
-            const allNames =
-                this._sourceObj.getUniqueDescendantNamesForNode(resolvedNode);
-            const visibleDescendantNames = allNames.filter((name) => {
-                try {
-                    const probe = this._core!.resolve_path(
-                        {
-                            path: [
-                                {
-                                    type: "flatPathPart" as const,
-                                    name,
-                                    index: [],
-                                },
-                            ],
-                        },
-                        resolvedIdx,
-                        true,
+            let visibleDescendantNames =
+                this.getCachedVisibleDescendantNames(resolvedIdx);
+            if (!visibleDescendantNames) {
+                const allNames =
+                    this._sourceObj.getUniqueDescendantNamesForNode(
+                        resolvedNode,
                     );
-                    // A fully-resolved path (no unresolved parts whose
-                    // first segment equals the original name) means the
-                    // name matched a visible descendant.
-                    if (
-                        probe.unresolvedPath &&
-                        probe.unresolvedPath.length > 0
-                    ) {
+                visibleDescendantNames = allNames.filter((name) => {
+                    try {
+                        const probe = this._core!.resolve_path(
+                            {
+                                path: [
+                                    {
+                                        type: "flatPathPart" as const,
+                                        name,
+                                        index: [],
+                                    },
+                                ],
+                            },
+                            resolvedIdx,
+                            true,
+                        );
+                        // A fully-resolved path (no unresolved parts whose
+                        // first segment equals the original name) means the
+                        // name matched a visible descendant.
+                        if (
+                            probe.unresolvedPath &&
+                            probe.unresolvedPath.length > 0
+                        ) {
+                            return false;
+                        }
+                        return true;
+                    } catch {
                         return false;
                     }
-                    return true;
-                } catch {
-                    return false;
-                }
-            });
+                });
+                this.setCachedVisibleDescendantNames(
+                    resolvedIdx,
+                    visibleDescendantNames,
+                );
+            }
 
             return {
                 node: resolvedNode,

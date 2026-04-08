@@ -1331,10 +1331,17 @@ describe("AutoCompleter", () => {
             },
         ): {
             core: RustResolverCore;
-            calls: { path: unknown; origin: number; skip: boolean }[];
+            calls: {
+                path: unknown;
+                origin: number;
+                skip_parent_search: boolean;
+            }[];
         } {
-            const calls: { path: unknown; origin: number; skip: boolean }[] =
-                [];
+            const calls: {
+                path: unknown;
+                origin: number;
+                skip_parent_search: boolean;
+            }[] = [];
 
             // Build a minimal flat DAST from the JS DAST by assigning sequential
             // ids to elements in depth-first order (matching Rust's pre-order).
@@ -1362,8 +1369,8 @@ describe("AutoCompleter", () => {
                 set_source: () => {},
                 set_flags: () => {},
                 return_dast: () => ({ elements }),
-                resolve_path: (path, origin, skip) => {
-                    calls.push({ path, origin, skip });
+                resolve_path: (path, origin, skip_parent_search) => {
+                    calls.push({ path, origin, skip_parent_search });
                     if (resolveResult) return resolveResult;
                     // Default: resolve to first element, no unresolved path
                     return {
@@ -1558,6 +1565,66 @@ describe("AutoCompleter", () => {
 
             const resolver = adapter.createResolver();
             expect(resolver({ offset: 0, pathParts: ["s1", ""] })).toBeNull();
+        });
+
+        it("Caches visibility probes for repeated member resolutions", () => {
+            const source = `<section name="s1"><p name="p1" /></section>\n$s1.`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core, calls } = createMockCore(source, sourceObj, {
+                nodeIdx: 0,
+                nodesInResolvedPath: [0],
+                unresolvedPath: null,
+                originalPath: [{ name: "s1" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, { core });
+            const resolver = adapter.createResolver();
+            const offset = source.indexOf("$s1.") + 4;
+
+            resolver({ offset, pathParts: ["s1", ""] });
+            resolver({ offset, pathParts: ["s1", ""] });
+
+            // The container resolution runs each time
+            // (skip_parent_search=false), but the descendant visibility probe
+            // path (skip_parent_search=true) should be cached after the first
+            // call for this source revision and resolved node.
+            const probeCalls = calls.filter((c) => c.skip_parent_search);
+            expect(probeCalls.length).toBe(1);
+        });
+
+        it("Invalidates visibility-probe cache when source changes", () => {
+            const source1 = `<section name="s1"><p name="p1" /></section>\n$s1.`;
+            const sourceObj1 = new DoenetSourceObject(source1 + " ");
+            const { core, calls } = createMockCore(source1, sourceObj1, {
+                nodeIdx: 0,
+                nodesInResolvedPath: [0],
+                unresolvedPath: null,
+                originalPath: [{ name: "s1" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj1, { core });
+            const resolver = adapter.createResolver();
+            const offset1 = source1.indexOf("$s1.") + 4;
+
+            resolver({ offset: offset1, pathParts: ["s1", ""] });
+            resolver({ offset: offset1, pathParts: ["s1", ""] });
+
+            const firstProbeCount = calls.filter(
+                (c) => c.skip_parent_search,
+            ).length;
+            expect(firstProbeCount).toBe(1);
+
+            const source2 = `<section name="s2"><p name="p2" /></section>\n$s2.`;
+            const sourceObj2 = new DoenetSourceObject(source2 + " ");
+            adapter.updateSource(sourceObj2);
+
+            const offset2 = source2.indexOf("$s2.") + 4;
+            resolver({ offset: offset2, pathParts: ["s2", ""] });
+
+            const secondProbeCount = calls.filter(
+                (c) => c.skip_parent_search,
+            ).length;
+            expect(secondProbeCount).toBe(2);
         });
     });
 });
