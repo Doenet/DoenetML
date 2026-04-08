@@ -58,7 +58,9 @@ export type ResolveRefMemberContainer = (
 ) => RefMemberContainerResolution | null;
 
 export type AutoCompleterOptions = {
+    sourceObj?: DoenetSourceObject;
     rustResolverAdapter?: RustResolverAdapter;
+    getAdditionalRefNames?: (offset: number) => string[];
 };
 
 /**
@@ -122,33 +124,17 @@ export class AutoCompleter {
         schema: ElementSchema[] = doenetSchema.elements,
         options?: AutoCompleterOptions,
     ) {
+        this.sourceObj = options?.sourceObj ?? new DoenetSourceObject();
         if (source != null) {
             // Adding a space at the end of the source so that a final "<"
             // will be parsed as a text "<" rather than an invalid element.
             this.sourceObj.setSource(source + " ");
         }
         this.rustResolverAdapter = options?.rustResolverAdapter;
+        this.getAdditionalRefNamesImpl = options?.getAdditionalRefNames;
         if (schema) {
             this.setSchema(schema);
         }
-    }
-
-    /**
-     * Set the Rust resolver adapter used for `$name` visibility filtering.
-     */
-    setRustResolverAdapter(adapter?: RustResolverAdapter) {
-        this.rustResolverAdapter = adapter;
-        return this;
-    }
-
-    /**
-     * Set a callback that returns additional ref names (e.g. repeat
-     * `valueName`/`indexName`) that should appear in `$name` completions
-     * at the given offset even though they are not in the raw DAST.
-     */
-    setGetAdditionalRefNames(fn?: (offset: number) => string[]) {
-        this.getAdditionalRefNamesImpl = fn;
-        return this;
     }
 
     /**
@@ -292,15 +278,6 @@ export class AutoCompleter {
         });
 
         return candidate || null;
-    }
-
-    /**
-     * Set the internal DoenetSourceObject. This should not normally be used,
-     * but may be used if you want to pool DoenetSourceObjects over multiple
-     * instances.
-     */
-    setDoenetSourceObject(sourceObj: DoenetSourceObject) {
-        this.sourceObj = sourceObj;
     }
 
     /**
