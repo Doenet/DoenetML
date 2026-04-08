@@ -1531,6 +1531,102 @@ describe("AutoCompleter", () => {
             expect(result!.unresolvedPathParts).toEqual(["remaining"]);
         });
 
+        it("Blocks unindexed traversal from the first takesIndex segment, not the following segment", () => {
+            const source = `<section name="sec"><repeatForSequence name="rep"><math name="myMath">x</math></repeatForSequence>\n$rep.myMath.</section>`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core } = createMockCore(source, sourceObj, {
+                nodeIdx: 2, // myMath
+                nodesInResolvedPath: [0, 1, 2],
+                unresolvedPath: null,
+                originalPath: [{ name: "rep" }, { name: "myMath" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, {
+                core,
+                takesIndexComponentTypes: new Set(["repeatForSequence"]),
+            });
+            const resolver = adapter.createResolver();
+
+            const result = resolver({
+                offset: source.indexOf("$rep.myMath.") + "$rep.myMath.".length,
+                pathParts: ["rep", "myMath", ""],
+                pathPartHasIndex: [false, false, false],
+            });
+
+            expect(result).not.toBeNull();
+            expect(result!.node).toBeNull();
+            expect(result!.unresolvedPathParts).toEqual(["rep", "myMath"]);
+        });
+
+        it("Allows indexed traversal when the indexed segment is after the origin entry", () => {
+            const source = `<section name="sec"><repeatForSequence name="rep"><math name="myMath">x</math></repeatForSequence>\n$rep[1].myMath.</section>`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core } = createMockCore(source, sourceObj, {
+                nodeIdx: 2, // myMath
+                nodesInResolvedPath: [0, 1, 2],
+                unresolvedPath: null,
+                originalPath: [{ name: "rep" }, { name: "myMath" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, {
+                core,
+                takesIndexComponentTypes: new Set(["repeatForSequence"]),
+            });
+            const resolver = adapter.createResolver();
+
+            const result = resolver({
+                offset:
+                    source.indexOf("$rep[1].myMath.") +
+                    "$rep[1].myMath.".length,
+                pathParts: ["rep", "myMath", ""],
+                pathPartHasIndex: [true, false, false],
+            });
+
+            expect(result).not.toBeNull();
+            expect(result!.node).not.toBeNull();
+            expect((result!.node as DastElement).name).toBe("math");
+            expect(result!.unresolvedPathParts).toEqual([]);
+        });
+
+        it("Aligns to the trailing path nodes when nodesInResolvedPath has extra leading entries", () => {
+            const source = `<section name="sec"><repeat name="outer"><repeatForSequence name="inner"><math name="myMath">x</math></repeatForSequence></repeat>\n$outer[1].inner[1].myMath.</section>`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core } = createMockCore(source, sourceObj, {
+                nodeIdx: 3, // myMath
+                // Simulate a resolver shape with an extra leading bookkeeping node
+                // before the actual path-aligned tail [1, 2, 3].
+                nodesInResolvedPath: [0, 0, 1, 2, 3],
+                unresolvedPath: null,
+                originalPath: [
+                    { name: "outer" },
+                    { name: "inner" },
+                    { name: "myMath" },
+                ],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, {
+                core,
+                takesIndexComponentTypes: new Set([
+                    "repeat",
+                    "repeatForSequence",
+                ]),
+            });
+            const resolver = adapter.createResolver();
+
+            const result = resolver({
+                offset:
+                    source.indexOf("$outer[1].inner[1].myMath.") +
+                    "$outer[1].inner[1].myMath.".length,
+                pathParts: ["outer", "inner", "myMath", ""],
+                pathPartHasIndex: [true, true, false, false],
+            });
+
+            expect(result).not.toBeNull();
+            expect(result!.node).not.toBeNull();
+            expect((result!.node as DastElement).name).toBe("math");
+            expect(result!.unresolvedPathParts).toEqual([]);
+        });
+
         it("Handles updateSource to re-sync with core", () => {
             const source1 = `<section name="s1"><p name="p1" /></section>`;
             const sourceObj1 = new DoenetSourceObject(source1);

@@ -398,8 +398,15 @@ export class RustResolverAdapter {
             // completions for that path. Indexed traversal must use
             // $rep[n].member.
             if (resolution.nodesInResolvedPath.length > 1) {
+                // Rust includes the origin in nodesInResolvedPath, but when
+                // the origin is also the first resolved segment it may not be
+                // duplicated. Align to lookupParts by taking the trailing
+                // nodes that correspond to the resolved path segments, then
+                // exclude the final resolved node to inspect only intermediates.
+                const alignedPathNodeIndices =
+                    resolution.nodesInResolvedPath.slice(-lookupParts.length);
                 const intermediatePathNodeIndices =
-                    resolution.nodesInResolvedPath.slice(0, -1);
+                    alignedPathNodeIndices.slice(0, -1);
                 for (
                     let pathPartIndex = 0;
                     pathPartIndex < intermediatePathNodeIndices.length;

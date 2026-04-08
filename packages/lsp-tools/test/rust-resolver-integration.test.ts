@@ -717,6 +717,57 @@ describe.skipIf(!wasmAvailable)(
                 expect(items).toHaveLength(0);
             }
 
+            // The same indexed traversal should also work when the ref is
+            // resolved from inside an enclosing element whose node becomes the
+            // origin in the Rust resolver output.
+            {
+                const source = `<section name="sec"><repeatForSequence name="rep"><math name="myMath">x<math name="dec">y</math></math></repeatForSequence>\n$rep[1].myMath.</section>`;
+                const { completer } = createCompleterWithAdapter(source, {
+                    includeAdditionalRefNames: true,
+                });
+                const offset =
+                    source.indexOf("$rep[1].myMath.") +
+                    "$rep[1].myMath.".length;
+                const items = completer.getCompletionItems(offset);
+                const labels = items.map((i) => i.label);
+                expect(labels).toContain("dec");
+                const propertyItems = items.filter(
+                    (i) => i.kind === CompletionItemKind.Property,
+                );
+                expect(propertyItems.length).toBeGreaterThan(0);
+            }
+
+            // Two nested takesIndex composites should both require indices,
+            // and the doubly-indexed path should still resolve through to the
+            // concrete math target and its descendants.
+            {
+                const source = `<repeat name="outer" numRepetitions="2"><repeatForSequence name="inner"><math name="myMath">x<math name="dec">y</math></math></repeatForSequence></repeat>\n$outer[1].inner[1].myMath.`;
+                const { completer } = createCompleterWithAdapter(source, {
+                    includeAdditionalRefNames: true,
+                });
+                const offset = source.length;
+                const items = completer.getCompletionItems(offset);
+                const labels = items.map((i) => i.label);
+                expect(labels).toContain("dec");
+                const propertyItems = items.filter(
+                    (i) => i.kind === CompletionItemKind.Property,
+                );
+                expect(propertyItems.length).toBeGreaterThan(0);
+            }
+
+            // If the first takesIndex segment is indexed but a later
+            // takesIndex segment is not, traversal should still be blocked at
+            // the unindexed segment.
+            {
+                const source = `<repeat name="outer" numRepetitions="2"><repeatForSequence name="inner"><math name="myMath">x<math name="dec">y</math></math></repeatForSequence></repeat>\n$outer[1].inner.myMath.`;
+                const { completer } = createCompleterWithAdapter(source, {
+                    includeAdditionalRefNames: true,
+                });
+                const offset = source.length;
+                const items = completer.getCompletionItems(offset);
+                expect(items).toHaveLength(0);
+            }
+
             // $rep[1]. should include valueName/indexName as completions
             {
                 const source = `<repeat name="rep" valueName="v" indexName="i"><math name="m">x</math></repeat>\n$rep[1].`;
