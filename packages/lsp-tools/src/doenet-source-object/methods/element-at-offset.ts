@@ -38,6 +38,17 @@ export function elementAtOffsetWithContext(
         cursorPosition = "body";
     }
 
+    if (
+        node?.type === "element" &&
+        node.position?.start?.offset === offset &&
+        parent?.type === "element" &&
+        prevChar &&
+        !prevChar.match(/(\s|\n|<)/)
+    ) {
+        cursorPosition = "body";
+        node = parent as DastElement;
+    }
+
     if (!node) {
         cursorPosition = "unknown";
     }

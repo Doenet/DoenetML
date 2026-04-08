@@ -390,6 +390,15 @@ describe("AutoCompleter", () => {
                     top: true,
                     acceptsStringChildren: true,
                 },
+                {
+                    name: "select",
+                    children: [],
+                    attributes: [],
+                    properties: [],
+                    top: true,
+                    acceptsStringChildren: true,
+                    takesIndex: true,
+                },
             ],
         };
 
@@ -514,6 +523,29 @@ describe("AutoCompleter", () => {
             if (textEdit && "newText" in textEdit) {
                 expect(textEdit.newText).toBe("(foo-bar)");
             }
+        });
+
+        it("does not offer $name[] when local referent is non-takesIndex but a later duplicate name is takesIndex", () => {
+            const source = `<section name="A"><math>$dup</math><p name="dup">a</p></section><section name="B"><select name="dup"><option><math name="m">1</math></option></select></section>`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.indexOf("$dup") + "$dup".length;
+            const items = autoCompleter.getCompletionItems(offset);
+            const labels = items.map((i) => i.label);
+
+            expect(labels).toContain("dup");
+            expect(labels).not.toContain("dup[]");
+        });
+
+        it("offers ref completions immediately before a following tag without requiring a space", () => {
+            const source = `<section name="A">$dup<p name="dup">a</p></section><section name="B"><select name="dup"><option><math name="m">1</math></option></select></section>`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.indexOf("$dup") + "$dup".length;
+            const items = autoCompleter.getCompletionItems(offset);
+            const labels = items.map((i) => i.label);
+
+            expect(labels).toContain("dup");
         });
 
         it("Keeps plain macro text for simple names after $", () => {

@@ -1,7 +1,6 @@
 import { DoenetSourceObject, RowCol } from "../../doenet-source-object";
 import type { CompletionItem, Range } from "vscode-languageserver/browser";
 import { CompletionItemKind } from "vscode-languageserver/browser";
-import type { DastElement, DastRoot } from "@doenet/parser";
 import type {
     CompletionSnippetCompletionItemData,
     CompletionSnippetCursor,
@@ -11,12 +10,6 @@ import { AutoCompleter } from "../index";
 // Keep these aligned with parser grammar in `packages/parser/src/macros/macros.peggy`:
 // - SimpleIdent = [a-zA-Z_][a-zA-Z0-9_]*
 const SIMPLE_IDENTIFIER_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
-// Cache by DAST root identity. AutoCompleter.setSource() replaces the root,
-// so stale maps naturally disappear with GC.
-const NAME_TO_ELEMENT_TYPE_MAP_CACHE = new WeakMap<
-    DastRoot | DastElement,
-    Map<string, string>
->();
 
 /**
  * Create an LSP Range from source offset positions.
@@ -270,47 +263,6 @@ function toRefSegmentInsertText(label: string) {
 }
 
 /**
- * Walk the DAST and build a map from user-assigned `name` attribute values
- * to the element's tag name (component type).  Used to look up whether
- * a named element has `takesIndex`.
- */
-function buildNameToElementTypeMap(
-    root: DastRoot | DastElement,
-): Map<string, string> {
-    const cachedMap = NAME_TO_ELEMENT_TYPE_MAP_CACHE.get(root);
-    if (cachedMap) {
-        return cachedMap;
-    }
-
-    const map = new Map<string, string>();
-    function walk(node: DastRoot | DastElement) {
-        if (node.type === "element") {
-            const nameAttr = node.attributes?.name;
-            if (nameAttr) {
-                const nameVal =
-                    nameAttr.children.length === 1 &&
-                    nameAttr.children[0].type === "text"
-                        ? nameAttr.children[0].value
-                        : undefined;
-                if (nameVal) {
-                    map.set(nameVal, node.name);
-                }
-            }
-        }
-        if ("children" in node) {
-            for (const child of node.children) {
-                if (child.type === "element") {
-                    walk(child);
-                }
-            }
-        }
-    }
-    walk(root);
-    NAME_TO_ELEMENT_TYPE_MAP_CACHE.set(root, map);
-    return map;
-}
-
-/**
  * Determine which descendant and property names should be visible for a resolved
  * element, respecting takesIndex and per-segment index semantics.
  *
@@ -482,18 +434,15 @@ export function getCompletionItems(
         // For names that refer to takesIndex elements (repeat, select, …),
         // offer an additional "$name[]" snippet with cursor between the
         // brackets so the user can type the index directly.
-        const nameToElementType = buildNameToElementTypeMap(
-            this.sourceObj.dast,
-        );
         const replaceRange = createTextEditRange(
             this.sourceObj,
             completionContext.replaceFromOffset,
             offset,
         );
         for (const name of filteredNames) {
-            const elementType = nameToElementType.get(name);
-            if (!elementType) continue;
-            const normalized = this.normalizeElementName(elementType);
+            const referent = this.sourceObj.getReferentAtOffset(offset, name);
+            if (!referent) continue;
+            const normalized = this.normalizeElementName(referent.name);
             const schema = this.schemaElementsByName[normalized];
             if (!schema?.takesIndex) continue;
             const insertText = isParenthesizedContext
