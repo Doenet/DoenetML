@@ -309,6 +309,41 @@ function buildNameToElementTypeMap(
 }
 
 /**
+ * Determine which descendant and property names should be visible for a resolved
+ * element, respecting takesIndex and hasIndex semantics.
+ *
+ * - For `takesIndex` composites without a bracket index: descendants are hidden,
+ *   only properties are shown.
+ * - For `takesIndex` composites with a bracket index: descendants are shown
+ *   (replacement child names), properties are hidden (unknown type).
+ * - For regular elements: both descendants and properties are shown.
+ * - For invalid access (element doesn't take index but has one): both are empty.
+ */
+function determineVisibleNames(
+    isDirectRef: boolean,
+    takesIndex: boolean,
+    hasIndex: boolean,
+    visibleDescendantNames: string[] | undefined,
+    schema: { properties?: { name: string }[] } | undefined,
+): { descendantNames: Set<string>; propertyNames: string[] } {
+    // When the user has provided an index on a takesIndex composite
+    // (e.g. $rep[1].), the referent is a replacement child — not the
+    // composite itself. We don't know the replacement's component type,
+    // so we can only offer descendant name completions, not properties.
+    const descendantNames =
+        isDirectRef && takesIndex && !hasIndex
+            ? new Set<string>()
+            : new Set(visibleDescendantNames ?? []);
+
+    const propertyNames =
+        isDirectRef && takesIndex && hasIndex
+            ? []
+            : schema?.properties?.map((property) => property.name) || [];
+
+    return { descendantNames, propertyNames };
+}
+
+/**
  * Build schema-property completions for the currently resolved ref target.
  * These are shown only after descendant-name candidates so concrete named
  * children win label collisions.
@@ -505,6 +540,8 @@ export function getCompletionItems(
 
         const componentType = this.normalizeElementName(resolvedNode.name);
         const schema = this.schemaElementsByName[componentType];
+        const isDirectRef = completionContext.pathParts.length <= 2;
+        const takesIndex = schema?.takesIndex ?? false;
 
         // When the resolved element has `takesIndex: true` AND the user has
         // NOT entered a bracket index, descendants are accessible only via
@@ -518,26 +555,17 @@ export function getCompletionItems(
         // For deeper paths like $rep[1].myMath., the index was consumed at
         // the first segment and the final resolved node is a concrete
         // descendant that should be treated normally.
-        const isDirectRef = completionContext.pathParts.length <= 2;
-        const takesIndex = schema?.takesIndex ?? false;
-
         if (isDirectRef && !takesIndex && completionContext.hasIndex) {
             return [];
         }
 
-        const descendantNames =
-            isDirectRef && takesIndex && !completionContext.hasIndex
-                ? new Set<string>()
-                : new Set(resolved.visibleDescendantNames ?? []);
-
-        // When the user has provided an index on a takesIndex composite
-        // (e.g. $rep[1].), the referent is a replacement child — not the
-        // composite itself.  We don't know the replacement's component type,
-        // so we can only offer descendant name completions, not properties.
-        const propertyNames =
-            isDirectRef && takesIndex && completionContext.hasIndex
-                ? []
-                : schema?.properties?.map((property) => property.name) || [];
+        const { descendantNames, propertyNames } = determineVisibleNames(
+            isDirectRef,
+            takesIndex,
+            completionContext.hasIndex,
+            resolved.visibleDescendantNames,
+            schema,
+        );
 
         const prefix = completionContext.typedPrefix.toLowerCase();
         const filteredDescendantNames = [...descendantNames].filter((name) =>

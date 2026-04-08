@@ -293,6 +293,14 @@ export class RustResolverAdapter {
 
     /**
      * Resolve a ref-member container for AutoCompleter member completion.
+     *
+     * @param offset — The character offset in the source for scope resolution.
+     * @param pathParts — The path segments (e.g. ["rep", "myMath", ""] for `$rep.myMath.`).
+     * @param hasIndex — When true, indicates a bracket index was present in the path
+     *                     (e.g. `$sel[1].`), enabling descendant access for takesIndex
+     *                     elements. If false or undefined, takesIndex elements hide their
+     *                     descendants unless accessed via index notation.
+     * @returns The resolved node and visible descendant names, or null if resolution fails.
      */
     resolveRefMemberContainerAtOffset(
         offset: number,
