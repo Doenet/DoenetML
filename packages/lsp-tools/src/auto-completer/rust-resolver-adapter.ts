@@ -187,64 +187,64 @@ export interface RustResolverAdapterOptions {
  * resolve_path() for each completion request.
  */
 export class RustResolverAdapter {
-    private core: RustResolverCore | null = null;
-    private sourceObj: DoenetSourceObject;
-    private enabled = false;
-    private takesIndexComponentTypes: ReadonlySet<string> | null = null;
+    _core: RustResolverCore | null = null;
+    _sourceObj: DoenetSourceObject;
+    _enabled = false;
+    _takesIndexComponentTypes: ReadonlySet<string> | null = null;
 
     /** Rust flat index → JS DAST element (matched by source position). */
-    private rustIndexToDastElement: Map<number, DastElement> = new Map();
+    _rustIndexToDastElement: Map<number, DastElement> = new Map();
     /** JS DAST element → Rust flat index. */
-    private dastElementToRustIndex: Map<DastElement, number> = new Map();
+    _dastElementToRustIndex: Map<DastElement, number> = new Map();
 
     constructor(
         sourceObj: DoenetSourceObject,
         options?: RustResolverAdapterOptions,
     ) {
-        this.sourceObj = sourceObj;
-        this.takesIndexComponentTypes =
+        this._sourceObj = sourceObj;
+        this._takesIndexComponentTypes =
             options?.takesIndexComponentTypes ?? null;
         if (options?.core) {
-            this.core = options.core;
+            this._core = options.core;
             this.syncSource();
         }
     }
 
     private componentTakesIndex(componentType: string): boolean {
-        return this.takesIndexComponentTypes?.has(componentType) ?? false;
+        return this._takesIndexComponentTypes?.has(componentType) ?? false;
     }
 
     /**
      * Sync the DAST/source to the Rust core and rebuild index mappings.
      */
     private syncSource(): void {
-        if (!this.core) {
-            this.enabled = false;
+        if (!this._core) {
+            this._enabled = false;
             return;
         }
         // The Rust core panics on empty source (index-out-of-bounds on a
         // zero-length collection).  It also panics when the DAST contains
         // no elements (e.g. source is just "a" — only text nodes, zero
         // elements).  Skip the sync in both cases.
-        if (!this.sourceObj.source.trim()) {
-            this.enabled = false;
+        if (!this._sourceObj.source.trim()) {
+            this._enabled = false;
             return;
         }
-        const hasElements = this.sourceObj.dast.children.some(
+        const hasElements = this._sourceObj.dast.children.some(
             (c) => c.type === "element",
         );
         if (!hasElements) {
-            this.enabled = false;
+            this._enabled = false;
             return;
         }
         try {
-            this.core.set_source(this.sourceObj.dast, this.sourceObj.source);
-            const flatDast = this.core.return_dast();
+            this._core.set_source(this._sourceObj.dast, this._sourceObj.source);
+            const flatDast = this._core.return_dast();
             this.buildMappings(flatDast);
-            this.enabled = true;
+            this._enabled = true;
         } catch (e) {
             console.warn("RustResolverAdapter: failed to sync source:", e);
-            this.enabled = false;
+            this._enabled = false;
         }
     }
 
@@ -258,8 +258,8 @@ export class RustResolverAdapter {
             position?: { start: { offset?: number } };
         }>;
     }): void {
-        this.rustIndexToDastElement.clear();
-        this.dastElementToRustIndex.clear();
+        this._rustIndexToDastElement.clear();
+        this._dastElementToRustIndex.clear();
 
         // Collect JS DAST elements keyed by start offset.
         const dastByStartOffset = new Map<number, DastElement>();
@@ -274,7 +274,7 @@ export class RustResolverAdapter {
                 }
             }
         };
-        for (const child of this.sourceObj.dast.children) {
+        for (const child of this._sourceObj.dast.children) {
             collectElements(child as DastNodes);
         }
 
@@ -286,8 +286,8 @@ export class RustResolverAdapter {
             if (id == null) continue;
             const dastElm = dastByStartOffset.get(startOffset);
             if (!dastElm) continue;
-            this.rustIndexToDastElement.set(id, dastElm);
-            this.dastElementToRustIndex.set(dastElm, id);
+            this._rustIndexToDastElement.set(id, dastElm);
+            this._dastElementToRustIndex.set(dastElm, id);
         }
     }
 
@@ -302,7 +302,7 @@ export class RustResolverAdapter {
         return this.createResolver()({
             offset,
             pathParts,
-            nodeIndex: this.sourceObj.getNodeIndexAtOffset(offset),
+            nodeIndex: this._sourceObj.getNodeIndexAtOffset(offset),
             hasIndex,
         });
     }
@@ -313,7 +313,7 @@ export class RustResolverAdapter {
      */
     createResolver(): ResolveRefMemberContainer {
         return (args: ResolveRefMemberContainerArgs) => {
-            if (!this.enabled || !this.core) return null;
+            if (!this._enabled || !this._core) return null;
 
             const { offset, pathParts, hasIndex } = args;
             if (pathParts.length === 0) return null;
@@ -335,13 +335,13 @@ export class RustResolverAdapter {
             );
 
             try {
-                const resolution = this.core.resolve_path(
+                const resolution = this._core.resolve_path(
                     { path: flatPath },
                     originIndex,
                     false,
                 );
 
-                const resolvedNode = this.rustIndexToDastElement.get(
+                const resolvedNode = this._rustIndexToDastElement.get(
                     resolution.nodeIdx,
                 );
                 if (!resolvedNode) return null;
@@ -400,12 +400,12 @@ export class RustResolverAdapter {
                 // respects ChildrenInvisibleToTheirGrandparents etc.).
                 const resolvedIdx = resolution.nodeIdx;
                 const allNames =
-                    this.sourceObj.getUniqueDescendantNamesForNode(
+                    this._sourceObj.getUniqueDescendantNamesForNode(
                         resolvedNode,
                     );
                 const visibleDescendantNames = allNames.filter((name) => {
                     try {
-                        const probe = this.core!.resolve_path(
+                        const probe = this._core!.resolve_path(
                             {
                                 path: [
                                     {
@@ -451,9 +451,9 @@ export class RustResolverAdapter {
      * back to a mapped top-level element when the cursor is at root level.
      */
     private getOriginIndex(offset: number): number | null {
-        const containingElement = this.sourceObj.elementAtOffset(offset);
+        const containingElement = this._sourceObj.elementAtOffset(offset);
         if (containingElement) {
-            const idx = this.dastElementToRustIndex.get(containingElement);
+            const idx = this._dastElementToRustIndex.get(containingElement);
             if (idx != null) return idx;
         }
         return this.getRootOriginIndex();
@@ -466,9 +466,9 @@ export class RustResolverAdapter {
      */
     private getRootOriginIndex(): number | null {
         const topLevelIndices: number[] = [];
-        for (const child of this.sourceObj.dast.children) {
+        for (const child of this._sourceObj.dast.children) {
             if (child.type !== "element") continue;
-            const idx = this.dastElementToRustIndex.get(child);
+            const idx = this._dastElementToRustIndex.get(child);
             if (idx != null) {
                 topLevelIndices.push(idx);
             }
@@ -477,7 +477,7 @@ export class RustResolverAdapter {
             return Math.min(...topLevelIndices);
         }
 
-        const mappedIndices = [...this.rustIndexToDastElement.keys()];
+        const mappedIndices = [...this._rustIndexToDastElement.keys()];
         if (mappedIndices.length > 0) {
             return Math.min(...mappedIndices);
         }
@@ -490,7 +490,7 @@ export class RustResolverAdapter {
      * This respects `ChildrenInvisibleToTheirGrandparents` etc.
      */
     isNameAddressableFromOffset(offset: number, name: string): boolean {
-        if (!this.enabled || !this.core) return false;
+        if (!this._enabled || !this._core) return false;
 
         // Derived repeat names from valueName/indexName are always
         // addressable from inside the repeat and bypass resolve_path.
@@ -503,14 +503,14 @@ export class RustResolverAdapter {
         // upward, so to correctly probe the containing element's scope we
         // must resolve from one of its existing children rather than the
         // container itself.
-        const containingElement = this.sourceObj.elementAtOffset(offset);
+        const containingElement = this._sourceObj.elementAtOffset(offset);
         let resolveFromIndex: number | null = null;
 
         if (containingElement) {
             // Find the first child element that has a Rust index.
             for (const child of containingElement.children) {
                 if (child.type === "element") {
-                    const ci = this.dastElementToRustIndex.get(child);
+                    const ci = this._dastElementToRustIndex.get(child);
                     if (ci != null) {
                         resolveFromIndex = ci;
                         break;
@@ -522,7 +522,7 @@ export class RustResolverAdapter {
             // the parent-scope walk is still correct.
             if (resolveFromIndex == null) {
                 resolveFromIndex =
-                    this.dastElementToRustIndex.get(containingElement) ?? null;
+                    this._dastElementToRustIndex.get(containingElement) ?? null;
             }
         } else {
             // Root level — use the first top-level element (a child of the
@@ -535,7 +535,7 @@ export class RustResolverAdapter {
         if (resolveFromIndex == null) return false;
 
         try {
-            const resolution = this.core.resolve_path(
+            const resolution = this._core.resolve_path(
                 {
                     path: [
                         {
@@ -578,11 +578,11 @@ export class RustResolverAdapter {
      * The same pattern applies to `<select>` / `<option>` via `selectSugar`.
      */
     private isHiddenBySugar(rustIdx: number, cursorOffset: number): boolean {
-        const resolvedElement = this.rustIndexToDastElement.get(rustIdx);
+        const resolvedElement = this._rustIndexToDastElement.get(rustIdx);
         if (!resolvedElement) return false;
 
         let current: DastElement | DastNodes = resolvedElement;
-        let parent = this.sourceObj.getParent(current);
+        let parent = this._sourceObj.getParent(current);
 
         while (parent && parent.type !== "root") {
             if (
@@ -604,7 +604,7 @@ export class RustResolverAdapter {
                     // non-wrapper children that sugar will wrap, or deeper
                     // descendants already behind a wrapper barrier) is hidden.
                     const resolvedParent =
-                        this.sourceObj.getParent(resolvedElement);
+                        this._sourceObj.getParent(resolvedElement);
                     if (
                         resolvedParent &&
                         resolvedParent.type === "element" &&
@@ -619,13 +619,13 @@ export class RustResolverAdapter {
                 }
             }
             current = parent;
-            parent = this.sourceObj.getParent(parent);
+            parent = this._sourceObj.getParent(parent);
         }
         return false;
     }
 
     isEnabled(): boolean {
-        return this.enabled;
+        return this._enabled;
     }
 
     /**
@@ -637,10 +637,10 @@ export class RustResolverAdapter {
     getDerivedRepeatNames(offset: number): string[] {
         const names: string[] = [];
         let current: DastElement | undefined =
-            this.sourceObj.elementAtOffset(offset) ?? undefined;
+            this._sourceObj.elementAtOffset(offset) ?? undefined;
         while (current) {
             names.push(...getDerivedRepeatNamesFromElement(current));
-            const p = this.sourceObj.getParent(current);
+            const p = this._sourceObj.getParent(current);
             current =
                 p && p.type === "element" ? (p as DastElement) : undefined;
         }
@@ -651,7 +651,7 @@ export class RustResolverAdapter {
      * Update source and rebuild mappings. Call when the document changes.
      */
     updateSource(sourceObj: DoenetSourceObject): void {
-        this.sourceObj = sourceObj;
+        this._sourceObj = sourceObj;
         this.syncSource();
     }
 }

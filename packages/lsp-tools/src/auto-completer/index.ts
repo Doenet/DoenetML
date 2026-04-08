@@ -97,8 +97,8 @@ function adjustCursorForTrimStart(
 export class AutoCompleter {
     sourceObj: DoenetSourceObject = new DoenetSourceObject();
     schema: ElementSchema[] = [];
-    private rustResolverAdapter?: RustResolverAdapter;
-    private getAdditionalRefNamesImpl?: (offset: number) => string[];
+    _rustResolverAdapter?: RustResolverAdapter;
+    _getAdditionalRefNamesImpl?: (offset: number) => string[];
     /**
      * A map of element names (in lower case) to their canonical capitalization.
      */
@@ -130,8 +130,8 @@ export class AutoCompleter {
             // will be parsed as a text "<" rather than an invalid element.
             this.sourceObj.setSource(source + " ");
         }
-        this.rustResolverAdapter = options?.rustResolverAdapter;
-        this.getAdditionalRefNamesImpl = options?.getAdditionalRefNames;
+        this._rustResolverAdapter = options?.rustResolverAdapter;
+        this._getAdditionalRefNamesImpl = options?.getAdditionalRefNames;
         if (schema) {
             this.setSchema(schema);
         }
@@ -141,7 +141,7 @@ export class AutoCompleter {
      * Return any additional ref names injected for this offset.
      */
     getAdditionalRefNames(offset: number): string[] {
-        return this.getAdditionalRefNamesImpl?.(offset) ?? [];
+        return this._getAdditionalRefNamesImpl?.(offset) ?? [];
     }
 
     /**
@@ -149,8 +149,8 @@ export class AutoCompleter {
      * Returns `false` when no Rust resolver adapter is set.
      */
     isNameAddressable(offset: number, name: string): boolean {
-        if (this.rustResolverAdapter) {
-            return this.rustResolverAdapter.isNameAddressableFromOffset(
+        if (this._rustResolverAdapter) {
+            return this._rustResolverAdapter.isNameAddressableFromOffset(
                 offset,
                 name,
             );
@@ -170,9 +170,9 @@ export class AutoCompleter {
         pathParts: string[],
         hasIndex?: boolean,
     ): RefMemberContainerResolution {
-        if (this.rustResolverAdapter) {
+        if (this._rustResolverAdapter) {
             const resolved =
-                this.rustResolverAdapter.resolveRefMemberContainerAtOffset(
+                this._rustResolverAdapter.resolveRefMemberContainerAtOffset(
                     offset,
                     pathParts,
                     hasIndex,
