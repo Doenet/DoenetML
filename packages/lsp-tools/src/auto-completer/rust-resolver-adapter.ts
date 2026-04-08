@@ -47,6 +47,22 @@ function collectAllNamedDescendants(
 }
 
 /**
+ * Add only names that appear exactly once in the given descendant list.
+ */
+function addUniqueNamesFromDescendants(
+    descendants: Array<{ name: string; element: DastElement }>,
+    result: Set<string>,
+): void {
+    const counts = new Map<string, number>();
+    for (const { name } of descendants) {
+        counts.set(name, (counts.get(name) ?? 0) + 1);
+    }
+    for (const [name, count] of counts) {
+        if (count === 1) result.add(name);
+    }
+}
+
+/**
  * Collect descendant names from a composite element (conditionalContent or
  * select) by walking through wrapper children (case/else/option)
  * transparently.
@@ -69,14 +85,10 @@ function collectNamesFromCompositeChildren(
 
         if (COMPOSITE_WRAPPER_NAMES.has(child.name)) {
             // Walk inside the wrapper transparently
-            const descendants = collectAllNamedDescendants(child);
-            const counts = new Map<string, number>();
-            for (const { name } of descendants) {
-                counts.set(name, (counts.get(name) ?? 0) + 1);
-            }
-            for (const [name, count] of counts) {
-                if (count === 1) result.add(name);
-            }
+            addUniqueNamesFromDescendants(
+                collectAllNamedDescendants(child),
+                result,
+            );
         } else {
             // Direct child of composite (not a wrapper) — collect its names
             // plus the child itself if named.
@@ -89,14 +101,10 @@ function collectNamesFromCompositeChildren(
                         : undefined;
                 if (nameVal) result.add(nameVal);
             }
-            const descendants = collectAllNamedDescendants(child);
-            const counts = new Map<string, number>();
-            for (const { name } of descendants) {
-                counts.set(name, (counts.get(name) ?? 0) + 1);
-            }
-            for (const [name, count] of counts) {
-                if (count === 1) result.add(name);
-            }
+            addUniqueNamesFromDescendants(
+                collectAllNamedDescendants(child),
+                result,
+            );
         }
     }
 
@@ -307,7 +315,7 @@ export class RustResolverAdapter {
         pathParts: string[],
         hasIndex?: boolean,
     ): RefMemberContainerResolution | null {
-        return this.createResolver()({
+        return this._resolveRefMemberContainer({
             offset,
             pathParts,
             nodeIndex: this._sourceObj.getNodeIndexAtOffset(offset),
@@ -316,141 +324,138 @@ export class RustResolverAdapter {
     }
 
     /**
-     * Create a resolver callback suitable for AutoCompleter's
-     * `resolveRefMemberContainerAtOffset` option.
+     * Create a resolver callback suitable for external callers that need
+     * `ResolveRefMemberContainer` shape.
      */
     createResolver(): ResolveRefMemberContainer {
-        return (args: ResolveRefMemberContainerArgs) => {
-            if (!this._enabled || !this._core) return null;
+        return (args: ResolveRefMemberContainerArgs) =>
+            this._resolveRefMemberContainer(args);
+    }
 
-            const { offset, pathParts, hasIndex } = args;
-            if (pathParts.length === 0) return null;
+    _resolveRefMemberContainer(
+        args: ResolveRefMemberContainerArgs,
+    ): RefMemberContainerResolution | null {
+        if (!this._enabled || !this._core) return null;
 
-            // Resolve up to but not including the last part (being edited).
-            const lookupParts = pathParts.slice(0, -1);
-            if (lookupParts.length === 0) return null;
+        const { offset, pathParts, hasIndex } = args;
+        if (pathParts.length === 0) return null;
 
-            // Determine origin: the Rust index of the enclosing element.
-            const originIndex = this.getOriginIndex(offset);
-            if (originIndex == null) return null;
+        // Resolve up to but not including the last part (being edited).
+        const lookupParts = pathParts.slice(0, -1);
+        if (lookupParts.length === 0) return null;
 
-            const flatPath: FlatPathPartForResolver[] = lookupParts.map(
-                (name) => ({
-                    type: "flatPathPart" as const,
-                    name,
-                    index: [],
-                }),
+        // Determine origin: the Rust index of the enclosing element.
+        const originIndex = this.getOriginIndex(offset);
+        if (originIndex == null) return null;
+
+        const flatPath: FlatPathPartForResolver[] = lookupParts.map((name) => ({
+            type: "flatPathPart" as const,
+            name,
+            index: [],
+        }));
+
+        try {
+            const resolution = this._core.resolve_path(
+                { path: flatPath },
+                originIndex,
+                false,
             );
 
-            try {
-                const resolution = this._core.resolve_path(
-                    { path: flatPath },
-                    originIndex,
-                    false,
-                );
+            const resolvedNode = this._rustIndexToDastElement.get(
+                resolution.nodeIdx,
+            );
+            if (!resolvedNode) return null;
 
-                const resolvedNode = this._rustIndexToDastElement.get(
-                    resolution.nodeIdx,
-                );
-                if (!resolvedNode) return null;
+            const unresolvedPathParts = (resolution.unresolvedPath ?? []).map(
+                (p) => p.name,
+            );
 
-                const unresolvedPathParts = (
-                    resolution.unresolvedPath ?? []
-                ).map((p) => p.name);
+            // When there are unresolved parts, the path is invalid —
+            // return null so the caller offers no completions.
+            if (unresolvedPathParts.length > 0) {
+                return {
+                    node: null,
+                    unresolvedPathParts,
+                };
+            }
 
-                // When there are unresolved parts, the path is invalid —
-                // return null so the caller offers no completions.
-                if (unresolvedPathParts.length > 0) {
-                    return {
-                        node: null,
-                        unresolvedPathParts,
-                    };
-                }
-
-                // When the resolved element takes an index, descendants
-                // are only accessible via $name[n].member — suppress them
-                // unless the user has already provided a bracket index.
-                if (this.componentTakesIndex(resolvedNode.name) && !hasIndex) {
-                    return {
-                        node: resolvedNode,
-                        unresolvedPathParts: [],
-                        visibleDescendantNames: [],
-                    };
-                }
-
-                // For composites (conditionalContent, and any
-                // takesIndex composite with an index present), compute
-                // visible descendants by walking through wrapper children
-                // (case/else/option) transparently.
-                if (
-                    resolvedNode.name === "conditionalContent" ||
-                    (hasIndex && this.componentTakesIndex(resolvedNode.name))
-                ) {
-                    const names =
-                        collectNamesFromCompositeChildren(resolvedNode);
-                    // For repeat/repeatForSequence, also expose
-                    // valueName/indexName as member completions when
-                    // accessed with an index (e.g. $rep[1].v).
-                    const derivedRepeatNames =
-                        getDerivedRepeatNamesFromElement(resolvedNode);
-                    return {
-                        node: resolvedNode,
-                        unresolvedPathParts: [],
-                        visibleDescendantNames: [
-                            ...names,
-                            ...derivedRepeatNames,
-                        ],
-                    };
-                }
-
-                // Determine which descendant names are actually visible
-                // from the resolved node using the Rust name_map (which
-                // respects ChildrenInvisibleToTheirGrandparents etc.).
-                const resolvedIdx = resolution.nodeIdx;
-                const allNames =
-                    this._sourceObj.getUniqueDescendantNamesForNode(
-                        resolvedNode,
-                    );
-                const visibleDescendantNames = allNames.filter((name) => {
-                    try {
-                        const probe = this._core!.resolve_path(
-                            {
-                                path: [
-                                    {
-                                        type: "flatPathPart" as const,
-                                        name,
-                                        index: [],
-                                    },
-                                ],
-                            },
-                            resolvedIdx,
-                            true,
-                        );
-                        // A fully-resolved path (no unresolved parts whose
-                        // first segment equals the original name) means the
-                        // name matched a visible descendant.
-                        if (
-                            probe.unresolvedPath &&
-                            probe.unresolvedPath.length > 0
-                        ) {
-                            return false;
-                        }
-                        return true;
-                    } catch {
-                        return false;
-                    }
-                });
-
+            // When the resolved element takes an index, descendants
+            // are only accessible via $name[n].member — suppress them
+            // unless the user has already provided a bracket index.
+            if (this.componentTakesIndex(resolvedNode.name) && !hasIndex) {
                 return {
                     node: resolvedNode,
                     unresolvedPathParts: [],
-                    visibleDescendantNames,
+                    visibleDescendantNames: [],
                 };
-            } catch {
-                // Resolution error (NoReferent, NonUniqueReferent, etc.)
-                return null;
             }
-        };
+
+            // For composites (conditionalContent, and any
+            // takesIndex composite with an index present), compute
+            // visible descendants by walking through wrapper children
+            // (case/else/option) transparently.
+            if (
+                resolvedNode.name === "conditionalContent" ||
+                (hasIndex && this.componentTakesIndex(resolvedNode.name))
+            ) {
+                const names = collectNamesFromCompositeChildren(resolvedNode);
+                // For repeat/repeatForSequence, also expose
+                // valueName/indexName as member completions when
+                // accessed with an index (e.g. $rep[1].v).
+                const derivedRepeatNames =
+                    getDerivedRepeatNamesFromElement(resolvedNode);
+                return {
+                    node: resolvedNode,
+                    unresolvedPathParts: [],
+                    visibleDescendantNames: [...names, ...derivedRepeatNames],
+                };
+            }
+
+            // Determine which descendant names are actually visible
+            // from the resolved node using the Rust name_map (which
+            // respects ChildrenInvisibleToTheirGrandparents etc.).
+            const resolvedIdx = resolution.nodeIdx;
+            const allNames =
+                this._sourceObj.getUniqueDescendantNamesForNode(resolvedNode);
+            const visibleDescendantNames = allNames.filter((name) => {
+                try {
+                    const probe = this._core!.resolve_path(
+                        {
+                            path: [
+                                {
+                                    type: "flatPathPart" as const,
+                                    name,
+                                    index: [],
+                                },
+                            ],
+                        },
+                        resolvedIdx,
+                        true,
+                    );
+                    // A fully-resolved path (no unresolved parts whose
+                    // first segment equals the original name) means the
+                    // name matched a visible descendant.
+                    if (
+                        probe.unresolvedPath &&
+                        probe.unresolvedPath.length > 0
+                    ) {
+                        return false;
+                    }
+                    return true;
+                } catch {
+                    return false;
+                }
+            });
+
+            return {
+                node: resolvedNode,
+                unresolvedPathParts: [],
+                visibleDescendantNames,
+            };
+        } catch {
+            // Resolution error (NoReferent, NonUniqueReferent, etc.)
+            return null;
+        }
     }
 
     /**
@@ -500,8 +505,10 @@ export class RustResolverAdapter {
     isNameAddressableFromOffset(offset: number, name: string): boolean {
         if (!this._enabled || !this._core) return false;
 
-        // Derived repeat names from valueName/indexName are always
-        // addressable from inside the repeat and bypass resolve_path.
+        // Derived repeat names from valueName/indexName are introduced by
+        // repeat runtime behavior and are always addressable from within the
+        // repeat body. They are not affected by conditional/select sugar,
+        // so this intentionally bypasses isHiddenBySugar().
         const derivedRepeatNames = this.getDerivedRepeatNames(offset);
         if (derivedRepeatNames.includes(name)) return true;
 
@@ -589,8 +596,7 @@ export class RustResolverAdapter {
         const resolvedElement = this._rustIndexToDastElement.get(rustIdx);
         if (!resolvedElement) return false;
 
-        let current: DastElement | DastNodes = resolvedElement;
-        let parent = this._sourceObj.getParent(current);
+        let parent = this._sourceObj.getParent(resolvedElement);
 
         while (parent && parent.type !== "root") {
             if (
@@ -614,19 +620,17 @@ export class RustResolverAdapter {
                     const resolvedParent =
                         this._sourceObj.getParent(resolvedElement);
                     if (
-                        resolvedParent &&
-                        resolvedParent.type === "element" &&
-                        resolvedParent === parent &&
-                        COMPOSITE_WRAPPER_NAMES.has(resolvedElement.name)
+                        !(
+                            resolvedParent &&
+                            resolvedParent.type === "element" &&
+                            resolvedParent === parent &&
+                            COMPOSITE_WRAPPER_NAMES.has(resolvedElement.name)
+                        )
                     ) {
-                        // resolvedElement is a direct case/else/option child
-                        // of cc/select — not hidden by sugar.
-                    } else {
                         return true;
                     }
                 }
             }
-            current = parent;
             parent = this._sourceObj.getParent(parent);
         }
         return false;

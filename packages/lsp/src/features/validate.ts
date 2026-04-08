@@ -17,23 +17,15 @@ import {
     RustResolverAdapter,
     type RustResolverCore,
 } from "@doenet/lsp-tools";
+import { doenetSchema } from "@doenet/static-assets/schema";
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { getRustCore } from "../rust-core";
 
-let takesIndexComponentTypes: ReadonlySet<string> | null = null;
-
-function getTakesIndexComponentTypes(
-    autoCompleter: AutoCompleter,
-): ReadonlySet<string> {
-    if (!takesIndexComponentTypes) {
-        takesIndexComponentTypes = new Set(
-            Object.entries(autoCompleter.schemaElementsByName)
-                .filter(([, schemaElement]) => schemaElement?.takesIndex)
-                .map(([componentType]) => componentType),
-        );
-    }
-    return takesIndexComponentTypes;
-}
+const TAKES_INDEX_COMPONENT_TYPES: ReadonlySet<string> = new Set(
+    doenetSchema.elements
+        .filter((schemaElement) => schemaElement?.takesIndex)
+        .map((schemaElement) => schemaElement.name),
+);
 
 export function addValidationSupport(
     connection: Connection,
@@ -106,7 +98,6 @@ export function addValidationSupport(
                 const core = await getRustCore();
                 const currentInfo = documentInfo.get(uri);
                 if (!currentInfo || currentInfo !== capturedInfo) return;
-                if (capturedInfo.rustAdapter) return;
                 const sourceObj = capturedInfo.autoCompleter.sourceObj;
                 // Intentionally create a dedicated core/adapter for this
                 // document. This avoids cross-document source switching
@@ -114,9 +105,7 @@ export function addValidationSupport(
                 // document's AutoCompleter mappings.
                 const adapter = new RustResolverAdapter(sourceObj, {
                     core: core as RustResolverCore,
-                    takesIndexComponentTypes: getTakesIndexComponentTypes(
-                        capturedInfo.autoCompleter,
-                    ),
+                    takesIndexComponentTypes: TAKES_INDEX_COMPONENT_TYPES,
                 });
                 capturedInfo.rustAdapter = adapter;
                 capturedInfo.autoCompleter = new AutoCompleter(

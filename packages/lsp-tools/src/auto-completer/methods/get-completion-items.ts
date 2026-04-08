@@ -11,6 +11,8 @@ import { AutoCompleter } from "../index";
 // Keep these aligned with parser grammar in `packages/parser/src/macros/macros.peggy`:
 // - SimpleIdent = [a-zA-Z_][a-zA-Z0-9_]*
 const SIMPLE_IDENTIFIER_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
+// Cache by DAST root identity. AutoCompleter.setSource() replaces the root,
+// so stale maps naturally disappear with GC.
 const NAME_TO_ELEMENT_TYPE_MAP_CACHE = new WeakMap<
     DastRoot | DastElement,
     Map<string, string>
@@ -462,11 +464,10 @@ export function getCompletionItems(
         const uniqueNames = [
             ...new Set([...addressableNames, ...additionalNames]),
         ];
-        const visibleNames = uniqueNames.filter((name) =>
-            this.isNameAddressable(offset, name),
-        );
-        const filteredNames = visibleNames.filter((name) =>
-            prefix ? name.toLowerCase().startsWith(prefix) : true,
+        const filteredNames = uniqueNames.filter(
+            (name) =>
+                this.isNameAddressable(offset, name) &&
+                (!prefix || name.toLowerCase().startsWith(prefix)),
         );
 
         const baseItems = createReferenceCompletionItems(
