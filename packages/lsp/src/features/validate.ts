@@ -20,6 +20,21 @@ import {
 import { TextDocument } from "vscode-languageserver-textdocument";
 import { getRustCore } from "../rust-core";
 
+let takesIndexComponentTypes: ReadonlySet<string> | null = null;
+
+function getTakesIndexComponentTypes(
+    autoCompleter: AutoCompleter,
+): ReadonlySet<string> {
+    if (!takesIndexComponentTypes) {
+        takesIndexComponentTypes = new Set(
+            Object.entries(autoCompleter.schemaElementsByName)
+                .filter(([, schemaElement]) => schemaElement?.takesIndex)
+                .map(([componentType]) => componentType),
+        );
+    }
+    return takesIndexComponentTypes;
+}
+
 export function addValidationSupport(
     connection: Connection,
     documentInfo: DocumentInfo,
@@ -99,13 +114,9 @@ export function addValidationSupport(
                     // document's AutoCompleter mappings.
                     const adapter = new RustResolverAdapter(sourceObj, {
                         core: core as RustResolverCore,
-                        takesIndex: (componentType: string) => {
-                            const s =
-                                capturedInfo.autoCompleter.schemaElementsByName[
-                                    componentType
-                                ];
-                            return s?.takesIndex ?? false;
-                        },
+                        takesIndexComponentTypes: getTakesIndexComponentTypes(
+                            capturedInfo.autoCompleter,
+                        ),
                     });
                     capturedInfo.rustAdapter = adapter;
                     capturedInfo.autoCompleter = new AutoCompleter(
@@ -115,7 +126,7 @@ export function addValidationSupport(
                             sourceObj,
                             rustResolverAdapter: adapter,
                             getAdditionalRefNames: (offset: number) =>
-                                adapter.getRepeatSyntheticNames(offset),
+                                adapter.getDerivedRepeatNames(offset),
                         },
                     );
                     capturedInfo.rustState = "ready";

@@ -382,78 +382,88 @@ describe("AutoCompleter", () => {
             ],
         };
 
-        function createRefAutoCompleter(source: string) {
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
-            autoCompleter.setRustResolverAdapter({
-                isNameAddressableFromOffset: () => true,
-                resolveRefMemberContainerAtOffset: (
-                    offset: number,
-                    pathParts: string[],
-                ) => {
-                    if (pathParts.length === 0) {
-                        return {
-                            node: null,
-                            unresolvedPathParts: [],
-                        };
-                    }
+        function createRefAutoCompleter(
+            source: string,
+            createAdapter: (
+                sourceObj: DoenetSourceObject,
+            ) => RustResolverAdapter = (sourceObj) =>
+                ({
+                    isNameAddressableFromOffset: () => true,
+                    resolveRefMemberContainerAtOffset: (
+                        offset: number,
+                        pathParts: string[],
+                    ) => {
+                        if (pathParts.length === 0) {
+                            return {
+                                node: null,
+                                unresolvedPathParts: [],
+                            };
+                        }
 
-                    const lookupPathParts = pathParts.slice(0, -1);
-                    if (lookupPathParts.length === 0) {
-                        return {
-                            node: null,
-                            unresolvedPathParts: [],
-                        };
-                    }
+                        const lookupPathParts = pathParts.slice(0, -1);
+                        if (lookupPathParts.length === 0) {
+                            return {
+                                node: null,
+                                unresolvedPathParts: [],
+                            };
+                        }
 
-                    let referent = autoCompleter.sourceObj.getReferentAtOffset(
-                        offset,
-                        lookupPathParts[0],
-                    );
-                    if (!referent) {
-                        return {
-                            node: null,
-                            unresolvedPathParts: lookupPathParts,
-                        };
-                    }
+                        let referent = sourceObj.getReferentAtOffset(
+                            offset,
+                            lookupPathParts[0],
+                        );
+                        if (!referent) {
+                            return {
+                                node: null,
+                                unresolvedPathParts: lookupPathParts,
+                            };
+                        }
 
-                    let firstUnresolvedPartIndex = -1;
-                    for (let i = 1; i < lookupPathParts.length; i++) {
-                        const part = lookupPathParts[i];
-                        const child =
-                            autoCompleter.sourceObj.getNamedDescendant(
+                        let firstUnresolvedPartIndex = -1;
+                        for (let i = 1; i < lookupPathParts.length; i++) {
+                            const part = lookupPathParts[i];
+                            const child = sourceObj.getNamedDescendant(
                                 referent,
                                 part,
                             );
-                        if (!child) {
-                            firstUnresolvedPartIndex = i;
-                            break;
+                            if (!child) {
+                                firstUnresolvedPartIndex = i;
+                                break;
+                            }
+                            referent = child;
                         }
-                        referent = child;
-                    }
 
-                    const unresolvedPathParts =
-                        firstUnresolvedPartIndex === -1
-                            ? []
-                            : lookupPathParts.slice(firstUnresolvedPartIndex);
+                        const unresolvedPathParts =
+                            firstUnresolvedPartIndex === -1
+                                ? []
+                                : lookupPathParts.slice(
+                                      firstUnresolvedPartIndex,
+                                  );
 
-                    if (unresolvedPathParts.length > 0) {
+                        if (unresolvedPathParts.length > 0) {
+                            return {
+                                node: null,
+                                unresolvedPathParts,
+                            };
+                        }
+
                         return {
-                            node: null,
-                            unresolvedPathParts,
+                            node: referent,
+                            unresolvedPathParts: [],
+                            visibleDescendantNames:
+                                sourceObj.getUniqueDescendantNamesForNode(
+                                    referent,
+                                ),
                         };
-                    }
-
-                    return {
-                        node: referent,
-                        unresolvedPathParts: [],
-                        visibleDescendantNames:
-                            autoCompleter.sourceObj.getUniqueDescendantNamesForNode(
-                                referent,
-                            ),
-                    };
-                },
-            } as unknown as RustResolverAdapter);
-            return autoCompleter;
+                    },
+                }) as unknown as RustResolverAdapter,
+        ) {
+            const sourceObj = new DoenetSourceObject();
+            sourceObj.setSource(source + " ");
+            return new AutoCompleter(undefined, refSchema.elements, {
+                sourceObj,
+                rustResolverAdapter: createAdapter(sourceObj),
+            });
         }
 
         it("Suggests reference names after $ with prefix filtering", () => {
@@ -822,24 +832,29 @@ describe("AutoCompleter", () => {
 
         it("Uses adapter-provided member resolution for completions", () => {
             const source = `<section name="mySection"><p name="myP" /></section>\n$missing.`;
-            const autoCompleter = createRefAutoCompleter(source);
-            const resolver = vi.fn((offset: number) => ({
-                node: autoCompleter.sourceObj.getReferentAtOffset(
-                    offset,
-                    "mySection",
-                ),
-                unresolvedPathParts: [],
-                visibleDescendantNames: ["myP"],
-            }));
-            autoCompleter.setRustResolverAdapter({
-                isNameAddressableFromOffset: () => true,
-                resolveRefMemberContainerAtOffset: resolver,
-            } as unknown as RustResolverAdapter);
+            let resolver: ReturnType<typeof vi.fn>;
+            const autoCompleter = createRefAutoCompleter(
+                source,
+                (sourceObj) => {
+                    resolver = vi.fn((offset: number) => ({
+                        node: sourceObj.getReferentAtOffset(
+                            offset,
+                            "mySection",
+                        ),
+                        unresolvedPathParts: [],
+                        visibleDescendantNames: ["myP"],
+                    }));
+                    return {
+                        isNameAddressableFromOffset: () => true,
+                        resolveRefMemberContainerAtOffset: resolver,
+                    } as unknown as RustResolverAdapter;
+                },
+            );
 
             const items = autoCompleter.getCompletionItems(source.length);
 
-            expect(resolver).toHaveBeenCalledOnce();
-            expect(resolver).toHaveBeenCalledWith(
+            expect(resolver!).toHaveBeenCalledOnce();
+            expect(resolver!).toHaveBeenCalledWith(
                 source.length,
                 ["missing", ""],
                 false,
@@ -850,26 +865,30 @@ describe("AutoCompleter", () => {
             );
         });
 
-        it("Allows attaching a Rust resolver adapter after construction", () => {
+        it("Allows providing a Rust resolver adapter during construction", () => {
             const source = `<section name="mySection"><p name="myP" /></section>\n$missing.`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
-            const resolver = vi.fn((offset: number) => ({
-                node: autoCompleter.sourceObj.getReferentAtOffset(
-                    offset,
-                    "mySection",
-                ),
-                unresolvedPathParts: [],
-                visibleDescendantNames: ["myP"],
-            }));
-
-            autoCompleter.setRustResolverAdapter({
-                isNameAddressableFromOffset: () => true,
-                resolveRefMemberContainerAtOffset: resolver,
-            } as unknown as RustResolverAdapter);
+            let resolver: ReturnType<typeof vi.fn>;
+            const autoCompleter = createRefAutoCompleter(
+                source,
+                (sourceObj) => {
+                    resolver = vi.fn((offset: number) => ({
+                        node: sourceObj.getReferentAtOffset(
+                            offset,
+                            "mySection",
+                        ),
+                        unresolvedPathParts: [],
+                        visibleDescendantNames: ["myP"],
+                    }));
+                    return {
+                        isNameAddressableFromOffset: () => true,
+                        resolveRefMemberContainerAtOffset: resolver,
+                    } as unknown as RustResolverAdapter;
+                },
+            );
 
             const items = autoCompleter.getCompletionItems(source.length);
 
-            expect(resolver).toHaveBeenCalledOnce();
+            expect(resolver!).toHaveBeenCalledOnce();
             expect(items.some((item) => item.label === "myP")).toBe(true);
         });
 
@@ -889,22 +908,27 @@ describe("AutoCompleter", () => {
 
         it("Passes node index to resolver for index-based resolution", () => {
             const source = `<section name="mySection"><p name="myP" /></section>\n$missing.`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
-
-            // Mock resolver that captures the nodeIndex parameter
             const indexCapture: (number | null)[] = [];
-            const resolver = vi.fn(
-                (offset: number, _pathParts: string[], _hasIndex?: boolean) => {
-                    indexCapture.push(
-                        autoCompleter.sourceObj.getNodeIndexAtOffset(offset),
-                    );
-                    return null;
-                },
+            let resolver!: ReturnType<typeof vi.fn>;
+            const autoCompleter = createRefAutoCompleter(
+                source,
+                (sourceObj) =>
+                    ({
+                        isNameAddressableFromOffset: () => true,
+                        resolveRefMemberContainerAtOffset: (resolver = vi.fn(
+                            (
+                                offset: number,
+                                _pathParts: string[],
+                                _hasIndex?: boolean,
+                            ) => {
+                                indexCapture.push(
+                                    sourceObj.getNodeIndexAtOffset(offset),
+                                );
+                                return null;
+                            },
+                        )),
+                    }) as unknown as RustResolverAdapter,
             );
-            autoCompleter.setRustResolverAdapter({
-                isNameAddressableFromOffset: () => true,
-                resolveRefMemberContainerAtOffset: resolver,
-            } as unknown as RustResolverAdapter);
 
             autoCompleter.getCompletionItems(source.length);
 
@@ -916,45 +940,47 @@ describe("AutoCompleter", () => {
 
         it("Allows Rust-backed resolver to use node index directly", () => {
             const source = `<section name="mySection"><p name="myP" /></section>\n$missing.`;
-
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
-
-            // Simulate Rust resolver: receives offset/path, then derives node index.
-            const rustSimulator = vi.fn(
-                (offset: number, pathParts: string[]) => {
-                    const nodeIndex =
-                        autoCompleter.sourceObj.getNodeIndexAtOffset(offset);
-                    // In real Rust implementation, adapter would call
-                    // resolve_path(origin_index, path_parts).
-                    // For this test, simulate successful resolution to the root element
-                    if (
-                        nodeIndex !== null &&
-                        nodeIndex !== undefined &&
-                        pathParts.length > 0
-                    ) {
-                        return {
-                            node: {
-                                name: "section",
-                                attributes: {},
-                                children: [],
-                                type: "element",
-                            } as DastElement,
-                            unresolvedPathParts: [],
-                        };
-                    }
-                    return null;
+            let rustSimulator: ReturnType<typeof vi.fn>;
+            const autoCompleter = createRefAutoCompleter(
+                source,
+                (sourceObj) => {
+                    rustSimulator = vi.fn(
+                        (offset: number, pathParts: string[]) => {
+                            const nodeIndex =
+                                sourceObj.getNodeIndexAtOffset(offset);
+                            // In real Rust implementation, adapter would call
+                            // resolve_path(origin_index, path_parts).
+                            // For this test, simulate successful resolution to the root element
+                            if (
+                                nodeIndex !== null &&
+                                nodeIndex !== undefined &&
+                                pathParts.length > 0
+                            ) {
+                                return {
+                                    node: {
+                                        name: "section",
+                                        attributes: {},
+                                        children: [],
+                                        type: "element",
+                                    } as DastElement,
+                                    unresolvedPathParts: [],
+                                };
+                            }
+                            return null;
+                        },
+                    );
+                    return {
+                        isNameAddressableFromOffset: () => true,
+                        resolveRefMemberContainerAtOffset: rustSimulator,
+                    } as unknown as RustResolverAdapter;
                 },
             );
-            autoCompleter.setRustResolverAdapter({
-                isNameAddressableFromOffset: () => true,
-                resolveRefMemberContainerAtOffset: rustSimulator,
-            } as unknown as RustResolverAdapter);
 
             const items = autoCompleter.getCompletionItems(source.length);
 
             // Verify the Rust-backed resolver was called with the source context.
-            expect(rustSimulator).toHaveBeenCalledOnce();
-            expect(rustSimulator).toHaveBeenCalledWith(
+            expect(rustSimulator!).toHaveBeenCalledOnce();
+            expect(rustSimulator!).toHaveBeenCalledWith(
                 source.length,
                 expect.any(Array),
                 false,

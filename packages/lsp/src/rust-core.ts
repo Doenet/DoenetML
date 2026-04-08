@@ -55,8 +55,9 @@ async function initWasmWithNodePathWorkaround(): Promise<void> {
         // @ts-expect-error Node-only import in a browser-targeted package.
         const path = await import("node:path");
 
-        const stripQueryAndHash = (value: string) =>
-            value.replace(/[?#].*$/, "");
+        function stripQueryAndHash(value: string) {
+            return value.replace(/[?#].*$/, "");
+        }
 
         const normalized = stripQueryAndHash(wasmBlobUrl);
         const candidatePaths: string[] = [];

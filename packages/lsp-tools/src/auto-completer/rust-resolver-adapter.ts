@@ -21,7 +21,7 @@ function collectAllNamedDescendants(
     root: DastElement,
 ): Array<{ name: string; element: DastElement }> {
     const result: Array<{ name: string; element: DastElement }> = [];
-    const walk = (node: DastNodes) => {
+    function walk(node: DastNodes) {
         if (node.type === "element") {
             const nameAttr = node.attributes?.name;
             if (nameAttr) {
@@ -39,7 +39,7 @@ function collectAllNamedDescendants(
                 walk(child as DastNodes);
             }
         }
-    };
+    }
     for (const child of root.children) {
         walk(child as DastNodes);
     }
@@ -104,10 +104,10 @@ function collectNamesFromCompositeChildren(
 }
 
 /**
- * Extract `valueName`/`indexName` attribute values from a repeat or
- * repeatForSequence element.  Returns an empty array for other elements.
+ * Extract derived repeat names from `valueName`/`indexName` attributes on a
+ * repeat or repeatForSequence element. Returns an empty array for other elements.
  */
-function getSyntheticNamesFromElement(el: DastElement): string[] {
+function getDerivedRepeatNamesFromElement(el: DastElement): string[] {
     if (el.name !== "repeat" && el.name !== "repeatForSequence") return [];
     const names: string[] = [];
     for (const attrName of ["valueName", "indexName"]) {
@@ -169,11 +169,12 @@ export interface RustResolverAdapterOptions {
     /** An initialized PublicDoenetMLCore (or compatible) instance. */
     core?: RustResolverCore;
     /**
-     * Optional callback to check whether a component type takes an index.
-     * When provided, the resolver suppresses descendant names for elements
-     * whose type returns `true`, forcing member access through `$name[n].`.
+     * Optional set of component types that take an index. When provided, the
+     * resolver suppresses descendant names for those elements unless the user
+     * has already provided a bracket index, forcing member access through
+     * `$name[n].`.
      */
-    takesIndex?: (componentType: string) => boolean;
+    takesIndexComponentTypes?: ReadonlySet<string>;
 }
 
 /**
@@ -189,7 +190,7 @@ export class RustResolverAdapter {
     private core: RustResolverCore | null = null;
     private sourceObj: DoenetSourceObject;
     private enabled = false;
-    private takesIndexFn: ((componentType: string) => boolean) | null = null;
+    private takesIndexComponentTypes: ReadonlySet<string> | null = null;
 
     /** Rust flat index → JS DAST element (matched by source position). */
     private rustIndexToDastElement: Map<number, DastElement> = new Map();
@@ -201,11 +202,16 @@ export class RustResolverAdapter {
         options?: RustResolverAdapterOptions,
     ) {
         this.sourceObj = sourceObj;
-        this.takesIndexFn = options?.takesIndex ?? null;
+        this.takesIndexComponentTypes =
+            options?.takesIndexComponentTypes ?? null;
         if (options?.core) {
             this.core = options.core;
             this.syncSource();
         }
+    }
+
+    private componentTakesIndex(componentType: string): boolean {
+        return this.takesIndexComponentTypes?.has(componentType) ?? false;
     }
 
     /**
@@ -356,11 +362,7 @@ export class RustResolverAdapter {
                 // When the resolved element takes an index, descendants
                 // are only accessible via $name[n].member — suppress them
                 // unless the user has already provided a bracket index.
-                if (
-                    this.takesIndexFn &&
-                    this.takesIndexFn(resolvedNode.name) &&
-                    !hasIndex
-                ) {
+                if (this.componentTakesIndex(resolvedNode.name) && !hasIndex) {
                     return {
                         node: resolvedNode,
                         unresolvedPathParts: [],
@@ -374,21 +376,22 @@ export class RustResolverAdapter {
                 // (case/else/option) transparently.
                 if (
                     resolvedNode.name === "conditionalContent" ||
-                    (hasIndex &&
-                        this.takesIndexFn &&
-                        this.takesIndexFn(resolvedNode.name))
+                    (hasIndex && this.componentTakesIndex(resolvedNode.name))
                 ) {
                     const names =
                         collectNamesFromCompositeChildren(resolvedNode);
                     // For repeat/repeatForSequence, also expose
                     // valueName/indexName as member completions when
                     // accessed with an index (e.g. $rep[1].v).
-                    const syntheticNames =
-                        getSyntheticNamesFromElement(resolvedNode);
+                    const derivedRepeatNames =
+                        getDerivedRepeatNamesFromElement(resolvedNode);
                     return {
                         node: resolvedNode,
                         unresolvedPathParts: [],
-                        visibleDescendantNames: [...names, ...syntheticNames],
+                        visibleDescendantNames: [
+                            ...names,
+                            ...derivedRepeatNames,
+                        ],
                     };
                 }
 
@@ -489,10 +492,10 @@ export class RustResolverAdapter {
     isNameAddressableFromOffset(offset: number, name: string): boolean {
         if (!this.enabled || !this.core) return false;
 
-        // Synthetic names from repeat valueName/indexName are always
-        // addressable from inside the repeat — they bypass resolve_path.
-        const syntheticNames = this.getRepeatSyntheticNames(offset);
-        if (syntheticNames.includes(name)) return true;
+        // Derived repeat names from valueName/indexName are always
+        // addressable from inside the repeat and bypass resolve_path.
+        const derivedRepeatNames = this.getDerivedRepeatNames(offset);
+        if (derivedRepeatNames.includes(name)) return true;
 
         // A $name reference typed at `offset` will become a child of the
         // element whose body contains the cursor.  resolve_path with
@@ -626,17 +629,17 @@ export class RustResolverAdapter {
     }
 
     /**
-     * Return synthetic names from `valueName`/`indexName` attributes of
-     * enclosing `<repeat>` elements at the given offset.  These names
-     * don't exist in the raw DAST but are created by repeat sugar at
-     * runtime, so they must be injected into the completion pipeline.
+     * Return derived repeat names from `valueName`/`indexName` attributes of
+     * enclosing `<repeat>` elements at the given offset. These names don't
+     * exist in the raw DAST but are introduced by repeat sugar at runtime, so
+     * they must be injected into the completion pipeline.
      */
-    getRepeatSyntheticNames(offset: number): string[] {
+    getDerivedRepeatNames(offset: number): string[] {
         const names: string[] = [];
         let current: DastElement | undefined =
             this.sourceObj.elementAtOffset(offset) ?? undefined;
         while (current) {
-            names.push(...getSyntheticNamesFromElement(current));
+            names.push(...getDerivedRepeatNamesFromElement(current));
             const p = this.sourceObj.getParent(current);
             current =
                 p && p.type === "element" ? (p as DastElement) : undefined;

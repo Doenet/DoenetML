@@ -39,19 +39,21 @@ try {
 
 // --------------- helpers ---------------
 
-/** Build a takesIndex lookup from the real DoenetML schema. */
+/** Build a static takesIndex lookup from the real DoenetML schema. */
 const takesIndexSet = new Set(
     doenetSchema.elements
         .filter((el: any) => el.takesIndex)
         .map((el: any) => el.name as string),
 );
-const takesIndex = (name: string) => takesIndexSet.has(name);
 
 function createCoreAndAdapter(source: string) {
     const core = PublicDoenetMLCore.new() as RustResolverCore;
     core.set_flags("{}");
     const sourceObj = new DoenetSourceObject(source);
-    const adapter = new RustResolverAdapter(sourceObj, { core, takesIndex });
+    const adapter = new RustResolverAdapter(sourceObj, {
+        core,
+        takesIndexComponentTypes: takesIndexSet,
+    });
     return { core, sourceObj, adapter };
 }
 
@@ -59,19 +61,21 @@ function createCompleterWithAdapter(
     source: string,
     options?: { includeAdditionalRefNames?: boolean },
 ) {
-    const completer = new AutoCompleter(source);
+    const sourceObj = new DoenetSourceObject();
+    sourceObj.setSource(source + " ");
     const core = PublicDoenetMLCore.new() as RustResolverCore;
     core.set_flags("{}");
-    const adapter = new RustResolverAdapter(completer.sourceObj, {
+    const adapter = new RustResolverAdapter(sourceObj, {
         core,
-        takesIndex: (name: string) => takesIndexSet.has(name),
+        takesIndexComponentTypes: takesIndexSet,
     });
-    completer.setRustResolverAdapter(adapter);
-    if (options?.includeAdditionalRefNames) {
-        completer.setGetAdditionalRefNames((offset) =>
-            adapter.getRepeatSyntheticNames(offset),
-        );
-    }
+    const completer = new AutoCompleter(undefined, undefined, {
+        sourceObj,
+        rustResolverAdapter: adapter,
+        getAdditionalRefNames: options?.includeAdditionalRefNames
+            ? (offset) => adapter.getDerivedRepeatNames(offset)
+            : undefined,
+    });
     return { completer, adapter };
 }
 

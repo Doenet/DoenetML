@@ -39,57 +39,58 @@ describe("Resolver Parity - Member Completion Resolution", () => {
     ];
 
     function createCompleter(source: string) {
-        const completer = new AutoCompleter(source, testSchema);
-        completer.setRustResolverAdapter({
-            isNameAddressableFromOffset: () => true,
-            resolveRefMemberContainerAtOffset: (
-                offset: number,
-                pathParts: string[],
-            ) => {
-                if (pathParts.length === 0) {
-                    return { node: null, unresolvedPathParts: [] };
-                }
-                const lookupPathParts = pathParts.slice(0, -1);
-                if (lookupPathParts.length === 0) {
-                    return { node: null, unresolvedPathParts: [] };
-                }
+        const sourceObj = new DoenetSourceObject();
+        sourceObj.setSource(source + " ");
+        return new AutoCompleter(undefined, testSchema, {
+            sourceObj,
+            rustResolverAdapter: {
+                isNameAddressableFromOffset: () => true,
+                resolveRefMemberContainerAtOffset: (
+                    offset: number,
+                    pathParts: string[],
+                ) => {
+                    if (pathParts.length === 0) {
+                        return { node: null, unresolvedPathParts: [] };
+                    }
+                    const lookupPathParts = pathParts.slice(0, -1);
+                    if (lookupPathParts.length === 0) {
+                        return { node: null, unresolvedPathParts: [] };
+                    }
 
-                let referent = completer.sourceObj.getReferentAtOffset(
-                    offset,
-                    lookupPathParts[0],
-                );
-                if (!referent) {
-                    return {
-                        node: null,
-                        unresolvedPathParts: lookupPathParts,
-                    };
-                }
-
-                for (let i = 1; i < lookupPathParts.length; i++) {
-                    const next = completer.sourceObj.getNamedDescendant(
-                        referent,
-                        lookupPathParts[i],
+                    let referent = sourceObj.getReferentAtOffset(
+                        offset,
+                        lookupPathParts[0],
                     );
-                    if (!next) {
+                    if (!referent) {
                         return {
                             node: null,
-                            unresolvedPathParts: lookupPathParts.slice(i),
+                            unresolvedPathParts: lookupPathParts,
                         };
                     }
-                    referent = next;
-                }
 
-                return {
-                    node: referent,
-                    unresolvedPathParts: [],
-                    visibleDescendantNames:
-                        completer.sourceObj.getUniqueDescendantNamesForNode(
+                    for (let i = 1; i < lookupPathParts.length; i++) {
+                        const next = sourceObj.getNamedDescendant(
                             referent,
-                        ),
-                };
-            },
-        } as any);
-        return completer;
+                            lookupPathParts[i],
+                        );
+                        if (!next) {
+                            return {
+                                node: null,
+                                unresolvedPathParts: lookupPathParts.slice(i),
+                            };
+                        }
+                        referent = next;
+                    }
+
+                    return {
+                        node: referent,
+                        unresolvedPathParts: [],
+                        visibleDescendantNames:
+                            sourceObj.getUniqueDescendantNamesForNode(referent),
+                    };
+                },
+            } as any,
+        });
     }
 
     describe("Single-level member access", () => {
@@ -186,18 +187,19 @@ describe("Resolver Parity - Member Completion Resolution", () => {
         it("Resolver callback receives offset/path/hasIndex", () => {
             const source = `<section name="s"><p name="p1" /></section>\n$s.`;
             const capturedArgs: any[] = [];
-            const completer = new AutoCompleter(source, testSchema);
-            completer.setRustResolverAdapter({
-                isNameAddressableFromOffset: () => true,
-                resolveRefMemberContainerAtOffset: (
-                    offset: number,
-                    pathParts: string[],
-                    hasIndex?: boolean,
-                ) => {
-                    capturedArgs.push({ offset, pathParts, hasIndex });
-                    return null;
-                },
-            } as any);
+            const completer = new AutoCompleter(source, testSchema, {
+                rustResolverAdapter: {
+                    isNameAddressableFromOffset: () => true,
+                    resolveRefMemberContainerAtOffset: (
+                        offset: number,
+                        pathParts: string[],
+                        hasIndex?: boolean,
+                    ) => {
+                        capturedArgs.push({ offset, pathParts, hasIndex });
+                        return null;
+                    },
+                } as any,
+            });
 
             completer.getCompletionItems(source.length);
 
@@ -213,20 +215,21 @@ describe("Resolver Parity - Member Completion Resolution", () => {
 
         it("Resolver can provide resolution for member completions", () => {
             const source = `<section name="s"><p name="p1" /></section>\n$custom.`;
-            const completer = new AutoCompleter(source, testSchema);
-            completer.setRustResolverAdapter({
-                isNameAddressableFromOffset: () => true,
-                resolveRefMemberContainerAtOffset: () => ({
-                    node: {
-                        name: "section",
-                        type: "element",
-                        attributes: {},
-                        children: [],
-                    } as DastElement,
-                    unresolvedPathParts: [],
-                    visibleDescendantNames: ["p1"],
-                }),
-            } as any);
+            const completer = new AutoCompleter(source, testSchema, {
+                rustResolverAdapter: {
+                    isNameAddressableFromOffset: () => true,
+                    resolveRefMemberContainerAtOffset: () => ({
+                        node: {
+                            name: "section",
+                            type: "element",
+                            attributes: {},
+                            children: [],
+                        } as DastElement,
+                        unresolvedPathParts: [],
+                        visibleDescendantNames: ["p1"],
+                    }),
+                } as any,
+            });
 
             const items = completer.getCompletionItems(source.length);
 
@@ -240,11 +243,12 @@ describe("Resolver Parity - Member Completion Resolution", () => {
     describe("Resolver disabled behavior", () => {
         it("No member completions when resolver returns null", () => {
             const source = `<section name="s"><p name="p1" /></section>\n$s.`;
-            const completer = new AutoCompleter(source, testSchema);
-            completer.setRustResolverAdapter({
-                isNameAddressableFromOffset: () => true,
-                resolveRefMemberContainerAtOffset: () => null,
-            } as any);
+            const completer = new AutoCompleter(source, testSchema, {
+                rustResolverAdapter: {
+                    isNameAddressableFromOffset: () => true,
+                    resolveRefMemberContainerAtOffset: () => null,
+                } as any,
+            });
 
             const items = completer.getCompletionItems(source.length);
             expect(items).toEqual([]);
@@ -265,16 +269,17 @@ describe("Resolver Parity - Member Completion Resolution", () => {
             const sourceObj = new DoenetSourceObject(source);
 
             const capturedPaths: string[][] = [];
-            const testResolver = (_offset: number, pathParts: string[]) => {
+            function testResolver(_offset: number, pathParts: string[]) {
                 capturedPaths.push(pathParts);
                 return null;
-            };
+            }
 
-            const completer = new AutoCompleter(source, testSchema);
-            completer.setRustResolverAdapter({
-                isNameAddressableFromOffset: () => true,
-                resolveRefMemberContainerAtOffset: testResolver,
-            } as any);
+            const completer = new AutoCompleter(source, testSchema, {
+                rustResolverAdapter: {
+                    isNameAddressableFromOffset: () => true,
+                    resolveRefMemberContainerAtOffset: testResolver,
+                } as any,
+            });
 
             completer.getCompletionItems(source.length);
 
