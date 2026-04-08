@@ -1,6 +1,6 @@
 // @ts-ignore — ?raw loads the pre-built IIFE as a string so we can create
 // a blob: URL Worker.  This avoids the double-base64 encoding that Vite's
-// ?worker inline produces (data: URL of the entire IIFE), which bloated
+// ?worker inline produces (data: URL of the entire IIFE), which increased
 // downstream bundles and broke WASM loading inside the worker.
 import lspSource from "@doenet/lsp/language-server.js?raw";
 

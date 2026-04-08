@@ -10,7 +10,7 @@ export default defineConfig({
             viteConfig: {
                 plugins: [
                     {
-                        // The LSP IIFE bundle (≈7 MB, with inlined WASM)
+                        // April 7, 2026: The LSP IIFE bundle (≈7 MB, with inlined WASM)
                         // triggers a parse error in Vite's import-analysis
                         // when imported with `?raw`.  This plugin intercepts
                         // the load and returns a plain string export.
