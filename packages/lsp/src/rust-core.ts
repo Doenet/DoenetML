@@ -48,15 +48,48 @@ async function initWasmWithNodePathWorkaround(): Promise<void> {
         }
 
         // In Node-based test runners, Vite may resolve `?url` as a
-        // workspace-root-relative path (e.g. `/packages/...wasm`) rather
-        // than a fetchable URL. Load bytes from disk in that case.
+        // non-fetchable path-like string (e.g. `/packages/...wasm` or
+        // `/@fs/<absolute-path>`). Load bytes from disk in that case.
         // @ts-expect-error Node-only import in a browser-targeted package.
         const fs = await import("node:fs/promises");
         // @ts-expect-error Node-only import in a browser-targeted package.
         const path = await import("node:path");
-        const wasmPath = path.resolve(nodeProcess.cwd(), `.${wasmBlobUrl}`);
-        const wasmBytes = await fs.readFile(wasmPath);
-        await init(wasmBytes);
+
+        const stripQueryAndHash = (value: string) =>
+            value.replace(/[?#].*$/, "");
+
+        const normalized = stripQueryAndHash(wasmBlobUrl);
+        const candidatePaths: string[] = [];
+
+        if (normalized.startsWith("file://")) {
+            const fromFileUrl = decodeURIComponent(
+                new URL(normalized).pathname,
+            );
+            if (fromFileUrl) {
+                candidatePaths.push(fromFileUrl);
+            }
+        } else if (normalized.startsWith("/@fs/")) {
+            candidatePaths.push(normalized.replace(/^\/@fs\//, "/"));
+        } else if (path.isAbsolute(normalized)) {
+            // Some runners surface workspace-root-relative paths like
+            // `/packages/...` rather than absolute filesystem paths.
+            candidatePaths.push(normalized);
+            candidatePaths.push(
+                path.resolve(nodeProcess.cwd(), `.${normalized}`),
+            );
+        }
+
+        for (const wasmPath of candidatePaths) {
+            try {
+                const wasmBytes = await fs.readFile(wasmPath);
+                await init(wasmBytes);
+                return;
+            } catch {
+                // Try the next candidate path.
+            }
+        }
+
+        throw error;
     }
 }
 
