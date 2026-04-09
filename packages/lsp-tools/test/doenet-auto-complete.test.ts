@@ -1627,6 +1627,70 @@ describe("AutoCompleter", () => {
             expect(result!.unresolvedPathParts).toEqual([]);
         });
 
+        it("Blocks traversal when an intermediate non-takesIndex segment has an index", () => {
+            // $sec[1].myP. — section does not takesIndex, so the [1] is spurious
+            // and should produce no completions (false positive is worse than false negative).
+            const source = `<section name="sec"><p name="myP">text</p></section>\n$sec[1].myP.`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core } = createMockCore(source, sourceObj, {
+                nodeIdx: 1, // p
+                nodesInResolvedPath: [0, 1], // section then p
+                unresolvedPath: null,
+                originalPath: [{ name: "sec" }, { name: "myP" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, {
+                core,
+                takesIndexComponentTypes: new Set([
+                    "repeat",
+                    "repeatForSequence",
+                ]),
+            });
+            const resolver = adapter.createResolver();
+
+            const result = resolver({
+                offset: source.indexOf("$sec[1].myP.") + "$sec[1].myP.".length,
+                pathParts: ["sec", "myP", ""],
+                pathPartHasIndex: [true, false, false],
+            });
+
+            expect(result).not.toBeNull();
+            expect(result!.node).toBeNull();
+            expect(result!.unresolvedPathParts).toEqual(["sec", "myP"]);
+        });
+
+        it("Blocks completions when the resolved non-takesIndex element has an index", () => {
+            // $myMath[1]. — math does not takesIndex, so the [1] is spurious
+            // and should produce no completions.
+            const source = `<math name="myMath">x</math>\n$myMath[1].`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core } = createMockCore(source, sourceObj, {
+                nodeIdx: 0, // myMath
+                nodesInResolvedPath: [0],
+                unresolvedPath: null,
+                originalPath: [{ name: "myMath" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, {
+                core,
+                takesIndexComponentTypes: new Set([
+                    "repeat",
+                    "repeatForSequence",
+                ]),
+            });
+            const resolver = adapter.createResolver();
+
+            const result = resolver({
+                offset: source.indexOf("$myMath[1].") + "$myMath[1].".length,
+                pathParts: ["myMath", ""],
+                pathPartHasIndex: [true, false],
+            });
+
+            expect(result).not.toBeNull();
+            expect(result!.node).toBeNull();
+            expect(result!.unresolvedPathParts).toEqual([]);
+        });
+
         it("Handles updateSource to re-sync with core", () => {
             const source1 = `<section name="s1"><p name="p1" /></section>`;
             const sourceObj1 = new DoenetSourceObject(source1);

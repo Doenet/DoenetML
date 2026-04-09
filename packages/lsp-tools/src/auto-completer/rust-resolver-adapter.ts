@@ -428,6 +428,20 @@ export class RustResolverAdapter {
                                 lookupParts.slice(pathPartIndex),
                         };
                     }
+                    // Inverse: a non-takesIndex segment must not have an
+                    // index. If it does the path is invalid — false positives
+                    // are worse than false negatives.
+                    if (
+                        pathNode &&
+                        !this._componentTakesIndex(pathNode.name) &&
+                        segmentHasIndex
+                    ) {
+                        return {
+                            node: null,
+                            unresolvedPathParts:
+                                lookupParts.slice(pathPartIndex),
+                        };
+                    }
                 }
             }
 
@@ -446,6 +460,19 @@ export class RustResolverAdapter {
                     node: resolvedNode,
                     unresolvedPathParts: [],
                     visibleDescendantNames: [],
+                };
+            }
+
+            // Inverse: a non-takesIndex resolved element must not have an
+            // index in its path segment — false positives are worse than
+            // false negatives.
+            if (
+                !this._componentTakesIndex(resolvedNode.name) &&
+                resolvedPartHasIndex
+            ) {
+                return {
+                    node: null,
+                    unresolvedPathParts: [],
                 };
             }
 

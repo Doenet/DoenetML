@@ -798,6 +798,44 @@ describe.skipIf(!wasmAvailable)(
             }
         });
 
+        it("Blocks completions when a non-takesIndex segment has a spurious index", () => {
+            // $sec[1].myP. — section is not takesIndex, so the [1] is invalid.
+            // Prefer false negative over false positive.
+            {
+                const source = `<section name="sec"><p name="myP">hello</p></section>\n$sec[1].myP.`;
+                const { completer } = createCompleterWithAdapter(source, {
+                    includeAdditionalRefNames: true,
+                });
+                const offset = source.length;
+                const items = completer.getCompletionItems(offset);
+                expect(items).toHaveLength(0);
+            }
+
+            // $myMath[1]. — math is not takesIndex, so the [1] is invalid.
+            {
+                const source = `<math name="myMath">x</math>\n$myMath[1].`;
+                const { completer } = createCompleterWithAdapter(source, {
+                    includeAdditionalRefNames: true,
+                });
+                const offset = source.length;
+                const items = completer.getCompletionItems(offset);
+                expect(items).toHaveLength(0);
+            }
+
+            // $rep[1].myMath[1]. — rep (repeat) is takesIndex so $rep[1] is
+            // valid. But myMath (math) is not takesIndex, so myMath[1] is
+            // invalid and completions should be suppressed.
+            {
+                const source = `<repeat name="rep"><math name="myMath">x</math></repeat>\n$rep[1].myMath[1].`;
+                const { completer } = createCompleterWithAdapter(source, {
+                    includeAdditionalRefNames: true,
+                });
+                const offset = source.length;
+                const items = completer.getCompletionItems(offset);
+                expect(items).toHaveLength(0);
+            }
+        });
+
         it("select without index suppresses descendant-name completions", () => {
             // For direct member access ($sel.), select is takesIndex so
             // descendant names should be suppressed.
