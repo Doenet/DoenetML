@@ -32,6 +32,15 @@ type DeprecationRegistry = {
 
 const DEPRECATION_REGISTRY: DeprecationRegistry = {
     attributeRenames: {
+        selectFromSequence: {
+            sortResults: {
+                to: "sort",
+                warningMessage:
+                    "[deprecation] Attribute `sortResults` on `<selectFromSequence>` is deprecated; use `sort` instead.",
+                conflictWarningMessage:
+                    "[deprecation] Attribute `sortResults` on `<selectFromSequence>` is deprecated and ignored because `sort` is also specified.",
+            },
+        },
         selectPrimeNumbers: {
             minValue: {
                 to: "from",
@@ -46,6 +55,13 @@ const DEPRECATION_REGISTRY: DeprecationRegistry = {
                     "[deprecation] Attribute `maxValue` on `<selectPrimeNumbers>` is deprecated; use `to` instead.",
                 conflictWarningMessage:
                     "[deprecation] Attribute `maxValue` on `<selectPrimeNumbers>` is deprecated and ignored because `to` is also specified.",
+            },
+            sortResults: {
+                to: "sort",
+                warningMessage:
+                    "[deprecation] Attribute `sortResults` on `<selectPrimeNumbers>` is deprecated; use `sort` instead.",
+                conflictWarningMessage:
+                    "[deprecation] Attribute `sortResults` on `<selectPrimeNumbers>` is deprecated and ignored because `sort` is also specified.",
             },
         },
         samplePrimeNumbers: {

@@ -113681,11 +113681,12 @@
                         "false"
                     ]
                 },
-                "sortResults": {
+                "sort": {
                     "optional": true,
                     "type": [
-                        "true",
-                        "false"
+                        "unsorted",
+                        "increasing",
+                        "decreasing"
                     ]
                 },
                 "excludeCombinations": {
@@ -113741,8 +113742,8 @@
                     "isArray": false
                 },
                 {
-                    "name": "sortResults",
-                    "type": "boolean",
+                    "name": "sort",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -116065,11 +116066,12 @@
                         "false"
                     ]
                 },
-                "sortResults": {
+                "sort": {
                     "optional": true,
                     "type": [
-                        "true",
-                        "false"
+                        "unsorted",
+                        "increasing",
+                        "decreasing"
                     ]
                 },
                 "excludeCombinations": {
@@ -116140,8 +116142,8 @@
                     "isArray": false
                 },
                 {
-                    "name": "sortResults",
-                    "type": "boolean",
+                    "name": "sort",
+                    "type": "text",
                     "isArray": false
                 },
                 {

@@ -53,11 +53,15 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             defaultValue: false,
             public: true,
         };
-        attributes.sortResults = {
-            createComponentOfType: "boolean",
-            createStateVariable: "sortResults",
-            defaultValue: false,
+        attributes.sort = {
+            createComponentOfType: "text",
+            createStateVariable: "sort",
+            defaultValue: "unsorted",
             public: true,
+            toLowerCase: true,
+            valueForTrue: "increasing",
+            valueForNone: "unsorted",
+            validValues: ["unsorted", "increasing", "decreasing"],
         };
         attributes.excludeCombinations = {
             createComponentOfType: "_listOfNumberLists",
@@ -186,9 +190,9 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "excludedCombinations",
                 },
-                sortResults: {
+                sort: {
                     dependencyType: "stateVariable",
-                    variableName: "sortResults",
+                    variableName: "sort",
                 },
                 variants: {
                     dependencyType: "stateVariable",
@@ -447,36 +451,36 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             primePars.exclude = exclude;
         }
 
-        let sortResults;
+        let sort;
 
-        let sortResultsComponent =
-            serializedComponent.attributes.sortResults?.component;
-        if (sortResultsComponent) {
+        let sortComponent = serializedComponent.attributes.sort?.component;
+        if (sortComponent) {
             // only implemented if have a single string child
 
             if (
-                sortResultsComponent.children?.length === 1 &&
-                typeof sortResultsComponent.children[0] === "string"
+                sortComponent.children?.length === 1 &&
+                typeof sortComponent.children[0] === "string"
             ) {
-                sortResults =
-                    sortResultsComponent.children[0].toLowerCase() === "true";
+                sort = sortComponent.children[0].toLowerCase();
             } else if (
-                (!sortResultsComponent.children ||
-                    sortResultsComponent.children?.length === 0) &&
-                typeof sortResultsComponent.state?.value === "boolean"
+                (!sortComponent.children ||
+                    sortComponent.children?.length === 0) &&
+                typeof sortComponent.state?.value === "string"
             ) {
-                sortResults = sortResultsComponent.state.value;
+                sort = sortComponent.state.value;
             } else {
                 console.log(
-                    `cannot determine unique variants of selectPrimeNumbers as sortResults isn't a constant.`,
+                    `cannot determine unique variants of selectPrimeNumbers as sort isn't a constant.`,
                 );
                 return { success: false };
             }
+        } else {
+            sort = "unsorted";
         }
 
-        if (sortResults && numToSelect > 1) {
+        if (sort !== "unsorted" && numToSelect > 1) {
             console.log(
-                "have not implemented unique variants of a selectPrimeNumbers with sortResults",
+                "have not implemented unique variants of a selectPrimeNumbers with sort",
             );
             return { success: false };
         }
@@ -790,8 +794,10 @@ function makeSelection({ dependencyValues }) {
         }
     }
 
-    if (dependencyValues.sortResults) {
+    if (dependencyValues.sort === "increasing") {
         selectedValues.sort((a, b) => a - b);
+    } else if (dependencyValues.sort === "decreasing") {
+        selectedValues.sort((a, b) => b - a);
     }
 
     return {

@@ -70148,10 +70148,11 @@
                     ]
                 },
                 {
-                    "name": "sortResults",
+                    "name": "sort",
                     "values": [
-                        "true",
-                        "false"
+                        "unsorted",
+                        "increasing",
+                        "decreasing"
                     ]
                 },
                 {
@@ -70202,8 +70203,8 @@
                     "isArray": false
                 },
                 {
-                    "name": "sortResults",
-                    "type": "boolean",
+                    "name": "sort",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -71835,10 +71836,11 @@
                     ]
                 },
                 {
-                    "name": "sortResults",
+                    "name": "sort",
                     "values": [
-                        "true",
-                        "false"
+                        "unsorted",
+                        "increasing",
+                        "decreasing"
                     ]
                 },
                 {
@@ -71904,8 +71906,8 @@
                     "isArray": false
                 },
                 {
-                    "name": "sortResults",
-                    "type": "boolean",
+                    "name": "sort",
+                    "type": "text",
                     "isArray": false
                 },
                 {

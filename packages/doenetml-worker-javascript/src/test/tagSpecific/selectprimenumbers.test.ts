@@ -926,7 +926,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
     it("select prime numbers and sort", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p name="p1"><selectPrimeNumbers numToSelect="20" sortResults="true" withReplacement="true" to="100" /></p>
+    <p name="p1"><selectPrimeNumbers numToSelect="20" sort="increasing" withReplacement="true" to="100" /></p>
 
     <p extend="$p1" name="p2" />
     `,
@@ -959,7 +959,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
 
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p name="p1"><selectPrimeNumbers numToSelect="3" sortResults="true" withReplacement="true" to="100" /></p>
+    <p name="p1"><selectPrimeNumbers numToSelect="3" sort="increasing" withReplacement="true" to="100" /></p>
 
     <p extend="$p1" name="p2" />
     `,
@@ -1162,5 +1162,111 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("p5")].stateValues.text,
         ).eq(nums5.map((v, i) => `${l[i]}5=${v}`).join(", "));
+    });
+
+    it("sort with decreasing value", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="p1"><selectPrimeNumbers numToSelect="5" sort="decreasing" from="2" to="13" /></p>
+    <p extend="$p1" name="p2" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        let originalNumbers = stateVariables[
+            await resolvePathToNodeIdx("p1")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        let secondNumbers = stateVariables[
+            await resolvePathToNodeIdx("p2")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+
+        expect([...originalNumbers].sort((a, b) => b - a)).eqls(
+            originalNumbers,
+        );
+        expect(secondNumbers).eqls(originalNumbers);
+    });
+
+    it("sort with true value (backward compatibility)", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="p1"><selectPrimeNumbers numToSelect="5" sort="true" from="2" to="13" /></p>
+    <p extend="$p1" name="p2" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        let originalNumbers = stateVariables[
+            await resolvePathToNodeIdx("p1")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        let secondNumbers = stateVariables[
+            await resolvePathToNodeIdx("p2")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+
+        // sort="true" should convert to "increasing"
+        expect([...originalNumbers].sort((a, b) => a - b)).eqls(
+            originalNumbers,
+        );
+        expect(secondNumbers).eqls(originalNumbers);
+    });
+
+    it("sort with false value (backward compatibility)", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="p1"><selectPrimeNumbers numToSelect="5" sort="false" from="2" to="13" /></p>
+    <p extend="$p1" name="p2" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        let originalNumbers = stateVariables[
+            await resolvePathToNodeIdx("p1")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        let secondNumbers = stateVariables[
+            await resolvePathToNodeIdx("p2")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+
+        // sort="false" should convert to "unsorted"
+        // We just verify it doesn't crash and produces consistent results
+        expect(secondNumbers).eqls(originalNumbers);
+    });
+
+    it("sort with no value", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="p1"><selectPrimeNumbers numToSelect="5" sort from="2" to="13" /></p>
+    <p extend="$p1" name="p2" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        let originalNumbers = stateVariables[
+            await resolvePathToNodeIdx("p1")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        let secondNumbers = stateVariables[
+            await resolvePathToNodeIdx("p2")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+
+        // sort with no value should produce consistent results
+        expect(secondNumbers).eqls(originalNumbers);
     });
 });

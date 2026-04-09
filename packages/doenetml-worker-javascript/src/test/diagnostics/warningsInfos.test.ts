@@ -124,14 +124,14 @@ describe("Warning Tests @group4", async () => {
     it("Deprecated selectPrimeNumbers attributes", async () => {
         const { core } = await createTestCore({
             doenetML: `
-<selectPrimeNumbers minValue="10" maxValue="50" />
+<selectPrimeNumbers minValue="10" maxValue="50" sortResults="true" />
             `,
         });
 
         const diagnosticsByType = getDiagnosticsByType(core);
 
         expect(diagnosticsByType.errors.length).eq(0);
-        expect(diagnosticsByType.warnings.length).eq(2);
+        expect(diagnosticsByType.warnings.length).eq(3);
 
         expect(
             diagnosticsByType.warnings.some((warning) =>
@@ -145,6 +145,35 @@ describe("Warning Tests @group4", async () => {
             diagnosticsByType.warnings.some((warning) =>
                 warning.message.includes(
                     "Attribute `maxValue` on `<selectPrimeNumbers>` is deprecated; use `to` instead.",
+                ),
+            ),
+        ).eq(true);
+
+        expect(
+            diagnosticsByType.warnings.some((warning) =>
+                warning.message.includes(
+                    "Attribute `sortResults` on `<selectPrimeNumbers>` is deprecated; use `sort` instead.",
+                ),
+            ),
+        ).eq(true);
+    });
+
+    it("Deprecated selectFromSequence sortResults attribute", async () => {
+        const { core } = await createTestCore({
+            doenetML: `
+<selectFromSequence from="1" to="10" sortResults="true" />
+            `,
+        });
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(1);
+
+        expect(
+            diagnosticsByType.warnings.some((warning) =>
+                warning.message.includes(
+                    "Attribute `sortResults` on `<selectFromSequence>` is deprecated; use `sort` instead.",
                 ),
             ),
         ).eq(true);
