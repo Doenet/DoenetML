@@ -431,8 +431,8 @@ export function getCompletionItems(
         ];
         const filteredNames = uniqueNames.filter(
             (name) =>
-                this.isNameAddressable(offset, name) &&
-                (!prefix || name.toLowerCase().startsWith(prefix)),
+                (!prefix || name.toLowerCase().startsWith(prefix)) &&
+                this.isNameAddressable(offset, name),
         );
 
         const baseItems = createReferenceCompletionItems(
