@@ -290,6 +290,8 @@ export class RustResolverAdapter {
         }
         try {
             this._core.set_source(this._sourceObj.dast, this._sourceObj.source);
+            // Set empty flags object for path-resolution-only use case.
+            this._core.set_flags("{}");
             const flatDast = this._core.return_dast();
             this._buildMappings(flatDast);
             this._enabled = true;
@@ -444,7 +446,8 @@ export class RustResolverAdapter {
             // If any intermediate segment resolves through a takesIndex
             // component without an index (e.g. $rep.myMath.), block member
             // completions for that path. Indexed traversal must use
-            // $rep[n].member.
+            // $rep[n].member.  Separately validate that non-takesIndex segments
+            // do not have indices (false positives worse than false negatives).
             if (resolution.nodesInResolvedPath.length > 1) {
                 // Rust includes the origin in nodesInResolvedPath, but when
                 // the origin is also the first resolved segment it may not be
@@ -455,6 +458,7 @@ export class RustResolverAdapter {
                     resolution.nodesInResolvedPath.slice(-lookupParts.length);
                 const intermediatePathNodeIndices =
                     alignedPathNodeIndices.slice(0, -1);
+                // Check each intermediate segment for proper index usage
                 for (
                     let pathPartIndex = 0;
                     pathPartIndex < intermediatePathNodeIndices.length;
@@ -667,8 +671,9 @@ export class RustResolverAdapter {
 
     /**
      * Pick a deterministic mapped index for root-level resolution.
-     * Prefer top-level elements from the parsed DAST root; fall back to any
-     * mapped element if top-level mappings are unavailable.
+     * Prefer top-level elements from the parsed DAST root (using the smallest
+     * Rust ID for determinism); fall back to any mapped element if top-level
+     * mappings are unavailable.
      */
     _getRootOriginIndex(): number | null {
         const topLevelIndices: number[] = [];
@@ -680,6 +685,7 @@ export class RustResolverAdapter {
             }
         }
         if (topLevelIndices.length > 0) {
+            // Use smallest index for deterministic root-level resolution
             return Math.min(...topLevelIndices);
         }
 

@@ -272,7 +272,9 @@ function toRefSegmentInsertText(label: string) {
  * - For `takesIndex` composites with a bracket index: descendants are shown
  *   (replacement child names), properties are hidden (unknown type).
  * - For regular elements: both descendants and properties are shown.
- * - For invalid access (element doesn't take index but has one): both are empty.
+ *
+ * Note: Invalid access (non-takesIndex element with an index) is handled upstream
+ * in the resolver and returns null node before reaching this function.
  */
 function determineVisibleNames(
     takesIndex: boolean,
@@ -333,8 +335,12 @@ function createPropertyCompletionItems(
  *
  * This function analyzes the cursor context to determine what type of completions
  * are appropriate and returns a combination of:
- * - Ref-name completions after `$` in text content or attribute values
- * - Ref-member completions after `.` on a resolved ref chain
+ * - Ref-name completions after `$` in text content or attribute values, including
+ *   `$name[]` snippet completions for takesIndex elements
+ * - Ref-member completions after `.` on a resolved ref chain, filtered by addressability
+ *   and visibility rules (ChildrenInvisibleToTheirGrandparents, sugar hiding, etc.)
+ * - Additional injected ref names (e.g., repeat valueName/indexName) from
+ *   rustResolverAdapter.getDerivedRepeatNames()
  * - Schema-based element completions (allowed elements based on parent/context)
  * - Snippet completions (templates associated with allowed elements)
  * - Attribute name completions (when inside an opening tag)
@@ -342,8 +348,9 @@ function createPropertyCompletionItems(
  * - Closing tag completions (when appropriate)
  *
  * The completion behavior varies depending on the cursor position context:
- * - Body or attribute-value ref context after `$` or `.`: in-scope ref names,
- *   descendant names, and schema properties on resolved referents
+ * - Body or attribute-value ref context after `$` or `.`: in-scope ref names filtered
+ *   through isNameAddressable(), descendant names from visibleDescendantNames,
+ *   and schema properties on resolved referents
  * - Root level after `<`: top-level elements and their snippets
  * - Inside element body after `<`: allowed children and their snippets
  * - While typing element name (`openTagName`): filtered schema elements and snippets
@@ -356,6 +363,7 @@ function createPropertyCompletionItems(
  * insertion column.
  *
  * @param offset - Either a numeric offset into the source string, or a RowCol position
+ * @param cachedContext - Optional pre-computed CompletionContext to avoid redundant parsing
  * @returns Array of LSP CompletionItem objects suitable for the current context
  */
 export function getCompletionItems(
