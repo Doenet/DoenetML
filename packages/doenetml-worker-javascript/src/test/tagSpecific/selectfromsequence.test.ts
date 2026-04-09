@@ -2200,6 +2200,34 @@ describe("SelectFromSequence tag tests @group4", async () => {
         expect(secondNumbers).eqls(originalNumbers);
     });
 
+    it("sort with whitespace and uppercase false value", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="p1"><selectFromSequence name="s" numToSelect="10" sort="  FALSE  " from="1" to="10" /></p>
+    <p extend="$p1" name="p2" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s")].stateValues.sort,
+        ).eq("unsorted");
+
+        let originalNumbers = stateVariables[
+            await resolvePathToNodeIdx("p1")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        let secondNumbers = stateVariables[
+            await resolvePathToNodeIdx("p2")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+
+        expect(secondNumbers).eqls(originalNumbers);
+    });
+
     it("sort with no value should be sorted increasing", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

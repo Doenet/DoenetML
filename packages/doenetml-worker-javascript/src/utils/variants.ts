@@ -582,12 +582,12 @@ export function extractConstantSortAttribute(
             sortComponent.children?.length === 1 &&
             typeof sortComponent.children[0] === "string"
         ) {
-            sort = sortComponent.children[0].toLowerCase();
+            sort = sortComponent.children[0].trim().toLowerCase();
         } else if (
             (!sortComponent.children || sortComponent.children?.length === 0) &&
             typeof sortComponent.state?.value === "string"
         ) {
-            sort = sortComponent.state.value;
+            sort = sortComponent.state.value.trim().toLowerCase();
         } else {
             console.log(
                 `cannot determine unique variants of ${componentName} as sort isn't a constant.`,
