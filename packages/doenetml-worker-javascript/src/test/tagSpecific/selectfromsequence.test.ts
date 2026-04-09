@@ -2134,7 +2134,7 @@ describe("SelectFromSequence tag tests @group4", async () => {
         expect(secondNumbers).eqls(originalNumbers);
     });
 
-    it("sort with true value (backward compatibility)", async () => {
+    it("sort with true value", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><selectFromSequence numToSelect="10" sort="true" from="1" to="10" /></p>
@@ -2162,7 +2162,7 @@ describe("SelectFromSequence tag tests @group4", async () => {
         expect(secondNumbers).eqls(originalNumbers);
     });
 
-    it("sort with false value (backward compatibility)", async () => {
+    it("sort with false value", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><selectFromSequence numToSelect="10" sort="false" from="1" to="10" /></p>

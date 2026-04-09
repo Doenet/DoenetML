@@ -767,7 +767,7 @@ describe.skipIf(!wasmAvailable)(
             // $sec.rep[1]. — the resolved terminal segment ("rep") is a
             // takesIndex composite AND carries an index.  This is an indirect
             // path (three segments: sec / rep[1] / <empty>), so rep is not
-            // the root of the ref.  The behaviour should be the same as the
+            // the root of the ref.  The behavior should be the same as the
             // direct case $rep[1].: the index means the cursor is after a
             // replacement child of unknown type, so descendant names should
             // be offered but schema properties of repeatForSequence should

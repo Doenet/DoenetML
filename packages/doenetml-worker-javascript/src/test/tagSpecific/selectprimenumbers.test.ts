@@ -1191,7 +1191,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
         expect(secondNumbers).eqls(originalNumbers);
     });
 
-    it("sort with true value (backward compatibility)", async () => {
+    it("sort with true value", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><selectPrimeNumbers numToSelect="5" sort="true" from="2" to="13" /></p>
@@ -1219,7 +1219,7 @@ describe("selectPrimeNumbers tag tests @group2", async () => {
         expect(secondNumbers).eqls(originalNumbers);
     });
 
-    it("sort with false value (backward compatibility)", async () => {
+    it("sort with false value", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><selectPrimeNumbers numToSelect="5" sort="false" from="2" to="13" /></p>

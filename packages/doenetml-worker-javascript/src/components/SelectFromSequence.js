@@ -685,7 +685,6 @@ export default class SelectFromSequence extends Sequence {
         if (!sortResult.success) {
             return { success: false };
         }
-        let sort = sortResult.sort;
 
         sequencePars = calculateSequenceParameters(sequencePars);
 

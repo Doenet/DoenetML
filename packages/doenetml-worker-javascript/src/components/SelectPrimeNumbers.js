@@ -460,7 +460,6 @@ export default class SelectPrimeNumbers extends CompositeComponent {
         if (!sortResult.success) {
             return { success: false };
         }
-        let sort = sortResult.sort;
 
         let primes = createPrimesList(primePars);
 
