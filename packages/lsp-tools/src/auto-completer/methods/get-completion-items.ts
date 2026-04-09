@@ -1,4 +1,5 @@
 import { DoenetSourceObject, RowCol } from "../../doenet-source-object";
+import type { CompletionContext } from "./get-completion-context";
 import type { CompletionItem, Range } from "vscode-languageserver/browser";
 import { CompletionItemKind } from "vscode-languageserver/browser";
 import type {
@@ -358,6 +359,7 @@ function createPropertyCompletionItems(
 export function getCompletionItems(
     this: AutoCompleter,
     offset: number | RowCol,
+    cachedContext?: CompletionContext,
 ): CompletionItem[] {
     if (typeof offset !== "number") {
         offset = this.sourceObj.rowColToOffset(offset);
@@ -382,7 +384,8 @@ export function getCompletionItems(
     const element = containingElement.node;
     let cursorPosition = containingElement.cursorPosition;
 
-    const completionContext = this.getCompletionContext(offset);
+    const completionContext =
+        cachedContext ?? this.getCompletionContext(offset);
     const allowRefCompletion =
         cursorPosition === "body" ||
         cursorPosition === "attributeValue" ||

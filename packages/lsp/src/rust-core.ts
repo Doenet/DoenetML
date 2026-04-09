@@ -90,7 +90,10 @@ async function initWasmWithNodePathWorkaround(): Promise<void> {
                 candidatePaths.push(fromFileUrl);
             }
         } else if (normalized.startsWith("/@fs/")) {
-            candidatePaths.push(normalized.replace(/^\/@fs\//, "/"));
+            const fspath = normalized.slice("/@fs".length);
+            candidatePaths.push(
+                /^\/[A-Za-z]:/.test(fspath) ? fspath.slice(1) : fspath,
+            );
         } else if (path.isAbsolute(normalized)) {
             // Some runners surface workspace-root-relative paths like
             // `/packages/...` rather than absolute filesystem paths.

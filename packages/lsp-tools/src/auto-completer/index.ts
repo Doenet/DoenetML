@@ -5,7 +5,10 @@ import type { CompletionSnippetCursor } from "@doenet/static-assets/completion-s
 import { DastAttribute, DastElement } from "@doenet/parser";
 import { getCompletionItems } from "./methods/get-completion-items";
 import { getSchemaViolations } from "./methods/get-schema-violations";
-import { getCompletionContext } from "./methods/get-completion-context";
+import {
+    getCompletionContext,
+    type CompletionContext,
+} from "./methods/get-completion-context";
 import type { RustResolverAdapter } from "./rust-resolver-adapter";
 
 type ElementSchema = {
@@ -234,7 +237,10 @@ export class AutoCompleter {
      * Get completion items at the given offset, including XML, snippet, and
      * ref-specific completions.
      */
-    getCompletionItems = getCompletionItems;
+    getCompletionItems = (
+        offset: number | RowCol,
+        cachedContext?: CompletionContext,
+    ) => getCompletionItems.call(this, offset, cachedContext);
 
     /**
      * Get a list of LSP `Diagnostic`s for schema violations.

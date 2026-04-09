@@ -27,6 +27,7 @@ export function addDocumentCompletionSupport(
 
         const completions = info.autoCompleter.getCompletionItems(
             params.position,
+            completionContext,
         );
         return completions;
     });
