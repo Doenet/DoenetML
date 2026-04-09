@@ -84,7 +84,7 @@ function collectNamesFromCompositeChildren(
 
     for (const child of composite.children) {
         if (child.type !== "element") continue;
-        if (COMPOSITE_WRAPPER_NAMES.has(child.name)) continue;
+        if (COMPOSITE_WRAPPER_NAMES.has(child.name.toLowerCase())) continue;
 
         const nameAttr = child.attributes?.name;
         const nameVal =
@@ -104,7 +104,7 @@ function collectNamesFromCompositeChildren(
     for (const child of composite.children) {
         if (child.type !== "element") continue;
 
-        if (COMPOSITE_WRAPPER_NAMES.has(child.name)) {
+        if (COMPOSITE_WRAPPER_NAMES.has(child.name.toLowerCase())) {
             // Walk inside the wrapper transparently
             addUniqueNamesFromDescendants(
                 collectAllNamedDescendants(child),
@@ -139,7 +139,10 @@ function collectNamesFromCompositeChildren(
  * repeat or repeatForSequence element. Returns an empty array for other elements.
  */
 function getDerivedRepeatNamesFromElement(el: DastElement): string[] {
-    if (el.name !== "repeat" && el.name !== "repeatForSequence") return [];
+    const elementName = el.name.toLowerCase();
+    if (elementName !== "repeat" && elementName !== "repeatforsequence") {
+        return [];
+    }
     const names: string[] = [];
     for (const attrName of ["valueName", "indexName"]) {
         const attr = el.attributes[attrName];
@@ -235,8 +238,13 @@ export class RustResolverAdapter {
         options?: RustResolverAdapterOptions,
     ) {
         this._sourceObj = sourceObj;
-        this._takesIndexComponentTypes =
-            options?.takesIndexComponentTypes ?? null;
+        this._takesIndexComponentTypes = options?.takesIndexComponentTypes
+            ? new Set(
+                  [...options.takesIndexComponentTypes].map((name) =>
+                      name.toLowerCase(),
+                  ),
+              )
+            : null;
         if (options?.core) {
             this._core = options.core;
             this._syncSource();
@@ -244,7 +252,10 @@ export class RustResolverAdapter {
     }
 
     _componentTakesIndex(componentType: string): boolean {
-        return this._takesIndexComponentTypes?.has(componentType) ?? false;
+        return (
+            this._takesIndexComponentTypes?.has(componentType.toLowerCase()) ??
+            false
+        );
     }
 
     /**
@@ -504,7 +515,7 @@ export class RustResolverAdapter {
             // visible descendants by walking through wrapper children
             // (case/else/option) transparently.
             if (
-                resolvedNode.name === "conditionalContent" ||
+                resolvedNode.name.toLowerCase() === "conditionalcontent" ||
                 (resolvedPartHasIndex &&
                     this._componentTakesIndex(resolvedNode.name))
             ) {
@@ -721,8 +732,8 @@ export class RustResolverAdapter {
         while (parent && parent.type !== "root") {
             if (
                 parent.type === "element" &&
-                (parent.name === "conditionalContent" ||
-                    parent.name === "select")
+                (parent.name.toLowerCase() === "conditionalcontent" ||
+                    parent.name.toLowerCase() === "select")
             ) {
                 const start = parent.position?.start?.offset;
                 const end = parent.position?.end?.offset;
@@ -744,7 +755,9 @@ export class RustResolverAdapter {
                             resolvedParent &&
                             resolvedParent.type === "element" &&
                             resolvedParent === parent &&
-                            COMPOSITE_WRAPPER_NAMES.has(resolvedElement.name)
+                            COMPOSITE_WRAPPER_NAMES.has(
+                                resolvedElement.name.toLowerCase(),
+                            )
                         )
                     ) {
                         return true;

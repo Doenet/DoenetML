@@ -353,6 +353,37 @@ describe.skipIf(!wasmAvailable)(
             }
         });
 
+        it("mixed-case Repeat still enforces takesIndex and injects derived names", () => {
+            // With mixed-case element names from source, behavior should still
+            // match canonical lower-case component handling.
+
+            // Indexed member access should expose descendants and repeat names.
+            {
+                const source = `<Repeat name="rep" valueName="v" indexName="i"><Math name="m">x</Math></Repeat>\n$rep[1].`;
+                const { completer } = createCompleterWithAdapter(source, {
+                    includeAdditionalRefNames: true,
+                });
+                const items = completer.getCompletionItems(source.length);
+                const labels = items.map((i) => i.label);
+                expect(labels).toContain("m");
+                expect(labels).toContain("v");
+                expect(labels).toContain("i");
+            }
+
+            // Unindexed member access should be blocked for takesIndex elements.
+            {
+                const source = `<Repeat name="rep" valueName="v" indexName="i"><Math name="m">x</Math></Repeat>\n$rep.`;
+                const { completer } = createCompleterWithAdapter(source, {
+                    includeAdditionalRefNames: true,
+                });
+                const items = completer.getCompletionItems(source.length);
+                const labels = items.map((i) => i.label);
+                expect(labels).not.toContain("m");
+                expect(labels).not.toContain("v");
+                expect(labels).not.toContain("i");
+            }
+        });
+
         it("repeatForSequence valueName/indexName appear in completions", () => {
             // repeatForSequence with valueName/indexName
             {
