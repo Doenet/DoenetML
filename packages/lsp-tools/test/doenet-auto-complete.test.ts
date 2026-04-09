@@ -263,6 +263,16 @@ describe("AutoCompleter", () => {
             `);
         }
     });
+
+    it("Matches open-tag component completions case-insensitively and keeps canonical label case", () => {
+        const source = `<MATHIN`;
+        const autoCompleter = new AutoCompleter(source, doenetSchema.elements);
+        const items = autoCompleter.getCompletionItems(source.length);
+        const labels = items.map((item) => String(item.label));
+
+        expect(labels).toContain("mathInput");
+    });
+
     it("Suggests child elements (not attributes) when < is typed inside a closed element", () => {
         // Regression: typing `<` inside `<aa>...</aa>` used to return
         // aa's attributes instead of its allowed child elements.
@@ -524,6 +534,39 @@ describe("AutoCompleter", () => {
             ).toBe(true);
         });
 
+        it("Matches $ref prefix case-insensitively but keeps inserted canonical case", () => {
+            const source = `<math name="myMath" />\n$MYM`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.length;
+            const items = autoCompleter.getCompletionItems(offset);
+            const match = items.find((item) => item.label === "myMath");
+
+            expect(match).toBeDefined();
+            expect(match?.textEdit).toBeDefined();
+            const textEdit = match?.textEdit;
+            if (textEdit && "newText" in textEdit) {
+                expect(textEdit.newText).toBe("myMath");
+            }
+        });
+
+        it("Keeps names that differ only by case as separate $ref completion options", () => {
+            const source = `<math name="myMath" /><math name="MyMath" />\n$myma`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const items = autoCompleter.getCompletionItems(source.length);
+            const labels = items.map((item) => String(item.label));
+
+            expect(labels).toContain("myMath");
+            expect(labels).toContain("MyMath");
+            expect(labels.filter((label) => label === "myMath")).toHaveLength(
+                1,
+            );
+            expect(labels.filter((label) => label === "MyMath")).toHaveLength(
+                1,
+            );
+        });
+
         it("Inserts parenthesized macro text for hyphenated names after $", () => {
             const source = `<math name="foo-bar" />\n$f`;
             const autoCompleter = createRefAutoCompleter(source);
@@ -592,6 +635,17 @@ describe("AutoCompleter", () => {
             const myPItems = items.filter((item) => item.label === "myP");
             expect(myPItems).toHaveLength(1);
             expect(myPItems[0].kind).toBe(CompletionItemKind.Reference);
+        });
+
+        it("Matches member prefix case-insensitively and preserves distinct-case labels", () => {
+            const source = `<section name="mySection"><p name="myMath" /><p name="MyMath" /></section>\n$mySection.myma`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const items = autoCompleter.getCompletionItems(source.length);
+            const labels = items.map((item) => String(item.label));
+
+            expect(labels).toContain("myMath");
+            expect(labels).toContain("MyMath");
         });
 
         it("Only suggests uniquely addressable descendant names after dot", () => {

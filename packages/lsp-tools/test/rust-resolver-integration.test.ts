@@ -353,24 +353,23 @@ describe.skipIf(!wasmAvailable)(
             }
         });
 
-        it("mixed-case Repeat still enforces takesIndex and injects derived names", () => {
-            // With mixed-case element names from source, behavior should still
-            // match canonical lower-case component handling.
+        it("mixed-case component types are treated case-sensitively by resolver semantics", () => {
+            // Completion matching can be case-insensitive, but semantic behavior
+            // of parsed component types must remain case-sensitive.
 
-            // Indexed member access should expose descendants and repeat names.
+            // `<Repeat>` should not inherit canonical `repeat` takesIndex behavior,
+            // so indexed member access should be invalid.
             {
                 const source = `<Repeat name="rep" valueName="v" indexName="i"><Math name="m">x</Math></Repeat>\n$rep[1].`;
                 const { completer } = createCompleterWithAdapter(source, {
                     includeAdditionalRefNames: true,
                 });
                 const items = completer.getCompletionItems(source.length);
-                const labels = items.map((i) => i.label);
-                expect(labels).toContain("m");
-                expect(labels).toContain("v");
-                expect(labels).toContain("i");
+                expect(items).toEqual([]);
             }
 
-            // Unindexed member access should be blocked for takesIndex elements.
+            // Unindexed access should not inject repeat-derived names because
+            // `<Repeat>` is not the canonical `repeat` component type.
             {
                 const source = `<Repeat name="rep" valueName="v" indexName="i"><Math name="m">x</Math></Repeat>\n$rep.`;
                 const { completer } = createCompleterWithAdapter(source, {
