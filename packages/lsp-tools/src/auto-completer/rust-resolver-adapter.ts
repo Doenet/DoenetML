@@ -270,7 +270,7 @@ export class RustResolverAdapter {
         this._sourceRevision += 1;
         this._visibleDescendantNamesCache.clear();
         if (!this._core) {
-            this._enabled = false;
+            this._disableAdapterState();
             return;
         }
         // The Rust core panics on empty source (index-out-of-bounds on a
@@ -278,14 +278,14 @@ export class RustResolverAdapter {
         // no elements (e.g. source is just "a" — only text nodes, zero
         // elements).  Skip the sync in both cases.
         if (!this._sourceObj.source.trim()) {
-            this._enabled = false;
+            this._disableAdapterState();
             return;
         }
         const hasElements = this._sourceObj.dast.children.some(
             (c) => c.type === "element",
         );
         if (!hasElements) {
-            this._enabled = false;
+            this._disableAdapterState();
             return;
         }
         try {
@@ -297,7 +297,7 @@ export class RustResolverAdapter {
             this._enabled = true;
         } catch (e) {
             console.warn("RustResolverAdapter: failed to sync source:", e);
-            this._enabled = false;
+            this._disableAdapterState();
         }
     }
 
@@ -309,6 +309,12 @@ export class RustResolverAdapter {
     _setCachedVisibleDescendantNames(resolvedIdx: number, names: string[]) {
         const key = `${this._sourceRevision}:${resolvedIdx}`;
         this._visibleDescendantNamesCache.set(key, names);
+    }
+
+    _disableAdapterState() {
+        this._enabled = false;
+        this._rustIndexToDastElement.clear();
+        this._dastElementToRustIndex.clear();
     }
 
     /**
@@ -440,6 +446,7 @@ export class RustResolverAdapter {
                 return {
                     node: null,
                     unresolvedPathParts,
+                    visibleDescendantNames: [],
                 };
             }
 
@@ -478,6 +485,7 @@ export class RustResolverAdapter {
                             node: null,
                             unresolvedPathParts:
                                 lookupParts.slice(pathPartIndex),
+                            visibleDescendantNames: [],
                         };
                     }
                     // Inverse: a non-takesIndex segment must not have an
@@ -492,6 +500,7 @@ export class RustResolverAdapter {
                             node: null,
                             unresolvedPathParts:
                                 lookupParts.slice(pathPartIndex),
+                            visibleDescendantNames: [],
                         };
                     }
                 }
@@ -525,6 +534,7 @@ export class RustResolverAdapter {
                 return {
                     node: null,
                     unresolvedPathParts: [],
+                    visibleDescendantNames: [],
                 };
             }
 

@@ -279,7 +279,7 @@ function toRefSegmentInsertText(label: string) {
 function determineVisibleNames(
     takesIndex: boolean,
     resolvedPartHasIndex: boolean,
-    visibleDescendantNames: string[] | undefined,
+    visibleDescendantNames: string[],
     schema: { properties?: { name: string }[] } | undefined,
 ): { descendantNames: Set<string>; propertyNames: string[] } {
     // For a takesIndex composite:
@@ -292,7 +292,7 @@ function determineVisibleNames(
     const descendantNames =
         takesIndex && !resolvedPartHasIndex
             ? new Set<string>()
-            : new Set(visibleDescendantNames ?? []);
+            : new Set(visibleDescendantNames);
 
     const propertyNames =
         takesIndex && resolvedPartHasIndex

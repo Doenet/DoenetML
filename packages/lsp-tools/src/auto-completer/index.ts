@@ -45,12 +45,11 @@ export type RefMemberContainerResolution = {
     node: DastElement | null;
     unresolvedPathParts: string[];
     /**
-     * When provided by the resolver, this is the list of descendant names
-     * that are actually visible from the resolved node (respecting
+     * Descendant names that are actually visible from the resolved node (respecting
      * visibility rules like `ChildrenInvisibleToTheirGrandparents`).
-     * The completion pipeline expects this to be provided by the resolver.
+     * Resolvers must always provide this field.
      */
-    visibleDescendantNames?: string[];
+    visibleDescendantNames: string[];
 };
 
 export type ResolveRefMemberContainer = (
@@ -186,6 +185,7 @@ export class AutoCompleter {
         return {
             node: null,
             unresolvedPathParts,
+            visibleDescendantNames: [],
         };
     }
 
