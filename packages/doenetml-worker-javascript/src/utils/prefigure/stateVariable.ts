@@ -87,6 +87,25 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
         ],
     },
     {
+        key: "curveDescendants",
+        componentType: "curve",
+        variableNames: [
+            "curveType",
+            "fDefinitions",
+            "parMin",
+            "parMax",
+            "flipFunction",
+            "numericalThroughPoints",
+            "periodic",
+            "extrapolateBackward",
+            "extrapolateForward",
+            "selectedStyle",
+            "label",
+            "labelHasLatex",
+        ],
+        variablesOptional: true,
+    },
+    {
         key: "circleDescendants",
         componentType: "circle",
         variableNames: [

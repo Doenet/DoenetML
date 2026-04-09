@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { pointLabelAttributes } from "../../utils/prefigure/label";
-import { getPrefigureXML } from "./graph-prefigure.helpers";
+import { getPrefigureXML, getWarnings } from "./graph-prefigure.helpers";
 import {
     prefigureGraph,
     withStyleDefinitions,
@@ -1252,6 +1252,158 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
 
         expect(prefigureXML).toContain(`<arc `);
         expect(prefigureXML).toContain(`points="((0,1),(0,0),(1,0))"`);
+    });
+
+    it("renderer=prefigure maps function curve to PreFigure graph", async () => {
+        const prefigureXML = await getPrefigureXML(
+            withStyleDefinitions(
+                '    <styleDefinition styleNumber="7" lineColor="orange" lineWidth="6" />',
+                prefigureGraph(
+                    '<curve styleNumber="7"><function>x^2</function></curve>',
+                ),
+            ),
+        );
+
+        expect(prefigureXML).toContain(`<graph at="curve_0"`);
+        expect(prefigureXML).toContain(`function="curve_0_f(x)=x^2"`);
+        expect(prefigureXML).toContain(`domain="(-12,12)"`);
+        expect(prefigureXML).toContain(`stroke="orange"`);
+        expect(prefigureXML).toContain(`thickness="6"`);
+    });
+
+    it("renderer=prefigure maps parameterized curve to PreFigure parametric-curve", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<curve parMin="-2" parMax="3"><function>3x</function><function>x^2</function></curve>',
+            ),
+        );
+
+        expect(prefigureXML).toContain(`<parametric-curve at="curve_0"`);
+        expect(prefigureXML).toContain(`function="curve_0_r(x)=(3 x,x^2)"`);
+        expect(prefigureXML).toContain(`domain="(-2,3)"`);
+        expect(prefigureXML).not.toContain(`fill="`);
+        expect(prefigureXML).not.toContain(`fill-opacity="`);
+    });
+
+    it("renderer=prefigure maps bezier curve to PreFigure spline", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph('<curve through="(0,0) (1,2) (2,1)" />'),
+        );
+
+        expect(prefigureXML).toContain(`<spline at="curve_0"`);
+        expect(prefigureXML).toContain(`points="((0,0),(1,2),(2,1))"`);
+        expect(prefigureXML).toContain(`domain="(0,2)"`);
+    });
+
+    it("renderer=prefigure maps periodic bezier to closed spline", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<curve through="(0,0) (1,2) (2,1) (0,0)" periodic="true" />',
+            ),
+        );
+
+        expect(prefigureXML).toContain(`<spline at="curve_0"`);
+        expect(prefigureXML).toContain(`closed="yes"`);
+        expect(prefigureXML).not.toContain(`domain="`);
+    });
+
+    it("renderer=prefigure warns and omits curve labels", async () => {
+        const doenetML = prefigureGraph(
+            "<curve><function>x^2</function><label>f</label></curve>",
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).toContain(`<graph at="curve_0"`);
+        expect(prefigureXML).not.toContain(`<label`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some((x) =>
+                x.message.includes(
+                    "labels are not supported on converted curve elements",
+                ),
+            ),
+        ).eq(true);
+    });
+
+    it("renderer=prefigure warns when function curve cannot build finite domain for flipped rendering", async () => {
+        const doenetML = prefigureGraph(
+            '<curve flipFunction="true" parMin="a"><function>x^2</function></curve>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).not.toContain(`<graph at="curve_0"`);
+        expect(prefigureXML).not.toContain(`<parametric-curve at="curve_0"`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some(
+                (x) =>
+                    x.message.includes("<curve>") &&
+                    x.message.includes(
+                        "non-finite or incomplete geometry; descendant skipped",
+                    ),
+            ),
+        ).eq(true);
+    });
+
+    it("renderer=prefigure warns when parameterized curve cannot build finite domain", async () => {
+        const doenetML = prefigureGraph(
+            '<curve parMax="a"><function>3x</function><function>x^2</function></curve>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).not.toContain(`<parametric-curve at="curve_0"`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some(
+                (x) =>
+                    x.message.includes("<curve>") &&
+                    x.message.includes(
+                        "non-finite or incomplete geometry; descendant skipped",
+                    ),
+            ),
+        ).eq(true);
+    });
+
+    it("renderer=prefigure warns when bezier points include non-finite coordinates", async () => {
+        const doenetML = prefigureGraph(
+            '<curve through="(0,0) (a,2) (2,1)" />',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).not.toContain(`<spline at="curve_0"`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some(
+                (x) =>
+                    x.message.includes("<curve>") &&
+                    x.message.includes(
+                        "non-finite or incomplete geometry; descendant skipped",
+                    ),
+            ),
+        ).eq(true);
+    });
+
+    it("renderer=prefigure warns when interpolated function curve cannot be serialized", async () => {
+        const doenetML = prefigureGraph(
+            '<function through="(1,1) (2,2) (3,1)" />\n  <function>x^2</function>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).toContain(`<graph at="curve_1"`);
+        expect(prefigureXML).not.toContain(`<graph at="curve_0"`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some((x) =>
+                x.message.includes(
+                    "unsupported curve function definition type 'interpolated'",
+                ),
+            ),
+        ).eq(true);
     });
 });
 

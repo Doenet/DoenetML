@@ -17,6 +17,7 @@ import {
     convertPolygonToPrefigure,
 } from "./components/polygon";
 import { convertAngleToPrefigure } from "./components/angle";
+import { convertCurveToPrefigure } from "./components/curve";
 import type {
     Converter,
     Descendant,
@@ -33,7 +34,7 @@ const FILLED_COMPONENT_TYPES = new Set([
     "rectangle",
 ]);
 
-const NO_FILL_COMPONENT_TYPES = new Set(["polyline", "angle"]);
+const NO_FILL_COMPONENT_TYPES = new Set(["polyline", "angle", "curve"]);
 
 function styleIncludesFill(
     componentType: string,
@@ -56,6 +57,7 @@ const convertByComponentType: Record<string, Converter> = {
     polyline: convertPolylineToPrefigure,
     polygon: convertPolygonToPrefigure,
     angle: convertAngleToPrefigure,
+    curve: convertCurveToPrefigure,
     endpoint: convertPointToPrefigure,
     equilibriumPoint: convertPointToPrefigure,
     triangle: convertPolygonToPrefigure,
