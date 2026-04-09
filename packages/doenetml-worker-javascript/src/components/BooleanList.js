@@ -6,6 +6,8 @@ import { convertUnresolvedAttributesForComponentType } from "../utils/dast/conve
 export default class BooleanList extends CompositeComponent {
     static componentType = "booleanList";
 
+    static takesIndex = true;
+
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
 

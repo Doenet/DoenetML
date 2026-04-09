@@ -10,7 +10,32 @@ type MacroNode = DastMacro;
 const SIMPLE_IDENTIFIER_CHAR_REGEX = /[A-Za-z0-9_]/;
 const SIMPLE_IDENTIFIER_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
 const MACRO_IDENTIFIER_CHAR_REGEX = /[A-Za-z0-9_-]/;
-const MACRO_PATH_CHAR_REGEX = /[A-Za-z0-9_.-]/;
+const MACRO_PATH_CHAR_REGEX = /[A-Za-z0-9_.[\]-]/;
+
+/** Regex matching one or more bracket indices at the end, e.g. `[1]`, `[2][3]`. */
+const BRACKET_INDEX_SUFFIX_REGEX = /(\[[^\]]*\])+$/;
+
+/**
+ * Strip bracket indices from path parts and report index usage per segment.
+ * For example:
+ * `["sel[1]", "member", ""]` →
+ * `{ parts: ["sel", "member", ""], pathPartHasIndex: [true, false, false] }`.
+ */
+function stripIndicesFromPathParts(parts: string[]): {
+    parts: string[];
+    pathPartHasIndex: boolean[];
+} {
+    const pathPartHasIndex: boolean[] = [];
+    const stripped = parts.map((p) => {
+        const indexed = BRACKET_INDEX_SUFFIX_REGEX.test(p);
+        pathPartHasIndex.push(indexed);
+        if (indexed) {
+            return p.replace(BRACKET_INDEX_SUFFIX_REGEX, "");
+        }
+        return p;
+    });
+    return { parts: stripped, pathPartHasIndex };
+}
 
 /**
  * High-level cursor contexts used to choose between XML completions and
@@ -35,7 +60,62 @@ export type CompletionContext =
           typedPrefix: string;
           replaceFromOffset: number;
           pathParts: string[];
+          /**
+           * Per-segment index flags aligned with `pathParts`.
+           * Example: `$rep[1].myMath.` -> pathPartHasIndex `[true, false, false]`.
+           */
+          pathPartHasIndex: boolean[];
       };
+
+/**
+ * Build a `refMember` context, stripping bracket indices from path parts.
+ */
+function makeRefMemberContext(
+    typedPrefix: string,
+    replaceFromOffset: number,
+    rawPathParts: string[],
+): CompletionContext & { cursorPos: "refMember" } {
+    const { parts, pathPartHasIndex } = stripIndicesFromPathParts(rawPathParts);
+    return {
+        cursorPos: "refMember",
+        typedPrefix,
+        replaceFromOffset,
+        pathParts: parts,
+        pathPartHasIndex,
+    };
+}
+
+/**
+ * Validate raw path parts before converting to a `refMember` context.
+ * Whitespace around any non-final segment indicates invalid syntax
+ * (for example, `$foo .bar` or `$foo[1] .`).
+ */
+function hasValidRefMemberPathSyntax(rawPathParts: string[]): boolean {
+    if (rawPathParts.length === 0) {
+        return false;
+    }
+
+    for (let i = 0; i < rawPathParts.length - 1; i++) {
+        const part = rawPathParts[i];
+        if (part.length === 0 || part.trim() !== part) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+function makeValidatedRefMemberContext(
+    typedPrefix: string,
+    replaceFromOffset: number,
+    rawPathParts: string[],
+): CompletionContext {
+    if (!hasValidRefMemberPathSyntax(rawPathParts)) {
+        return { cursorPos: "body" };
+    }
+
+    return makeRefMemberContext(typedPrefix, replaceFromOffset, rawPathParts);
+}
 
 /**
  * Walk left from `offset` capturing a continuous identifier fragment.
@@ -136,12 +216,11 @@ export function getCompletionContext(
                     offset,
                 ),
             );
-            return {
-                cursorPos: "refMember",
-                typedPrefix: activeTypedPrefix,
-                replaceFromOffset: activeTokenStart,
-                pathParts: pathSource.split("."),
-            };
+            return makeValidatedRefMemberContext(
+                activeTypedPrefix,
+                activeTokenStart,
+                pathSource.split("."),
+            );
         }
 
         if (
@@ -199,12 +278,11 @@ export function getCompletionContext(
 
         // Pattern: `$identifier.member`
         if (source.charAt(pathStart - 1) === "$") {
-            return {
-                cursorPos: "refMember",
-                typedPrefix: macroTypedPrefix,
-                replaceFromOffset: macroTokenStart,
-                pathParts: source.slice(pathStart, offset).split("."),
-            };
+            return makeValidatedRefMemberContext(
+                macroTypedPrefix,
+                macroTokenStart,
+                source.slice(pathStart, offset).split("."),
+            );
         }
 
         // Pattern: `$(identifier.member` or `$(identifier).member`
@@ -212,12 +290,11 @@ export function getCompletionContext(
             source.charAt(pathStart - 1) === "(" &&
             source.charAt(pathStart - 2) === "$"
         ) {
-            return {
-                cursorPos: "refMember",
-                typedPrefix: macroTypedPrefix,
-                replaceFromOffset: macroTokenStart,
-                pathParts: source.slice(pathStart, offset).split("."),
-            };
+            return makeValidatedRefMemberContext(
+                macroTypedPrefix,
+                macroTokenStart,
+                source.slice(pathStart, offset).split("."),
+            );
         }
 
         // Pattern: `$(identifier).member`
@@ -232,12 +309,11 @@ export function getCompletionContext(
                     pathStart - 1,
                 );
                 const suffix = source.slice(pathStart, offset);
-                return {
-                    cursorPos: "refMember",
-                    typedPrefix: macroTypedPrefix,
-                    replaceFromOffset: macroTokenStart,
-                    pathParts: `${basePath}${suffix}`.split("."),
-                };
+                return makeValidatedRefMemberContext(
+                    macroTypedPrefix,
+                    macroTokenStart,
+                    `${basePath}${suffix}`.split("."),
+                );
             }
         }
 
@@ -256,14 +332,13 @@ export function getCompletionContext(
             }
             if (source.charAt(baseStart - 1) === "$") {
                 const basePath = source.slice(baseStart, pathStart - 2);
-                return {
-                    cursorPos: "refMember",
-                    typedPrefix: macroTypedPrefix,
-                    replaceFromOffset: macroTokenStart,
-                    pathParts: `${basePath}.${source
+                return makeValidatedRefMemberContext(
+                    macroTypedPrefix,
+                    macroTokenStart,
+                    `${basePath}.${source
                         .slice(pathStart, offset)
                         .replace(/^\(/, "")}`.split("."),
-                };
+                );
             }
 
             // Parenthesized base: `$(identifier).(member`
@@ -277,14 +352,13 @@ export function getCompletionContext(
                         macroOpenParen + 1,
                         baseStart - 1,
                     );
-                    return {
-                        cursorPos: "refMember",
-                        typedPrefix: macroTypedPrefix,
-                        replaceFromOffset: macroTokenStart,
-                        pathParts: `${basePath}.${source
+                    return makeValidatedRefMemberContext(
+                        macroTypedPrefix,
+                        macroTokenStart,
+                        `${basePath}.${source
                             .slice(pathStart, offset)
                             .replace(/^\(/, "")}`.split("."),
-                    };
+                    );
                 }
             }
         }
@@ -311,21 +385,20 @@ export function getCompletionContext(
         let dollarPos = tokenStart - 2;
         while (
             dollarPos > 0 &&
-            /[A-Za-z0-9_.]/.test(source.charAt(dollarPos - 1))
+            /[A-Za-z0-9_.[\]-]/.test(source.charAt(dollarPos - 1))
         ) {
             dollarPos--;
         }
         if (source.charAt(dollarPos - 1) === "$") {
             const pathStart = dollarPos;
             const pathStr = source.slice(pathStart, offset).trim();
-            const pathParts = pathStr.split(".").filter((p) => p.length > 0);
+            const pathParts = pathStr.split(".");
             if (pathParts.length > 0 && /^[A-Za-z0-9_]/.test(pathStr)) {
-                return {
-                    cursorPos: "refMember",
+                return makeValidatedRefMemberContext(
                     typedPrefix,
-                    replaceFromOffset: tokenStart,
+                    tokenStart,
                     pathParts,
-                };
+                );
             }
         }
     }

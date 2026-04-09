@@ -9,6 +9,13 @@ Agents working in this repository should read [TEST_RUN_INSTRUCTIONS_FOR_AGENTS.
 - Do not rely on an old build or an already-running preview server after source edits.
 - The runbook includes non-interactive test commands, Cypress preview-server workflow, fail-fast Cypress commands, and stale-asset troubleshooting.
 
+## Coding Conventions for Agents
+
+- Avoid `private` class fields and methods; use an underscore prefix for internal members.
+- Avoid fire-and-forget calls via `void`; if a Promise is intentionally not awaited, attach an explicit `.catch(...)` handler.
+- Prefer function declarations over function-valued variables, unless reassignment or dynamic replacement is required.
+- Prefer `async`/`await` over old-style Promise chains (`.then(...)` / `.catch(...)`) when writing asynchronous code.
+
 ## Commit Hygiene Requirements
 
 - Format changed files with Prettier before committing.

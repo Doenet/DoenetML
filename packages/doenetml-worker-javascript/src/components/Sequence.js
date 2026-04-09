@@ -11,6 +11,8 @@ import { convertUnresolvedAttributesForComponentType } from "../utils/dast/conve
 export default class Sequence extends CompositeComponent {
     static componentType = "sequence";
 
+    static takesIndex = true;
+
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
 

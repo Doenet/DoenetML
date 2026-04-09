@@ -5,6 +5,8 @@ import { convertUnresolvedAttributesForComponentType } from "../utils/dast/conve
 export default class SelectRandomNumbers extends SampleRandomNumbers {
     static componentType = "selectRandomNumbers";
 
+    static takesIndex = true;
+
     static allowInSchemaAsComponent = ["number"];
 
     static createsVariants = true;

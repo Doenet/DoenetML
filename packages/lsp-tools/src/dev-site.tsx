@@ -54,8 +54,9 @@ const simpleSchema = {
 };
 
 const sourceObj = new DoenetSourceObject(INITIAL_DOENET_SOURCE);
-const completionObj = new AutoCompleter("", simpleSchema.elements);
-completionObj.setDoenetSourceObject(sourceObj);
+const completionObj = new AutoCompleter(undefined, simpleSchema.elements, {
+    sourceObj,
+});
 console.log(sourceObj, completionObj);
 (window as any).sourceObj = sourceObj;
 (window as any).completionObj = completionObj;

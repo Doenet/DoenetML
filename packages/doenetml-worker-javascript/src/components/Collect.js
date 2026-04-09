@@ -5,6 +5,8 @@ import { createNewComponentIndices } from "../utils/componentIndices";
 export default class Collect extends CompositeComponent {
     static componentType = "collect";
 
+    static takesIndex = true;
+
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
     static acceptAnyAttribute = true;

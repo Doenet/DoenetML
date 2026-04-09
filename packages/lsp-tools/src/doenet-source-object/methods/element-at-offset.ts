@@ -38,6 +38,17 @@ export function elementAtOffsetWithContext(
         cursorPosition = "body";
     }
 
+    if (
+        node?.type === "element" &&
+        node.position?.start?.offset === offset &&
+        parent?.type === "element" &&
+        prevChar &&
+        !prevChar.match(/(\s|\n|<)/)
+    ) {
+        cursorPosition = "body";
+        node = parent as DastElement;
+    }
+
     if (!node) {
         cursorPosition = "unknown";
     }
@@ -184,10 +195,21 @@ export function elementAtOffsetWithContext(
     // If `node.name === ""`, then there is some error. The user has probably typed `<` and nothing else.
     // In this case, pretend we are the node before the cursor.
     if (node && node.name === "") {
-        if (offset > 0) {
+        if (cursorPosition === "body") {
+            // We already know we're in the body (e.g. from a StartCloseTag boundary).
+            // Don't recurse — just use the parent element instead of the empty-named node.
+            const parent = this.getParent(node);
+            if (parent?.type === "element") {
+                node = parent as DastElement;
+            } else {
+                node = null;
+                cursorPosition = "unknown";
+            }
+        } else if (offset > 0) {
             return this.elementAtOffsetWithContext(offset - 1);
+        } else {
+            return { node: null, cursorPosition: "unknown" };
         }
-        return { node: null, cursorPosition: "unknown" };
     }
 
     return { node, cursorPosition };

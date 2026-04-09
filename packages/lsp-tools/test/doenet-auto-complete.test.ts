@@ -263,6 +263,33 @@ describe("AutoCompleter", () => {
             `);
         }
     });
+
+    it("Matches open-tag component completions case-insensitively and keeps canonical label case", () => {
+        const source = `<MATHIN`;
+        const autoCompleter = new AutoCompleter(source, doenetSchema.elements);
+        const items = autoCompleter.getCompletionItems(source.length);
+        const labels = items.map((item) => String(item.label));
+
+        expect(labels).toContain("mathInput");
+    });
+
+    it("Suggests child elements (not attributes) when < is typed inside a closed element", () => {
+        // Regression: typing `<` inside `<aa>...</aa>` used to return
+        // aa's attributes instead of its allowed child elements.
+        const source = `<aa><</aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("><") + 2;
+        const items = autoCompleter.getCompletionItems(offset);
+        const labels = items.map((i) => i.label);
+        // Should contain child elements, not attribute names
+        expect(labels).toContain("b");
+        expect(labels).toContain("c");
+        expect(labels).toContain("d");
+        expect(labels).not.toContain("x");
+        expect(labels).not.toContain("y");
+        expect(labels).not.toContain("xyx");
+    });
+
     it("Can suggest completions for closing tags at the end of the string", () => {
         let source: string;
         let autoCompleter: AutoCompleter;
@@ -341,6 +368,30 @@ describe("AutoCompleter", () => {
                 typedPrefix: "",
             });
         }
+
+        source = ` $foo . `;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        {
+            const offset = source.indexOf(".") + 1;
+            const elm = autoCompleter.getCompletionContext(offset);
+            expect(elm).toEqual({
+                cursorPos: "body",
+            });
+        }
+
+        source = ` $foo[1]. `;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        {
+            const offset = source.indexOf(".") + 1;
+            const elm = autoCompleter.getCompletionContext(offset);
+            expect(elm).toEqual({
+                cursorPos: "refMember",
+                typedPrefix: "",
+                replaceFromOffset: source.indexOf(".") + 1,
+                pathParts: ["foo", ""],
+                pathPartHasIndex: [true, false],
+            });
+        }
     });
 
     describe("Reference completions", () => {
@@ -362,12 +413,105 @@ describe("AutoCompleter", () => {
                     top: true,
                     acceptsStringChildren: true,
                 },
+                {
+                    name: "select",
+                    children: [],
+                    attributes: [],
+                    properties: [],
+                    top: true,
+                    acceptsStringChildren: true,
+                    takesIndex: true,
+                },
             ],
         };
 
+        function createRefAutoCompleter(
+            source: string,
+            createAdapter: (
+                sourceObj: DoenetSourceObject,
+            ) => RustResolverAdapter = (sourceObj) =>
+                ({
+                    isNameAddressableFromOffset: () => true,
+                    resolveRefMemberContainerAtOffset: (
+                        offset: number,
+                        pathParts: string[],
+                    ) => {
+                        if (pathParts.length === 0) {
+                            return {
+                                node: null,
+                                unresolvedPathParts: [],
+                            };
+                        }
+
+                        const lookupPathParts = pathParts.slice(0, -1);
+                        if (lookupPathParts.length === 0) {
+                            return {
+                                node: null,
+                                unresolvedPathParts: [],
+                            };
+                        }
+
+                        let referent = sourceObj.getReferentAtOffset(
+                            offset,
+                            lookupPathParts[0],
+                        );
+                        if (!referent) {
+                            return {
+                                node: null,
+                                unresolvedPathParts: lookupPathParts,
+                            };
+                        }
+
+                        let firstUnresolvedPartIndex = -1;
+                        for (let i = 1; i < lookupPathParts.length; i++) {
+                            const part = lookupPathParts[i];
+                            const child = sourceObj.getNamedDescendant(
+                                referent,
+                                part,
+                            );
+                            if (!child) {
+                                firstUnresolvedPartIndex = i;
+                                break;
+                            }
+                            referent = child;
+                        }
+
+                        const unresolvedPathParts =
+                            firstUnresolvedPartIndex === -1
+                                ? []
+                                : lookupPathParts.slice(
+                                      firstUnresolvedPartIndex,
+                                  );
+
+                        if (unresolvedPathParts.length > 0) {
+                            return {
+                                node: null,
+                                unresolvedPathParts,
+                            };
+                        }
+
+                        return {
+                            node: referent,
+                            unresolvedPathParts: [],
+                            visibleDescendantNames:
+                                sourceObj.getUniqueDescendantNamesForNode(
+                                    referent,
+                                ),
+                        };
+                    },
+                }) as unknown as RustResolverAdapter,
+        ) {
+            const sourceObj = new DoenetSourceObject();
+            sourceObj.setSource(source + " ");
+            return new AutoCompleter(undefined, refSchema.elements, {
+                sourceObj,
+                rustResolverAdapter: createAdapter(sourceObj),
+            });
+        }
+
         it("Suggests reference names after $ with prefix filtering", () => {
             const source = `<section name="mySection"><p name="myP" /></section><p name="other" />\n$myS`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset = source.length;
             const items = autoCompleter.getCompletionItems(offset);
@@ -389,9 +533,42 @@ describe("AutoCompleter", () => {
             ).toBe(true);
         });
 
+        it("Matches $ref prefix case-insensitively but keeps inserted canonical case", () => {
+            const source = `<math name="myMath" />\n$MYM`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.length;
+            const items = autoCompleter.getCompletionItems(offset);
+            const match = items.find((item) => item.label === "myMath");
+
+            expect(match).toBeDefined();
+            expect(match?.textEdit).toBeDefined();
+            const textEdit = match?.textEdit;
+            if (textEdit && "newText" in textEdit) {
+                expect(textEdit.newText).toBe("myMath");
+            }
+        });
+
+        it("Keeps names that differ only by case as separate $ref completion options", () => {
+            const source = `<math name="myMath" /><math name="MyMath" />\n$myma`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const items = autoCompleter.getCompletionItems(source.length);
+            const labels = items.map((item) => String(item.label));
+
+            expect(labels).toContain("myMath");
+            expect(labels).toContain("MyMath");
+            expect(labels.filter((label) => label === "myMath")).toHaveLength(
+                1,
+            );
+            expect(labels.filter((label) => label === "MyMath")).toHaveLength(
+                1,
+            );
+        });
+
         it("Inserts parenthesized macro text for hyphenated names after $", () => {
             const source = `<math name="foo-bar" />\n$f`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const items = autoCompleter.getCompletionItems(source.length);
             const fooBarItem = items.find((item) => item.label === "foo-bar");
@@ -404,9 +581,32 @@ describe("AutoCompleter", () => {
             }
         });
 
+        it("does not offer $name[] when local referent is non-takesIndex but a later duplicate name is takesIndex", () => {
+            const source = `<section name="A"><math>$dup</math><p name="dup">a</p></section><section name="B"><select name="dup"><option><math name="m">1</math></option></select></section>`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.indexOf("$dup") + "$dup".length;
+            const items = autoCompleter.getCompletionItems(offset);
+            const labels = items.map((i) => i.label);
+
+            expect(labels).toContain("dup");
+            expect(labels).not.toContain("dup[]");
+        });
+
+        it("offers ref completions immediately before a following tag without requiring a space", () => {
+            const source = `<section name="A">$dup<p name="dup">a</p></section><section name="B"><select name="dup"><option><math name="m">1</math></option></select></section>`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.indexOf("$dup") + "$dup".length;
+            const items = autoCompleter.getCompletionItems(offset);
+            const labels = items.map((i) => i.label);
+
+            expect(labels).toContain("dup");
+        });
+
         it("Keeps plain macro text for simple names after $", () => {
             const source = `<math name="foo_bar" />\n$f`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const items = autoCompleter.getCompletionItems(source.length);
             const fooBarItem = items.find((item) => item.label === "foo_bar");
@@ -421,7 +621,7 @@ describe("AutoCompleter", () => {
 
         it("Suggests descendant names and properties after dot, with descendants winning collisions", () => {
             const source = `<section name="mySection"><p name="myP" /></section>\n$mySection.`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset = source.length;
             const items = autoCompleter.getCompletionItems(offset);
@@ -436,9 +636,34 @@ describe("AutoCompleter", () => {
             expect(myPItems[0].kind).toBe(CompletionItemKind.Reference);
         });
 
+        it("Does not suggest ref-member completions when there is whitespace before dot", () => {
+            // `$mySection .` is not a valid reference path; do not offer
+            // descendant/property member completions.
+            const source = `<section name="mySection"><p name="myP" /></section>\n$mySection .`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.length;
+            const items = autoCompleter.getCompletionItems(offset);
+            const labels = items.map((item) => item.label);
+
+            expect(labels).not.toContain("myP");
+            expect(labels).not.toContain("sectionProp");
+        });
+
+        it("Matches member prefix case-insensitively and preserves distinct-case labels", () => {
+            const source = `<section name="mySection"><p name="myMath" /><p name="MyMath" /></section>\n$mySection.myma`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const items = autoCompleter.getCompletionItems(source.length);
+            const labels = items.map((item) => String(item.label));
+
+            expect(labels).toContain("myMath");
+            expect(labels).toContain("MyMath");
+        });
+
         it("Only suggests uniquely addressable descendant names after dot", () => {
             const source = `<section name="mySection"><p name="dup" /><p name="dup" /><p name="unique" /></section>\n$mySection.`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset = source.length;
             const items = autoCompleter.getCompletionItems(offset);
@@ -451,7 +676,7 @@ describe("AutoCompleter", () => {
 
         it("Only suggests member names that resolve uniquely from the same context", () => {
             const source = `<section name="mySection"><p name="dup" /><p name="dup" /><p name="unique" /></section>\n$mySection.`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset = source.length;
             const section = autoCompleter.sourceObj.getReferentAtOffset(
@@ -475,7 +700,7 @@ describe("AutoCompleter", () => {
 
         it("Excludes ambiguous names in top-level completions after $", () => {
             const source = `<section><p name="dup" /><p name="dup" /><p name="unique" /></section>\n$`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const items = autoCompleter
                 .getCompletionItems(source.length)
@@ -488,7 +713,7 @@ describe("AutoCompleter", () => {
 
         it("Suggests descendant names and properties after dot at the start of the file", () => {
             const source = `$mySection.\n<section name="mySection"><p name="myP" /></section>`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset = source.indexOf("\n");
             const items = autoCompleter.getCompletionItems(offset);
@@ -501,7 +726,7 @@ describe("AutoCompleter", () => {
 
         it("Suggests members after chained descendant access", () => {
             const source = `<section name="mySection"><p name="myP" /></section>\n$mySection.myP.`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset = source.length;
             const items = autoCompleter.getCompletionItems(offset);
@@ -514,7 +739,7 @@ describe("AutoCompleter", () => {
 
         it("Suggests reference names inside attribute values after $", () => {
             const source = `<section name="mySection" /><line through="$myS" />`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset = source.indexOf("$myS") + "$myS".length;
             const items = autoCompleter.getCompletionItems(offset);
@@ -530,7 +755,7 @@ describe("AutoCompleter", () => {
 
         it("Suggests descendant members inside attribute values after dot with member prefix", () => {
             const source = `<section name="mySection"><p name="myP" /></section><line through="$mySection.my" />`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset =
                 source.indexOf("$mySection.my") + "$mySection.my".length;
@@ -547,7 +772,7 @@ describe("AutoCompleter", () => {
 
         it("Suggests reference names in parenthesized macros with hyphenated prefixes", () => {
             const source = `<math name="foo-bar" /><math name="foo-baz" />\n$(foo-ba`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset = source.length;
             const completionContext =
@@ -565,7 +790,7 @@ describe("AutoCompleter", () => {
 
         it("Suggests member completions in parenthesized macros with hyphenated names", () => {
             const source = `<section name="foo-bar"><p name="myP" /></section>\n$(foo-bar.my`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset = source.length;
             const completionContext =
@@ -582,7 +807,7 @@ describe("AutoCompleter", () => {
 
         it("Suggests member completions after dot on completed parenthesized macros", () => {
             const source = `<section name="foo-bar"><p name="myP" /></section>\n$(foo-bar).`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const offset = source.length;
             const completionContext =
@@ -603,7 +828,7 @@ describe("AutoCompleter", () => {
 
         it("Inserts parenthesized member text for hyphenated names after dot", () => {
             const source = `<section name="base"><p name="my-p" /><p name="my_p" /></section>\n$base.my`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const items = autoCompleter.getCompletionItems(source.length);
             const hyphenItem = items.find((item) => item.label === "my-p");
@@ -625,7 +850,7 @@ describe("AutoCompleter", () => {
 
         it("Applies same member insertion policy after dot in parenthesized refs", () => {
             const source = `<section name="base"><p name="my-p" /><p name="my_p" /></section>\n$(base).my`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const items = autoCompleter.getCompletionItems(source.length);
             const hyphenItem = items.find((item) => item.label === "my-p");
@@ -647,7 +872,7 @@ describe("AutoCompleter", () => {
 
         it("Classifies parenthesized member-segment syntax after dot as refMember", () => {
             const source = `<section name="base"><p name="my-p" /></section>\n$(base).(my`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const completionContext = autoCompleter.getCompletionContext(
                 source.length,
@@ -660,7 +885,7 @@ describe("AutoCompleter", () => {
 
         it("Does not double-parenthesize insertion in .(member) contexts", () => {
             const source = `<section name="base"><p name="my-p" /></section>\n$(base).(my`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const items = autoCompleter.getCompletionItems(source.length);
             const hyphenItem = items.find((item) => item.label === "my-p");
@@ -672,7 +897,7 @@ describe("AutoCompleter", () => {
             }
         });
 
-        it("Keeps completion visible when a descendant member is fully typed", () => {
+        it("Returns no ref-member completion when no resolver is configured", () => {
             const pointSchema = {
                 elements: [
                     {
@@ -700,11 +925,7 @@ describe("AutoCompleter", () => {
 
             const offset = source.length;
             const items = autoCompleter.getCompletionItems(offset);
-            const coordsItems = items.filter((item) => item.label === "coords");
-
-            expect(coordsItems).toHaveLength(1);
-            expect(coordsItems[0].kind).toBe(CompletionItemKind.Reference);
-            expect(coordsItems[0].detail).toBe("Descendant reference name");
+            expect(items).toEqual([]);
         });
 
         it("Returns no ref completions in invalid or unresolved contexts", () => {
@@ -733,87 +954,105 @@ describe("AutoCompleter", () => {
             }
         });
 
-        it("Uses injected resolver hook for member completion", () => {
+        it("Uses adapter-provided member resolution for completions", () => {
             const source = `<section name="mySection"><p name="myP" /></section>\n$missing.`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
-            const resolver = vi.fn(({ offset }: { offset: number }) => ({
-                node: autoCompleter.sourceObj.getReferentAtOffset(
-                    offset,
-                    "mySection",
-                ),
-                unresolvedPathParts: [],
-            }));
-            autoCompleter.setResolveRefMemberContainerAtOffset(resolver);
+            let resolver: ReturnType<typeof vi.fn>;
+            const autoCompleter = createRefAutoCompleter(
+                source,
+                (sourceObj) => {
+                    resolver = vi.fn((offset: number) => ({
+                        node: sourceObj.getReferentAtOffset(
+                            offset,
+                            "mySection",
+                        ),
+                        unresolvedPathParts: [],
+                        visibleDescendantNames: ["myP"],
+                    }));
+                    return {
+                        isNameAddressableFromOffset: () => true,
+                        resolveRefMemberContainerAtOffset: resolver,
+                    } as unknown as RustResolverAdapter;
+                },
+            );
 
             const items = autoCompleter.getCompletionItems(source.length);
 
-            expect(resolver).toHaveBeenCalledOnce();
-            expect(resolver).toHaveBeenCalledWith({
-                offset: source.length,
-                pathParts: ["missing", ""],
-                nodeIndex: expect.any(Number), // Index may vary based on structure
-            });
+            expect(resolver!).toHaveBeenCalledOnce();
+            expect(resolver!).toHaveBeenCalledWith(
+                source.length,
+                ["missing", ""],
+                [false, false],
+            );
             expect(items.some((item) => item.label === "myP")).toBe(true);
             expect(items.some((item) => item.label === "sectionProp")).toBe(
                 true,
             );
         });
 
-        it("Allows setting resolver hook after construction", () => {
+        it("Allows providing a Rust resolver adapter during construction", () => {
             const source = `<section name="mySection"><p name="myP" /></section>\n$missing.`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
-            const resolver = vi.fn(({ offset }: { offset: number }) => ({
-                node: autoCompleter.sourceObj.getReferentAtOffset(
-                    offset,
-                    "mySection",
-                ),
-                unresolvedPathParts: [],
-            }));
-
-            autoCompleter.setResolveRefMemberContainerAtOffset(resolver);
+            let resolver: ReturnType<typeof vi.fn>;
+            const autoCompleter = createRefAutoCompleter(
+                source,
+                (sourceObj) => {
+                    resolver = vi.fn((offset: number) => ({
+                        node: sourceObj.getReferentAtOffset(
+                            offset,
+                            "mySection",
+                        ),
+                        unresolvedPathParts: [],
+                        visibleDescendantNames: ["myP"],
+                    }));
+                    return {
+                        isNameAddressableFromOffset: () => true,
+                        resolveRefMemberContainerAtOffset: resolver,
+                    } as unknown as RustResolverAdapter;
+                },
+            );
 
             const items = autoCompleter.getCompletionItems(source.length);
 
-            expect(resolver).toHaveBeenCalledOnce();
+            expect(resolver!).toHaveBeenCalledOnce();
             expect(items.some((item) => item.label === "myP")).toBe(true);
         });
 
-        it("Reports unresolved path segments from default member resolution", () => {
+        it("Reports unresolved path segments from default member resolution with null node", () => {
             const source = `<section name="mySection"><p name="myP" /></section>\n$mySection.missing.`;
-            const autoCompleter = new AutoCompleter(source, refSchema.elements);
+            const autoCompleter = createRefAutoCompleter(source);
 
             const resolution = autoCompleter.resolveRefMemberContainerAtOffset(
                 source.length,
                 ["mySection", "missing", ""],
             );
 
+            // Invalid path — node is null so no completions are offered.
             expect(resolution.node).toBeNull();
             expect(resolution.unresolvedPathParts).toEqual(["missing"]);
         });
 
         it("Passes node index to resolver for index-based resolution", () => {
             const source = `<section name="mySection"><p name="myP" /></section>\n$missing.`;
-
-            // Mock resolver that captures the nodeIndex parameter
             const indexCapture: (number | null)[] = [];
-            const resolver = vi.fn(
-                ({
-                    nodeIndex,
-                }: {
-                    offset: number;
-                    pathParts: string[];
-                    nodeIndex?: number | null;
-                }) => {
-                    indexCapture.push(nodeIndex ?? null);
-                    // Return no resolution (mock behavior)
-                    return null;
-                },
-            );
-
-            const autoCompleter = new AutoCompleter(
+            let resolver!: ReturnType<typeof vi.fn>;
+            const autoCompleter = createRefAutoCompleter(
                 source,
-                refSchema.elements,
-                { resolveRefMemberContainerAtOffset: resolver },
+                (sourceObj) =>
+                    ({
+                        isNameAddressableFromOffset: () => true,
+                        resolveRefMemberContainerAtOffset: (resolver = vi.fn(
+                            (
+                                offset: number,
+                                _pathParts: string[],
+                                _pathPartHasIndex?: boolean[],
+                                _hasIndex?: boolean,
+                            ) => {
+                                indexCapture.push(
+                                    sourceObj.getNodeIndexAtOffset(offset),
+                                );
+                                return null;
+                            },
+                        )),
+                    }) as unknown as RustResolverAdapter,
             );
 
             autoCompleter.getCompletionItems(source.length);
@@ -826,52 +1065,50 @@ describe("AutoCompleter", () => {
 
         it("Allows Rust-backed resolver to use node index directly", () => {
             const source = `<section name="mySection"><p name="myP" /></section>\n$missing.`;
-
-            // Simulate Rust resolver: receives offset and index, performs resolution
-            const rustSimulator = vi.fn(
-                ({
-                    offset,
-                    nodeIndex,
-                    pathParts,
-                }: {
-                    offset: number;
-                    nodeIndex?: number | null;
-                    pathParts: string[];
-                }) => {
-                    // In real Rust implementation, would call:
-                    // resolve_path(origin_index, path_parts) -> {node_index, unresolved_path}
-                    // For this test, simulate successful resolution to the root element
-                    if (nodeIndex !== null && nodeIndex !== undefined) {
-                        return {
-                            node: {
-                                name: "section",
-                                attributes: {},
-                                children: [],
-                                type: "element",
-                            } as DastElement,
-                            unresolvedPathParts: [],
-                        };
-                    }
-                    return null;
-                },
-            );
-
-            const autoCompleter = new AutoCompleter(
+            let rustSimulator: ReturnType<typeof vi.fn>;
+            const autoCompleter = createRefAutoCompleter(
                 source,
-                refSchema.elements,
-                { resolveRefMemberContainerAtOffset: rustSimulator },
+                (sourceObj) => {
+                    rustSimulator = vi.fn(
+                        (offset: number, pathParts: string[]) => {
+                            const nodeIndex =
+                                sourceObj.getNodeIndexAtOffset(offset);
+                            // In real Rust implementation, adapter would call
+                            // resolve_path(origin_index, path_parts).
+                            // For this test, simulate successful resolution to the root element
+                            if (
+                                nodeIndex !== null &&
+                                nodeIndex !== undefined &&
+                                pathParts.length > 0
+                            ) {
+                                return {
+                                    node: {
+                                        name: "section",
+                                        attributes: {},
+                                        children: [],
+                                        type: "element",
+                                    } as DastElement,
+                                    unresolvedPathParts: [],
+                                };
+                            }
+                            return null;
+                        },
+                    );
+                    return {
+                        isNameAddressableFromOffset: () => true,
+                        resolveRefMemberContainerAtOffset: rustSimulator,
+                    } as unknown as RustResolverAdapter;
+                },
             );
 
             const items = autoCompleter.getCompletionItems(source.length);
 
-            // Verify the Rust-backed resolver was called with the node index
-            expect(rustSimulator).toHaveBeenCalledOnce();
-            expect(rustSimulator).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    offset: source.length,
-                    nodeIndex: expect.any(Number),
-                    pathParts: expect.any(Array),
-                }),
+            // Verify the Rust-backed resolver was called with the source context.
+            expect(rustSimulator!).toHaveBeenCalledOnce();
+            expect(rustSimulator!).toHaveBeenCalledWith(
+                source.length,
+                expect.any(Array),
+                expect.any(Array),
             );
             // Since resolver provided a section node with properties, should have completion items
             expect(items.length).toBeGreaterThan(0);
@@ -1112,62 +1349,36 @@ describe("AutoCompleter", () => {
         });
     });
 
-    describe("RustResolverAdapter architecture", () => {
-        it("Creates a resolver callback compatible with AutoCompleter", () => {
+    describe("RustResolverAdapter contract", () => {
+        it("Creates a disabled resolver callback when no core is attached", () => {
             const source = `<section name="mySection"><p name="myP" /></section>`;
             const sourceObj = new DoenetSourceObject(source);
 
             const adapter = new RustResolverAdapter(sourceObj);
-            const resolver = adapter.createResolver();
+            expect(adapter.isEnabled()).toBe(false);
 
-            // Verify resolver is a function
+            const resolver = adapter.createResolver();
             expect(typeof resolver).toBe("function");
 
-            // Verify it accepts resolver args and returns RefMemberContainerResolution
             const result = resolver({
                 offset: 10,
                 pathParts: ["foo", "bar"],
                 nodeIndex: 2,
             });
 
-            // When Rust backend is not initialized, resolver returns null (fallback)
+            // Without a core, the adapter exposes a disabled resolver.
             expect(result).toBeNull();
         });
 
-        it("Provides disabled resolver when WASM not initialized", () => {
-            const source = `<aa><b></b></aa>`;
-            const sourceObj = new DoenetSourceObject(source);
-
-            const adapter = new RustResolverAdapter(sourceObj);
-
-            // Resolver should be disabled by default if WASM not available
-            expect(adapter.isEnabled()).toBe(false);
-
-            const resolver = adapter.createResolver();
-            const result = resolver({
-                offset: 5,
-                pathParts: ["x", "y"],
-                nodeIndex: 3,
-            });
-
-            // Disabled resolver returns null, allowing JS fallback
-            expect(result).toBeNull();
-        });
-
-        it("Demonstrates node index flow to resolver", () => {
+        it("Passes node index through resolver args", () => {
             const source = `<section name="root"><p name="child" /></section>\n$root.`;
             const sourceObj = new DoenetSourceObject(source);
 
-            // Get node index at offset
             const offset = source.length - 1; // At the dot
             const nodeIndex = sourceObj.getNodeIndexAtOffset(offset);
 
             expect(typeof nodeIndex).toBe("number");
 
-            // Create adapter and resolver
-            const adapter = new RustResolverAdapter(sourceObj);
-
-            // Resolver receives the node index - demonstrate flow
             const testResolver = (args: any) => {
                 expect(args.nodeIndex).toBe(nodeIndex);
                 return null;
@@ -1180,7 +1391,7 @@ describe("AutoCompleter", () => {
             });
         });
 
-        it("Integrates with AutoCompleter via dependency injection", () => {
+        it("Returns no ref completions when the adapter is disabled", () => {
             const source = `<section name="s1"><p name="p1" /></section>\n$s1.`;
             const sourceObj = new DoenetSourceObject(source);
 
@@ -1205,40 +1416,13 @@ describe("AutoCompleter", () => {
             ];
 
             const adapter = new RustResolverAdapter(sourceObj);
-            const resolver = adapter.createResolver();
-
-            // Pass resolver to AutoCompleter
             const autoCompleter = new AutoCompleter(source, testSchema, {
-                resolveRefMemberContainerAtOffset: resolver,
+                rustResolverAdapter: adapter,
             });
 
-            // Resolver will be called during completion lookup
-            // When WASM not initialized, falls back to JS resolver
             const items = autoCompleter.getCompletionItems(source.length);
 
-            // Should have completion items (from JS fallback)
-            expect(items.length).toBeGreaterThan(0);
-        });
-
-        it("Documents architecture for Rust resolver integration", () => {
-            // This test documents the integration point for Rust resolver
-            // When PublicDoenetMLCore.resolve_path() is called, interface will be:
-            //
-            // Current incomplete adapter returns null -> JS fallback
-            // Future: Load WASM, call resolve_path(), map results back to DAST
-            //
-            // Architecture pattern:
-            // 1. Offset -> getNodeIndexAtOffset() -> node index
-            // 2. Node index + pathParts -> resolver callback
-            // 3. Resolver calls resolve_path(origin_index) with Rust PathToCheck format
-            // 4. Maps result.node_idx back to DAST for completions
-
-            const sourceObj = new DoenetSourceObject("<aa></aa>");
-            const adapter = new RustResolverAdapter(sourceObj);
-
-            // Without a core, adapter is disabled
-            expect(adapter.isEnabled()).toBe(false);
-            expect(typeof adapter.createResolver).toBe("function");
+            expect(items).toEqual([]);
         });
     });
 
@@ -1256,12 +1440,22 @@ describe("AutoCompleter", () => {
                 unresolvedPath: Array<{ name: string }> | null;
                 originalPath: Array<{ name: string }>;
             },
+            options?: {
+                startId?: number;
+            },
         ): {
             core: RustResolverCore;
-            calls: { path: unknown; origin: number; skip: boolean }[];
+            calls: {
+                path: unknown;
+                origin: number;
+                skip_parent_search: boolean;
+            }[];
         } {
-            const calls: { path: unknown; origin: number; skip: boolean }[] =
-                [];
+            const calls: {
+                path: unknown;
+                origin: number;
+                skip_parent_search: boolean;
+            }[] = [];
 
             // Build a minimal flat DAST from the JS DAST by assigning sequential
             // ids to elements in depth-first order (matching Rust's pre-order).
@@ -1269,7 +1463,7 @@ describe("AutoCompleter", () => {
                 data: { id: number };
                 position?: { start: { offset?: number } };
             }> = [];
-            let nextId = 0;
+            let nextId = options?.startId ?? 0;
             const collectElements = (node: any) => {
                 if (node.type === "element") {
                     elements.push({
@@ -1287,9 +1481,10 @@ describe("AutoCompleter", () => {
 
             const core: RustResolverCore = {
                 set_source: () => {},
+                set_flags: () => {},
                 return_dast: () => ({ elements }),
-                resolve_path: (path, origin, skip) => {
-                    calls.push({ path, origin, skip });
+                resolve_path: (path, origin, skip_parent_search) => {
+                    calls.push({ path, origin, skip_parent_search });
                     if (resolveResult) return resolveResult;
                     // Default: resolve to first element, no unresolved path
                     return {
@@ -1332,7 +1527,9 @@ describe("AutoCompleter", () => {
                 pathParts: ["s1", ""],
             });
 
-            expect(calls.length).toBe(1);
+            // First call resolves the container ("s1"), subsequent calls
+            // probe descendant visibility (one per unique descendant name).
+            expect(calls.length).toBeGreaterThanOrEqual(1);
             expect(calls[0].path).toEqual({
                 path: [{ type: "flatPathPart", name: "s1", index: [] }],
             });
@@ -1343,6 +1540,8 @@ describe("AutoCompleter", () => {
                 (result!.node as any)?.attributes?.name?.children?.[0]?.value,
             ).toBe("s1");
             expect(result!.unresolvedPathParts).toEqual([]);
+            // Visibility probing returns names the mock considers resolvable
+            expect(result!.visibleDescendantNames).toBeDefined();
         });
 
         it("Returns null when resolve_path throws", () => {
@@ -1351,6 +1550,7 @@ describe("AutoCompleter", () => {
 
             const core: RustResolverCore = {
                 set_source: () => {},
+                set_flags: () => {},
                 return_dast: () => {
                     const elements: Array<{
                         data: { id: number };
@@ -1406,43 +1606,283 @@ describe("AutoCompleter", () => {
                 pathParts: ["s1", "p1", "x"],
             });
 
-            // Unresolved path means node is null (can't complete from an unresolved member)
+            // Invalid path — node is null so no completions are offered.
             expect(result).not.toBeNull();
             expect(result!.node).toBeNull();
             expect(result!.unresolvedPathParts).toEqual(["remaining"]);
         });
 
-        it("Falls back to JS resolver when adapter disabled", () => {
-            const source = `<section name="s1"><p name="p1" /></section>\n$s1.`;
+        it("Treats missing trailing member segment as an implicit empty segment", () => {
+            const source = `<section name="s"><p name="p1" /></section>\n$s.p1.`;
             const sourceObj = new DoenetSourceObject(source + " ");
-            const testSchema = [
-                {
-                    name: "section",
-                    children: ["p"],
-                    attributes: [],
-                    properties: [{ name: "p1" }],
-                    top: true,
-                    acceptsStringChildren: true,
-                },
-                {
-                    name: "p",
-                    children: [],
-                    attributes: [],
-                    properties: [],
-                    top: false,
-                    acceptsStringChildren: true,
-                },
-            ];
+            const { core, calls } = createMockCore(source, sourceObj, {
+                nodeIdx: 1,
+                nodesInResolvedPath: [0, 1],
+                unresolvedPath: null,
+                originalPath: [{ name: "s" }, { name: "p1" }],
+            });
 
-            // No core → disabled adapter → falls back to JS
-            const adapter = new RustResolverAdapter(sourceObj);
+            const adapter = new RustResolverAdapter(sourceObj, { core });
             const resolver = adapter.createResolver();
 
-            const autoCompleter = new AutoCompleter(source, testSchema, {
-                resolveRefMemberContainerAtOffset: resolver,
+            const result = resolver({
+                offset: source.indexOf("$s.p1.") + "$s.p1.".length,
+                // Simulates a parser/context path that dropped the final empty segment.
+                pathParts: ["s", "p1"],
             });
-            const items = autoCompleter.getCompletionItems(source.length);
-            expect(items.length).toBeGreaterThan(0);
+
+            expect(result).not.toBeNull();
+            expect(calls[0].path).toEqual({
+                path: [
+                    { type: "flatPathPart", name: "s", index: [] },
+                    { type: "flatPathPart", name: "p1", index: [] },
+                ],
+            });
+        });
+
+        it("isNameAddressableFromOffset enforces exact case for resolved referent names", () => {
+            const source = `<section name="sec"><math name="Inside">x</math>$in</section>`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core } = createMockCore(source, sourceObj, {
+                nodeIdx: 1,
+                nodesInResolvedPath: [1],
+                unresolvedPath: null,
+                originalPath: [{ name: "Inside" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, { core });
+
+            const offset = source.indexOf("$in") + 1;
+            expect(adapter.isNameAddressableFromOffset(offset, "inside")).toBe(
+                false,
+            );
+            expect(adapter.isNameAddressableFromOffset(offset, "Inside")).toBe(
+                true,
+            );
+        });
+
+        it("Filters visibleDescendantNames by exact-case referent match", () => {
+            const source = `<section name="sec"><math name="inside">x</math></section><math name="Inside">y</math>\n$sec.`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+
+            const elements: Array<{
+                data: { id: number };
+                position?: { start: { offset?: number } };
+            }> = [];
+            let nextId = 0;
+            const collectElements = (node: any) => {
+                if (node.type === "element") {
+                    elements.push({
+                        data: { id: nextId++ },
+                        position: node.position,
+                    });
+                    for (const child of node.children || []) {
+                        collectElements(child);
+                    }
+                }
+            };
+            for (const child of sourceObj.dast.children) {
+                collectElements(child);
+            }
+
+            const core: RustResolverCore = {
+                set_source: () => {},
+                set_flags: () => {},
+                return_dast: () => ({ elements }),
+                resolve_path: (path) => {
+                    const first = (path.path[0] as { name: string }).name;
+                    // Resolve $sec. to section (id 0), but resolve probe "inside"
+                    // to differently cased "Inside" outside the section (id 2).
+                    if (first === "sec") {
+                        return {
+                            nodeIdx: 0,
+                            nodesInResolvedPath: [0],
+                            unresolvedPath: null,
+                            originalPath: [{ name: "sec" }],
+                        };
+                    }
+                    if (first === "inside") {
+                        return {
+                            nodeIdx: 2,
+                            nodesInResolvedPath: [2],
+                            unresolvedPath: null,
+                            originalPath: [{ name: "inside" }],
+                        };
+                    }
+                    throw new Error("NoReferent");
+                },
+            };
+
+            const adapter = new RustResolverAdapter(sourceObj, { core });
+            const resolver = adapter.createResolver();
+
+            const result = resolver({
+                offset: source.indexOf("$sec.") + "$sec.".length,
+                pathParts: ["sec", ""],
+            });
+
+            expect(result).not.toBeNull();
+            expect(result!.visibleDescendantNames).not.toContain("inside");
+        });
+
+        it("Blocks unindexed traversal from the first takesIndex segment, not the following segment", () => {
+            const source = `<section name="sec"><repeatForSequence name="rep"><math name="myMath">x</math></repeatForSequence>\n$rep.myMath.</section>`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core } = createMockCore(source, sourceObj, {
+                nodeIdx: 2, // myMath
+                nodesInResolvedPath: [0, 1, 2],
+                unresolvedPath: null,
+                originalPath: [{ name: "rep" }, { name: "myMath" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, {
+                core,
+                takesIndexComponentTypes: new Set(["repeatForSequence"]),
+            });
+            const resolver = adapter.createResolver();
+
+            const result = resolver({
+                offset: source.indexOf("$rep.myMath.") + "$rep.myMath.".length,
+                pathParts: ["rep", "myMath", ""],
+                pathPartHasIndex: [false, false, false],
+            });
+
+            expect(result).not.toBeNull();
+            expect(result!.node).toBeNull();
+            expect(result!.unresolvedPathParts).toEqual(["rep", "myMath"]);
+        });
+
+        it("Allows indexed traversal when the indexed segment is after the origin entry", () => {
+            const source = `<section name="sec"><repeatForSequence name="rep"><math name="myMath">x</math></repeatForSequence>\n$rep[1].myMath.</section>`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core } = createMockCore(source, sourceObj, {
+                nodeIdx: 2, // myMath
+                nodesInResolvedPath: [0, 1, 2],
+                unresolvedPath: null,
+                originalPath: [{ name: "rep" }, { name: "myMath" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, {
+                core,
+                takesIndexComponentTypes: new Set(["repeatForSequence"]),
+            });
+            const resolver = adapter.createResolver();
+
+            const result = resolver({
+                offset:
+                    source.indexOf("$rep[1].myMath.") +
+                    "$rep[1].myMath.".length,
+                pathParts: ["rep", "myMath", ""],
+                pathPartHasIndex: [true, false, false],
+            });
+
+            expect(result).not.toBeNull();
+            expect(result!.node).not.toBeNull();
+            expect((result!.node as DastElement).name).toBe("math");
+            expect(result!.unresolvedPathParts).toEqual([]);
+        });
+
+        it("Aligns to the trailing path nodes when nodesInResolvedPath has extra leading entries", () => {
+            const source = `<section name="sec"><repeat name="outer"><repeatForSequence name="inner"><math name="myMath">x</math></repeatForSequence></repeat>\n$outer[1].inner[1].myMath.</section>`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core } = createMockCore(source, sourceObj, {
+                nodeIdx: 3, // myMath
+                // Simulate a resolver shape with an extra leading bookkeeping node
+                // before the actual path-aligned tail [1, 2, 3].
+                nodesInResolvedPath: [0, 0, 1, 2, 3],
+                unresolvedPath: null,
+                originalPath: [
+                    { name: "outer" },
+                    { name: "inner" },
+                    { name: "myMath" },
+                ],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, {
+                core,
+                takesIndexComponentTypes: new Set([
+                    "repeat",
+                    "repeatForSequence",
+                ]),
+            });
+            const resolver = adapter.createResolver();
+
+            const result = resolver({
+                offset:
+                    source.indexOf("$outer[1].inner[1].myMath.") +
+                    "$outer[1].inner[1].myMath.".length,
+                pathParts: ["outer", "inner", "myMath", ""],
+                pathPartHasIndex: [true, true, false, false],
+            });
+
+            expect(result).not.toBeNull();
+            expect(result!.node).not.toBeNull();
+            expect((result!.node as DastElement).name).toBe("math");
+            expect(result!.unresolvedPathParts).toEqual([]);
+        });
+
+        it("Blocks traversal when an intermediate non-takesIndex segment has an index", () => {
+            // $sec[1].myP. — section does not takesIndex, so the [1] is spurious
+            // and should produce no completions (false positive is worse than false negative).
+            const source = `<section name="sec"><p name="myP">text</p></section>\n$sec[1].myP.`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core } = createMockCore(source, sourceObj, {
+                nodeIdx: 1, // p
+                nodesInResolvedPath: [0, 1], // section then p
+                unresolvedPath: null,
+                originalPath: [{ name: "sec" }, { name: "myP" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, {
+                core,
+                takesIndexComponentTypes: new Set([
+                    "repeat",
+                    "repeatForSequence",
+                ]),
+            });
+            const resolver = adapter.createResolver();
+
+            const result = resolver({
+                offset: source.indexOf("$sec[1].myP.") + "$sec[1].myP.".length,
+                pathParts: ["sec", "myP", ""],
+                pathPartHasIndex: [true, false, false],
+            });
+
+            expect(result).not.toBeNull();
+            expect(result!.node).toBeNull();
+            expect(result!.unresolvedPathParts).toEqual(["sec", "myP"]);
+        });
+
+        it("Blocks completions when the resolved non-takesIndex element has an index", () => {
+            // $myMath[1]. — math does not takesIndex, so the [1] is spurious
+            // and should produce no completions.
+            const source = `<math name="myMath">x</math>\n$myMath[1].`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core } = createMockCore(source, sourceObj, {
+                nodeIdx: 0, // myMath
+                nodesInResolvedPath: [0],
+                unresolvedPath: null,
+                originalPath: [{ name: "myMath" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, {
+                core,
+                takesIndexComponentTypes: new Set([
+                    "repeat",
+                    "repeatForSequence",
+                ]),
+            });
+            const resolver = adapter.createResolver();
+
+            const result = resolver({
+                offset: source.indexOf("$myMath[1].") + "$myMath[1].".length,
+                pathParts: ["myMath", ""],
+                pathPartHasIndex: [true, false],
+            });
+
+            expect(result).not.toBeNull();
+            expect(result!.node).toBeNull();
+            expect(result!.unresolvedPathParts).toEqual([]);
         });
 
         it("Handles updateSource to re-sync with core", () => {
@@ -1459,6 +1899,34 @@ describe("AutoCompleter", () => {
             expect(adapter.isEnabled()).toBe(true);
         });
 
+        it("Uses mapped root origin index when Rust ids are non-zero", () => {
+            const source = `<section name="s1"><p name="p1" /></section>\n$s1.`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core, calls } = createMockCore(
+                source,
+                sourceObj,
+                {
+                    nodeIdx: 10,
+                    nodesInResolvedPath: [10],
+                    unresolvedPath: null,
+                    originalPath: [{ name: "s1" }],
+                },
+                { startId: 10 },
+            );
+
+            const adapter = new RustResolverAdapter(sourceObj, { core });
+            const resolver = adapter.createResolver();
+
+            const result = resolver({
+                offset: source.indexOf("$s1.") + 4,
+                pathParts: ["s1", ""],
+            });
+
+            expect(result).not.toBeNull();
+            expect(calls.length).toBeGreaterThan(0);
+            expect(calls[0].origin).toBe(10);
+        });
+
         it("Disables adapter when set_source throws", () => {
             const source = `<section name="s1"></section>`;
             const sourceObj = new DoenetSourceObject(source);
@@ -1467,6 +1935,7 @@ describe("AutoCompleter", () => {
                 set_source: () => {
                     throw new Error("WASM error");
                 },
+                set_flags: () => {},
                 return_dast: () => ({ elements: [] }),
                 resolve_path: () => ({
                     nodeIdx: 0,
@@ -1483,6 +1952,66 @@ describe("AutoCompleter", () => {
 
             const resolver = adapter.createResolver();
             expect(resolver({ offset: 0, pathParts: ["s1", ""] })).toBeNull();
+        });
+
+        it("Caches visibility probes for repeated member resolutions", () => {
+            const source = `<section name="s1"><p name="p1" /></section>\n$s1.`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core, calls } = createMockCore(source, sourceObj, {
+                nodeIdx: 0,
+                nodesInResolvedPath: [0],
+                unresolvedPath: null,
+                originalPath: [{ name: "s1" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, { core });
+            const resolver = adapter.createResolver();
+            const offset = source.indexOf("$s1.") + 4;
+
+            resolver({ offset, pathParts: ["s1", ""] });
+            resolver({ offset, pathParts: ["s1", ""] });
+
+            // The container resolution runs each time
+            // (skip_parent_search=false), but the descendant visibility probe
+            // path (skip_parent_search=true) should be cached after the first
+            // call for this source revision and resolved node.
+            const probeCalls = calls.filter((c) => c.skip_parent_search);
+            expect(probeCalls.length).toBe(1);
+        });
+
+        it("Invalidates visibility-probe cache when source changes", () => {
+            const source1 = `<section name="s1"><p name="p1" /></section>\n$s1.`;
+            const sourceObj1 = new DoenetSourceObject(source1 + " ");
+            const { core, calls } = createMockCore(source1, sourceObj1, {
+                nodeIdx: 0,
+                nodesInResolvedPath: [0],
+                unresolvedPath: null,
+                originalPath: [{ name: "s1" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj1, { core });
+            const resolver = adapter.createResolver();
+            const offset1 = source1.indexOf("$s1.") + 4;
+
+            resolver({ offset: offset1, pathParts: ["s1", ""] });
+            resolver({ offset: offset1, pathParts: ["s1", ""] });
+
+            const firstProbeCount = calls.filter(
+                (c) => c.skip_parent_search,
+            ).length;
+            expect(firstProbeCount).toBe(1);
+
+            const source2 = `<section name="s2"><p name="p2" /></section>\n$s2.`;
+            const sourceObj2 = new DoenetSourceObject(source2 + " ");
+            adapter.updateSource(sourceObj2);
+
+            const offset2 = source2.indexOf("$s2.") + 4;
+            resolver({ offset: offset2, pathParts: ["s2", ""] });
+
+            const secondProbeCount = calls.filter(
+                (c) => c.skip_parent_search,
+            ).length;
+            expect(secondProbeCount).toBe(2);
         });
     });
 });

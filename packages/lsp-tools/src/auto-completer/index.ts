@@ -5,7 +5,11 @@ import type { CompletionSnippetCursor } from "@doenet/static-assets/completion-s
 import { DastAttribute, DastElement } from "@doenet/parser";
 import { getCompletionItems } from "./methods/get-completion-items";
 import { getSchemaViolations } from "./methods/get-schema-violations";
-import { getCompletionContext } from "./methods/get-completion-context";
+import {
+    getCompletionContext,
+    type CompletionContext,
+} from "./methods/get-completion-context";
+import type { RustResolverAdapter } from "./rust-resolver-adapter";
 
 type ElementSchema = {
     name: string;
@@ -14,6 +18,7 @@ type ElementSchema = {
     properties?: { name: string }[];
     children: string[];
     acceptsStringChildren: boolean;
+    takesIndex?: boolean;
 };
 
 type ProcessedSnippet = {
@@ -30,6 +35,8 @@ export type ResolveRefMemberContainerArgs = {
     offset: number;
     /** Path segments to resolve (e.g., ["foo", "bar"] for $foo.bar) */
     pathParts: string[];
+    /** Per-path-part index flags aligned with pathParts. */
+    pathPartHasIndex?: boolean[];
     /** Optional flat-tree node index at the given offset, for Rust-backed resolution */
     nodeIndex?: number | null;
 };
@@ -37,6 +44,12 @@ export type ResolveRefMemberContainerArgs = {
 export type RefMemberContainerResolution = {
     node: DastElement | null;
     unresolvedPathParts: string[];
+    /**
+     * Descendant names that are actually visible from the resolved node (respecting
+     * visibility rules like `ChildrenInvisibleToTheirGrandparents`).
+     * Resolvers must always provide this field.
+     */
+    visibleDescendantNames: string[];
 };
 
 export type ResolveRefMemberContainer = (
@@ -44,7 +57,9 @@ export type ResolveRefMemberContainer = (
 ) => RefMemberContainerResolution | null;
 
 export type AutoCompleterOptions = {
-    resolveRefMemberContainerAtOffset?: ResolveRefMemberContainer;
+    sourceObj?: DoenetSourceObject;
+    rustResolverAdapter?: RustResolverAdapter;
+    getAdditionalRefNames?: (offset: number) => string[];
 };
 
 /**
@@ -81,7 +96,8 @@ function adjustCursorForTrimStart(
 export class AutoCompleter {
     sourceObj: DoenetSourceObject = new DoenetSourceObject();
     schema: ElementSchema[] = [];
-    private resolveRefMemberContainerAtOffsetImpl?: ResolveRefMemberContainer;
+    _rustResolverAdapter?: RustResolverAdapter;
+    _getAdditionalRefNamesImpl?: (offset: number) => string[];
     /**
      * A map of element names (in lower case) to their canonical capitalization.
      */
@@ -107,25 +123,38 @@ export class AutoCompleter {
         schema: ElementSchema[] = doenetSchema.elements,
         options?: AutoCompleterOptions,
     ) {
+        this.sourceObj = options?.sourceObj ?? new DoenetSourceObject();
         if (source != null) {
             // Adding a space at the end of the source so that a final "<"
             // will be parsed as a text "<" rather than an invalid element.
             this.sourceObj.setSource(source + " ");
         }
-        this.resolveRefMemberContainerAtOffsetImpl =
-            options?.resolveRefMemberContainerAtOffset;
+        this._rustResolverAdapter = options?.rustResolverAdapter;
+        this._getAdditionalRefNamesImpl = options?.getAdditionalRefNames;
         if (schema) {
             this.setSchema(schema);
         }
     }
 
     /**
-     * Replace the ref-member container resolver used during completion.
-     * Pass `undefined` to restore default in-process resolution.
+     * Return any additional ref names injected for this offset.
      */
-    setResolveRefMemberContainerAtOffset(resolver?: ResolveRefMemberContainer) {
-        this.resolveRefMemberContainerAtOffsetImpl = resolver;
-        return this;
+    getAdditionalRefNames(offset: number): string[] {
+        return this._getAdditionalRefNamesImpl?.(offset) ?? [];
+    }
+
+    /**
+     * Test whether `name` is addressable from `offset`.
+     * Returns `false` when no Rust resolver adapter is set.
+     */
+    isNameAddressable(offset: number, name: string): boolean {
+        if (this._rustResolverAdapter) {
+            return this._rustResolverAdapter.isNameAddressableFromOffset(
+                offset,
+                name,
+            );
+        }
+        return false;
     }
 
     /**
@@ -138,64 +167,25 @@ export class AutoCompleter {
     resolveRefMemberContainerAtOffset(
         offset: number,
         pathParts: string[],
+        pathPartHasIndex?: boolean[],
     ): RefMemberContainerResolution {
-        if (this.resolveRefMemberContainerAtOffsetImpl) {
-            const nodeIndex = this.sourceObj.getNodeIndexAtOffset(offset);
-            const resolved = this.resolveRefMemberContainerAtOffsetImpl({
-                offset,
-                pathParts,
-                nodeIndex,
-            });
+        if (this._rustResolverAdapter) {
+            const resolved =
+                this._rustResolverAdapter.resolveRefMemberContainerAtOffset(
+                    offset,
+                    pathParts,
+                    pathPartHasIndex,
+                );
             if (resolved) {
                 return resolved;
             }
         }
-
-        if (pathParts.length === 0) {
-            return {
-                node: null,
-                unresolvedPathParts: [],
-            };
-        }
-
-        const lookupPathParts = pathParts.slice(0, -1);
-        if (lookupPathParts.length === 0) {
-            return {
-                node: null,
-                unresolvedPathParts: [],
-            };
-        }
-
-        let referent = this.sourceObj.getReferentAtOffset(
-            offset,
-            lookupPathParts[0],
-        );
-        if (!referent) {
-            return {
-                node: null,
-                unresolvedPathParts: lookupPathParts,
-            };
-        }
-
-        let firstUnresolvedPartIndex = -1;
-        for (let i = 1; i < lookupPathParts.length; i++) {
-            const part = lookupPathParts[i];
-            const child = this.sourceObj.getNamedDescendant(referent, part);
-            if (!child) {
-                firstUnresolvedPartIndex = i;
-                break;
-            }
-            referent = child;
-        }
-
         const unresolvedPathParts =
-            firstUnresolvedPartIndex === -1
-                ? []
-                : lookupPathParts.slice(firstUnresolvedPartIndex);
-
+            pathParts.length > 0 ? pathParts.slice(0, -1) : [];
         return {
-            node: unresolvedPathParts.length > 0 ? null : referent,
+            node: null,
             unresolvedPathParts,
+            visibleDescendantNames: [],
         };
     }
 
@@ -247,7 +237,10 @@ export class AutoCompleter {
      * Get completion items at the given offset, including XML, snippet, and
      * ref-specific completions.
      */
-    getCompletionItems = getCompletionItems;
+    getCompletionItems = (
+        offset: number | RowCol,
+        cachedContext?: CompletionContext,
+    ) => getCompletionItems.call(this, offset, cachedContext);
 
     /**
      * Get a list of LSP `Diagnostic`s for schema violations.
@@ -288,15 +281,6 @@ export class AutoCompleter {
         });
 
         return candidate || null;
-    }
-
-    /**
-     * Set the internal DoenetSourceObject. This should not normally be used,
-     * but may be used if you want to pool DoenetSourceObjects over multiple
-     * instances.
-     */
-    setDoenetSourceObject(sourceObj: DoenetSourceObject) {
-        this.sourceObj = sourceObj;
     }
 
     /**
@@ -381,7 +365,7 @@ export class AutoCompleter {
      * Initialize snippets map after schema is set.
      * Processes all snippets and indexes them by their normalized element name for quick lookup.
      */
-    private _initializeSnippets() {
+    _initializeSnippets() {
         this.snippetsByNormalizedElement.clear();
 
         Object.entries(COMPLETION_SNIPPETS).forEach(([key, snippet]) => {

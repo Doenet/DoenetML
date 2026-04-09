@@ -13,6 +13,8 @@ export default class SamplePrimeNumbers extends CompositeComponent {
     }
     static componentType = "samplePrimeNumbers";
 
+    static takesIndex = true;
+
     static allowInSchemaAsComponent = ["integer"];
 
     static createsVariants = true;

@@ -14,6 +14,8 @@ import { returnUnorderedListStateVariableDefinitions } from "../utils/unorderedL
 export default class MathList extends CompositeComponent {
     static componentType = "mathList";
 
+    static takesIndex = true;
+
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
 

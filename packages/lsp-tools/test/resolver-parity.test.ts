@@ -9,9 +9,6 @@ import { DastElement } from "@doenet/parser";
  *
  * These tests focus on resolver parity for common member-chain paths,
  * including hyphenated non-first path segments.
- *
- * When Rust resolver is integrated via RustResolverAdapter, these tests
- * should pass for both TypeScript and Rust resolution backends.
  */
 describe("Resolver Parity - Member Completion Resolution", () => {
     const testSchema = [
@@ -41,11 +38,66 @@ describe("Resolver Parity - Member Completion Resolution", () => {
         },
     ];
 
+    function createCompleter(source: string) {
+        const sourceObj = new DoenetSourceObject();
+        sourceObj.setSource(source + " ");
+        return new AutoCompleter(undefined, testSchema, {
+            sourceObj,
+            rustResolverAdapter: {
+                isNameAddressableFromOffset: () => true,
+                resolveRefMemberContainerAtOffset: (
+                    offset: number,
+                    pathParts: string[],
+                ) => {
+                    if (pathParts.length === 0) {
+                        return { node: null, unresolvedPathParts: [] };
+                    }
+                    const lookupPathParts = pathParts.slice(0, -1);
+                    if (lookupPathParts.length === 0) {
+                        return { node: null, unresolvedPathParts: [] };
+                    }
+
+                    let referent = sourceObj.getReferentAtOffset(
+                        offset,
+                        lookupPathParts[0],
+                    );
+                    if (!referent) {
+                        return {
+                            node: null,
+                            unresolvedPathParts: lookupPathParts,
+                        };
+                    }
+
+                    for (let i = 1; i < lookupPathParts.length; i++) {
+                        const next = sourceObj.getNamedDescendant(
+                            referent,
+                            lookupPathParts[i],
+                        );
+                        if (!next) {
+                            return {
+                                node: null,
+                                unresolvedPathParts: lookupPathParts.slice(i),
+                            };
+                        }
+                        referent = next;
+                    }
+
+                    return {
+                        node: referent,
+                        unresolvedPathParts: [],
+                        visibleDescendantNames:
+                            sourceObj.getUniqueDescendantNamesForNode(referent),
+                    };
+                },
+            } as any,
+        });
+    }
+
     describe("Single-level member access", () => {
         it("Resolves direct child reference by name", () => {
             const source = `<section name="s"><p name="p1" /></section>\n$s.`;
             const sourceObj = new DoenetSourceObject(source);
-            const completer = new AutoCompleter(source, testSchema);
+            const completer = createCompleter(source);
 
             // At the dot, should suggest properties and children
             const items = completer.getCompletionItems(source.length);
@@ -57,7 +109,7 @@ describe("Resolver Parity - Member Completion Resolution", () => {
         it("Resolves section properties when section reference is used", () => {
             const source = `<section name="mySection" />\n$mySection.`;
             const sourceObj = new DoenetSourceObject(source);
-            const completer = new AutoCompleter(source, testSchema);
+            const completer = createCompleter(source);
 
             const items = completer.getCompletionItems(source.length);
 
@@ -71,7 +123,7 @@ describe("Resolver Parity - Member Completion Resolution", () => {
         it("Returns empty completions for unresolvable reference", () => {
             const source = `<section name="s" />\n$unknown.`;
             const sourceObj = new DoenetSourceObject(source);
-            const completer = new AutoCompleter(source, testSchema);
+            const completer = createCompleter(source);
 
             const items = completer.getCompletionItems(source.length);
 
@@ -84,7 +136,7 @@ describe("Resolver Parity - Member Completion Resolution", () => {
         it("Resolves nested property access through chain", () => {
             const source = `<section name="s"><subsection name="sub"><p name="p1" /></subsection></section>\n$s.sub.`;
             const sourceObj = new DoenetSourceObject(source);
-            const completer = new AutoCompleter(source, testSchema);
+            const completer = createCompleter(source);
 
             const items = completer.getCompletionItems(source.length);
 
@@ -98,7 +150,7 @@ describe("Resolver Parity - Member Completion Resolution", () => {
         it("Resolves nested member access when a non-first segment has a hyphen", () => {
             const source = `<section name="s"><subsection name="sub-sec"><p name="p1" /></subsection></section>\n$s.sub-sec.`;
             const sourceObj = new DoenetSourceObject(source);
-            const completer = new AutoCompleter(source, testSchema);
+            const completer = createCompleter(source);
 
             const items = completer.getCompletionItems(source.length);
 
@@ -108,8 +160,7 @@ describe("Resolver Parity - Member Completion Resolution", () => {
 
         it("Stops resolution at unresolved path segment", () => {
             const source = `<section name="s" />\n$s.nonexistent.`;
-            const sourceObj = new DoenetSourceObject(source);
-            const completer = new AutoCompleter(source, testSchema);
+            const completer = createCompleter(source);
 
             const items = completer.getCompletionItems(source.length);
 
@@ -120,7 +171,7 @@ describe("Resolver Parity - Member Completion Resolution", () => {
         it("Reports unresolved path for partial resolution", () => {
             const source = `<section name="s"><p name="p1" /></section>\n$s.p1.textProp`;
             const sourceObj = new DoenetSourceObject(source);
-            const completer = new AutoCompleter(source, testSchema);
+            const completer = createCompleter(source);
 
             // Request at 'textProp' position
             const offset = source.lastIndexOf("textProp") + "textProp".length;
@@ -132,55 +183,26 @@ describe("Resolver Parity - Member Completion Resolution", () => {
         });
     });
 
-    describe("Node index tracking", () => {
-        it("Provides node index for resolver at each offset", () => {
-            const source = `<section name="s"><p name="p1" /></section>\n$s.`;
-            const sourceObj = new DoenetSourceObject(source);
-
-            // Get node index at the dot
-            const dotOffset = source.length - 1;
-            const nodeIndex = sourceObj.getNodeIndexAtOffset(dotOffset);
-
-            // Should have a valid node index
-            expect(typeof nodeIndex).toBe("number");
-            expect(nodeIndex).toBeGreaterThanOrEqual(0);
-        });
-
-        it("Maintains consistent node indices across multiple calls", () => {
-            const source = `<section name="s"><p name="p1" /></section>`;
-            const sourceObj = new DoenetSourceObject(source);
-
-            // Offsets in different elements
-            const sectionStart = 1; // Inside <section>
-            const pStart = 19; // Inside <p>
-
-            const sectionIdx1 = sourceObj.getNodeIndexAtOffset(sectionStart);
-            const sectionIdx2 = sourceObj.getNodeIndexAtOffset(sectionStart);
-            const pIdx1 = sourceObj.getNodeIndexAtOffset(pStart);
-            const pIdx2 = sourceObj.getNodeIndexAtOffset(pStart);
-
-            // Same offset should always give same index
-            expect(sectionIdx1).toBe(sectionIdx2);
-            expect(pIdx1).toBe(pIdx2);
-
-            // Different elements should have different indices (in depth-first order)
-            expect(sectionIdx1).not.toBe(pIdx1);
-        });
-    });
-
     describe("Resolver interface contract", () => {
-        it("Resolver callback receives all required arguments including nodeIndex", () => {
+        it("Resolver callback receives offset/path/pathPartHasIndex", () => {
             const source = `<section name="s"><p name="p1" /></section>\n$s.`;
-            const sourceObj = new DoenetSourceObject(source);
-
             const capturedArgs: any[] = [];
-            const testResolver = (args: any) => {
-                capturedArgs.push(args);
-                return null; // Fall back to JS resolver
-            };
-
             const completer = new AutoCompleter(source, testSchema, {
-                resolveRefMemberContainerAtOffset: testResolver,
+                rustResolverAdapter: {
+                    isNameAddressableFromOffset: () => true,
+                    resolveRefMemberContainerAtOffset: (
+                        offset: number,
+                        pathParts: string[],
+                        pathPartHasIndex?: boolean[],
+                    ) => {
+                        capturedArgs.push({
+                            offset,
+                            pathParts,
+                            pathPartHasIndex,
+                        });
+                        return null;
+                    },
+                } as any,
             });
 
             completer.getCompletionItems(source.length);
@@ -192,40 +214,25 @@ describe("Resolver Parity - Member Completion Resolution", () => {
             const lastCall = capturedArgs[capturedArgs.length - 1];
             expect(lastCall).toHaveProperty("offset");
             expect(lastCall).toHaveProperty("pathParts");
-            expect(lastCall).toHaveProperty("nodeIndex");
-
-            // nodeIndex should be a number
-            expect(typeof lastCall.nodeIndex).toBe("number");
+            expect(lastCall).toHaveProperty("pathPartHasIndex");
         });
 
-        it("Resolver can return null to trigger JS resolver fallback", () => {
-            const source = `<section name="s"><p name="p1" /></section>\n$s.`;
-            const sourceObj = new DoenetSourceObject(source);
-
-            const completer = new AutoCompleter(source, testSchema, {
-                resolveRefMemberContainerAtOffset: () => null, // Always return null
-            });
-
-            // Should still get completions from JS resolver
-            const items = completer.getCompletionItems(source.length);
-            expect(items.length).toBeGreaterThan(0);
-        });
-
-        it("Resolver can provide resolution to override JS behavior", () => {
+        it("Resolver can provide resolution for member completions", () => {
             const source = `<section name="s"><p name="p1" /></section>\n$custom.`;
-            const sourceObj = new DoenetSourceObject(source);
-
-            // Provide custom resolution for non-existent reference
             const completer = new AutoCompleter(source, testSchema, {
-                resolveRefMemberContainerAtOffset: () => ({
-                    node: {
-                        name: "section",
-                        type: "element",
-                        attributes: {},
-                        children: [],
-                    } as DastElement,
-                    unresolvedPathParts: [],
-                }),
+                rustResolverAdapter: {
+                    isNameAddressableFromOffset: () => true,
+                    resolveRefMemberContainerAtOffset: () => ({
+                        node: {
+                            name: "section",
+                            type: "element",
+                            attributes: {},
+                            children: [],
+                        } as DastElement,
+                        unresolvedPathParts: [],
+                        visibleDescendantNames: ["p1"],
+                    }),
+                } as any,
             });
 
             const items = completer.getCompletionItems(source.length);
@@ -237,33 +244,26 @@ describe("Resolver Parity - Member Completion Resolution", () => {
         });
     });
 
-    describe("Resolver fallback behavior", () => {
-        it("JS resolver provides completions when custom resolver returns null", () => {
+    describe("Resolver disabled behavior", () => {
+        it("No member completions when resolver returns null", () => {
             const source = `<section name="s"><p name="p1" /></section>\n$s.`;
-            const sourceObj = new DoenetSourceObject(source);
-
             const completer = new AutoCompleter(source, testSchema, {
-                resolveRefMemberContainerAtOffset: () => null,
+                rustResolverAdapter: {
+                    isNameAddressableFromOffset: () => true,
+                    resolveRefMemberContainerAtOffset: () => null,
+                } as any,
             });
 
             const items = completer.getCompletionItems(source.length);
-
-            // JS fallback should suggest children
-            expect(items.some((item) => item.label === "p1")).toBe(true);
+            expect(items).toEqual([]);
         });
 
-        it("JS resolver is called when no custom resolver is provided", () => {
+        it("No member completions when no resolver is provided", () => {
             const source = `<section name="s"><p name="p1" /></section>\n$s.`;
-            const sourceObj = new DoenetSourceObject(source);
-
-            // No custom resolver provided
             const completer = new AutoCompleter(source, testSchema);
 
             const items = completer.getCompletionItems(source.length);
-
-            // JS resolver should provide completions
-            expect(items.length).toBeGreaterThan(0);
-            expect(items.some((item) => item.label === "p1")).toBe(true);
+            expect(items).toEqual([]);
         });
     });
 
@@ -273,13 +273,16 @@ describe("Resolver Parity - Member Completion Resolution", () => {
             const sourceObj = new DoenetSourceObject(source);
 
             const capturedPaths: string[][] = [];
-            const testResolver = (args: any) => {
-                capturedPaths.push(args.pathParts);
+            function testResolver(_offset: number, pathParts: string[]) {
+                capturedPaths.push(pathParts);
                 return null;
-            };
+            }
 
             const completer = new AutoCompleter(source, testSchema, {
-                resolveRefMemberContainerAtOffset: testResolver,
+                rustResolverAdapter: {
+                    isNameAddressableFromOffset: () => true,
+                    resolveRefMemberContainerAtOffset: testResolver,
+                } as any,
             });
 
             completer.getCompletionItems(source.length);

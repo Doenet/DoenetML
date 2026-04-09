@@ -20,6 +20,8 @@ import me from "math-expressions";
 export default class SelectFromSequence extends Sequence {
     static componentType = "selectFromSequence";
 
+    static takesIndex = true;
+
     static createsVariants = true;
 
     static createAttributesObject() {

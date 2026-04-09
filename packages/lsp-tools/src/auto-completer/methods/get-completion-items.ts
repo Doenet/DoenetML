@@ -1,4 +1,5 @@
 import { DoenetSourceObject, RowCol } from "../../doenet-source-object";
+import type { CompletionContext } from "./get-completion-context";
 import type { CompletionItem, Range } from "vscode-languageserver/browser";
 import { CompletionItemKind } from "vscode-languageserver/browser";
 import type {
@@ -263,6 +264,45 @@ function toRefSegmentInsertText(label: string) {
 }
 
 /**
+ * Determine which descendant and property names should be visible for a resolved
+ * element, respecting takesIndex and per-segment index semantics.
+ *
+ * - For `takesIndex` composites without a bracket index: descendants are hidden,
+ *   only properties are shown.
+ * - For `takesIndex` composites with a bracket index: descendants are shown
+ *   (replacement child names), properties are hidden (unknown type).
+ * - For regular elements: both descendants and properties are shown.
+ *
+ * Note: Invalid access (non-takesIndex element with an index) is handled upstream
+ * in the resolver and returns null node before reaching this function.
+ */
+function determineVisibleNames(
+    takesIndex: boolean,
+    resolvedPartHasIndex: boolean,
+    visibleDescendantNames: string[],
+    schema: { properties?: { name: string }[] } | undefined,
+): { descendantNames: Set<string>; propertyNames: string[] } {
+    // For a takesIndex composite:
+    //   - Without an index ($rep.): descendants are inaccessible via bare dot
+    //     access, so hide them and show only schema properties.
+    //   - With an index ($rep[1]. or $sec.rep[1].): the cursor is after a
+    //     replacement child of unknown component type, so show descendant
+    //     names but hide schema properties (they describe the composite, not
+    //     the replacement).
+    const descendantNames =
+        takesIndex && !resolvedPartHasIndex
+            ? new Set<string>()
+            : new Set(visibleDescendantNames);
+
+    const propertyNames =
+        takesIndex && resolvedPartHasIndex
+            ? []
+            : schema?.properties?.map((property) => property.name) || [];
+
+    return { descendantNames, propertyNames };
+}
+
+/**
  * Build schema-property completions for the currently resolved ref target.
  * These are shown only after descendant-name candidates so concrete named
  * children win label collisions.
@@ -295,8 +335,12 @@ function createPropertyCompletionItems(
  *
  * This function analyzes the cursor context to determine what type of completions
  * are appropriate and returns a combination of:
- * - Ref-name completions after `$` in text content or attribute values
- * - Ref-member completions after `.` on a resolved ref chain
+ * - Ref-name completions after `$` in text content or attribute values, including
+ *   `$name[]` snippet completions for takesIndex elements
+ * - Ref-member completions after `.` on a resolved ref chain, filtered by addressability
+ *   and visibility rules (ChildrenInvisibleToTheirGrandparents, sugar hiding, etc.)
+ * - Additional injected ref names (e.g., repeat valueName/indexName) from
+ *   rustResolverAdapter.getDerivedRepeatNames()
  * - Schema-based element completions (allowed elements based on parent/context)
  * - Snippet completions (templates associated with allowed elements)
  * - Attribute name completions (when inside an opening tag)
@@ -304,8 +348,9 @@ function createPropertyCompletionItems(
  * - Closing tag completions (when appropriate)
  *
  * The completion behavior varies depending on the cursor position context:
- * - Body or attribute-value ref context after `$` or `.`: in-scope ref names,
- *   descendant names, and schema properties on resolved referents
+ * - Body or attribute-value ref context after `$` or `.`: in-scope ref names filtered
+ *   through isNameAddressable(), descendant names from visibleDescendantNames,
+ *   and schema properties on resolved referents
  * - Root level after `<`: top-level elements and their snippets
  * - Inside element body after `<`: allowed children and their snippets
  * - While typing element name (`openTagName`): filtered schema elements and snippets
@@ -318,11 +363,13 @@ function createPropertyCompletionItems(
  * insertion column.
  *
  * @param offset - Either a numeric offset into the source string, or a RowCol position
+ * @param cachedContext - Optional pre-computed CompletionContext to avoid redundant parsing
  * @returns Array of LSP CompletionItem objects suitable for the current context
  */
 export function getCompletionItems(
     this: AutoCompleter,
     offset: number | RowCol,
+    cachedContext?: CompletionContext,
 ): CompletionItem[] {
     if (typeof offset !== "number") {
         offset = this.sourceObj.rowColToOffset(offset);
@@ -347,7 +394,8 @@ export function getCompletionItems(
     const element = containingElement.node;
     let cursorPosition = containingElement.cursorPosition;
 
-    const completionContext = this.getCompletionContext(offset);
+    const completionContext =
+        cachedContext ?? this.getCompletionContext(offset);
     const allowRefCompletion =
         cursorPosition === "body" ||
         cursorPosition === "attributeValue" ||
@@ -375,11 +423,19 @@ export function getCompletionItems(
             .getAddressableNamesAtOffset(offset)
             .filter((parts) => parts.length === 1)
             .map((parts) => parts[0]);
-        const filteredNames = [...new Set(addressableNames)].filter((name) =>
-            prefix ? name.toLowerCase().startsWith(prefix) : true,
+        // Inject additional names (e.g. repeat valueName/indexName) that
+        // don't exist in the raw DAST but are valid at runtime.
+        const additionalNames = this.getAdditionalRefNames(offset);
+        const uniqueNames = [
+            ...new Set([...addressableNames, ...additionalNames]),
+        ];
+        const filteredNames = uniqueNames.filter(
+            (name) =>
+                (!prefix || name.toLowerCase().startsWith(prefix)) &&
+                this.isNameAddressable(offset, name),
         );
 
-        return createReferenceCompletionItems(
+        const baseItems = createReferenceCompletionItems(
             this,
             filteredNames,
             completionContext.replaceFromOffset,
@@ -387,6 +443,41 @@ export function getCompletionItems(
             "Reference name",
             toRefNameInsertText,
         );
+
+        // For names that refer to takesIndex elements (repeat, select, …),
+        // offer an additional "$name[]" snippet with cursor between the
+        // brackets so the user can type the index directly.
+        const replaceRange = createTextEditRange(
+            this.sourceObj,
+            completionContext.replaceFromOffset,
+            offset,
+        );
+        for (const name of filteredNames) {
+            const referent = this.sourceObj.getReferentAtOffset(offset, name);
+            if (!referent) continue;
+            const normalized = this.normalizeElementName(referent.name);
+            const schema = this.schemaElementsByName[normalized];
+            if (!schema?.takesIndex) continue;
+            const insertText = isParenthesizedContext
+                ? `${name}[]`
+                : `${toRefSegmentInsertText(name)}[]`;
+            baseItems.push({
+                label: `${name}[]`,
+                kind: CompletionItemKind.Reference,
+                detail: "Indexed reference",
+                textEdit: {
+                    range: replaceRange,
+                    newText: insertText,
+                },
+                data: {
+                    snippetCursor: {
+                        caretOffset: insertText.length - 1,
+                    },
+                } satisfies CompletionSnippetCompletionItemData,
+            });
+        }
+
+        return baseItems;
     }
 
     if (allowRefCompletion && completionContext.cursorPos === "refMember") {
@@ -402,6 +493,7 @@ export function getCompletionItems(
         const resolved = this.resolveRefMemberContainerAtOffset(
             offset,
             completionContext.pathParts,
+            completionContext.pathPartHasIndex,
         );
         const resolvedNode = resolved.node;
 
@@ -409,15 +501,32 @@ export function getCompletionItems(
             return [];
         }
 
-        const descendantNames = new Set(
-            this.sourceObj.getUniqueDescendantNamesForNode(resolvedNode),
-        );
-
         const componentType = this.normalizeElementName(resolvedNode.name);
-        const propertyNames =
-            this.schemaElementsByName[componentType]?.properties?.map(
-                (property) => property.name,
-            ) || [];
+        const schema = this.schemaElementsByName[componentType];
+        const takesIndex = schema?.takesIndex ?? false;
+        // Read the index flag for the resolved segment — always the
+        // second-to-last entry in pathParts (the last entry is always the
+        // empty typed-prefix).  Examples:
+        //   $rep[1].   → pathParts=["rep",""]          → index 0 (direct ref)
+        //   $sec.rep[1]. → pathParts=["sec","rep",""]  → index 1 (indirect)
+        //   $rep[1].myMath. → pathParts=["rep","myMath",""] → index 1 (resolved is myMath, not rep)
+        const resolvedPartHasIndex =
+            completionContext.pathPartHasIndex?.[
+                completionContext.pathParts.length - 2
+            ] ?? false;
+
+        // When the resolved element does NOT take an index but the user
+        // wrote one (e.g. $sec[1].), the access is invalid — return nothing.
+        if (!takesIndex && resolvedPartHasIndex) {
+            return [];
+        }
+
+        const { descendantNames, propertyNames } = determineVisibleNames(
+            takesIndex,
+            resolvedPartHasIndex,
+            resolved.visibleDescendantNames,
+            schema,
+        );
 
         const prefix = completionContext.typedPrefix.toLowerCase();
         const filteredDescendantNames = [...descendantNames].filter((name) =>

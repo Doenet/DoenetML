@@ -215,6 +215,19 @@ describe("DoenetSourceObject", () => {
         }
     });
 
+    it("Returns body (not openTag) when < is typed inside an element", () => {
+        // When a user types `<` inside an element, the completion should
+        // recognize the cursor is in the body (to suggest child elements),
+        // not in the parent's open tag (which would suggest attributes).
+        const source = `<booleanInput name="bi"><</booleanInput>`;
+        const sourceObj = new DoenetSourceObject(source);
+        const offset = source.indexOf("><") + 2; // right after the typed `<`
+        const { cursorPosition, node } =
+            sourceObj.elementAtOffsetWithContext(offset);
+        expect(cursorPosition).toEqual("body");
+        expect(node).toMatchObject({ type: "element", name: "booleanInput" });
+    });
+
     it("Can get cursor position when element contains macro", () => {
         let source: string;
         let sourceObj: DoenetSourceObject;

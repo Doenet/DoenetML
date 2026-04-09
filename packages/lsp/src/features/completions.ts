@@ -11,8 +11,23 @@ export function addDocumentCompletionSupport(
         if (!info) {
             return [];
         }
+
+        const completionContext = info.autoCompleter.getCompletionContext(
+            params.position,
+        );
+        const isRustDependentRefContext =
+            completionContext.cursorPos === "refName" ||
+            completionContext.cursorPos === "refMember";
+        if (
+            isRustDependentRefContext &&
+            (info.rustState !== "ready" || !info.rustAdapter)
+        ) {
+            return [];
+        }
+
         const completions = info.autoCompleter.getCompletionItems(
             params.position,
+            completionContext,
         );
         return completions;
     });
