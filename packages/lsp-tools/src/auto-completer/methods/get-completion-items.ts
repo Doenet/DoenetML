@@ -275,23 +275,25 @@ function toRefSegmentInsertText(label: string) {
  * - For invalid access (element doesn't take index but has one): both are empty.
  */
 function determineVisibleNames(
-    isDirectRef: boolean,
     takesIndex: boolean,
-    directPartHasIndex: boolean,
+    resolvedPartHasIndex: boolean,
     visibleDescendantNames: string[] | undefined,
     schema: { properties?: { name: string }[] } | undefined,
 ): { descendantNames: Set<string>; propertyNames: string[] } {
-    // When the user has provided an index on a takesIndex composite
-    // (e.g. $rep[1].), the referent is a replacement child — not the
-    // composite itself. We don't know the replacement's component type,
-    // so we can only offer descendant name completions, not properties.
+    // For a takesIndex composite:
+    //   - Without an index ($rep.): descendants are inaccessible via bare dot
+    //     access, so hide them and show only schema properties.
+    //   - With an index ($rep[1]. or $sec.rep[1].): the cursor is after a
+    //     replacement child of unknown component type, so show descendant
+    //     names but hide schema properties (they describe the composite, not
+    //     the replacement).
     const descendantNames =
-        isDirectRef && takesIndex && !directPartHasIndex
+        takesIndex && !resolvedPartHasIndex
             ? new Set<string>()
             : new Set(visibleDescendantNames ?? []);
 
     const propertyNames =
-        isDirectRef && takesIndex && directPartHasIndex
+        takesIndex && resolvedPartHasIndex
             ? []
             : schema?.properties?.map((property) => property.name) || [];
 
@@ -493,31 +495,27 @@ export function getCompletionItems(
 
         const componentType = this.normalizeElementName(resolvedNode.name);
         const schema = this.schemaElementsByName[componentType];
-        const isDirectRef = completionContext.pathParts.length <= 2;
         const takesIndex = schema?.takesIndex ?? false;
-        const directPartHasIndex =
-            (completionContext.pathPartHasIndex?.[0] ?? false) || false;
+        // Read the index flag for the resolved segment — always the
+        // second-to-last entry in pathParts (the last entry is always the
+        // empty typed-prefix).  Examples:
+        //   $rep[1].   → pathParts=["rep",""]          → index 0 (direct ref)
+        //   $sec.rep[1]. → pathParts=["sec","rep",""]  → index 1 (indirect)
+        //   $rep[1].myMath. → pathParts=["rep","myMath",""] → index 1 (resolved is myMath, not rep)
+        const resolvedPartHasIndex =
+            completionContext.pathPartHasIndex?.[
+                completionContext.pathParts.length - 2
+            ] ?? false;
 
-        // When the resolved element has `takesIndex: true` AND the user has
-        // NOT entered a bracket index, descendants are accessible only via
-        // index (e.g. $name[1].member), not via bare $name.member.
-        // Offer only property completions in that case.
-        // Conversely, if the element does NOT take an index but the user
+        // When the resolved element does NOT take an index but the user
         // wrote one (e.g. $sec[1].), the access is invalid — return nothing.
-        //
-        // These checks only apply to direct references (pathParts has two
-        // entries: the root name and the empty segment being typed).
-        // For deeper paths like $rep[1].myMath., the index was consumed at
-        // the first segment and the final resolved node is a concrete
-        // descendant that should be treated normally.
-        if (isDirectRef && !takesIndex && directPartHasIndex) {
+        if (!takesIndex && resolvedPartHasIndex) {
             return [];
         }
 
         const { descendantNames, propertyNames } = determineVisibleNames(
-            isDirectRef,
             takesIndex,
-            directPartHasIndex,
+            resolvedPartHasIndex,
             resolved.visibleDescendantNames,
             schema,
         );

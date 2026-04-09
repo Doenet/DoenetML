@@ -78,14 +78,17 @@ async function initWasmWithNodePathWorkaround(): Promise<void> {
         const fs = await import("node:fs/promises");
         // @ts-expect-error Node-only import in a browser-targeted package.
         const path = await import("node:path");
+        // @ts-expect-error Node-only import in a browser-targeted package.
+        const { fileURLToPath } = await import("node:url");
 
         const normalized = stripQueryAndHash(wasmBlobUrl);
         const candidatePaths: string[] = [];
 
         if (normalized.startsWith("file://")) {
-            const fromFileUrl = decodeURIComponent(
-                new URL(normalized).pathname,
-            );
+            // Use fileURLToPath so that Windows file:///C:/... URLs are
+            // converted to C:\... rather than /C:/... (which fs.readFile
+            // cannot open on Windows).
+            const fromFileUrl = fileURLToPath(normalized);
             if (fromFileUrl) {
                 candidatePaths.push(fromFileUrl);
             }

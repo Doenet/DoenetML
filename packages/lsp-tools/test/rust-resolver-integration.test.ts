@@ -764,6 +764,33 @@ describe.skipIf(!wasmAvailable)(
                 expect(items).toHaveLength(0);
             }
 
+            // $sec.rep[1]. — the resolved terminal segment ("rep") is a
+            // takesIndex composite AND carries an index.  This is an indirect
+            // path (three segments: sec / rep[1] / <empty>), so rep is not
+            // the root of the ref.  The behaviour should be the same as the
+            // direct case $rep[1].: the index means the cursor is after a
+            // replacement child of unknown type, so descendant names should
+            // be offered but schema properties of repeatForSequence should
+            // NOT (they describe the composite, not its unknown replacement).
+            {
+                const source = `<section name="sec"><repeatForSequence name="rep"><math name="myMath">x</math></repeatForSequence></section>\n$sec.rep[1].`;
+                const { completer } = createCompleterWithAdapter(source, {
+                    includeAdditionalRefNames: true,
+                });
+                const offset = source.length;
+                const items = completer.getCompletionItems(offset);
+                const labels = items.map((i) => i.label);
+                // Descendant names of the replacement are visible.
+                expect(labels).toContain("myMath");
+                // Schema properties of repeatForSequence must NOT appear —
+                // the indexed form dereferences a replacement child of
+                // unknown component type.
+                const propertyItems = items.filter(
+                    (i) => i.kind === CompletionItemKind.Property,
+                );
+                expect(propertyItems).toHaveLength(0);
+            }
+
             // The same indexed traversal should also work when the ref is
             // resolved from inside an enclosing element whose node becomes the
             // origin in the Rust resolver output.
