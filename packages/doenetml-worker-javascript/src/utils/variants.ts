@@ -556,3 +556,54 @@ export function determineVariantsForSection({
 function indexToLowercaseLetters(index: number) {
     return numberToLetters(index, true);
 }
+
+/**
+ * Extract and validate a constant sort attribute from a serialized component.
+ * Used by selection components (selectFromSequence, selectPrimeNumbers) to ensure
+ * the sort attribute is a constant string value during variant determination.
+ *
+ * @param serializedComponent - The component to extract sort from
+ * @param componentName - The component type name (for error messages)
+ * @param numToSelect - The number of items being selected (determines if sort is valid)
+ * @returns Object with success flag and extracted sort value ("unsorted", "increasing", "decreasing")
+ */
+export function extractConstantSortAttribute(
+    serializedComponent: any,
+    componentName: string,
+    numToSelect: number,
+): { success: boolean; sort?: string } {
+    let sort;
+
+    let sortComponent = serializedComponent.attributes.sort?.component;
+    if (sortComponent) {
+        // only implemented if have a single string child
+
+        if (
+            sortComponent.children?.length === 1 &&
+            typeof sortComponent.children[0] === "string"
+        ) {
+            sort = sortComponent.children[0].toLowerCase();
+        } else if (
+            (!sortComponent.children || sortComponent.children?.length === 0) &&
+            typeof sortComponent.state?.value === "string"
+        ) {
+            sort = sortComponent.state.value;
+        } else {
+            console.log(
+                `cannot determine unique variants of ${componentName} as sort isn't a constant.`,
+            );
+            return { success: false };
+        }
+    } else {
+        sort = "unsorted";
+    }
+
+    if (sort !== "unsorted" && numToSelect > 1) {
+        console.log(
+            `have not implemented unique variants of a ${componentName} with sort`,
+        );
+        return { success: false };
+    }
+
+    return { success: true, sort };
+}

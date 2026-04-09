@@ -9,6 +9,7 @@ import { lettersToNumber, enumerateSelectionCombinations } from "@doenet/utils";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { returnRoundingAttributes } from "../utils/rounding";
 import { textToMathFactory } from "../utils/math";
+import { extractConstantSortAttribute } from "../utils/variants";
 import {
     checkForExcludedCombination,
     estimateNumberOfDuplicateCombinations,
@@ -676,39 +677,15 @@ export default class SelectFromSequence extends Sequence {
             }
         }
 
-        let sort;
-
-        let sortComponent = serializedComponent.attributes.sort?.component;
-        if (sortComponent) {
-            // only implemented if have a single string child
-
-            if (
-                sortComponent.children?.length === 1 &&
-                typeof sortComponent.children[0] === "string"
-            ) {
-                sort = sortComponent.children[0].toLowerCase();
-            } else if (
-                (!sortComponent.children ||
-                    sortComponent.children?.length === 0) &&
-                typeof sortComponent.state?.value === "string"
-            ) {
-                sort = sortComponent.state.value;
-            } else {
-                console.log(
-                    `cannot determine unique variants of selectFromSequence as sort isn't a constant.`,
-                );
-                return { success: false };
-            }
-        } else {
-            sort = "unsorted";
-        }
-
-        if (sort !== "unsorted" && numToSelect > 1) {
-            console.log(
-                "have not implemented unique variants of a selectFromSequence with sort",
-            );
+        let sortResult = extractConstantSortAttribute(
+            serializedComponent,
+            "selectFromSequence",
+            numToSelect,
+        );
+        if (!sortResult.success) {
             return { success: false };
         }
+        let sort = sortResult.sort;
 
         sequencePars = calculateSequenceParameters(sequencePars);
 

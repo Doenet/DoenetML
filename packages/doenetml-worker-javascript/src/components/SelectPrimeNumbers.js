@@ -1,4 +1,5 @@
 import { enumerateSelectionCombinations } from "@doenet/utils";
+import { extractConstantSortAttribute } from "../utils/variants";
 import {
     checkForExcludedCombination,
     estimateNumberOfDuplicateCombinations,
@@ -451,39 +452,15 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             primePars.exclude = exclude;
         }
 
-        let sort;
-
-        let sortComponent = serializedComponent.attributes.sort?.component;
-        if (sortComponent) {
-            // only implemented if have a single string child
-
-            if (
-                sortComponent.children?.length === 1 &&
-                typeof sortComponent.children[0] === "string"
-            ) {
-                sort = sortComponent.children[0].toLowerCase();
-            } else if (
-                (!sortComponent.children ||
-                    sortComponent.children?.length === 0) &&
-                typeof sortComponent.state?.value === "string"
-            ) {
-                sort = sortComponent.state.value;
-            } else {
-                console.log(
-                    `cannot determine unique variants of selectPrimeNumbers as sort isn't a constant.`,
-                );
-                return { success: false };
-            }
-        } else {
-            sort = "unsorted";
-        }
-
-        if (sort !== "unsorted" && numToSelect > 1) {
-            console.log(
-                "have not implemented unique variants of a selectPrimeNumbers with sort",
-            );
+        let sortResult = extractConstantSortAttribute(
+            serializedComponent,
+            "selectPrimeNumbers",
+            numToSelect,
+        );
+        if (!sortResult.success) {
             return { success: false };
         }
+        let sort = sortResult.sort;
 
         let primes = createPrimesList(primePars);
 
