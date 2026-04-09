@@ -73,12 +73,33 @@ function addUniqueNamesFromDescendants(
  * — but another wrapper where it is unique still contributes it.
  *
  * Direct children of the composite that are NOT wrapper elements are also
- * walked (sugared cc without explicit case/else).
+ * walked (sugared cc without explicit case/else). Their own names are
+ * included only when unique across direct sibling children.
  */
 function collectNamesFromCompositeChildren(
     composite: DastElement,
 ): Set<string> {
     const result = new Set<string>();
+    const directChildNameCounts = new Map<string, number>();
+
+    for (const child of composite.children) {
+        if (child.type !== "element") continue;
+        if (COMPOSITE_WRAPPER_NAMES.has(child.name)) continue;
+
+        const nameAttr = child.attributes?.name;
+        const nameVal =
+            nameAttr &&
+            nameAttr.children?.length === 1 &&
+            nameAttr.children[0].type === "text"
+                ? nameAttr.children[0].value
+                : undefined;
+        if (nameVal) {
+            directChildNameCounts.set(
+                nameVal,
+                (directChildNameCounts.get(nameVal) ?? 0) + 1,
+            );
+        }
+    }
 
     for (const child of composite.children) {
         if (child.type !== "element") continue;
@@ -90,16 +111,18 @@ function collectNamesFromCompositeChildren(
                 result,
             );
         } else {
-            // Direct child of composite (not a wrapper) — collect its names
-            // plus the child itself if named.
+            // Direct child of composite (not a wrapper): include its own name
+            // only when unique among direct siblings, and always collect
+            // unique descendant names from within the child subtree.
             const nameAttr = child.attributes?.name;
-            if (nameAttr) {
-                const nameVal =
-                    nameAttr.children?.length === 1 &&
-                    nameAttr.children[0].type === "text"
-                        ? nameAttr.children[0].value
-                        : undefined;
-                if (nameVal) result.add(nameVal);
+            const nameVal =
+                nameAttr &&
+                nameAttr.children?.length === 1 &&
+                nameAttr.children[0].type === "text"
+                    ? nameAttr.children[0].value
+                    : undefined;
+            if (nameVal && directChildNameCounts.get(nameVal) === 1) {
+                result.add(nameVal);
             }
             addUniqueNamesFromDescendants(
                 collectAllNamedDescendants(child),

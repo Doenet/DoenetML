@@ -594,6 +594,23 @@ describe.skipIf(!wasmAvailable)(
             expect(result!.visibleDescendantNames).toContain("m2");
         });
 
+        it("visibleDescendantNames for sugared cc excludes ambiguous direct child names", () => {
+            // Sugared form: duplicate direct child names are ambiguous and
+            // should not be offered as visible descendants.
+            const source = `<conditionalContent name="cc" condition="true"><math name="dup">1</math><math name="dup">2</math><math name="unique">3</math></conditionalContent>\n$cc.`;
+            const { adapter } = createCoreAndAdapter(source);
+
+            const resolver = adapter.createResolver();
+            const result = resolver({
+                offset: source.indexOf("$cc.") + "$cc.".length,
+                pathParts: ["cc", ""],
+            });
+
+            expect(result).not.toBeNull();
+            expect(result!.visibleDescendantNames).toContain("unique");
+            expect(result!.visibleDescendantNames).not.toContain("dup");
+        });
+
         // ---- Index bracket parsing & pathPartHasIndex wiring ----
 
         it("$sel[1]. with pathPartHasIndex shows descendants inside select options", () => {
