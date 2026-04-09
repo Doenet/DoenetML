@@ -61,7 +61,7 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             public: true,
             toLowerCase: true,
             valueForTrue: "increasing",
-            valueForNone: "unsorted",
+            valueForFalse: "unsorted",
             validValues: ["unsorted", "increasing", "decreasing"],
         };
         attributes.excludeCombinations = {

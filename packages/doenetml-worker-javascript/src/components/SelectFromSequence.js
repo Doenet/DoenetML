@@ -46,7 +46,7 @@ export default class SelectFromSequence extends Sequence {
             public: true,
             toLowerCase: true,
             valueForTrue: "increasing",
-            valueForNone: "unsorted",
+            valueForFalse: "unsorted",
             validValues: ["unsorted", "increasing", "decreasing"],
         };
         attributes.excludeCombinations = {
