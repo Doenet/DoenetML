@@ -374,9 +374,8 @@ describe("AutoCompleter", () => {
         {
             const offset = source.indexOf(".") + 1;
             const elm = autoCompleter.getCompletionContext(offset);
-            expect(elm).toMatchObject({
-                cursorPos: "refMember",
-                typedPrefix: "",
+            expect(elm).toEqual({
+                cursorPos: "body",
             });
         }
 
@@ -635,6 +634,20 @@ describe("AutoCompleter", () => {
             const myPItems = items.filter((item) => item.label === "myP");
             expect(myPItems).toHaveLength(1);
             expect(myPItems[0].kind).toBe(CompletionItemKind.Reference);
+        });
+
+        it("Does not suggest ref-member completions when there is whitespace before dot", () => {
+            // `$mySection .` is not a valid reference path; do not offer
+            // descendant/property member completions.
+            const source = `<section name="mySection"><p name="myP" /></section>\n$mySection .`;
+            const autoCompleter = createRefAutoCompleter(source);
+
+            const offset = source.length;
+            const items = autoCompleter.getCompletionItems(offset);
+            const labels = items.map((item) => item.label);
+
+            expect(labels).not.toContain("myP");
+            expect(labels).not.toContain("sectionProp");
         });
 
         it("Matches member prefix case-insensitively and preserves distinct-case labels", () => {
