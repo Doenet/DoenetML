@@ -369,6 +369,20 @@ describe("AutoCompleter", () => {
                 typedPrefix: "",
             });
         }
+
+        source = ` $foo[1]. `;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        {
+            const offset = source.indexOf(".") + 1;
+            const elm = autoCompleter.getCompletionContext(offset);
+            expect(elm).toEqual({
+                cursorPos: "refMember",
+                typedPrefix: "",
+                replaceFromOffset: source.indexOf(".") + 1,
+                pathParts: ["foo", ""],
+                pathPartHasIndex: [true, false],
+            });
+        }
     });
 
     describe("Reference completions", () => {
@@ -1529,6 +1543,119 @@ describe("AutoCompleter", () => {
             expect(result).not.toBeNull();
             expect(result!.node).toBeNull();
             expect(result!.unresolvedPathParts).toEqual(["remaining"]);
+        });
+
+        it("Treats missing trailing member segment as an implicit empty segment", () => {
+            const source = `<section name="s"><p name="p1" /></section>\n$s.p1.`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core, calls } = createMockCore(source, sourceObj, {
+                nodeIdx: 1,
+                nodesInResolvedPath: [0, 1],
+                unresolvedPath: null,
+                originalPath: [{ name: "s" }, { name: "p1" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, { core });
+            const resolver = adapter.createResolver();
+
+            const result = resolver({
+                offset: source.indexOf("$s.p1.") + "$s.p1.".length,
+                // Simulates a parser/context path that dropped the final empty segment.
+                pathParts: ["s", "p1"],
+            });
+
+            expect(result).not.toBeNull();
+            expect(calls[0].path).toEqual({
+                path: [
+                    { type: "flatPathPart", name: "s", index: [] },
+                    { type: "flatPathPart", name: "p1", index: [] },
+                ],
+            });
+        });
+
+        it("isNameAddressableFromOffset enforces exact case for resolved referent names", () => {
+            const source = `<section name="sec"><math name="Inside">x</math>$in</section>`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+            const { core } = createMockCore(source, sourceObj, {
+                nodeIdx: 1,
+                nodesInResolvedPath: [1],
+                unresolvedPath: null,
+                originalPath: [{ name: "Inside" }],
+            });
+
+            const adapter = new RustResolverAdapter(sourceObj, { core });
+
+            const offset = source.indexOf("$in") + 1;
+            expect(adapter.isNameAddressableFromOffset(offset, "inside")).toBe(
+                false,
+            );
+            expect(adapter.isNameAddressableFromOffset(offset, "Inside")).toBe(
+                true,
+            );
+        });
+
+        it("Filters visibleDescendantNames by exact-case referent match", () => {
+            const source = `<section name="sec"><math name="inside">x</math></section><math name="Inside">y</math>\n$sec.`;
+            const sourceObj = new DoenetSourceObject(source + " ");
+
+            const elements: Array<{
+                data: { id: number };
+                position?: { start: { offset?: number } };
+            }> = [];
+            let nextId = 0;
+            const collectElements = (node: any) => {
+                if (node.type === "element") {
+                    elements.push({
+                        data: { id: nextId++ },
+                        position: node.position,
+                    });
+                    for (const child of node.children || []) {
+                        collectElements(child);
+                    }
+                }
+            };
+            for (const child of sourceObj.dast.children) {
+                collectElements(child);
+            }
+
+            const core: RustResolverCore = {
+                set_source: () => {},
+                set_flags: () => {},
+                return_dast: () => ({ elements }),
+                resolve_path: (path) => {
+                    const first = (path.path[0] as { name: string }).name;
+                    // Resolve $sec. to section (id 0), but resolve probe "inside"
+                    // to differently cased "Inside" outside the section (id 2).
+                    if (first === "sec") {
+                        return {
+                            nodeIdx: 0,
+                            nodesInResolvedPath: [0],
+                            unresolvedPath: null,
+                            originalPath: [{ name: "sec" }],
+                        };
+                    }
+                    if (first === "inside") {
+                        return {
+                            nodeIdx: 2,
+                            nodesInResolvedPath: [2],
+                            unresolvedPath: null,
+                            originalPath: [{ name: "inside" }],
+                        };
+                    }
+                    throw new Error("NoReferent");
+                },
+            };
+
+            const adapter = new RustResolverAdapter(sourceObj, { core });
+            const resolver = adapter.createResolver();
+
+            const result = resolver({
+                offset: source.indexOf("$sec.") + "$sec.".length,
+                pathParts: ["sec", ""],
+            });
+
+            expect(result).not.toBeNull();
+            expect(result!.visibleDescendantNames).not.toContain("inside");
         });
 
         it("Blocks unindexed traversal from the first takesIndex segment, not the following segment", () => {

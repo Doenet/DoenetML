@@ -360,7 +360,7 @@ export function getCompletionContext(
         if (source.charAt(dollarPos - 1) === "$") {
             const pathStart = dollarPos;
             const pathStr = source.slice(pathStart, offset).trim();
-            const pathParts = pathStr.split(".").filter((p) => p.length > 0);
+            const pathParts = pathStr.split(".");
             if (pathParts.length > 0 && /^[A-Za-z0-9_]/.test(pathStr)) {
                 return makeRefMemberContext(typedPrefix, tokenStart, pathParts);
             }

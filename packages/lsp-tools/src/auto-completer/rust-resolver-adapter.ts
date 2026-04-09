@@ -157,6 +157,19 @@ function getDerivedRepeatNamesFromElement(el: DastElement): string[] {
     return names;
 }
 
+/** Return the literal `name` attribute value for an element, if present. */
+function getElementNameAttributeValue(el: DastElement): string | null {
+    const nameAttr = el.attributes?.name;
+    if (
+        nameAttr &&
+        nameAttr.children?.length === 1 &&
+        nameAttr.children[0].type === "text"
+    ) {
+        return nameAttr.children[0].value;
+    }
+    return null;
+}
+
 /**
  * Minimal interface matching the subset of PublicDoenetMLCore methods needed
  * for path resolution. Consumers provide an initialized WASM-backed instance;
@@ -382,7 +395,16 @@ export class RustResolverAdapter {
     ): RefMemberContainerResolution | null {
         if (!this._enabled || !this._core) return null;
 
-        const { offset, pathParts, pathPartHasIndex } = args;
+        const {
+            offset,
+            pathParts: rawPathParts,
+            pathPartHasIndex: rawPathPartHasIndex,
+        } = args;
+        const { pathParts, pathPartHasIndex } = this._normalizePathParts(
+            offset,
+            rawPathParts,
+            rawPathPartHasIndex,
+        );
         if (pathParts.length === 0) return null;
 
         // Resolve up to but not including the last part (being edited).
@@ -567,6 +589,15 @@ export class RustResolverAdapter {
                         ) {
                             return false;
                         }
+                        const probeElement = this._rustIndexToDastElement.get(
+                            probe.nodeIdx,
+                        );
+                        const probeName = probeElement
+                            ? getElementNameAttributeValue(probeElement)
+                            : null;
+                        if (probeName !== name) {
+                            return false;
+                        }
                         return true;
                     } catch {
                         return false;
@@ -601,6 +632,45 @@ export class RustResolverAdapter {
             if (idx != null) return idx;
         }
         return this._getRootOriginIndex();
+    }
+
+    /**
+     * Normalize parsed ref path metadata before resolver lookup.
+     *
+     * Some parser/fallback paths can drop the final empty segment when the
+     * cursor is immediately after a trailing dot (e.g. `$a.b.|` represented as
+     * `pathParts = ["a", "b"]` instead of `["a", "b", ""]`). For member
+     * completion, that final empty segment is semantically important because
+     * resolution should treat `b` as the container being completed, not as the
+     * currently edited token to skip.
+     *
+     * When the source confirms a trailing dot and the empty segment is missing,
+     * append it and keep `pathPartHasIndex` aligned by appending `false`.
+     */
+    _normalizePathParts(
+        offset: number,
+        pathParts: string[],
+        pathPartHasIndex?: boolean[],
+    ): { pathParts: string[]; pathPartHasIndex?: boolean[] } {
+        if (pathParts.length === 0) {
+            return { pathParts, pathPartHasIndex };
+        }
+
+        const charBeforeCursor =
+            offset > 0 ? this._sourceObj.source.charAt(offset - 1) : "";
+        const endsWithTypedMemberDot = charBeforeCursor === ".";
+        const alreadyHasTrailingEmpty = pathParts[pathParts.length - 1] === "";
+
+        if (!endsWithTypedMemberDot || alreadyHasTrailingEmpty) {
+            return { pathParts, pathPartHasIndex };
+        }
+
+        return {
+            pathParts: [...pathParts, ""],
+            pathPartHasIndex: pathPartHasIndex
+                ? [...pathPartHasIndex, false]
+                : pathPartHasIndex,
+        };
     }
 
     /**
@@ -694,6 +764,16 @@ export class RustResolverAdapter {
                 resolveFromIndex,
                 false,
             );
+
+            const resolvedElement = this._rustIndexToDastElement.get(
+                resolution.nodeIdx,
+            );
+            const resolvedName = resolvedElement
+                ? getElementNameAttributeValue(resolvedElement)
+                : null;
+            if (resolvedName !== name) {
+                return false;
+            }
 
             // Post-filter: check whether the resolved element is hidden
             // by sugar at runtime.  In raw DAST (no sugar),
