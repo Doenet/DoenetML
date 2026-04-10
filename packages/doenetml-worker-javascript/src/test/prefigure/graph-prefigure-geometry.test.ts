@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { pointLabelAttributes } from "../../utils/prefigure/label";
-import { getPrefigureXML, getWarnings } from "./graph-prefigure.helpers";
+import {
+    getGraphRendererState,
+    getPrefigureXML,
+    getWarnings,
+} from "./graph-prefigure.helpers";
 import {
     prefigureGraph,
     withStyleDefinitions,
@@ -1298,26 +1302,46 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).not.toContain(`fill-opacity="`);
     });
 
-    it("renderer=prefigure maps bezier curve to PreFigure spline", async () => {
+    it("renderer=prefigure maps bezier curve to PreFigure parametric-curve", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph('<curve through="(0,0) (1,2) (2,1)" />'),
         );
 
-        expect(prefigureXML).toContain(`<spline at="curve_0"`);
-        expect(prefigureXML).toContain(`points="((0,0),(1,2),(2,1))"`);
-        expect(prefigureXML).toContain(`domain="(0,2)"`);
+        expect(prefigureXML).toContain(`<parametric-curve at="curve_0"`);
+        expect(prefigureXML).toContain(`function="curve_0_r(`);
+        expect(prefigureXML).toContain(`domain="(0,1)"`);
+        expect(prefigureXML).toContain(`domain="(1,2)"`);
+        expect(prefigureXML).not.toContain(`<spline `);
     });
 
-    it("renderer=prefigure maps periodic bezier to closed spline", async () => {
+    it("renderer=prefigure maps periodic bezier to matching parametric curve", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(
                 '<curve through="(0,0) (1,2) (2,1) (0,0)" periodic="true" />',
             ),
         );
 
-        expect(prefigureXML).toContain(`<spline at="curve_0"`);
-        expect(prefigureXML).toContain(`closed="yes"`);
-        expect(prefigureXML).not.toContain(`domain="`);
+        expect(prefigureXML).toContain(`<parametric-curve at="curve_0"`);
+        expect(prefigureXML).toContain(`function="curve_0_r(`);
+        expect(prefigureXML).toContain(`domain="(0,1)"`);
+        expect(prefigureXML).toContain(`domain="(1,2)"`);
+        expect(prefigureXML).toContain(`domain="(2,3)"`);
+        expect(prefigureXML).not.toContain(`<spline `);
+    });
+
+    it("renderer=prefigure currently leaks bezier control vectors from graph descendants", async () => {
+        const { graphState, prefigureXML } = await getGraphRendererState(
+            prefigureGraph(
+                '<curve through="(0,0) (1,2) (2,1)"><bezierControls alwaysVisible>(1,1) (-1,1) (1,-1) (-1,-1)</bezierControls></curve>',
+            ),
+        );
+
+        const vectorDescendants = (
+            graphState.graphicalDescendants ?? []
+        ).filter((x) => x.componentType === "vector");
+
+        expect(vectorDescendants.length).toBeGreaterThan(0);
+        expect(prefigureXML).not.toContain(`<vector `);
     });
 
     it("renderer=prefigure warns and omits curve labels", async () => {
@@ -1380,13 +1404,13 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         ).eq(true);
     });
 
-    it("renderer=prefigure warns when bezier points include non-finite coordinates", async () => {
+    it("renderer=prefigure warns when bezier curve cannot build finite geometry", async () => {
         const doenetML = prefigureGraph(
             '<curve through="(0,0) (a,2) (2,1)" />',
         );
 
         const prefigureXML = await getPrefigureXML(doenetML);
-        expect(prefigureXML).not.toContain(`<spline at="curve_0"`);
+        expect(prefigureXML).not.toContain(`<parametric-curve at="curve_0"`);
 
         const diagnosticsByType = await getWarnings(doenetML);
         expect(

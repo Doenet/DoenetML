@@ -1,6 +1,6 @@
 import me from "math-expressions";
 import { find_effective_domains_piecewise_children } from "@doenet/utils";
-import { escapeXml, formatPoint, pushWarning } from "../common";
+import { escapeXml, pushWarning } from "../common";
 import { labelMarkup } from "../label";
 import type { ConverterArgs, CurveFunctionDefinition } from "../types";
 
@@ -345,6 +345,172 @@ function parsedInterpolatedDefinitionPieces({
 }
 
 /**
+ * Parse bezier curve definitions into explicit cubic pieces in the curve
+ * parameter. This mirrors Doenet's bezier evaluator: each segment is a cubic
+ * in local parameter (t-i), with optional quadratic extrapolation on each end.
+ */
+function parsedBezierDefinitionPieces({
+    definition,
+    fallbackVariableName,
+    curveBounds,
+}: {
+    definition: CurveFunctionDefinition;
+    fallbackVariableName: string;
+    curveBounds: { min: number; max: number };
+}): ParsedFormulaPiecesResult | null {
+    const parsedVariable = Array.isArray(definition.variables)
+        ? astToExpressionString(definition.variables[0])
+        : null;
+    const variableName = parsedVariable || fallbackVariableName;
+
+    const numThroughPoints = Number(definition.numThroughPoints);
+    if (!Number.isInteger(numThroughPoints) || numThroughPoints < 1) {
+        return null;
+    }
+
+    const segmentCount = numThroughPoints - 1;
+    const component = Number.isInteger(definition.component)
+        ? Number(definition.component)
+        : 0;
+
+    const rawSplineCoeffs = Array.isArray(definition.splineCoeffs)
+        ? definition.splineCoeffs
+        : null;
+    if (!rawSplineCoeffs || rawSplineCoeffs.length !== segmentCount) {
+        return null;
+    }
+
+    const splineCoeffs = rawSplineCoeffs.map((segment) => {
+        if (!Array.isArray(segment) || !Array.isArray(segment[component])) {
+            return null;
+        }
+        const coeffs = segment[component].slice(0, 4).map((v: unknown) =>
+            Number(v),
+        );
+        if (coeffs.length < 4 || coeffs.some((v) => !Number.isFinite(v))) {
+            return null;
+        }
+        return coeffs;
+    });
+
+    if (splineCoeffs.some((x) => x === null)) {
+        return null;
+    }
+
+    const forwardExtrapolation = Boolean(definition.extrapolateForward);
+    const backwardExtrapolation = Boolean(definition.extrapolateBackward);
+
+    const getExtrapolationCoeffs = (
+        coeffsByComponent: unknown,
+    ): number[] | null => {
+        if (!Array.isArray(coeffsByComponent)) {
+            return null;
+        }
+        const componentCoeffs = coeffsByComponent[component];
+        if (!Array.isArray(componentCoeffs)) {
+            return null;
+        }
+        const coeffs = componentCoeffs.slice(0, 3).map((v: unknown) =>
+            Number(v),
+        );
+        if (coeffs.length < 3 || coeffs.some((v) => !Number.isFinite(v))) {
+            return null;
+        }
+        return coeffs;
+    };
+
+    const backwardCoeffs = backwardExtrapolation
+        ? getExtrapolationCoeffs(definition.extrapolateBackwardCoeffs)
+        : null;
+    if (backwardExtrapolation && !backwardCoeffs) {
+        return null;
+    }
+
+    const forwardCoeffs = forwardExtrapolation
+        ? getExtrapolationCoeffs(definition.extrapolateForwardCoeffs)
+        : null;
+    if (forwardExtrapolation && !forwardCoeffs) {
+        return null;
+    }
+
+    const rawPieces: ParsedFormulaPiece[] = [];
+
+    if (backwardCoeffs) {
+        rawPieces.push({
+            parsed: {
+                variableName,
+                expression: `(${backwardCoeffs[0]}+(${backwardCoeffs[1]})*(${variableName})+(${backwardCoeffs[2]})*(${variableName})^2)`,
+            },
+            interval: {
+                min: -Infinity,
+                max: 0,
+                openMin: true,
+                openMax: false,
+            },
+        });
+    }
+
+    for (let i = 0; i < segmentCount; i += 1) {
+        const coeffs = splineCoeffs[i] as number[];
+        const shiftedVar = `(${variableName}-(${i}))`;
+        rawPieces.push({
+            parsed: {
+                variableName,
+                expression: `(${coeffs[0]}+(${coeffs[1]})*${shiftedVar}+(${coeffs[2]})*${shiftedVar}^2+(${coeffs[3]})*${shiftedVar}^3)`,
+            },
+            interval: {
+                min: i,
+                max: i + 1,
+                openMin: false,
+                openMax: false,
+            },
+        });
+    }
+
+    if (forwardCoeffs) {
+        const len = segmentCount;
+        const shiftedVar = `(${variableName}-(${len}))`;
+        rawPieces.push({
+            parsed: {
+                variableName,
+                expression: `(${forwardCoeffs[0]}+(${forwardCoeffs[1]})*${shiftedVar}+(${forwardCoeffs[2]})*${shiftedVar}^2)`,
+            },
+            interval: {
+                min: len,
+                max: Infinity,
+                openMin: false,
+                openMax: true,
+            },
+        });
+    }
+
+    const pieces: ParsedFormulaPiece[] = [];
+    let hasOpenEndpoints = false;
+
+    for (const piece of rawPieces) {
+        const clipped = intersectIntervalWithBounds(piece.interval, curveBounds);
+        if (!clipped) {
+            continue;
+        }
+
+        if (clipped.openMin || clipped.openMax) {
+            hasOpenEndpoints = true;
+        }
+
+        pieces.push({
+            parsed: piece.parsed,
+            interval: clipped,
+        });
+    }
+
+    return {
+        sourceType: "bezier",
+        hasOpenEndpoints,
+        pieces,
+    };
+}
+
+/**
  * Format a domain bound value for PreFigure output.
  * Converts JavaScript infinities to "inf"/"-inf" strings and finite numbers
  * to their string representation. Non-numeric or NaN values return null.
@@ -382,29 +548,6 @@ function numericBoundFromStateValue(
         return value as number;
     }
     return Number.isFinite(value) ? Number(value) : null;
-}
-
-/**
- * Format a potentially-infinite domain value range for PreFigure output.
- * Used for parameter bounds (parMin, parMax) that may be infinite.
- * Returns null if either bound is invalid or non-numeric.
- *
- * @param params - Object with parMin and parMax (may be any type)
- * @returns Formatted domain string (e.g., "(-2,3)" or "(-inf,inf)") or null
- */
-function prefigureDomainFromStateValues({
-    parMin,
-    parMax,
-}: {
-    parMin: unknown;
-    parMax: unknown;
-}): string | null {
-    const min = formatDomainBound(parMin);
-    const max = formatDomainBound(parMax);
-    if (min === null || max === null) {
-        return null;
-    }
-    return `(${min},${max})`;
 }
 
 /**
@@ -712,6 +855,14 @@ function parsedFormulaPiecesFromDefinition({
 
     if (definition.functionType === "interpolated") {
         return parsedInterpolatedDefinitionPieces({
+            definition,
+            fallbackVariableName,
+            curveBounds,
+        });
+    }
+
+    if (definition.functionType === "bezier") {
+        return parsedBezierDefinitionPieces({
             definition,
             fallbackVariableName,
             curveBounds,
@@ -1063,6 +1214,10 @@ function convertParametricCurve({
                 continue;
             }
 
+            if (overlap.min === overlap.max) {
+                continue;
+            }
+
             const pieceHandle = makePieceHandle(handle, pieceCounter);
             const functionDefinition = `${pieceHandle}_r(${xPiece.parsed.variableName})=(${xPiece.parsed.expression},${yPiece.parsed.expression})`;
             const attrs = [
@@ -1085,77 +1240,15 @@ function convertParametricCurve({
 }
 
 /**
- * Extract through-points array from numerical Bezier curve data.
- * Validates that at least 2 points are present and all points format correctly.
- *
- * @param numericalThroughPoints - Array of point coordinates
- * @returns Array of formatted point strings, or null if array is invalid
- */
-function pointsFromNumericalThroughPoints(
-    numericalThroughPoints: unknown,
-): string[] | null {
-    if (!Array.isArray(numericalThroughPoints)) {
-        return null;
-    }
-
-    const points = numericalThroughPoints
-        .map((point) => formatPoint(point))
-        .filter((point): point is string => point !== null);
-
-    if (points.length < 2 || points.length !== numericalThroughPoints.length) {
-        return null;
-    }
-
-    return points;
-}
-
-/**
- * Convert a Doenet Bezier curve (through points) to PreFigure <spline>.
- * Handles both open and closed (periodic) splines.
- * Domain is taken from curve parameter bounds if finite.
+ * Convert a Doenet Bezier curve using the same explicit parametric function
+ * definitions used by the Doenet renderer. This yields cubic piece geometry
+ * parity with Doenet rather than relying on a renderer-side spline fit.
  *
  * @param args - Standard converter arguments
- * @returns PreFigure <spline> element or null if conversion fails
+ * @returns PreFigure <parametric-curve> element(s) or null if conversion fails
  */
-function convertBezierCurve({
-    sv,
-    handle,
-    styleAttrs,
-    diagnostics,
-    warningPrefix,
-    warningPosition,
-}: ConverterArgs): string | null {
-    const points = pointsFromNumericalThroughPoints(sv.numericalThroughPoints);
-    if (!points) {
-        return null;
-    }
-
-    const attrs = [
-        `at="${escapeXml(handle)}"`,
-        `points="${escapeXml(`(${points.join(",")})`)}"`,
-        ...styleAttrs,
-    ];
-
-    if (sv.periodic) {
-        attrs.push('closed="yes"');
-    } else {
-        const domain = prefigureDomainFromStateValues({
-            parMin: sv.parMin,
-            parMax: sv.parMax,
-        });
-
-        if (domain) {
-            attrs.push(`domain="${escapeXml(domain)}"`);
-        } else if (sv.extrapolateBackward || sv.extrapolateForward) {
-            pushWarning({
-                diagnostics,
-                message: `${warningPrefix}: bezier extrapolation requested but parameter domain is non-finite; emitted spline without explicit domain.`,
-                position: warningPosition,
-            });
-        }
-    }
-
-    return `<spline ${attrs.join(" ")} />`;
+function convertBezierCurve(args: ConverterArgs): string | null {
+    return convertParametricCurve(args);
 }
 
 /**
@@ -1164,7 +1257,7 @@ function convertBezierCurve({
  * Routes curve conversion based on curve type:
  * - "function" → <graph> or <parametric-curve> (if flipped)
  * - "parameterization" → <parametric-curve> (2D parametric)
- * - "bezier" → <spline> (through-points curve)
+ * - "bezier" → <parametric-curve> piece(s) from explicit cubic definitions
  *
  * Also handles warnings for unsupported labels and diagnostics for incomplete
  * geometry (non-finite domains, invalid data).

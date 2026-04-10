@@ -256,7 +256,20 @@ function collectConfiguredDescendants(
         }
     }
 
-    return [...byComponentIdx.values()];
+    return [...byComponentIdx.values()].filter((descendant) => {
+        if (descendant.componentType !== "vector") {
+            return true;
+        }
+
+        const componentName = descendant.componentName?.toLowerCase() ?? "";
+
+        // Bezier control vectors are implementation details of curve editing
+        // and should not be rendered as standalone vectors in PreFigure.
+        return (
+            !componentName.includes("beziercontrols") &&
+            !componentName.includes("controlvectors")
+        );
+    });
 }
 
 /**
