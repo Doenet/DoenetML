@@ -1,4 +1,5 @@
 import { enumerateSelectionCombinations } from "@doenet/utils";
+import { extractConstantSortAttribute } from "../utils/variants";
 import {
     checkForExcludedCombination,
     estimateNumberOfDuplicateCombinations,
@@ -53,11 +54,15 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             defaultValue: false,
             public: true,
         };
-        attributes.sortResults = {
-            createComponentOfType: "boolean",
-            createStateVariable: "sortResults",
-            defaultValue: false,
+        attributes.sort = {
+            createComponentOfType: "text",
+            createStateVariable: "sort",
+            defaultValue: "unsorted",
             public: true,
+            toLowerCase: true,
+            valueForTrue: "increasing",
+            valueForFalse: "unsorted",
+            validValues: ["unsorted", "increasing", "decreasing"],
         };
         attributes.excludeCombinations = {
             createComponentOfType: "_listOfNumberLists",
@@ -186,9 +191,9 @@ export default class SelectPrimeNumbers extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "excludedCombinations",
                 },
-                sortResults: {
+                sort: {
                     dependencyType: "stateVariable",
-                    variableName: "sortResults",
+                    variableName: "sort",
                 },
                 variants: {
                     dependencyType: "stateVariable",
@@ -447,37 +452,12 @@ export default class SelectPrimeNumbers extends CompositeComponent {
             primePars.exclude = exclude;
         }
 
-        let sortResults;
-
-        let sortResultsComponent =
-            serializedComponent.attributes.sortResults?.component;
-        if (sortResultsComponent) {
-            // only implemented if have a single string child
-
-            if (
-                sortResultsComponent.children?.length === 1 &&
-                typeof sortResultsComponent.children[0] === "string"
-            ) {
-                sortResults =
-                    sortResultsComponent.children[0].toLowerCase() === "true";
-            } else if (
-                (!sortResultsComponent.children ||
-                    sortResultsComponent.children?.length === 0) &&
-                typeof sortResultsComponent.state?.value === "boolean"
-            ) {
-                sortResults = sortResultsComponent.state.value;
-            } else {
-                console.log(
-                    `cannot determine unique variants of selectPrimeNumbers as sortResults isn't a constant.`,
-                );
-                return { success: false };
-            }
-        }
-
-        if (sortResults && numToSelect > 1) {
-            console.log(
-                "have not implemented unique variants of a selectPrimeNumbers with sortResults",
-            );
+        let sortResult = extractConstantSortAttribute(
+            serializedComponent,
+            "selectPrimeNumbers",
+            numToSelect,
+        );
+        if (!sortResult.success) {
             return { success: false };
         }
 
@@ -790,8 +770,10 @@ function makeSelection({ dependencyValues }) {
         }
     }
 
-    if (dependencyValues.sortResults) {
+    if (dependencyValues.sort === "increasing") {
         selectedValues.sort((a, b) => a - b);
+    } else if (dependencyValues.sort === "decreasing") {
+        selectedValues.sort((a, b) => b - a);
     }
 
     return {

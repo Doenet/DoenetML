@@ -1131,7 +1131,7 @@ describe("SelectFromSequence tag tests @group4", async () => {
     it("select numbers and sort", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p name="p1"><selectFromSequence numToSelect="20" sortResults="true" withReplacement="true" from="-20" to="20" /></p>
+    <p name="p1"><selectFromSequence numToSelect="20" sort="increasing" withReplacement="true" from="-20" to="20" /></p>
 
     <p extend="$p1" name="p2" />
     `,
@@ -1159,7 +1159,7 @@ describe("SelectFromSequence tag tests @group4", async () => {
     it("select letters and sort", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
-    <p name="p1"><selectFromSequence type="letters" numToSelect="20" sortResults="true" withReplacement="true" from="a" to="bz" /></p>
+    <p name="p1"><selectFromSequence type="letters" numToSelect="20" sort="increasing" withReplacement="true" from="a" to="bz" /></p>
 
     <p extend="$p1" name="p2" />
     `,
@@ -1819,7 +1819,7 @@ describe("SelectFromSequence tag tests @group4", async () => {
     });
 
     it("select two odd coprime numbers from 15 to 21, sort results", async () => {
-        const doenetML = `<selectFromSequence name="s" numToSelect="2" from="15" to="21" step="2" coprime sortResults />`;
+        const doenetML = `<selectFromSequence name="s" numToSelect="2" from="15" to="21" step="2" coprime sort="increasing" />`;
         const valid_combinations = [
             [15, 17],
             [15, 19],
@@ -1839,7 +1839,7 @@ describe("SelectFromSequence tag tests @group4", async () => {
     });
 
     it("select two odd coprime numbers from 15 to 21, sort results, with negative step", async () => {
-        const doenetML = `<selectFromSequence name="s" numToSelect="2" from="21" to="15" step="-2" coprime sortResults />`;
+        const doenetML = `<selectFromSequence name="s" numToSelect="2" from="21" to="15" step="-2" coprime sort="increasing" />`;
         const valid_combinations = [
             [15, 17],
             [15, 19],
@@ -1859,7 +1859,7 @@ describe("SelectFromSequence tag tests @group4", async () => {
     });
 
     it("select two coprime numbers from 21 to 27, excluding 23 and 25, sort results", async () => {
-        const doenetML = `<selectFromSequence name="s" numToSelect="2" from="21" to="27" exclude="23 25" coprime sortResults />`;
+        const doenetML = `<selectFromSequence name="s" numToSelect="2" from="21" to="27" exclude="23 25" coprime sort="increasing" />`;
         const valid_combinations = [
             [21, 22],
             [21, 26],
@@ -1878,7 +1878,7 @@ describe("SelectFromSequence tag tests @group4", async () => {
     });
 
     it("select four coprime numbers from 22 to 28, excluding 23 and 25, sort results", async () => {
-        const doenetML = `<selectFromSequence name="s" numToSelect="4" from="22" to="27" exclude="23 25" coprime sortResults />`;
+        const doenetML = `<selectFromSequence name="s" numToSelect="4" from="22" to="27" exclude="23 25" coprime sort="increasing" />`;
         const valid_combinations = [
             [22, 24, 26, 27],
             [22, 24, 27, 28],
@@ -1897,7 +1897,7 @@ describe("SelectFromSequence tag tests @group4", async () => {
     });
 
     it("select three coprime numbers from 4 to 6, with replacement, sort results", async () => {
-        const doenetML = `<selectFromSequence name="s" numToSelect="3" from="4" to="6" coprime  withReplacement sortResults />`;
+        const doenetML = `<selectFromSequence name="s" numToSelect="3" from="4" to="6" coprime  withReplacement sort="increasing" />`;
         const valid_combinations = [
             [4, 5, 6],
             [4, 4, 5],
@@ -2105,5 +2105,159 @@ describe("SelectFromSequence tag tests @group4", async () => {
             // Should not select a value close to zero
             expect(Math.abs(value)).greaterThan(0.5);
         }
+    });
+
+    it("sort with decreasing value", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="p1"><selectFromSequence name="s" numToSelect="10" sort="decreasing" from="1" to="10" /></p>
+    <p extend="$p1" name="p2" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s")].stateValues.sort,
+        ).eq("decreasing");
+
+        let originalNumbers = stateVariables[
+            await resolvePathToNodeIdx("p1")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        let secondNumbers = stateVariables[
+            await resolvePathToNodeIdx("p2")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+
+        expect([...originalNumbers].sort((a, b) => b - a)).eqls(
+            originalNumbers,
+        );
+        expect(secondNumbers).eqls(originalNumbers);
+    });
+
+    it("sort with true value", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="p1"><selectFromSequence name="s" numToSelect="10" sort="true" from="1" to="10" /></p>
+    <p extend="$p1" name="p2" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s")].stateValues.sort,
+        ).eq("increasing");
+
+        let originalNumbers = stateVariables[
+            await resolvePathToNodeIdx("p1")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        let secondNumbers = stateVariables[
+            await resolvePathToNodeIdx("p2")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+
+        // sort="true" should convert to "increasing"
+        expect([...originalNumbers].sort((a, b) => a - b)).eqls(
+            originalNumbers,
+        );
+        expect(secondNumbers).eqls(originalNumbers);
+    });
+
+    it("sort with false value", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="p1"><selectFromSequence name="s" numToSelect="10" sort="false" from="1" to="10" /></p>
+    <p extend="$p1" name="p2" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s")].stateValues.sort,
+        ).eq("unsorted");
+
+        let originalNumbers = stateVariables[
+            await resolvePathToNodeIdx("p1")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        let secondNumbers = stateVariables[
+            await resolvePathToNodeIdx("p2")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+
+        // sort="false" should convert to "unsorted"
+        // We just verify it doesn't crash and produces consistent results
+        expect(secondNumbers).eqls(originalNumbers);
+    });
+
+    it("sort with whitespace and uppercase false value", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="p1"><selectFromSequence name="s" numToSelect="10" sort="  FALSE  " from="1" to="10" /></p>
+    <p extend="$p1" name="p2" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s")].stateValues.sort,
+        ).eq("unsorted");
+
+        let originalNumbers = stateVariables[
+            await resolvePathToNodeIdx("p1")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        let secondNumbers = stateVariables[
+            await resolvePathToNodeIdx("p2")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+
+        expect(secondNumbers).eqls(originalNumbers);
+    });
+
+    it("sort with no value should be sorted increasing", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="p1"><selectFromSequence name="s" numToSelect="10" sort from="1" to="10" /></p>
+    <p extend="$p1" name="p2" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s")].stateValues.sort,
+        ).eq("increasing");
+
+        let originalNumbers = stateVariables[
+            await resolvePathToNodeIdx("p1")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        let secondNumbers = stateVariables[
+            await resolvePathToNodeIdx("p2")
+        ].activeChildren.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+
+        // sort should convert to "increasing"
+        expect([...originalNumbers].sort((a, b) => a - b)).eqls(
+            originalNumbers,
+        );
+        // sort with no value should produce consistent results
+        expect(secondNumbers).eqls(originalNumbers);
     });
 });

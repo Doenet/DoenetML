@@ -117,13 +117,13 @@ editor to see different variants of the document.
 
 ---
 
-### Attribute Example: sortResults
+### Attribute Example: sort
 
 
 ```doenet-editor-horiz
 <selectFromSequence 
   name="s" 
-  sortResults 
+  sort="increasing" 
   from="0" 
   to="50" 
   numToSelect="5"
@@ -138,7 +138,12 @@ editor to see different variants of the document.
 
 
 
-The `sortResults` attribute sorts the selected results in increasing order.
+The `sort` attribute determines how selected results are sorted. It accepts three values:
+- `"unsorted"` (default) - results are in the order they were selected
+- `"increasing"` - results are sorted in increasing order
+- `"decreasing"` - results are sorted in decreasing order
+
+Alternatively, `sort` and `sort="true"` are equivalent to `sort="increasing"`, and `sort="false"` is equivalent to `sort="unsorted"`.
 
 Select a new page variant from the pulldown menu at the top of the 
 editor to see different variants of the document.

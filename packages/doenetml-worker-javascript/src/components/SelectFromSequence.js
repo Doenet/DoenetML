@@ -9,6 +9,7 @@ import { lettersToNumber, enumerateSelectionCombinations } from "@doenet/utils";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { returnRoundingAttributes } from "../utils/rounding";
 import { textToMathFactory } from "../utils/math";
+import { extractConstantSortAttribute } from "../utils/variants";
 import {
     checkForExcludedCombination,
     estimateNumberOfDuplicateCombinations,
@@ -38,11 +39,15 @@ export default class SelectFromSequence extends Sequence {
             defaultValue: false,
             public: true,
         };
-        attributes.sortResults = {
-            createComponentOfType: "boolean",
-            createStateVariable: "sortResults",
-            defaultValue: false,
+        attributes.sort = {
+            createComponentOfType: "text",
+            createStateVariable: "sort",
+            defaultValue: "unsorted",
             public: true,
+            toLowerCase: true,
+            valueForTrue: "increasing",
+            valueForFalse: "unsorted",
+            validValues: ["unsorted", "increasing", "decreasing"],
         };
         attributes.excludeCombinations = {
             createComponentOfType: "_componentListOfListsWithSelectableType",
@@ -207,9 +212,9 @@ export default class SelectFromSequence extends Sequence {
                     dependencyType: "stateVariable",
                     variableName: "lowercase",
                 },
-                sortResults: {
+                sort: {
                     dependencyType: "stateVariable",
-                    variableName: "sortResults",
+                    variableName: "sort",
                 },
                 variants: {
                     dependencyType: "stateVariable",
@@ -672,37 +677,12 @@ export default class SelectFromSequence extends Sequence {
             }
         }
 
-        let sortResults;
-
-        let sortResultsComponent =
-            serializedComponent.attributes.sortResults?.component;
-        if (sortResultsComponent) {
-            // only implemented if have a single string child
-
-            if (
-                sortResultsComponent.children?.length === 1 &&
-                typeof sortResultsComponent.children[0] === "string"
-            ) {
-                sortResults =
-                    sortResultsComponent.children[0].toLowerCase() === "true";
-            } else if (
-                (!sortResultsComponent.children ||
-                    sortResultsComponent.children?.length === 0) &&
-                typeof sortResultsComponent.state?.value === "boolean"
-            ) {
-                sortResults = sortResultsComponent.state.value;
-            } else {
-                console.log(
-                    `cannot determine unique variants of selectFromSequence as sortResults isn't a constant.`,
-                );
-                return { success: false };
-            }
-        }
-
-        if (sortResults && numToSelect > 1) {
-            console.log(
-                "have not implemented unique variants of a selectFromSequence with sortResults",
-            );
+        let sortResult = extractConstantSortAttribute(
+            serializedComponent,
+            "selectFromSequence",
+            numToSelect,
+        );
+        if (!sortResult.success) {
             return { success: false };
         }
 
@@ -1262,7 +1242,7 @@ function makeSelection({ dependencyValues }) {
         }
     }
 
-    if (dependencyValues.sortResults) {
+    if (dependencyValues.sort !== "unsorted") {
         // combine selectedIndices and selectedValues to sort together
         let combinedList = [];
         for (let [ind, val] of selectedValues.entries()) {
@@ -1270,12 +1250,24 @@ function makeSelection({ dependencyValues }) {
         }
 
         if (dependencyValues.type === "number") {
-            combinedList.sort((a, b) => a.value - b.value);
+            if (dependencyValues.sort === "increasing") {
+                combinedList.sort((a, b) => a.value - b.value);
+            } else if (dependencyValues.sort === "decreasing") {
+                combinedList.sort((a, b) => b.value - a.value);
+            }
         } else if (dependencyValues.type === "letters") {
             // sort according to their numerical value, not as words
-            combinedList.sort(
-                (a, b) => lettersToNumber(a.value) - lettersToNumber(b.value),
-            );
+            if (dependencyValues.sort === "increasing") {
+                combinedList.sort(
+                    (a, b) =>
+                        lettersToNumber(a.value) - lettersToNumber(b.value),
+                );
+            } else if (dependencyValues.sort === "decreasing") {
+                combinedList.sort(
+                    (a, b) =>
+                        lettersToNumber(b.value) - lettersToNumber(a.value),
+                );
+            }
         }
 
         selectedValues = combinedList.map((x) => x.value);
