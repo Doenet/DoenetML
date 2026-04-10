@@ -95,6 +95,11 @@ export function convertGraphicalDescendantToPrefigure({
         graphBounds,
         graphDimensions,
     };
+
+    if (sv.hidden) {
+        return null;
+    }
+
     const warningPrefix = warningMessageForDescendant(descendant);
     const warningPosition = descendant?.position;
     const handle = createStableHandle(descendant, index, usedHandles);
