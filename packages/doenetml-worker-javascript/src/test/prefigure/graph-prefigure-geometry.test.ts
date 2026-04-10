@@ -1387,14 +1387,14 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         ).eq(true);
     });
 
-    it("renderer=prefigure warns when interpolated function curve cannot be serialized", async () => {
+    it("renderer=prefigure serializes interpolated function curves", async () => {
         const doenetML = prefigureGraph(
             '<function through="(1,1) (2,2) (3,1)" />\n  <function>x^2</function>',
         );
 
         const prefigureXML = await getPrefigureXML(doenetML);
         expect(prefigureXML).toContain(`<graph at="curve_1"`);
-        expect(prefigureXML).not.toContain(`<graph at="curve_0"`);
+        expect(prefigureXML).toContain(`<graph at="curve_0"`);
 
         const diagnosticsByType = await getWarnings(doenetML);
         expect(
@@ -1403,7 +1403,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
                     "unsupported curve function definition type 'interpolated'",
                 ),
             ),
-        ).eq(true);
+        ).eq(false);
     });
 
     it("renderer=prefigure expands piecewise curve into graph pieces", async () => {
@@ -1420,6 +1420,27 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`=x^2"`);
         expect(prefigureXML).not.toContain(`fill="`);
         expect(prefigureXML).not.toContain(`fill-opacity="`);
+    });
+
+    it("renderer=prefigure supports interpolated pieces within piecewise curves", async () => {
+        const doenetML = prefigureGraph(
+            '<curve><piecewiseFunction><function through="(0,0) (1,1) (2,0)" domain="(-2,2)" /><function>x^2</function></piecewiseFunction></curve>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        const pieceCount = (prefigureXML.match(/<graph at="curve_0/g) ?? [])
+            .length;
+        expect(pieceCount).toBeGreaterThan(1);
+        expect(prefigureXML).toContain(`=x^2"`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some((x) =>
+                x.message.includes(
+                    "unsupported curve function definition type 'interpolated'",
+                ),
+            ),
+        ).eq(false);
     });
 
     it("renderer=prefigure warns that piecewise endpoint openness is approximated", async () => {

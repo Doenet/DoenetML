@@ -97,6 +97,188 @@ function parseFormulaDefinition(
     };
 }
 
+function intervalFromCurveDefinitionDomain(
+    domain: unknown,
+): IntervalPiece | null {
+    if (!Array.isArray(domain) || domain.length === 0) {
+        return null;
+    }
+
+    const firstDomain = domain[0] as any;
+
+    if (firstDomain?.tree !== undefined) {
+        const pieces = intervalPiecesFromMathTree(firstDomain.tree);
+        return pieces[0] ?? null;
+    }
+
+    if (
+        Array.isArray(firstDomain) &&
+        firstDomain.length >= 2 &&
+        Array.isArray(firstDomain[0]) &&
+        Array.isArray(firstDomain[1])
+    ) {
+        const endpoints = firstDomain[0];
+        const closedFlags = firstDomain[1];
+
+        const min = Number(endpoints[0]);
+        const max = Number(endpoints[1]);
+        if (
+            (!Number.isFinite(min) && min !== -Infinity) ||
+            (!Number.isFinite(max) && max !== Infinity)
+        ) {
+            return null;
+        }
+        if (min > max) {
+            return null;
+        }
+
+        return {
+            min,
+            max,
+            openMin: !Boolean(closedFlags[0]),
+            openMax: !Boolean(closedFlags[1]),
+        };
+    }
+
+    return null;
+}
+
+function parsedInterpolatedDefinitionPieces({
+    definition,
+    fallbackVariableName,
+    curveBounds,
+}: {
+    definition: CurveFunctionDefinition;
+    fallbackVariableName: string;
+    curveBounds: { min: number; max: number };
+}): ParsedFormulaPiecesResult | null {
+    const xs = Array.isArray(definition.xs)
+        ? definition.xs.map((x) => Number(x))
+        : null;
+    const coeffs = Array.isArray(definition.coeffs) ? definition.coeffs : null;
+
+    if (
+        !xs ||
+        !coeffs ||
+        xs.length < 2 ||
+        coeffs.length < 1 ||
+        coeffs.length !== xs.length - 1 ||
+        xs.some((x) => !Number.isFinite(x)) ||
+        coeffs.some(
+            (c) =>
+                !Array.isArray(c) ||
+                c.length < 4 ||
+                c.slice(0, 4).some((v) => !Number.isFinite(v)),
+        )
+    ) {
+        return null;
+    }
+
+    const parsedVariable = Array.isArray(definition.variables)
+        ? astToExpressionString(definition.variables[0])
+        : null;
+    const variableName = parsedVariable || fallbackVariableName;
+
+    const domainInterval = intervalFromCurveDefinitionDomain(
+        definition.domain,
+    ) ?? {
+        min: -Infinity,
+        max: Infinity,
+        openMin: false,
+        openMax: false,
+    };
+
+    const makeExpression = (coeff: number[], baseX: number): string => {
+        const shiftedVar = `(${variableName}-(${baseX}))`;
+        return `(${coeff[0]}+(${coeff[1]})*${shiftedVar}+(${coeff[2]})*${shiftedVar}^2+(${coeff[3]})*${shiftedVar}^3)`;
+    };
+
+    const rawPieces: ParsedFormulaPiece[] = [];
+
+    // Left extrapolation: x <= xs[0]
+    rawPieces.push({
+        parsed: {
+            variableName,
+            expression: makeExpression(coeffs[0], xs[0]),
+        },
+        interval: {
+            min: -Infinity,
+            max: xs[0],
+            openMin: true,
+            openMax: false,
+        },
+    });
+
+    // Interior interpolation segments.
+    for (let i = 0; i < coeffs.length; i += 1) {
+        rawPieces.push({
+            parsed: {
+                variableName,
+                expression: makeExpression(coeffs[i], xs[i]),
+            },
+            interval: {
+                min: xs[i],
+                max: xs[i + 1],
+                openMin: false,
+                openMax: false,
+            },
+        });
+    }
+
+    // Right extrapolation: x >= xs[last]
+    rawPieces.push({
+        parsed: {
+            variableName,
+            expression: makeExpression(
+                coeffs[coeffs.length - 1],
+                xs[xs.length - 2],
+            ),
+        },
+        interval: {
+            min: xs[xs.length - 1],
+            max: Infinity,
+            openMin: false,
+            openMax: true,
+        },
+    });
+
+    const pieces: ParsedFormulaPiece[] = [];
+    let hasOpenEndpoints = false;
+
+    for (const piece of rawPieces) {
+        const withDefinitionDomain = intersectIntervals(
+            piece.interval,
+            domainInterval,
+        );
+        if (!withDefinitionDomain) {
+            continue;
+        }
+
+        const clipped = intersectIntervalWithBounds(
+            withDefinitionDomain,
+            curveBounds,
+        );
+        if (!clipped) {
+            continue;
+        }
+
+        if (clipped.openMin || clipped.openMax) {
+            hasOpenEndpoints = true;
+        }
+
+        pieces.push({
+            parsed: piece.parsed,
+            interval: clipped,
+        });
+    }
+
+    return {
+        sourceType: "interpolated",
+        hasOpenEndpoints,
+        pieces,
+    };
+}
+
 function formatDomainBound(value: unknown): string | null {
     if (value === Infinity) {
         return "inf";
@@ -348,6 +530,14 @@ function parsedFormulaPiecesFromDefinition({
         };
     }
 
+    if (definition.functionType === "interpolated") {
+        return parsedInterpolatedDefinitionPieces({
+            definition,
+            fallbackVariableName,
+            curveBounds,
+        });
+    }
+
     if (definition.functionType !== "piecewise") {
         return null;
     }
@@ -375,11 +565,17 @@ function parsedFormulaPiecesFromDefinition({
 
     for (let i = 0; i < childDefinitions.length; i += 1) {
         const childDefinition = childDefinitions[i] as CurveFunctionDefinition;
-        const parsed = parseFormulaDefinition(
-            childDefinition,
+        const childPiecesResult = parsedFormulaPiecesFromDefinition({
+            definition: childDefinition,
             fallbackVariableName,
-        );
-        if (!parsed) {
+            curveBounds,
+            diagnostics,
+            warningPrefix,
+            warningPosition,
+            pieceRole: `${pieceRole} piecewise child`,
+        });
+
+        if (!childPiecesResult || childPiecesResult.pieces.length === 0) {
             pushWarning({
                 diagnostics,
                 message: `${warningPrefix}: ${pieceRole} piecewise child ${i + 1} has unsupported function definition type '${definitionTypeLabel(childDefinition)}'; child skipped.`,
@@ -388,20 +584,42 @@ function parsedFormulaPiecesFromDefinition({
             continue;
         }
 
+        if (childPiecesResult.hasOpenEndpoints) {
+            hasOpenEndpoints = true;
+        }
+
         const domainTree =
             effectiveDomains?.[i]?.toMathExpression?.()?.tree ?? null;
 
         for (const interval of intervalPiecesFromMathTree(domainTree)) {
-            const clipped = intersectIntervalWithBounds(interval, curveBounds);
-            if (!clipped) {
+            const effectiveInterval = intersectIntervalWithBounds(
+                interval,
+                curveBounds,
+            );
+            if (!effectiveInterval) {
                 continue;
             }
 
-            if (clipped.openMin || clipped.openMax) {
+            if (effectiveInterval.openMin || effectiveInterval.openMax) {
                 hasOpenEndpoints = true;
             }
 
-            pieces.push({ parsed, interval: clipped });
+            for (const childPiece of childPiecesResult.pieces) {
+                const overlap = intersectIntervals(
+                    childPiece.interval,
+                    effectiveInterval,
+                );
+                if (!overlap) {
+                    continue;
+                }
+                if (overlap.openMin || overlap.openMax) {
+                    hasOpenEndpoints = true;
+                }
+                pieces.push({
+                    parsed: childPiece.parsed,
+                    interval: overlap,
+                });
+            }
         }
     }
 
