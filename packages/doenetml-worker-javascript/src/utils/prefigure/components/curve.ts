@@ -111,6 +111,39 @@ function astToExpressionString(ast: unknown): string | null {
     }
 }
 
+function escapeRegex(value: string): string {
+    return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+/**
+ * Rewrite the variable symbol used in an expression string.
+ *
+ * This is used for parametric curves where x and y definitions may be authored
+ * with different variable names (for example, u and v), while PreFigure expects
+ * a single parameter in the emitted function signature.
+ */
+function rewriteExpressionVariable({
+    expression,
+    fromVariable,
+    toVariable,
+}: {
+    expression: string;
+    fromVariable: string;
+    toVariable: string;
+}): string {
+    if (!fromVariable || fromVariable === toVariable) {
+        return expression;
+    }
+
+    const escaped = escapeRegex(fromVariable);
+    const symbolPattern = new RegExp(
+        `(^|[^A-Za-z0-9_])(${escaped})(?=$|[^A-Za-z0-9_])`,
+        "g",
+    );
+
+    return expression.replace(symbolPattern, `$1${toVariable}`);
+}
+
 /**
  * Parse a simple formula-based curve function definition.
  * Extracts the expression and variable name; returns null if definition
@@ -1222,7 +1255,18 @@ function convertParametricCurve({
             }
 
             const pieceHandle = makePieceHandle(handle, pieceCounter);
-            const functionDefinition = `${pieceHandle}_r(${xPiece.parsed.variableName})=(${xPiece.parsed.expression},${yPiece.parsed.expression})`;
+            const parameterVariable = xPiece.parsed.variableName;
+            const xExpression = rewriteExpressionVariable({
+                expression: xPiece.parsed.expression,
+                fromVariable: xPiece.parsed.variableName,
+                toVariable: parameterVariable,
+            });
+            const yExpression = rewriteExpressionVariable({
+                expression: yPiece.parsed.expression,
+                fromVariable: yPiece.parsed.variableName,
+                toVariable: parameterVariable,
+            });
+            const functionDefinition = `${pieceHandle}_r(${parameterVariable})=(${xExpression},${yExpression})`;
             const attrs = [
                 `at="${escapeXml(pieceHandle)}"`,
                 `function="${escapeXml(functionDefinition)}"`,

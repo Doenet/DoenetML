@@ -1302,6 +1302,18 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).not.toContain(`fill-opacity="`);
     });
 
+    it("renderer=prefigure normalizes parameter names across parametric coordinates", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<curve><function variable="u">u^2</function><function variable="v">v^3</function></curve>',
+            ),
+        );
+
+        expect(prefigureXML).toContain(`<parametric-curve at="curve_0"`);
+        expect(prefigureXML).toContain(`function="curve_0_r(u)=(`);
+        expect(prefigureXML).not.toContain(`v^3`);
+    });
+
     it("renderer=prefigure maps bezier curve to PreFigure parametric-curve", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph('<curve through="(0,0) (1,2) (2,1)" />'),
@@ -1441,6 +1453,19 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
                 ),
             ),
         ).eq(false);
+    });
+
+    it.skip("renderer=prefigure respects union-domain gaps on interpolated functions", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<function through="(-3,1) (-2,0) (-1,1) (1,1) (2,0) (3,1)" domain="(-4,-1) union (1,4)" />',
+            ),
+        );
+
+        expect(prefigureXML).toContain(`<graph at="curve_0"`);
+        expect(prefigureXML).toContain(`domain="(-3,-2)"`);
+        expect(prefigureXML).toContain(`domain="(2,3)"`);
+        expect(prefigureXML).not.toContain(`domain="(-1,1)"`);
     });
 
     it("renderer=prefigure expands piecewise curve into graph pieces", async () => {
