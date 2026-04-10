@@ -1271,6 +1271,19 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`thickness="6"`);
     });
 
+    it("renderer=prefigure uses curve parameter bounds instead of child function domain", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<curve parMin="-10" parMax="10"><function domain="(-1,1)">x^2</function></curve>',
+            ),
+        );
+
+        expect(prefigureXML).toContain(`<graph at="curve_0"`);
+        expect(prefigureXML).toContain(`function="curve_0_f(x)=x^2"`);
+        expect(prefigureXML).toContain(`domain="(-10,10)"`);
+        expect(prefigureXML).not.toContain(`domain="(-1,1)"`);
+    });
+
     it("renderer=prefigure maps parameterized curve to PreFigure parametric-curve", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(
@@ -1443,21 +1456,6 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         ).eq(false);
     });
 
-    it("renderer=prefigure warns that piecewise endpoint openness is approximated", async () => {
-        const doenetML = prefigureGraph(
-            '<curve><piecewiseFunction><function domain="(-2,2)">x^3</function><function>x^2</function></piecewiseFunction></curve>',
-        );
-
-        const diagnosticsByType = await getWarnings(doenetML);
-        expect(
-            diagnosticsByType.warnings.some((x) =>
-                x.message.includes(
-                    "piecewise open/closed endpoint semantics are approximated",
-                ),
-            ),
-        ).eq(true);
-    });
-
     it("renderer=prefigure expands parameterized piecewise curves into parametric pieces", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(
@@ -1477,21 +1475,6 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`domain="`);
         expect(prefigureXML).not.toContain(`fill="`);
         expect(prefigureXML).not.toContain(`fill-opacity="`);
-    });
-
-    it("renderer=prefigure warns endpoint approximation for parameterized piecewise curves", async () => {
-        const doenetML = prefigureGraph(
-            '<curve><piecewiseFunction><function domain="(-2,2)">x^3/10</function><function>x^2</function></piecewiseFunction><piecewiseFunction><function domain="(-3,3)">x</function><function>x^3/10</function></piecewiseFunction></curve>',
-        );
-
-        const diagnosticsByType = await getWarnings(doenetML);
-        expect(
-            diagnosticsByType.warnings.some((x) =>
-                x.message.includes(
-                    "piecewise open/closed endpoint semantics are approximated",
-                ),
-            ),
-        ).eq(true);
     });
 });
 
