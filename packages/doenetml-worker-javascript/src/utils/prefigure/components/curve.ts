@@ -4,11 +4,13 @@ import { escapeXml, formatPoint, pushWarning } from "../common";
 import { labelMarkup } from "../label";
 import type { ConverterArgs, CurveFunctionDefinition } from "../types";
 
+/** A parsed formula with its variable and expression in string form. */
 interface ParsedFormulaDefinition {
     variableName: string;
     expression: string;
 }
 
+/** An interval with explicit open/closed endpoint flags. */
 interface IntervalPiece {
     min: number;
     max: number;
@@ -16,17 +18,26 @@ interface IntervalPiece {
     openMax: boolean;
 }
 
+/** A single piece of a piecewise function: the parsed formula and its valid interval. */
 interface ParsedFormulaPiece {
     parsed: ParsedFormulaDefinition;
     interval: IntervalPiece;
 }
 
+/** Result of parsing a function definition into pieces. */
 interface ParsedFormulaPiecesResult {
     sourceType: string;
     hasOpenEndpoints: boolean;
     pieces: ParsedFormulaPiece[];
 }
 
+/**
+ * Get the label string (if any) for a curve definition type.
+ * Returns a string representation of the functionType field.
+ *
+ * @param definition - The function definition (may be null)
+ * @returns Type label string (e.g., "formula", "piecewise") or "unknown"
+ */
 function definitionTypeLabel(
     definition: CurveFunctionDefinition | null,
 ): string {
@@ -36,6 +47,28 @@ function definitionTypeLabel(
     return `${definition.functionType}`;
 }
 
+/**
+ * Generate a unique handle for a curve piece in the PreFigure output.
+ * The first piece (index 0) uses the base handle as-is; subsequent pieces
+ * append an underscore and index number to ensure uniqueness.
+ *
+ * @param baseHandle - The base identifier for the curve element
+ * @param index - The piece index (0 for first, 1 for second, etc.)
+ * @returns The formatted handle string
+ */
+function makePieceHandle(baseHandle: string, index: number): string {
+    return index === 0 ? baseHandle : `${baseHandle}_${index}`;
+}
+
+/**
+ * Extract a function definition at a given index from the fDefinitions object.
+ * Handles both array-based and object-based storage formats for definitions,
+ * accommodating the flexible internal representation of curve function data.
+ *
+ * @param fDefinitions - The function definitions (may be array, object, or single definition)
+ * @param index - The index to retrieve
+ * @returns The definition at the index, or null if not found or invalid
+ */
 function curveDefinitionAtIndex(
     fDefinitions: unknown,
     index: number,
@@ -63,6 +96,13 @@ function curveDefinitionAtIndex(
     return null;
 }
 
+/**
+ * Convert a math-expressions AST to a string representation.
+ * Safely handles invalid ASTs by catching exceptions.
+ *
+ * @param ast - The abstract syntax tree from math-expressions
+ * @returns String representation of the expression, or null if conversion fails
+ */
 function astToExpressionString(ast: unknown): string | null {
     try {
         return me.fromAst(ast as any).toString();
@@ -71,6 +111,15 @@ function astToExpressionString(ast: unknown): string | null {
     }
 }
 
+/**
+ * Parse a simple formula-based curve function definition.
+ * Extracts the expression and variable name; returns null if definition
+ * is not a formula type or expression conversion fails.
+ *
+ * @param definition - The curve function definition
+ * @param fallbackVariableName - Variable name to use if not specified (e.g., "x" or "t")
+ * @returns Parsed definition with variable and expression, or null
+ */
 function parseFormulaDefinition(
     definition: CurveFunctionDefinition | null,
     fallbackVariableName: string,
@@ -97,6 +146,14 @@ function parseFormulaDefinition(
     };
 }
 
+/**
+ * Extract a domain interval from a curve function definition's domain property.
+ * Parses various domain formats (tree, array-based endpoints, etc.).
+ * Returns the first component of compound domains (intervals, sets, unions).
+ *
+ * @param domain - The domain property from a function definition
+ * @returns Parsed interval with open/closed flags, or null if invalid
+ */
 function intervalFromCurveDefinitionDomain(
     domain: unknown,
 ): IntervalPiece | null {
@@ -143,6 +200,14 @@ function intervalFromCurveDefinitionDomain(
     return null;
 }
 
+/**
+ * Parse interpolated cubic spline pieces from a function definition.
+ * Decodes the coefficients array (cubic polynomial pieces) and extrapolation,
+ * then clips all pieces to specified curve bounds.
+ *
+ * @param params - Object containing definition, variable name, and bounds
+ * @returns Parsed pieces with interpolated cubic expressions, or null if invalid
+ */
 function parsedInterpolatedDefinitionPieces({
     definition,
     fallbackVariableName,
@@ -279,6 +344,14 @@ function parsedInterpolatedDefinitionPieces({
     };
 }
 
+/**
+ * Format a domain bound value for PreFigure output.
+ * Converts JavaScript infinities to "inf"/"-inf" strings and finite numbers
+ * to their string representation. Non-numeric or NaN values return null.
+ *
+ * @param value - The boundary value to format (number, Infinity, etc.)
+ * @returns Formatted string ("inf", "-inf", number string) or null if invalid
+ */
 function formatDomainBound(value: unknown): string | null {
     if (value === Infinity) {
         return "inf";
@@ -292,6 +365,33 @@ function formatDomainBound(value: unknown): string | null {
     return `${Number(value)}`;
 }
 
+/**
+ * Extract and validate a numeric boundary value from curve state.
+ * Handles infinity and finite values; returns null for non-numeric inputs.
+ * Used to normalize parMin/parMax properties into validated numbers.
+ *
+ * @param value - The state value (may be unknown type)
+ * @param defaultInf - Default infinity value (unused, for semantic clarity)
+ * @returns Numeric bound (including infinities) or null if invalid
+ */
+function numericBoundFromStateValue(
+    value: unknown,
+    defaultInf: number,
+): number | null {
+    if (value === -Infinity || value === Infinity) {
+        return value as number;
+    }
+    return Number.isFinite(value) ? Number(value) : null;
+}
+
+/**
+ * Format a potentially-infinite domain value range for PreFigure output.
+ * Used for parameter bounds (parMin, parMax) that may be infinite.
+ * Returns null if either bound is invalid or non-numeric.
+ *
+ * @param params - Object with parMin and parMax (may be any type)
+ * @returns Formatted domain string (e.g., "(-2,3)" or "(-inf,inf)") or null
+ */
 function prefigureDomainFromStateValues({
     parMin,
     parMax,
@@ -307,6 +407,14 @@ function prefigureDomainFromStateValues({
     return `(${min},${max})`;
 }
 
+/**
+ * Validate and extract numeric curve bounds from Doenet state values.
+ * Ensures parMin and parMax are valid numbers (including infinities)
+ * and that min ≤ max.
+ *
+ * @param params - Object with parMin and parMax
+ * @returns Object with numeric min/max fields, or null if validation fails
+ */
 function domainBoundsFromStateValues({
     parMin,
     parMax,
@@ -314,18 +422,8 @@ function domainBoundsFromStateValues({
     parMin: unknown;
     parMax: unknown;
 }): { min: number; max: number } | null {
-    const min =
-        parMin === -Infinity
-            ? -Infinity
-            : Number.isFinite(parMin)
-              ? Number(parMin)
-              : null;
-    const max =
-        parMax === Infinity
-            ? Infinity
-            : Number.isFinite(parMax)
-              ? Number(parMax)
-              : null;
+    const min = numericBoundFromStateValue(parMin, -Infinity);
+    const max = numericBoundFromStateValue(parMax, Infinity);
 
     if (min === null || max === null || min > max) {
         return null;
@@ -334,6 +432,14 @@ function domainBoundsFromStateValues({
     return { min, max };
 }
 
+/**
+ * Parse interval definitions from a math-expressions tree structure.
+ * Supports interval notation (e.g., [-2, 2)), single-point sets, and unions
+ * of intervals. Returns an array of normalized interval pieces.
+ *
+ * @param tree - The math-expressions tree (operator + operands array)
+ * @returns Array of parsed interval pieces (empty if tree is invalid/empty)
+ */
 function intervalPiecesFromMathTree(tree: unknown): IntervalPiece[] {
     if (!Array.isArray(tree) || tree.length === 0) {
         return [];
@@ -406,6 +512,58 @@ function intervalPiecesFromMathTree(tree: unknown): IntervalPiece[] {
     return [];
 }
 
+/**
+ * Determine which interval's open/closed endpoint flags should be used for
+ * the result of an interval intersection operation.
+ *
+ * When two intervals are intersected, the resulting endpoints may come from
+ * either interval depending on which bounds the result. This function applies
+ * the logical rules: if an endpoint moves from one interval, it becomes closed;
+ * if both intervals share the same endpoint, the result inherits the combined
+ * openness (open if either is open).
+ *
+ * @param interval1 - First interval with endpoint flags
+ * @param interval2 - Second interval with endpoint flags
+ * @param resultMin - The minimum endpoint of the intersection result
+ * @param resultMax - The maximum endpoint of the intersection result
+ * @returns Object with computed openMin and openMax flags
+ */
+function computeOpenEndpoints(
+    interval1: { min: number; max: number; openMin: boolean; openMax: boolean },
+    interval2: { min: number; max: number; openMin: boolean; openMax: boolean },
+    resultMin: number,
+    resultMax: number,
+): { openMin: boolean; openMax: boolean } {
+    let openMin: boolean;
+    if (interval1.min > interval2.min) {
+        openMin = interval1.openMin;
+    } else if (interval1.min < interval2.min) {
+        openMin = interval2.openMin;
+    } else {
+        openMin = interval1.openMin || interval2.openMin;
+    }
+
+    let openMax: boolean;
+    if (interval1.max < interval2.max) {
+        openMax = interval1.openMax;
+    } else if (interval1.max > interval2.max) {
+        openMax = interval2.openMax;
+    } else {
+        openMax = interval1.openMax || interval2.openMax;
+    }
+
+    return { openMin, openMax };
+}
+
+/**
+ * Clip an interval to fit within specified bounds.
+ * Preserves open/closed endpoint semantics: endpoints moving due to bounds
+ * become closed; others retain their original openness.
+ *
+ * @param interval - The interval to clip
+ * @param bounds - The bounding box (closed on both sides)
+ * @returns Clipped interval, or null if the result is empty
+ */
 function intersectIntervalWithBounds(
     interval: IntervalPiece,
     bounds: { min: number; max: number },
@@ -439,12 +597,29 @@ function intersectIntervalWithBounds(
     };
 }
 
+/**
+ * Convert an interval piece to a PreFigure domain string format.
+ * Output format: "(min,max)" with "inf" and "-inf" for infinities.
+ *
+ * @param interval - The interval to format
+ * @returns PreFigure domain string (e.g., "(-2,3)" or "(-inf,inf)")
+ */
 function domainFromIntervalPiece(interval: IntervalPiece): string {
     const min = formatDomainBound(interval.min) ?? "-inf";
     const max = formatDomainBound(interval.max) ?? "inf";
     return `(${min},${max})`;
 }
 
+/**
+ * Find the intersection of two intervals, preserving open/closed semantics.
+ * When both intervals share an endpoint, that endpoint inherits both openness
+ * flags (open if either is open). Otherwise, the endpoint's openness comes
+ * from whichever interval contributed that boundary.
+ *
+ * @param interval1 - First interval
+ * @param interval2 - Second interval
+ * @returns The intersection interval, or null if empty or invalid
+ */
 function intersectIntervals(
     interval1: IntervalPiece,
     interval2: IntervalPiece,
@@ -456,23 +631,12 @@ function intersectIntervals(
         return null;
     }
 
-    let openMin: boolean;
-    if (interval1.min > interval2.min) {
-        openMin = interval1.openMin;
-    } else if (interval1.min < interval2.min) {
-        openMin = interval2.openMin;
-    } else {
-        openMin = interval1.openMin || interval2.openMin;
-    }
-
-    let openMax: boolean;
-    if (interval1.max < interval2.max) {
-        openMax = interval1.openMax;
-    } else if (interval1.max > interval2.max) {
-        openMax = interval2.openMax;
-    } else {
-        openMax = interval1.openMax || interval2.openMax;
-    }
+    const { openMin, openMax } = computeOpenEndpoints(
+        interval1,
+        interval2,
+        min,
+        max,
+    );
 
     if (min === max && (openMin || openMax)) {
         return null;
@@ -486,6 +650,22 @@ function intersectIntervals(
     };
 }
 
+/**
+ * Recursively parse formula pieces from a function definition.
+ * Handles formulas, interpolated functions, and piecewise definitions.
+ * For piecewise definitions, recursively processes children and intersects
+ * their intervals with effective domains computed from the parent.
+ *
+ * @param params - Object containing:
+ *   - definition: The function definition to parse
+ *   - fallbackVariableName: Default variable name ("x", "t", etc.)
+ *   - curveBounds: Valid parameter bounds for clipping results
+ *   - diagnostics: Warning collector
+ *   - warningPrefix: Prefix for diagnostic messages
+ *   - warningPosition: Source position for diagnostics
+ *   - pieceRole: Role descriptor for nested errors (e.g., "x component")
+ * @returns Parsed pieces with open endpoint tracking, or null if definition is invalid
+ */
 function parsedFormulaPiecesFromDefinition({
     definition,
     fallbackVariableName,
@@ -630,6 +810,12 @@ function parsedFormulaPiecesFromDefinition({
     };
 }
 
+/**
+ * Emit a diagnostic warning that curve labels are not supported in PreFigure.
+ * Only warns if the curve actually has a label defined.
+ *
+ * @param params - Object containing label/labelHasLatex, diagnostics, and position
+ */
 function warnCurveLabelOmitted({
     label,
     labelHasLatex,
@@ -657,18 +843,68 @@ function warnCurveLabelOmitted({
     }
 }
 
-function emitFunctionGraph({
+/**
+ * Validate that a parsed formula pieces result has content.
+ * Emits a warning diagnostic if the result is missing or empty.
+ * Used to consolidate validation logic across multiple converter functions.
+ *
+ * @param result - The pieces result to validate
+ * @param diagnostics - Diagnostic collector for warning messages
+ * @param warningPrefix - Prefix for warning messages (e.g., curve handle)
+ * @param warningPosition - Source position for LSP diagnostics
+ * @param definitionTypeLabel - Label for the definition type in error messages
+ * @returns True if result is valid and non-empty; false otherwise
+ */
+function validatePiecesResult(
+    result: ParsedFormulaPiecesResult | null,
+    diagnostics: ConverterArgs["diagnostics"],
+    warningPrefix: string,
+    warningPosition: ConverterArgs["warningPosition"],
+    definitionTypeLabel: string,
+): boolean {
+    if (!result || result.pieces.length === 0) {
+        pushWarning({
+            diagnostics,
+            message: `${warningPrefix}: unsupported curve function definition type '${definitionTypeLabel}'; descendant skipped.`,
+            position: warningPosition,
+        });
+        return false;
+    }
+    return true;
+}
+
+/**
+ * Generate a PreFigure XML element for a curve piece.
+ * Unifies emission of both <graph> (Cartesian) and <parametric-curve> elements
+ * by abstracting the tag type and function definition format.
+ *
+ * @param params - Object containing:
+ *   - handle: Unique identifier for this curve piece
+ *   - styleAttrs: Array of style attribute strings (stroke, thickness, etc.)
+ *   - parsed: Variable name and expression definition
+ *   - domain: Optional domain string; omitted for parametric curves
+ *   - isParametric: True for parametric curves, false for Cartesian functions
+ * @returns Complete XML element string (self-closing)
+ */
+function emitCurveElement({
     handle,
     styleAttrs,
     parsed,
     domain,
+    isParametric,
 }: {
     handle: string;
     styleAttrs: string[];
     parsed: ParsedFormulaDefinition;
     domain: string | null;
+    isParametric: boolean;
 }): string {
-    const functionDefinition = `${handle}_f(${parsed.variableName})=${parsed.expression}`;
+    const tagName = isParametric ? "parametric-curve" : "graph";
+    const prefix = isParametric ? "r" : "f";
+    const functionDefinition = isParametric
+        ? `${handle}_${prefix}(${parsed.variableName})=(${parsed.expression},${parsed.variableName})`
+        : `${handle}_${prefix}(${parsed.variableName})=${parsed.expression}`;
+
     const attrs = [
         `at="${escapeXml(handle)}"`,
         `function="${escapeXml(functionDefinition)}"`,
@@ -676,31 +912,17 @@ function emitFunctionGraph({
         ...styleAttrs,
     ];
 
-    return `<graph ${attrs.join(" ")} />`;
+    return `<${tagName} ${attrs.join(" ")} />`;
 }
 
-function emitFunctionAsParametric({
-    handle,
-    styleAttrs,
-    parsed,
-    domain,
-}: {
-    handle: string;
-    styleAttrs: string[];
-    parsed: ParsedFormulaDefinition;
-    domain: string;
-}): string {
-    const functionDefinition = `${handle}_r(${parsed.variableName})=(${parsed.expression},${parsed.variableName})`;
-    const attrs = [
-        `at="${escapeXml(handle)}"`,
-        `function="${escapeXml(functionDefinition)}"`,
-        `domain="${escapeXml(domain)}"`,
-        ...styleAttrs,
-    ];
-
-    return `<parametric-curve ${attrs.join(" ")} />`;
-}
-
+/**
+ * Convert a Doenet function curve to PreFigure <graph> or <parametric-curve>.
+ * Handles formula, interpolated, and piecewise function definitions.
+ * Optionally flips the function (swaps x and y) for inverted rendering.
+ *
+ * @param args - Standard converter arguments
+ * @returns PreFigure XML element(s) or null if conversion fails
+ */
 function convertFunctionCurve({
     sv,
     handle,
@@ -729,48 +951,43 @@ function convertFunctionCurve({
         pieceRole: "function",
     });
 
-    if (!result || result.pieces.length === 0) {
-        pushWarning({
+    if (
+        !validatePiecesResult(
+            result,
             diagnostics,
-            message: `${warningPrefix}: unsupported curve function definition type '${definitionTypeLabel(definition)}'; descendant skipped.`,
-            position: warningPosition,
-        });
+            warningPrefix,
+            warningPosition,
+            definitionTypeLabel(definition),
+        )
+    ) {
         return null;
     }
 
-    if (result.sourceType === "piecewise" && result.hasOpenEndpoints) {
-        pushWarning({
-            diagnostics,
-            message: `${warningPrefix}: piecewise open/closed endpoint semantics are approximated in prefigure output.`,
-            position: warningPosition,
-        });
-    }
+    // After validation check, result is guaranteed to be non-null
+    const validResult = result as ParsedFormulaPiecesResult;
 
-    if (sv.flipFunction) {
-        return result.pieces
-            .map(({ parsed, interval }, i) =>
-                emitFunctionAsParametric({
-                    handle: i === 0 ? handle : `${handle}_${i}`,
-                    styleAttrs,
-                    parsed,
-                    domain: domainFromIntervalPiece(interval),
-                }),
-            )
-            .join("");
-    }
-
-    return result.pieces
+    return validResult.pieces
         .map(({ parsed, interval }, i) =>
-            emitFunctionGraph({
-                handle: i === 0 ? handle : `${handle}_${i}`,
+            emitCurveElement({
+                handle: makePieceHandle(handle, i),
                 styleAttrs,
                 parsed,
                 domain: domainFromIntervalPiece(interval),
+                isParametric: Boolean(sv.flipFunction),
             }),
         )
         .join("");
 }
 
+/**
+ * Convert a Doenet parameterized (2D parametric) curve to PreFigure.
+ * Processes two function definitions (x and y) as separate dimensions.
+ * Generates one <parametric-curve> element for each distinct piece region
+ * where both x and y have valid definitions.
+ *
+ * @param args - Standard converter arguments
+ * @returns PreFigure XML element(s) or null if conversion fails
+ */
 function convertParametricCurve({
     sv,
     handle,
@@ -811,32 +1028,33 @@ function convertParametricCurve({
     });
 
     if (
-        !xPiecesResult ||
-        !yPiecesResult ||
-        xPiecesResult.pieces.length === 0 ||
-        yPiecesResult.pieces.length === 0
-    ) {
-        pushWarning({
+        !validatePiecesResult(
+            xPiecesResult,
             diagnostics,
-            message: `${warningPrefix}: unsupported parametric curve function definition types ('${definitionTypeLabel(xDefinition)}', '${definitionTypeLabel(yDefinition)}'); descendant skipped.`,
-            position: warningPosition,
-        });
+            warningPrefix,
+            warningPosition,
+            `${definitionTypeLabel(xDefinition)}, ${definitionTypeLabel(yDefinition)}`,
+        ) ||
+        !validatePiecesResult(
+            yPiecesResult,
+            diagnostics,
+            warningPrefix,
+            warningPosition,
+            `${definitionTypeLabel(xDefinition)}, ${definitionTypeLabel(yDefinition)}`,
+        )
+    ) {
         return null;
     }
 
-    if (xPiecesResult.hasOpenEndpoints || yPiecesResult.hasOpenEndpoints) {
-        pushWarning({
-            diagnostics,
-            message: `${warningPrefix}: piecewise open/closed endpoint semantics are approximated in prefigure output.`,
-            position: warningPosition,
-        });
-    }
+    // After validation checks, results are guaranteed to be non-null
+    const validXPiecesResult = xPiecesResult as ParsedFormulaPiecesResult;
+    const validYPiecesResult = yPiecesResult as ParsedFormulaPiecesResult;
 
     const pieceXml: string[] = [];
     let pieceCounter = 0;
 
-    for (const xPiece of xPiecesResult.pieces) {
-        for (const yPiece of yPiecesResult.pieces) {
+    for (const xPiece of validXPiecesResult.pieces) {
+        for (const yPiece of validYPiecesResult.pieces) {
             const overlap = intersectIntervals(
                 xPiece.interval,
                 yPiece.interval,
@@ -845,8 +1063,7 @@ function convertParametricCurve({
                 continue;
             }
 
-            const pieceHandle =
-                pieceCounter === 0 ? handle : `${handle}_${pieceCounter}`;
+            const pieceHandle = makePieceHandle(handle, pieceCounter);
             const functionDefinition = `${pieceHandle}_r(${xPiece.parsed.variableName})=(${xPiece.parsed.expression},${yPiece.parsed.expression})`;
             const attrs = [
                 `at="${escapeXml(pieceHandle)}"`,
@@ -867,6 +1084,13 @@ function convertParametricCurve({
     return pieceXml.join("");
 }
 
+/**
+ * Extract through-points array from numerical Bezier curve data.
+ * Validates that at least 2 points are present and all points format correctly.
+ *
+ * @param numericalThroughPoints - Array of point coordinates
+ * @returns Array of formatted point strings, or null if array is invalid
+ */
 function pointsFromNumericalThroughPoints(
     numericalThroughPoints: unknown,
 ): string[] | null {
@@ -885,6 +1109,14 @@ function pointsFromNumericalThroughPoints(
     return points;
 }
 
+/**
+ * Convert a Doenet Bezier curve (through points) to PreFigure <spline>.
+ * Handles both open and closed (periodic) splines.
+ * Domain is taken from curve parameter bounds if finite.
+ *
+ * @param args - Standard converter arguments
+ * @returns PreFigure <spline> element or null if conversion fails
+ */
 function convertBezierCurve({
     sv,
     handle,
@@ -928,6 +1160,17 @@ function convertBezierCurve({
 
 /**
  * Converts Doenet curve descendants into native PreFigure curve-family tags.
+ *
+ * Routes curve conversion based on curve type:
+ * - "function" → <graph> or <parametric-curve> (if flipped)
+ * - "parameterization" → <parametric-curve> (2D parametric)
+ * - "bezier" → <spline> (through-points curve)
+ *
+ * Also handles warnings for unsupported labels and diagnostics for incomplete
+ * geometry (non-finite domains, invalid data).
+ *
+ * @param args - Converter arguments containing state values, diagnostics, etc.
+ * @returns PreFigure XML element(s) or null if the curve cannot be converted
  */
 export function convertCurveToPrefigure(args: ConverterArgs): string | null {
     const { sv } = args;
