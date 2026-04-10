@@ -1329,7 +1329,7 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).not.toContain(`<spline `);
     });
 
-    it("renderer=prefigure currently leaks bezier control vectors from graph descendants", async () => {
+    it("renderer=prefigure excludes bezier control vectors from graph descendants", async () => {
         const { graphState, prefigureXML } = await getGraphRendererState(
             prefigureGraph(
                 '<curve through="(0,0) (1,2) (2,1)"><bezierControls alwaysVisible>(1,1) (-1,1) (1,-1) (-1,-1)</bezierControls></curve>',
