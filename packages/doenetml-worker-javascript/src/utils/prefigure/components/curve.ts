@@ -384,9 +384,9 @@ function parsedBezierDefinitionPieces({
         if (!Array.isArray(segment) || !Array.isArray(segment[component])) {
             return null;
         }
-        const coeffs = segment[component].slice(0, 4).map((v: unknown) =>
-            Number(v),
-        );
+        const coeffs = segment[component]
+            .slice(0, 4)
+            .map((v: unknown) => Number(v));
         if (coeffs.length < 4 || coeffs.some((v) => !Number.isFinite(v))) {
             return null;
         }
@@ -410,9 +410,9 @@ function parsedBezierDefinitionPieces({
         if (!Array.isArray(componentCoeffs)) {
             return null;
         }
-        const coeffs = componentCoeffs.slice(0, 3).map((v: unknown) =>
-            Number(v),
-        );
+        const coeffs = componentCoeffs
+            .slice(0, 3)
+            .map((v: unknown) => Number(v));
         if (coeffs.length < 3 || coeffs.some((v) => !Number.isFinite(v))) {
             return null;
         }
@@ -488,7 +488,10 @@ function parsedBezierDefinitionPieces({
     let hasOpenEndpoints = false;
 
     for (const piece of rawPieces) {
-        const clipped = intersectIntervalWithBounds(piece.interval, curveBounds);
+        const clipped = intersectIntervalWithBounds(
+            piece.interval,
+            curveBounds,
+        );
         if (!clipped) {
             continue;
         }
