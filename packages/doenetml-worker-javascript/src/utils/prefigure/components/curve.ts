@@ -1271,23 +1271,35 @@ function convertParametricCurve({
     const validXPiecesResult = xPiecesResult as ParsedFormulaPiecesResult;
     const validYPiecesResult = yPiecesResult as ParsedFormulaPiecesResult;
 
+    const comparePiecesByIntervalStart = (
+        a: ParsedFormulaPiece,
+        b: ParsedFormulaPiece,
+    ) => {
+        if (a.interval.min !== b.interval.min) {
+            return a.interval.min - b.interval.min;
+        }
+        return a.interval.max - b.interval.max;
+    };
+
+    const xPieces = [...validXPiecesResult.pieces].sort(
+        comparePiecesByIntervalStart,
+    );
+    const yPieces = [...validYPiecesResult.pieces].sort(
+        comparePiecesByIntervalStart,
+    );
+
     const pieceXml: string[] = [];
     let pieceCounter = 0;
+    let xIndex = 0;
+    let yIndex = 0;
 
-    for (const xPiece of validXPiecesResult.pieces) {
-        for (const yPiece of validYPiecesResult.pieces) {
-            const overlap = intersectIntervals(
-                xPiece.interval,
-                yPiece.interval,
-            );
-            if (!overlap) {
-                continue;
-            }
+    // Sweep both sorted piece lists to emit only overlapping interval pairs.
+    while (xIndex < xPieces.length && yIndex < yPieces.length) {
+        const xPiece = xPieces[xIndex];
+        const yPiece = yPieces[yIndex];
 
-            if (overlap.min === overlap.max) {
-                continue;
-            }
-
+        const overlap = intersectIntervals(xPiece.interval, yPiece.interval);
+        if (overlap && overlap.min !== overlap.max) {
             const pieceHandle = makePieceHandle(handle, pieceCounter);
             const parameterVariable = xPiece.parsed.variableName;
             const xExpression = rewriteExpressionVariable({
@@ -1310,6 +1322,15 @@ function convertParametricCurve({
 
             pieceXml.push(`<parametric-curve ${attrs.join(" ")} />`);
             pieceCounter += 1;
+        }
+
+        if (xPiece.interval.max < yPiece.interval.max) {
+            xIndex += 1;
+        } else if (xPiece.interval.max > yPiece.interval.max) {
+            yIndex += 1;
+        } else {
+            xIndex += 1;
+            yIndex += 1;
         }
     }
 

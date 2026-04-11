@@ -1567,6 +1567,20 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).not.toContain(`fill="`);
         expect(prefigureXML).not.toContain(`fill-opacity="`);
     });
+
+    it("renderer=prefigure emits overlap-count pieces for large aligned parametric piecewise inputs", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<curve><piecewiseFunction><function domain="(-8,-6)">x</function><function domain="(-6,-4)">x</function><function domain="(-4,-2)">x</function><function domain="(-2,0)">x</function><function domain="(0,2)">x</function><function domain="(2,4)">x</function><function domain="(4,6)">x</function><function domain="(6,8)">x</function></piecewiseFunction><piecewiseFunction><function domain="(-8,-6)">x^2</function><function domain="(-6,-4)">x^2</function><function domain="(-4,-2)">x^2</function><function domain="(-2,0)">x^2</function><function domain="(0,2)">x^2</function><function domain="(2,4)">x^2</function><function domain="(4,6)">x^2</function><function domain="(6,8)">x^2</function></piecewiseFunction></curve>',
+            ),
+        );
+
+        const pieceCount = (
+            prefigureXML.match(/<parametric-curve at="curve_0/g) ?? []
+        ).length;
+
+        expect(pieceCount).eq(8);
+    });
 });
 
 // ─── point label alignment overflow ──────────────────────────────────────────
