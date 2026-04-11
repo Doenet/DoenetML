@@ -135,15 +135,15 @@ export function getDescriptionTemplate(
         case "equilibriumpoint":
             return `An equilibrium point with x-coordinate $${componentName}.x and y-coordinate $${componentName}.y.${unnamedHint}`;
         case "circle":
-            return `A circle with radius $${componentName}.r centered at ($${componentName}.center.x, $${componentName}.center.y).${unnamedHint}`;
+            return `A circle with radius $${componentName}.r centered at x-coordinate $${componentName}.center.x and y-coordinate $${componentName}.center.y.${unnamedHint}`;
         case "line":
             return `A line.${unnamedHint}`;
         case "linesegment":
-            return `A line segment with endpoints at ($${componentName}.point1.x, $${componentName}.point1.y) and ($${componentName}.point2.x, $${componentName}.point2.y).${unnamedHint}`;
+            return `A line segment with endpoints at first point with x-coordinate $${componentName}.point1.x and y-coordinate $${componentName}.point1.y, and second point with x-coordinate $${componentName}.point2.x and y-coordinate $${componentName}.point2.y.${unnamedHint}`;
         case "ray":
-            return `A ray starting at ($${componentName}.point1.x, $${componentName}.point1.y) passing through ($${componentName}.point2.x, $${componentName}.point2.y).${unnamedHint}`;
+            return `A ray starting at x-coordinate $${componentName}.point1.x and y-coordinate $${componentName}.point1.y, passing through x-coordinate $${componentName}.point2.x and y-coordinate $${componentName}.point2.y.${unnamedHint}`;
         case "vector":
-            return `A vector with tail at ($${componentName}.point1.x, $${componentName}.point1.y) and endpoint at ($${componentName}.point2.x, $${componentName}.point2.y).${unnamedHint}`;
+            return `A vector with tail at x-coordinate $${componentName}.point1.x and y-coordinate $${componentName}.point1.y, and endpoint at x-coordinate $${componentName}.point2.x and y-coordinate $${componentName}.point2.y.${unnamedHint}`;
         case "polyline":
             return `A polyline with vertices at positions defined by $${componentName}.points.${unnamedHint}`;
         case "polygon":
@@ -153,7 +153,7 @@ export function getDescriptionTemplate(
         case "rectangle":
             return `A rectangle of width $${componentName}.width and height $${componentName}.height.${unnamedHint}`;
         case "angle":
-            return `An angle formed by a vertex at ($${componentName}.vertex.x, $${componentName}.vertex.y).${unnamedHint}`;
+            return `An angle formed by a vertex at x-coordinate $${componentName}.vertex.x and y-coordinate $${componentName}.vertex.y.${unnamedHint}`;
         case "curve":
             return `A curve.${unnamedHint}`;
         default:
