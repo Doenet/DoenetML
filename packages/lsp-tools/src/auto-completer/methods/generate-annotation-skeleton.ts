@@ -311,7 +311,7 @@ export function renderAnnotationNodeToSnippetXml(
 }
 
 /**
- * Generate the dynamic annotation-skeleton snippet for a prefigure graph.
+ * Generate the dynamic annotations-skeleton snippet for a prefigure graph.
  */
 export function generateAnnotationSkeletonSnippet(
     graphElement: DastElement,
@@ -328,7 +328,7 @@ export function generateAnnotationSkeletonSnippet(
     const snippet = snippetWithCursorMarker.replace(CURSOR_MARKER, "");
 
     return {
-        key: "annotation-skeleton",
+        key: "annotations-skeleton",
         element: "annotations",
         snippet,
         description: "Auto-generated annotation structure for graph components",

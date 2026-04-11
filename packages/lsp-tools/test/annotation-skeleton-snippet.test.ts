@@ -59,7 +59,7 @@ describe("Annotation skeleton snippet generation", () => {
         const snippet = generateAnnotationSkeletonSnippet(graph);
 
         expect(snippet).toBeTruthy();
-        expect(snippet?.key).toBe("annotation-skeleton");
+        expect(snippet?.key).toBe("annotations-skeleton");
         expect(snippet?.snippet).toContain("<annotations>");
         expect(snippet?.snippet).toContain(
             '<annotation text="A graph of a point, a circle, and a line.">',
@@ -335,7 +335,7 @@ describe("Annotation skeleton autocomplete integration", () => {
         ],
     };
 
-    it("offers annotation-skeleton snippet when typing < inside prefigure graph body", () => {
+    it("offers annotations-skeleton snippet when typing < inside prefigure graph body", () => {
         const source = `<graph renderer="prefigure">
   <point name="P" />
   <
@@ -348,7 +348,7 @@ describe("Annotation skeleton autocomplete integration", () => {
 
         const items = autoCompleter.getCompletionItems(offset);
         const annotationSnippetItem = items.find(
-            (item) => item.label === "annotation-skeleton",
+            (item) => item.label === "annotations-skeleton",
         );
 
         expect(annotationSnippetItem).toBeTruthy();
@@ -360,7 +360,7 @@ describe("Annotation skeleton autocomplete integration", () => {
         }
     });
 
-    it("does not offer annotation-skeleton snippet in non-prefigure graph", () => {
+    it("does not offer annotations-skeleton snippet in non-prefigure graph", () => {
         const source = `<graph renderer="doenet">
   <point name="P" />
   <
@@ -372,12 +372,12 @@ describe("Annotation skeleton autocomplete integration", () => {
         const offset = source.indexOf("  <\n") + 3;
 
         const items = autoCompleter.getCompletionItems(offset);
-        expect(items.some((item) => item.label === "annotation-skeleton")).toBe(
-            false,
-        );
+        expect(
+            items.some((item) => item.label === "annotations-skeleton"),
+        ).toBe(false);
     });
 
-    it("does not offer annotation-skeleton snippet when immediate parent is not graph", () => {
+    it("does not offer annotations-skeleton snippet when immediate parent is not graph", () => {
         const source = `<graph renderer="prefigure">
   <group>
     <point name="P" />
@@ -391,8 +391,8 @@ describe("Annotation skeleton autocomplete integration", () => {
         const offset = source.indexOf("    <\n") + 5;
 
         const items = autoCompleter.getCompletionItems(offset);
-        expect(items.some((item) => item.label === "annotation-skeleton")).toBe(
-            false,
-        );
+        expect(
+            items.some((item) => item.label === "annotations-skeleton"),
+        ).toBe(false);
     });
 });
