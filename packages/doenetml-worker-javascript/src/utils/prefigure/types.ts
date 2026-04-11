@@ -55,6 +55,7 @@ export interface PrefigureStateValues extends Record<string, unknown> {
     label?: string;
     labelHasLatex?: boolean;
     labelPosition?: string;
+    hidden?: boolean;
     open?: boolean;
     filled?: boolean;
     swapPointOrder?: boolean;

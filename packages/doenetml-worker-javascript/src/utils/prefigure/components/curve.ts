@@ -714,15 +714,11 @@ function intervalPiecesFromMathTree(tree: unknown): IntervalPiece[] {
  *
  * @param interval1 - First interval with endpoint flags
  * @param interval2 - Second interval with endpoint flags
- * @param resultMin - The minimum endpoint of the intersection result
- * @param resultMax - The maximum endpoint of the intersection result
  * @returns Object with computed openMin and openMax flags
  */
 function computeOpenEndpoints(
     interval1: { min: number; max: number; openMin: boolean; openMax: boolean },
     interval2: { min: number; max: number; openMin: boolean; openMax: boolean },
-    resultMin: number,
-    resultMax: number,
 ): { openMin: boolean; openMax: boolean } {
     let openMin: boolean;
     if (interval1.min > interval2.min) {
@@ -821,12 +817,7 @@ function intersectIntervals(
         return null;
     }
 
-    const { openMin, openMax } = computeOpenEndpoints(
-        interval1,
-        interval2,
-        min,
-        max,
-    );
+    const { openMin, openMax } = computeOpenEndpoints(interval1, interval2);
 
     if (min === max && (openMin || openMax)) {
         return null;
@@ -1103,7 +1094,7 @@ function validatePiecesResult(
  *   - handle: Unique identifier for this curve piece
  *   - styleAttrs: Array of style attribute strings (stroke, thickness, etc.)
  *   - parsed: Variable name and expression definition
- *   - domain: Optional domain string; omitted for parametric curves
+ *   - domain: Optional domain string; included whenever non-null
  *   - isParametric: True for parametric curves, false for Cartesian functions
  * @returns Complete XML element string (self-closing)
  */
