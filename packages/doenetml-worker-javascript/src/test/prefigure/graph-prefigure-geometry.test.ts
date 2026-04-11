@@ -1348,9 +1348,12 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        const vectorDescendants = (
-            graphState.graphicalDescendants ?? []
-        ).filter((x) => x.componentType === "vector");
+        const descendants = (graphState.graphicalDescendants ?? []) as Array<{
+            componentType?: string;
+        }>;
+        const vectorDescendants = descendants.filter(
+            (x) => x.componentType === "vector",
+        );
 
         expect(vectorDescendants.length).toBeGreaterThan(0);
         expect(prefigureXML).not.toContain(`<vector `);
@@ -1488,6 +1491,25 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(relevantWarnings.length).eq(1);
     });
 
+    it("renderer=prefigure does not report supported empty piecewise child as unsupported", async () => {
+        const doenetML = prefigureGraph(
+            '<curve parMin="-1" parMax="1"><piecewiseFunction><function through="(2,2) (3,3) (4,2)" domain="(2,4)" /><function domain="(-1,1)">x^2</function></piecewiseFunction></curve>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).toContain(`<graph at="curve_0"`);
+        expect(prefigureXML).toContain(`=x^2"`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some((x) =>
+                x.message.includes(
+                    "unsupported function definition type 'interpolated'",
+                ),
+            ),
+        ).eq(false);
+    });
+
     it("renderer=prefigure expands piecewise curve into graph pieces", async () => {
         const prefigureXML = await getPrefigureXML(
             prefigureGraph(
@@ -1620,7 +1642,7 @@ describe("point label alignment overflow @group4", () => {
                 numericalXs: [9.5, 9.5],
                 // graphBounds intentionally omitted
             },
-            warnings: [],
+            diagnostics: [],
             warningPrefix: "test",
         });
         expect(result?.attrs).toContain(`alignment="ne"`);

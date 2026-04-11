@@ -589,13 +589,9 @@ function formatDomainBound(value: unknown): string | null {
  * Used to normalize parMin/parMax properties into validated numbers.
  *
  * @param value - The state value (may be unknown type)
- * @param defaultInf - Default infinity value (unused, for semantic clarity)
  * @returns Numeric bound (including infinities) or null if invalid
  */
-function numericBoundFromStateValue(
-    value: unknown,
-    defaultInf: number,
-): number | null {
+function numericBoundFromStateValue(value: unknown): number | null {
     if (value === -Infinity || value === Infinity) {
         return value as number;
     }
@@ -617,8 +613,8 @@ function domainBoundsFromStateValues({
     parMin: unknown;
     parMax: unknown;
 }): { min: number; max: number } | null {
-    const min = numericBoundFromStateValue(parMin, -Infinity);
-    const max = numericBoundFromStateValue(parMax, Infinity);
+    const min = numericBoundFromStateValue(parMin);
+    const max = numericBoundFromStateValue(parMax);
 
     if (min === null || max === null || min > max) {
         return null;
@@ -711,11 +707,10 @@ function intervalPiecesFromMathTree(tree: unknown): IntervalPiece[] {
  * Determine which interval's open/closed endpoint flags should be used for
  * the result of an interval intersection operation.
  *
- * When two intervals are intersected, the resulting endpoints may come from
- * either interval depending on which bounds the result. This function applies
- * the logical rules: if an endpoint moves from one interval, it becomes closed;
- * if both intervals share the same endpoint, the result inherits the combined
- * openness (open if either is open).
+ * When two intervals are intersected, each resulting endpoint inherits its
+ * open/closed flag from whichever interval contributes that boundary to the
+ * intersection. If both intervals share the same endpoint value, the result is
+ * open at that endpoint if either interval is open there.
  *
  * @param interval1 - First interval with endpoint flags
  * @param interval2 - Second interval with endpoint flags
@@ -958,10 +953,19 @@ function parsedFormulaPiecesFromDefinition({
             pieceRole: `${pieceRole} piecewise child`,
         });
 
-        if (!childPiecesResult || childPiecesResult.pieces.length === 0) {
+        if (!childPiecesResult) {
             pushWarning({
                 diagnostics,
                 message: `${warningPrefix}: ${pieceRole} piecewise child ${i + 1} has unsupported function definition type '${definitionTypeLabel(childDefinition)}'; child skipped.`,
+                position: warningPosition,
+            });
+            continue;
+        }
+
+        if (childPiecesResult.pieces.length === 0) {
+            pushWarning({
+                diagnostics,
+                message: `${warningPrefix}: ${pieceRole} piecewise child ${i + 1} has no pieces overlapping the active domain/bounds; child skipped.`,
                 position: warningPosition,
             });
             continue;
