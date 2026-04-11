@@ -1,0 +1,299 @@
+import type { CompletionSnippetCursor } from "@doenet/static-assets/completion-snippet-protocol";
+import { DastElement, toXml } from "@doenet/parser";
+
+const CURSOR_MARKER = "__ANNOTATION_SKELETON_CURSOR__";
+
+const GRAPHICAL_COMPONENT_TYPES = new Set(["point", "circle", "line"]);
+
+export interface GraphicalComponent {
+    type: string;
+    name?: string;
+    elementIndex: number;
+    dastElement: DastElement;
+}
+
+export interface AnnotationNode {
+    type: "annotations" | "annotation";
+    ref?: string;
+    text?: string;
+    children?: AnnotationNode[];
+}
+
+export type ProcessedSnippet = {
+    key: string;
+    element: string;
+    snippet: string;
+    description: string;
+    cursor?: CompletionSnippetCursor;
+};
+
+function getAttributeValue(
+    element: DastElement,
+    attributeName: string,
+): string | undefined {
+    const attr = element.attributes[attributeName];
+    if (!attr) {
+        return undefined;
+    }
+
+    const value = toXml(attr.children).trim();
+    return value.length > 0 ? value : undefined;
+}
+
+function escapeXmlAttributeValue(value: string): string {
+    return value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/\"/g, "&quot;");
+}
+
+function capitalize(value: string) {
+    if (value.length === 0) {
+        return value;
+    }
+    return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+/**
+ * Recursively extract graphical descendants from a graph element.
+ * Existing `<annotations>` subtrees are intentionally ignored.
+ */
+export function extractGraphicalChildren(
+    graphElement: DastElement,
+): GraphicalComponent[] {
+    const graphicalComponents: GraphicalComponent[] = [];
+
+    function visitElement(element: DastElement, elementIndex: number) {
+        const normalizedType = element.name.toLowerCase();
+
+        if (normalizedType === "annotations") {
+            return;
+        }
+
+        if (GRAPHICAL_COMPONENT_TYPES.has(normalizedType)) {
+            graphicalComponents.push({
+                type: normalizedType,
+                name: getAttributeValue(element, "name"),
+                elementIndex,
+                dastElement: element,
+            });
+        }
+
+        element.children.forEach((child, index) => {
+            if (child.type === "element") {
+                visitElement(child, index);
+            }
+        });
+    }
+
+    graphElement.children.forEach((child, index) => {
+        if (child.type === "element") {
+            visitElement(child, index);
+        }
+    });
+
+    return graphicalComponents;
+}
+
+/**
+ * Get the default annotation text template for a graphical component.
+ */
+export function getDescriptionTemplate(
+    componentType: string,
+    componentName: string,
+    isUnnamed = false,
+): string {
+    const componentLabel = capitalize(componentType);
+    const unnamedHint = isUnnamed
+        ? ` (${componentLabel} requires a name for the ref to work.)`
+        : "";
+
+    switch (componentType) {
+        case "point":
+            return `A point with x-coordinate $${componentName}.x and y-coordinate $${componentName}.y.${unnamedHint}`;
+        case "circle":
+            return `A circle with radius $${componentName}.r centered at ($${componentName}.center.x, $${componentName}.center.y).${unnamedHint}`;
+        case "line":
+            return `A line.${unnamedHint}`;
+        default:
+            return `${componentLabel}.${unnamedHint || " (Add a name for this component to enable annotation refs.)"}`;
+    }
+}
+
+const NUMBER_WORDS = [
+    "",
+    "a",
+    "two",
+    "three",
+    "four",
+    "five",
+    "six",
+    "seven",
+    "eight",
+    "nine",
+    "ten",
+];
+
+/**
+ * Build the text for the top-level graph annotation describing its graphical
+ * contents, e.g. "A graph of a line and two points."
+ */
+function buildGraphLevelAnnotationText(
+    graphicalComponents: GraphicalComponent[],
+): string {
+    const typeCounts = new Map<string, number>();
+    const typeOrder: string[] = [];
+
+    for (const component of graphicalComponents) {
+        if (!typeCounts.has(component.type)) {
+            typeOrder.push(component.type);
+            typeCounts.set(component.type, 0);
+        }
+        typeCounts.set(
+            component.type,
+            (typeCounts.get(component.type) ?? 0) + 1,
+        );
+    }
+
+    const parts = typeOrder.map((type) => {
+        const count = typeCounts.get(type) ?? 1;
+        const noun = count === 1 ? type : `${type}s`;
+        const numWord =
+            count < NUMBER_WORDS.length ? NUMBER_WORDS[count] : String(count);
+        return `${numWord} ${noun}`;
+    });
+
+    if (parts.length === 0) {
+        return "A graph.";
+    } else if (parts.length === 1) {
+        return `A graph of ${parts[0]}.`;
+    } else if (parts.length === 2) {
+        return `A graph of ${parts[0]} and ${parts[1]}.`;
+    } else {
+        const last = parts[parts.length - 1];
+        const rest = parts.slice(0, -1).join(", ");
+        return `A graph of ${rest}, and ${last}.`;
+    }
+}
+
+/**
+ * Build annotations tree with one graph-level annotation and nested children.
+ */
+export function buildAnnotationTree(
+    graphicalComponents: GraphicalComponent[],
+): AnnotationNode {
+    const unnamedCounters = new Map<string, number>();
+
+    const childAnnotations: AnnotationNode[] = graphicalComponents.map(
+        (component) => {
+            let componentName = component.name;
+            let isUnnamed = false;
+            if (!componentName) {
+                const priorCount = unnamedCounters.get(component.type) ?? 0;
+                const nextCount = priorCount + 1;
+                unnamedCounters.set(component.type, nextCount);
+                componentName = `unnamed${capitalize(component.type)}${nextCount}`;
+                isUnnamed = true;
+            }
+
+            return {
+                type: "annotation",
+                ref: `$${componentName}`,
+                text: getDescriptionTemplate(
+                    component.type,
+                    componentName,
+                    isUnnamed,
+                ),
+            };
+        },
+    );
+
+    const graphLevelText = buildGraphLevelAnnotationText(graphicalComponents);
+
+    return {
+        type: "annotations",
+        children: [
+            {
+                type: "annotation",
+                text: `${graphLevelText}${CURSOR_MARKER}`,
+                children: childAnnotations,
+            },
+        ],
+    };
+}
+
+/**
+ * Render annotation tree to DoenetML snippet XML.
+ */
+export function renderAnnotationNodeToSnippetXml(
+    annotationNode: AnnotationNode,
+    indentLevel = 0,
+): string {
+    const indent = "  ".repeat(indentLevel);
+
+    if (annotationNode.type === "annotations") {
+        const renderedChildren = (annotationNode.children ?? []).map((child) =>
+            renderAnnotationNodeToSnippetXml(child, indentLevel + 1),
+        );
+        return [
+            `${indent}<annotations>`,
+            ...renderedChildren,
+            `${indent}</annotations>`,
+        ].join("\n");
+    }
+
+    const attrs: string[] = [];
+    if (annotationNode.ref) {
+        attrs.push(`ref=\"${escapeXmlAttributeValue(annotationNode.ref)}\"`);
+    }
+    if (annotationNode.text) {
+        attrs.push(`text=\"${escapeXmlAttributeValue(annotationNode.text)}\"`);
+    }
+
+    const renderedAttributes = attrs.length ? ` ${attrs.join(" ")}` : "";
+    const children = annotationNode.children ?? [];
+    if (children.length === 0) {
+        return `${indent}<annotation${renderedAttributes} />`;
+    }
+
+    const renderedChildren = children.map((child) =>
+        renderAnnotationNodeToSnippetXml(child, indentLevel + 1),
+    );
+    return [
+        `${indent}<annotation${renderedAttributes}>`,
+        ...renderedChildren,
+        `${indent}</annotation>`,
+    ].join("\n");
+}
+
+/**
+ * Generate the dynamic annotation-skeleton snippet for a prefigure graph.
+ */
+export function generateAnnotationSkeletonSnippet(
+    graphElement: DastElement,
+): ProcessedSnippet | null {
+    const graphicalComponents = extractGraphicalChildren(graphElement);
+    if (graphicalComponents.length === 0) {
+        return null;
+    }
+
+    const annotationTree = buildAnnotationTree(graphicalComponents);
+    const snippetWithCursorMarker =
+        renderAnnotationNodeToSnippetXml(annotationTree);
+    const caretOffset = snippetWithCursorMarker.indexOf(CURSOR_MARKER);
+    const snippet = snippetWithCursorMarker.replace(CURSOR_MARKER, "");
+
+    return {
+        key: "annotation-skeleton",
+        element: "annotations",
+        snippet,
+        description: "Auto-generated annotation structure for graph components",
+        cursor:
+            caretOffset >= 0
+                ? {
+                      caretOffset,
+                  }
+                : undefined,
+    };
+}
