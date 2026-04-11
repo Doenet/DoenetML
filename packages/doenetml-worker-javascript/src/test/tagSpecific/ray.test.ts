@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import type { Expression, Tree } from "math-expressions";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { getDiagnosticsByType } from "../utils/diagnostics";
@@ -16,6 +17,14 @@ import {
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
+
+function toTree(value: { tree: Tree }): Tree {
+    return value.tree;
+}
+
+function toSimplifiedTree(value: Expression): Tree {
+    return value.simplify().tree;
+}
 
 describe("Ray Tag Tests @group1", function () {
     /**
@@ -39,20 +48,45 @@ describe("Ray Tag Tests @group1", function () {
     }) {
         expect(
             stateVariables[componentIdx].stateValues.endpoint.map(
-                (x) => x.simplify().tree,
+                toSimplifiedTree,
             ),
         ).eqls(t);
         expect(
             stateVariables[componentIdx].stateValues.through.map(
-                (x) => x.simplify().tree,
+                toSimplifiedTree,
             ),
         ).eqls(h);
         expect(
             stateVariables[componentIdx].stateValues.direction.map(
-                (x) => x.simplify().tree,
+                toSimplifiedTree,
             ),
         ).eqls(d);
     }
+
+    it("ray endpoint and through support x/y aliases", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph>
+    <ray name="r" endpoint="(1,2)" through="(5,8)" />
+    <point name="endpointCoords">($r.endpoint.x, $r.endpoint.y)</point>
+    <point name="throughCoords">($r.through.x, $r.through.y)</point>
+</graph>
+`,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("endpointCoords")
+            ].stateValues.xs.map(toTree),
+        ).eqls([1, 2]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("throughCoords")
+            ].stateValues.xs.map(toTree),
+        ).eqls([5, 8]);
+    });
 
     async function testRayCopiedHTD({
         throughx,
@@ -67,6 +101,19 @@ describe("Ray Tag Tests @group1", function () {
         directionName = "direction",
         core,
         resolvePathToNodeIdx,
+    }: {
+        throughx: number;
+        throughy: number;
+        endpointx: number;
+        endpointy: number;
+        directionEndpointShiftx?: number;
+        directionEndpointShifty?: number;
+        rayName?: string;
+        endpointName?: string;
+        throughName?: string;
+        directionName?: string;
+        core: PublicDoenetMLCore;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
     }) {
         function check_vec_htd({
             componentIdx,
@@ -83,17 +130,17 @@ describe("Ray Tag Tests @group1", function () {
         }) {
             expect(
                 stateVariables[componentIdx].stateValues.tail.map(
-                    (x) => x.simplify().tree,
+                    toSimplifiedTree,
                 ),
             ).eqls(t);
             expect(
                 stateVariables[componentIdx].stateValues.head.map(
-                    (x) => x.simplify().tree,
+                    toSimplifiedTree,
                 ),
             ).eqls(h);
             expect(
                 stateVariables[componentIdx].stateValues.displacement.map(
-                    (x) => x.simplify().tree,
+                    toSimplifiedTree,
                 ),
             ).eqls(d);
         }
@@ -113,12 +160,12 @@ describe("Ray Tag Tests @group1", function () {
         expect(
             stateVariables[
                 await resolvePathToNodeIdx(endpointName)
-            ].stateValues.xs.map((v) => v.tree),
+            ].stateValues.xs.map(toTree),
         ).eqls([endpointx, endpointy]);
         expect(
             stateVariables[
                 await resolvePathToNodeIdx(throughName)
-            ].stateValues.xs.map((v) => v.tree),
+            ].stateValues.xs.map(toTree),
         ).eqls([throughx, throughy]);
 
         check_vec_htd({
@@ -559,36 +606,36 @@ describe("Ray Tag Tests @group1", function () {
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx(name)
-                    ].stateValues.endpoint.map((v) => v.tree),
+                    ].stateValues.endpoint.map(toTree),
                 ).eqls([v1tx, v1ty]);
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx(name)
-                    ].stateValues.through.map((v) => v.tree),
+                    ].stateValues.through.map(toTree),
                 ).eqls([v1hx, v1hy]);
             }
             for (let name of ray2s) {
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx(name)
-                    ].stateValues.endpoint.map((v) => v.tree),
+                    ].stateValues.endpoint.map(toTree),
                 ).eqls([v2tx, v2ty]);
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx(name)
-                    ].stateValues.through.map((v) => v.tree),
+                    ].stateValues.through.map(toTree),
                 ).eqls([v2hx, v2hy]);
             }
             for (let name of ray3s) {
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx(name)
-                    ].stateValues.endpoint.map((v) => v.tree),
+                    ].stateValues.endpoint.map(toTree),
                 ).eqls([v3tx, v3ty]);
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx(name)
-                    ].stateValues.through.map((v) => v.tree),
+                    ].stateValues.through.map(toTree),
                 ).eqls([v3hx, v3hy]);
             }
         }
@@ -757,17 +804,17 @@ describe("Ray Tag Tests @group1", function () {
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx(name)
-                    ].stateValues.endpoint.map((v) => v.tree),
+                    ].stateValues.endpoint.map(toTree),
                 ).eqls([ray_tx, ray_ty]);
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx(name)
-                    ].stateValues.through.map((v) => v.tree),
+                    ].stateValues.through.map(toTree),
                 ).eqls([ray_hx, ray_hy]);
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx(name)
-                    ].stateValues.direction.map((v) => v.tree),
+                    ].stateValues.direction.map(toTree),
                 ).eqls([direction_x, direction_y]);
             }
 
@@ -776,17 +823,17 @@ describe("Ray Tag Tests @group1", function () {
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx(name)
-                    ].stateValues.tail.map((v) => v.tree),
+                    ].stateValues.tail.map(toTree),
                 ).eqls([dtail_xs[i], dtail_ys[i]]);
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx(name)
-                    ].stateValues.head.map((v) => v.tree),
+                    ].stateValues.head.map(toTree),
                 ).eqls([dhead_xs[i], dhead_ys[i]]);
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx(name)
-                    ].stateValues.displacement.map((v) => v.tree),
+                    ].stateValues.displacement.map(toTree),
                 ).eqls([direction_x, direction_y]);
             }
         }
@@ -871,12 +918,12 @@ describe("Ray Tag Tests @group1", function () {
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("ray1")
-                ].stateValues.endpoint.map((v) => v.tree),
+                ].stateValues.endpoint.map(toTree),
             ).eqls([tx, ty]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("ray1")
-                ].stateValues.through.map((v) => v.tree),
+                ].stateValues.through.map(toTree),
             ).eqls([hx, hy]);
             expect(
                 stateVariables[await resolvePathToNodeIdx("point3")].stateValues
@@ -896,7 +943,10 @@ describe("Ray Tag Tests @group1", function () {
         hy = -4;
         let pxOrig = -5;
         let pyOrig = 2;
-        function calc_snap_45_deg(pxOrig, pyOrig) {
+        function calc_snap_45_deg(
+            pxOrig: number,
+            pyOrig: number,
+        ): [number, number] {
             let temp = (pxOrig - pyOrig) / 2;
             temp = Math.max(-4, temp); // No upper bound since ray continues
             const px = temp;
@@ -980,12 +1030,12 @@ describe("Ray Tag Tests @group1", function () {
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("ray1")
-                ].stateValues.endpoint.map((v) => v.tree),
+                ].stateValues.endpoint.map(toTree),
             ).eqls([tx, ty]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("ray1")
-                ].stateValues.through.map((v) => v.tree),
+                ].stateValues.through.map(toTree),
             ).eqls([hx, hy]);
             expect(
                 stateVariables[await resolvePathToNodeIdx("point3")].stateValues
@@ -1015,7 +1065,10 @@ describe("Ray Tag Tests @group1", function () {
         let pxOrig = 3.3;
         let pyOrig = -3.6;
 
-        function calc_snap_45_deg(pxOrig, pyOrig) {
+        function calc_snap_45_deg(
+            pxOrig: number,
+            pyOrig: number,
+        ): [number, number] {
             let temp = (pxOrig - pyOrig) / 2;
             temp = Math.max(-4, temp); // No upper bound since ray continues
             const px = temp;
@@ -1171,22 +1224,22 @@ describe("Ray Tag Tests @group1", function () {
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("original")
-                ].stateValues.endpoint.map((v) => v.tree),
+                ].stateValues.endpoint.map(toTree),
             ).eqls([0, 0]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("original")
-                ].stateValues.through.map((v) => v.tree),
+                ].stateValues.through.map(toTree),
             ).eqls([ohx, ohy]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("multiplied")
-                ].stateValues.endpoint.map((v) => v.tree),
+                ].stateValues.endpoint.map(toTree),
             ).eqls([0, 0]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("multiplied")
-                ].stateValues.through.map((v) => v.tree),
+                ].stateValues.through.map(toTree),
             ).eqls([mhx, mhy]);
         }
         await check_items();
@@ -1269,47 +1322,47 @@ describe("Ray Tag Tests @group1", function () {
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("u")
-                ].stateValues.endpoint.map((v) => v.tree),
+                ].stateValues.endpoint.map(toTree),
             ).eqls([...uEndpoint]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("u")
-                ].stateValues.through.map((v) => v.tree),
+                ].stateValues.through.map(toTree),
             ).eqls([...uThrough]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("u")
-                ].stateValues.direction.map((v) => v.tree),
+                ].stateValues.direction.map(toTree),
             ).eqls([...u]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("v")
-                ].stateValues.endpoint.map((v) => v.tree),
+                ].stateValues.endpoint.map(toTree),
             ).eqls([...vEndpoint]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("v")
-                ].stateValues.through.map((v) => v.tree),
+                ].stateValues.through.map(toTree),
             ).eqls([...vThrough]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("v")
-                ].stateValues.direction.map((v) => v.tree),
+                ].stateValues.direction.map(toTree),
             ).eqls([...v]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("w")
-                ].stateValues.endpoint.map((v) => v.tree),
+                ].stateValues.endpoint.map(toTree),
             ).eqls([...wEndpoint]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("w")
-                ].stateValues.through.map((v) => v.tree),
+                ].stateValues.through.map(toTree),
             ).eqls([...wThrough]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("w")
-                ].stateValues.direction.map((v) => v.tree),
+                ].stateValues.direction.map(toTree),
             ).eqls([...w]);
         }
         await check_items();
@@ -1417,17 +1470,17 @@ describe("Ray Tag Tests @group1", function () {
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("v")
-                ].stateValues.endpoint.map((v) => v.tree),
+                ].stateValues.endpoint.map(toTree),
             ).eqls([tx, ty]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("v")
-                ].stateValues.through.map((v) => v.tree),
+                ].stateValues.through.map(toTree),
             ).eqls([hx, hy]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("v")
-                ].stateValues.direction.map((v) => v.tree),
+                ].stateValues.direction.map(toTree),
             ).eqls([hx - tx, hy - ty]);
 
             expect(
@@ -1623,7 +1676,7 @@ describe("Ray Tag Tests @group1", function () {
                 expect(
                     stateVariables[
                         await resolvePathToNodeIdx(name)
-                    ].stateValues.displacement.map((x) => x.simplify().tree),
+                    ].stateValues.displacement.map(toSimplifiedTree),
                 ).eqls(disp);
             }
 
@@ -2435,32 +2488,32 @@ describe("Ray Tag Tests @group1", function () {
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("ray1")
-                ].stateValues.endpoint.map((v) => v.tree),
+                ].stateValues.endpoint.map(toTree),
             ).eqls([x1, y1]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("ray1")
-                ].stateValues.through.map((v) => v.tree),
+                ].stateValues.through.map(toTree),
             ).eqls([x2, y2]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("ray2")
-                ].stateValues.endpoint.map((v) => v.tree),
+                ].stateValues.endpoint.map(toTree),
             ).eqls([x3, y3]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("ray2")
-                ].stateValues.through.map((v) => v.tree),
+                ].stateValues.through.map(toTree),
             ).eqls([x2, y2]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("ray3")
-                ].stateValues.endpoint.map((v) => v.tree),
+                ].stateValues.endpoint.map(toTree),
             ).eqls([x3, y3]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("ray3")
-                ].stateValues.through.map((v) => v.tree),
+                ].stateValues.through.map(toTree),
             ).eqls([x1, y1]);
         }
 
@@ -2555,17 +2608,17 @@ describe("Ray Tag Tests @group1", function () {
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("ray1")
-                ].stateValues.endpoint.map((v) => v.tree),
+                ].stateValues.endpoint.map(toTree),
             ).eqls([endpointx, endpointy]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("ray1")
-                ].stateValues.through.map((v) => v.tree),
+                ].stateValues.through.map(toTree),
             ).eqls([throughx, throughy]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("ray1")
-                ].stateValues.direction.map((v) => v.tree),
+                ].stateValues.direction.map(toTree),
             ).eqls([directionx, directiony]);
         }
         await check_items();
@@ -2608,17 +2661,17 @@ describe("Ray Tag Tests @group1", function () {
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("ray1")
-                ].stateValues.endpoint.map((v) => v.tree),
+                ].stateValues.endpoint.map(toTree),
             ).eqls([endpointx, endpointy]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("ray1")
-                ].stateValues.through.map((v) => v.tree),
+                ].stateValues.through.map(toTree),
             ).eqls([throughx, throughy]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("ray1")
-                ].stateValues.direction.map((v) => v.tree),
+                ].stateValues.direction.map(toTree),
             ).eqls([directionx, directiony]);
         }
 
@@ -2661,17 +2714,17 @@ describe("Ray Tag Tests @group1", function () {
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("ray1")
-                ].stateValues.endpoint.map((v) => v.tree),
+                ].stateValues.endpoint.map(toTree),
             ).eqls([endpointx, endpointy]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("ray1")
-                ].stateValues.through.map((v) => v.tree),
+                ].stateValues.through.map(toTree),
             ).eqls([throughx, throughy]);
             expect(
                 stateVariables[
                     await resolvePathToNodeIdx("ray1")
-                ].stateValues.direction.map((v) => v.tree),
+                ].stateValues.direction.map(toTree),
             ).eqls([directionx, directiony]);
         }
 
@@ -2938,17 +2991,17 @@ describe("Ray Tag Tests @group1", function () {
                     expect(
                         stateVariables[
                             await resolvePathToNodeIdx(`g${j}.v${i}`)
-                        ].stateValues.endpoint.map((v) => v.tree),
+                        ].stateValues.endpoint.map(toTree),
                     ).eqls(endpoints[i]);
                     expect(
                         stateVariables[
                             await resolvePathToNodeIdx(`g${j}.v${i}`)
-                        ].stateValues.through.map((v) => v.tree),
+                        ].stateValues.through.map(toTree),
                     ).eqls(throughs[i]);
                     expect(
                         stateVariables[
                             await resolvePathToNodeIdx(`g${j}.v${i}`)
-                        ].stateValues.direction.map((v) => v.tree),
+                        ].stateValues.direction.map(toTree),
                     ).eqls(directions[i]);
                 }
             }
