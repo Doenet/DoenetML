@@ -125,23 +125,15 @@ export function getDescriptionTemplate(
         ? ` (${componentLabel} requires a name for the ref to work.)`
         : "";
 
-    // Map aliases to their primary types for description purposes
-    let descriptionType = componentType.toLowerCase();
-    if (
-        descriptionType === "endpoint" ||
-        descriptionType === "equilibriumpoint"
-    ) {
-        descriptionType = "point";
-    } else if (
-        descriptionType === "triangle" ||
-        descriptionType === "rectangle"
-    ) {
-        descriptionType = "polygon";
-    }
+    const normalizedType = componentType.toLowerCase();
 
-    switch (descriptionType) {
+    switch (normalizedType) {
         case "point":
             return `A point with x-coordinate $${componentName}.x and y-coordinate $${componentName}.y.${unnamedHint}`;
+        case "endpoint":
+            return `An endpoint with x-coordinate $${componentName}.x and y-coordinate $${componentName}.y.${unnamedHint}`;
+        case "equilibriumpoint":
+            return `An equilibrium point with x-coordinate $${componentName}.x and y-coordinate $${componentName}.y.${unnamedHint}`;
         case "circle":
             return `A circle with radius $${componentName}.r centered at ($${componentName}.center.x, $${componentName}.center.y).${unnamedHint}`;
         case "line":
@@ -156,6 +148,10 @@ export function getDescriptionTemplate(
             return `A polyline with vertices at positions defined by $${componentName}.points.${unnamedHint}`;
         case "polygon":
             return `A polygon with $${componentName}.numVertices vertices.${unnamedHint}`;
+        case "triangle":
+            return `A triangle with $${componentName}.numVertices vertices.${unnamedHint}`;
+        case "rectangle":
+            return `A rectangle of width $${componentName}.width and height $${componentName}.height.${unnamedHint}`;
         case "angle":
             return `An angle formed by a vertex at ($${componentName}.vertex.x, $${componentName}.vertex.y).${unnamedHint}`;
         case "curve":

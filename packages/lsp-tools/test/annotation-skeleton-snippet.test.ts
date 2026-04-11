@@ -144,9 +144,11 @@ describe("Annotation skeleton snippet generation", () => {
         expect(snippet?.snippet).toContain('ref="$eq"');
         expect(snippet?.snippet).toContain('ref="$tri"');
         expect(snippet?.snippet).toContain('ref="$rect"');
-        // Aliases should use descriptions based on their primary types
-        expect(snippet?.snippet).toContain("A point"); // endpoint and equilibriumPoint are points
-        expect(snippet?.snippet).toContain("polygon"); // triangle and rectangle are polygons
+        // Aliases use their own descriptions
+        expect(snippet?.snippet).toContain("An endpoint"); // endpoint description
+        expect(snippet?.snippet).toContain("An equilibrium point"); // equilibriumPoint description
+        expect(snippet?.snippet).toContain("A triangle"); // triangle description
+        expect(snippet?.snippet).toContain("A rectangle"); // rectangle description
     });
 
     it("returns null when graph has no supported graphical descendants", () => {
