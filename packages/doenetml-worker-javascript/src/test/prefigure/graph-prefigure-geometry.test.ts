@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { pointLabelAttributes } from "../../utils/prefigure/label";
+import { convertCurveToPrefigure } from "../../utils/prefigure/components/curve";
 import {
     getGraphRendererState,
     getPrefigureXML,
@@ -1504,6 +1505,48 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(
             diagnosticsByType.warnings.some((x) =>
                 x.message.includes(
+                    "unsupported function definition type 'interpolated'",
+                ),
+            ),
+        ).eq(false);
+    });
+
+    it("renderer=prefigure emits parse-failure warning (not unsupported-type warning) for supported child that fails to build pieces", () => {
+        const diagnostics: import("@doenet/utils").DiagnosticRecord[] = [];
+        // Interpolated child whose xs contain Infinity — parsedInterpolatedDefinitionPieces
+        // returns null (parse failure), not because the type is unsupported.
+        const interpolatedChildWithBadXs = {
+            functionType: "interpolated",
+            xs: [Infinity, 1],
+            coeffs: [[1, 1, 1, 1]],
+            variables: [["variable", "x"]],
+        };
+        const piecewiseDefinition = {
+            functionType: "piecewise",
+            fDefinitionsOfChildren: [interpolatedChildWithBadXs],
+            numericalDomainsOfChildren: [null],
+        };
+        convertCurveToPrefigure({
+            sv: {
+                curveType: "function",
+                fDefinitions: piecewiseDefinition,
+                parMin: -1,
+                parMax: 1,
+            },
+            handle: "curve_0",
+            styleAttrs: [],
+            diagnostics,
+            warningPrefix: "curve_0",
+        });
+
+        const messages = diagnostics.map((d) => d.message);
+        // Should say "failed to build" not "unsupported function definition type"
+        expect(
+            messages.some((m) => m.includes("failed to build curve pieces")),
+        ).eq(true);
+        expect(
+            messages.some((m) =>
+                m.includes(
                     "unsupported function definition type 'interpolated'",
                 ),
             ),

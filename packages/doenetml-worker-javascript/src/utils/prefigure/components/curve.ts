@@ -48,6 +48,19 @@ function definitionTypeLabel(
 }
 
 /**
+ * Function types whose definitions the converter can process.
+ * Used both to gate the top-level unsupported-type warning
+ * and to produce a more accurate diagnostic when a supported type
+ * encounters a parse failure (e.g. non-finite interpolated points).
+ */
+const SUPPORTED_CURVE_FUNCTION_TYPES = new Set([
+    "formula",
+    "interpolated",
+    "bezier",
+    "piecewise",
+]);
+
+/**
  * Generate a unique handle for a curve piece in the PreFigure output.
  * The first piece (index 0) uses the base handle as-is; subsequent pieces
  * append an underscore and index number to ensure uniqueness.
@@ -945,11 +958,11 @@ function parsedFormulaPiecesFromDefinition({
         });
 
         if (!childPiecesResult) {
-            pushWarning({
-                diagnostics,
-                message: `${warningPrefix}: ${pieceRole} piecewise child ${i + 1} has unsupported function definition type '${definitionTypeLabel(childDefinition)}'; child skipped.`,
-                position: warningPosition,
-            });
+            const typeLabel = definitionTypeLabel(childDefinition);
+            const message = SUPPORTED_CURVE_FUNCTION_TYPES.has(typeLabel)
+                ? `${warningPrefix}: ${pieceRole} piecewise child ${i + 1} failed to build curve pieces (type '${typeLabel}'); child skipped.`
+                : `${warningPrefix}: ${pieceRole} piecewise child ${i + 1} has unsupported function definition type '${typeLabel}'; child skipped.`;
+            pushWarning({ diagnostics, message, position: warningPosition });
             continue;
         }
 
@@ -1060,17 +1073,10 @@ function validatePiecesResult(
     warningPosition: ConverterArgs["warningPosition"],
     definitionTypeLabel: string,
 ): boolean {
-    const supportedTypes = new Set([
-        "formula",
-        "interpolated",
-        "bezier",
-        "piecewise",
-    ]);
-
     const hasUnsupportedType = definitionTypeLabel
         .split(",")
         .map((x) => x.trim())
-        .some((x) => !supportedTypes.has(x));
+        .some((x) => !SUPPORTED_CURVE_FUNCTION_TYPES.has(x));
 
     if (!result || result.pieces.length === 0) {
         if (hasUnsupportedType) {
