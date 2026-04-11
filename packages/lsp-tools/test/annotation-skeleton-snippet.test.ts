@@ -96,6 +96,59 @@ describe("Annotation skeleton snippet generation", () => {
         );
     });
 
+    it("generates descriptions for all supported graphical components", () => {
+        const source = `<graph renderer="prefigure">
+  <lineSegment name="seg" />
+  <ray name="r" />
+  <vector name="v" />
+  <polygon name="poly" />
+  <polyline name="pline" />
+  <angle name="a" />
+  <curve name="curv" />
+</graph>`;
+        const graph = getFirstGraphElement(source);
+
+        const snippet = generateAnnotationSkeletonSnippet(graph);
+
+        expect(snippet).toBeTruthy();
+        expect(snippet?.snippet).toContain('ref="$seg"');
+        expect(snippet?.snippet).toContain('ref="$r"');
+        expect(snippet?.snippet).toContain('ref="$v"');
+        expect(snippet?.snippet).toContain('ref="$poly"');
+        expect(snippet?.snippet).toContain('ref="$pline"');
+        expect(snippet?.snippet).toContain('ref="$a"');
+        expect(snippet?.snippet).toContain('ref="$curv"');
+        // Verify descriptions mention relevant properties
+        expect(snippet?.snippet).toContain("line segment");
+        expect(snippet?.snippet).toContain("ray");
+        expect(snippet?.snippet).toContain("vector");
+        expect(snippet?.snippet).toContain("polygon");
+        expect(snippet?.snippet).toContain("polyline");
+        expect(snippet?.snippet).toContain("angle");
+        expect(snippet?.snippet).toContain("curve");
+    });
+
+    it("handles component aliases (endpoint, equilibriumPoint, triangle, rectangle)", () => {
+        const source = `<graph renderer="prefigure">
+  <endpoint name="ep" />
+  <equilibriumPoint name="eq" />
+  <triangle name="tri" />
+  <rectangle name="rect" />
+</graph>`;
+        const graph = getFirstGraphElement(source);
+
+        const snippet = generateAnnotationSkeletonSnippet(graph);
+
+        expect(snippet).toBeTruthy();
+        expect(snippet?.snippet).toContain('ref="$ep"');
+        expect(snippet?.snippet).toContain('ref="$eq"');
+        expect(snippet?.snippet).toContain('ref="$tri"');
+        expect(snippet?.snippet).toContain('ref="$rect"');
+        // Aliases should use descriptions based on their primary types
+        expect(snippet?.snippet).toContain("A point"); // endpoint and equilibriumPoint are points
+        expect(snippet?.snippet).toContain("polygon"); // triangle and rectangle are polygons
+    });
+
     it("returns null when graph has no supported graphical descendants", () => {
         const source = `<graph renderer="prefigure">
   <text>Nothing graphical here</text>
@@ -112,14 +165,43 @@ describe("Annotation skeleton autocomplete integration", () => {
         elements: [
             {
                 name: "graph",
-                children: ["point", "circle", "line", "group", "annotations"],
+                children: [
+                    "point",
+                    "circle",
+                    "line",
+                    "lineSegment",
+                    "ray",
+                    "vector",
+                    "polygon",
+                    "polyline",
+                    "angle",
+                    "curve",
+                    "endpoint",
+                    "equilibriumPoint",
+                    "triangle",
+                    "rectangle",
+                    "group",
+                    "annotations",
+                ],
                 attributes: [{ name: "renderer" }, { name: "name" }],
                 top: true,
                 acceptsStringChildren: false,
             },
             {
                 name: "group",
-                children: ["point", "circle", "line", "annotations"],
+                children: [
+                    "point",
+                    "circle",
+                    "line",
+                    "lineSegment",
+                    "ray",
+                    "vector",
+                    "polygon",
+                    "polyline",
+                    "angle",
+                    "curve",
+                    "annotations",
+                ],
                 attributes: [{ name: "name" }],
                 top: false,
                 acceptsStringChildren: false,
@@ -154,6 +236,83 @@ describe("Annotation skeleton autocomplete integration", () => {
             },
             {
                 name: "line",
+                children: [],
+                attributes: [{ name: "name" }],
+                top: false,
+                acceptsStringChildren: false,
+            },
+            {
+                name: "lineSegment",
+                children: [],
+                attributes: [{ name: "name" }],
+                top: false,
+                acceptsStringChildren: false,
+            },
+            {
+                name: "ray",
+                children: [],
+                attributes: [{ name: "name" }],
+                top: false,
+                acceptsStringChildren: false,
+            },
+            {
+                name: "vector",
+                children: [],
+                attributes: [{ name: "name" }],
+                top: false,
+                acceptsStringChildren: false,
+            },
+            {
+                name: "polygon",
+                children: [],
+                attributes: [{ name: "name" }],
+                top: false,
+                acceptsStringChildren: false,
+            },
+            {
+                name: "polyline",
+                children: [],
+                attributes: [{ name: "name" }],
+                top: false,
+                acceptsStringChildren: false,
+            },
+            {
+                name: "angle",
+                children: [],
+                attributes: [{ name: "name" }],
+                top: false,
+                acceptsStringChildren: false,
+            },
+            {
+                name: "curve",
+                children: [],
+                attributes: [{ name: "name" }],
+                top: false,
+                acceptsStringChildren: false,
+            },
+            {
+                name: "endpoint",
+                children: [],
+                attributes: [{ name: "name" }],
+                top: false,
+                acceptsStringChildren: false,
+            },
+            {
+                name: "equilibriumPoint",
+                children: [],
+                attributes: [{ name: "name" }],
+                top: false,
+                acceptsStringChildren: false,
+            },
+            {
+                name: "triangle",
+                children: [],
+                attributes: [{ name: "name" }],
+                top: false,
+                acceptsStringChildren: false,
+            },
+            {
+                name: "rectangle",
                 children: [],
                 attributes: [{ name: "name" }],
                 top: false,

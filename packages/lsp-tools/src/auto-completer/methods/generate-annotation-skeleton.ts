@@ -3,7 +3,23 @@ import { DastElement, toXml } from "@doenet/parser";
 
 const CURSOR_MARKER = "__ANNOTATION_SKELETON_CURSOR__";
 
-const GRAPHICAL_COMPONENT_TYPES = new Set(["point", "circle", "line"]);
+const GRAPHICAL_COMPONENT_TYPES = new Set([
+    "point",
+    "line",
+    "linesegment",
+    "ray",
+    "vector",
+    "circle",
+    "polyline",
+    "polygon",
+    "angle",
+    "curve",
+    // Aliases that map to primary converters
+    "endpoint",
+    "equilibriumpoint",
+    "triangle",
+    "rectangle",
+]);
 
 export interface GraphicalComponent {
     type: string;
@@ -109,13 +125,41 @@ export function getDescriptionTemplate(
         ? ` (${componentLabel} requires a name for the ref to work.)`
         : "";
 
-    switch (componentType) {
+    // Map aliases to their primary types for description purposes
+    let descriptionType = componentType.toLowerCase();
+    if (
+        descriptionType === "endpoint" ||
+        descriptionType === "equilibriumpoint"
+    ) {
+        descriptionType = "point";
+    } else if (
+        descriptionType === "triangle" ||
+        descriptionType === "rectangle"
+    ) {
+        descriptionType = "polygon";
+    }
+
+    switch (descriptionType) {
         case "point":
             return `A point with x-coordinate $${componentName}.x and y-coordinate $${componentName}.y.${unnamedHint}`;
         case "circle":
             return `A circle with radius $${componentName}.r centered at ($${componentName}.center.x, $${componentName}.center.y).${unnamedHint}`;
         case "line":
             return `A line.${unnamedHint}`;
+        case "linesegment":
+            return `A line segment with endpoints at ($${componentName}.point1.x, $${componentName}.point1.y) and ($${componentName}.point2.x, $${componentName}.point2.y).${unnamedHint}`;
+        case "ray":
+            return `A ray starting at ($${componentName}.point1.x, $${componentName}.point1.y) passing through ($${componentName}.point2.x, $${componentName}.point2.y).${unnamedHint}`;
+        case "vector":
+            return `A vector with tail at ($${componentName}.point1.x, $${componentName}.point1.y) and endpoint at ($${componentName}.point2.x, $${componentName}.point2.y).${unnamedHint}`;
+        case "polyline":
+            return `A polyline with vertices at positions defined by $${componentName}.points.${unnamedHint}`;
+        case "polygon":
+            return `A polygon with $${componentName}.numVertices vertices.${unnamedHint}`;
+        case "angle":
+            return `An angle formed by a vertex at ($${componentName}.vertex.x, $${componentName}.vertex.y).${unnamedHint}`;
+        case "curve":
+            return `A curve.${unnamedHint}`;
         default:
             return `${componentLabel}.${unnamedHint || " (Add a name for this component to enable annotation refs.)"}`;
     }
