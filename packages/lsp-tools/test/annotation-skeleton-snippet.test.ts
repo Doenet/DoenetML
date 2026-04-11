@@ -147,7 +147,7 @@ describe("Annotation skeleton snippet generation", () => {
         // Aliases use their own descriptions
         expect(snippet?.snippet).toContain("An endpoint"); // endpoint description
         expect(snippet?.snippet).toContain("An equilibrium point"); // equilibriumPoint description
-        expect(snippet?.snippet).toContain("A triangle"); // triangle description
+        expect(snippet?.snippet).toContain("A triangle."); // triangle description (simple, no vertices count)
         expect(snippet?.snippet).toContain("A rectangle"); // rectangle description
     });
 

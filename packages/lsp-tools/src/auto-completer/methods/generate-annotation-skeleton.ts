@@ -149,7 +149,7 @@ export function getDescriptionTemplate(
         case "polygon":
             return `A polygon with $${componentName}.numVertices vertices.${unnamedHint}`;
         case "triangle":
-            return `A triangle with $${componentName}.numVertices vertices.${unnamedHint}`;
+            return `A triangle.${unnamedHint}`;
         case "rectangle":
             return `A rectangle of width $${componentName}.width and height $${componentName}.height.${unnamedHint}`;
         case "angle":
