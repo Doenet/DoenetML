@@ -98,6 +98,7 @@ describe("Annotation skeleton snippet generation", () => {
 
     it("generates descriptions for all supported graphical components", () => {
         const source = `<graph renderer="prefigure">
+  <function name="f" />
   <lineSegment name="seg" />
   <ray name="r" />
   <vector name="v" />
@@ -111,6 +112,7 @@ describe("Annotation skeleton snippet generation", () => {
         const snippet = generateAnnotationSkeletonSnippet(graph);
 
         expect(snippet).toBeTruthy();
+        expect(snippet?.snippet).toContain('ref="$f"');
         expect(snippet?.snippet).toContain('ref="$seg"');
         expect(snippet?.snippet).toContain('ref="$r"');
         expect(snippet?.snippet).toContain('ref="$v"');
@@ -119,6 +121,7 @@ describe("Annotation skeleton snippet generation", () => {
         expect(snippet?.snippet).toContain('ref="$a"');
         expect(snippet?.snippet).toContain('ref="$curv"');
         // Verify descriptions mention relevant properties
+        expect(snippet?.snippet).toContain("function");
         expect(snippet?.snippet).toContain("line segment");
         expect(snippet?.snippet).toContain("ray");
         expect(snippet?.snippet).toContain("vector");
@@ -170,6 +173,7 @@ describe("Annotation skeleton autocomplete integration", () => {
                 children: [
                     "point",
                     "circle",
+                    "function",
                     "line",
                     "lineSegment",
                     "ray",
@@ -194,6 +198,7 @@ describe("Annotation skeleton autocomplete integration", () => {
                 children: [
                     "point",
                     "circle",
+                    "function",
                     "line",
                     "lineSegment",
                     "ray",
@@ -231,6 +236,13 @@ describe("Annotation skeleton autocomplete integration", () => {
             },
             {
                 name: "circle",
+                children: [],
+                attributes: [{ name: "name" }],
+                top: false,
+                acceptsStringChildren: false,
+            },
+            {
+                name: "function",
                 children: [],
                 attributes: [{ name: "name" }],
                 top: false,
