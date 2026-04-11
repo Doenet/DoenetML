@@ -1455,17 +1455,37 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         ).eq(false);
     });
 
-    it.skip("renderer=prefigure respects union-domain gaps on interpolated functions", async () => {
-        const prefigureXML = await getPrefigureXML(
-            prefigureGraph(
-                '<function through="(-3,1) (-2,0) (-1,1) (1,1) (2,0) (3,1)" domain="(-4,-1) union (1,4)" />',
-            ),
+    it("renderer=prefigure respects supported single-interval domains on interpolated functions", async () => {
+        const doenetML = prefigureGraph(
+            '<function through="(1,1) (2,2) (3,1)" domain="(1,2)" />',
         );
 
+        const prefigureXML = await getPrefigureXML(doenetML);
         expect(prefigureXML).toContain(`<graph at="curve_0"`);
-        expect(prefigureXML).toContain(`domain="(-3,-2)"`);
-        expect(prefigureXML).toContain(`domain="(2,3)"`);
-        expect(prefigureXML).not.toContain(`domain="(-1,1)"`);
+        expect(prefigureXML).toContain(`domain="(1,2)"`);
+        expect(prefigureXML).not.toContain(`domain="(-12,1)"`);
+        expect(prefigureXML).not.toContain(`domain="(2,3)"`);
+    });
+
+    it("renderer=prefigure emits one warning when supported piecewise curve has no overlapping pieces", async () => {
+        const doenetML = prefigureGraph(
+            '<curve parMin="-1" parMax="1"><piecewiseFunction><function domain="(2,3)">x^2</function><function domain="(3,4)">x^3</function></piecewiseFunction></curve>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).not.toContain(`<graph at="curve_0"`);
+        expect(prefigureXML).not.toContain(`<parametric-curve at="curve_0"`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        const relevantWarnings = diagnosticsByType.warnings.filter(
+            (x) =>
+                x.message.includes("unsupported curve function definition") ||
+                x.message.includes(
+                    "non-finite or incomplete geometry; descendant skipped",
+                ),
+        );
+
+        expect(relevantWarnings.length).eq(1);
     });
 
     it("renderer=prefigure expands piecewise curve into graph pieces", async () => {

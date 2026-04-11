@@ -182,7 +182,12 @@ function parseFormulaDefinition(
 /**
  * Extract a domain interval from a curve function definition's domain property.
  * Parses various domain formats (tree, array-based endpoints, etc.).
- * Returns the first component of compound domains (intervals, sets, unions).
+ *
+ * Function definitions store domain as an array with one entry per input
+ * variable. For the single-input function definitions used here, this helper
+ * reads domain[0], i.e. the first input variable's domain interval. That does
+ * not mean "first union piece"; unions are not currently supported upstream
+ * for function domains and are rejected before reaching this conversion path.
  *
  * @param domain - The domain property from a function definition
  * @returns Parsed interval with open/closed flags, or null if invalid
@@ -198,6 +203,17 @@ function intervalFromCurveDefinitionDomain(
 
     if (firstDomain?.tree !== undefined) {
         const pieces = intervalPiecesFromMathTree(firstDomain.tree);
+        return pieces[0] ?? null;
+    }
+
+    // Interpolated/re-evaluated function definitions often store domain as raw
+    // math-expression trees (e.g. ["interval", ["tuple", ...], ["tuple", ...]]).
+    if (
+        Array.isArray(firstDomain) &&
+        firstDomain.length > 0 &&
+        typeof firstDomain[0] === "string"
+    ) {
+        const pieces = intervalPiecesFromMathTree(firstDomain);
         return pieces[0] ?? null;
     }
 
@@ -1049,12 +1065,26 @@ function validatePiecesResult(
     warningPosition: ConverterArgs["warningPosition"],
     definitionTypeLabel: string,
 ): boolean {
+    const supportedTypes = new Set([
+        "formula",
+        "interpolated",
+        "bezier",
+        "piecewise",
+    ]);
+
+    const hasUnsupportedType = definitionTypeLabel
+        .split(",")
+        .map((x) => x.trim())
+        .some((x) => !supportedTypes.has(x));
+
     if (!result || result.pieces.length === 0) {
-        pushWarning({
-            diagnostics,
-            message: `${warningPrefix}: unsupported curve function definition type '${definitionTypeLabel}'; descendant skipped.`,
-            position: warningPosition,
-        });
+        if (hasUnsupportedType) {
+            pushWarning({
+                diagnostics,
+                message: `${warningPrefix}: unsupported curve function definition type '${definitionTypeLabel}'; descendant skipped.`,
+                position: warningPosition,
+            });
+        }
         return false;
     }
     return true;

@@ -457,6 +457,11 @@ export default class Function extends InlineComponent {
             arrayDefinitionByKey({ globalDependencyValues }) {
                 if (globalDependencyValues.domainAttr !== null) {
                     let numInputs = globalDependencyValues.numInputs;
+                    // Function domains are stored as one interval per input
+                    // variable. For example, f(x,y) with
+                    // domain="(-1,2) (0,3)" becomes [(-1,2), (0,3)].
+                    // Multiple entries here represent different input
+                    // dimensions, not multiple pieces of a 1D domain.
                     let specifiedDomain =
                         globalDependencyValues.domainAttr.stateValues.intervals.slice(
                             0,
@@ -492,6 +497,9 @@ export default class Function extends InlineComponent {
                     if (
                         !specifiedDomain.every(
                             (interval) =>
+                                // At present, each input dimension must be a
+                                // single interval tree. Compound 1D domains
+                                // such as unions are not accepted here.
                                 Array.isArray(interval.tree) &&
                                 interval.tree[0] === "interval",
                         )

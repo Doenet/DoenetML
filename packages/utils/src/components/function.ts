@@ -1164,6 +1164,9 @@ export function returnInterpolatedFunction({
     let openMin = false,
         openMax = false;
     if (domain !== null) {
+        // Function domains are represented as one interval per input variable.
+        // Interpolated functions here are single-input, so domain[0] is the
+        // x-domain interval, not the first piece of a union domain.
         let domain0 = domain[0];
         if (domain0 !== undefined) {
             minx = me

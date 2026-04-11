@@ -121,6 +121,7 @@ export function convertGraphicalDescendantToPrefigure({
         return null;
     }
 
+    const diagnosticsCountBeforeConvert = diagnostics.length;
     const body = converter({
         sv,
         handle,
@@ -131,11 +132,15 @@ export function convertGraphicalDescendantToPrefigure({
     });
 
     if (!body) {
-        pushWarning({
-            diagnostics,
-            message: `${warningPrefix}: non-finite or incomplete geometry; descendant skipped.`,
-            position: warningPosition,
-        });
+        // If conversion failed and the failed converter call did not emit any
+        // diagnostics, add one generic fallback warning.
+        if (diagnostics.length === diagnosticsCountBeforeConvert) {
+            pushWarning({
+                diagnostics,
+                message: `${warningPrefix}: non-finite or incomplete geometry; descendant skipped.`,
+                position: warningPosition,
+            });
+        }
         return null;
     }
 
