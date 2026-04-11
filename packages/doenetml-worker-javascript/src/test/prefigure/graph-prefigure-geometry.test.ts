@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { pointLabelAttributes } from "../../utils/prefigure/label";
-import { getPrefigureXML } from "./graph-prefigure.helpers";
+import { convertCurveToPrefigure } from "../../utils/prefigure/components/curve";
+import {
+    getGraphRendererState,
+    getPrefigureXML,
+    getWarnings,
+} from "./graph-prefigure.helpers";
 import {
     prefigureGraph,
     withStyleDefinitions,
@@ -1253,6 +1258,372 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         expect(prefigureXML).toContain(`<arc `);
         expect(prefigureXML).toContain(`points="((0,1),(0,0),(1,0))"`);
     });
+
+    it("renderer=prefigure maps function curve to PreFigure graph", async () => {
+        const prefigureXML = await getPrefigureXML(
+            withStyleDefinitions(
+                '    <styleDefinition styleNumber="7" lineColor="orange" lineWidth="6" />',
+                prefigureGraph(
+                    '<curve styleNumber="7"><function>x^2</function></curve>',
+                ),
+            ),
+        );
+
+        expect(prefigureXML).toContain(`<graph at="curve_0"`);
+        expect(prefigureXML).toContain(`function="curve_0_f(x)=x^2"`);
+        expect(prefigureXML).toContain(`domain="(-12,12)"`);
+        expect(prefigureXML).toContain(`stroke="orange"`);
+        expect(prefigureXML).toContain(`thickness="6"`);
+    });
+
+    it("renderer=prefigure uses curve parameter bounds instead of child function domain", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<curve parMin="-10" parMax="10"><function domain="(-1,1)">x^2</function></curve>',
+            ),
+        );
+
+        expect(prefigureXML).toContain(`<graph at="curve_0"`);
+        expect(prefigureXML).toContain(`function="curve_0_f(x)=x^2"`);
+        expect(prefigureXML).toContain(`domain="(-10,10)"`);
+        expect(prefigureXML).not.toContain(`domain="(-1,1)"`);
+    });
+
+    it("renderer=prefigure maps parameterized curve to PreFigure parametric-curve", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<curve parMin="-2" parMax="3"><function>3x</function><function>x^2</function></curve>',
+            ),
+        );
+
+        expect(prefigureXML).toContain(`<parametric-curve at="curve_0"`);
+        expect(prefigureXML).toContain(`function="curve_0_r(x)=(3 x,x^2)"`);
+        expect(prefigureXML).toContain(`domain="(-2,3)"`);
+        expect(prefigureXML).not.toContain(`fill="`);
+        expect(prefigureXML).not.toContain(`fill-opacity="`);
+    });
+
+    it("renderer=prefigure normalizes parameter names across parametric coordinates", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<curve><function variable="u">u^2</function><function variable="v">v^3</function></curve>',
+            ),
+        );
+
+        expect(prefigureXML).toContain(`<parametric-curve at="curve_0"`);
+        expect(prefigureXML).toContain(`function="curve_0_r(u)=(`);
+        expect(prefigureXML).not.toContain(`v^3`);
+    });
+
+    it("renderer=prefigure maps bezier curve to PreFigure parametric-curve", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph('<curve through="(0,0) (1,2) (2,1)" />'),
+        );
+
+        expect(prefigureXML).toContain(`<parametric-curve at="curve_0"`);
+        expect(prefigureXML).toContain(`function="curve_0_r(`);
+        expect(prefigureXML).toContain(`domain="(0,1)"`);
+        expect(prefigureXML).toContain(`domain="(1,2)"`);
+        expect(prefigureXML).not.toContain(`<spline `);
+    });
+
+    it("renderer=prefigure maps periodic bezier to matching parametric curve", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<curve through="(0,0) (1,2) (2,1) (0,0)" periodic="true" />',
+            ),
+        );
+
+        expect(prefigureXML).toContain(`<parametric-curve at="curve_0"`);
+        expect(prefigureXML).toContain(`function="curve_0_r(`);
+        expect(prefigureXML).toContain(`domain="(0,1)"`);
+        expect(prefigureXML).toContain(`domain="(1,2)"`);
+        expect(prefigureXML).toContain(`domain="(2,3)"`);
+        expect(prefigureXML).not.toContain(`<spline `);
+    });
+
+    it("renderer=prefigure excludes bezier control vectors from graph descendants", async () => {
+        const { graphState, prefigureXML } = await getGraphRendererState(
+            prefigureGraph(
+                '<curve through="(0,0) (1,2) (2,1)"><bezierControls alwaysVisible>(1,1) (-1,1) (1,-1) (-1,-1)</bezierControls></curve>',
+            ),
+        );
+
+        const descendants = (graphState.graphicalDescendants ?? []) as Array<{
+            componentType?: string;
+        }>;
+        const vectorDescendants = descendants.filter(
+            (x) => x.componentType === "vector",
+        );
+
+        expect(vectorDescendants.length).toBeGreaterThan(0);
+        expect(prefigureXML).not.toContain(`<vector `);
+    });
+
+    it("renderer=prefigure warns and omits curve labels", async () => {
+        const doenetML = prefigureGraph(
+            "<curve><function>x^2</function><label>f</label></curve>",
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).toContain(`<graph at="curve_0"`);
+        expect(prefigureXML).not.toContain(`<label`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some((x) =>
+                x.message.includes(
+                    "labels are not supported on converted curve elements",
+                ),
+            ),
+        ).eq(true);
+    });
+
+    it("renderer=prefigure warns when function curve cannot build finite domain for flipped rendering", async () => {
+        const doenetML = prefigureGraph(
+            '<curve flipFunction="true" parMin="a"><function>x^2</function></curve>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).not.toContain(`<graph at="curve_0"`);
+        expect(prefigureXML).not.toContain(`<parametric-curve at="curve_0"`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some(
+                (x) =>
+                    x.message.includes("<curve>") &&
+                    x.message.includes(
+                        "non-finite or incomplete geometry; descendant skipped",
+                    ),
+            ),
+        ).eq(true);
+    });
+
+    it("renderer=prefigure warns when parameterized curve cannot build finite domain", async () => {
+        const doenetML = prefigureGraph(
+            '<curve parMax="a"><function>3x</function><function>x^2</function></curve>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).not.toContain(`<parametric-curve at="curve_0"`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some(
+                (x) =>
+                    x.message.includes("<curve>") &&
+                    x.message.includes(
+                        "non-finite or incomplete geometry; descendant skipped",
+                    ),
+            ),
+        ).eq(true);
+    });
+
+    it("renderer=prefigure warns when bezier curve cannot build finite geometry", async () => {
+        const doenetML = prefigureGraph(
+            '<curve through="(0,0) (a,2) (2,1)" />',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).not.toContain(`<parametric-curve at="curve_0"`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some(
+                (x) =>
+                    x.message.includes("<curve>") &&
+                    x.message.includes(
+                        "non-finite or incomplete geometry; descendant skipped",
+                    ),
+            ),
+        ).eq(true);
+    });
+
+    it("renderer=prefigure serializes interpolated function curves", async () => {
+        const doenetML = prefigureGraph(
+            '<function through="(1,1) (2,2) (3,1)" />\n  <function>x^2</function>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).toContain(`<graph at="curve_1"`);
+        expect(prefigureXML).toContain(`<graph at="curve_0"`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some((x) =>
+                x.message.includes(
+                    "unsupported curve function definition type 'interpolated'",
+                ),
+            ),
+        ).eq(false);
+    });
+
+    it("renderer=prefigure respects supported single-interval domains on interpolated functions", async () => {
+        const doenetML = prefigureGraph(
+            '<function through="(1,1) (2,2) (3,1)" domain="(1,2)" />',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).toContain(`<graph at="curve_0"`);
+        expect(prefigureXML).toContain(`domain="(1,2)"`);
+        expect(prefigureXML).not.toContain(`domain="(-12,1)"`);
+        expect(prefigureXML).not.toContain(`domain="(2,3)"`);
+    });
+
+    it("renderer=prefigure emits one warning when supported piecewise curve has no overlapping pieces", async () => {
+        const doenetML = prefigureGraph(
+            '<curve parMin="-1" parMax="1"><piecewiseFunction><function domain="(2,3)">x^2</function><function domain="(3,4)">x^3</function></piecewiseFunction></curve>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).not.toContain(`<graph at="curve_0"`);
+        expect(prefigureXML).not.toContain(`<parametric-curve at="curve_0"`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        const relevantWarnings = diagnosticsByType.warnings.filter(
+            (x) =>
+                x.message.includes("unsupported curve function definition") ||
+                x.message.includes(
+                    "non-finite or incomplete geometry; descendant skipped",
+                ),
+        );
+
+        expect(relevantWarnings.length).eq(1);
+    });
+
+    it("renderer=prefigure does not report supported empty piecewise child as unsupported", async () => {
+        const doenetML = prefigureGraph(
+            '<curve parMin="-1" parMax="1"><piecewiseFunction><function through="(2,2) (3,3) (4,2)" domain="(2,4)" /><function domain="(-1,1)">x^2</function></piecewiseFunction></curve>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).toContain(`<graph at="curve_0"`);
+        expect(prefigureXML).toContain(`=x^2"`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some((x) =>
+                x.message.includes(
+                    "unsupported function definition type 'interpolated'",
+                ),
+            ),
+        ).eq(false);
+    });
+
+    it("renderer=prefigure emits parse-failure warning (not unsupported-type warning) for supported child that fails to build pieces", () => {
+        const diagnostics: import("@doenet/utils").DiagnosticRecord[] = [];
+        // Interpolated child whose xs contain Infinity — parsedInterpolatedDefinitionPieces
+        // returns null (parse failure), not because the type is unsupported.
+        const interpolatedChildWithBadXs = {
+            functionType: "interpolated",
+            xs: [Infinity, 1],
+            coeffs: [[1, 1, 1, 1]],
+            variables: [["variable", "x"]],
+        };
+        const piecewiseDefinition = {
+            functionType: "piecewise",
+            fDefinitionsOfChildren: [interpolatedChildWithBadXs],
+            numericalDomainsOfChildren: [null],
+        };
+        convertCurveToPrefigure({
+            sv: {
+                curveType: "function",
+                fDefinitions: piecewiseDefinition,
+                parMin: -1,
+                parMax: 1,
+            },
+            handle: "curve_0",
+            styleAttrs: [],
+            diagnostics,
+            warningPrefix: "curve_0",
+        });
+
+        const messages = diagnostics.map((d) => d.message);
+        // Should say "failed to build" not "unsupported function definition type"
+        expect(
+            messages.some((m) => m.includes("failed to build curve pieces")),
+        ).eq(true);
+        expect(
+            messages.some((m) =>
+                m.includes(
+                    "unsupported function definition type 'interpolated'",
+                ),
+            ),
+        ).eq(false);
+    });
+
+    it("renderer=prefigure expands piecewise curve into graph pieces", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<curve><piecewiseFunction><function domain="(-2,2)">x^3</function><function>x^2</function></piecewiseFunction></curve>',
+            ),
+        );
+
+        const pieceCount = (prefigureXML.match(/<graph at="curve_0/g) ?? [])
+            .length;
+        expect(pieceCount).toBeGreaterThan(1);
+        expect(prefigureXML).toContain(`function="curve_0_f(x)=x^3"`);
+        expect(prefigureXML).toContain(`=x^2"`);
+        expect(prefigureXML).not.toContain(`fill="`);
+        expect(prefigureXML).not.toContain(`fill-opacity="`);
+    });
+
+    it("renderer=prefigure supports interpolated pieces within piecewise curves", async () => {
+        const doenetML = prefigureGraph(
+            '<curve><piecewiseFunction><function through="(0,0) (1,1) (2,0)" domain="(-2,2)" /><function>x^2</function></piecewiseFunction></curve>',
+        );
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        const pieceCount = (prefigureXML.match(/<graph at="curve_0/g) ?? [])
+            .length;
+        expect(pieceCount).toBeGreaterThan(1);
+        expect(prefigureXML).toContain(`=x^2"`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some((x) =>
+                x.message.includes(
+                    "unsupported curve function definition type 'interpolated'",
+                ),
+            ),
+        ).eq(false);
+    });
+
+    it("renderer=prefigure expands parameterized piecewise curves into parametric pieces", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<curve><piecewiseFunction><function domain="(-2,2)">x^3/10</function><function>x^2</function></piecewiseFunction><piecewiseFunction><function domain="(-3,3)">x</function><function>x^3/10</function></piecewiseFunction></curve>',
+            ),
+        );
+
+        const pieceCount =
+            (prefigureXML.match(/<parametric-curve at="curve_0/g) ?? [])
+                .length +
+            (prefigureXML.match(/<parametric-curve at="curve_0_/g) ?? [])
+                .length;
+
+        expect(pieceCount).toBeGreaterThan(1);
+        expect(prefigureXML).toContain(`function="curve_0_r(`);
+        expect(prefigureXML).toContain(`(x^3)/10`);
+        expect(prefigureXML).toContain(`domain="`);
+        expect(prefigureXML).not.toContain(`fill="`);
+        expect(prefigureXML).not.toContain(`fill-opacity="`);
+    });
+
+    it("renderer=prefigure emits overlap-count pieces for large aligned parametric piecewise inputs", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<curve><piecewiseFunction><function domain="(-8,-6)">x</function><function domain="(-6,-4)">x</function><function domain="(-4,-2)">x</function><function domain="(-2,0)">x</function><function domain="(0,2)">x</function><function domain="(2,4)">x</function><function domain="(4,6)">x</function><function domain="(6,8)">x</function></piecewiseFunction><piecewiseFunction><function domain="(-8,-6)">x^2</function><function domain="(-6,-4)">x^2</function><function domain="(-4,-2)">x^2</function><function domain="(-2,0)">x^2</function><function domain="(0,2)">x^2</function><function domain="(2,4)">x^2</function><function domain="(4,6)">x^2</function><function domain="(6,8)">x^2</function></piecewiseFunction></curve>',
+            ),
+        );
+
+        const pieceCount = (
+            prefigureXML.match(/<parametric-curve at="curve_0/g) ?? []
+        ).length;
+
+        expect(pieceCount).eq(8);
+    });
 });
 
 // ─── point label alignment overflow ──────────────────────────────────────────
@@ -1328,7 +1699,7 @@ describe("point label alignment overflow @group4", () => {
                 numericalXs: [9.5, 9.5],
                 // graphBounds intentionally omitted
             },
-            warnings: [],
+            diagnostics: [],
             warningPrefix: "test",
         });
         expect(result?.attrs).toContain(`alignment="ne"`);

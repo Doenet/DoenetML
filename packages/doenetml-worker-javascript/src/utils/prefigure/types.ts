@@ -43,11 +43,19 @@ export interface SelectedStyle {
     [key: string]: unknown;
 }
 
+export interface CurveFunctionDefinition {
+    functionType?: unknown;
+    formula?: unknown;
+    variables?: unknown;
+    [key: string]: unknown;
+}
+
 export interface PrefigureStateValues extends Record<string, unknown> {
     selectedStyle?: SelectedStyle;
     label?: string;
     labelHasLatex?: boolean;
     labelPosition?: string;
+    hidden?: boolean;
     open?: boolean;
     filled?: boolean;
     swapPointOrder?: boolean;
@@ -59,6 +67,15 @@ export interface PrefigureStateValues extends Record<string, unknown> {
     numericalCenter?: unknown;
     numericalRadius?: unknown;
     numericalVertices?: unknown;
+    curveType?: unknown;
+    fDefinitions?: unknown;
+    parMin?: unknown;
+    parMax?: unknown;
+    flipFunction?: unknown;
+    numericalThroughPoints?: unknown;
+    periodic?: unknown;
+    extrapolateBackward?: unknown;
+    extrapolateForward?: unknown;
     graphBounds?: GraphBounds;
     graphDimensions?: GraphDimensions;
     lineLabelLocationOverride?: number;

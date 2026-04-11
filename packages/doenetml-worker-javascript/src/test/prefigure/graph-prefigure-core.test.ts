@@ -594,4 +594,64 @@ describe("Graph prefigure renderer core @group4", () => {
             ),
         ).eq(true);
     });
+
+    describe("hidden descendants", () => {
+        it("hidden point is excluded from prefigure XML", async () => {
+            const prefigureXML = await getPrefigureXML(
+                prefigureGraph('<point hide="true">(1,2)</point>'),
+            );
+
+            expect(prefigureXML).not.toContain(`<point `);
+            expect(prefigureXML).not.toContain(`p="(1,2)"`);
+        });
+
+        it("hidden line is excluded from prefigure XML", async () => {
+            const prefigureXML = await getPrefigureXML(
+                prefigureGraph('<line hide="true" through="(0,0) (1,1)" />'),
+            );
+
+            expect(prefigureXML).not.toContain(`<line `);
+        });
+
+        it("visible point is included while hidden point is excluded", async () => {
+            const prefigureXML = await getPrefigureXML(
+                prefigureGraph(
+                    '<point name="p1">(1,2)</point>\n  <point name="p2" hide="true">(3,4)</point>',
+                ),
+            );
+
+            expect(prefigureXML).toContain(`p="(1,2)"`);
+            expect(prefigureXML).not.toContain(`p="(3,4)"`);
+        });
+
+        it("hiding one of two points does not affect handle of the visible point", async () => {
+            const prefigureXML = await getPrefigureXML(
+                prefigureGraph(
+                    '<point name="p1">(1,2)</point>\n  <point name="p2" hide="true">(3,4)</point>',
+                ),
+            );
+
+            expect(prefigureXML).toContain(`at="point_`);
+            const matches = prefigureXML?.match(/at="point_(\d+)"/g) ?? [];
+            expect(matches.length).eq(1);
+        });
+
+        it("hidden component referenced by annotation produces target-not-found warning", async () => {
+            const doenetML = prefigureGraph(
+                '<point name="p" hide="true">(1,2)</point>\n  <annotations><annotation ref="$p" text="hidden point" /></annotations>',
+            );
+
+            const prefigureXML = await getPrefigureXML(doenetML);
+            expect(prefigureXML).not.toContain(`p="(1,2)"`);
+
+            const diagnosticsByType = await getWarnings(doenetML);
+            expect(
+                diagnosticsByType.warnings.some((x) =>
+                    x.message.includes(
+                        "target is not a supported graphical object",
+                    ),
+                ),
+            ).eq(true);
+        });
+    });
 });

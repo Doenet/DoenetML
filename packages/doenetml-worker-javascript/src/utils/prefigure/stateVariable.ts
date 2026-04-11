@@ -26,6 +26,7 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
             "labelHasLatex",
             "labelPosition",
             "open",
+            "hidden",
         ],
         variablesOptional: true,
     },
@@ -38,6 +39,7 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
             "label",
             "labelHasLatex",
             "labelPosition",
+            "hidden",
         ],
     },
     {
@@ -49,6 +51,7 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
             "label",
             "labelHasLatex",
             "labelPosition",
+            "hidden",
         ],
     },
     {
@@ -61,6 +64,7 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
             "label",
             "labelHasLatex",
             "labelPosition",
+            "hidden",
         ],
     },
     {
@@ -72,6 +76,7 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
             "label",
             "labelHasLatex",
             "labelPosition",
+            "hidden",
         ],
     },
     {
@@ -84,7 +89,28 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
             "label",
             "labelHasLatex",
             "swapPointOrder",
+            "hidden",
         ],
+    },
+    {
+        key: "curveDescendants",
+        componentType: "curve",
+        variableNames: [
+            "curveType",
+            "fDefinitions",
+            "parMin",
+            "parMax",
+            "flipFunction",
+            "numericalThroughPoints",
+            "periodic",
+            "extrapolateBackward",
+            "extrapolateForward",
+            "selectedStyle",
+            "label",
+            "labelHasLatex",
+            "hidden",
+        ],
+        variablesOptional: true,
     },
     {
         key: "circleDescendants",
@@ -94,17 +120,23 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
             "numericalRadius",
             "selectedStyle",
             "filled",
+            "hidden",
         ],
     },
     {
         key: "polylineDescendants",
         componentType: "polyline",
-        variableNames: ["numericalVertices", "selectedStyle"],
+        variableNames: ["numericalVertices", "selectedStyle", "hidden"],
     },
     {
         key: "polygonDescendants",
         componentType: "polygon",
-        variableNames: ["numericalVertices", "selectedStyle", "filled"],
+        variableNames: [
+            "numericalVertices",
+            "selectedStyle",
+            "filled",
+            "hidden",
+        ],
     },
 ];
 

@@ -17,6 +17,7 @@ import {
     convertPolygonToPrefigure,
 } from "./components/polygon";
 import { convertAngleToPrefigure } from "./components/angle";
+import { convertCurveToPrefigure } from "./components/curve";
 import type {
     Converter,
     Descendant,
@@ -33,7 +34,7 @@ const FILLED_COMPONENT_TYPES = new Set([
     "rectangle",
 ]);
 
-const NO_FILL_COMPONENT_TYPES = new Set(["polyline", "angle"]);
+const NO_FILL_COMPONENT_TYPES = new Set(["polyline", "angle", "curve"]);
 
 function styleIncludesFill(
     componentType: string,
@@ -56,6 +57,7 @@ const convertByComponentType: Record<string, Converter> = {
     polyline: convertPolylineToPrefigure,
     polygon: convertPolygonToPrefigure,
     angle: convertAngleToPrefigure,
+    curve: convertCurveToPrefigure,
     endpoint: convertPointToPrefigure,
     equilibriumPoint: convertPointToPrefigure,
     triangle: convertPolygonToPrefigure,
@@ -93,6 +95,11 @@ export function convertGraphicalDescendantToPrefigure({
         graphBounds,
         graphDimensions,
     };
+
+    if (sv.hidden) {
+        return null;
+    }
+
     const warningPrefix = warningMessageForDescendant(descendant);
     const warningPosition = descendant?.position;
     const handle = createStableHandle(descendant, index, usedHandles);
@@ -114,6 +121,7 @@ export function convertGraphicalDescendantToPrefigure({
         return null;
     }
 
+    const diagnosticsCountBeforeConvert = diagnostics.length;
     const body = converter({
         sv,
         handle,
@@ -124,11 +132,15 @@ export function convertGraphicalDescendantToPrefigure({
     });
 
     if (!body) {
-        pushWarning({
-            diagnostics,
-            message: `${warningPrefix}: non-finite or incomplete geometry; descendant skipped.`,
-            position: warningPosition,
-        });
+        // If conversion failed and the failed converter call did not emit any
+        // diagnostics, add one generic fallback warning.
+        if (diagnostics.length === diagnosticsCountBeforeConvert) {
+            pushWarning({
+                diagnostics,
+                message: `${warningPrefix}: non-finite or incomplete geometry; descendant skipped.`,
+                position: warningPosition,
+            });
+        }
         return null;
     }
 
