@@ -76,6 +76,8 @@ describe("Annotation skeleton snippet generation", () => {
   <point />
   <circle />
   <line />
+  <lineSegment />
+  <equilibriumPoint />
 </graph>`;
         const graph = getFirstGraphElement(source);
 
@@ -85,6 +87,8 @@ describe("Annotation skeleton snippet generation", () => {
         expect(snippet?.snippet).toContain('ref="$unnamedPoint2"');
         expect(snippet?.snippet).toContain('ref="$unnamedCircle1"');
         expect(snippet?.snippet).toContain('ref="$unnamedLine1"');
+        expect(snippet?.snippet).toContain('ref="$unnamedLineSegment1"');
+        expect(snippet?.snippet).toContain('ref="$unnamedEquilibriumPoint1"');
         expect(snippet?.snippet).toContain(
             "Point requires a name for the ref to work.",
         );
@@ -93,6 +97,12 @@ describe("Annotation skeleton snippet generation", () => {
         );
         expect(snippet?.snippet).toContain(
             "Line requires a name for the ref to work.",
+        );
+        expect(snippet?.snippet).toContain(
+            "Line segment requires a name for the ref to work.",
+        );
+        expect(snippet?.snippet).toContain(
+            "Equilibrium point requires a name for the ref to work.",
         );
     });
 

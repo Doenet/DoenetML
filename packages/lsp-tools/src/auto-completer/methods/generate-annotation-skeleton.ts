@@ -70,6 +70,28 @@ function capitalize(value: string) {
     return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
+type ComponentLabelInfo = {
+    singular: string;
+    refStem: string;
+};
+
+const COMPONENT_LABELS: Record<string, ComponentLabelInfo> = {
+    linesegment: { singular: "line segment", refStem: "LineSegment" },
+    equilibriumpoint: {
+        singular: "equilibrium point",
+        refStem: "EquilibriumPoint",
+    },
+};
+
+function getComponentLabelInfo(componentType: string): ComponentLabelInfo {
+    return (
+        COMPONENT_LABELS[componentType] ?? {
+            singular: componentType,
+            refStem: capitalize(componentType),
+        }
+    );
+}
+
 /**
  * Recursively extract graphical descendants from a graph element.
  * Existing `<annotations>` subtrees are intentionally ignored.
@@ -117,7 +139,9 @@ export function getDescriptionTemplate(
     componentName: string,
     isUnnamed = false,
 ): string {
-    const componentLabel = capitalize(componentType);
+    const componentLabel = capitalize(
+        getComponentLabelInfo(componentType).singular,
+    );
     const unnamedHint = isUnnamed
         ? ` (${componentLabel} requires a name for the ref to work.)`
         : "";
@@ -263,7 +287,7 @@ export function buildAnnotationTree(
                 const nextCount =
                     (unnamedCounters.get(component.type) ?? 0) + 1;
                 unnamedCounters.set(component.type, nextCount);
-                componentName = `unnamed${capitalize(component.type)}${nextCount}`;
+                componentName = `unnamed${getComponentLabelInfo(component.type).refStem}${nextCount}`;
             }
 
             return {
