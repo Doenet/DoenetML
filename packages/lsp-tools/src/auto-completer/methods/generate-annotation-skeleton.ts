@@ -25,8 +25,6 @@ const GRAPHICAL_COMPONENT_TYPES = new Set([
 export interface GraphicalComponent {
     type: string;
     name?: string;
-    elementIndex: number;
-    dastElement: DastElement;
 }
 
 export interface AnnotationNode {
@@ -81,7 +79,7 @@ export function extractGraphicalChildren(
 ): GraphicalComponent[] {
     const graphicalComponents: GraphicalComponent[] = [];
 
-    function visitElement(element: DastElement, elementIndex: number) {
+    function visitElement(element: DastElement) {
         const normalizedType = element.name.toLowerCase();
 
         if (normalizedType === "annotations") {
@@ -92,21 +90,19 @@ export function extractGraphicalChildren(
             graphicalComponents.push({
                 type: normalizedType,
                 name: getAttributeValue(element, "name"),
-                elementIndex,
-                dastElement: element,
             });
         }
 
-        element.children.forEach((child, index) => {
+        element.children.forEach((child) => {
             if (child.type === "element") {
-                visitElement(child, index);
+                visitElement(child);
             }
         });
     }
 
-    graphElement.children.forEach((child, index) => {
+    graphElement.children.forEach((child) => {
         if (child.type === "element") {
-            visitElement(child, index);
+            visitElement(child);
         }
     });
 
@@ -136,17 +132,17 @@ export function getDescriptionTemplate(
         case "equilibriumpoint":
             return `An equilibrium point with x-coordinate $${componentName}.x and y-coordinate $${componentName}.y.${unnamedHint}`;
         case "circle":
-            return `A circle with radius $${componentName}.r centered at x-coordinate $${componentName}.center.x and y-coordinate $${componentName}.center.y.${unnamedHint}`;
+            return `A circle with radius $${componentName}.radius centered at x-coordinate $${componentName}.center.x and y-coordinate $${componentName}.center.y.${unnamedHint}`;
         case "function":
             return `A function.${unnamedHint}`;
         case "line":
             return `A line.${unnamedHint}`;
         case "linesegment":
-            return `A line segment from a point with x-coordinate $${componentName}.point1.x and y-coordinate $${componentName}.point1.y to a point with x-coordinate $${componentName}.point2.x and y-coordinate $${componentName}.point2.y.${unnamedHint}`;
+            return `A line segment from a point with x-coordinate $${componentName}.endpoints[1].x and y-coordinate $${componentName}.endpoints[1].y to a point with x-coordinate $${componentName}.endpoints[2].x and y-coordinate $${componentName}.endpoints[2].y.${unnamedHint}`;
         case "ray":
-            return `A ray starting at a point with x-coordinate $${componentName}.point1.x and y-coordinate $${componentName}.point1.y, passing through a point with x-coordinate $${componentName}.point2.x and y-coordinate $${componentName}.point2.y.${unnamedHint}`;
+            return `A ray starting at a point with x-coordinate $${componentName}.endpoint.x and y-coordinate $${componentName}.endpoint.y, passing through a point with x-coordinate $${componentName}.through.x and y-coordinate $${componentName}.through.y.${unnamedHint}`;
         case "vector":
-            return `A vector with tail at x-coordinate $${componentName}.point1.x and y-coordinate $${componentName}.point1.y, and endpoint at x-coordinate $${componentName}.point2.x and y-coordinate $${componentName}.point2.y.${unnamedHint}`;
+            return `A vector with tail at x-coordinate $${componentName}.tail.x and y-coordinate $${componentName}.tail.y, and head at x-coordinate $${componentName}.head.x and y-coordinate $${componentName}.head.y.${unnamedHint}`;
         case "polyline":
             return `A polyline with $${componentName}.numVertices vertices.${unnamedHint}`;
         case "polygon":
@@ -178,6 +174,35 @@ const NUMBER_WORDS = [
     "ten",
 ];
 
+function getGraphLevelTypeDescriptor(type: string, count: number): string {
+    switch (type) {
+        case "line":
+            return count === 1 ? "a line" : `${countAsWord(count)} lines`;
+        case "linesegment":
+            return count === 1
+                ? "a line segment"
+                : `${countAsWord(count)} line segments`;
+        case "endpoint":
+            return count === 1
+                ? "an endpoint"
+                : `${countAsWord(count)} endpoints`;
+        case "equilibriumpoint":
+            return count === 1
+                ? "an equilibrium point"
+                : `${countAsWord(count)} equilibrium points`;
+        case "angle":
+            return count === 1 ? "an angle" : `${countAsWord(count)} angles`;
+        default: {
+            const noun = count === 1 ? type : `${type}s`;
+            return count === 1 ? `a ${noun}` : `${countAsWord(count)} ${noun}`;
+        }
+    }
+}
+
+function countAsWord(count: number): string {
+    return count < NUMBER_WORDS.length ? NUMBER_WORDS[count] : String(count);
+}
+
 /**
  * Build the text for the top-level graph annotation describing its graphical
  * contents, e.g. "A graph of a line and two points."
@@ -201,10 +226,7 @@ function buildGraphLevelAnnotationText(
 
     const parts = typeOrder.map((type) => {
         const count = typeCounts.get(type) ?? 1;
-        const noun = count === 1 ? type : `${type}s`;
-        const numWord =
-            count < NUMBER_WORDS.length ? NUMBER_WORDS[count] : String(count);
-        return `${numWord} ${noun}`;
+        return getGraphLevelTypeDescriptor(type, count);
     });
 
     if (parts.length === 0) {
@@ -230,14 +252,20 @@ export function buildAnnotationTree(
 
     const childAnnotations: AnnotationNode[] = graphicalComponents.map(
         (component) => {
-            let componentName = component.name;
-            let isUnnamed = false;
-            if (!componentName) {
-                const priorCount = unnamedCounters.get(component.type) ?? 0;
-                const nextCount = priorCount + 1;
-                unnamedCounters.set(component.type, nextCount);
-                componentName = `unnamed${capitalize(component.type)}${nextCount}`;
+            let componentName: string;
+            let isUnnamed: boolean;
+
+            if (component.name) {
+                isUnnamed = false;
+                componentName = component.name;
+            } else {
                 isUnnamed = true;
+                const nextCount = (unnamedCounters.get(component.type) ?? 0) + 1;
+                unnamedCounters.set(
+                    component.type,
+                    nextCount,
+                );
+                componentName = `unnamed${capitalize(component.type)}${nextCount}`;
             }
 
             return {

@@ -98,6 +98,7 @@ describe("Annotation skeleton snippet generation", () => {
 
     it("generates descriptions for all supported graphical components", () => {
         const source = `<graph renderer="prefigure">
+  <circle name="c" />
   <function name="f" />
   <lineSegment name="seg" />
   <ray name="r" />
@@ -112,7 +113,7 @@ describe("Annotation skeleton snippet generation", () => {
         const snippet = generateAnnotationSkeletonSnippet(graph);
 
         expect(snippet).toBeTruthy();
-        expect(snippet?.snippet).toContain('ref="$f"');
+        expect(snippet?.snippet).toContain('ref="$c"');
         expect(snippet?.snippet).toContain('ref="$seg"');
         expect(snippet?.snippet).toContain('ref="$r"');
         expect(snippet?.snippet).toContain('ref="$v"');
@@ -129,6 +130,39 @@ describe("Annotation skeleton snippet generation", () => {
         expect(snippet?.snippet).toContain("polyline");
         expect(snippet?.snippet).toContain("angle");
         expect(snippet?.snippet).toContain("curve");
+
+        // Verify component property paths match the published schema names
+        expect(snippet?.snippet).toContain("$c.radius");
+        expect(snippet?.snippet).toContain("$c.center.x");
+        expect(snippet?.snippet).toContain("$c.center.y");
+        expect(snippet?.snippet).toContain("$seg.endpoints[1].x");
+        expect(snippet?.snippet).toContain("$seg.endpoints[1].y");
+        expect(snippet?.snippet).toContain("$seg.endpoints[2].x");
+        expect(snippet?.snippet).toContain("$seg.endpoints[2].y");
+        expect(snippet?.snippet).toContain("$r.endpoint.x");
+        expect(snippet?.snippet).toContain("$r.endpoint.y");
+        expect(snippet?.snippet).toContain("$r.through.x");
+        expect(snippet?.snippet).toContain("$r.through.y");
+        expect(snippet?.snippet).toContain("$v.tail.x");
+        expect(snippet?.snippet).toContain("$v.tail.y");
+        expect(snippet?.snippet).toContain("$v.head.x");
+        expect(snippet?.snippet).toContain("$v.head.y");
+        expect(snippet?.snippet).toContain(
+            "A vector with tail at x-coordinate $v.tail.x and y-coordinate $v.tail.y, and head at x-coordinate $v.head.x and y-coordinate $v.head.y.",
+        );
+        expect(snippet?.snippet).toContain("A function.");
+        expect(snippet?.snippet).toContain('ref="$f"');
+        expect(snippet?.snippet).not.toContain("$seg.endpoints[1][1]");
+        expect(snippet?.snippet).not.toContain("$r.endpoint[1]");
+
+        // Ensure old invalid path suggestions are not emitted
+        expect(snippet?.snippet).not.toMatch(/\$c\.r(\W|$)/);
+        expect(snippet?.snippet).not.toContain("$seg.point1");
+        expect(snippet?.snippet).not.toContain("$seg.point2");
+        expect(snippet?.snippet).not.toContain("$r.point1");
+        expect(snippet?.snippet).not.toContain("$r.point2");
+        expect(snippet?.snippet).not.toContain("$v.point1");
+        expect(snippet?.snippet).not.toContain("$v.point2");
     });
 
     it("handles component aliases (endpoint, equilibriumPoint, triangle, rectangle)", () => {
@@ -152,6 +186,22 @@ describe("Annotation skeleton snippet generation", () => {
         expect(snippet?.snippet).toContain("An equilibrium point"); // equilibriumPoint description
         expect(snippet?.snippet).toContain("A triangle."); // triangle description (simple, no vertices count)
         expect(snippet?.snippet).toContain("A rectangle"); // rectangle description
+    });
+
+    it("uses readable graph-level wording for special component names", () => {
+        const source = `<graph renderer="prefigure">
+  <endpoint name="ep" />
+  <angle name="a" />
+  <lineSegment name="s1" />
+  <lineSegment name="s2" />
+</graph>`;
+        const graph = getFirstGraphElement(source);
+
+        const snippet = generateAnnotationSkeletonSnippet(graph);
+
+        expect(snippet?.snippet).toContain(
+            '<annotation text="A graph of an endpoint, an angle, and two line segments.">',
+        );
     });
 
     it("returns null when graph has no supported graphical descendants", () => {
