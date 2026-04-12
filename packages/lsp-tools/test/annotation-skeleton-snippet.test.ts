@@ -214,6 +214,29 @@ describe("Annotation skeleton snippet generation", () => {
         );
     });
 
+    it("uses parenthesized macro syntax for non-SimpleIdent component names", () => {
+        const source = `<graph renderer="prefigure">
+  <lineSegment name="my-seg" />
+  <point name="1stPoint" />
+</graph>`;
+        const graph = getFirstGraphElement(source);
+
+        const snippet = generateAnnotationSkeletonSnippet(graph);
+
+        expect(snippet).toBeTruthy();
+        // ref attributes use parenthesized form
+        expect(snippet?.snippet).toContain('ref="$(my-seg)"');
+        expect(snippet?.snippet).toContain('ref="$(1stPoint)"');
+        // text macros use parenthesized form with property paths
+        expect(snippet?.snippet).toContain("$(my-seg).endpoints[1].x");
+        expect(snippet?.snippet).toContain("$(my-seg).endpoints[2].y");
+        expect(snippet?.snippet).toContain("$(1stPoint).x");
+        expect(snippet?.snippet).toContain("$(1stPoint).y");
+        // bare $ form must not appear for these names
+        expect(snippet?.snippet).not.toContain("$my-seg");
+        expect(snippet?.snippet).not.toContain("$1stPoint");
+    });
+
     it("returns null when graph has no supported graphical descendants", () => {
         const source = `<graph renderer="prefigure">
   <text>Nothing graphical here</text>
