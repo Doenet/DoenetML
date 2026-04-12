@@ -13,7 +13,7 @@ import {
 } from "../utils/rounding";
 // PreFigure conversion architecture and extension guide:
 // see src/utils/prefigure/README.md
-import { returnGraphPrefigureXMLStateVariableDefinition } from "../utils/prefigure/stateVariable";
+import { returnGraphPrefigureStateVariableDefinitions } from "../utils/prefigure/stateVariable";
 
 export default class Graph extends BlockComponent {
     constructor(args) {
@@ -551,8 +551,10 @@ export default class Graph extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.prefigureXML =
-            returnGraphPrefigureXMLStateVariableDefinition();
+        Object.assign(
+            stateVariableDefinitions,
+            returnGraphPrefigureStateVariableDefinitions(),
+        );
 
         stateVariableDefinitions.childIndicesToRender = {
             returnDependencies: () => ({
