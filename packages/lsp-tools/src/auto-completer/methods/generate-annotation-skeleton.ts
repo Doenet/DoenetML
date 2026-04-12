@@ -1,5 +1,6 @@
 import type { CompletionSnippetCursor } from "@doenet/static-assets/completion-snippet-protocol";
-import { DastElement, toXml } from "@doenet/parser";
+import { toXml } from "@doenet/parser";
+import type { DastElement } from "@doenet/parser";
 
 const CURSOR_MARKER = "__ANNOTATION_SKELETON_CURSOR__";
 

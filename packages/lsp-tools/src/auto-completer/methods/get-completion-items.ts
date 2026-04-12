@@ -6,7 +6,8 @@ import type {
     CompletionSnippetCompletionItemData,
     CompletionSnippetCursor,
 } from "@doenet/static-assets/completion-snippet-protocol";
-import { DastElement, toXml } from "@doenet/parser";
+import { toXml } from "@doenet/parser";
+import type { DastElement } from "@doenet/parser";
 import { AutoCompleter } from "../index";
 import { generateAnnotationSkeletonSnippet } from "./generate-annotation-skeleton";
 
