@@ -470,6 +470,61 @@ describe("Graph prefigure renderer core @group4", () => {
         ).eq(true);
     });
 
+    it("ref to function resolves through adapted curve handle", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<function name="f">x^2</function>\n  <annotations><annotation ref="$f" text="function summary" /></annotations>',
+            ),
+        );
+
+        const annotationRefMatch = prefigureXML.match(
+            /<annotation ref="([^"]+)" text="function summary"><\/annotation>/,
+        );
+        expect(annotationRefMatch).toBeTruthy();
+
+        const annotationRef = annotationRefMatch?.[1] ?? "";
+        expect(annotationRef).not.eq("");
+        expect(annotationRef).not.toContain("annotation_");
+        expect(annotationRef).not.eq("figure");
+        expect(prefigureXML).toContain(`at="${annotationRef}"`);
+    });
+
+    it("ref to multi-piece function resolves to grouped curve handle", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<function name="f" through="(1,2) (-5,7) (4,3) (6,1)" />\n  <annotations><annotation ref="$f" text="function summary" /></annotations>',
+            ),
+        );
+
+        expect(prefigureXML).toContain(`<group at="curve_0">`);
+        expect(prefigureXML).toContain(`<graph at="curve_0_0"`);
+
+        const annotationRefMatch = prefigureXML.match(
+            /<annotation ref="([^"]+)" text="function summary"><\/annotation>/,
+        );
+        expect(annotationRefMatch).toBeTruthy();
+        expect(annotationRefMatch?.[1]).eq("curve_0");
+    });
+
+    it("ref to function outside graph subtree omits annotation and emits warning", async () => {
+        const doenetML = `
+<graph name="g" renderer="prefigure">
+  <annotations><annotation ref="$outsideFunction" text="outside function" /></annotations>
+</graph>
+<function name="outsideFunction">x^2</function>
+`;
+
+        const prefigureXML = await getPrefigureXML(doenetML);
+        expect(prefigureXML).not.toContain(`<annotations>`);
+
+        const diagnosticsByType = await getWarnings(doenetML);
+        expect(
+            diagnosticsByType.warnings.some((x) =>
+                x.message.includes("outside the containing graph"),
+            ),
+        ).eq(true);
+    });
+
     it("ref to unsupported graph child omits annotation and emits warning", async () => {
         const doenetML = prefigureGraph(
             '<textInput name="ti" />\n  <annotations><annotation ref="$ti" text="input summary" /></annotations>',

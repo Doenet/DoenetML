@@ -12,6 +12,7 @@ interface AnnotationXmlBuildState {
     handleByComponentIdx: Map<number, string>;
     graphComponentIdx: number;
     graphDescendantComponentIndices: Set<number>;
+    functionToCurveComponentIdx: Record<number, number>;
     conceptualRefCounter: number;
     usedAnnotationRefs: Set<string>;
 }
@@ -25,6 +26,7 @@ interface BuildAnnotationsXmlParams {
     handleByComponentIdx: Map<number, string>;
     graphComponentIdx: number;
     graphDescendantComponentIndices: Set<number>;
+    functionToCurveComponentIdx?: Record<number, number>;
 }
 
 const INVALID_REF_WARNING =
@@ -85,6 +87,7 @@ export function convertDoenetMLAnnotationsToPreFigureXml({
     handleByComponentIdx,
     graphComponentIdx,
     graphDescendantComponentIndices,
+    functionToCurveComponentIdx,
 }: BuildAnnotationsXmlParams): string {
     if (!Array.isArray(annotations) || annotations.length === 0) {
         return "";
@@ -95,6 +98,7 @@ export function convertDoenetMLAnnotationsToPreFigureXml({
         handleByComponentIdx,
         graphComponentIdx,
         graphDescendantComponentIndices,
+        functionToCurveComponentIdx: functionToCurveComponentIdx ?? {},
         conceptualRefCounter: 1,
         usedAnnotationRefs: new Set(handleByComponentIdx.values()),
     };
@@ -185,7 +189,20 @@ function resolveAnnotationRef(
         return "figure";
     }
 
-    if (!state.graphDescendantComponentIndices.has(targetComponentIdx)) {
+    let resolvedIdx = targetComponentIdx;
+
+    const directHandle = state.handleByComponentIdx.get(resolvedIdx);
+
+    if (!directHandle) {
+        const aliasedTargetComponentIdx =
+            state.functionToCurveComponentIdx[resolvedIdx];
+
+        if (Number.isFinite(aliasedTargetComponentIdx)) {
+            resolvedIdx = aliasedTargetComponentIdx;
+        }
+    }
+
+    if (!state.graphDescendantComponentIndices.has(resolvedIdx)) {
         pushAnnotationWarning({
             diagnostics: state.diagnostics,
             annotation,
@@ -195,7 +212,7 @@ function resolveAnnotationRef(
         return null;
     }
 
-    const handle = state.handleByComponentIdx.get(targetComponentIdx);
+    const handle = directHandle ?? state.handleByComponentIdx.get(resolvedIdx);
     if (!handle) {
         pushAnnotationWarning({
             diagnostics: state.diagnostics,
