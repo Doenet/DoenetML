@@ -168,6 +168,13 @@ function descendantDependency({
     return dependency;
 }
 
+/**
+ * Returns the graph-level state-variable dependencies shared by prefigureXML.
+ *
+ * These dependencies describe graph framing and axis metadata (bounds,
+ * dimensions, labels, renderer context) and are intentionally separated from
+ * descendant dependencies so conversion inputs are easier to reason about.
+ */
 function prefigureBaseDependencies() {
     return {
         effectiveRenderer: {
@@ -237,6 +244,12 @@ function prefigureBaseDependencies() {
     };
 }
 
+/**
+ * Materializes configured descendant dependency entries keyed by config key.
+ *
+ * This function is the single place where GRAPHICAL_DESCENDANT_CONFIGS become
+ * graph dependencies, which keeps descendant wiring declarative and centralized.
+ */
 function prefigureDescendantDependencies(): Record<string, unknown> {
     return Object.fromEntries(
         GRAPHICAL_DESCENDANT_CONFIGS.map((config) => [
@@ -244,6 +257,115 @@ function prefigureDescendantDependencies(): Record<string, unknown> {
             descendantDependency(config),
         ]),
     );
+}
+
+/**
+ * Computes a stable ordered list of curve component indices for this graph.
+ *
+ * Relationship to other helpers:
+ * - this list is consumed by functionCurveAliasMap to create one adapterSource
+ *   dependency per curve descendant.
+ * - prefigureXML depends on functionCurveAliasMap (not directly on this list).
+ */
+function returnGraphCurveDescendantComponentIndicesStateVariableDefinition() {
+    return {
+        returnDependencies: () => ({
+            curveDescendants: descendantDependency({
+                componentType: "curve",
+                variableNames: [],
+            }),
+        }),
+        definition({
+            dependencyValues,
+        }: {
+            dependencyValues: GraphDependencyValues;
+        }) {
+            const curveDescendantComponentIndices = (
+                dependencyValues.curveDescendants ?? []
+            )
+                .map((x) => x.componentIdx)
+                .filter((x): x is number => Number.isFinite(x));
+
+            return { setValue: { curveDescendantComponentIndices } };
+        },
+    };
+}
+
+/**
+ * Inverts curve adapter-source links into a function->curve alias map.
+ *
+ * Functions render via adapted curves in prefigure conversion. This map bridges
+ * annotation refs authored against function components to the concrete rendered
+ * curve handles, without changing curve conversion behavior.
+ */
+function returnGraphFunctionCurveAliasMapStateVariableDefinition() {
+    return {
+        stateVariablesDeterminingDependencies: [
+            "curveDescendantComponentIndices",
+        ],
+        returnDependencies: ({
+            stateValues,
+        }: {
+            stateValues: GraphDependencyValues;
+        }) => {
+            const dependencies: Record<string, unknown> = {
+                curveDescendantComponentIndices: {
+                    dependencyType: "stateVariable",
+                    variableName: "curveDescendantComponentIndices",
+                },
+            };
+
+            const curveDescendantComponentIndices =
+                stateValues.curveDescendantComponentIndices;
+
+            if (Array.isArray(curveDescendantComponentIndices)) {
+                for (const [
+                    index,
+                    curveComponentIdx,
+                ] of curveDescendantComponentIndices.entries()) {
+                    dependencies[`curveAdapterSource${index}`] = {
+                        dependencyType: "adapterSource",
+                        componentIdx: curveComponentIdx,
+                    };
+                }
+            }
+
+            return dependencies;
+        },
+        definition({
+            dependencyValues,
+        }: {
+            dependencyValues: GraphDependencyValues;
+        }) {
+            const functionCurveAliasMap: Record<number, number> = {};
+
+            const curveDescendantComponentIndices =
+                dependencyValues.curveDescendantComponentIndices;
+
+            if (Array.isArray(curveDescendantComponentIndices)) {
+                for (const [
+                    index,
+                    curveComponentIdx,
+                ] of curveDescendantComponentIndices.entries()) {
+                    const adapterSource = dependencyValues[
+                        `curveAdapterSource${index}`
+                    ] as Descendant | undefined;
+
+                    if (
+                        Number.isFinite(curveComponentIdx) &&
+                        Number.isFinite(adapterSource?.componentIdx) &&
+                        adapterSource?.componentType === "function"
+                    ) {
+                        functionCurveAliasMap[
+                            adapterSource.componentIdx as number
+                        ] = curveComponentIdx;
+                    }
+                }
+            }
+
+            return { setValue: { functionCurveAliasMap } };
+        },
+    };
 }
 
 /**
@@ -278,7 +400,7 @@ function collectConfiguredDescendants(
  * This builder keeps dependency wiring and conversion orchestration outside
  * of `Graph.js`, while preserving conversion behavior in utility modules.
  */
-export function returnGraphPrefigureXMLStateVariableDefinition() {
+function returnGraphPrefigureXMLStateVariableDefinition() {
     return {
         public: true,
         forRenderer: true,
@@ -288,6 +410,10 @@ export function returnGraphPrefigureXMLStateVariableDefinition() {
         returnDependencies: () => ({
             ...prefigureBaseDependencies(),
             ...prefigureDescendantDependencies(),
+            functionCurveAliasMap: {
+                dependencyType: "stateVariable",
+                variableName: "functionCurveAliasMap",
+            },
             annotationsChildren: {
                 dependencyType: "child",
                 childGroups: ["annotations"],
@@ -367,6 +493,10 @@ export function returnGraphPrefigureXMLStateVariableDefinition() {
                 unsupported,
                 annotations,
                 graphComponentIdx: componentIdx,
+                functionToCurveComponentIdx:
+                    (dependencyValues.functionCurveAliasMap as
+                        | Record<number, number>
+                        | undefined) ?? {},
             });
 
             if (
@@ -391,5 +521,17 @@ export function returnGraphPrefigureXMLStateVariableDefinition() {
                 sendDiagnostics: diagnostics,
             };
         },
+    };
+}
+
+export function returnGraphPrefigureStateVariableDefinitions() {
+    // Keep this object as the canonical relationship map between Graph state
+    // variable names and their prefigure definitions.
+    return {
+        curveDescendantComponentIndices:
+            returnGraphCurveDescendantComponentIndicesStateVariableDefinition(),
+        functionCurveAliasMap:
+            returnGraphFunctionCurveAliasMapStateVariableDefinition(),
+        prefigureXML: returnGraphPrefigureXMLStateVariableDefinition(),
     };
 }

@@ -107,12 +107,14 @@ export function createPrefigureXML({
     unsupported,
     annotations,
     graphComponentIdx,
+    functionToCurveComponentIdx,
 }: {
     dependencyValues: GraphDependencyValues;
     descendants: Descendant[];
     unsupported: Descendant[];
     annotations: AnnotationNode[] | null;
     graphComponentIdx: number;
+    functionToCurveComponentIdx?: Record<number, number>;
 }): { xml: string; diagnostics: DiagnosticRecord[] } {
     const diagnostics: DiagnosticRecord[] = [];
     const usedHandles = new Set<string>();
@@ -222,6 +224,7 @@ export function createPrefigureXML({
         handleByComponentIdx,
         graphComponentIdx,
         graphDescendantComponentIndices,
+        functionToCurveComponentIdx,
     });
 
     const xml = `<diagram dimensions="${escapeXml(dimensions)}"><coordinates bbox="${escapeXml(bbox)}">${axesElement}${elements.join("")}</coordinates>${annotationsElement}</diagram>`;

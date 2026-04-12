@@ -151,4 +151,7 @@ export interface GraphDependencyValues extends Record<string, unknown> {
     allGraphicalDescendants?: Descendant[];
     allDescendants?: Descendant[];
     annotationsChildren?: AnnotationContainerChild[];
+    curveDescendants?: Descendant[];
+    curveDescendantComponentIndices?: number[];
+    functionCurveAliasMap?: Record<number, number>;
 }
