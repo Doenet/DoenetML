@@ -220,7 +220,7 @@ function isPrefigureGraphElement(
     );
 }
 
-function isPreFigureGraph(
+function isPrefigureGraph(
     autoCompleter: AutoCompleter,
     contextElement: DastElement | null,
 ): contextElement is DastElement {
@@ -242,7 +242,7 @@ function createDynamicSnippetCompletionItems(
         return [];
     }
 
-    if (!isPreFigureGraph(autoCompleter, contextElement)) {
+    if (!isPrefigureGraph(autoCompleter, contextElement)) {
         return [];
     }
 

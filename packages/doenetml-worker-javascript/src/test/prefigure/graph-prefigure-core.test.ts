@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { DastElement, lezerToDast } from "@doenet/parser";
+import { lezerToDast } from "@doenet/parser";
+import type { DastElement } from "@doenet/parser";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
