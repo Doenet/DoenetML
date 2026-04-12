@@ -189,26 +189,20 @@ function resolveAnnotationRef(
         return "figure";
     }
 
-    let annotationRefTargetComponentIdx = targetComponentIdx;
+    let resolvedIdx = targetComponentIdx;
 
-    const directHandle = state.handleByComponentIdx.get(
-        annotationRefTargetComponentIdx,
-    );
+    const directHandle = state.handleByComponentIdx.get(resolvedIdx);
 
     if (!directHandle) {
         const aliasedTargetComponentIdx =
-            state.functionToCurveComponentIdx[annotationRefTargetComponentIdx];
+            state.functionToCurveComponentIdx[resolvedIdx];
 
         if (Number.isFinite(aliasedTargetComponentIdx)) {
-            annotationRefTargetComponentIdx = aliasedTargetComponentIdx;
+            resolvedIdx = aliasedTargetComponentIdx;
         }
     }
 
-    if (
-        !state.graphDescendantComponentIndices.has(
-            annotationRefTargetComponentIdx,
-        )
-    ) {
+    if (!state.graphDescendantComponentIndices.has(resolvedIdx)) {
         pushAnnotationWarning({
             diagnostics: state.diagnostics,
             annotation,
@@ -218,9 +212,7 @@ function resolveAnnotationRef(
         return null;
     }
 
-    const handle =
-        directHandle ??
-        state.handleByComponentIdx.get(annotationRefTargetComponentIdx);
+    const handle = directHandle ?? state.handleByComponentIdx.get(resolvedIdx);
     if (!handle) {
         pushAnnotationWarning({
             diagnostics: state.diagnostics,

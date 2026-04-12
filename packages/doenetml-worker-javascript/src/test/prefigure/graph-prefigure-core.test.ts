@@ -483,6 +483,7 @@ describe("Graph prefigure renderer core @group4", () => {
         expect(annotationRefMatch).toBeTruthy();
 
         const annotationRef = annotationRefMatch?.[1] ?? "";
+        expect(annotationRef).not.eq("");
         expect(annotationRef).not.toContain("annotation_");
         expect(annotationRef).not.eq("figure");
         expect(prefigureXML).toContain(`at="${annotationRef}"`);

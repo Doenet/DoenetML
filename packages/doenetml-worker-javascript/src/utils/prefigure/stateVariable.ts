@@ -263,9 +263,12 @@ function prefigureDescendantDependencies(): Record<string, unknown> {
  * Computes a stable ordered list of curve component indices for this graph.
  *
  * Relationship to other helpers:
- * - this list is consumed by functionCurveAliasMap to create one adapterSource
+ * - this list is consumed by functionToCurveComponentIdx to create one adapterSource
  *   dependency per curve descendant.
- * - prefigureXML depends on functionCurveAliasMap (not directly on this list).
+ * - prefigureXML depends on functionToCurveComponentIdx (not directly on this list).
+ *
+ * `variableNames: []` is intentional: only component indices are needed here,
+ * avoiding redundant variable fetching that the prefigureXML query already does.
  */
 function returnGraphCurveDescendantComponentIndicesStateVariableDefinition() {
     return {
@@ -337,7 +340,7 @@ function returnGraphFunctionCurveAliasMapStateVariableDefinition() {
         }: {
             dependencyValues: GraphDependencyValues;
         }) {
-            const functionCurveAliasMap: Record<number, number> = {};
+            const functionToCurveComponentIdx: Record<number, number> = {};
 
             const curveDescendantComponentIndices =
                 dependencyValues.curveDescendantComponentIndices;
@@ -352,18 +355,17 @@ function returnGraphFunctionCurveAliasMapStateVariableDefinition() {
                     ] as Descendant | undefined;
 
                     if (
-                        Number.isFinite(curveComponentIdx) &&
                         Number.isFinite(adapterSource?.componentIdx) &&
                         adapterSource?.componentType === "function"
                     ) {
-                        functionCurveAliasMap[
+                        functionToCurveComponentIdx[
                             adapterSource.componentIdx as number
                         ] = curveComponentIdx;
                     }
                 }
             }
 
-            return { setValue: { functionCurveAliasMap } };
+            return { setValue: { functionToCurveComponentIdx } };
         },
     };
 }
@@ -410,9 +412,9 @@ function returnGraphPrefigureXMLStateVariableDefinition() {
         returnDependencies: () => ({
             ...prefigureBaseDependencies(),
             ...prefigureDescendantDependencies(),
-            functionCurveAliasMap: {
+            functionToCurveComponentIdx: {
                 dependencyType: "stateVariable",
-                variableName: "functionCurveAliasMap",
+                variableName: "functionToCurveComponentIdx",
             },
             annotationsChildren: {
                 dependencyType: "child",
@@ -494,9 +496,7 @@ function returnGraphPrefigureXMLStateVariableDefinition() {
                 annotations,
                 graphComponentIdx: componentIdx,
                 functionToCurveComponentIdx:
-                    (dependencyValues.functionCurveAliasMap as
-                        | Record<number, number>
-                        | undefined) ?? {},
+                    dependencyValues.functionToCurveComponentIdx ?? {},
             });
 
             if (
@@ -524,13 +524,17 @@ function returnGraphPrefigureXMLStateVariableDefinition() {
     };
 }
 
+/**
+ * Returns all Graph state-variable definitions needed for prefigure conversion.
+ *
+ * This is the canonical mapping between state-variable names and their
+ * definitions; extend here when adding new prefigure-related state variables.
+ */
 export function returnGraphPrefigureStateVariableDefinitions() {
-    // Keep this object as the canonical relationship map between Graph state
-    // variable names and their prefigure definitions.
     return {
         curveDescendantComponentIndices:
             returnGraphCurveDescendantComponentIndicesStateVariableDefinition(),
-        functionCurveAliasMap:
+        functionToCurveComponentIdx:
             returnGraphFunctionCurveAliasMapStateVariableDefinition(),
         prefigureXML: returnGraphPrefigureXMLStateVariableDefinition(),
     };
