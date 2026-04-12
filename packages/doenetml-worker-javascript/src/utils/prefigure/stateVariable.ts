@@ -12,9 +12,35 @@ interface DescendantDependency {
 // PreFigure conversion architecture and extension guide:
 // see src/utils/prefigure/README.md
 
+// Curve descendants are pulled into a dedicated shared state variable so the
+// descendant traversal happens once and its results are reused by both
+// prefigureXML and curveDescendantComponentIndices.
+const CURVE_DESCENDANT_CONFIG = {
+    key: "curveDescendants",
+    componentType: "curve",
+    variableNames: [
+        "curveType",
+        "fDefinitions",
+        "parMin",
+        "parMax",
+        "flipFunction",
+        "numericalThroughPoints",
+        "periodic",
+        "extrapolateBackward",
+        "extrapolateForward",
+        "selectedStyle",
+        "label",
+        "labelHasLatex",
+        "hidden",
+    ],
+    variablesOptional: true,
+};
+
 // Ordered from broader base types to narrower types where relevant.
 // If a component matches multiple configs via inheritance, the later match
 // wins after componentIdx dedupe in collectConfiguredDescendants().
+// curveDescendants is intentionally excluded here; it is fetched once via
+// the curveDescendants state variable and threaded in as a stateVariable dep.
 const GRAPHICAL_DESCENDANT_CONFIGS = [
     {
         key: "pointDescendants",
@@ -91,26 +117,6 @@ const GRAPHICAL_DESCENDANT_CONFIGS = [
             "swapPointOrder",
             "hidden",
         ],
-    },
-    {
-        key: "curveDescendants",
-        componentType: "curve",
-        variableNames: [
-            "curveType",
-            "fDefinitions",
-            "parMin",
-            "parMax",
-            "flipFunction",
-            "numericalThroughPoints",
-            "periodic",
-            "extrapolateBackward",
-            "extrapolateForward",
-            "selectedStyle",
-            "label",
-            "labelHasLatex",
-            "hidden",
-        ],
-        variablesOptional: true,
     },
     {
         key: "circleDescendants",
@@ -249,6 +255,8 @@ function prefigureBaseDependencies() {
  *
  * This function is the single place where GRAPHICAL_DESCENDANT_CONFIGS become
  * graph dependencies, which keeps descendant wiring declarative and centralized.
+ * curveDescendants is excluded here and referenced via a stateVariable dep so
+ * the traversal happens only once per graph.
  */
 function prefigureDescendantDependencies(): Record<string, unknown> {
     return Object.fromEntries(
@@ -260,6 +268,29 @@ function prefigureDescendantDependencies(): Record<string, unknown> {
 }
 
 /**
+ * Single traversal for curve descendants, shared by curveDescendantComponentIndices
+ * and prefigureXML via a stateVariable dependency.
+ */
+function returnGraphCurveDescendantsStateVariableDefinition() {
+    return {
+        returnDependencies: () => ({
+            curveDescendants: descendantDependency(CURVE_DESCENDANT_CONFIG),
+        }),
+        definition({
+            dependencyValues,
+        }: {
+            dependencyValues: GraphDependencyValues;
+        }) {
+            return {
+                setValue: {
+                    curveDescendants: dependencyValues.curveDescendants ?? [],
+                },
+            };
+        },
+    };
+}
+
+/**
  * Computes a stable ordered list of curve component indices for this graph.
  *
  * Relationship to other helpers:
@@ -267,16 +298,16 @@ function prefigureDescendantDependencies(): Record<string, unknown> {
  *   dependency per curve descendant.
  * - prefigureXML depends on functionToCurveComponentIdx (not directly on this list).
  *
- * `variableNames: []` is intentional: only component indices are needed here,
- * avoiding redundant variable fetching that the prefigureXML query already does.
+ * Curve data is sourced from the shared curveDescendants state variable to
+ * avoid a second descendant traversal.
  */
 function returnGraphCurveDescendantComponentIndicesStateVariableDefinition() {
     return {
         returnDependencies: () => ({
-            curveDescendants: descendantDependency({
-                componentType: "curve",
-                variableNames: [],
-            }),
+            curveDescendants: {
+                dependencyType: "stateVariable",
+                variableName: "curveDescendants",
+            },
         }),
         definition({
             dependencyValues,
@@ -382,7 +413,12 @@ function collectConfiguredDescendants(
 ): Descendant[] {
     const byComponentIdx = new Map<number, Descendant>();
 
-    for (const config of GRAPHICAL_DESCENDANT_CONFIGS) {
+    // CURVE_DESCENDANT_CONFIG is listed first so later configs can override
+    // if a curve componentIdx also matches a narrower graphical type.
+    for (const config of [
+        CURVE_DESCENDANT_CONFIG,
+        ...GRAPHICAL_DESCENDANT_CONFIGS,
+    ]) {
         for (const descendant of (dependencyValues[config.key] as
             | Descendant[]
             | undefined) ?? []) {
@@ -412,6 +448,10 @@ function returnGraphPrefigureXMLStateVariableDefinition() {
         returnDependencies: () => ({
             ...prefigureBaseDependencies(),
             ...prefigureDescendantDependencies(),
+            curveDescendants: {
+                dependencyType: "stateVariable",
+                variableName: "curveDescendants",
+            },
             functionToCurveComponentIdx: {
                 dependencyType: "stateVariable",
                 variableName: "functionToCurveComponentIdx",
@@ -532,6 +572,7 @@ function returnGraphPrefigureXMLStateVariableDefinition() {
  */
 export function returnGraphPrefigureStateVariableDefinitions() {
     return {
+        curveDescendants: returnGraphCurveDescendantsStateVariableDefinition(),
         curveDescendantComponentIndices:
             returnGraphCurveDescendantComponentIndicesStateVariableDefinition(),
         functionToCurveComponentIdx:
