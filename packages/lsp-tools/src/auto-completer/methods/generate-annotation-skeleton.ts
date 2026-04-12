@@ -260,11 +260,9 @@ export function buildAnnotationTree(
                 componentName = component.name;
             } else {
                 isUnnamed = true;
-                const nextCount = (unnamedCounters.get(component.type) ?? 0) + 1;
-                unnamedCounters.set(
-                    component.type,
-                    nextCount,
-                );
+                const nextCount =
+                    (unnamedCounters.get(component.type) ?? 0) + 1;
+                unnamedCounters.set(component.type, nextCount);
                 componentName = `unnamed${capitalize(component.type)}${nextCount}`;
             }
 
