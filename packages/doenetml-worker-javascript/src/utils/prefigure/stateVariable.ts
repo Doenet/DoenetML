@@ -273,9 +273,19 @@ function prefigureDescendantDependencies(): Record<string, unknown> {
  */
 function returnGraphCurveDescendantsStateVariableDefinition() {
     return {
-        returnDependencies: () => ({
-            curveDescendants: descendantDependency(CURVE_DESCENDANT_CONFIG),
-        }),
+        stateVariablesDeterminingDependencies: ["effectiveRenderer"],
+        returnDependencies: ({
+            stateValues,
+        }: {
+            stateValues: GraphDependencyValues;
+        }) => {
+            if (stateValues.effectiveRenderer !== "prefigure") {
+                return {};
+            }
+            return {
+                curveDescendants: descendantDependency(CURVE_DESCENDANT_CONFIG),
+            };
+        },
         definition({
             dependencyValues,
         }: {
@@ -442,34 +452,49 @@ function returnGraphPrefigureXMLStateVariableDefinition() {
     return {
         public: true,
         forRenderer: true,
+        stateVariablesDeterminingDependencies: ["effectiveRenderer"],
         shadowingInstructions: {
             createComponentOfType: "text",
         },
-        returnDependencies: () => ({
-            ...prefigureBaseDependencies(),
-            ...prefigureDescendantDependencies(),
-            curveDescendants: {
-                dependencyType: "stateVariable",
-                variableName: "curveDescendants",
-            },
-            functionToCurveComponentIdx: {
-                dependencyType: "stateVariable",
-                variableName: "functionToCurveComponentIdx",
-            },
-            annotationsChildren: {
-                dependencyType: "child",
-                childGroups: ["annotations"],
-                variableNames: ["annotationSubtrees"],
-            },
-            allGraphicalDescendants: {
-                dependencyType: "descendant",
-                componentTypes: ["_graphical"],
-            },
-            allDescendants: {
-                dependencyType: "descendant",
-                componentTypes: ["_base"],
-            },
-        }),
+        returnDependencies: ({
+            stateValues,
+        }: {
+            stateValues: GraphDependencyValues;
+        }) => {
+            const annotationsChildren = {
+                annotationsChildren: {
+                    dependencyType: "child",
+                    childGroups: ["annotations"],
+                    variableNames: ["annotationSubtrees"],
+                },
+            };
+
+            if (stateValues.effectiveRenderer !== "prefigure") {
+                return annotationsChildren;
+            }
+
+            return {
+                ...prefigureBaseDependencies(),
+                ...prefigureDescendantDependencies(),
+                curveDescendants: {
+                    dependencyType: "stateVariable",
+                    variableName: "curveDescendants",
+                },
+                functionToCurveComponentIdx: {
+                    dependencyType: "stateVariable",
+                    variableName: "functionToCurveComponentIdx",
+                },
+                ...annotationsChildren,
+                allGraphicalDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["_graphical"],
+                },
+                allDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["_base"],
+                },
+            };
+        },
         definition({
             dependencyValues,
             componentIdx,
