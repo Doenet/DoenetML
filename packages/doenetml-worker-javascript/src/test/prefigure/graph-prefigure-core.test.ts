@@ -489,6 +489,23 @@ describe("Graph prefigure renderer core @group4", () => {
         expect(prefigureXML).toContain(`at="${annotationRef}"`);
     });
 
+    it("ref to multi-piece function resolves to grouped curve handle", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph(
+                '<function name="f" through="(1,2) (-5,7) (4,3) (6,1)" />\n  <annotations><annotation ref="$f" text="function summary" /></annotations>',
+            ),
+        );
+
+        expect(prefigureXML).toContain(`<group at="curve_0">`);
+        expect(prefigureXML).toContain(`<graph at="curve_0_0"`);
+
+        const annotationRefMatch = prefigureXML.match(
+            /<annotation ref="([^"]+)" text="function summary"><\/annotation>/,
+        );
+        expect(annotationRefMatch).toBeTruthy();
+        expect(annotationRefMatch?.[1]).eq("curve_0");
+    });
+
     it("ref to function outside graph subtree omits annotation and emits warning", async () => {
         const doenetML = `
 <graph name="g" renderer="prefigure">

@@ -31,6 +31,13 @@ interface ParsedFormulaPiecesResult {
     pieces: ParsedFormulaPiece[];
 }
 
+interface ParametricCurvePieceDefinition {
+    parameterVariable: string;
+    xExpression: string;
+    yExpression: string;
+    domain: string;
+}
+
 /**
  * Get the label string (if any) for a curve definition type.
  * Returns a string representation of the functionType field.
@@ -62,15 +69,44 @@ const SUPPORTED_CURVE_FUNCTION_TYPES = new Set([
 
 /**
  * Generate a unique handle for a curve piece in the PreFigure output.
- * The first piece (index 0) uses the base handle as-is; subsequent pieces
- * append an underscore and index number to ensure uniqueness.
  *
- * @param baseHandle - The base identifier for the curve element
+ * Single-piece curves keep the base handle on the piece itself. When a curve
+ * emits multiple pieces, the base handle is reserved for an outer `<group>` so
+ * each child piece gets a suffixed handle starting at `_0`.
+ *
+ * @param baseHandle - The base identifier for the logical curve element
  * @param index - The piece index (0 for first, 1 for second, etc.)
+ * @param reserveBaseHandle - Whether the base handle is owned by an outer group
  * @returns The formatted handle string
  */
-function makePieceHandle(baseHandle: string, index: number): string {
-    return index === 0 ? baseHandle : `${baseHandle}_${index}`;
+function makePieceHandle(
+    baseHandle: string,
+    index: number,
+    reserveBaseHandle = false,
+): string {
+    if (!reserveBaseHandle && index === 0) {
+        return baseHandle;
+    }
+
+    return `${baseHandle}_${index}`;
+}
+
+function wrapCurvePieces({
+    handle,
+    pieces,
+}: {
+    handle: string;
+    pieces: string[];
+}): string | null {
+    if (pieces.length === 0) {
+        return null;
+    }
+
+    if (pieces.length === 1) {
+        return pieces[0];
+    }
+
+    return `<group at="${escapeXml(handle)}">${pieces.join("")}</group>`;
 }
 
 /**
@@ -1184,17 +1220,18 @@ function convertFunctionCurve({
     // After validation check, result is guaranteed to be non-null
     const validResult = result as ParsedFormulaPiecesResult;
 
-    return validResult.pieces
-        .map(({ parsed, interval }, i) =>
-            emitCurveElement({
-                handle: makePieceHandle(handle, i),
-                styleAttrs,
-                parsed,
-                domain: domainFromIntervalPiece(interval),
-                isParametric: Boolean(sv.flipFunction),
-            }),
-        )
-        .join("");
+    const reserveBaseHandle = validResult.pieces.length > 1;
+    const pieces = validResult.pieces.map(({ parsed, interval }, i) =>
+        emitCurveElement({
+            handle: makePieceHandle(handle, i, reserveBaseHandle),
+            styleAttrs,
+            parsed,
+            domain: domainFromIntervalPiece(interval),
+            isParametric: Boolean(sv.flipFunction),
+        }),
+    );
+
+    return wrapCurvePieces({ handle, pieces });
 }
 
 /**
@@ -1285,7 +1322,7 @@ function convertParametricCurve({
         comparePiecesByIntervalStart,
     );
 
-    const pieceXml: string[] = [];
+    const pieceDefinitions: ParametricCurvePieceDefinition[] = [];
     let pieceCounter = 0;
     let xIndex = 0;
     let yIndex = 0;
@@ -1297,7 +1334,6 @@ function convertParametricCurve({
 
         const overlap = intersectIntervals(xPiece.interval, yPiece.interval);
         if (overlap && overlap.min !== overlap.max) {
-            const pieceHandle = makePieceHandle(handle, pieceCounter);
             const parameterVariable = xPiece.parsed.variableName;
             const xExpression = rewriteExpressionVariable({
                 expression: xPiece.parsed.expression,
@@ -1309,15 +1345,12 @@ function convertParametricCurve({
                 fromVariable: yPiece.parsed.variableName,
                 toVariable: parameterVariable,
             });
-            const functionDefinition = `${pieceHandle}_r(${parameterVariable})=(${xExpression},${yExpression})`;
-            const attrs = [
-                `at="${escapeXml(pieceHandle)}"`,
-                `function="${escapeXml(functionDefinition)}"`,
-                `domain="${escapeXml(domainFromIntervalPiece(overlap))}"`,
-                ...styleAttrs,
-            ];
-
-            pieceXml.push(`<parametric-curve ${attrs.join(" ")} />`);
+            pieceDefinitions.push({
+                parameterVariable,
+                xExpression,
+                yExpression,
+                domain: domainFromIntervalPiece(overlap),
+            });
             pieceCounter += 1;
         }
 
@@ -1331,11 +1364,34 @@ function convertParametricCurve({
         }
     }
 
-    if (pieceXml.length === 0) {
+    if (pieceDefinitions.length === 0) {
         return null;
     }
 
-    return pieceXml.join("");
+    const reserveBaseHandle = pieceDefinitions.length > 1;
+    const pieces = pieceDefinitions.map(
+        ({ parameterVariable, xExpression, yExpression, domain }, index) => {
+            const pieceHandle = makePieceHandle(
+                handle,
+                index,
+                reserveBaseHandle,
+            );
+            const functionDefinition = `${pieceHandle}_r(${parameterVariable})=(${xExpression},${yExpression})`;
+            const attrs = [
+                `at="${escapeXml(pieceHandle)}"`,
+                `function="${escapeXml(functionDefinition)}"`,
+                `domain="${escapeXml(domain)}"`,
+                ...styleAttrs,
+            ];
+
+            return `<parametric-curve ${attrs.join(" ")} />`;
+        },
+    );
+
+    return wrapCurvePieces({
+        handle,
+        pieces,
+    });
 }
 
 /**

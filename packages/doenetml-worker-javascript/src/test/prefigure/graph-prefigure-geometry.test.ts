@@ -1320,8 +1320,9 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             prefigureGraph('<curve through="(0,0) (1,2) (2,1)" />'),
         );
 
-        expect(prefigureXML).toContain(`<parametric-curve at="curve_0"`);
-        expect(prefigureXML).toContain(`function="curve_0_r(`);
+        expect(prefigureXML).toContain(`<group at="curve_0">`);
+        expect(prefigureXML).toContain(`<parametric-curve at="curve_0_0"`);
+        expect(prefigureXML).toContain(`function="curve_0_0_r(`);
         expect(prefigureXML).toContain(`domain="(0,1)"`);
         expect(prefigureXML).toContain(`domain="(1,2)"`);
         expect(prefigureXML).not.toContain(`<spline `);
@@ -1334,8 +1335,9 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        expect(prefigureXML).toContain(`<parametric-curve at="curve_0"`);
-        expect(prefigureXML).toContain(`function="curve_0_r(`);
+        expect(prefigureXML).toContain(`<group at="curve_0">`);
+        expect(prefigureXML).toContain(`<parametric-curve at="curve_0_0"`);
+        expect(prefigureXML).toContain(`function="curve_0_0_r(`);
         expect(prefigureXML).toContain(`domain="(0,1)"`);
         expect(prefigureXML).toContain(`domain="(1,2)"`);
         expect(prefigureXML).toContain(`domain="(2,3)"`);
@@ -1447,7 +1449,8 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
 
         const prefigureXML = await getPrefigureXML(doenetML);
         expect(prefigureXML).toContain(`<graph at="curve_1"`);
-        expect(prefigureXML).toContain(`<graph at="curve_0"`);
+        expect(prefigureXML).toContain(`<group at="curve_0">`);
+        expect(prefigureXML).toContain(`<graph at="curve_0_0"`);
 
         const diagnosticsByType = await getWarnings(doenetML);
         expect(
@@ -1560,10 +1563,11 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        const pieceCount = (prefigureXML.match(/<graph at="curve_0/g) ?? [])
+        const pieceCount = (prefigureXML.match(/<graph at="curve_0_/g) ?? [])
             .length;
         expect(pieceCount).toBeGreaterThan(1);
-        expect(prefigureXML).toContain(`function="curve_0_f(x)=x^3"`);
+        expect(prefigureXML).toContain(`<group at="curve_0">`);
+        expect(prefigureXML).toContain(`function="curve_0_0_f(x)=x^3"`);
         expect(prefigureXML).toContain(`=x^2"`);
         expect(prefigureXML).not.toContain(`fill="`);
         expect(prefigureXML).not.toContain(`fill-opacity="`);
@@ -1575,9 +1579,10 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         const prefigureXML = await getPrefigureXML(doenetML);
-        const pieceCount = (prefigureXML.match(/<graph at="curve_0/g) ?? [])
+        const pieceCount = (prefigureXML.match(/<graph at="curve_0_/g) ?? [])
             .length;
         expect(pieceCount).toBeGreaterThan(1);
+        expect(prefigureXML).toContain(`<group at="curve_0">`);
         expect(prefigureXML).toContain(`=x^2"`);
 
         const diagnosticsByType = await getWarnings(doenetML);
@@ -1597,14 +1602,13 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
             ),
         );
 
-        const pieceCount =
-            (prefigureXML.match(/<parametric-curve at="curve_0/g) ?? [])
-                .length +
-            (prefigureXML.match(/<parametric-curve at="curve_0_/g) ?? [])
-                .length;
+        const pieceCount = (
+            prefigureXML.match(/<parametric-curve at="curve_0_/g) ?? []
+        ).length;
 
         expect(pieceCount).toBeGreaterThan(1);
-        expect(prefigureXML).toContain(`function="curve_0_r(`);
+        expect(prefigureXML).toContain(`<group at="curve_0">`);
+        expect(prefigureXML).toContain(`function="curve_0_0_r(`);
         expect(prefigureXML).toContain(`(x^3)/10`);
         expect(prefigureXML).toContain(`domain="`);
         expect(prefigureXML).not.toContain(`fill="`);
@@ -1619,9 +1623,10 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         const pieceCount = (
-            prefigureXML.match(/<parametric-curve at="curve_0/g) ?? []
+            prefigureXML.match(/<parametric-curve at="curve_0_/g) ?? []
         ).length;
 
+        expect(prefigureXML).toContain(`<group at="curve_0">`);
         expect(pieceCount).eq(8);
     });
 });
