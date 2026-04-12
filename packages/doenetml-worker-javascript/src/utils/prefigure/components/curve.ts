@@ -1323,7 +1323,6 @@ function convertParametricCurve({
     );
 
     const pieceDefinitions: ParametricCurvePieceDefinition[] = [];
-    let pieceCounter = 0;
     let xIndex = 0;
     let yIndex = 0;
 
@@ -1351,7 +1350,6 @@ function convertParametricCurve({
                 yExpression,
                 domain: domainFromIntervalPiece(overlap),
             });
-            pieceCounter += 1;
         }
 
         if (xPiece.interval.max < yPiece.interval.max) {
