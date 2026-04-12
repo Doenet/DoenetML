@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { lezerToDast } from "@doenet/parser";
+import type { DastElement } from "@doenet/parser";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
@@ -6,11 +8,43 @@ import {
     getPrefigureXML,
     getWarnings,
 } from "./graph-prefigure.helpers";
+import { generateAnnotationSkeletonSnippet } from "../../../../lsp-tools/src/auto-completer/methods/generate-annotation-skeleton";
 import { nextAvailableConceptualAnnotationRef } from "../../utils/prefigure/annotations";
 import {
     prefigureGraph,
     withStyleDefinitions,
 } from "./graph-prefigure.fixtures";
+
+function getFirstGraphElement(source: string): DastElement {
+    const dast = lezerToDast(source);
+    const graphElement = dast.children.find(
+        (child) => child.type === "element" && child.name === "graph",
+    );
+
+    if (!graphElement || graphElement.type !== "element") {
+        throw new Error("Expected source to contain a <graph> element.");
+    }
+
+    return graphElement;
+}
+
+async function expectGeneratedAnnotationTextResolves(
+    componentDoenetML: string,
+    expectedText: string,
+) {
+    const graphSourceForSnippet = `<graph renderer="prefigure">${componentDoenetML}</graph>`;
+    const graphElement = getFirstGraphElement(graphSourceForSnippet);
+    const snippet = generateAnnotationSkeletonSnippet(graphElement);
+
+    expect(snippet).toBeTruthy();
+
+    const prefigureXML = await getPrefigureXML(
+        prefigureGraph(`${componentDoenetML}\n  ${snippet!.snippet}`),
+    );
+
+    expect(prefigureXML).toContain(`<annotations>`);
+    expect(prefigureXML).toContain(expectedText);
+}
 
 describe("Graph prefigure renderer core @group4", () => {
     it("renderer=doenet leaves prefigureXML null", async () => {
@@ -359,6 +393,81 @@ describe("Graph prefigure renderer core @group4", () => {
         expect(prefigureXML).toContain(
             `<annotation ref="${pointHandle}" text="point summary"></annotation>`,
         );
+    });
+
+    it("generated annotations-skeleton text resolves for all supported component types", async () => {
+        const cases: Array<{
+            componentDoenetML: string;
+            expectedText: string;
+        }> = [
+            {
+                componentDoenetML: `<point name="p">(2,5)</point>`,
+                expectedText: `A point with x-coordinate 2 and y-coordinate 5.`,
+            },
+            {
+                componentDoenetML: `<line name="ln" through="(0,0) (1,1)" />`,
+                expectedText: `A line.`,
+            },
+            {
+                componentDoenetML: `<lineSegment name="seg" endpoints="(1,2) (3,4)" />`,
+                expectedText: `A line segment from a point with x-coordinate 1 and y-coordinate 2 to a point with x-coordinate 3 and y-coordinate 4.`,
+            },
+            {
+                componentDoenetML: `<ray name="r" endpoint="(1,2)" through="(5,8)" />`,
+                expectedText: `A ray starting at a point with x-coordinate 1 and y-coordinate 2, passing through a point with x-coordinate 5 and y-coordinate 8.`,
+            },
+            {
+                componentDoenetML: `<vector name="v" tail="(1,2)" head="(4,6)" />`,
+                expectedText: `A vector with tail at x-coordinate 1 and y-coordinate 2, and head at x-coordinate 4 and y-coordinate 6.`,
+            },
+            {
+                componentDoenetML: `<circle name="c" center="(0,0)" radius="3" />`,
+                expectedText: `A circle with radius 3 centered at x-coordinate 0 and y-coordinate 0.`,
+            },
+            {
+                componentDoenetML: `<function name="f">x^2</function>`,
+                expectedText: `A function.`,
+            },
+            {
+                componentDoenetML: `<polyline name="pl" vertices="(0,0) (2,0) (1,1)" />`,
+                expectedText: `A polyline with 3 vertices.`,
+            },
+            {
+                componentDoenetML: `<polygon name="poly" vertices="(0,0) (2,0) (1,1)" />`,
+                expectedText: `A polygon with 3 vertices.`,
+            },
+            {
+                componentDoenetML: `<angle name="a" through="(1,0) (0,0) (0,1)" />`,
+                expectedText: `An angle.`,
+            },
+            {
+                componentDoenetML: `<curve name="cv" through="(0,0) (1,2) (2,3)" />`,
+                expectedText: `A curve.`,
+            },
+            {
+                componentDoenetML: `<endpoint name="ep">(1,4)</endpoint>`,
+                expectedText: `An endpoint with x-coordinate 1 and y-coordinate 4.`,
+            },
+            {
+                componentDoenetML: `<equilibriumPoint name="eq">(3,7)</equilibriumPoint>`,
+                expectedText: `An equilibrium point with x-coordinate 3 and y-coordinate 7.`,
+            },
+            {
+                componentDoenetML: `<triangle name="tri" vertices="(0,0) (2,0) (1,1)" />`,
+                expectedText: `A triangle.`,
+            },
+            {
+                componentDoenetML: `<rectangle name="rect" center="(4,0.5)" width="2" height="1" />`,
+                expectedText: `A rectangle of width 2 and height 1.`,
+            },
+        ];
+
+        for (const c of cases) {
+            await expectGeneratedAnnotationTextResolves(
+                c.componentDoenetML,
+                c.expectedText,
+            );
+        }
     });
 
     it("serializes speech, sonify, and circular annotation attributes", async () => {

@@ -1007,6 +1007,7 @@ export default class Ray extends GraphicalComponent {
             },
             isArray: true,
             entryPrefixes: ["throughX"],
+            indexAliases: [["x", "y", "z"]],
             set: convertValueToMathExpression,
             stateVariablesDeterminingDependencies: ["basedOnThrough"],
             returnArraySizeDependencies: () => ({
@@ -1228,6 +1229,7 @@ export default class Ray extends GraphicalComponent {
             },
             isArray: true,
             entryPrefixes: ["endpointX"],
+            indexAliases: [["x", "y", "z"]],
             hasEssential: true,
             defaultValueByArrayKey: () => me.fromAst(0),
             essentialVarName: "endpoint2", // since endpointShadow uses "endpoint"

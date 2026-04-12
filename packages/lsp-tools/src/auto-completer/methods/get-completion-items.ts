@@ -6,7 +6,10 @@ import type {
     CompletionSnippetCompletionItemData,
     CompletionSnippetCursor,
 } from "@doenet/static-assets/completion-snippet-protocol";
+import { toXml } from "@doenet/parser";
+import type { DastElement } from "@doenet/parser";
 import { AutoCompleter } from "../index";
+import { generateAnnotationSkeletonSnippet } from "./generate-annotation-skeleton";
 
 // Keep these aligned with parser grammar in `packages/parser/src/macros/macros.peggy`:
 // - SimpleIdent = [a-zA-Z_][a-zA-Z0-9_]*
@@ -193,6 +196,76 @@ function createSnippetCompletionItems(
     });
 }
 
+function getElementAttributeValue(
+    element: DastElement,
+    attributeName: string,
+): string | undefined {
+    const attr = element.attributes[attributeName];
+    if (!attr) {
+        return undefined;
+    }
+
+    const value = toXml(attr.children).trim();
+    return value.length > 0 ? value : undefined;
+}
+
+function isPrefigureGraphElement(
+    autoCompleter: AutoCompleter,
+    element: DastElement,
+): boolean {
+    return (
+        autoCompleter.normalizeElementName(element.name) === "graph" &&
+        getElementAttributeValue(element, "renderer")?.toLowerCase() ===
+            "prefigure"
+    );
+}
+
+function isPrefigureGraph(
+    autoCompleter: AutoCompleter,
+    contextElement: DastElement | null,
+): contextElement is DastElement {
+    return (
+        contextElement !== null &&
+        isPrefigureGraphElement(autoCompleter, contextElement)
+    );
+}
+
+function createDynamicSnippetCompletionItems(
+    autoCompleter: AutoCompleter,
+    allowedElementNames: string[],
+    contextElement: DastElement | null,
+    startOffset: number,
+    endOffset: number,
+    typedPrefix = "",
+): CompletionItem[] {
+    if (!allowedElementNames.includes("annotations")) {
+        return [];
+    }
+
+    if (!isPrefigureGraph(autoCompleter, contextElement)) {
+        return [];
+    }
+
+    const dynamicSnippet = generateAnnotationSkeletonSnippet(contextElement);
+    if (!dynamicSnippet) {
+        return [];
+    }
+
+    if (
+        typedPrefix &&
+        !dynamicSnippet.key.toLowerCase().startsWith(typedPrefix.toLowerCase())
+    ) {
+        return [];
+    }
+
+    return createSnippetCompletionItems(
+        autoCompleter.sourceObj,
+        [dynamicSnippet],
+        startOffset,
+        endOffset,
+    );
+}
+
 /**
  * Create schema element and snippet completion items for a set of allowed elements.
  */
@@ -202,6 +275,7 @@ function createElementAndSnippetCompletionItems(
     startOffset: number,
     endOffset: number,
     typedPrefix = "",
+    contextElement: DastElement | null = null,
 ): CompletionItem[] {
     const prefixLower = typedPrefix.toLowerCase();
     const schemaItems = allowedElementNames
@@ -224,7 +298,16 @@ function createElementAndSnippetCompletionItems(
         endOffset,
     );
 
-    return [...schemaItems, ...snippetItems];
+    const dynamicSnippetItems = createDynamicSnippetCompletionItems(
+        autoCompleter,
+        allowedElementNames,
+        contextElement,
+        startOffset,
+        endOffset,
+        typedPrefix,
+    );
+
+    return [...schemaItems, ...snippetItems, ...dynamicSnippetItems];
 }
 
 /**
@@ -613,6 +696,8 @@ export function getCompletionItems(
             allowedChildrenNames,
             offset - 1,
             offset,
+            "",
+            containingElement.node,
         );
 
         if (closed) {
@@ -671,6 +756,7 @@ export function getCompletionItems(
             tagStartOffset,
             offset,
             currentText,
+            parent?.type === "element" ? parent : null,
         );
     }
 
