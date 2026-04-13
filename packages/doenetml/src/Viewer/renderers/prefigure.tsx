@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState } from "react";
 import DOMPurify from "dompurify";
+import { roundForDisplay } from "@doenet/utils";
 import {
     PREFIGURE_BUILD_ENDPOINT,
     PREFIGURE_DIAGCESS_SCRIPT_URL,
     PREFIGURE_INDEX_URL,
     PREFIGURE_MODULE_URL,
 } from "./utils/prefigureConfig";
+import SliderUI from "./utils/SliderUI";
 
 const PREFIGURE_BUILD_DEBOUNCE_COLD_MS = 1000;
 const PREFIGURE_BUILD_DEBOUNCE_WARM_MS = 40;
@@ -126,8 +128,26 @@ type PrefigureRendererProps = {
         showBorder?: boolean;
         width?: { size: string; isAbsolute: boolean };
         aspectRatio?: number | string;
+        addSliders?: boolean;
+        xMin?: number;
+        xMax?: number;
+        yMin?: number;
+        yMax?: number;
+        draggablePointsForSliders?: Array<{
+            componentIdx?: number;
+            pointNumber?: number;
+            x?: number;
+            y?: number;
+            label?: string;
+            labelHasLatex?: boolean;
+            displayDigits: number;
+            displayDecimals: number;
+            displaySmallAsZero: number;
+            padZeros?: boolean;
+        }>;
     };
     surfaceStyle: React.CSSProperties;
+    callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };
 
 function diagcessApi(): DiagcessApi | undefined {
@@ -505,18 +525,295 @@ export default React.memo(function Prefigure({
     id,
     SVs,
     surfaceStyle,
+    callAction,
 }: PrefigureRendererProps) {
     const diagramXML = SVs.prefigureXML ?? SVs.childrenSource;
+    const sliderPoints = SVs.draggablePointsForSliders ?? [];
     const [svgMarkup, setSvgMarkup] = useState("");
     const [svgMessage, setSvgMessage] = useState("Building...");
     const [cmlContent, setCmlContent] = useState("");
     const [diagcessReady, setDiagcessReady] = useState(Boolean(diagcessApi()));
+    const [sliderCoordinates, setSliderCoordinates] = useState<
+        Record<number, { x: number; y: number }>
+    >({});
+    const [transientSliderSet, setTransientSliderSet] = useState<Set<number>>(
+        new Set(),
+    );
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const fetchAbortControllerRef = useRef<AbortController | null>(null);
     const diagcessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const prefigureContainerRef = useRef<HTMLDivElement | null>(null);
     const requestSequenceRef = useRef(0);
     const hasStartedBuildRef = useRef(false);
+
+    function getCoreCoordinates(componentIdx: number) {
+        const point = sliderPoints.find(
+            (point) => Number(point.componentIdx) === componentIdx,
+        );
+
+        if (!point) {
+            return null;
+        }
+
+        const x = Number(point.x);
+        const y = Number(point.y);
+
+        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+            return null;
+        }
+
+        return { x, y };
+    }
+
+    useEffect(() => {
+        const activePointIndices = new Set<number>();
+
+        setSliderCoordinates((previousCoordinates) => {
+            const nextCoordinates = { ...previousCoordinates };
+            let changed = false;
+
+            for (const point of sliderPoints) {
+                if (!Number.isFinite(point.componentIdx)) {
+                    continue;
+                }
+                if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) {
+                    continue;
+                }
+
+                const componentIdx = Number(point.componentIdx);
+                activePointIndices.add(componentIdx);
+
+                if (!transientSliderSet.has(componentIdx)) {
+                    const nextX = Number(point.x);
+                    const nextY = Number(point.y);
+                    const previousPointCoordinates =
+                        previousCoordinates[componentIdx];
+
+                    if (
+                        previousPointCoordinates?.x !== nextX ||
+                        previousPointCoordinates?.y !== nextY
+                    ) {
+                        nextCoordinates[componentIdx] = {
+                            x: nextX,
+                            y: nextY,
+                        };
+                        changed = true;
+                    }
+                }
+            }
+
+            for (const componentIdxString of Object.keys(nextCoordinates)) {
+                const componentIdx = Number(componentIdxString);
+                if (!activePointIndices.has(componentIdx)) {
+                    delete nextCoordinates[componentIdx];
+                    changed = true;
+                }
+            }
+
+            return changed ? nextCoordinates : previousCoordinates;
+        });
+
+        setTransientSliderSet((previousTransientSliderSet) => {
+            const nextTransientSliderSet = new Set<number>();
+
+            for (const componentIdx of previousTransientSliderSet) {
+                if (activePointIndices.has(componentIdx)) {
+                    nextTransientSliderSet.add(componentIdx);
+                }
+            }
+
+            if (
+                nextTransientSliderSet.size === previousTransientSliderSet.size
+            ) {
+                let changed = false;
+
+                for (const componentIdx of nextTransientSliderSet) {
+                    if (!previousTransientSliderSet.has(componentIdx)) {
+                        changed = true;
+                        break;
+                    }
+                }
+
+                if (!changed) {
+                    return previousTransientSliderSet;
+                }
+            }
+
+            return nextTransientSliderSet;
+        });
+    }, [sliderPoints, transientSliderSet]);
+
+    function updatePointCoordinateFromSlider({
+        componentIdx,
+        axis,
+        value,
+        transient,
+        defaultX,
+        defaultY,
+    }: {
+        componentIdx: number;
+        axis: "x" | "y";
+        value: number;
+        transient: boolean;
+        defaultX: number;
+        defaultY: number;
+    }) {
+        const currentCoordinates = sliderCoordinates[componentIdx] ?? {
+            x: defaultX,
+            y: defaultY,
+        };
+        const nextCoordinates = {
+            x: axis === "x" ? value : currentCoordinates.x,
+            y: axis === "y" ? value : currentCoordinates.y,
+        };
+
+        const coreCoordinates = !transient
+            ? getCoreCoordinates(componentIdx)
+            : null;
+
+        setSliderCoordinates((previousCoordinates) => ({
+            ...previousCoordinates,
+            [componentIdx]: coreCoordinates ?? nextCoordinates,
+        }));
+
+        setTransientSliderSet((previousTransientSliderSet) => {
+            const nextTransientSliderSet = new Set(previousTransientSliderSet);
+
+            if (transient) {
+                nextTransientSliderSet.add(componentIdx);
+            } else {
+                nextTransientSliderSet.delete(componentIdx);
+            }
+
+            return nextTransientSliderSet;
+        });
+
+        callAction({
+            action: { actionName: "movePoint", componentIdx },
+            args: {
+                x: nextCoordinates.x,
+                y: nextCoordinates.y,
+                transient,
+                skippable: transient,
+            },
+        });
+    }
+
+    function formatCoordinateForSlider(
+        value: number,
+        point: (typeof sliderPoints)[number],
+    ): string {
+        const rounded = roundForDisplay({
+            value,
+            dependencyValues: {
+                displayDigits: point.displayDigits,
+                displayDecimals: point.displayDecimals,
+                displaySmallAsZero: point.displaySmallAsZero,
+            },
+        });
+
+        // Convert math expression to string
+        return rounded.toString();
+    }
+
+    const xMin = Number(SVs.xMin);
+    const xMax = Number(SVs.xMax);
+    const yMin = Number(SVs.yMin);
+    const yMax = Number(SVs.yMax);
+    const xStep =
+        Number.isFinite(xMin) && Number.isFinite(xMax) && xMax !== xMin
+            ? Math.abs(xMax - xMin) / 100
+            : 1;
+    const yStep =
+        Number.isFinite(yMin) && Number.isFinite(yMax) && yMax !== yMin
+            ? Math.abs(yMax - yMin) / 100
+            : 1;
+
+    const sliderSection =
+        SVs.addSliders &&
+        Number.isFinite(xMin) &&
+        Number.isFinite(xMax) &&
+        Number.isFinite(yMin) &&
+        Number.isFinite(yMax)
+            ? sliderPoints
+                  .filter(
+                      (point) =>
+                          Number.isFinite(point.componentIdx) &&
+                          Number.isFinite(point.x) &&
+                          Number.isFinite(point.y),
+                  )
+                  .map((point) => {
+                      const componentIdx = Number(point.componentIdx);
+                      const defaultX = Number(point.x);
+                      const defaultY = Number(point.y);
+                      const currentCoordinates = sliderCoordinates[
+                          componentIdx
+                      ] ?? {
+                          x: defaultX,
+                          y: defaultY,
+                      };
+                      const pointNumber = Number(point.pointNumber);
+                      const pointLabel = point.label?.trim()
+                          ? point.label
+                          : Number.isFinite(pointNumber)
+                            ? `Point ${pointNumber}`
+                            : "Point";
+
+                      return (
+                          <div
+                              key={componentIdx}
+                              style={{
+                                  marginTop: "12px",
+                                  padding: "10px",
+                                  border: "1px solid var(--canvastext)",
+                                  borderRadius: "8px",
+                              }}
+                          >
+                              <div style={{ fontWeight: 600 }}>
+                                  {pointLabel}
+                              </div>
+                              <SliderUI
+                                  id={`${id}-point-${componentIdx}-x`}
+                                  label={`x: ${formatCoordinateForSlider(currentCoordinates.x, point)}`}
+                                  ariaLabel={`x coordinate for ${pointLabel}`}
+                                  min={xMin}
+                                  max={xMax}
+                                  step={xStep}
+                                  value={currentCoordinates.x}
+                                  onChange={(value, transient) =>
+                                      updatePointCoordinateFromSlider({
+                                          componentIdx,
+                                          axis: "x",
+                                          value,
+                                          transient,
+                                          defaultX,
+                                          defaultY,
+                                      })
+                                  }
+                              />
+                              <SliderUI
+                                  id={`${id}-point-${componentIdx}-y`}
+                                  label={`y: ${formatCoordinateForSlider(currentCoordinates.y, point)}`}
+                                  ariaLabel={`y coordinate for ${pointLabel}`}
+                                  min={yMin}
+                                  max={yMax}
+                                  step={yStep}
+                                  value={currentCoordinates.y}
+                                  onChange={(value, transient) =>
+                                      updatePointCoordinateFromSlider({
+                                          componentIdx,
+                                          axis: "y",
+                                          value,
+                                          transient,
+                                          defaultX,
+                                          defaultY,
+                                      })
+                                  }
+                              />
+                          </div>
+                      );
+                  })
+            : null;
 
     // Load diagcess script
     useEffect(() => {
@@ -730,6 +1027,7 @@ export default React.memo(function Prefigure({
                     dangerouslySetInnerHTML={{ __html: cmlContent }}
                 />
             </div>
+            {sliderSection}
         </div>
     );
 });

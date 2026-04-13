@@ -105,6 +105,13 @@ export default class Graph extends BlockComponent {
             public: true,
             forRenderer: true,
         };
+        attributes.addSliders = {
+            createComponentOfType: "boolean",
+            createStateVariable: "addSliders",
+            defaultValue: false,
+            public: true,
+            forRenderer: true,
+        };
         attributes.displayXAxisTicks = {
             createComponentOfType: "boolean",
             createStateVariable: "displayXAxisTicks",
@@ -546,6 +553,104 @@ export default class Graph extends BlockComponent {
                     setValue: {
                         graphicalDescendants:
                             dependencyValues.graphicalDescendants,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.draggablePointsForSliders = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                addSliders: {
+                    dependencyType: "stateVariable",
+                    variableName: "addSliders",
+                },
+                effectiveRenderer: {
+                    dependencyType: "stateVariable",
+                    variableName: "effectiveRenderer",
+                },
+                pointDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["point"],
+                    variableNames: [
+                        "numericalXs",
+                        "draggable",
+                        "fixed",
+                        "fixLocation",
+                        "label",
+                        "labelHasLatex",
+                        "displayDigits",
+                        "displayDecimals",
+                        "displaySmallAsZero",
+                        "padZeros",
+                    ],
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (
+                    !dependencyValues.addSliders ||
+                    dependencyValues.effectiveRenderer !== "prefigure"
+                ) {
+                    return {
+                        setValue: {
+                            draggablePointsForSliders: [],
+                        },
+                    };
+                }
+
+                const draggablePointsForSliders = [];
+
+                for (const [pointInd, pointDescendant] of (
+                    dependencyValues.pointDescendants ?? []
+                ).entries()) {
+                    const stateValues = pointDescendant.stateValues ?? {};
+                    const numericalXs = stateValues.numericalXs;
+                    const pointNumber = pointInd + 1;
+
+                    if (!Array.isArray(numericalXs) || numericalXs.length < 2) {
+                        continue;
+                    }
+
+                    const x = Number(numericalXs[0]);
+                    const y = Number(numericalXs[1]);
+
+                    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+                        continue;
+                    }
+
+                    const draggable = stateValues.draggable !== false;
+                    const fixed = stateValues.fixed === true;
+                    const fixLocation = stateValues.fixLocation === true;
+
+                    if (!draggable || fixed || fixLocation) {
+                        continue;
+                    }
+
+                    const componentIdx = pointDescendant.componentIdx;
+                    if (!Number.isFinite(componentIdx)) {
+                        continue;
+                    }
+
+                    draggablePointsForSliders.push({
+                        componentIdx,
+                        pointNumber,
+                        x,
+                        y,
+                        label:
+                            typeof stateValues.label === "string"
+                                ? stateValues.label
+                                : "",
+                        labelHasLatex: Boolean(stateValues.labelHasLatex),
+                        displayDigits: stateValues.displayDigits,
+                        displayDecimals: stateValues.displayDecimals,
+                        displaySmallAsZero: stateValues.displaySmallAsZero,
+                        padZeros: stateValues.padZeros,
+                    });
+                }
+
+                return {
+                    setValue: {
+                        draggablePointsForSliders,
                     },
                 };
             },
