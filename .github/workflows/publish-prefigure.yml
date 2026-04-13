@@ -1,0 +1,81 @@
+name: Publish Prefigure
+
+on:
+    workflow_dispatch:
+        inputs:
+            dry_run:
+                description: Skip npm publish
+                required: true
+                type: boolean
+                default: true
+            npm_tag:
+                description: npm dist-tag to publish under
+                required: true
+                type: string
+                default: latest
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref || github.run_id }}
+    cancel-in-progress: false
+
+env:
+    FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+
+jobs:
+    publish-prefigure:
+        name: Publish Prefigure
+        runs-on: ubuntu-latest
+        permissions:
+            actions: read
+            contents: read
+            id-token: write
+        steps:
+            - name: Checkout repository
+              uses: actions/checkout@v3
+
+            - name: Determine checked out commit SHA
+              id: checked-sha
+              run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
+            - name: Use Node.js 24
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24.x
+                  registry-url: https://registry.npmjs.org
+                  cache: "npm"
+
+            - name: Install dependencies
+              run: npm ci
+
+            - name: Verify CI succeeded for target commit
+              env:
+                  GITHUB_TOKEN: ${{ github.token }}
+                  REPO: ${{ github.repository }}
+                  TARGET_SHA: ${{ steps.checked-sha.outputs.sha }}
+              run: node .github/scripts/verify-ci.mjs
+
+            - name: Build prefigure package
+              run: npm run build -w packages/prefigure
+              env:
+                  WIREIT_CACHE: "local"
+
+            - name: Verify wheel sync
+              run: npm run verify-wheel-sync -w @doenet/prefigure
+
+            - name: Publish prefigure package
+              if: ${{ !inputs.dry_run }}
+              env:
+                  NPM_TAG: ${{ inputs.npm_tag }}
+              run: |
+                  cd packages/prefigure/dist
+                  npm publish --tag "${NPM_TAG}"
+
+            - name: Purge jsDelivr cache
+              if: ${{ !inputs.dry_run }}
+              env:
+                  NPM_TAG: ${{ inputs.npm_tag }}
+              run: |
+                  echo "Waiting for npm package propagation before purging jsDelivr cache..."
+                  sleep 15
+                  curl -fv "https://purge.jsdelivr.net/npm/@doenet/prefigure@${NPM_TAG}" || exit 1
+                  curl -fv "https://purge.jsdelivr.net/npm/@doenet/prefigure@${NPM_TAG}/prefigure.js" || exit 1
