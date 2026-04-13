@@ -87,6 +87,10 @@ jobs:
                   npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07
               env:
                   WIREIT_CACHE: "local"
+                  # Dev builds use @latest so they remain functional even when a
+                  # prefigure version bump hasn't been published to npm yet.
+                  # Production builds (below) keep the exact pinned default.
+                  VITE_PREFIGURE_MODULE_URL: "https://cdn.jsdelivr.net/npm/@doenet/prefigure@latest/prefigure.js"
 
             - name: Publish dev release
               if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
