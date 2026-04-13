@@ -540,6 +540,9 @@ export default React.memo(function Prefigure({
     const [rendererSliderCoordinates, setRendererSliderCoordinates] = useState<
         Record<number, { x: number; y: number }>
     >({});
+    const latestSliderCoordinatesRef = useRef<
+        Record<number, { x: number; y: number }>
+    >({});
     const [transientSliderSet, setTransientSliderSet] = useState<Set<number>>(
         new Set(),
     );
@@ -549,6 +552,10 @@ export default React.memo(function Prefigure({
     const prefigureContainerRef = useRef<HTMLDivElement | null>(null);
     const requestSequenceRef = useRef(0);
     const hasStartedBuildRef = useRef(false);
+
+    useEffect(() => {
+        latestSliderCoordinatesRef.current = rendererSliderCoordinates;
+    }, [rendererSliderCoordinates]);
 
     /**
      * Synchronize slider coordinates state with core state and transient drag state.
@@ -667,13 +674,19 @@ export default React.memo(function Prefigure({
         defaultX: number;
         defaultY: number;
     }) {
-        const currentCoordinates = rendererSliderCoordinates[componentIdx] ?? {
-            x: defaultX,
-            y: defaultY,
-        };
+        const currentCoordinates =
+            latestSliderCoordinatesRef.current[componentIdx] ?? {
+                x: defaultX,
+                y: defaultY,
+            };
         const nextCoordinates = {
             x: axis === "x" ? value : currentCoordinates.x,
             y: axis === "y" ? value : currentCoordinates.y,
+        };
+
+        latestSliderCoordinatesRef.current = {
+            ...latestSliderCoordinatesRef.current,
+            [componentIdx]: nextCoordinates,
         };
 
         setRendererSliderCoordinates((previousCoordinates) => ({
@@ -740,6 +753,16 @@ export default React.memo(function Prefigure({
     }
 
     /**
+     * Normalize slider bounds so reversed graph axes still produce valid
+     * range inputs (min <= max).
+     */
+    function normalizedSliderBounds(rawMin: number, rawMax: number) {
+        const min = Math.min(rawMin, rawMax);
+        const max = Math.max(rawMin, rawMax);
+        return { min, max };
+    }
+
+    /**
      * Format a coordinate value for display in slider label.
      *
      * Applies display rounding rules (displayDigits, displayDecimals, displaySmallAsZero)
@@ -774,10 +797,6 @@ export default React.memo(function Prefigure({
     }
 
     const { xMin, xMax, yMin, yMax } = SVs;
-    // Step size is range / 100 to give fine-grained control with typical slider.
-    // Falls back to 1 if range is zero (single point or invalid bounds).
-    const xStep = xMax !== xMin ? Math.abs(xMax - xMin) / 100 : 1;
-    const yStep = yMax !== yMin ? Math.abs(yMax - yMin) / 100 : 1;
 
     /**
      * Helper to render a single axis slider (x or y).
@@ -791,9 +810,10 @@ export default React.memo(function Prefigure({
     ) {
         const isX = axis === "x";
         const value = isX ? currentCoordinates.x : currentCoordinates.y;
-        const min = isX ? xMin : yMin;
-        const max = isX ? xMax : yMax;
-        const step = isX ? xStep : yStep;
+        const rawMin = isX ? xMin : yMin;
+        const rawMax = isX ? xMax : yMax;
+        const { min, max } = normalizedSliderBounds(rawMin, rawMax);
+        const step = max !== min ? (max - min) / 100 : 1;
         const axisLabel = isX ? "x" : "y";
 
         return (

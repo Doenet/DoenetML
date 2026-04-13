@@ -153,6 +153,91 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         cy.get(cesc("#Px")).should("have.text", "4");
     });
 
+    it("preserves latest other-axis value across rapid slider interactions", () => {
+        cy.clearIndexedDB();
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph renderer="prefigure" addSliders>
+  <point name="P" labelIsName>(1,2)</point>
+</graph>
+<p>Px: <number name="Px">$P.x</number></p>
+<p>Py: <number name="Py">$P.y</number></p>
+`);
+
+        cy.get(cesc("#ready")).should("have.text", "ready");
+        waitPastDebounceWindow();
+
+        cy.get('[aria-label="x coordinate for P"]').trigger("pointerdown", {
+            pointerId: 1,
+            pointerType: "mouse",
+            buttons: 1,
+            force: true,
+        });
+        cy.get('[aria-label="x coordinate for P"]')
+            .invoke("val", "4.2")
+            .trigger("input", { force: true });
+
+        cy.get('[aria-label="y coordinate for P"]').trigger("pointerdown", {
+            pointerId: 2,
+            pointerType: "mouse",
+            buttons: 1,
+            force: true,
+        });
+        cy.get('[aria-label="y coordinate for P"]')
+            .invoke("val", "6.3")
+            .trigger("input", { force: true });
+
+        cy.get(cesc("#Px")).should("have.text", "4.2");
+        cy.get(cesc("#Py")).should("have.text", "6.3");
+
+        cy.get('[aria-label="x coordinate for P"]').trigger("pointerup", {
+            pointerId: 1,
+            pointerType: "mouse",
+            force: true,
+        });
+        cy.get('[aria-label="y coordinate for P"]').trigger("pointerup", {
+            pointerId: 2,
+            pointerType: "mouse",
+            force: true,
+        });
+    });
+
+    it("normalizes slider min and max for reversed graph bounds", () => {
+        cy.clearIndexedDB();
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph renderer="prefigure" addSliders xMin="10" xMax="-10" yMin="5" yMax="-5">
+  <point name="P" labelIsName>(1,2)</point>
+</graph>
+<p>Px: <number name="Px">$P.x</number></p>
+`);
+
+        cy.get(cesc("#ready")).should("have.text", "ready");
+        waitPastDebounceWindow();
+
+        cy.get('[aria-label="x coordinate for P"]')
+            .should("have.attr", "min", "-10")
+            .and("have.attr", "max", "10");
+        cy.get('[aria-label="y coordinate for P"]')
+            .should("have.attr", "min", "-5")
+            .and("have.attr", "max", "5");
+
+        cy.get('[aria-label="x coordinate for P"]').trigger("mousedown");
+        cy.get('[aria-label="x coordinate for P"]')
+            .invoke("val", "7")
+            .trigger("input");
+        cy.get(cesc("#Px")).should("have.text", "7");
+        cy.get('[aria-label="x coordinate for P"]').trigger("mouseup");
+    });
+
     it("does not render sliders for fixed or non-draggable points", () => {
         cy.clearIndexedDB();
         cy.visit("/");
