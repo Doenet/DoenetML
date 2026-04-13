@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 /**
  * Props for the SliderUI component
@@ -50,6 +50,7 @@ export default function SliderUI({
 }: SliderUIProps) {
     const [localValue, setLocalValue] = useState(value);
     const [transient, setTransient] = useState(false);
+    const draggingRef = useRef(false);
 
     /**
      * Extract numeric value from input element with fallback to localValue
@@ -63,6 +64,7 @@ export default function SliderUI({
      * Called on pointer up, pointer cancel, or blur while dragging.
      */
     function commitFinal(value: number): void {
+        draggingRef.current = false;
         setTransient(false);
         setLocalValue(value);
         onChange(value, false);
@@ -93,10 +95,11 @@ export default function SliderUI({
                 onInput={(e) => {
                     const nextValue = extractInputValue(e.target);
                     setLocalValue(nextValue);
-                    onChange(nextValue, transient);
+                    onChange(nextValue, draggingRef.current);
                 }}
                 onPointerDown={(e) => {
                     e.currentTarget.setPointerCapture(e.pointerId);
+                    draggingRef.current = true;
                     setTransient(true);
                 }}
                 onPointerUp={(e) => {
@@ -108,6 +111,8 @@ export default function SliderUI({
                 onBlur={(e) => {
                     if (transient) {
                         commitFinal(extractInputValue(e.target));
+                    } else {
+                        draggingRef.current = false;
                     }
                 }}
             />
