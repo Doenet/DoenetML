@@ -25,6 +25,7 @@ jobs:
     publish-prefigure:
         name: Publish Prefigure
         runs-on: ubuntu-latest
+        environment: production
         permissions:
             actions: read
             contents: read
@@ -57,6 +58,7 @@ jobs:
             - name: Build prefigure package
               run: npm run build -w packages/prefigure
               env:
+                  NODE_OPTIONS: "--max_old_space_size=6114"
                   WIREIT_CACHE: "local"
 
             - name: Verify wheel sync

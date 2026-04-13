@@ -29,7 +29,7 @@ Or load from CDN:
 
 ```html
 <script type="module">
-	import * as prefigure from 'https://cdn.jsdelivr.net/npm/@doenet/prefigure@0.5.15/prefigure.js';
+  import * as prefigure from 'https://cdn.jsdelivr.net/npm/@doenet/prefigure@0.5.15/prefigure.js';
   await prefigure.initPrefigure();
   const result = await prefigure.compilePrefigure(diagramXml, { mode: 'svg' });
 </script>
@@ -52,9 +52,9 @@ Both methods return promises.
 ```html
 <script type="module" src="./prefigure.js"></script>
 <script type="module">
-	await window.initPrefigure();
-	const result = await window.prefigure(`<diagram dimensions="(100,100)"></diagram>`);
-	console.log(result.svg, result.annotationsXml);
+  await window.initPrefigure();
+  const result = await window.prefigure(`<diagram dimensions="(100,100)"></diagram>`);
+  console.log(result.svg, result.annotationsXml);
 </script>
 ```
 
