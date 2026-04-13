@@ -70,5 +70,56 @@ describe(
             );
             cy.get(cesc("#prefig")).should("not.contain.text", "Error:");
         });
+
+        it("cancels local compile when request is aborted after warmup wins", () => {
+            const modulePath = installMockPrefigureModule({
+                modulePath: "/mock-prefigure-abort-during-compile.js",
+                initDelayMs: 40,
+                compileDelayMs: 1200,
+                renderLabel: "local-should-not-render-after-abort",
+            });
+
+            cy.intercept("POST", PREFIGURE_BUILD_URL_PATTERN, {
+                statusCode: 200,
+                headers: { "content-type": "application/json" },
+                delay: 4500,
+                body: {
+                    svg: '<svg xmlns="http://www.w3.org/2000/svg"><text>service-slow</text></svg>',
+                    annotationsXml:
+                        "<diagram><annotation>service-slow</annotation></diagram>",
+                },
+            });
+
+            visitWithMockPrefigureModule(modulePath);
+            postDebounceTestDoenetML(cesc);
+
+            // Trigger a new payload while the first local compile is still in
+            // flight, which should abort and suppress the stale result.
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML: `
+<text name="ready">ready</text>
+<graph name="g2">
+  <point name="Q">(1,1)</point>
+</graph>
+<graph name="prefig2" renderer="prefigure" extend="$g2" />
+`,
+                    },
+                    "*",
+                );
+            });
+
+            // The second payload replaces the first graph, so #prefig is
+            // removed from the DOM. The key assertion is that this unmount-time
+            // abort does not surface stale output or an error.
+            cy.get(cesc("#prefig")).should("not.exist");
+            cy.wait(1400);
+            cy.get(cesc("#prefig2"), { timeout: 3500 }).should(
+                "contain.text",
+                "local-should-not-render-after-abort",
+            );
+            cy.get(cesc("#prefig2")).should("not.contain.text", "Error:");
+        });
     },
 );

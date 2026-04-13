@@ -109,10 +109,22 @@ function createAbortError(): Error {
 
 /**
  * Returns true if `error` is an AbortError regardless of whether it came from
- * a DOMException or from the plain-Error fallback in {@link createAbortError}.
+ * a DOMException, from the plain-Error fallback in {@link createAbortError},
+ * or from environment-specific abort object shapes.
  */
 function isAbortError(error: unknown): boolean {
-    return error instanceof Error && error.name === "AbortError";
+    if (
+        error === null ||
+        (typeof error !== "object" && typeof error !== "function")
+    ) {
+        return false;
+    }
+
+    if (!("name" in error)) {
+        return false;
+    }
+
+    return error.name === "AbortError";
 }
 
 /**
@@ -234,10 +246,13 @@ async function buildPrefigureDiagram(
         // slower network fallback and compile locally.
         serviceAbortController.abort();
 
-        return winner.module.compilePrefigure(diagramXML, {
-            mode: "svg",
-            indexURL: PREFIGURE_INDEX_URL || undefined,
-        });
+        return await Promise.race([
+            winner.module.compilePrefigure(diagramXML, {
+                mode: "svg",
+                indexURL: PREFIGURE_INDEX_URL || undefined,
+            }),
+            outerAbortPromise,
+        ]);
     } catch (error) {
         throw resolveBuildRaceError(error);
     } finally {

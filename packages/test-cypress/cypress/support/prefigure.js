@@ -60,6 +60,7 @@ export function postDebounceTestDoenetML(cesc) {
 export function installMockPrefigureModule({
     modulePath = "/mock-prefigure-module.js",
     initDelayMs = 0,
+    compileDelayMs = 0,
     renderLabel = "local-render",
 } = {}) {
     const moduleBody = `
@@ -74,6 +75,8 @@ export async function compilePrefigure(_diagramXML, _options) {
   if (!isReady) {
     throw new Error("compilePrefigure called before initPrefigure");
   }
+
+    await new Promise((resolve) => setTimeout(resolve, ${compileDelayMs}));
 
   return {
     svg: '<svg xmlns="http://www.w3.org/2000/svg"><text>${renderLabel}</text></svg>',
