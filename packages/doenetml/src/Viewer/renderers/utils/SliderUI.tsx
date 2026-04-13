@@ -98,7 +98,12 @@ export default function SliderUI({
                     onChange(nextValue, draggingRef.current);
                 }}
                 onPointerDown={(e) => {
-                    e.currentTarget.setPointerCapture(e.pointerId);
+                    try {
+                        e.currentTarget.setPointerCapture(e.pointerId);
+                    } catch {
+                        // Pointer capture may fail in test environments (synthetic events)
+                        // or if pointer has already been released. Gracefully degrade.
+                    }
                     draggingRef.current = true;
                     setTransient(true);
                 }}
