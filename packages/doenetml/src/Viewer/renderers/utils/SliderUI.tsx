@@ -24,6 +24,16 @@ export default function SliderUI({
     const [localValue, setLocalValue] = useState(value);
     const [transient, setTransient] = useState(false);
 
+    function currentTargetValue(target: EventTarget | null) {
+        return Number((target as HTMLInputElement | null)?.value ?? localValue);
+    }
+
+    function commitFinal(value: number) {
+        setTransient(false);
+        setLocalValue(value);
+        onChange(value, false);
+    }
+
     useEffect(() => {
         if (!transient) {
             setLocalValue(value);
@@ -43,33 +53,24 @@ export default function SliderUI({
                 aria-label={ariaLabel}
                 style={{ width: "100%" }}
                 onInput={(e) => {
-                    const nextValue = Number(
-                        (e.target as HTMLInputElement).value,
-                    );
+                    const nextValue = currentTargetValue(e.target);
                     setLocalValue(nextValue);
                     onChange(nextValue, transient);
                 }}
-                onMouseDown={() => {
+                onPointerDown={(e) => {
+                    e.currentTarget.setPointerCapture(e.pointerId);
                     setTransient(true);
                 }}
-                onMouseUp={(e) => {
-                    const nextValue = Number(
-                        (e.target as HTMLInputElement).value,
-                    );
-                    setTransient(false);
-                    setLocalValue(nextValue);
-                    onChange(nextValue, false);
+                onPointerUp={(e) => {
+                    commitFinal(currentTargetValue(e.target));
                 }}
-                onTouchStart={() => {
-                    setTransient(true);
+                onPointerCancel={(e) => {
+                    commitFinal(currentTargetValue(e.target));
                 }}
-                onTouchEnd={(e) => {
-                    const nextValue = Number(
-                        (e.target as HTMLInputElement).value,
-                    );
-                    setTransient(false);
-                    setLocalValue(nextValue);
-                    onChange(nextValue, false);
+                onBlur={(e) => {
+                    if (transient) {
+                        commitFinal(currentTargetValue(e.target));
+                    }
                 }}
             />
         </div>

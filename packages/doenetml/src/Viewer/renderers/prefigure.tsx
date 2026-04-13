@@ -668,7 +668,7 @@ export default React.memo(function Prefigure({
             return nextTransientSliderSet;
         });
 
-        callAction({
+        const actionResult = callAction({
             action: { actionName: "movePoint", componentIdx },
             args: {
                 x: nextCoordinates.x,
@@ -677,6 +677,18 @@ export default React.memo(function Prefigure({
                 skippable: transient,
             },
         });
+
+        if (
+            actionResult &&
+            typeof (actionResult as Promise<unknown>).catch === "function"
+        ) {
+            (actionResult as Promise<unknown>).catch((error) => {
+                console.error(
+                    `[prefigure] movePoint failed for component ${componentIdx}`,
+                    error,
+                );
+            });
+        }
     }
 
     function formatCoordinateForSlider(
@@ -733,7 +745,7 @@ export default React.memo(function Prefigure({
                       style={{
                           marginTop: "12px",
                           padding: "10px",
-                          border: "1px solid var(--canvastext)",
+                          border: "1px solid var(--canvasText)",
                           borderRadius: "8px",
                       }}
                   >
