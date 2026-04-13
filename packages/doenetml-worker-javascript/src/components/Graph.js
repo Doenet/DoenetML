@@ -588,6 +588,7 @@ export default class Graph extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
+                // Feature only applies to PreFigure renderer when addSliders is enabled at graph level
                 if (
                     !dependencyValues.addSliders ||
                     dependencyValues.effectiveRenderer !== "prefigure"
@@ -608,6 +609,7 @@ export default class Graph extends BlockComponent {
                     const numericalXs = stateValues.numericalXs;
                     const pointNumber = pointInd + 1;
 
+                    // Skip points with invalid or missing coordinates
                     if (!Array.isArray(numericalXs) || numericalXs.length < 2) {
                         continue;
                     }
@@ -615,6 +617,7 @@ export default class Graph extends BlockComponent {
                     const x = Number(numericalXs[0]);
                     const y = Number(numericalXs[1]);
 
+                    // Skip points with non-finite coordinates (NaN, Infinity)
                     if (!Number.isFinite(x) || !Number.isFinite(y)) {
                         continue;
                     }
@@ -624,6 +627,11 @@ export default class Graph extends BlockComponent {
                     const fixLocation = stateValues.fixLocation === true;
                     const addSliders = stateValues.addSliders;
 
+                    // Skip points that cannot be interacted with via sliders:
+                    // - not draggable (fixed by default)
+                    // - explicitly marked as fixed
+                    // - constrained via fixLocation
+                    // - author explicitly set addSliders="none" on the point
                     if (
                         !draggable ||
                         fixed ||

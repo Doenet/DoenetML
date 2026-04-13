@@ -558,6 +558,19 @@ export default React.memo(function Prefigure({
         return { x: point.x, y: point.y };
     }
 
+    /**
+     * Synchronize slider coordinates state with core state and transient drag state.
+     * This effect runs whenever sliderPoints or transientSliderSet changes.
+     *
+     * Performs two key operations:
+     * 1. Sync sliderCoordinates: Updates x/y values from sliderPoints for non-actively-dragging points.
+     *    Removes entries for points no longer in sliderPoints (cleanup).
+     * 2. Filter transientSliderSet: Removes inactive points from the dragging set,
+     *    maintaining consistency when points are added or removed.
+     *
+     * This design allows the UI to display transient (mid-drag) values while respecting
+     * snap-back behavior from constraints when the user releases the mouse.
+     */
     useEffect(() => {
         const activePointIndices = new Set<number>();
 
@@ -568,6 +581,8 @@ export default React.memo(function Prefigure({
             for (const { componentIdx, x, y } of sliderPoints) {
                 activePointIndices.add(componentIdx);
 
+                // Only update from sliderPoints if this point is not currently being dragged.
+                // Active drags use transient local values until release.
                 if (!transientSliderSet.has(componentIdx)) {
                     const previousPointCoordinates =
                         previousCoordinates[componentIdx];
@@ -582,6 +597,7 @@ export default React.memo(function Prefigure({
                 }
             }
 
+            // Clean up coordinates for points that no longer exist in sliderPoints.
             for (const componentIdxString of Object.keys(nextCoordinates)) {
                 const componentIdx = Number(componentIdxString);
                 if (!activePointIndices.has(componentIdx)) {
@@ -596,12 +612,14 @@ export default React.memo(function Prefigure({
         setTransientSliderSet((previousTransientSliderSet) => {
             const nextTransientSliderSet = new Set<number>();
 
+            // Keep only transient points that are still active.
             for (const componentIdx of previousTransientSliderSet) {
                 if (activePointIndices.has(componentIdx)) {
                     nextTransientSliderSet.add(componentIdx);
                 }
             }
 
+            // Optimize: only update state if set contents actually changed.
             if (
                 nextTransientSliderSet.size === previousTransientSliderSet.size
             ) {
@@ -623,6 +641,17 @@ export default React.memo(function Prefigure({
         });
     }, [sliderPoints, transientSliderSet]);
 
+    /**
+     * Update coordinates for a point based on slider input.
+     *
+     * Manages transient (mid-drag) vs. final (on release) state:
+     * - During drag (transient=true): Updates UI locally, sends soft action (skippable=true)
+     * - On release (transient=false): Snapshots core coordinates, sends final action
+     *
+     * For constrained points (e.g., on grid), the core state may snap to valid values.
+     * When transient=false, we fetch the snapped coordinates and override the UI value,
+     * achieving the snap-back effect.
+     */
     function updatePointCoordinateFromSlider({
         componentIdx,
         axis,
@@ -647,6 +676,7 @@ export default React.memo(function Prefigure({
             y: axis === "y" ? value : currentCoordinates.y,
         };
 
+        // On final commit (not transient), fetch snapped core coordinates to achieve snap-back.
         const coreCoordinates = !transient
             ? getCoreCoordinates(componentIdx)
             : null;
@@ -691,6 +721,13 @@ export default React.memo(function Prefigure({
         }
     }
 
+    /**
+     * Format a coordinate value for display in slider label.
+     *
+     * Applies display rounding rules (displayDigits, displayDecimals, displaySmallAsZero)
+     * just like number display in DoenetML. If padZeros is true, pads to match
+     * displayDecimals or displayDigits precision, e.g., "1.00".
+     */
     function formatCoordinateForSlider(
         value: number,
         point: (typeof sliderPoints)[number],
@@ -704,7 +741,7 @@ export default React.memo(function Prefigure({
             },
         });
 
-        // Apply padding zeros if requested
+        // Apply padding zeros if requested: pad to decimal places or significant figures
         const params: any = {};
         if (point.padZeros) {
             if (Number.isFinite(point.displayDecimals)) {
@@ -715,13 +752,58 @@ export default React.memo(function Prefigure({
             }
         }
 
-        // Convert math expression to string with padding support
         return rounded.toString(params);
     }
 
     const { xMin, xMax, yMin, yMax } = SVs;
+    // Step size is range / 100 to give fine-grained control with typical slider.
+    // Falls back to 1 if range is zero (single point or invalid bounds).
     const xStep = xMax !== xMin ? Math.abs(xMax - xMin) / 100 : 1;
     const yStep = yMax !== yMin ? Math.abs(yMax - yMin) / 100 : 1;
+
+    /**
+     * Helper to render a single axis slider (x or y).
+     * Reduces duplication in the sliderSection mapping.
+     */
+    function renderAxisSlider(
+        axis: "x" | "y",
+        point: (typeof sliderPoints)[number],
+        currentCoordinates: { x: number; y: number },
+        pointLabel: string,
+    ) {
+        const isX = axis === "x";
+        const value = isX ? currentCoordinates.x : currentCoordinates.y;
+        const min = isX ? xMin : yMin;
+        const max = isX ? xMax : yMax;
+        const step = isX ? xStep : yStep;
+        const axisLabel = isX ? "x" : "y";
+        const defaultValue = isX
+            ? (currentCoordinates.x as number)
+            : (currentCoordinates.y as number);
+
+        return (
+            <SliderUI
+                key={axis}
+                id={`${id}-point-${point.componentIdx}-${axis}`}
+                label={`${axisLabel}: ${formatCoordinateForSlider(value, point)}`}
+                ariaLabel={`${axis} coordinate for ${pointLabel}`}
+                min={min}
+                max={max}
+                step={step}
+                value={value}
+                onChange={(value, transient) =>
+                    updatePointCoordinateFromSlider({
+                        componentIdx: point.componentIdx,
+                        axis,
+                        value,
+                        transient,
+                        defaultX: currentCoordinates.x,
+                        defaultY: currentCoordinates.y,
+                    })
+                }
+            />
+        );
+    }
 
     const sliderSection = SVs.addSliders
         ? sliderPoints.map((point) => {
@@ -750,48 +832,20 @@ export default React.memo(function Prefigure({
                       }}
                   >
                       <div style={{ fontWeight: 600 }}>{pointLabel}</div>
-                      {point.addSliders !== "yonly" && (
-                          <SliderUI
-                              id={`${id}-point-${componentIdx}-x`}
-                              label={`x: ${formatCoordinateForSlider(currentCoordinates.x, point)}`}
-                              ariaLabel={`x coordinate for ${pointLabel}`}
-                              min={xMin}
-                              max={xMax}
-                              step={xStep}
-                              value={currentCoordinates.x}
-                              onChange={(value, transient) =>
-                                  updatePointCoordinateFromSlider({
-                                      componentIdx,
-                                      axis: "x",
-                                      value,
-                                      transient,
-                                      defaultX,
-                                      defaultY,
-                                  })
-                              }
-                          />
-                      )}
-                      {point.addSliders !== "xonly" && (
-                          <SliderUI
-                              id={`${id}-point-${componentIdx}-y`}
-                              label={`y: ${formatCoordinateForSlider(currentCoordinates.y, point)}`}
-                              ariaLabel={`y coordinate for ${pointLabel}`}
-                              min={yMin}
-                              max={yMax}
-                              step={yStep}
-                              value={currentCoordinates.y}
-                              onChange={(value, transient) =>
-                                  updatePointCoordinateFromSlider({
-                                      componentIdx,
-                                      axis: "y",
-                                      value,
-                                      transient,
-                                      defaultX,
-                                      defaultY,
-                                  })
-                              }
-                          />
-                      )}
+                      {point.addSliders !== "yonly" &&
+                          renderAxisSlider(
+                              "x",
+                              point,
+                              currentCoordinates,
+                              pointLabel,
+                          )}
+                      {point.addSliders !== "xonly" &&
+                          renderAxisSlider(
+                              "y",
+                              point,
+                              currentCoordinates,
+                              pointLabel,
+                          )}
                   </div>
               );
           })
