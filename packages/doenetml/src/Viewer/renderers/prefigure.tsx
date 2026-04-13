@@ -22,6 +22,10 @@ type PrefigureBuildResult = {
     annotationsXml: string;
 };
 
+type PrefigureBuildWinner =
+    | { backend: "service"; data: PrefigureBuildResult }
+    | { backend: "local"; module: PrefigureModule };
+
 async function importPrefigureFromUrl(url: string): Promise<PrefigureModule> {
     return import(/* @vite-ignore */ url);
 }
@@ -88,6 +92,64 @@ async function buildWithPrefigureService(
     return data;
 }
 
+function createAbortError(): Error {
+    try {
+        return new DOMException("The operation was aborted.", "AbortError");
+    } catch (_error) {
+        const error = new Error("The operation was aborted.");
+        error.name = "AbortError";
+        return error;
+    }
+}
+
+function isAbortError(error: unknown): boolean {
+    return error instanceof Error && error.name === "AbortError";
+}
+
+function resolveBuildRaceError(error: unknown): unknown {
+    if (!Array.isArray(error)) {
+        return error;
+    }
+
+    const allErrors = error;
+    if (allErrors.length === 0) {
+        return error;
+    }
+
+    const nonAbortError = allErrors.find((candidate) => {
+        return !isAbortError(candidate);
+    });
+
+    return nonAbortError ?? allErrors[0];
+}
+
+function firstSuccessful<T>(promises: Array<Promise<T>>): Promise<T> {
+    return new Promise((resolve, reject) => {
+        let remaining = promises.length;
+        const errors: unknown[] = [];
+
+        if (remaining === 0) {
+            reject(new Error("No promises were provided."));
+            return;
+        }
+
+        for (const promise of promises) {
+            promise
+                .then((value) => {
+                    resolve(value);
+                })
+                .catch((error) => {
+                    errors.push(error);
+                    remaining -= 1;
+
+                    if (remaining === 0) {
+                        reject(errors);
+                    }
+                });
+        }
+    });
+}
+
 /**
  * Build diagram content via whichever backend is currently available.
  * Prefers local WASM when warm; otherwise uses the build service.
@@ -103,12 +165,68 @@ async function buildPrefigureDiagram(
         });
     }
 
-    const data = await buildWithPrefigureService(diagramXML, signal);
+    if (signal.aborted) {
+        throw createAbortError();
+    }
 
-    // Keep warmup alive for future renders.
-    warmupPrefigureInBackground();
+    const serviceAbortController = new AbortController();
+    const abortServiceRequest = () => {
+        serviceAbortController.abort();
+    };
 
-    return data;
+    signal.addEventListener("abort", abortServiceRequest, { once: true });
+
+    const outerAbortPromise = new Promise<never>((_resolve, reject) => {
+        const rejectForAbort = () => {
+            reject(createAbortError());
+        };
+
+        if (signal.aborted) {
+            rejectForAbort();
+            return;
+        }
+
+        signal.addEventListener("abort", rejectForAbort, { once: true });
+    });
+
+    try {
+        const serviceBuildPromise: Promise<PrefigureBuildWinner> =
+            buildWithPrefigureService(
+                diagramXML,
+                serviceAbortController.signal,
+            ).then((data) => {
+                return { backend: "service", data };
+            });
+
+        const localReadyPromise: Promise<PrefigureBuildWinner> =
+            startPrefigureWarmup().then((module) => {
+                return { backend: "local", module };
+            });
+
+        const winner = await Promise.race([
+            firstSuccessful([serviceBuildPromise, localReadyPromise]),
+            outerAbortPromise,
+        ]);
+
+        if (winner.backend === "service") {
+            return winner.data;
+        }
+
+        // WASM became ready before the service response, so stop waiting on the
+        // slower network fallback and compile locally.
+        if (!serviceAbortController.signal.aborted) {
+            serviceAbortController.abort();
+        }
+
+        return winner.module.compilePrefigure(diagramXML, {
+            mode: "svg",
+            indexURL: PREFIGURE_INDEX_URL || undefined,
+        });
+    } catch (error) {
+        throw resolveBuildRaceError(error);
+    } finally {
+        signal.removeEventListener("abort", abortServiceRequest);
+    }
 }
 
 type DiagcessApi = {
