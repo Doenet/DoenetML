@@ -8,6 +8,10 @@ import {
     PREFIGURE_MODULE_URL,
 } from "./utils/prefigureConfig";
 import SliderUI from "./utils/SliderUI";
+import {
+    accessibleLabelText,
+    renderLabelWithLatex,
+} from "./utils/labelWithLatex";
 
 const PREFIGURE_BUILD_DEBOUNCE_COLD_MS = 1000;
 const PREFIGURE_BUILD_DEBOUNCE_WARM_MS = 40;
@@ -783,7 +787,7 @@ export default React.memo(function Prefigure({
         axis: "x" | "y",
         point: (typeof coreSliderPoints)[number],
         currentCoordinates: { x: number; y: number },
-        pointLabel: string,
+        pointLabelForAria: string,
     ) {
         const isX = axis === "x";
         const value = isX ? currentCoordinates.x : currentCoordinates.y;
@@ -791,16 +795,13 @@ export default React.memo(function Prefigure({
         const max = isX ? xMax : yMax;
         const step = isX ? xStep : yStep;
         const axisLabel = isX ? "x" : "y";
-        const defaultValue = isX
-            ? (currentCoordinates.x as number)
-            : (currentCoordinates.y as number);
 
         return (
             <SliderUI
                 key={axis}
                 id={`${id}-point-${point.componentIdx}-${axis}`}
                 label={`${axisLabel}: ${formatCoordinateForSlider(value, point)}`}
-                ariaLabel={`${axis} coordinate for ${pointLabel}`}
+                ariaLabel={`${axis} coordinate for ${pointLabelForAria}`}
                 min={min}
                 max={max}
                 step={step}
@@ -826,6 +827,8 @@ export default React.memo(function Prefigure({
                   x: defaultX,
                   y: defaultY,
                   pointNumber,
+                  label,
+                  labelHasLatex,
               } = point;
               const currentCoordinates = rendererSliderCoordinates[
                   componentIdx
@@ -833,9 +836,15 @@ export default React.memo(function Prefigure({
                   x: defaultX,
                   y: defaultY,
               };
-              const pointLabel = point.label.trim()
-                  ? point.label
-                  : `Point ${pointNumber}`;
+              const pointFallbackLabel = `Point ${pointNumber}`;
+              const pointLabelForAria = accessibleLabelText({
+                  label,
+                  labelHasLatex,
+                  fallback: pointFallbackLabel,
+              });
+              const pointLabelForDisplay = label.trim()
+                  ? renderLabelWithLatex({ label, labelHasLatex })
+                  : pointFallbackLabel;
 
               return (
                   <div
@@ -847,20 +856,22 @@ export default React.memo(function Prefigure({
                           borderRadius: "8px",
                       }}
                   >
-                      <div style={{ fontWeight: 600 }}>{pointLabel}</div>
+                      <div style={{ fontWeight: 600 }}>
+                          {pointLabelForDisplay}
+                      </div>
                       {point.addSliders !== "yonly" &&
                           renderAxisSlider(
                               "x",
                               point,
                               currentCoordinates,
-                              pointLabel,
+                              pointLabelForAria,
                           )}
                       {point.addSliders !== "xonly" &&
                           renderAxisSlider(
                               "y",
                               point,
                               currentCoordinates,
-                              pointLabel,
+                              pointLabelForAria,
                           )}
                   </div>
               );
