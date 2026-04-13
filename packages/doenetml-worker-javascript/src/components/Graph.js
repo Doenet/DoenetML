@@ -577,6 +577,7 @@ export default class Graph extends BlockComponent {
                         "draggable",
                         "fixed",
                         "fixLocation",
+                        "addSliders",
                         "label",
                         "labelHasLatex",
                         "displayDigits",
@@ -621,8 +622,14 @@ export default class Graph extends BlockComponent {
                     const draggable = stateValues.draggable !== false;
                     const fixed = stateValues.fixed === true;
                     const fixLocation = stateValues.fixLocation === true;
+                    const addSliders = stateValues.addSliders ?? "both";
 
-                    if (!draggable || fixed || fixLocation) {
+                    if (
+                        !draggable ||
+                        fixed ||
+                        fixLocation ||
+                        addSliders === "none"
+                    ) {
                         continue;
                     }
 
@@ -636,6 +643,7 @@ export default class Graph extends BlockComponent {
                         pointNumber,
                         x,
                         y,
+                        addSliders,
                         label:
                             typeof stateValues.label === "string"
                                 ? stateValues.label

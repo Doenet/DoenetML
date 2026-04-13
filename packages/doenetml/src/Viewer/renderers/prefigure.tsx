@@ -123,27 +123,27 @@ type DiagcessApi = {
 type PrefigureRendererProps = {
     id: string;
     SVs: {
-        prefigureXML?: string | null;
-        childrenSource?: string | null;
-        showBorder?: boolean;
-        width?: { size: string; isAbsolute: boolean };
-        aspectRatio?: number | string;
-        addSliders?: boolean;
-        xMin?: number;
-        xMax?: number;
-        yMin?: number;
-        yMax?: number;
-        draggablePointsForSliders?: Array<{
-            componentIdx?: number;
-            pointNumber?: number;
-            x?: number;
-            y?: number;
-            label?: string;
-            labelHasLatex?: boolean;
+        prefigureXML: string | null;
+        showBorder: boolean;
+        width: { size: string; isAbsolute: boolean };
+        aspectRatio: number;
+        addSliders: boolean;
+        xMin: number;
+        xMax: number;
+        yMin: number;
+        yMax: number;
+        draggablePointsForSliders: Array<{
+            componentIdx: number;
+            pointNumber: number;
+            x: number;
+            y: number;
+            addSliders: string;
+            label: string;
+            labelHasLatex: boolean;
             displayDigits: number;
             displayDecimals: number;
             displaySmallAsZero: number;
-            padZeros?: boolean;
+            padZeros: boolean;
         }>;
     };
     surfaceStyle: React.CSSProperties;
@@ -527,8 +527,8 @@ export default React.memo(function Prefigure({
     surfaceStyle,
     callAction,
 }: PrefigureRendererProps) {
-    const diagramXML = SVs.prefigureXML ?? SVs.childrenSource;
-    const sliderPoints = SVs.draggablePointsForSliders ?? [];
+    const diagramXML = SVs.prefigureXML;
+    const sliderPoints = SVs.draggablePointsForSliders;
     const [svgMarkup, setSvgMarkup] = useState("");
     const [svgMessage, setSvgMessage] = useState("Building...");
     const [cmlContent, setCmlContent] = useState("");
@@ -548,21 +548,14 @@ export default React.memo(function Prefigure({
 
     function getCoreCoordinates(componentIdx: number) {
         const point = sliderPoints.find(
-            (point) => Number(point.componentIdx) === componentIdx,
+            (point) => point.componentIdx === componentIdx,
         );
 
         if (!point) {
             return null;
         }
 
-        const x = Number(point.x);
-        const y = Number(point.y);
-
-        if (!Number.isFinite(x) || !Number.isFinite(y)) {
-            return null;
-        }
-
-        return { x, y };
+        return { x: point.x, y: point.y };
     }
 
     useEffect(() => {
@@ -572,31 +565,18 @@ export default React.memo(function Prefigure({
             const nextCoordinates = { ...previousCoordinates };
             let changed = false;
 
-            for (const point of sliderPoints) {
-                if (!Number.isFinite(point.componentIdx)) {
-                    continue;
-                }
-                if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) {
-                    continue;
-                }
-
-                const componentIdx = Number(point.componentIdx);
+            for (const { componentIdx, x, y } of sliderPoints) {
                 activePointIndices.add(componentIdx);
 
                 if (!transientSliderSet.has(componentIdx)) {
-                    const nextX = Number(point.x);
-                    const nextY = Number(point.y);
                     const previousPointCoordinates =
                         previousCoordinates[componentIdx];
 
                     if (
-                        previousPointCoordinates?.x !== nextX ||
-                        previousPointCoordinates?.y !== nextY
+                        previousPointCoordinates?.x !== x ||
+                        previousPointCoordinates?.y !== y
                     ) {
-                        nextCoordinates[componentIdx] = {
-                            x: nextX,
-                            y: nextY,
-                        };
+                        nextCoordinates[componentIdx] = { x, y };
                         changed = true;
                     }
                 }
@@ -716,104 +696,83 @@ export default React.memo(function Prefigure({
         return rounded.toString();
     }
 
-    const xMin = Number(SVs.xMin);
-    const xMax = Number(SVs.xMax);
-    const yMin = Number(SVs.yMin);
-    const yMax = Number(SVs.yMax);
-    const xStep =
-        Number.isFinite(xMin) && Number.isFinite(xMax) && xMax !== xMin
-            ? Math.abs(xMax - xMin) / 100
-            : 1;
-    const yStep =
-        Number.isFinite(yMin) && Number.isFinite(yMax) && yMax !== yMin
-            ? Math.abs(yMax - yMin) / 100
-            : 1;
+    const { xMin, xMax, yMin, yMax } = SVs;
+    const xStep = xMax !== xMin ? Math.abs(xMax - xMin) / 100 : 1;
+    const yStep = yMax !== yMin ? Math.abs(yMax - yMin) / 100 : 1;
 
-    const sliderSection =
-        SVs.addSliders &&
-        Number.isFinite(xMin) &&
-        Number.isFinite(xMax) &&
-        Number.isFinite(yMin) &&
-        Number.isFinite(yMax)
-            ? sliderPoints
-                  .filter(
-                      (point) =>
-                          Number.isFinite(point.componentIdx) &&
-                          Number.isFinite(point.x) &&
-                          Number.isFinite(point.y),
-                  )
-                  .map((point) => {
-                      const componentIdx = Number(point.componentIdx);
-                      const defaultX = Number(point.x);
-                      const defaultY = Number(point.y);
-                      const currentCoordinates = sliderCoordinates[
-                          componentIdx
-                      ] ?? {
-                          x: defaultX,
-                          y: defaultY,
-                      };
-                      const pointNumber = Number(point.pointNumber);
-                      const pointLabel = point.label?.trim()
-                          ? point.label
-                          : Number.isFinite(pointNumber)
-                            ? `Point ${pointNumber}`
-                            : "Point";
+    const sliderSection = SVs.addSliders
+        ? sliderPoints.map((point) => {
+              const {
+                  componentIdx,
+                  x: defaultX,
+                  y: defaultY,
+                  pointNumber,
+              } = point;
+              const currentCoordinates = sliderCoordinates[componentIdx] ?? {
+                  x: defaultX,
+                  y: defaultY,
+              };
+              const pointLabel = point.label.trim()
+                  ? point.label
+                  : `Point ${pointNumber}`;
 
-                      return (
-                          <div
-                              key={componentIdx}
-                              style={{
-                                  marginTop: "12px",
-                                  padding: "10px",
-                                  border: "1px solid var(--canvastext)",
-                                  borderRadius: "8px",
-                              }}
-                          >
-                              <div style={{ fontWeight: 600 }}>
-                                  {pointLabel}
-                              </div>
-                              <SliderUI
-                                  id={`${id}-point-${componentIdx}-x`}
-                                  label={`x: ${formatCoordinateForSlider(currentCoordinates.x, point)}`}
-                                  ariaLabel={`x coordinate for ${pointLabel}`}
-                                  min={xMin}
-                                  max={xMax}
-                                  step={xStep}
-                                  value={currentCoordinates.x}
-                                  onChange={(value, transient) =>
-                                      updatePointCoordinateFromSlider({
-                                          componentIdx,
-                                          axis: "x",
-                                          value,
-                                          transient,
-                                          defaultX,
-                                          defaultY,
-                                      })
-                                  }
-                              />
-                              <SliderUI
-                                  id={`${id}-point-${componentIdx}-y`}
-                                  label={`y: ${formatCoordinateForSlider(currentCoordinates.y, point)}`}
-                                  ariaLabel={`y coordinate for ${pointLabel}`}
-                                  min={yMin}
-                                  max={yMax}
-                                  step={yStep}
-                                  value={currentCoordinates.y}
-                                  onChange={(value, transient) =>
-                                      updatePointCoordinateFromSlider({
-                                          componentIdx,
-                                          axis: "y",
-                                          value,
-                                          transient,
-                                          defaultX,
-                                          defaultY,
-                                      })
-                                  }
-                              />
-                          </div>
-                      );
-                  })
-            : null;
+              return (
+                  <div
+                      key={componentIdx}
+                      style={{
+                          marginTop: "12px",
+                          padding: "10px",
+                          border: "1px solid var(--canvastext)",
+                          borderRadius: "8px",
+                      }}
+                  >
+                      <div style={{ fontWeight: 600 }}>{pointLabel}</div>
+                      {point.addSliders !== "yonly" && (
+                          <SliderUI
+                              id={`${id}-point-${componentIdx}-x`}
+                              label={`x: ${formatCoordinateForSlider(currentCoordinates.x, point)}`}
+                              ariaLabel={`x coordinate for ${pointLabel}`}
+                              min={xMin}
+                              max={xMax}
+                              step={xStep}
+                              value={currentCoordinates.x}
+                              onChange={(value, transient) =>
+                                  updatePointCoordinateFromSlider({
+                                      componentIdx,
+                                      axis: "x",
+                                      value,
+                                      transient,
+                                      defaultX,
+                                      defaultY,
+                                  })
+                              }
+                          />
+                      )}
+                      {point.addSliders !== "xonly" && (
+                          <SliderUI
+                              id={`${id}-point-${componentIdx}-y`}
+                              label={`y: ${formatCoordinateForSlider(currentCoordinates.y, point)}`}
+                              ariaLabel={`y coordinate for ${pointLabel}`}
+                              min={yMin}
+                              max={yMax}
+                              step={yStep}
+                              value={currentCoordinates.y}
+                              onChange={(value, transient) =>
+                                  updatePointCoordinateFromSlider({
+                                      componentIdx,
+                                      axis: "y",
+                                      value,
+                                      transient,
+                                      defaultX,
+                                      defaultY,
+                                  })
+                              }
+                          />
+                      )}
+                  </div>
+              );
+          })
+        : null;
 
     // Load diagcess script
     useEffect(() => {

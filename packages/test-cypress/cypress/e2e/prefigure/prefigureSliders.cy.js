@@ -218,4 +218,148 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
                 .should("exist");
         });
     });
+
+    it("addSliders='none' on a point suppresses both sliders for that point", () => {
+        cy.clearIndexedDB();
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph renderer="prefigure" addSliders>
+    <point>(1,1)</point>
+    <point addSliders="none">(2,2)</point>
+    <point>(3,3)</point>
+</graph>
+`);
+
+        cy.get(cesc("#ready")).should("have.text", "ready");
+        waitPastDebounceWindow();
+
+        cy.get('input[type="range"]').should("have.length", 4);
+        cy.get('[aria-label="x coordinate for Point 1"]').should("exist");
+        cy.get('[aria-label="y coordinate for Point 1"]').should("exist");
+        cy.get('[aria-label="x coordinate for Point 2"]').should("not.exist");
+        cy.get('[aria-label="y coordinate for Point 2"]').should("not.exist");
+        cy.get('[aria-label="x coordinate for Point 3"]').should("exist");
+        cy.get('[aria-label="y coordinate for Point 3"]').should("exist");
+    });
+
+    it("addSliders='xOnly' on a point renders only the x slider", () => {
+        cy.clearIndexedDB();
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph renderer="prefigure" addSliders>
+    <point name="P" labelIsName addSliders="xOnly">(3,4)</point>
+    <point name="Q" labelIsName>(1,2)</point>
+</graph>
+<p>Px: <number name="Px">$P.x</number></p>
+<p>Py: <number name="Py">$P.y</number></p>
+`);
+
+        cy.get(cesc("#ready")).should("have.text", "ready");
+        waitPastDebounceWindow();
+
+        cy.get('[aria-label="x coordinate for P"]').should("exist");
+        cy.get('[aria-label="y coordinate for P"]').should("not.exist");
+        cy.get('[aria-label="x coordinate for Q"]').should("exist");
+        cy.get('[aria-label="y coordinate for Q"]').should("exist");
+        cy.get('input[type="range"]').should("have.length", 3);
+
+        // Verify x slider still moves the point
+        cy.get('[aria-label="x coordinate for P"]').trigger("mousedown");
+        cy.get('[aria-label="x coordinate for P"]')
+            .invoke("val", "5")
+            .trigger("input");
+        cy.get(cesc("#Px")).should("have.text", "5");
+        cy.get(cesc("#Py")).should("have.text", "4");
+        cy.get('[aria-label="x coordinate for P"]').trigger("mouseup");
+        cy.get(cesc("#Px")).should("have.text", "5");
+    });
+
+    it("addSliders='yOnly' on a point renders only the y slider", () => {
+        cy.clearIndexedDB();
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph renderer="prefigure" addSliders>
+    <point name="P" labelIsName addSliders="yOnly">(3,4)</point>
+    <point name="Q" labelIsName>(1,2)</point>
+</graph>
+<p>Px: <number name="Px">$P.x</number></p>
+<p>Py: <number name="Py">$P.y</number></p>
+`);
+
+        cy.get(cesc("#ready")).should("have.text", "ready");
+        waitPastDebounceWindow();
+
+        cy.get('[aria-label="x coordinate for P"]').should("not.exist");
+        cy.get('[aria-label="y coordinate for P"]').should("exist");
+        cy.get('[aria-label="x coordinate for Q"]').should("exist");
+        cy.get('[aria-label="y coordinate for Q"]').should("exist");
+        cy.get('input[type="range"]').should("have.length", 3);
+
+        // Verify y slider still moves the point
+        cy.get('[aria-label="y coordinate for P"]').trigger("mousedown");
+        cy.get('[aria-label="y coordinate for P"]')
+            .invoke("val", "7")
+            .trigger("input");
+        cy.get(cesc("#Px")).should("have.text", "3");
+        cy.get(cesc("#Py")).should("have.text", "7");
+        cy.get('[aria-label="y coordinate for P"]').trigger("mouseup");
+        cy.get(cesc("#Py")).should("have.text", "7");
+    });
+
+    it("addSliders defaults to 'both' when graph-level addSliders is set", () => {
+        cy.clearIndexedDB();
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph renderer="prefigure" addSliders>
+    <point name="P" labelIsName>(3,4)</point>
+</graph>
+`);
+
+        cy.get(cesc("#ready")).should("have.text", "ready");
+        waitPastDebounceWindow();
+
+        cy.get('[aria-label="x coordinate for P"]').should("exist");
+        cy.get('[aria-label="y coordinate for P"]').should("exist");
+        cy.get('input[type="range"]').should("have.length", 2);
+    });
+
+    it("addSliders false on point is equivalent to none", () => {
+        cy.clearIndexedDB();
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph renderer="prefigure" addSliders>
+    <point name="P" labelIsName addSliders="false">(3,4)</point>
+    <point name="Q" labelIsName>(1,2)</point>
+</graph>
+`);
+
+        cy.get(cesc("#ready")).should("have.text", "ready");
+        waitPastDebounceWindow();
+
+        cy.get('[aria-label="x coordinate for P"]').should("not.exist");
+        cy.get('[aria-label="y coordinate for P"]').should("not.exist");
+        cy.get('[aria-label="x coordinate for Q"]').should("exist");
+        cy.get('[aria-label="y coordinate for Q"]').should("exist");
+        cy.get('input[type="range"]').should("have.length", 2);
+    });
 });

@@ -100,6 +100,17 @@ export default class Point extends GraphicalComponent {
             forRenderer: true,
         };
 
+        attributes.addSliders = {
+            createComponentOfType: "text",
+            createStateVariable: "addSliders",
+            defaultValue: "both",
+            public: true,
+            toLowerCase: true,
+            valueForTrue: "both",
+            valueForFalse: "none",
+            validValues: ["none", "both", "xOnly", "yOnly"],
+        };
+
         attributes.hideOffGraphIndicator = {
             createComponentOfType: "boolean",
         };

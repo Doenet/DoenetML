@@ -39316,6 +39316,15 @@
                     ]
                 },
                 {
+                    "name": "addSliders",
+                    "values": [
+                        "none",
+                        "both",
+                        "xOnly",
+                        "yOnly"
+                    ]
+                },
+                {
                     "name": "hideOffGraphIndicator",
                     "values": [
                         "true",
@@ -39391,6 +39400,11 @@
                 {
                     "name": "showCoordsWhenDragging",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "addSliders",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -50433,6 +50447,15 @@
                     ]
                 },
                 {
+                    "name": "addSliders",
+                    "values": [
+                        "none",
+                        "both",
+                        "xOnly",
+                        "yOnly"
+                    ]
+                },
+                {
                     "name": "hideOffGraphIndicator",
                     "values": [
                         "true",
@@ -50494,6 +50517,11 @@
                 {
                     "name": "showCoordsWhenDragging",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "addSliders",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -61505,6 +61533,13 @@
                     ]
                 },
                 {
+                    "name": "addSliders",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayXAxisTicks",
                     "values": [
                         "true",
@@ -61669,6 +61704,11 @@
                 },
                 {
                     "name": "displayYAxis",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "addSliders",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -78317,6 +78357,15 @@
                     ]
                 },
                 {
+                    "name": "addSliders",
+                    "values": [
+                        "none",
+                        "both",
+                        "xOnly",
+                        "yOnly"
+                    ]
+                },
+                {
                     "name": "hideOffGraphIndicator",
                     "values": [
                         "true",
@@ -78392,6 +78441,11 @@
                 {
                     "name": "showCoordsWhenDragging",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "addSliders",
+                    "type": "text",
                     "isArray": false
                 },
                 {
