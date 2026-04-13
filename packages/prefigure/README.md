@@ -29,11 +29,14 @@ Or load from CDN:
 
 ```html
 <script type="module">
-  import * as prefigure from 'https://cdn.jsdelivr.net/npm/@doenet/prefigure@latest';
+	import * as prefigure from 'https://cdn.jsdelivr.net/npm/@doenet/prefigure@0.5.15/prefigure.js';
   await prefigure.initPrefigure();
   const result = await prefigure.compilePrefigure(diagramXml, { mode: 'svg' });
 </script>
 ```
+
+Pin a specific CDN version instead of using `@latest` so the browser runtime,
+vendored wheel, and downstream Doenet defaults stay reproducible.
 
 ## Global API
 
@@ -89,11 +92,19 @@ Current coverage includes API-level behavior tests for:
 The browser runtime check remains useful as a manual runtime check for real
 Pyodide+WASM execution.
 
-## Wheel Requirement
+## Runtime Version Sync
 
-Builds currently vendor wheels from `pyodide_packages/`. Before publishing,
-ensure a matching `prefig-<version>-py3-none-any.whl` is present there.
-At runtime, `initPrefigure()` defaults to loading from `./assets/`.
+Builds vendor wheels from `pyodide_packages/`, and the browser runtime is only
+consistent when all pinned PreFigure pieces move together.
+
+Before publishing or bumping the runtime, keep these in sync:
+
+- `packages/prefigure/package.json` version for the published `@doenet/prefigure` tag
+- `src/worker/compiler-metadata.ts` `PREFIG_VERSION` / `PREFIG_WHEEL_FILENAME`
+- `pyodide_packages/prefig-<version>-py3-none-any.whl` via `npm run setup -w @doenet/prefigure`
+- `packages/doenetml/src/Viewer/renderers/utils/prefigureConfig.ts` default CDN URLs for `@doenet/prefigure` and `diagcess`
+
+At runtime, `initPrefigure()` defaults to loading wheel assets from `./assets/`.
 
 ## Repository Hygiene
 
@@ -135,12 +146,16 @@ npm run verify-wheel-sync -w @doenet/prefigure
 `verify-wheel-sync` ensures `src/worker/compiler-metadata.ts` and
 `pyodide_packages/` reference the same `prefig` wheel.
 
-### Upgrade `prefig` wheel version
+### Upgrade PreFigure runtime version
 
-1. Update `PREFIG_WHEEL_FILENAME` in `src/worker/compiler-metadata.ts`.
-2. Run `npm run setup -w @doenet/prefigure`.
-3. Run `npm run verify-wheel-sync -w @doenet/prefigure`.
-4. Build and run the browser runtime check:
+1. Update `version` in `packages/prefigure/package.json`.
+2. Update `PREFIG_VERSION` in `src/worker/compiler-metadata.ts`.
+3. Update the default CDN module URL in `packages/doenetml/src/Viewer/renderers/utils/prefigureConfig.ts`.
+4. If the bundled accessibility runtime changed, update the default diagcess CDN URL there as well.
+5. Update `prefigure.doenet.org` outside this repository so the fallback build-service path matches the new runtime behavior before local WASM compilation warms up.
+6. Run `npm run setup -w @doenet/prefigure` to fetch the matching `prefig-<version>-py3-none-any.whl`.
+7. Run `npm run verify-wheel-sync -w @doenet/prefigure`.
+8. Build and run the browser runtime check:
 
 ```bash
 npm run build -w @doenet/prefigure

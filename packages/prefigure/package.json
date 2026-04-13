@@ -2,7 +2,7 @@
     "name": "@doenet/prefigure",
     "type": "module",
     "description": "Standalone PreFigure WASM compiler for browser and CDN usage",
-    "version": "0.5.13",
+    "version": "0.5.15",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
     "private": true,
