@@ -17,14 +17,14 @@ describe(
         it("uses local WASM when it becomes ready before a slow service response", () => {
             const modulePath = installMockPrefigureModule({
                 modulePath: "/mock-prefigure-fast-local.js",
-                initDelayMs: 120,
+                initDelayMs: 40,
                 renderLabel: "local-winner",
             });
 
             cy.intercept("POST", PREFIGURE_BUILD_URL_PATTERN, {
                 statusCode: 200,
                 headers: { "content-type": "application/json" },
-                delay: 4500,
+                delay: 800,
                 body: {
                     svg: '<svg xmlns="http://www.w3.org/2000/svg"><text>service-slow</text></svg>',
                     annotationsXml:
@@ -35,7 +35,7 @@ describe(
             visitWithMockPrefigureModule(modulePath);
             postDebounceTestDoenetML(cesc);
 
-            cy.get(cesc("#prefig"), { timeout: 1800 }).should(
+            cy.get(cesc("#prefig"), { timeout: 1400 }).should(
                 "contain.text",
                 "local-winner",
             );
@@ -43,7 +43,7 @@ describe(
 
             // Even after the delayed service response eventually settles, the
             // local winner should remain rendered.
-            cy.wait(4700);
+            cy.wait(900);
             cy.get(cesc("#prefig")).should("contain.text", "local-winner");
             cy.get(cesc("#prefig")).should("not.contain.text", "service-slow");
         });
@@ -51,7 +51,7 @@ describe(
         it("recovers from service failure once local WASM warmup completes", () => {
             const modulePath = installMockPrefigureModule({
                 modulePath: "/mock-prefigure-after-failure.js",
-                initDelayMs: 350,
+                initDelayMs: 120,
                 renderLabel: "local-after-service-error",
             });
 
@@ -64,7 +64,7 @@ describe(
             visitWithMockPrefigureModule(modulePath);
             postDebounceTestDoenetML(cesc);
 
-            cy.get(cesc("#prefig"), { timeout: 3000 }).should(
+            cy.get(cesc("#prefig"), { timeout: 2000 }).should(
                 "contain.text",
                 "local-after-service-error",
             );
@@ -75,14 +75,14 @@ describe(
             const modulePath = installMockPrefigureModule({
                 modulePath: "/mock-prefigure-abort-during-compile.js",
                 initDelayMs: 40,
-                compileDelayMs: 1200,
+                compileDelayMs: 450,
                 renderLabel: "local-should-not-render-after-abort",
             });
 
             cy.intercept("POST", PREFIGURE_BUILD_URL_PATTERN, {
                 statusCode: 200,
                 headers: { "content-type": "application/json" },
-                delay: 4500,
+                delay: 900,
                 body: {
                     svg: '<svg xmlns="http://www.w3.org/2000/svg"><text>service-slow</text></svg>',
                     annotationsXml:
@@ -114,8 +114,8 @@ describe(
             // removed from the DOM. The key assertion is that this unmount-time
             // abort does not surface stale output or an error.
             cy.get(cesc("#prefig")).should("not.exist");
-            cy.wait(1400);
-            cy.get(cesc("#prefig2"), { timeout: 3500 }).should(
+            cy.wait(550);
+            cy.get(cesc("#prefig2"), { timeout: 2000 }).should(
                 "contain.text",
                 "local-should-not-render-after-abort",
             );

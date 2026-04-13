@@ -63,8 +63,11 @@ export function installMockPrefigureModule({
     compileDelayMs = 0,
     renderLabel = "local-render",
 } = {}) {
+    const serializedRenderLabel = JSON.stringify(renderLabel);
+
     const moduleBody = `
 let isReady = false;
+const renderLabelValue = ${serializedRenderLabel};
 
 export async function initPrefigure() {
   await new Promise((resolve) => setTimeout(resolve, ${initDelayMs}));
@@ -79,8 +82,8 @@ export async function compilePrefigure(_diagramXML, _options) {
     await new Promise((resolve) => setTimeout(resolve, ${compileDelayMs}));
 
   return {
-    svg: '<svg xmlns="http://www.w3.org/2000/svg"><text>${renderLabel}</text></svg>',
-    annotationsXml: '<diagram><annotation>${renderLabel}-cml</annotation></diagram>',
+        svg: '<svg xmlns="http://www.w3.org/2000/svg"><text>' + renderLabelValue + '</text></svg>',
+        annotationsXml: '<diagram><annotation>' + renderLabelValue + '-cml</annotation></diagram>',
   };
 }
 `;

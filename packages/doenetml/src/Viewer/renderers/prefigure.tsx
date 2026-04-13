@@ -229,9 +229,14 @@ async function buildPrefigureDiagram(
             });
 
         const localReadyPromise: Promise<PrefigureBuildWinner> =
-            startPrefigureWarmup().then((module) => {
-                return { backend: "local", module };
-            });
+            startPrefigureWarmup()
+                .then((module) => {
+                    return { backend: "local" as const, module };
+                })
+                .catch((error) => {
+                    logWarmupFailure(error);
+                    throw error;
+                });
 
         const winner = await Promise.race([
             firstSuccessful([serviceBuildPromise, localReadyPromise]),
