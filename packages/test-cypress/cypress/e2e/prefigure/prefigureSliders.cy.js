@@ -219,6 +219,47 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         });
     });
 
+    it("displays slider values with padZeros rounding", () => {
+        cy.clearIndexedDB();
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph renderer="prefigure" addSliders>
+    <point name="P" labelIsName displayDecimals="2" padZeros="true">(1.5, 2)</point>
+    <point name="Q" labelIsName displayDigits="3" padZeros="true">(3.45, 4.56)</point>
+</graph>
+<p>P.x: <number name="refPx" displayDecimals="2" padZeros="true">$P.x</number></p>
+<p>Q.x: <number name="refQx" displayDigits="3" padZeros="true">$Q.x</number></p>
+`);
+
+        cy.get(cesc("#ready")).should("have.text", "ready");
+        waitPastDebounceWindow();
+
+        // Verify slider labels match reference number display with padding
+        // P with displayDecimals="2" and padZeros should display "1.50"
+        cy.get(cesc("#refPx")).then(($refPx) => {
+            const refValue = $refPx.text();
+            cy.get('input[aria-label="x coordinate for P"]')
+                .parent()
+                .parent()
+                .contains(`x: ${refValue}`)
+                .should("exist");
+        });
+
+        // Q with displayDigits="3" and padZeros
+        cy.get(cesc("#refQx")).then(($refQx) => {
+            const refValue = $refQx.text();
+            cy.get('input[aria-label="x coordinate for Q"]')
+                .parent()
+                .parent()
+                .contains(`x: ${refValue}`)
+                .should("exist");
+        });
+    });
+
     it("addSliders='none' on a point suppresses both sliders for that point", () => {
         cy.clearIndexedDB();
         cy.visit("/");

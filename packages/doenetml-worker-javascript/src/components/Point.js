@@ -108,6 +108,11 @@ export default class Point extends GraphicalComponent {
             toLowerCase: true,
             valueForTrue: "both",
             valueForFalse: "none",
+            // Note: validValues are declared in camelCase for autocomplete/validation purposes,
+            // but toLowerCase: true ensures stored values are always lowercase at runtime.
+            // The preprocessAttributesObject() utility lowercases all defined validValues values,
+            // so both the source declaration (camelCase) and stored value (lowercase) coexist.
+            // Code comparisons should use lowercase "xonly", "yonly", etc.
             validValues: ["none", "both", "xOnly", "yOnly"],
         };
 

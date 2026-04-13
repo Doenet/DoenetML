@@ -692,8 +692,19 @@ export default React.memo(function Prefigure({
             },
         });
 
-        // Convert math expression to string
-        return rounded.toString();
+        // Apply padding zeros if requested
+        const params: any = {};
+        if (point.padZeros) {
+            if (Number.isFinite(point.displayDecimals)) {
+                params.padToDecimals = point.displayDecimals;
+            }
+            if (point.displayDigits >= 1) {
+                params.padToDigits = point.displayDigits;
+            }
+        }
+
+        // Convert math expression to string with padding support
+        return rounded.toString(params);
     }
 
     const { xMin, xMax, yMin, yMax } = SVs;

@@ -622,7 +622,7 @@ export default class Graph extends BlockComponent {
                     const draggable = stateValues.draggable !== false;
                     const fixed = stateValues.fixed === true;
                     const fixLocation = stateValues.fixLocation === true;
-                    const addSliders = stateValues.addSliders ?? "both";
+                    const addSliders = stateValues.addSliders;
 
                     if (
                         !draggable ||
