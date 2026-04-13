@@ -3,6 +3,7 @@ import {
     installMockPrefigureModule,
     postDebounceTestDoenetML,
     visitWithMockPrefigureModule,
+    PREFIGURE_BUILD_URL_PATTERN,
 } from "../../support/prefigure";
 
 describe(
@@ -20,7 +21,7 @@ describe(
                 renderLabel: "local-winner",
             });
 
-            cy.intercept("POST", "**/build", {
+            cy.intercept("POST", PREFIGURE_BUILD_URL_PATTERN, {
                 statusCode: 200,
                 headers: { "content-type": "application/json" },
                 delay: 4500,
@@ -54,7 +55,7 @@ describe(
                 renderLabel: "local-after-service-error",
             });
 
-            cy.intercept("POST", "**/build", {
+            cy.intercept("POST", PREFIGURE_BUILD_URL_PATTERN, {
                 statusCode: 503,
                 headers: { "content-type": "application/json" },
                 body: { message: "service unavailable" },

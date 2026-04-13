@@ -92,6 +92,11 @@ async function buildWithPrefigureService(
     return data;
 }
 
+/**
+ * Creates a DOMException-compatible AbortError for programmatic cancellation.
+ * Falls back to a plain Error with `name === "AbortError"` in environments
+ * where DOMException is not constructible (e.g. older WebViews).
+ */
 function createAbortError(): Error {
     try {
         return new DOMException("The operation was aborted.", "AbortError");
@@ -102,27 +107,37 @@ function createAbortError(): Error {
     }
 }
 
+/**
+ * Returns true if `error` is an AbortError regardless of whether it came from
+ * a DOMException or from the plain-Error fallback in {@link createAbortError}.
+ */
 function isAbortError(error: unknown): boolean {
     return error instanceof Error && error.name === "AbortError";
 }
 
+/**
+ * Unwraps a multi-error array produced by {@link firstSuccessful} into a
+ * single throwable value.  Prefers the first non-AbortError so that a real
+ * failure surfaces even when one of the two backends was intentionally
+ * cancelled.
+ */
 function resolveBuildRaceError(error: unknown): unknown {
     if (!Array.isArray(error)) {
         return error;
     }
 
-    const allErrors = error;
-    if (allErrors.length === 0) {
-        return error;
-    }
-
-    const nonAbortError = allErrors.find((candidate) => {
-        return !isAbortError(candidate);
-    });
-
-    return nonAbortError ?? allErrors[0];
+    const nonAbortError = error.find((candidate) => !isAbortError(candidate));
+    return nonAbortError ?? error[0];
 }
 
+/**
+ * Resolves with the value of the first promise that fulfills.
+ * Rejects with an array of all errors only when every promise has rejected.
+ *
+ * Semantically equivalent to `Promise.any()`, but compatible with the
+ * `ES2021.String` lib subset used in this package (which lacks `ES2021.Promise`
+ * and therefore lacks the `AggregateError` type).
+ */
 function firstSuccessful<T>(promises: Array<Promise<T>>): Promise<T> {
     return new Promise((resolve, reject) => {
         let remaining = promises.length;
@@ -134,18 +149,13 @@ function firstSuccessful<T>(promises: Array<Promise<T>>): Promise<T> {
         }
 
         for (const promise of promises) {
-            promise
-                .then((value) => {
-                    resolve(value);
-                })
-                .catch((error) => {
-                    errors.push(error);
-                    remaining -= 1;
-
-                    if (remaining === 0) {
-                        reject(errors);
-                    }
-                });
+            promise.then(resolve, (error: unknown) => {
+                errors.push(error);
+                remaining -= 1;
+                if (remaining === 0) {
+                    reject(errors);
+                }
+            });
         }
     });
 }
@@ -176,6 +186,11 @@ async function buildPrefigureDiagram(
 
     signal.addEventListener("abort", abortServiceRequest, { once: true });
 
+    // cleanupOuterAbort removes the abort listener added inside the promise
+    // constructor below so it does not linger on the signal after the race
+    // settles normally.
+    let cleanupOuterAbort: () => void = () => {};
+
     const outerAbortPromise = new Promise<never>((_resolve, reject) => {
         const rejectForAbort = () => {
             reject(createAbortError());
@@ -187,6 +202,9 @@ async function buildPrefigureDiagram(
         }
 
         signal.addEventListener("abort", rejectForAbort, { once: true });
+        cleanupOuterAbort = () => {
+            signal.removeEventListener("abort", rejectForAbort);
+        };
     });
 
     try {
@@ -214,9 +232,7 @@ async function buildPrefigureDiagram(
 
         // WASM became ready before the service response, so stop waiting on the
         // slower network fallback and compile locally.
-        if (!serviceAbortController.signal.aborted) {
-            serviceAbortController.abort();
-        }
+        serviceAbortController.abort();
 
         return winner.module.compilePrefigure(diagramXML, {
             mode: "svg",
@@ -226,6 +242,7 @@ async function buildPrefigureDiagram(
         throw resolveBuildRaceError(error);
     } finally {
         signal.removeEventListener("abort", abortServiceRequest);
+        cleanupOuterAbort();
     }
 }
 
@@ -722,10 +739,7 @@ export default React.memo(function Prefigure({
                     setCmlContent,
                 });
             } catch (error) {
-                if (
-                    error instanceof DOMException &&
-                    error.name === "AbortError"
-                ) {
+                if (isAbortError(error)) {
                     return;
                 }
 

@@ -1,6 +1,6 @@
 export const PREFIGURE_BUILD_DEBOUNCE_MS = 1000;
 export const REQUEST_SETTLE_BUFFER_MS = 300;
-const PREFIGURE_BUILD_URL_PATTERN = "**/build";
+export const PREFIGURE_BUILD_URL_PATTERN = "**/build";
 
 export function installPrefigureBuildIntercept(responseForRequest) {
     const tracker = { count: 0 };
