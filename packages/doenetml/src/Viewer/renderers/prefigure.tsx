@@ -554,7 +554,14 @@ export default React.memo(function Prefigure({
     const hasStartedBuildRef = useRef(false);
 
     useEffect(() => {
-        latestSliderCoordinatesRef.current = rendererSliderCoordinates;
+        // Merge new state values into ref without overwriting values that
+        // updatePointCoordinateFromSlider may have just set. This prevents
+        // rapid sequential slider updates from losing the latest coordinates
+        // when state updates complete out of order.
+        latestSliderCoordinatesRef.current = {
+            ...latestSliderCoordinatesRef.current,
+            ...rendererSliderCoordinates,
+        };
     }, [rendererSliderCoordinates]);
 
     /**
