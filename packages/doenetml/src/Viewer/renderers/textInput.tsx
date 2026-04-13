@@ -5,7 +5,6 @@ import useDoenetRenderer, {
 import { sizeToCSS } from "./utils/css";
 import { MathJax } from "better-react-mathjax";
 import { BoardContext } from "./graph";
-// @ts-ignore
 import me from "math-expressions";
 import {
     getPositionFromAnchorByCoordinate,

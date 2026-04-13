@@ -5,7 +5,13 @@
         "rootDir": "./src",
         "lib": ["ES2021.String", "WebWorker", "DOM"]
     },
-    "include": ["./**/*.ts", "./**/*.tsx", "./**/*.js", "./**/*.jsx"],
+    "include": [
+        "./**/*.ts",
+        "./**/*.tsx",
+        "./**/*.js",
+        "./**/*.jsx",
+        "./**/*.d.ts"
+    ],
     "exclude": [
         "vite.config.ts",
         "node_modules",

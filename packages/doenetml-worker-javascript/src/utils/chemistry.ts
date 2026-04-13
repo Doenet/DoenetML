@@ -1,5 +1,4 @@
 import { atomDatabase } from "@doenet/static-assets/atom-database";
-//@ts-ignore
 import me from "math-expressions";
 
 /**
@@ -186,7 +185,7 @@ export function getDataForAtom({
             }
         }
         if (colName === "Electron Configuration") {
-            dataForAtom[colName] = me.fromText(value);
+            dataForAtom[colName] = me.fromText(String(value));
         } else {
             dataForAtom[colName] = value;
         }

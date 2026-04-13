@@ -6,7 +6,6 @@ import { ToggleButton } from "@doenet/ui-components";
 import "./booleanInput.css";
 import { MathJax } from "better-react-mathjax";
 import { BoardContext } from "./graph";
-// @ts-ignore
 import me from "math-expressions";
 import {
     getPositionFromAnchorByCoordinate,

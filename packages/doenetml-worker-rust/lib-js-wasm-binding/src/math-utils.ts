@@ -1,4 +1,3 @@
-// @ts-ignore
 import me from "math-expressions";
 
 import { mathAssets } from "@doenet/static-assets/math-assets";

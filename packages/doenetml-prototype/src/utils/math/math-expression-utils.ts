@@ -1,4 +1,3 @@
-//@ts-ignore
 import me from "math-expressions";
 
 import { serializedComponentsReviver } from "@doenet/utils";
@@ -12,7 +11,9 @@ import { serializedComponentsReviver } from "@doenet/utils";
  * @returns number
  */
 export function numberFromSerializedAst(serializedAst: string): number {
-    return me
-        .fromAst(JSON.parse(serializedAst, serializedComponentsReviver))
-        .evaluate_to_constant();
+    return (
+        me
+            .fromAst(JSON.parse(serializedAst, serializedComponentsReviver))
+            .evaluate_to_constant() ?? NaN
+    );
 }

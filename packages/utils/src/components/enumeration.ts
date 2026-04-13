@@ -1,4 +1,3 @@
-// @ts-ignore
 import me from "math-expressions";
 
 // Enumerates the unique combinations of repeeated selecting an index

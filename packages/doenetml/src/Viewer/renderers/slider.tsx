@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-// @ts-ignore
 import me from "math-expressions";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
