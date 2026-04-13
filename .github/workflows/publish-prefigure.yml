@@ -38,6 +38,14 @@ jobs:
               id: checked-sha
               run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
 
+            - name: Verify commit is on main
+              run: |
+                  git fetch origin main
+                  if ! git merge-base --is-ancestor HEAD origin/main; then
+                      echo "Error: checked-out commit is not reachable from origin/main. Only commits on main may be published." >&2
+                      exit 1
+                  fi
+
             - name: Use Node.js 24
               uses: actions/setup-node@v4
               with:
