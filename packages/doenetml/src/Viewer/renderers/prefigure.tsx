@@ -528,12 +528,12 @@ export default React.memo(function Prefigure({
     callAction,
 }: PrefigureRendererProps) {
     const diagramXML = SVs.prefigureXML;
-    const sliderPoints = SVs.draggablePointsForSliders;
+    const coreSliderPoints = SVs.draggablePointsForSliders;
     const [svgMarkup, setSvgMarkup] = useState("");
     const [svgMessage, setSvgMessage] = useState("Building...");
     const [cmlContent, setCmlContent] = useState("");
     const [diagcessReady, setDiagcessReady] = useState(Boolean(diagcessApi()));
-    const [sliderCoordinates, setSliderCoordinates] = useState<
+    const [rendererSliderCoordinates, setRendererSliderCoordinates] = useState<
         Record<number, { x: number; y: number }>
     >({});
     const [transientSliderSet, setTransientSliderSet] = useState<Set<number>>(
@@ -546,25 +546,13 @@ export default React.memo(function Prefigure({
     const requestSequenceRef = useRef(0);
     const hasStartedBuildRef = useRef(false);
 
-    function getCoreCoordinates(componentIdx: number) {
-        const point = sliderPoints.find(
-            (point) => point.componentIdx === componentIdx,
-        );
-
-        if (!point) {
-            return null;
-        }
-
-        return { x: point.x, y: point.y };
-    }
-
     /**
      * Synchronize slider coordinates state with core state and transient drag state.
-     * This effect runs whenever sliderPoints or transientSliderSet changes.
+     * This effect runs whenever coreSliderPoints or transientSliderSet changes.
      *
      * Performs two key operations:
-     * 1. Sync sliderCoordinates: Updates x/y values from sliderPoints for non-actively-dragging points.
-     *    Removes entries for points no longer in sliderPoints (cleanup).
+     * 1. Sync rendererSliderCoordinates: Updates x/y values from coreSliderPoints for non-actively-dragging points.
+     *    Removes entries for points no longer in coreSliderPoints (cleanup).
      * 2. Filter transientSliderSet: Removes inactive points from the dragging set,
      *    maintaining consistency when points are added or removed.
      *
@@ -574,30 +562,36 @@ export default React.memo(function Prefigure({
     useEffect(() => {
         const activePointIndices = new Set<number>();
 
-        setSliderCoordinates((previousCoordinates) => {
+        // This update keeps renderer coordinates aligned with core values for
+        // non-transient points and removes coordinates for inactive points.
+        setRendererSliderCoordinates((previousCoordinates) => {
             const nextCoordinates = { ...previousCoordinates };
             let changed = false;
 
-            for (const { componentIdx, x, y } of sliderPoints) {
+            for (const {
+                componentIdx,
+                x: coreX,
+                y: coreY,
+            } of coreSliderPoints) {
                 activePointIndices.add(componentIdx);
 
-                // Only update from sliderPoints if this point is not currently being dragged.
+                // Only update from coreSliderPoints if this point is not currently being dragged.
                 // Active drags use transient local values until release.
                 if (!transientSliderSet.has(componentIdx)) {
                     const previousPointCoordinates =
                         previousCoordinates[componentIdx];
 
                     if (
-                        previousPointCoordinates?.x !== x ||
-                        previousPointCoordinates?.y !== y
+                        previousPointCoordinates?.x !== coreX ||
+                        previousPointCoordinates?.y !== coreY
                     ) {
-                        nextCoordinates[componentIdx] = { x, y };
+                        nextCoordinates[componentIdx] = { x: coreX, y: coreY };
                         changed = true;
                     }
                 }
             }
 
-            // Clean up coordinates for points that no longer exist in sliderPoints.
+            // Clean up coordinates for points that no longer exist in coreSliderPoints.
             for (const componentIdxString of Object.keys(nextCoordinates)) {
                 const componentIdx = Number(componentIdxString);
                 if (!activePointIndices.has(componentIdx)) {
@@ -609,6 +603,8 @@ export default React.memo(function Prefigure({
             return changed ? nextCoordinates : previousCoordinates;
         });
 
+        // This update is only for pruning transient entries that no longer
+        // correspond to active points in coreSliderPoints.
         setTransientSliderSet((previousTransientSliderSet) => {
             const nextTransientSliderSet = new Set<number>();
 
@@ -639,7 +635,7 @@ export default React.memo(function Prefigure({
 
             return nextTransientSliderSet;
         });
-    }, [sliderPoints, transientSliderSet]);
+    }, [coreSliderPoints, transientSliderSet]);
 
     /**
      * Update coordinates for a point based on slider input.
@@ -649,10 +645,10 @@ export default React.memo(function Prefigure({
      * - On release (transient=false): Snapshots core coordinates, sends final action
      *
      * For constrained points (e.g., on grid), the core state may snap to valid values.
-     * When transient=false, we fetch the snapped coordinates and override the UI value,
-     * achieving the snap-back effect.
+     * On final commit we keep the just-selected value locally; the synchronization
+     * effect then applies any snapped core coordinates when they arrive.
      */
-    function updatePointCoordinateFromSlider({
+    async function updatePointCoordinateFromSlider({
         componentIdx,
         axis,
         value,
@@ -667,7 +663,7 @@ export default React.memo(function Prefigure({
         defaultX: number;
         defaultY: number;
     }) {
-        const currentCoordinates = sliderCoordinates[componentIdx] ?? {
+        const currentCoordinates = rendererSliderCoordinates[componentIdx] ?? {
             x: defaultX,
             y: defaultY,
         };
@@ -676,48 +672,66 @@ export default React.memo(function Prefigure({
             y: axis === "y" ? value : currentCoordinates.y,
         };
 
-        // On final commit (not transient), fetch snapped core coordinates to achieve snap-back.
-        const coreCoordinates = !transient
-            ? getCoreCoordinates(componentIdx)
-            : null;
-
-        setSliderCoordinates((previousCoordinates) => ({
+        setRendererSliderCoordinates((previousCoordinates) => ({
             ...previousCoordinates,
-            [componentIdx]: coreCoordinates ?? nextCoordinates,
+            // Always use the just-committed slider value here.
+            // If the point is constrained, the core state will publish the snapped
+            // coordinate shortly after and the synchronization effect will update
+            // this value once the point leaves the transient set.
+            [componentIdx]: nextCoordinates,
         }));
 
-        setTransientSliderSet((previousTransientSliderSet) => {
-            const nextTransientSliderSet = new Set(previousTransientSliderSet);
+        function clearTransientForPoint() {
+            setTransientSliderSet((previousTransientSliderSet) => {
+                if (!previousTransientSliderSet.has(componentIdx)) {
+                    return previousTransientSliderSet;
+                }
 
-            if (transient) {
-                nextTransientSliderSet.add(componentIdx);
-            } else {
-                nextTransientSliderSet.delete(componentIdx);
-            }
-
-            return nextTransientSliderSet;
-        });
-
-        const actionResult = callAction({
-            action: { actionName: "movePoint", componentIdx },
-            args: {
-                x: nextCoordinates.x,
-                y: nextCoordinates.y,
-                transient,
-                skippable: transient,
-            },
-        });
-
-        if (
-            actionResult &&
-            typeof (actionResult as Promise<unknown>).catch === "function"
-        ) {
-            (actionResult as Promise<unknown>).catch((error) => {
-                console.error(
-                    `[prefigure] movePoint failed for component ${componentIdx}`,
-                    error,
+                const nextTransientSliderSet = new Set(
+                    previousTransientSliderSet,
                 );
+                nextTransientSliderSet.delete(componentIdx);
+                return nextTransientSliderSet;
             });
+        }
+
+        if (transient) {
+            setTransientSliderSet((previousTransientSliderSet) => {
+                if (previousTransientSliderSet.has(componentIdx)) {
+                    return previousTransientSliderSet;
+                }
+
+                const nextTransientSliderSet = new Set(
+                    previousTransientSliderSet,
+                );
+                nextTransientSliderSet.add(componentIdx);
+                return nextTransientSliderSet;
+            });
+        }
+
+        try {
+            await callAction({
+                action: { actionName: "movePoint", componentIdx },
+                args: {
+                    x: nextCoordinates.x,
+                    y: nextCoordinates.y,
+                    transient,
+                    skippable: transient,
+                },
+            });
+        } catch (error) {
+            console.error(
+                `[prefigure] movePoint failed for component ${componentIdx}`,
+                error,
+            );
+        } finally {
+            if (!transient) {
+                // Keep this after await callAction: resolving the action means
+                // DocViewer has already dispatched the updated core state values.
+                // Clearing transient first would allow the sync effect to pull
+                // stale pre-action core coordinates and cause a snap-back flicker.
+                clearTransientForPoint();
+            }
         }
     }
 
@@ -730,7 +744,7 @@ export default React.memo(function Prefigure({
      */
     function formatCoordinateForSlider(
         value: number,
-        point: (typeof sliderPoints)[number],
+        point: (typeof coreSliderPoints)[number],
     ): string {
         const rounded = roundForDisplay({
             value,
@@ -767,7 +781,7 @@ export default React.memo(function Prefigure({
      */
     function renderAxisSlider(
         axis: "x" | "y",
-        point: (typeof sliderPoints)[number],
+        point: (typeof coreSliderPoints)[number],
         currentCoordinates: { x: number; y: number },
         pointLabel: string,
     ) {
@@ -806,14 +820,16 @@ export default React.memo(function Prefigure({
     }
 
     const sliderSection = SVs.addSliders
-        ? sliderPoints.map((point) => {
+        ? coreSliderPoints.map((point) => {
               const {
                   componentIdx,
                   x: defaultX,
                   y: defaultY,
                   pointNumber,
               } = point;
-              const currentCoordinates = sliderCoordinates[componentIdx] ?? {
+              const currentCoordinates = rendererSliderCoordinates[
+                  componentIdx
+              ] ?? {
                   x: defaultX,
                   y: defaultY,
               };
