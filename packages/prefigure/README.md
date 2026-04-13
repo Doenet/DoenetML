@@ -104,7 +104,9 @@ Before publishing or bumping the runtime, keep these in sync:
 - `pyodide_packages/prefig-<version>-py3-none-any.whl` via `npm run setup -w @doenet/prefigure`
 - `packages/doenetml/src/Viewer/renderers/utils/prefigureConfig.ts` default CDN URLs for `@doenet/prefigure` and `diagcess`
 
-At runtime, `initPrefigure()` defaults to loading wheel assets from `./assets/`.
+At runtime, `initPrefigure()` defaults to loading wheel assets from an `assets/`
+directory relative to the loaded `prefigure.js` module URL. Pass `indexURL` to
+`initPrefigure(indexURL)` to override this default.
 
 ## Repository Hygiene
 
