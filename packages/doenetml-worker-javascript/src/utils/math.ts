@@ -556,11 +556,13 @@ export function mathStateVariableFromNumberStateVariable({
 }
 
 export function numberToMathExpression(
-    number: number | { re: number; im: number },
+    number: number | { re: number; im: number } | null,
 ) {
     let mathTree: Tree;
     if (typeof number === "number") {
         mathTree = number;
+    } else if (number === null) {
+        mathTree = "\uff3f";
     } else {
         if (number.im === 0) {
             mathTree = number.re;
