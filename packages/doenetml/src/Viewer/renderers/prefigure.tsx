@@ -571,7 +571,12 @@ export default React.memo(function Prefigure({
      * snap-back behavior from constraints when the user releases the mouse.
      */
     useEffect(() => {
-        const activePointIndices = new Set<number>();
+        // Compute activePointIndices once from coreSliderPoints, outside any state updater.
+        // Both setRendererSliderCoordinates and setTransientSliderSet will read this
+        // immutable set without mutation.
+        const activePointIndices = new Set<number>(
+            coreSliderPoints.map((p) => p.componentIdx),
+        );
 
         // This update keeps renderer coordinates aligned with core values for
         // non-transient points and removes coordinates for inactive points.
@@ -584,8 +589,6 @@ export default React.memo(function Prefigure({
                 x: coreX,
                 y: coreY,
             } of coreSliderPoints) {
-                activePointIndices.add(componentIdx);
-
                 // Only update from coreSliderPoints if this point is not currently being dragged.
                 // Active drags use transient local values until release.
                 if (!transientSliderSet.has(componentIdx)) {
@@ -674,11 +677,12 @@ export default React.memo(function Prefigure({
         defaultX: number;
         defaultY: number;
     }) {
-        const currentCoordinates =
-            latestSliderCoordinatesRef.current[componentIdx] ?? {
-                x: defaultX,
-                y: defaultY,
-            };
+        const currentCoordinates = latestSliderCoordinatesRef.current[
+            componentIdx
+        ] ?? {
+            x: defaultX,
+            y: defaultY,
+        };
         const nextCoordinates = {
             x: axis === "x" ? value : currentCoordinates.x,
             y: axis === "y" ? value : currentCoordinates.y,
