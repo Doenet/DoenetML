@@ -6,10 +6,24 @@ import boto3
 import time
 import base64
 import shutil
+import importlib.metadata
 from botocore.exceptions import ClientError
 
 # --- CONFIGURATION ---
-CACHE_VERSION = "v0.5.7"
+
+def resolve_cache_version():
+    pinned_version = os.getenv('PREFIG_CACHE_VERSION')
+    if pinned_version:
+        return f"prefig-{pinned_version}"
+
+    try:
+        detected_version = importlib.metadata.version('prefig')
+        return f"prefig-{detected_version}"
+    except importlib.metadata.PackageNotFoundError:
+        return "prefig-unknown"
+
+
+CACHE_VERSION = resolve_cache_version()
 CACHE_DURATION_DAYS = 30 
 
 # --- INITIALIZATION ---
@@ -95,6 +109,18 @@ def get_debug_directory_contents(work_dir, output_dir):
 
 # --- MAIN HANDLER ---
 def lambda_handler(event, context):
+    # Version endpoint
+    raw_path = event.get('rawPath', '')
+    path = event.get('path', '')
+    route_key = event.get('routeKey', '')
+    if raw_path == '/version' or path == '/version' or route_key == 'GET /version':
+        version = os.getenv('PREFIG_CACHE_VERSION') or 'unknown'
+        return {
+            'statusCode': 200,
+            'headers': DEFAULT_HEADERS,
+            'body': json.dumps({'version': version})
+        }
+
     debug = False
     query_params = event.get('queryStringParameters') or {}
     if query_params.get('debug') in ('1', 'true', 'True', 'yes'):

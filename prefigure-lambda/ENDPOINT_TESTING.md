@@ -3,11 +3,25 @@
 This file is a quick checklist for validating the deployed endpoint at:
 
 - `https://prefigure.doenet.org/build`
+- `https://prefigure.doenet.org/version`
 
 ## Prerequisites
 
 - `curl` installed
 - Optional: `jq` for easier JSON inspection
+
+## 0) Version check
+
+```bash
+curl -sS https://prefigure.doenet.org/version
+```
+
+Expected response:
+
+```json
+{"version": "0.5.15"}
+```
+
 
 ## 1) Success path: empty graph, no annotations
 
