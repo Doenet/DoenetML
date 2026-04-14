@@ -71,7 +71,7 @@ describe(
             cy.get(cesc("#prefig")).should("not.contain.text", "Error:");
         });
 
-        it("cancels local compile when request is aborted after warmup wins", () => {
+        it("suppresses stale local compile result when request is aborted after warmup wins", () => {
             const modulePath = installMockPrefigureModule({
                 modulePath: "/mock-prefigure-abort-during-compile.js",
                 initDelayMs: 40,

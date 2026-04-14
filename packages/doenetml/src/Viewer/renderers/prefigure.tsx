@@ -198,6 +198,12 @@ async function buildPrefigureDiagram(
 
     signal.addEventListener("abort", abortServiceRequest, { once: true });
 
+    // Close the check/listen race: the outer signal may have aborted after the
+    // earlier guard but before this listener was attached.
+    if (signal.aborted) {
+        serviceAbortController.abort();
+    }
+
     // cleanupOuterAbort removes the abort listener added inside the promise
     // constructor below so it does not linger on the signal after the race
     // settles normally.
