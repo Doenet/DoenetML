@@ -354,17 +354,20 @@ export function getSchema() {
                     name: attrName,
                 };
 
-                const hasBooleanAlias =
-                    attrDef.valueForTrue !== undefined ||
-                    attrDef.valueForFalse !== undefined;
+                const booleanAliasValues: string[] = [];
+                if (attrDef.valueForTrue !== undefined) {
+                    booleanAliasValues.push("true");
+                }
+                if (attrDef.valueForFalse !== undefined) {
+                    booleanAliasValues.push("false");
+                }
 
                 if (attrDef.validValues) {
-                    if (hasBooleanAlias) {
+                    if (booleanAliasValues.length > 0) {
                         attrSpec.values = [
                             ...new Set([
                                 ...attrDef.validValues,
-                                "true",
-                                "false",
+                                ...booleanAliasValues,
                             ]),
                         ];
                         attrSpec.autocompleteValues = attrDef.validValues;

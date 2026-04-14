@@ -48,4 +48,52 @@ describe("generated schema top-level elements", () => {
         expect(elementsByName.document.children).not.toContain("when");
         expect(elementsByName.when.top).toBe(false);
     });
+
+    it("includes boolean aliases for two-sided enum aliases", () => {
+        const schema = getSchema();
+        const elementsByName = Object.fromEntries(
+            schema.elements.map((element) => [element.name, element]),
+        );
+
+        const sortAttribute = elementsByName.selectFromSequence.attributes.find(
+            (attribute) => attribute.name === "sort",
+        );
+
+        expect(sortAttribute).toBeDefined();
+        if (!sortAttribute) {
+            throw new Error("Expected selectFromSequence.sort attribute");
+        }
+        expect(sortAttribute.values).toEqual(
+            expect.arrayContaining([
+                "unsorted",
+                "increasing",
+                "decreasing",
+                "true",
+                "false",
+            ]),
+        );
+        expect(sortAttribute.autocompleteValues).toEqual([
+            "unsorted",
+            "increasing",
+            "decreasing",
+        ]);
+    });
+
+    it("does not invent a missing false alias for one-sided attributes", () => {
+        const schema = getSchema();
+        const elementsByName = Object.fromEntries(
+            schema.elements.map((element) => [element.name, element]),
+        );
+
+        const gridAttribute = elementsByName.graph.attributes.find(
+            (attribute) => attribute.name === "grid",
+        );
+
+        expect(gridAttribute).toBeDefined();
+        if (!gridAttribute) {
+            throw new Error("Expected graph.grid attribute");
+        }
+        expect(gridAttribute.values).toBeUndefined();
+        expect(gridAttribute.autocompleteValues).toBeUndefined();
+    });
 });
