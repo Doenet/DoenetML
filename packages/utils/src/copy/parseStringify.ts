@@ -1,4 +1,3 @@
-//@ts-ignore
 import me from "math-expressions";
 import { subsetReviver } from "../math/subset-of-reals";
 

@@ -4,7 +4,6 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { MathJax } from "better-react-mathjax";
-// @ts-ignore
 import me from "math-expressions";
 import { textRendererStyle } from "@doenet/utils";
 import {

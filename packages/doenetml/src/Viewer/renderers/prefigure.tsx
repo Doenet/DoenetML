@@ -1,11 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import DOMPurify from "dompurify";
+import { roundForDisplay } from "@doenet/utils";
 import {
     PREFIGURE_BUILD_ENDPOINT,
     PREFIGURE_DIAGCESS_SCRIPT_URL,
     PREFIGURE_INDEX_URL,
     PREFIGURE_MODULE_URL,
 } from "./utils/prefigureConfig";
+import SliderUI from "./utils/SliderUI";
+import {
+    accessibleLabelText,
+    renderLabelWithLatex,
+} from "./utils/labelWithLatex";
 
 const PREFIGURE_BUILD_DEBOUNCE_COLD_MS = 1000;
 const PREFIGURE_BUILD_DEBOUNCE_WARM_MS = 40;
@@ -282,13 +288,31 @@ type DiagcessApi = {
 type PrefigureRendererProps = {
     id: string;
     SVs: {
-        prefigureXML?: string | null;
-        childrenSource?: string | null;
-        showBorder?: boolean;
-        width?: { size: string; isAbsolute: boolean };
-        aspectRatio?: number | string;
+        prefigureXML: string | null;
+        showBorder: boolean;
+        width: { size: string; isAbsolute: boolean };
+        aspectRatio: number;
+        addSliders: boolean;
+        xMin: number;
+        xMax: number;
+        yMin: number;
+        yMax: number;
+        draggablePointsForSliders: Array<{
+            componentIdx: number;
+            pointNumber: number;
+            x: number;
+            y: number;
+            addSliders: string;
+            label: string;
+            labelHasLatex: boolean;
+            displayDigits: number;
+            displayDecimals: number;
+            displaySmallAsZero: number;
+            padZeros: boolean;
+        }>;
     };
     surfaceStyle: React.CSSProperties;
+    callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };
 
 function diagcessApi(): DiagcessApi | undefined {
@@ -666,18 +690,462 @@ export default React.memo(function Prefigure({
     id,
     SVs,
     surfaceStyle,
+    callAction,
 }: PrefigureRendererProps) {
-    const diagramXML = SVs.prefigureXML ?? SVs.childrenSource;
+    const diagramXML = SVs.prefigureXML;
+    const coreSliderPoints = SVs.draggablePointsForSliders;
     const [svgMarkup, setSvgMarkup] = useState("");
     const [svgMessage, setSvgMessage] = useState("Building...");
     const [cmlContent, setCmlContent] = useState("");
     const [diagcessReady, setDiagcessReady] = useState(Boolean(diagcessApi()));
+    const [rendererSliderCoordinates, setRendererSliderCoordinates] = useState<
+        Record<number, { x: number; y: number }>
+    >({});
+    const latestSliderCoordinatesRef = useRef<
+        Record<number, { x: number; y: number }>
+    >({});
+    const [transientSliderSet, setTransientSliderSet] = useState<Set<string>>(
+        new Set(),
+    );
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const fetchAbortControllerRef = useRef<AbortController | null>(null);
     const diagcessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const prefigureContainerRef = useRef<HTMLDivElement | null>(null);
     const requestSequenceRef = useRef(0);
     const hasStartedBuildRef = useRef(false);
+
+    function sliderAxisTransientKey(
+        componentIdx: number,
+        axis: "x" | "y",
+    ): string {
+        return `${componentIdx}|${axis}`;
+    }
+
+    useEffect(() => {
+        // Merge new state values into ref without overwriting values that
+        // updatePointCoordinateFromSlider may have just set. This prevents
+        // rapid sequential slider updates from losing the latest coordinates
+        // when state updates complete out of order.
+        latestSliderCoordinatesRef.current = {
+            ...latestSliderCoordinatesRef.current,
+            ...rendererSliderCoordinates,
+        };
+    }, [rendererSliderCoordinates]);
+
+    /**
+     * Synchronize slider coordinates state with core state and transient drag state.
+     * This effect runs whenever coreSliderPoints or transientSliderSet changes.
+     *
+     * Performs two key operations:
+     * 1. Sync rendererSliderCoordinates: Updates x/y values from coreSliderPoints for
+     *    non-actively-dragging slider axes.
+     *    Removes entries for points no longer in coreSliderPoints (cleanup).
+     * 2. Filter transientSliderSet: Removes inactive slider-axis keys from the dragging set,
+     *    maintaining consistency when points or rendered slider axes are removed.
+     *
+     * This design allows the UI to display transient (mid-drag) values while respecting
+     * snap-back behavior from constraints when the user releases the mouse.
+     */
+    useEffect(() => {
+        // Compute active point and slider-axis keys once from coreSliderPoints,
+        // outside any state updater.
+        // Both setRendererSliderCoordinates and setTransientSliderSet will read this
+        // immutable set without mutation.
+        const activePointIndices = new Set<number>(
+            coreSliderPoints.map((p) => p.componentIdx),
+        );
+        const activeSliderAxisKeys = new Set<string>();
+
+        for (const { componentIdx, addSliders } of coreSliderPoints) {
+            const normalizedAddSliders = addSliders.toLowerCase();
+            if (
+                normalizedAddSliders !== "yonly" &&
+                normalizedAddSliders !== "none"
+            ) {
+                activeSliderAxisKeys.add(
+                    sliderAxisTransientKey(componentIdx, "x"),
+                );
+            }
+
+            if (
+                normalizedAddSliders !== "xonly" &&
+                normalizedAddSliders !== "none"
+            ) {
+                activeSliderAxisKeys.add(
+                    sliderAxisTransientKey(componentIdx, "y"),
+                );
+            }
+        }
+
+        // This update keeps renderer coordinates aligned with core values for
+        // non-transient axes and removes coordinates for inactive points.
+        setRendererSliderCoordinates((previousCoordinates) => {
+            const nextCoordinates = { ...previousCoordinates };
+            let changed = false;
+
+            for (const {
+                componentIdx,
+                x: coreX,
+                y: coreY,
+            } of coreSliderPoints) {
+                const previousPointCoordinates =
+                    previousCoordinates[componentIdx];
+                const latestPointCoordinates =
+                    latestSliderCoordinatesRef.current[componentIdx];
+                const xIsTransient = transientSliderSet.has(
+                    sliderAxisTransientKey(componentIdx, "x"),
+                );
+                const yIsTransient = transientSliderSet.has(
+                    sliderAxisTransientKey(componentIdx, "y"),
+                );
+                const nextPointCoordinates = {
+                    x: xIsTransient
+                        ? (previousPointCoordinates?.x ??
+                          latestPointCoordinates?.x ??
+                          coreX)
+                        : coreX,
+                    y: yIsTransient
+                        ? (previousPointCoordinates?.y ??
+                          latestPointCoordinates?.y ??
+                          coreY)
+                        : coreY,
+                };
+
+                if (
+                    previousPointCoordinates?.x !== nextPointCoordinates.x ||
+                    previousPointCoordinates?.y !== nextPointCoordinates.y
+                ) {
+                    nextCoordinates[componentIdx] = nextPointCoordinates;
+                    changed = true;
+                }
+            }
+
+            // Clean up coordinates for points that no longer exist in coreSliderPoints.
+            for (const componentIdxString of Object.keys(nextCoordinates)) {
+                const componentIdx = Number(componentIdxString);
+                if (!activePointIndices.has(componentIdx)) {
+                    delete nextCoordinates[componentIdx];
+                    changed = true;
+                }
+            }
+
+            return changed ? nextCoordinates : previousCoordinates;
+        });
+
+        // This update is only for pruning transient entries that no longer
+        // correspond to active slider-axis keys.
+        setTransientSliderSet((previousTransientSliderSet) => {
+            const nextTransientSliderSet = new Set<string>();
+
+            // Keep only transient slider-axis keys that are still active.
+            for (const sliderAxisKey of previousTransientSliderSet) {
+                if (activeSliderAxisKeys.has(sliderAxisKey)) {
+                    nextTransientSliderSet.add(sliderAxisKey);
+                }
+            }
+
+            // Optimize: only update state if set contents actually changed.
+            if (
+                nextTransientSliderSet.size === previousTransientSliderSet.size
+            ) {
+                let changed = false;
+
+                for (const sliderAxisKey of nextTransientSliderSet) {
+                    if (!previousTransientSliderSet.has(sliderAxisKey)) {
+                        changed = true;
+                        break;
+                    }
+                }
+
+                if (!changed) {
+                    return previousTransientSliderSet;
+                }
+            }
+
+            return nextTransientSliderSet;
+        });
+    }, [coreSliderPoints, transientSliderSet]);
+
+    /**
+     * Update coordinates for a point based on slider input.
+     *
+     * For pointer/touch drags, onChange is only called with transient=true (during drag).
+     * Drag release is handled by onDragEnd (in renderAxisSlider), which clears the
+     * transient axis key and lets the sync effect snap the slider to the core value
+     * without dispatching a duplicate movePoint action.
+     *
+     * This means a pointer drag can complete without any transient=false movePoint call.
+     * Since transient updates are marked skippable, the last drag sample may also be
+     * skipped if superseded by another action before execution. We accept this tradeoff:
+     * users already saw the immediate drag response, and on release the slider handle
+     * is synchronized to the latest core value.
+     *
+     * For keyboard input, SliderUI treats each arrow-key press as a transient (skippable)
+     * action, allowing the user to accumulate multiple steps past a constraint boundary.
+     * When the slider loses focus (blur), the transient state is cleared without sending
+     * another movePoint action. The sync effect then re-syncs the slider to core's latest
+     * constrained value, just as it does for pointer-up.
+     */
+    async function updatePointCoordinateFromSlider({
+        componentIdx,
+        axis,
+        value,
+        transient,
+        defaultX,
+        defaultY,
+    }: {
+        componentIdx: number;
+        axis: "x" | "y";
+        value: number;
+        transient: boolean;
+        defaultX: number;
+        defaultY: number;
+    }) {
+        const currentCoordinates = latestSliderCoordinatesRef.current[
+            componentIdx
+        ] ?? {
+            x: defaultX,
+            y: defaultY,
+        };
+        const nextCoordinates = {
+            x: axis === "x" ? value : currentCoordinates.x,
+            y: axis === "y" ? value : currentCoordinates.y,
+        };
+
+        latestSliderCoordinatesRef.current = {
+            ...latestSliderCoordinatesRef.current,
+            [componentIdx]: nextCoordinates,
+        };
+
+        setRendererSliderCoordinates((previousCoordinates) => ({
+            ...previousCoordinates,
+            // Always use the just-committed slider value here.
+            // If the point is constrained, the core state will publish the snapped
+            // coordinate shortly after and the synchronization effect will update
+            // this value once the point leaves the transient set.
+            [componentIdx]: nextCoordinates,
+        }));
+
+        function clearTransientForAxis() {
+            const transientKey = sliderAxisTransientKey(componentIdx, axis);
+
+            setTransientSliderSet((previousTransientSliderSet) => {
+                if (!previousTransientSliderSet.has(transientKey)) {
+                    return previousTransientSliderSet;
+                }
+
+                const nextTransientSliderSet = new Set(
+                    previousTransientSliderSet,
+                );
+                nextTransientSliderSet.delete(transientKey);
+                return nextTransientSliderSet;
+            });
+        }
+
+        if (transient) {
+            const transientKey = sliderAxisTransientKey(componentIdx, axis);
+
+            setTransientSliderSet((previousTransientSliderSet) => {
+                if (previousTransientSliderSet.has(transientKey)) {
+                    return previousTransientSliderSet;
+                }
+
+                const nextTransientSliderSet = new Set(
+                    previousTransientSliderSet,
+                );
+                nextTransientSliderSet.add(transientKey);
+                return nextTransientSliderSet;
+            });
+        }
+
+        try {
+            await callAction({
+                action: { actionName: "movePoint", componentIdx },
+                args: {
+                    x: nextCoordinates.x,
+                    y: nextCoordinates.y,
+                    transient,
+                    skippable: transient,
+                },
+            });
+        } catch (error) {
+            console.error(
+                `[prefigure] movePoint failed for component ${componentIdx}`,
+                error,
+            );
+        } finally {
+            if (!transient) {
+                // Keep this after await callAction: resolving the action means
+                // DocViewer has already dispatched the updated core state values.
+                // Clearing transient first would allow the sync effect to pull
+                // stale pre-action core coordinates and cause a snap-back flicker.
+                clearTransientForAxis();
+            }
+        }
+    }
+
+    /**
+     * Normalize slider bounds so reversed graph axes still produce valid
+     * range inputs (min <= max).
+     */
+    function normalizedSliderBounds(rawMin: number, rawMax: number) {
+        const min = Math.min(rawMin, rawMax);
+        const max = Math.max(rawMin, rawMax);
+        return { min, max };
+    }
+
+    /**
+     * Format a coordinate value for display in slider label.
+     *
+     * Applies display rounding rules (displayDigits, displayDecimals, displaySmallAsZero)
+     * just like number display in DoenetML. If padZeros is true, pads to match
+     * displayDecimals or displayDigits precision, e.g., "1.00".
+     */
+    function formatCoordinateForSlider(
+        value: number,
+        point: (typeof coreSliderPoints)[number],
+    ): string {
+        const rounded = roundForDisplay({
+            value,
+            dependencyValues: {
+                displayDigits: point.displayDigits,
+                displayDecimals: point.displayDecimals,
+                displaySmallAsZero: point.displaySmallAsZero,
+            },
+        });
+
+        // Apply padding zeros if requested: pad to decimal places or significant figures
+        const params: any = {};
+        if (point.padZeros) {
+            if (Number.isFinite(point.displayDecimals)) {
+                params.padToDecimals = point.displayDecimals;
+            }
+            if (point.displayDigits >= 1) {
+                params.padToDigits = point.displayDigits;
+            }
+        }
+
+        return rounded.toString(params);
+    }
+
+    const { xMin, xMax, yMin, yMax } = SVs;
+
+    /**
+     * Helper to render a single axis slider (x or y).
+     * Reduces duplication in the sliderSection mapping.
+     */
+    function renderAxisSlider(
+        axis: "x" | "y",
+        point: (typeof coreSliderPoints)[number],
+        currentCoordinates: { x: number; y: number },
+        pointLabelForAria: string,
+    ) {
+        const isX = axis === "x";
+        const value = isX ? currentCoordinates.x : currentCoordinates.y;
+        const rawMin = isX ? xMin : yMin;
+        const rawMax = isX ? xMax : yMax;
+        const { min, max } = normalizedSliderBounds(rawMin, rawMax);
+        const step = max !== min ? (max - min) / 100 : 1;
+        const axisLabel = isX ? "x" : "y";
+
+        return (
+            <SliderUI
+                key={axis}
+                id={`${id}-point-${point.componentIdx}-${axis}`}
+                label={`${axisLabel}: ${formatCoordinateForSlider(value, point)}`}
+                ariaLabel={`${axis} coordinate for ${pointLabelForAria}`}
+                min={min}
+                max={max}
+                step={step}
+                value={value}
+                onChange={(value, transient) =>
+                    updatePointCoordinateFromSlider({
+                        componentIdx: point.componentIdx,
+                        axis,
+                        value,
+                        transient,
+                        defaultX: currentCoordinates.x,
+                        defaultY: currentCoordinates.y,
+                    })
+                }
+                onDragEnd={() => {
+                    // Clear only this axis's transient key on drag release. This
+                    // lets the sync effect pull the core-constrained value back
+                    // into the slider without sending a duplicate movePoint action.
+                    const transientKey = sliderAxisTransientKey(
+                        point.componentIdx,
+                        axis,
+                    );
+                    setTransientSliderSet((prev) => {
+                        if (!prev.has(transientKey)) {
+                            return prev;
+                        }
+                        const next = new Set(prev);
+                        next.delete(transientKey);
+                        return next;
+                    });
+                }}
+            />
+        );
+    }
+
+    const sliderSection = SVs.addSliders
+        ? coreSliderPoints.map((point) => {
+              const {
+                  componentIdx,
+                  x: defaultX,
+                  y: defaultY,
+                  pointNumber,
+                  label,
+                  labelHasLatex,
+              } = point;
+              const currentCoordinates = rendererSliderCoordinates[
+                  componentIdx
+              ] ?? {
+                  x: defaultX,
+                  y: defaultY,
+              };
+              const pointFallbackLabel = `Point ${pointNumber}`;
+              const pointLabelForAria = accessibleLabelText({
+                  label,
+                  labelHasLatex,
+                  fallback: pointFallbackLabel,
+              });
+              const pointLabelForDisplay = label.trim()
+                  ? renderLabelWithLatex({ label, labelHasLatex })
+                  : pointFallbackLabel;
+
+              return (
+                  <div
+                      key={componentIdx}
+                      style={{
+                          marginTop: "12px",
+                          padding: "10px",
+                          border: "1px solid var(--canvasText)",
+                          borderRadius: "8px",
+                      }}
+                  >
+                      <div style={{ fontWeight: 600 }}>
+                          {pointLabelForDisplay}
+                      </div>
+                      {point.addSliders !== "yonly" &&
+                          renderAxisSlider(
+                              "x",
+                              point,
+                              currentCoordinates,
+                              pointLabelForAria,
+                          )}
+                      {point.addSliders !== "xonly" &&
+                          renderAxisSlider(
+                              "y",
+                              point,
+                              currentCoordinates,
+                              pointLabelForAria,
+                          )}
+                  </div>
+              );
+          })
+        : null;
 
     // Load diagcess script
     useEffect(() => {
@@ -888,6 +1356,7 @@ export default React.memo(function Prefigure({
                     dangerouslySetInnerHTML={{ __html: cmlContent }}
                 />
             </div>
+            {sliderSection}
         </div>
     );
 });

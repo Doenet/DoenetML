@@ -64190,6 +64190,15 @@
                         "false"
                     ]
                 },
+                "addSliders": {
+                    "optional": true,
+                    "type": [
+                        "none",
+                        "both",
+                        "xOnly",
+                        "yOnly"
+                    ]
+                },
                 "hideOffGraphIndicator": {
                     "optional": true,
                     "type": [
@@ -64542,6 +64551,11 @@
                 {
                     "name": "showCoordsWhenDragging",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "addSliders",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -83560,6 +83574,15 @@
                         "false"
                     ]
                 },
+                "addSliders": {
+                    "optional": true,
+                    "type": [
+                        "none",
+                        "both",
+                        "xOnly",
+                        "yOnly"
+                    ]
+                },
                 "hideOffGraphIndicator": {
                     "optional": true,
                     "type": [
@@ -83898,6 +83921,11 @@
                 {
                     "name": "showCoordsWhenDragging",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "addSliders",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -99198,6 +99226,13 @@
                         "false"
                     ]
                 },
+                "addSliders": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "displayXAxisTicks": {
                     "optional": true,
                     "type": [
@@ -99789,6 +99824,11 @@
                 },
                 {
                     "name": "displayYAxis",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "addSliders",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -127735,6 +127775,15 @@
                         "false"
                     ]
                 },
+                "addSliders": {
+                    "optional": true,
+                    "type": [
+                        "none",
+                        "both",
+                        "xOnly",
+                        "yOnly"
+                    ]
+                },
                 "hideOffGraphIndicator": {
                     "optional": true,
                     "type": [
@@ -128087,6 +128136,11 @@
                 {
                     "name": "showCoordsWhenDragging",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "addSliders",
+                    "type": "text",
                     "isArray": false
                 },
                 {

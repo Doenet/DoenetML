@@ -362,7 +362,12 @@ describe("Graph tag tests @group2", async () => {
     `,
         });
 
-        async function checkLimits(xmin, xmax, ymin, ymax) {
+        async function checkLimits(
+            xmin: number,
+            xmax: number,
+            ymin: number,
+            ymax: number,
+        ) {
             const stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
@@ -1154,11 +1159,13 @@ describe("Graph tag tests @group2", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx(name)].stateValues
                     .size,
-            ).eq(expectedSizes[name]);
+            ).eq(expectedSizes[name as keyof typeof expectedSizes]);
             expect(
                 stateVariables[await resolvePathToNodeIdx(name)].stateValues
                     .width.size,
-            ).eq(widthsBySize[expectedSizes[name]]);
+            ).eq(
+                widthsBySize[expectedSizes[name as keyof typeof expectedSizes]],
+            );
         }
     });
 

@@ -2,7 +2,6 @@ import { cesc } from "@doenet/utils";
 import {
     installPrefigureBuildIntercept,
     postDebounceTestDoenetML,
-    waitPastDebounceWindow,
 } from "../../support/prefigure";
 
 describe(
@@ -21,7 +20,6 @@ describe(
             }));
 
             postDebounceTestDoenetML(cesc);
-            waitPastDebounceWindow();
 
             cy.get(cesc("#prefig"))
                 .find(".svg")

@@ -1,8 +1,5 @@
 import { cesc } from "@doenet/utils";
-import {
-    installPrefigureBuildIntercept,
-    waitPastDebounceWindow,
-} from "../../support/prefigure";
+import { installPrefigureBuildIntercept } from "../../support/prefigure";
 
 describe(
     "PreFigure diagcess singleton loader @group4",
@@ -36,7 +33,6 @@ describe(
             });
 
             cy.get(cesc("#ready")).should("have.text", "ready");
-            waitPastDebounceWindow();
 
             cy.get(diagcessScriptSelector).should("have.length", 1);
 
@@ -55,7 +51,6 @@ describe(
             });
 
             cy.get(cesc("#ready")).should("have.text", "ready");
-            waitPastDebounceWindow();
 
             cy.get(diagcessScriptSelector).should("have.length", 1);
 

@@ -1,8 +1,5 @@
 import { cesc } from "@doenet/utils";
-import {
-    installPrefigureBuildIntercept,
-    waitPastDebounceWindow,
-} from "../../support/prefigure";
+import { installPrefigureBuildIntercept } from "../../support/prefigure";
 
 describe(
     "PreFigure annotations and accessibility @group4",
@@ -101,7 +98,7 @@ describe(
                 });
             });
 
-            waitPastDebounceWindow();
+            cy.wait("@prefigureBuild");
             cy.wait(450);
 
             cy.then(() => {
@@ -148,8 +145,6 @@ describe(
                     "*",
                 );
             });
-
-            waitPastDebounceWindow();
 
             cy.get("#prefig-description")
                 .should("have.attr", "role", "group")

@@ -1,12 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-// @ts-ignore
 import me from "math-expressions";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-import { MathJax } from "better-react-mathjax";
 import { sizeToCSS } from "./utils/css";
 import { ActionButton, ActionButtonGroup } from "@doenet/ui-components";
+import { renderLabelWithLatex } from "./utils/labelWithLatex";
 
 let round_to_decimals = (x: number, n: number) => {
     try {
@@ -310,14 +309,10 @@ export default React.memo(function Slider(props: UseDoenetRendererProps) {
     // Conditional label and showValue attributes
     let myLabel = null;
     if (SVs.label) {
-        let label = SVs.label;
-        if (SVs.labelHasLatex) {
-            label = (
-                <MathJax hideUntilTypeset={"first"} inline dynamic>
-                    {label}
-                </MathJax>
-            );
-        }
+        const label = renderLabelWithLatex({
+            label: SVs.label,
+            labelHasLatex: SVs.labelHasLatex,
+        });
         if (SVs.showValue) {
             myLabel = (
                 <>

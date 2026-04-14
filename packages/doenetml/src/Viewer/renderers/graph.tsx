@@ -68,7 +68,12 @@ export default React.memo(function Graph(props) {
         >
             {(surfaceStyle) =>
                 isPrefigureRenderer ? (
-                    <Prefigure id={id} SVs={SVs} surfaceStyle={surfaceStyle} />
+                    <Prefigure
+                        id={id}
+                        SVs={SVs}
+                        surfaceStyle={surfaceStyle}
+                        callAction={callAction}
+                    />
                 ) : (
                     <JSXGraphRenderer
                         id={id}

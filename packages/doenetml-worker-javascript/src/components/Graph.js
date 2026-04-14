@@ -105,6 +105,13 @@ export default class Graph extends BlockComponent {
             public: true,
             forRenderer: true,
         };
+        attributes.addSliders = {
+            createComponentOfType: "boolean",
+            createStateVariable: "addSliders",
+            defaultValue: false,
+            public: true,
+            forRenderer: true,
+        };
         attributes.displayXAxisTicks = {
             createComponentOfType: "boolean",
             createStateVariable: "displayXAxisTicks",
@@ -546,6 +553,120 @@ export default class Graph extends BlockComponent {
                     setValue: {
                         graphicalDescendants:
                             dependencyValues.graphicalDescendants,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.draggablePointsForSliders = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                addSliders: {
+                    dependencyType: "stateVariable",
+                    variableName: "addSliders",
+                },
+                effectiveRenderer: {
+                    dependencyType: "stateVariable",
+                    variableName: "effectiveRenderer",
+                },
+                pointDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["point"],
+                    variableNames: [
+                        "numericalXs",
+                        "draggable",
+                        "fixed",
+                        "fixLocation",
+                        "addSliders",
+                        "label",
+                        "labelHasLatex",
+                        "displayDigits",
+                        "displayDecimals",
+                        "displaySmallAsZero",
+                        "padZeros",
+                    ],
+                },
+            }),
+            definition({ dependencyValues }) {
+                // Feature only applies to PreFigure renderer when addSliders is enabled at graph level
+                if (
+                    !dependencyValues.addSliders ||
+                    dependencyValues.effectiveRenderer !== "prefigure"
+                ) {
+                    return {
+                        setValue: {
+                            draggablePointsForSliders: [],
+                        },
+                    };
+                }
+
+                const draggablePointsForSliders = [];
+
+                for (const [pointInd, pointDescendant] of (
+                    dependencyValues.pointDescendants ?? []
+                ).entries()) {
+                    const stateValues = pointDescendant.stateValues ?? {};
+                    const numericalXs = stateValues.numericalXs;
+                    const pointNumber = pointInd + 1;
+
+                    // Skip points with invalid or missing coordinates
+                    if (!Array.isArray(numericalXs) || numericalXs.length < 2) {
+                        continue;
+                    }
+
+                    const x = Number(numericalXs[0]);
+                    const y = Number(numericalXs[1]);
+
+                    // Skip points with non-finite coordinates (NaN, Infinity)
+                    if (!Number.isFinite(x) || !Number.isFinite(y)) {
+                        continue;
+                    }
+
+                    const draggable = stateValues.draggable !== false;
+                    const fixed = stateValues.fixed === true;
+                    const fixLocation = stateValues.fixLocation === true;
+                    const addSliders = stateValues.addSliders;
+
+                    // Skip points that cannot be interacted with via sliders:
+                    // - not draggable (fixed by default)
+                    // - explicitly marked as fixed
+                    // - constrained via fixLocation
+                    // - author explicitly set addSliders="none" on the point
+                    if (
+                        !draggable ||
+                        fixed ||
+                        fixLocation ||
+                        addSliders === "none"
+                    ) {
+                        continue;
+                    }
+
+                    const componentIdx = pointDescendant.componentIdx;
+                    if (!Number.isFinite(componentIdx)) {
+                        continue;
+                    }
+
+                    draggablePointsForSliders.push({
+                        componentIdx,
+                        pointNumber,
+                        x,
+                        y,
+                        addSliders,
+                        label:
+                            typeof stateValues.label === "string"
+                                ? stateValues.label
+                                : "",
+                        labelHasLatex: Boolean(stateValues.labelHasLatex),
+                        displayDigits: stateValues.displayDigits,
+                        displayDecimals: stateValues.displayDecimals,
+                        displaySmallAsZero: stateValues.displaySmallAsZero,
+                        padZeros: stateValues.padZeros,
+                    });
+                }
+
+                return {
+                    setValue: {
+                        draggablePointsForSliders,
                     },
                 };
             },
