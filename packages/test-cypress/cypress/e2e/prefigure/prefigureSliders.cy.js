@@ -569,6 +569,59 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         cy.get('input[type="range"]').should("have.length", 2);
     });
 
+    it("keyboard arrow keys accumulate as transient and commit final value on blur", () => {
+        cy.clearIndexedDB();
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph renderer="prefigure" addSliders size="small">
+  <point name="P" labelIsName><constrainToGrid/>(0,0)</point>
+</graph>
+<p>Px: <number name="Px">$P.x</number></p>
+<p>Py: <number name="Py">$P.y</number></p>
+`);
+
+        cy.get(cesc("#ready")).should("have.text", "ready");
+        waitPastDebounceWindow();
+
+        cy.get('[aria-label="x coordinate for P"]').should("have.value", "0");
+
+        // Focus the x slider and simulate 5 arrow-right presses.
+        // The graph default is xMin=-10, xMax=10; step=0.2 (one hundredth of range).
+        // 5 presses × 0.2 = 1.0, which is a valid grid point.
+        //
+        // Each press fires keydown (sets transient) then onInput. The core
+        // constrainToGrid snaps back to 0 each time (transient/skippable actions),
+        // but the slider handle should accumulate visually.
+        const xSlider = '[aria-label="x coordinate for P"]';
+        cy.get(xSlider).focus();
+
+        for (let i = 1; i <= 5; i++) {
+            cy.get(xSlider).trigger("keydown", {
+                key: "ArrowRight",
+                code: "ArrowRight",
+                force: true,
+            });
+            cy.get(xSlider)
+                .invoke("val", String(i * 0.2))
+                .trigger("input", { force: true });
+        }
+
+        // Slider handle should show the accumulated value (1.0) while core still shows 0.
+        cy.get(xSlider).should("have.value", "1");
+        cy.get(cesc("#Px")).should("have.text", "0");
+
+        // Blurring triggers the final non-transient commit.
+        cy.get(xSlider).blur();
+
+        // Core evaluates constrainToGrid once against 1.0 → snaps to 1.
+        cy.get(xSlider).should("have.value", "1");
+        cy.get(cesc("#Px")).should("have.text", "1");
+    });
+
     it("addSliders false on point is equivalent to none", () => {
         cy.clearIndexedDB();
         cy.visit("/");

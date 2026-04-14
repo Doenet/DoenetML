@@ -1,6 +1,24 @@
 import React, { useEffect, useRef, useState } from "react";
 
 /**
+ * Keys that the browser uses to step a range input via keyboard.
+ * When any of these are pressed while the slider is focused, subsequent
+ * input events are treated as transient (skippable) until the slider loses
+ * focus, allowing the user to accumulate steps across a constraint boundary
+ * without being snapped back on each individual key press.
+ */
+const RANGE_INPUT_KEYS = new Set([
+    "ArrowLeft",
+    "ArrowRight",
+    "ArrowUp",
+    "ArrowDown",
+    "PageUp",
+    "PageDown",
+    "Home",
+    "End",
+]);
+
+/**
  * Props for the SliderUI component
  * @typedef {Object} SliderUIProps
  * @property {string} id - HTML id for the range input
@@ -10,10 +28,10 @@ import React, { useEffect, useRef, useState } from "react";
  * @property {number} max - Maximum value
  * @property {number} step - Step size (granularity of changes)
  * @property {number} value - Current value from external state (core state)
- * @property {(value: number, transient: boolean) => void} onChange - Called during drag and on release.
- *   When transient=true (during drag), parent should use skippable actions. When transient=false
- *   (on pointer up/blur), parent should commit the final value to core state. Constrained points
- *   will snap back to valid values on final commit.
+ * @property {(value: number, transient: boolean) => void} onChange - Called whenever the slider value
+ *   changes. When transient=true (during pointer drag or keyboard navigation), the parent should use
+ *   skippable actions. When transient=false (on keyboard blur), the parent should commit the final
+ *   value to core. Constrained points snap back to valid values on the non-transient commit.
  */
 type SliderUIProps = {
     id: string;
@@ -53,6 +71,7 @@ export default function SliderUI({
     const [localValue, setLocalValue] = useState(value);
     const [transient, setTransient] = useState(false);
     const draggingRef = useRef(false);
+    const keyboardActiveRef = useRef(false);
 
     /**
      * Extract numeric value from input element with fallback to localValue
@@ -70,6 +89,7 @@ export default function SliderUI({
      */
     function endDrag(): void {
         draggingRef.current = false;
+        keyboardActiveRef.current = false;
         setTransient(false);
         onDragEnd?.();
     }
@@ -96,10 +116,22 @@ export default function SliderUI({
                 value={localValue}
                 aria-label={ariaLabel}
                 style={{ width: "100%" }}
+                onKeyDown={(e) => {
+                    // Mark keyboard navigation as transient so that each arrow-key
+                    // step does not immediately snap back through constraints. The
+                    // final non-transient commit fires on blur (tab/click-away).
+                    if (RANGE_INPUT_KEYS.has(e.key)) {
+                        keyboardActiveRef.current = true;
+                        setTransient(true);
+                    }
+                }}
                 onInput={(e) => {
                     const nextValue = extractInputValue(e.target);
                     setLocalValue(nextValue);
-                    onChange(nextValue, draggingRef.current);
+                    onChange(
+                        nextValue,
+                        draggingRef.current || keyboardActiveRef.current,
+                    );
                 }}
                 onPointerDown={(e) => {
                     try {
@@ -118,7 +150,14 @@ export default function SliderUI({
                     endDrag();
                 }}
                 onBlur={(e) => {
-                    if (transient) {
+                    if (keyboardActiveRef.current) {
+                        // Commit the accumulated keyboard navigation value as a
+                        // non-transient action so constraints evaluate exactly once.
+                        keyboardActiveRef.current = false;
+                        const finalValue = extractInputValue(e.target);
+                        setTransient(false);
+                        onChange(finalValue, false);
+                    } else if (transient) {
                         endDrag();
                     } else {
                         draggingRef.current = false;

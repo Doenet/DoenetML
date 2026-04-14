@@ -719,9 +719,10 @@ export default React.memo(function Prefigure({
      * users already saw the immediate drag response, and on release the slider handle
      * is synchronized to the latest core value.
      *
-     * For keyboard input, draggingRef is never set, so onChange fires with transient=false
-     * directly. Those non-transient calls still go through this function and are dispatched
-     * as non-skippable actions so that constraint evaluation fires immediately.
+     * For keyboard input, SliderUI treats each arrow-key press as a transient (skippable)
+     * action, allowing the user to accumulate multiple steps past a constraint boundary.
+     * The final non-transient commit fires when the slider loses focus (blur), at which
+     * point constraint evaluation runs exactly once against the accumulated value.
      */
     async function updatePointCoordinateFromSlider({
         componentIdx,
