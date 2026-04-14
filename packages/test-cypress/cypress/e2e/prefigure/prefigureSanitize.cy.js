@@ -2,7 +2,6 @@ import { cesc } from "@doenet/utils";
 import {
     installPrefigureBuildIntercept,
     postDebounceTestDoenetML,
-    waitPastDebounceWindow,
 } from "../../support/prefigure";
 
 describe("PreFigure sanitization guards @group4", { tags: ["@group4"] }, () => {
@@ -18,7 +17,6 @@ describe("PreFigure sanitization guards @group4", { tags: ["@group4"] }, () => {
         }));
 
         postDebounceTestDoenetML(cesc);
-        waitPastDebounceWindow();
 
         cy.get(cesc("#prefig")).find(".svg").should("contain.text", "safe-svg");
         cy.get(cesc("#prefig"))
@@ -57,7 +55,6 @@ describe("PreFigure sanitization guards @group4", { tags: ["@group4"] }, () => {
         }));
 
         postDebounceTestDoenetML(cesc);
-        waitPastDebounceWindow();
 
         // Ensure the tick label text is present somewhere in the SVG.
         cy.get(cesc("#prefig")).find(".svg").should("contain.text", "-1");
@@ -89,7 +86,6 @@ describe("PreFigure sanitization guards @group4", { tags: ["@group4"] }, () => {
         }));
 
         postDebounceTestDoenetML(cesc);
-        waitPastDebounceWindow();
 
         cy.get(cesc("#prefig"))
             .find(".svg")
@@ -106,7 +102,6 @@ describe("PreFigure sanitization guards @group4", { tags: ["@group4"] }, () => {
         }));
 
         postDebounceTestDoenetML(cesc);
-        waitPastDebounceWindow();
 
         // Expected policy: only fragment-local <use> targets should survive sanitization.
         cy.get(cesc("#prefig"))

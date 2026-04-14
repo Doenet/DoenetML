@@ -1,13 +1,28 @@
 import { cesc } from "@doenet/utils";
-import {
-    installPrefigureBuildIntercept,
-    waitPastDebounceWindow,
-} from "../../support/prefigure";
+import { installPrefigureBuildIntercept } from "../../support/prefigure";
 
 describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
     function postDoenetML(doenetML) {
         cy.window().then((win) => {
             win.postMessage({ doenetML }, "*");
+        });
+    }
+
+    function keyboardStepRangeRight(selector) {
+        // `trigger("keydown")` only dispatches the event so our React handler can
+        // mark the slider as keyboard-transient. Cypress does not perform the
+        // browser's native default action for ArrowRight on a range input, so we
+        // manually apply one native step and dispatch the corresponding `input`
+        // event to mirror what the browser would normally do.
+        cy.get(selector).trigger("keydown", {
+            key: "ArrowRight",
+            code: "ArrowRight",
+            force: true,
+        });
+        cy.get(selector).then(($slider) => {
+            const slider = $slider[0];
+            slider.stepUp();
+            slider.dispatchEvent(new Event("input", { bubbles: true }));
         });
     }
 
@@ -30,7 +45,6 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get(cesc("#ready")).should("have.text", "ready");
-        waitPastDebounceWindow();
 
         cy.get('[aria-label="x coordinate for Point 1"]').should(
             "have.value",
@@ -84,7 +98,6 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get(cesc("#ready")).should("have.text", "ready");
-        waitPastDebounceWindow();
 
         cy.get('[aria-label="x coordinate for P"]').should("have.value", "3");
         cy.get(cesc("#Px")).should("have.text", "3");
@@ -122,7 +135,6 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get(cesc("#ready")).should("have.text", "ready");
-        waitPastDebounceWindow();
 
         cy.get('[aria-label="x coordinate for P"]').should("have.value", "3");
         cy.get(cesc("#Px")).should("have.text", "3");
@@ -169,7 +181,6 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get(cesc("#ready")).should("have.text", "ready");
-        waitPastDebounceWindow();
 
         cy.get('[aria-label="x coordinate for P"]').trigger("pointerdown", {
             pointerId: 1,
@@ -223,7 +234,6 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get(cesc("#ready")).should("have.text", "ready");
-        waitPastDebounceWindow();
 
         cy.get('[aria-label="x coordinate for P"]').should("have.value", "0");
         cy.get('[aria-label="y coordinate for P"]').should("have.value", "0");
@@ -247,7 +257,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         cy.get(cesc("#Py")).should("have.text", "2");
         cy.get('[aria-label="y coordinate for P"]').should("have.value", "2");
 
-        cy.wait(2000);
+        cy.wait(500);
 
         cy.get('[aria-label="x coordinate for P"]').trigger("pointerup", {
             pointerId: 1,
@@ -276,7 +286,6 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get(cesc("#ready")).should("have.text", "ready");
-        waitPastDebounceWindow();
 
         cy.get('[aria-label="x coordinate for P"]')
             .should("have.attr", "min", "-10")
@@ -309,7 +318,6 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get(cesc("#ready")).should("have.text", "ready");
-        waitPastDebounceWindow();
 
         cy.get('input[type="range"]').should("have.length", 2);
         cy.get('[aria-label="x coordinate for Point 1"]').should("exist");
@@ -337,7 +345,6 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get(cesc("#ready")).should("have.text", "ready");
-        waitPastDebounceWindow();
 
         cy.get('[aria-label="x coordinate for Point 1"]').should("exist");
         cy.get('[aria-label="x coordinate for Point 2"]').should("exist");
@@ -373,7 +380,6 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get(cesc("#ready")).should("have.text", "ready");
-        waitPastDebounceWindow();
 
         // Verify slider labels match reference number display values
         // P with displayDecimals="1" should display 1.6 (rounded from 1.555)
@@ -425,7 +431,6 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get(cesc("#ready")).should("have.text", "ready");
-        waitPastDebounceWindow();
 
         // Verify slider labels match reference number display with padding
         // P with displayDecimals="2" and padZeros should display "1.50"
@@ -465,7 +470,6 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get(cesc("#ready")).should("have.text", "ready");
-        waitPastDebounceWindow();
 
         cy.get('input[type="range"]').should("have.length", 4);
         cy.get('[aria-label="x coordinate for Point 1"]').should("exist");
@@ -493,7 +497,6 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get(cesc("#ready")).should("have.text", "ready");
-        waitPastDebounceWindow();
 
         cy.get('[aria-label="x coordinate for P"]').should("exist");
         cy.get('[aria-label="y coordinate for P"]').should("not.exist");
@@ -529,7 +532,6 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get(cesc("#ready")).should("have.text", "ready");
-        waitPastDebounceWindow();
 
         cy.get('[aria-label="x coordinate for P"]').should("not.exist");
         cy.get('[aria-label="y coordinate for P"]').should("exist");
@@ -562,7 +564,6 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get(cesc("#ready")).should("have.text", "ready");
-        waitPastDebounceWindow();
 
         cy.get('[aria-label="x coordinate for P"]').should("exist");
         cy.get('[aria-label="y coordinate for P"]').should("exist");
@@ -585,7 +586,6 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get(cesc("#ready")).should("have.text", "ready");
-        waitPastDebounceWindow();
 
         cy.get('[aria-label="x coordinate for P"]').should("have.value", "0");
 
@@ -600,14 +600,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         cy.get(xSlider).focus();
 
         for (let i = 1; i <= 5; i++) {
-            cy.get(xSlider).trigger("keydown", {
-                key: "ArrowRight",
-                code: "ArrowRight",
-                force: true,
-            });
-            cy.get(xSlider)
-                .invoke("val", String(i * 0.2))
-                .trigger("input", { force: true });
+            keyboardStepRangeRight(xSlider);
         }
 
         // Slider handle should show the accumulated value (1.0) while core still shows 0.
@@ -620,6 +613,60 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         // Core evaluates constrainToGrid once against 1.0 → snaps to 1.
         cy.get(xSlider).should("have.value", "1");
         cy.get(cesc("#Px")).should("have.text", "1");
+    });
+
+    it("keyboard blur on constrained point does not send another movePoint", () => {
+        cy.clearIndexedDB();
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph renderer="prefigure" addSliders size="small">
+  <line name="l">y=x</line>
+  <point name="P" labelIsName><constrainTo>$l</constrainTo>(0,0)</point>
+</graph>
+<p>Px: <number name="Px">$P.x</number></p>
+<p>Py: <number name="Py">$P.y</number></p>
+`);
+
+        cy.get(cesc("#ready")).should("have.text", "ready");
+
+        cy.get('[aria-label="x coordinate for P"]').should("have.value", "0");
+        cy.get('[aria-label="y coordinate for P"]').should("have.value", "0");
+
+        const xSlider = '[aria-label="x coordinate for P"]';
+        const ySlider = '[aria-label="y coordinate for P"]';
+
+        // Press right arrow once on x slider.
+        // The graph default is xMin=-10, xMax=10; step=0.2.
+        // x becomes 0.2 → constraint snaps to (0.1, 0.1).
+        cy.get(xSlider).focus();
+        keyboardStepRangeRight(xSlider);
+
+        // Now check that core has constrained the point to (0.1, 0.1).
+        cy.get(cesc("#Px")).should("have.text", "0.1");
+        cy.get(cesc("#Py")).should("have.text", "0.1");
+
+        // The x-slider shows the transient value (what user entered), while
+        // the visible y-slider label reflects the constrained core value.
+        cy.get(xSlider).should("have.attr", "value", "0.2");
+        cy.get(ySlider).should("have.attr", "value", "0.1");
+
+        // Move focus to the y slider, which naturally blurs x.
+        // This should NOT send another movePoint(0.2). Instead, it should just
+        // clear transient state and sync x back to core (0.1).
+        cy.get(ySlider).focus();
+
+        // The point should remain at (0.1, 0.1), not move to (0.15, 0.15).
+        // In Cypress's synthetic keyboard path the live `.value` property of the
+        // range input can stay stale even after the rendered label/markup has
+        // updated, so assert the user-visible slider labels and core values here.
+        cy.get(xSlider).should("have.attr", "value", "0.1");
+        cy.get(ySlider).should("have.attr", "value", "0.1");
+        cy.get(cesc("#Px")).should("have.text", "0.1");
+        cy.get(cesc("#Py")).should("have.text", "0.1");
     });
 
     it("addSliders false on point is equivalent to none", () => {
@@ -637,7 +684,6 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get(cesc("#ready")).should("have.text", "ready");
-        waitPastDebounceWindow();
 
         cy.get('[aria-label="x coordinate for P"]').should("not.exist");
         cy.get('[aria-label="y coordinate for P"]').should("not.exist");

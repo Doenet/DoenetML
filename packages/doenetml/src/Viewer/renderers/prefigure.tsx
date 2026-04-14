@@ -721,8 +721,9 @@ export default React.memo(function Prefigure({
      *
      * For keyboard input, SliderUI treats each arrow-key press as a transient (skippable)
      * action, allowing the user to accumulate multiple steps past a constraint boundary.
-     * The final non-transient commit fires when the slider loses focus (blur), at which
-     * point constraint evaluation runs exactly once against the accumulated value.
+     * When the slider loses focus (blur), the transient state is cleared without sending
+     * another movePoint action. The sync effect then re-syncs the slider to core's latest
+     * constrained value, just as it does for pointer-up.
      */
     async function updatePointCoordinateFromSlider({
         componentIdx,
