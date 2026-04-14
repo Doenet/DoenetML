@@ -232,7 +232,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 <p>Py: <number name="Py">$P.y</number></p>
 `);
 
-        cy.get(cesc("#ready")).should("have.text", "ready");
+        cy.get("#ready").should("have.text", "ready");
 
         cy.get('[aria-label="x coordinate for P"]').should("have.value", "0");
         cy.get('[aria-label="y coordinate for P"]').should("have.value", "0");
@@ -252,8 +252,8 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         // While x remains transient and displays the dragged value, y should still
         // synchronize to the latest non-transient core value from constraints.
         cy.get('[aria-label="x coordinate for P"]').should("have.value", "4");
-        cy.get(cesc("#Px")).should("have.text", "2");
-        cy.get(cesc("#Py")).should("have.text", "2");
+        cy.get("#Px").should("have.text", "2");
+        cy.get("#Py").should("have.text", "2");
         cy.get('[aria-label="y coordinate for P"]').should("have.value", "2");
 
         cy.wait(500);
@@ -266,8 +266,8 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         cy.get('[aria-label="x coordinate for P"]').should("have.value", "2");
         cy.get('[aria-label="y coordinate for P"]').should("have.value", "2");
-        cy.get(cesc("#Px")).should("have.text", "2");
-        cy.get(cesc("#Py")).should("have.text", "2");
+        cy.get("#Px").should("have.text", "2");
+        cy.get("#Py").should("have.text", "2");
     });
 
     it("normalizes slider min and max for reversed graph bounds", () => {
@@ -584,7 +584,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 <p>Py: <number name="Py">$P.y</number></p>
 `);
 
-        cy.get(cesc("#ready")).should("have.text", "ready");
+        cy.get("#ready").should("have.text", "ready");
 
         cy.get('[aria-label="x coordinate for P"]').should("have.value", "0");
 
@@ -604,14 +604,14 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         // Slider handle should show the accumulated value (1.0) while core still shows 0.
         cy.get(xSlider).should("have.value", "1");
-        cy.get(cesc("#Px")).should("have.text", "0");
+        cy.get("#Px").should("have.text", "0");
 
         // Blurring triggers the final non-transient commit.
         cy.get(xSlider).blur();
 
         // Core evaluates constrainToGrid once against 1.0 → snaps to 1.
         cy.get(xSlider).should("have.value", "1");
-        cy.get(cesc("#Px")).should("have.text", "1");
+        cy.get("#Px").should("have.text", "1");
     });
 
     it("keyboard blur on constrained point does not send another movePoint", () => {
@@ -630,7 +630,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 <p>Py: <number name="Py">$P.y</number></p>
 `);
 
-        cy.get(cesc("#ready")).should("have.text", "ready");
+        cy.get("#ready").should("have.text", "ready");
 
         cy.get('[aria-label="x coordinate for P"]').should("have.value", "0");
         cy.get('[aria-label="y coordinate for P"]').should("have.value", "0");
@@ -645,8 +645,8 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         keyboardStepRangeRight(xSlider);
 
         // Now check that core has constrained the point to (0.1, 0.1).
-        cy.get(cesc("#Px")).should("have.text", "0.1");
-        cy.get(cesc("#Py")).should("have.text", "0.1");
+        cy.get("#Px").should("have.text", "0.1");
+        cy.get("#Py").should("have.text", "0.1");
 
         // The x-slider shows the transient value (what user entered), while
         // the visible y-slider label reflects the constrained core value.
@@ -664,8 +664,8 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         // updated, so assert the user-visible slider labels and core values here.
         cy.get(xSlider).should("have.attr", "value", "0.1");
         cy.get(ySlider).should("have.attr", "value", "0.1");
-        cy.get(cesc("#Px")).should("have.text", "0.1");
-        cy.get(cesc("#Py")).should("have.text", "0.1");
+        cy.get("#Px").should("have.text", "0.1");
+        cy.get("#Py").should("have.text", "0.1");
     });
 
     it("addSliders false on point is equivalent to none", () => {

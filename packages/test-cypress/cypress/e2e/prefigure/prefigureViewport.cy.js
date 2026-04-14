@@ -18,7 +18,7 @@ describe(
                 annotationsXml: "<annotations></annotations>",
             }));
 
-            postDebounceTestDoenetML(cesc);
+            postDebounceTestDoenetML();
 
             cy.get("#prefig")
                 .find(".svg")

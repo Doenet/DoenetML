@@ -15,7 +15,7 @@ describe("PreFigure sanitization guards @group4", { tags: ["@group4"] }, () => {
             annotationsXml: `<?xml version="1.0"?><annotations onclick="alert('xss')" style="color:red"><annotation href="javascript:alert(3)" style="color:blue" onclick="alert(4)">safe-cml</annotation></annotations>`,
         }));
 
-        postDebounceTestDoenetML(cesc);
+        postDebounceTestDoenetML();
 
         cy.get("#prefig").find(".svg").should("contain.text", "safe-svg");
         cy.get("#prefig")
@@ -53,7 +53,7 @@ describe("PreFigure sanitization guards @group4", { tags: ["@group4"] }, () => {
             annotationsXml: "<annotations></annotations>",
         }));
 
-        postDebounceTestDoenetML(cesc);
+        postDebounceTestDoenetML();
 
         // Ensure the tick label text is present somewhere in the SVG.
         cy.get("#prefig").find(".svg").should("contain.text", "-1");
@@ -84,7 +84,7 @@ describe("PreFigure sanitization guards @group4", { tags: ["@group4"] }, () => {
             annotationsXml: "<annotations></annotations>",
         }));
 
-        postDebounceTestDoenetML(cesc);
+        postDebounceTestDoenetML();
 
         cy.get("#prefig").find(".svg").should("contain.text", "x_1 + y^2");
         cy.get("#prefig")
@@ -98,7 +98,7 @@ describe("PreFigure sanitization guards @group4", { tags: ["@group4"] }, () => {
             annotationsXml: "<annotations></annotations>",
         }));
 
-        postDebounceTestDoenetML(cesc);
+        postDebounceTestDoenetML();
 
         // Expected policy: only fragment-local <use> targets should survive sanitization.
         cy.get("#prefig").find(".svg").should("contain.text", "local-label");

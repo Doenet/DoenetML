@@ -1,4 +1,3 @@
-import { cesc } from "@doenet/utils";
 import {
     installMockPrefigureModule,
     postDebounceTestDoenetML,
@@ -33,19 +32,19 @@ describe(
             });
 
             visitWithMockPrefigureModule(modulePath);
-            postDebounceTestDoenetML(cesc);
+            postDebounceTestDoenetML();
 
-            cy.get(cesc("#prefig"), { timeout: 1400 }).should(
+            cy.get("#prefig", { timeout: 1400 }).should(
                 "contain.text",
                 "local-winner",
             );
-            cy.get(cesc("#prefig")).should("not.contain.text", "service-slow");
+            cy.get("#prefig").should("not.contain.text", "service-slow");
 
             // Even after the delayed service response eventually settles, the
             // local winner should remain rendered.
             cy.wait(900);
-            cy.get(cesc("#prefig")).should("contain.text", "local-winner");
-            cy.get(cesc("#prefig")).should("not.contain.text", "service-slow");
+            cy.get("#prefig").should("contain.text", "local-winner");
+            cy.get("#prefig").should("not.contain.text", "service-slow");
         });
 
         it("recovers from service failure once local WASM warmup completes", () => {
@@ -62,13 +61,13 @@ describe(
             });
 
             visitWithMockPrefigureModule(modulePath);
-            postDebounceTestDoenetML(cesc);
+            postDebounceTestDoenetML();
 
-            cy.get(cesc("#prefig"), { timeout: 2000 }).should(
+            cy.get("#prefig", { timeout: 2000 }).should(
                 "contain.text",
                 "local-after-service-error",
             );
-            cy.get(cesc("#prefig")).should("not.contain.text", "Error:");
+            cy.get("#prefig").should("not.contain.text", "Error:");
         });
 
         it("suppresses stale local compile result when request is aborted after warmup wins", () => {
@@ -91,7 +90,7 @@ describe(
             });
 
             visitWithMockPrefigureModule(modulePath);
-            postDebounceTestDoenetML(cesc);
+            postDebounceTestDoenetML();
 
             // Trigger a new payload while the first local compile is still in
             // flight, which should abort and suppress the stale result.
@@ -113,13 +112,13 @@ describe(
             // The second payload replaces the first graph, so #prefig is
             // removed from the DOM. The key assertion is that this unmount-time
             // abort does not surface stale output or an error.
-            cy.get(cesc("#prefig")).should("not.exist");
+            cy.get("#prefig").should("not.exist");
             cy.wait(550);
-            cy.get(cesc("#prefig2"), { timeout: 2000 }).should(
+            cy.get("#prefig2", { timeout: 2000 }).should(
                 "contain.text",
                 "local-replacement-render-after-abort",
             );
-            cy.get(cesc("#prefig2")).should("not.contain.text", "Error:");
+            cy.get("#prefig2").should("not.contain.text", "Error:");
         });
     },
 );

@@ -20,7 +20,7 @@ describe(
 
         it("sends initial PreFigure build request immediately", () => {
             requestTracker = installPrefigureBuildIntercept();
-            postDebounceTestDoenetML(cesc);
+            postDebounceTestDoenetML();
 
             cy.wait(250);
             expectBuildRequestCount(requestTracker, 1);
@@ -31,7 +31,7 @@ describe(
 
         it("coalesces rapid point updates into one additional build", () => {
             requestTracker = installPrefigureBuildIntercept();
-            postDebounceTestDoenetML(cesc);
+            postDebounceTestDoenetML();
 
             waitPastDebounceWindow();
             expectBuildRequestCount(requestTracker, 1);
@@ -81,7 +81,7 @@ describe(
                 };
             });
 
-            postDebounceTestDoenetML(cesc);
+            postDebounceTestDoenetML();
 
             waitPastDebounceWindow();
             expectBuildRequestCount(requestTracker, 1);
@@ -104,7 +104,7 @@ describe(
         it("reintroduced prefigure graph builds immediately after being absent", () => {
             requestTracker = installPrefigureBuildIntercept();
 
-            postDebounceTestDoenetML(cesc);
+            postDebounceTestDoenetML();
             cy.wait(250);
             expectBuildRequestCount(requestTracker, 1);
 

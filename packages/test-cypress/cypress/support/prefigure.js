@@ -38,7 +38,7 @@ export function waitPastDebounceWindow() {
     cy.wait(PREFIGURE_BUILD_DEBOUNCE_MS + REQUEST_SETTLE_BUFFER_MS);
 }
 
-export function postDebounceTestDoenetML(cesc) {
+export function postDebounceTestDoenetML() {
     cy.window().then(async (win) => {
         win.postMessage(
             {
