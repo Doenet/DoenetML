@@ -1297,10 +1297,30 @@ describe("Graph prefigure renderer geometry mappings @group4", () => {
         );
 
         expect(prefigureXML).toContain(`<parametric-curve at="curve_0"`);
-        expect(prefigureXML).toContain(`function="curve_0_r(x)=(3 x,x^2)"`);
+        expect(prefigureXML).toContain(`function="curve_0_r(x)=(3*x,x^2)"`);
         expect(prefigureXML).toContain(`domain="(-2,3)"`);
         expect(prefigureXML).not.toContain(`fill="`);
         expect(prefigureXML).not.toContain(`fill-opacity="`);
+    });
+
+    it("renderer=prefigure curve formula uses explicit multiplication for coefficient input", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph("<curve><function>3x</function></curve>"),
+        );
+
+        expect(prefigureXML).toContain(`<graph at="curve_0"`);
+        expect(prefigureXML).toContain(`function="curve_0_f(x)=3*x"`);
+    });
+
+    it("renderer=prefigure curve formula uses explicit multiplication for factored input", async () => {
+        const prefigureXML = await getPrefigureXML(
+            prefigureGraph("<curve><function>(x-2)(x-5)</function></curve>"),
+        );
+
+        expect(prefigureXML).toContain(`<graph at="curve_0"`);
+        expect(prefigureXML).toContain(
+            `function="curve_0_f(x)=(x - 2)*(x - 5)"`,
+        );
     });
 
     it("renderer=prefigure normalizes parameter names across parametric coordinates", async () => {
