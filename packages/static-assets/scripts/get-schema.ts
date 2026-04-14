@@ -131,7 +131,9 @@ type PublicStateVariableDescription = {
 
 type SchemaAttribute = {
     name: string;
+    /** Values accepted by validation/schema checks. */
     values?: unknown[];
+    /** Optional author-facing subset used for autocomplete suggestions. */
     autocompleteValues?: unknown[];
 };
 
@@ -346,11 +348,7 @@ export function getSchema() {
             // one can add a excludeFromSchema to an attribute definition
             // to keep it from showing up in the schema
             if (!attrDef.excludeFromSchema) {
-                const attrSpec: {
-                    name: string;
-                    values?: unknown[];
-                    autocompleteValues?: unknown[];
-                } = {
+                const attrSpec: SchemaAttribute = {
                     name: attrName,
                 };
 
@@ -364,6 +362,8 @@ export function getSchema() {
 
                 if (attrDef.validValues) {
                     if (booleanAliasValues.length > 0) {
+                        // Keep validation permissive for boolean aliases while
+                        // preserving author-facing enum suggestions in autocomplete.
                         attrSpec.values = [
                             ...new Set([
                                 ...attrDef.validValues,

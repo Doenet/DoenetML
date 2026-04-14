@@ -781,6 +781,8 @@ export function getCompletionItems(
         const allowedAttribute = allowedAttributes.find(
             (a) => a.name === attribute?.name,
         );
+        // Prefer explicit autocomplete values when provided; fall back to
+        // full validation values otherwise.
         const allowedAttrValues =
             allowedAttribute?.autocompleteValues ?? allowedAttribute?.values;
         if (!allowedAttrValues) {
