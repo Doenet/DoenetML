@@ -1,5 +1,3 @@
-import { cesc } from "@doenet/utils";
-
 describe("SampleRandomNumbers Tag Tests", { tags: ["@group4"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -23,7 +21,7 @@ describe("SampleRandomNumbers Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
+        cy.get("#a").should("have.text", "a"); //wait for page to load
 
         let samples = [];
 
@@ -55,7 +53,7 @@ describe("SampleRandomNumbers Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
+        cy.get("#a").should("have.text", "a"); //wait for page to load
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -102,7 +100,7 @@ describe("SampleRandomNumbers Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
+        cy.get("#a").should("have.text", "a"); //wait for page to load
 
         let samples = [];
 
@@ -124,8 +122,8 @@ describe("SampleRandomNumbers Tag Tests", { tags: ["@group4"] }, function () {
         });
 
         cy.log("interact so changes will be saved to database");
-        cy.get(cesc("#bi")).click();
-        cy.get(cesc("#b2")).should("have.text", "true");
+        cy.get("#bi").click();
+        cy.get("#b2").should("have.text", "true");
 
         cy.log("wait for debounce");
         cy.wait(1500);
@@ -142,8 +140,8 @@ describe("SampleRandomNumbers Tag Tests", { tags: ["@group4"] }, function () {
         });
 
         cy.log("make sure core is up and running");
-        cy.get(cesc("#bi")).click();
-        cy.get(cesc("#b2")).should("have.text", "false");
+        cy.get("#bi").click();
+        cy.get("#b2").should("have.text", "false");
 
         cy.log("check that values are unchanged");
 

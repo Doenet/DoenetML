@@ -67,7 +67,7 @@ describe(
                     );
                 });
                 // to wait for page to load
-                cy.get(cesc("#a")).should("have.text", `${ind}`);
+                cy.get("#a").should("have.text", `${ind}`);
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
@@ -112,10 +112,8 @@ describe(
                         expect(i).not.eq(-1);
                     }
 
-                    cy.get(cesc("#textInput1_input")).type(
-                        `${secondValue}{enter}`,
-                    );
-                    cy.get(cesc("#textInput1_button")).should(
+                    cy.get("#textInput1_input").type(`${secondValue}{enter}`);
+                    cy.get("#textInput1_button").should(
                         "contain.text",
                         "Correct",
                     );
@@ -134,7 +132,7 @@ describe(
                         );
                     });
                     // to wait for page to load
-                    cy.get(cesc("#a")).should("have.text", `${ind}`);
+                    cy.get("#a").should("have.text", `${ind}`);
 
                     // wait until core is loaded
                     cy.waitUntil(() =>
@@ -147,7 +145,7 @@ describe(
                         }),
                     );
 
-                    cy.get(cesc("#textInput1_button")).should(
+                    cy.get("#textInput1_button").should(
                         "contain.text",
                         "Correct",
                     );
@@ -166,17 +164,15 @@ describe(
                                 .stateValues.value;
                         expect(secondValue2).eq(secondValue);
 
-                        cy.get(cesc("#textInput1_input")).type(`{end}X`);
-                        cy.get(cesc("#textInput1_button")).click();
-                        cy.get(cesc("#textInput1_button")).should(
+                        cy.get("#textInput1_input").type(`{end}X`);
+                        cy.get("#textInput1_button").click();
+                        cy.get("#textInput1_button").should(
                             "contain.text",
                             "Incorrect",
                         );
-                        cy.get(cesc("#textInput1_input")).type(
-                            `{end}{backspace}`,
-                        );
-                        cy.get(cesc("#textInput1_button")).click();
-                        cy.get(cesc("#textInput1_button")).should(
+                        cy.get("#textInput1_input").type(`{end}{backspace}`);
+                        cy.get("#textInput1_button").click();
+                        cy.get("#textInput1_button").should(
                             "contain.text",
                             "Correct",
                         );
@@ -248,7 +244,7 @@ describe(
                     );
                 });
                 // to wait for page to load
-                cy.get(cesc("#text1")).should("have.text", `${ind}`);
+                cy.get("#text1").should("have.text", `${ind}`);
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
@@ -312,7 +308,7 @@ describe(
                         );
                     });
                     // to wait for page to load
-                    cy.get(cesc("#text1")).should("have.text", `${ind}`);
+                    cy.get("#text1").should("have.text", `${ind}`);
 
                     // wait until core is loaded
                     cy.waitUntil(() =>
@@ -419,7 +415,7 @@ describe(
                 });
 
                 // to wait for page to load
-                cy.get(cesc("#text1")).should("have.text", `${ind}`);
+                cy.get("#text1").should("have.text", `${ind}`);
 
                 let indexChosen1, indexChosen2;
                 let m, n;
@@ -439,23 +435,17 @@ describe(
                         stateVariables[await win.resolvePath1("n[1]")]
                             .stateValues.value;
 
-                    cy.get(cesc("#mathInput1") + " textarea").type(
-                        `${m}{enter}`,
-                        {
-                            force: true,
-                        },
-                    );
-                    cy.get(cesc("#mathInput2") + " textarea").type(
-                        `${n}{enter}`,
-                        {
-                            force: true,
-                        },
-                    );
-                    cy.get(cesc("#mathInput1_button")).should(
+                    cy.get("#mathInput1" + " textarea").type(`${m}{enter}`, {
+                        force: true,
+                    });
+                    cy.get("#mathInput2" + " textarea").type(`${n}{enter}`, {
+                        force: true,
+                    });
+                    cy.get("#mathInput1_button").should(
                         "contain.text",
                         "Correct",
                     );
-                    cy.get(cesc("#mathInput2_button")).should(
+                    cy.get("#mathInput2_button").should(
                         "contain.text",
                         "Correct",
                     );
@@ -474,7 +464,7 @@ describe(
                         );
                     });
                     // to wait for page to load
-                    cy.get(cesc("#text1")).should("have.text", `${ind}`);
+                    cy.get("#text1").should("have.text", `${ind}`);
 
                     // wait until core is loaded
                     cy.waitUntil(() =>
@@ -506,51 +496,51 @@ describe(
                         ).eq(n);
                     });
 
-                    cy.get(cesc("#mathInput1_button")).should(
+                    cy.get("#mathInput1_button").should(
                         "contain.text",
                         "Correct",
                     );
-                    cy.get(cesc("#mathInput2_button")).should(
+                    cy.get("#mathInput2_button").should(
                         "contain.text",
                         "Correct",
                     );
 
-                    cy.get(cesc("#mathInput1") + " textarea").type(`{end}X`, {
+                    cy.get("#mathInput1" + " textarea").type(`{end}X`, {
                         force: true,
                     });
-                    cy.get(cesc("#mathInput2") + " textarea").type(`{end}X`, {
+                    cy.get("#mathInput2" + " textarea").type(`{end}X`, {
                         force: true,
                     });
-                    cy.get(cesc("#mathInput1_button")).click();
-                    cy.get(cesc("#mathInput2_button")).click();
-                    cy.get(cesc("#mathInput1_button")).should(
+                    cy.get("#mathInput1_button").click();
+                    cy.get("#mathInput2_button").click();
+                    cy.get("#mathInput1_button").should(
                         "contain.text",
                         "Incorrect",
                     );
-                    cy.get(cesc("#mathInput2_button")).should(
+                    cy.get("#mathInput2_button").should(
                         "contain.text",
                         "Incorrect",
                     );
 
-                    cy.get(cesc("#mathInput1") + " textarea").type(
+                    cy.get("#mathInput1" + " textarea").type(
                         `{end}{backspace}`,
                         {
                             force: true,
                         },
                     );
-                    cy.get(cesc("#mathInput2") + " textarea").type(
+                    cy.get("#mathInput2" + " textarea").type(
                         `{end}{backspace}`,
                         {
                             force: true,
                         },
                     );
-                    cy.get(cesc("#mathInput1_button")).click();
-                    cy.get(cesc("#mathInput2_button")).click();
-                    cy.get(cesc("#mathInput1_button")).should(
+                    cy.get("#mathInput1_button").click();
+                    cy.get("#mathInput2_button").click();
+                    cy.get("#mathInput1_button").should(
                         "contain.text",
                         "Correct",
                     );
-                    cy.get(cesc("#mathInput2_button")).should(
+                    cy.get("#mathInput2_button").should(
                         "contain.text",
                         "Correct",
                     );
@@ -594,7 +584,7 @@ describe(
             });
 
             // to wait for page to load
-            cy.get(cesc("#text1")).should("have.text", `1`);
+            cy.get("#text1").should("have.text", `1`);
 
             let choices = ["a", "b", "c"];
 
@@ -640,13 +630,13 @@ describe(
                     cesc("#_id_" + mathInput4Idx) + " textarea";
                 let answer4Button = cesc("#_id_" + mathInput4Idx + "_button");
 
-                cy.get(`#${cesc("ci_choice1_input")}`)
+                cy.get("#ci_choice1_input")
                     .parent()
                     .should("have.text", choices[choiceOrder[0] - 1]);
-                cy.get(`#${cesc("ci_choice2_input")}`)
+                cy.get("#ci_choice2_input")
                     .parent()
                     .should("have.text", choices[choiceOrder[1] - 1]);
-                cy.get(`#${cesc("ci_choice3_input")}`)
+                cy.get("#ci_choice3_input")
                     .parent()
                     .should("have.text", choices[choiceOrder[2] - 1]);
                 cy.get(`#${cesc("g2.ci_choice1_input")}`)
@@ -784,7 +774,7 @@ describe(
                 });
 
                 // to wait for page to load
-                cy.get(cesc("#text1")).should("have.text", `1`);
+                cy.get("#text1").should("have.text", `1`);
 
                 // wait until core is loaded
                 cy.waitUntil(() =>

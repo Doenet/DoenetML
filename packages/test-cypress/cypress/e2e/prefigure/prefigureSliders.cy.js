@@ -1,4 +1,3 @@
-import { cesc } from "@doenet/utils";
 import { installPrefigureBuildIntercept } from "../../support/prefigure";
 
 describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
@@ -44,7 +43,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 <p>Py: <number name="Py">$P.y</number></p>
 `);
 
-        cy.get(cesc("#ready")).should("have.text", "ready");
+        cy.get("#ready").should("have.text", "ready");
 
         cy.get('[aria-label="x coordinate for Point 1"]').should(
             "have.value",
@@ -66,16 +65,16 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
             "have.value",
             "5.6",
         );
-        cy.get(cesc("#Qx")).should("have.text", "5.6");
-        cy.get(cesc("#Qy")).should("have.text", "4");
+        cy.get("#Qx").should("have.text", "5.6");
+        cy.get("#Qy").should("have.text", "4");
 
         cy.get('[aria-label="x coordinate for Point 1"]').trigger("mouseup");
         cy.get('[aria-label="x coordinate for Point 1"]').should(
             "have.value",
             "5.6",
         );
-        cy.get(cesc("#Qx")).should("have.text", "5.6");
-        cy.get(cesc("#Qy")).should("have.text", "4");
+        cy.get("#Qx").should("have.text", "5.6");
+        cy.get("#Qy").should("have.text", "4");
     });
 
     it("snaps a constrained point slider to the core value on mouseup", () => {
@@ -97,10 +96,10 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 <p>Py: <number name="Py">$P.y</number></p>
 `);
 
-        cy.get(cesc("#ready")).should("have.text", "ready");
+        cy.get("#ready").should("have.text", "ready");
 
         cy.get('[aria-label="x coordinate for P"]').should("have.value", "3");
-        cy.get(cesc("#Px")).should("have.text", "3");
+        cy.get("#Px").should("have.text", "3");
 
         cy.get('[aria-label="x coordinate for P"]').trigger("mousedown");
         cy.get('[aria-label="x coordinate for P"]')
@@ -108,13 +107,13 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
             .trigger("input");
 
         cy.get('[aria-label="x coordinate for P"]').should("have.value", "3.6");
-        cy.get(cesc("#Px")).should("have.text", "4");
+        cy.get("#Px").should("have.text", "4");
 
         cy.get('[aria-label="x coordinate for P"]').trigger("mouseup");
 
         cy.get('[aria-label="x coordinate for P"]').should("have.value", "4");
-        cy.get(cesc("#Px")).should("have.text", "4");
-        cy.get(cesc("#Py")).should("have.text", "4");
+        cy.get("#Px").should("have.text", "4");
+        cy.get("#Py").should("have.text", "4");
     });
 
     it("keeps transient local value on first pointer drag input, then snaps on pointerup", () => {
@@ -134,10 +133,10 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 <p>Px: <number name="Px">$P.x</number></p>
 `);
 
-        cy.get(cesc("#ready")).should("have.text", "ready");
+        cy.get("#ready").should("have.text", "ready");
 
         cy.get('[aria-label="x coordinate for P"]').should("have.value", "3");
-        cy.get(cesc("#Px")).should("have.text", "3");
+        cy.get("#Px").should("have.text", "3");
 
         cy.get('[aria-label="x coordinate for P"]').trigger("pointerdown", {
             pointerId: 1,
@@ -153,7 +152,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         // During the active drag, the UI should keep the transient local value
         // even though the constrained core value has already snapped.
         cy.get('[aria-label="x coordinate for P"]').should("have.value", "3.6");
-        cy.get(cesc("#Px")).should("have.text", "4");
+        cy.get("#Px").should("have.text", "4");
 
         cy.get('[aria-label="x coordinate for P"]').trigger("pointerup", {
             pointerId: 1,
@@ -162,7 +161,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         });
 
         cy.get('[aria-label="x coordinate for P"]').should("have.value", "4");
-        cy.get(cesc("#Px")).should("have.text", "4");
+        cy.get("#Px").should("have.text", "4");
     });
 
     it("preserves latest other-axis value across rapid slider interactions", () => {
@@ -180,7 +179,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 <p>Py: <number name="Py">$P.y</number></p>
 `);
 
-        cy.get(cesc("#ready")).should("have.text", "ready");
+        cy.get("#ready").should("have.text", "ready");
 
         cy.get('[aria-label="x coordinate for P"]').trigger("pointerdown", {
             pointerId: 1,
@@ -202,8 +201,8 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
             .invoke("val", "6.4")
             .trigger("input", { force: true });
 
-        cy.get(cesc("#Px")).should("have.text", "4.2");
-        cy.get(cesc("#Py")).should("have.text", "6.4");
+        cy.get("#Px").should("have.text", "4.2");
+        cy.get("#Py").should("have.text", "6.4");
 
         cy.get('[aria-label="x coordinate for P"]').trigger("pointerup", {
             pointerId: 1,
@@ -233,7 +232,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 <p>Py: <number name="Py">$P.y</number></p>
 `);
 
-        cy.get(cesc("#ready")).should("have.text", "ready");
+        cy.get("#ready").should("have.text", "ready");
 
         cy.get('[aria-label="x coordinate for P"]').should("have.value", "0");
         cy.get('[aria-label="y coordinate for P"]').should("have.value", "0");
@@ -253,8 +252,8 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         // While x remains transient and displays the dragged value, y should still
         // synchronize to the latest non-transient core value from constraints.
         cy.get('[aria-label="x coordinate for P"]').should("have.value", "4");
-        cy.get(cesc("#Px")).should("have.text", "2");
-        cy.get(cesc("#Py")).should("have.text", "2");
+        cy.get("#Px").should("have.text", "2");
+        cy.get("#Py").should("have.text", "2");
         cy.get('[aria-label="y coordinate for P"]').should("have.value", "2");
 
         cy.wait(500);
@@ -267,8 +266,8 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         cy.get('[aria-label="x coordinate for P"]').should("have.value", "2");
         cy.get('[aria-label="y coordinate for P"]').should("have.value", "2");
-        cy.get(cesc("#Px")).should("have.text", "2");
-        cy.get(cesc("#Py")).should("have.text", "2");
+        cy.get("#Px").should("have.text", "2");
+        cy.get("#Py").should("have.text", "2");
     });
 
     it("normalizes slider min and max for reversed graph bounds", () => {
@@ -285,7 +284,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 <p>Px: <number name="Px">$P.x</number></p>
 `);
 
-        cy.get(cesc("#ready")).should("have.text", "ready");
+        cy.get("#ready").should("have.text", "ready");
 
         cy.get('[aria-label="x coordinate for P"]')
             .should("have.attr", "min", "-10")
@@ -298,7 +297,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         cy.get('[aria-label="x coordinate for P"]')
             .invoke("val", "7")
             .trigger("input");
-        cy.get(cesc("#Px")).should("have.text", "7");
+        cy.get("#Px").should("have.text", "7");
         cy.get('[aria-label="x coordinate for P"]').trigger("mouseup");
     });
 
@@ -317,7 +316,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 </graph>
 `);
 
-        cy.get(cesc("#ready")).should("have.text", "ready");
+        cy.get("#ready").should("have.text", "ready");
 
         cy.get('input[type="range"]').should("have.length", 2);
         cy.get('[aria-label="x coordinate for Point 1"]').should("exist");
@@ -344,7 +343,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 </graph>
 `);
 
-        cy.get(cesc("#ready")).should("have.text", "ready");
+        cy.get("#ready").should("have.text", "ready");
 
         cy.get('[aria-label="x coordinate for Point 1"]').should("exist");
         cy.get('[aria-label="x coordinate for Point 2"]').should("exist");
@@ -379,11 +378,11 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 <p>R.x: <number name="refRx">$R.x</number></p>
 `);
 
-        cy.get(cesc("#ready")).should("have.text", "ready");
+        cy.get("#ready").should("have.text", "ready");
 
         // Verify slider labels match reference number display values
         // P with displayDecimals="1" should display 1.6 (rounded from 1.555)
-        cy.get(cesc("#refPx")).then(($refPx) => {
+        cy.get("#refPx").then(($refPx) => {
             const refValue = $refPx.text();
             // Check that slider label contains the same value
             cy.get('input[aria-label="x coordinate for P"]')
@@ -394,7 +393,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         });
 
         // Q with displayDigits="2" should display 3.5 (rounded to 2 significant digits)
-        cy.get(cesc("#refQx")).then(($refQx) => {
+        cy.get("#refQx").then(($refQx) => {
             const refValue = $refQx.text();
             cy.get('input[aria-label="x coordinate for Q"]')
                 .parent()
@@ -404,7 +403,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         });
 
         // R with default display should show coordinate with 3 decimal places
-        cy.get(cesc("#refRx")).then(($refRx) => {
+        cy.get("#refRx").then(($refRx) => {
             const refValue = $refRx.text();
             cy.get('input[aria-label="x coordinate for R"]')
                 .parent()
@@ -430,11 +429,11 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 <p>Q.x: <number name="refQx" displayDigits="3" padZeros="true">$Q.x</number></p>
 `);
 
-        cy.get(cesc("#ready")).should("have.text", "ready");
+        cy.get("#ready").should("have.text", "ready");
 
         // Verify slider labels match reference number display with padding
         // P with displayDecimals="2" and padZeros should display "1.50"
-        cy.get(cesc("#refPx")).then(($refPx) => {
+        cy.get("#refPx").then(($refPx) => {
             const refValue = $refPx.text();
             cy.get('input[aria-label="x coordinate for P"]')
                 .parent()
@@ -444,7 +443,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         });
 
         // Q with displayDigits="3" and padZeros
-        cy.get(cesc("#refQx")).then(($refQx) => {
+        cy.get("#refQx").then(($refQx) => {
             const refValue = $refQx.text();
             cy.get('input[aria-label="x coordinate for Q"]')
                 .parent()
@@ -469,7 +468,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 </graph>
 `);
 
-        cy.get(cesc("#ready")).should("have.text", "ready");
+        cy.get("#ready").should("have.text", "ready");
 
         cy.get('input[type="range"]').should("have.length", 4);
         cy.get('[aria-label="x coordinate for Point 1"]').should("exist");
@@ -496,7 +495,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 <p>Py: <number name="Py">$P.y</number></p>
 `);
 
-        cy.get(cesc("#ready")).should("have.text", "ready");
+        cy.get("#ready").should("have.text", "ready");
 
         cy.get('[aria-label="x coordinate for P"]').should("exist");
         cy.get('[aria-label="y coordinate for P"]').should("not.exist");
@@ -509,10 +508,10 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         cy.get('[aria-label="x coordinate for P"]')
             .invoke("val", "5")
             .trigger("input");
-        cy.get(cesc("#Px")).should("have.text", "5");
-        cy.get(cesc("#Py")).should("have.text", "4");
+        cy.get("#Px").should("have.text", "5");
+        cy.get("#Py").should("have.text", "4");
         cy.get('[aria-label="x coordinate for P"]').trigger("mouseup");
-        cy.get(cesc("#Px")).should("have.text", "5");
+        cy.get("#Px").should("have.text", "5");
     });
 
     it("addSliders='yOnly' on a point renders only the y slider", () => {
@@ -531,7 +530,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 <p>Py: <number name="Py">$P.y</number></p>
 `);
 
-        cy.get(cesc("#ready")).should("have.text", "ready");
+        cy.get("#ready").should("have.text", "ready");
 
         cy.get('[aria-label="x coordinate for P"]').should("not.exist");
         cy.get('[aria-label="y coordinate for P"]').should("exist");
@@ -544,10 +543,10 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         cy.get('[aria-label="y coordinate for P"]')
             .invoke("val", "7")
             .trigger("input");
-        cy.get(cesc("#Px")).should("have.text", "3");
-        cy.get(cesc("#Py")).should("have.text", "7");
+        cy.get("#Px").should("have.text", "3");
+        cy.get("#Py").should("have.text", "7");
         cy.get('[aria-label="y coordinate for P"]').trigger("mouseup");
-        cy.get(cesc("#Py")).should("have.text", "7");
+        cy.get("#Py").should("have.text", "7");
     });
 
     it("addSliders defaults to 'both' when graph-level addSliders is set", () => {
@@ -563,7 +562,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 </graph>
 `);
 
-        cy.get(cesc("#ready")).should("have.text", "ready");
+        cy.get("#ready").should("have.text", "ready");
 
         cy.get('[aria-label="x coordinate for P"]').should("exist");
         cy.get('[aria-label="y coordinate for P"]').should("exist");
@@ -585,7 +584,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 <p>Py: <number name="Py">$P.y</number></p>
 `);
 
-        cy.get(cesc("#ready")).should("have.text", "ready");
+        cy.get("#ready").should("have.text", "ready");
 
         cy.get('[aria-label="x coordinate for P"]').should("have.value", "0");
 
@@ -605,14 +604,14 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         // Slider handle should show the accumulated value (1.0) while core still shows 0.
         cy.get(xSlider).should("have.value", "1");
-        cy.get(cesc("#Px")).should("have.text", "0");
+        cy.get("#Px").should("have.text", "0");
 
         // Blurring triggers the final non-transient commit.
         cy.get(xSlider).blur();
 
         // Core evaluates constrainToGrid once against 1.0 → snaps to 1.
         cy.get(xSlider).should("have.value", "1");
-        cy.get(cesc("#Px")).should("have.text", "1");
+        cy.get("#Px").should("have.text", "1");
     });
 
     it("keyboard blur on constrained point does not send another movePoint", () => {
@@ -631,7 +630,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 <p>Py: <number name="Py">$P.y</number></p>
 `);
 
-        cy.get(cesc("#ready")).should("have.text", "ready");
+        cy.get("#ready").should("have.text", "ready");
 
         cy.get('[aria-label="x coordinate for P"]').should("have.value", "0");
         cy.get('[aria-label="y coordinate for P"]').should("have.value", "0");
@@ -646,8 +645,8 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         keyboardStepRangeRight(xSlider);
 
         // Now check that core has constrained the point to (0.1, 0.1).
-        cy.get(cesc("#Px")).should("have.text", "0.1");
-        cy.get(cesc("#Py")).should("have.text", "0.1");
+        cy.get("#Px").should("have.text", "0.1");
+        cy.get("#Py").should("have.text", "0.1");
 
         // The x-slider shows the transient value (what user entered), while
         // the visible y-slider label reflects the constrained core value.
@@ -665,8 +664,8 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         // updated, so assert the user-visible slider labels and core values here.
         cy.get(xSlider).should("have.attr", "value", "0.1");
         cy.get(ySlider).should("have.attr", "value", "0.1");
-        cy.get(cesc("#Px")).should("have.text", "0.1");
-        cy.get(cesc("#Py")).should("have.text", "0.1");
+        cy.get("#Px").should("have.text", "0.1");
+        cy.get("#Py").should("have.text", "0.1");
     });
 
     it("addSliders false on point is equivalent to none", () => {
@@ -683,7 +682,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 </graph>
 `);
 
-        cy.get(cesc("#ready")).should("have.text", "ready");
+        cy.get("#ready").should("have.text", "ready");
 
         cy.get('[aria-label="x coordinate for P"]').should("not.exist");
         cy.get('[aria-label="y coordinate for P"]').should("not.exist");

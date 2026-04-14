@@ -1,4 +1,3 @@
-import { cesc } from "@doenet/utils";
 import {
     installPrefigureBuildIntercept,
     postDebounceTestDoenetML,
@@ -16,13 +15,13 @@ describe("PreFigure sanitization guards @group4", { tags: ["@group4"] }, () => {
             annotationsXml: `<?xml version="1.0"?><annotations onclick="alert('xss')" style="color:red"><annotation href="javascript:alert(3)" style="color:blue" onclick="alert(4)">safe-cml</annotation></annotations>`,
         }));
 
-        postDebounceTestDoenetML(cesc);
+        postDebounceTestDoenetML();
 
-        cy.get(cesc("#prefig")).find(".svg").should("contain.text", "safe-svg");
-        cy.get(cesc("#prefig"))
+        cy.get("#prefig").find(".svg").should("contain.text", "safe-svg");
+        cy.get("#prefig")
             .find(".svg [xlink\\:href^='javascript:']")
             .should("not.exist");
-        cy.get(cesc("#prefig"))
+        cy.get("#prefig")
             .find(".svg")
             .invoke("html")
             .then((html) => {
@@ -32,12 +31,12 @@ describe("PreFigure sanitization guards @group4", { tags: ["@group4"] }, () => {
                 expect(html).not.to.include("javascript:alert(2)");
             });
 
-        cy.get(cesc("#prefig")).find(".cml [onclick]").should("not.exist");
-        cy.get(cesc("#prefig")).find(".cml [style]").should("not.exist");
-        cy.get(cesc("#prefig"))
+        cy.get("#prefig").find(".cml [onclick]").should("not.exist");
+        cy.get("#prefig").find(".cml [style]").should("not.exist");
+        cy.get("#prefig")
             .find(".cml [href^='javascript:']")
             .should("not.exist");
-        cy.get(cesc("#prefig"))
+        cy.get("#prefig")
             .find(".cml")
             .invoke("html")
             .then((html) => {
@@ -54,16 +53,16 @@ describe("PreFigure sanitization guards @group4", { tags: ["@group4"] }, () => {
             annotationsXml: "<annotations></annotations>",
         }));
 
-        postDebounceTestDoenetML(cesc);
+        postDebounceTestDoenetML();
 
         // Ensure the tick label text is present somewhere in the SVG.
-        cy.get(cesc("#prefig")).find(".svg").should("contain.text", "-1");
-        cy.get(cesc("#prefig")).find(".svg").should("contain.text", "0");
-        cy.get(cesc("#prefig")).find(".svg").should("contain.text", "1");
+        cy.get("#prefig").find(".svg").should("contain.text", "-1");
+        cy.get("#prefig").find(".svg").should("contain.text", "0");
+        cy.get("#prefig").find(".svg").should("contain.text", "1");
 
         // Critically, ensure local fragment references survive sanitization.
         // Browsers may normalize xlink:href into href in the live DOM.
-        cy.get(cesc("#prefig"))
+        cy.get("#prefig")
             .find(".svg use")
             .then(($uses) => {
                 const refs = [...$uses].map(
@@ -85,12 +84,10 @@ describe("PreFigure sanitization guards @group4", { tags: ["@group4"] }, () => {
             annotationsXml: "<annotations></annotations>",
         }));
 
-        postDebounceTestDoenetML(cesc);
+        postDebounceTestDoenetML();
 
-        cy.get(cesc("#prefig"))
-            .find(".svg")
-            .should("contain.text", "x_1 + y^2");
-        cy.get(cesc("#prefig"))
+        cy.get("#prefig").find(".svg").should("contain.text", "x_1 + y^2");
+        cy.get("#prefig")
             .find(".svg use[href='#point-label-math']")
             .should("exist");
     });
@@ -101,16 +98,12 @@ describe("PreFigure sanitization guards @group4", { tags: ["@group4"] }, () => {
             annotationsXml: "<annotations></annotations>",
         }));
 
-        postDebounceTestDoenetML(cesc);
+        postDebounceTestDoenetML();
 
         // Expected policy: only fragment-local <use> targets should survive sanitization.
-        cy.get(cesc("#prefig"))
-            .find(".svg")
-            .should("contain.text", "local-label");
-        cy.get(cesc("#prefig"))
-            .find(".svg use[href='#local-label']")
-            .should("exist");
-        cy.get(cesc("#prefig"))
+        cy.get("#prefig").find(".svg").should("contain.text", "local-label");
+        cy.get("#prefig").find(".svg use[href='#local-label']").should("exist");
+        cy.get("#prefig")
             .find(
                 ".svg use[href^='https://'], .svg use[xlink\\:href^='https://']",
             )

@@ -61,7 +61,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
+        cy.get("#a").should("have.text", "a"); //wait for page to load
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -82,39 +82,39 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                 cesc("#_id_" + mathInput4Idx) + " .mq-editable-field";
             let answer4Button = cesc("#_id_" + mathInput4Idx + "_button");
 
-            cy.get(cesc("#ca")).should("have.text", "0");
-            cy.get(cesc("#title1")).should("have.text", "Page 1");
-            cy.get(cesc("#section2_title")).should("not.exist");
-            cy.get(cesc("#title2")).should("not.exist");
+            cy.get("#ca").should("have.text", "0");
+            cy.get("#title1").should("have.text", "Page 1");
+            cy.get("#section2_title").should("not.exist");
+            cy.get("#title2").should("not.exist");
 
             cy.get(mathInput4Anchor).type("4{enter}", { force: true });
 
             cy.get(answer4Button).should("contain.text", "Correct");
-            cy.get(cesc("#ca")).should("have.text", "0.25");
+            cy.get("#ca").should("have.text", "0.25");
 
             cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
             cy.get(mathInput1Anchor).type("2{enter}", { force: true });
 
             cy.get(answer1Button).should("contain.text", "Correct");
-            cy.get(cesc("#ca")).should("have.text", "0.5");
+            cy.get("#ca").should("have.text", "0.5");
             cy.get(mathInput1DisplayAnchor).should("contain.text", "2");
 
             cy.log("move to page 2");
-            cy.get(cesc("#pcontrols_next")).click();
-            cy.get(cesc("#title1")).should("not.exist");
-            cy.get(cesc("#section2_title")).should("have.text", "Section 2");
-            cy.get(cesc("#title2")).should("not.exist");
+            cy.get("#pcontrols_next").click();
+            cy.get("#title1").should("not.exist");
+            cy.get("#section2_title").should("have.text", "Section 2");
+            cy.get("#title2").should("not.exist");
 
             cy.get(answer4Button).should("contain.text", "Correct");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
-            cy.get(cesc("#ca")).should("have.text", "0.5");
+            cy.get("#ca").should("have.text", "0.5");
 
-            cy.get(cesc("#name_input")).type("Me{enter}");
-            cy.get(cesc("#p3")).should("have.text", "Hello, Me!");
-            cy.get(cesc("#ca")).should("have.text", "0.5");
-            cy.get(cesc("#name_input")).should("have.value", "Me");
+            cy.get("#name_input").type("Me{enter}");
+            cy.get("#p3").should("have.text", "Hello, Me!");
+            cy.get("#ca").should("have.text", "0.5");
+            cy.get("#name_input").should("have.value", "Me");
 
             cy.get(mathInput1Anchor).should("not.exist");
 
@@ -122,32 +122,32 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             cy.get(answer4Button).should("contain.text", "Check Work");
             cy.get(mathInput4Anchor).type("{enter}", { force: true });
             cy.get(answer4Button).should("contain.text", "Incorrect");
-            cy.get(cesc("#ca")).should("have.text", "0.25");
+            cy.get("#ca").should("have.text", "0.25");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
 
             cy.log("back to page 1");
-            cy.get(cesc("#pcontrols_previous")).click();
-            cy.get(cesc("#title1")).should("have.text", "Page 1");
-            cy.get(cesc("#section2_title")).should("not.exist");
-            cy.get(cesc("#title2")).should("not.exist");
+            cy.get("#pcontrols_previous").click();
+            cy.get("#title1").should("have.text", "Page 1");
+            cy.get("#section2_title").should("not.exist");
+            cy.get("#title2").should("not.exist");
 
             cy.get(answer1Button).should("contain.text", "Correct");
-            cy.get(cesc("#ca")).should("have.text", "0.25");
+            cy.get("#ca").should("have.text", "0.25");
             cy.get(mathInput1DisplayAnchor).should("contain.text", "2");
 
-            cy.get(cesc("#name")).should("not.exist");
+            cy.get("#name").should("not.exist");
 
             cy.log("back to second page");
-            cy.get(cesc("#nextPage_button")).click();
-            cy.get(cesc("#title1")).should("not.exist");
-            cy.get(cesc("#section2_title")).should("have.text", "Section 2");
-            cy.get(cesc("#title2")).should("not.exist");
+            cy.get("#nextPage_button").click();
+            cy.get("#title1").should("not.exist");
+            cy.get("#section2_title").should("have.text", "Section 2");
+            cy.get("#title2").should("not.exist");
 
-            cy.get(cesc("#name_input")).should("have.value", "Me");
-            cy.get(cesc("#p3")).should("have.text", "Hello, Me!");
+            cy.get("#name_input").should("have.value", "Me");
+            cy.get("#p3").should("have.text", "Hello, Me!");
 
             cy.get(answer4Button).should("contain.text", "Incorrect");
-            cy.get(cesc("#ca")).should("have.text", "0.25");
+            cy.get("#ca").should("have.text", "0.25");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
 
             cy.get(mathInput4Anchor).type("{end}{backspace}4", { force: true });
@@ -155,21 +155,21 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             cy.get(mathInput4Anchor).type("{enter}", { force: true });
 
             cy.get(answer4Button).should("contain.text", "Correct");
-            cy.get(cesc("#ca")).should("have.text", "0.5");
+            cy.get("#ca").should("have.text", "0.5");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
             cy.log("on to third page");
-            cy.get(cesc("#pcontrols_next")).click();
-            cy.get(cesc("#title1")).should("not.exist");
-            cy.get(cesc("#section2_title")).should("not.exist");
-            cy.get(cesc("#title2")).should("have.text", "Page 3");
+            cy.get("#pcontrols_next").click();
+            cy.get("#title1").should("not.exist");
+            cy.get("#section2_title").should("not.exist");
+            cy.get("#title2").should("have.text", "Page 3");
 
             cy.get(answer4Button).should("contain.text", "Correct");
-            cy.get(cesc("#ca")).should("have.text", "0.5");
+            cy.get("#ca").should("have.text", "0.5");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
-            // cy.get(cesc('#mxx') + ' .mjx-mrow').should('contain.text', 'x+x')
-            // cy.get(cesc('#myy') + ' .mjx-mrow').should('contain.text', 'y+y')
+            // cy.get('#mxx' + ' .mjx-mrow').should('contain.text', 'x+x')
+            // cy.get('#myy' + ' .mjx-mrow').should('contain.text', 'y+y')
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -194,12 +194,12 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
 
                 cy.get(mathInput2Anchor).type("2x{enter}", { force: true });
                 cy.get(answer2Button).should("contain.text", "Correct");
-                cy.get(cesc("#ca")).should("have.text", "0.75");
+                cy.get("#ca").should("have.text", "0.75");
                 cy.get(mathInput2DisplayAnchor).should("contain.text", "2x");
 
                 cy.get(mathInput3Anchor).type("2y{enter}", { force: true });
                 cy.get(answer3Button).should("contain.text", "Correct");
-                cy.get(cesc("#ca")).should("have.text", "1");
+                cy.get("#ca").should("have.text", "1");
                 cy.get(mathInput3DisplayAnchor).should("contain.text", "2y");
 
                 cy.get(mathInput2Anchor).type("{end}{backspace}z", {
@@ -208,33 +208,30 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                 cy.get(answer2Button).should("contain.text", "Check Work");
                 cy.get(mathInput2Anchor).type("{enter}", { force: true });
                 cy.get(answer2Button).should("contain.text", "Incorrect");
-                cy.get(cesc("#ca")).should("have.text", "0.75");
+                cy.get("#ca").should("have.text", "0.75");
                 cy.get(mathInput2DisplayAnchor).should("contain.text", "2z");
 
                 cy.log("back to second page");
-                cy.get(cesc("#prevPage_button")).click();
-                cy.get(cesc("#title1")).should("not.exist");
-                cy.get(cesc("#section2_title")).should(
-                    "have.text",
-                    "Section 2",
-                );
-                cy.get(cesc("#title2")).should("not.exist");
+                cy.get("#prevPage_button").click();
+                cy.get("#title1").should("not.exist");
+                cy.get("#section2_title").should("have.text", "Section 2");
+                cy.get("#title2").should("not.exist");
 
-                cy.get(cesc("#name_input")).should("have.value", "Me");
-                cy.get(cesc("#p3")).should("have.text", "Hello, Me!");
+                cy.get("#name_input").should("have.value", "Me");
+                cy.get("#p3").should("have.text", "Hello, Me!");
 
                 cy.get(answer4Button).should("contain.text", "Correct");
-                cy.get(cesc("#ca")).should("have.text", "0.75");
+                cy.get("#ca").should("have.text", "0.75");
                 cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
                 cy.log("back to third page");
-                cy.get(cesc("#pcontrols_next")).click();
-                cy.get(cesc("#title1")).should("not.exist");
-                cy.get(cesc("#section2_title")).should("not.exist");
-                cy.get(cesc("#title2")).should("have.text", "Page 3");
+                cy.get("#pcontrols_next").click();
+                cy.get("#title1").should("not.exist");
+                cy.get("#section2_title").should("not.exist");
+                cy.get("#title2").should("have.text", "Page 3");
 
                 cy.get(answer4Button).should("contain.text", "Correct");
-                cy.get(cesc("#ca")).should("have.text", "0.75");
+                cy.get("#ca").should("have.text", "0.75");
                 cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
                 cy.get(answer2Button).should("contain.text", "Incorrect");
@@ -243,22 +240,19 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                 cy.get(answer3Button).should("contain.text", "Correct");
                 cy.get(mathInput3DisplayAnchor).should("contain.text", "2y");
 
-                cy.get(cesc("#ca")).should("have.text", "0.75");
+                cy.get("#ca").should("have.text", "0.75");
 
                 cy.log("back to second page");
-                cy.get(cesc("#prevPage_button")).click();
-                cy.get(cesc("#title1")).should("not.exist");
-                cy.get(cesc("#section2_title")).should(
-                    "have.text",
-                    "Section 2",
-                );
-                cy.get(cesc("#title2")).should("not.exist");
+                cy.get("#prevPage_button").click();
+                cy.get("#title1").should("not.exist");
+                cy.get("#section2_title").should("have.text", "Section 2");
+                cy.get("#title2").should("not.exist");
 
-                cy.get(cesc("#name_input")).should("have.value", "Me");
-                cy.get(cesc("#p3")).should("have.text", "Hello, Me!");
+                cy.get("#name_input").should("have.value", "Me");
+                cy.get("#p3").should("have.text", "Hello, Me!");
 
                 cy.get(answer4Button).should("contain.text", "Correct");
-                cy.get(cesc("#ca")).should("have.text", "0.75");
+                cy.get("#ca").should("have.text", "0.75");
                 cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
             });
         });
@@ -275,7 +269,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
+        cy.get("#a").should("have.text", "a"); //wait for page to load
 
         cy.log("on page two");
 
@@ -287,9 +281,9 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             }),
         );
 
-        cy.get(cesc("#title1")).should("not.exist");
-        cy.get(cesc("#section2_title")).should("have.text", "Section 2");
-        cy.get(cesc("#title2")).should("not.exist");
+        cy.get("#title1").should("not.exist");
+        cy.get("#section2_title").should("have.text", "Section 2");
+        cy.get("#title2").should("not.exist");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -302,29 +296,29 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                 cesc("#_id_" + mathInput4Idx) + " .mq-editable-field";
             let answer4Button = cesc("#_id_" + mathInput4Idx + "_button");
 
-            cy.get(cesc("#name_input")).should("have.value", "Me");
-            cy.get(cesc("#p3")).should("have.text", "Hello, Me!");
+            cy.get("#name_input").should("have.value", "Me");
+            cy.get("#p3").should("have.text", "Hello, Me!");
 
             cy.get(answer4Button).should("contain.text", "Correct");
-            cy.get(cesc("#ca")).should("have.text", "0.75");
+            cy.get("#ca").should("have.text", "0.75");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
-            cy.get(cesc("#name_input")).clear().type("You{enter}");
-            cy.get(cesc("#name_input")).should("have.value", "You");
-            cy.get(cesc("#p3")).should("have.text", "Hello, You!");
+            cy.get("#name_input").clear().type("You{enter}");
+            cy.get("#name_input").should("have.value", "You");
+            cy.get("#p3").should("have.text", "Hello, You!");
 
             cy.get(answer4Button).should("contain.text", "Correct");
-            cy.get(cesc("#ca")).should("have.text", "0.75");
+            cy.get("#ca").should("have.text", "0.75");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
             cy.log("to third page");
-            cy.get(cesc("#pcontrols_next")).click();
-            cy.get(cesc("#title1")).should("not.exist");
-            cy.get(cesc("#section2_title")).should("not.exist");
-            cy.get(cesc("#title2")).should("have.text", "Page 3");
+            cy.get("#pcontrols_next").click();
+            cy.get("#title1").should("not.exist");
+            cy.get("#section2_title").should("not.exist");
+            cy.get("#title2").should("have.text", "Page 3");
 
             cy.get(answer4Button).should("contain.text", "Correct");
-            cy.get(cesc("#ca")).should("have.text", "0.75");
+            cy.get("#ca").should("have.text", "0.75");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "4");
 
             cy.window().then(async (win) => {
@@ -359,7 +353,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                 cy.get(answer3Button).should("contain.text", "Check Work");
                 cy.get(mathInput3Anchor).type("{enter}", { force: true });
                 cy.get(answer3Button).should("contain.text", "Incorrect");
-                cy.get(cesc("#ca")).should("have.text", "0.5");
+                cy.get("#ca").should("have.text", "0.5");
                 cy.get(mathInput3DisplayAnchor).should("contain.text", "2q");
 
                 cy.get(mathInput4Anchor).type("{end}{backspace}3", {
@@ -368,7 +362,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                 cy.get(answer4Button).should("contain.text", "Check Work");
                 cy.get(mathInput4Anchor).type("{enter}", { force: true });
                 cy.get(answer4Button).should("contain.text", "Incorrect");
-                cy.get(cesc("#ca")).should("have.text", "0.25");
+                cy.get("#ca").should("have.text", "0.25");
                 cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
 
                 cy.get(mathInput2Anchor).type("{end}{backspace}x", {
@@ -377,33 +371,30 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                 cy.get(answer2Button).should("contain.text", "Check Work");
                 cy.get(mathInput2Anchor).type("{enter}", { force: true });
                 cy.get(answer2Button).should("contain.text", "Correct");
-                cy.get(cesc("#ca")).should("have.text", "0.5");
+                cy.get("#ca").should("have.text", "0.5");
                 cy.get(mathInput2DisplayAnchor).should("contain.text", "2x");
 
                 cy.log("back to second page");
-                cy.get(cesc("#pcontrols_previous")).click();
-                cy.get(cesc("#title1")).should("not.exist");
-                cy.get(cesc("#section2_title")).should(
-                    "have.text",
-                    "Section 2",
-                );
-                cy.get(cesc("#title2")).should("not.exist");
+                cy.get("#pcontrols_previous").click();
+                cy.get("#title1").should("not.exist");
+                cy.get("#section2_title").should("have.text", "Section 2");
+                cy.get("#title2").should("not.exist");
 
-                cy.get(cesc("#name_input")).should("have.value", "You");
-                cy.get(cesc("#p3")).should("have.text", "Hello, You!");
+                cy.get("#name_input").should("have.value", "You");
+                cy.get("#p3").should("have.text", "Hello, You!");
 
                 cy.get(answer4Button).should("contain.text", "Incorrect");
-                cy.get(cesc("#ca")).should("have.text", "0.5");
+                cy.get("#ca").should("have.text", "0.5");
                 cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
 
                 cy.log("to first page");
-                cy.get(cesc("#pcontrols_previous")).click();
-                cy.get(cesc("#title1")).should("have.text", "Page 1");
-                cy.get(cesc("#section2_title")).should("not.exist");
-                cy.get(cesc("#title2")).should("not.exist");
+                cy.get("#pcontrols_previous").click();
+                cy.get("#title1").should("have.text", "Page 1");
+                cy.get("#section2_title").should("not.exist");
+                cy.get("#title2").should("not.exist");
 
                 cy.get(answer4Button).should("contain.text", "Incorrect");
-                cy.get(cesc("#ca")).should("have.text", "0.5");
+                cy.get("#ca").should("have.text", "0.5");
                 cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
 
                 cy.window().then(async (win) => {
@@ -431,22 +422,19 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                         "contain.text",
                         "2−",
                     );
-                    cy.get(cesc("#ca")).should("have.text", "0.25");
+                    cy.get("#ca").should("have.text", "0.25");
 
                     cy.log("back to second page");
-                    cy.get(cesc("#pcontrols_next")).click();
-                    cy.get(cesc("#title1")).should("not.exist");
-                    cy.get(cesc("#section2_title")).should(
-                        "have.text",
-                        "Section 2",
-                    );
-                    cy.get(cesc("#title2")).should("not.exist");
+                    cy.get("#pcontrols_next").click();
+                    cy.get("#title1").should("not.exist");
+                    cy.get("#section2_title").should("have.text", "Section 2");
+                    cy.get("#title2").should("not.exist");
 
                     cy.log("back to first page");
-                    cy.get(cesc("#pcontrols_previous")).click();
-                    cy.get(cesc("#title1")).should("have.text", "Page 1");
-                    cy.get(cesc("#section2_title")).should("not.exist");
-                    cy.get(cesc("#title2")).should("not.exist");
+                    cy.get("#pcontrols_previous").click();
+                    cy.get("#title1").should("have.text", "Page 1");
+                    cy.get("#section2_title").should("not.exist");
+                    cy.get("#title2").should("not.exist");
 
                     cy.get(answer1Button).should("contain.text", "Incorrect");
                     cy.get(mathInput1DisplayAnchor).should(
@@ -456,18 +444,15 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
 
                     cy.log("to third page");
 
-                    cy.get(cesc("#pcontrols_next")).click();
-                    cy.get(cesc("#title1")).should("not.exist");
-                    cy.get(cesc("#section2_title")).should(
-                        "have.text",
-                        "Section 2",
-                    );
-                    cy.get(cesc("#title2")).should("not.exist");
+                    cy.get("#pcontrols_next").click();
+                    cy.get("#title1").should("not.exist");
+                    cy.get("#section2_title").should("have.text", "Section 2");
+                    cy.get("#title2").should("not.exist");
 
-                    cy.get(cesc("#pcontrols_next")).click();
-                    cy.get(cesc("#title1")).should("not.exist");
-                    cy.get(cesc("#section2_title")).should("not.exist");
-                    cy.get(cesc("#title2")).should("have.text", "Page 3");
+                    cy.get("#pcontrols_next").click();
+                    cy.get("#title1").should("not.exist");
+                    cy.get("#section2_title").should("not.exist");
+                    cy.get("#title2").should("have.text", "Page 3");
 
                     cy.get(answer3Button).should("contain.text", "Incorrect");
                     cy.get(mathInput3DisplayAnchor).should(
@@ -483,7 +468,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                         "contain.text",
                         "2x",
                     );
-                    cy.get(cesc("#ca")).should("have.text", "0.25");
+                    cy.get("#ca").should("have.text", "0.25");
 
                     cy.get(mathInput2Anchor)
                         .type("{end}:", { force: true })
@@ -493,22 +478,19 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                         "contain.text",
                         "2x:",
                     );
-                    cy.get(cesc("#ca")).should("have.text", "0.25");
+                    cy.get("#ca").should("have.text", "0.25");
 
                     cy.log("to second page");
-                    cy.get(cesc("#pcontrols_previous")).click();
-                    cy.get(cesc("#title1")).should("not.exist");
-                    cy.get(cesc("#section2_title")).should(
-                        "have.text",
-                        "Section 2",
-                    );
-                    cy.get(cesc("#title2")).should("not.exist");
+                    cy.get("#pcontrols_previous").click();
+                    cy.get("#title1").should("not.exist");
+                    cy.get("#section2_title").should("have.text", "Section 2");
+                    cy.get("#title2").should("not.exist");
 
                     cy.log("back to third page");
-                    cy.get(cesc("#pcontrols_next")).click();
-                    cy.get(cesc("#title1")).should("not.exist");
-                    cy.get(cesc("#section2_title")).should("not.exist");
-                    cy.get(cesc("#title2")).should("have.text", "Page 3");
+                    cy.get("#pcontrols_next").click();
+                    cy.get("#title1").should("not.exist");
+                    cy.get("#section2_title").should("not.exist");
+                    cy.get("#title2").should("have.text", "Page 3");
 
                     cy.get(answer2Button).should("contain.text", "Check Work");
                     cy.get(mathInput2DisplayAnchor).should(
@@ -522,7 +504,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                     );
                     cy.get(answer4Button).should("contain.text", "Incorrect");
                     cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
-                    cy.get(cesc("#ca")).should("have.text", "0.25");
+                    cy.get("#ca").should("have.text", "0.25");
                 });
             });
         });
@@ -539,7 +521,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
+        cy.get("#a").should("have.text", "a"); //wait for page to load
 
         // wait until core is loaded
         cy.waitUntil(() =>
@@ -550,9 +532,9 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
         );
 
         cy.log("on third page without first and second defined");
-        cy.get(cesc("#title1")).should("not.exist");
-        cy.get(cesc("#section2_title")).should("not.exist");
-        cy.get(cesc("#title2")).should("have.text", "Page 3");
+        cy.get("#title1").should("not.exist");
+        cy.get("#section2_title").should("not.exist");
+        cy.get("#title2").should("have.text", "Page 3");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -587,41 +569,41 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             cy.get(mathInput3DisplayAnchor).should("contain.text", "2q");
             cy.get(answer4Button).should("contain.text", "Incorrect");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
-            cy.get(cesc("#ca")).should("have.text", "0.25");
+            cy.get("#ca").should("have.text", "0.25");
 
             cy.log("to second page");
-            cy.get(cesc("#pcontrols_previous")).click();
-            cy.get(cesc("#title1")).should("not.exist");
-            cy.get(cesc("#section2_title")).should("have.text", "Section 2");
-            cy.get(cesc("#title2")).should("not.exist");
+            cy.get("#pcontrols_previous").click();
+            cy.get("#title1").should("not.exist");
+            cy.get("#section2_title").should("have.text", "Section 2");
+            cy.get("#title2").should("not.exist");
 
-            cy.get(cesc("#name_input")).should("have.value", "You");
-            cy.get(cesc("#p3")).should("have.text", "Hello, You!");
+            cy.get("#name_input").should("have.value", "You");
+            cy.get("#p3").should("have.text", "Hello, You!");
 
             cy.get(answer4Button).should("contain.text", "Incorrect");
-            cy.get(cesc("#ca")).should("have.text", "0.25");
+            cy.get("#ca").should("have.text", "0.25");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
 
             cy.log("back to third page");
-            cy.get(cesc("#pcontrols_next")).click();
+            cy.get("#pcontrols_next").click();
             cy.get(answer2Button).should("contain.text", "Check Work");
             cy.get(mathInput2DisplayAnchor).should("contain.text", "2x:");
             cy.get(answer3Button).should("contain.text", "Incorrect");
             cy.get(mathInput3DisplayAnchor).should("contain.text", "2q");
             cy.get(answer4Button).should("contain.text", "Incorrect");
             cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
-            cy.get(cesc("#ca")).should("have.text", "0.25");
+            cy.get("#ca").should("have.text", "0.25");
 
             cy.log("to first page");
-            cy.get(cesc("#pcontrols_previous")).click();
-            cy.get(cesc("#title1")).should("not.exist");
-            cy.get(cesc("#section2_title")).should("have.text", "Section 2");
-            cy.get(cesc("#title2")).should("not.exist");
+            cy.get("#pcontrols_previous").click();
+            cy.get("#title1").should("not.exist");
+            cy.get("#section2_title").should("have.text", "Section 2");
+            cy.get("#title2").should("not.exist");
 
-            cy.get(cesc("#pcontrols_previous")).click();
-            cy.get(cesc("#title1")).should("have.text", "Page 1");
-            cy.get(cesc("#section2_title")).should("not.exist");
-            cy.get(cesc("#title2")).should("not.exist");
+            cy.get("#pcontrols_previous").click();
+            cy.get("#title1").should("have.text", "Page 1");
+            cy.get("#section2_title").should("not.exist");
+            cy.get("#title2").should("not.exist");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -637,7 +619,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
 
                 cy.get(answer1Button).should("contain.text", "Incorrect");
                 cy.get(mathInput1DisplayAnchor).should("contain.text", "2−");
-                cy.get(cesc("#ca")).should("have.text", "0.25");
+                cy.get("#ca").should("have.text", "0.25");
 
                 cy.get(answer4Button).should("contain.text", "Incorrect");
                 cy.get(mathInput4DisplayAnchor).should("contain.text", "3");
@@ -681,7 +663,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
+        cy.get("#a").should("have.text", "a"); //wait for page to load
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -694,18 +676,18 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                 cesc("#_id_" + textInput1Idx) + " .mq-editable-field";
             let answer1Button = cesc("#_id_" + textInput1Idx + "_button");
 
-            cy.get(cesc("#problem1_title")).should("have.text", "Problem 1");
+            cy.get("#problem1_title").should("have.text", "Problem 1");
 
-            cy.get(cesc("#ca")).should("have.text", "0");
+            cy.get("#ca").should("have.text", "0");
 
             cy.get(textInput1Anchor).type("a{enter}");
 
             cy.get(answer1Button).should("contain.text", "Correct");
-            cy.get(cesc("#ca")).should("have.text", "0.167");
+            cy.get("#ca").should("have.text", "0.167");
 
-            cy.get(cesc("#pcontrols_next")).click();
-            cy.get(cesc("#problem2_title")).should("have.text", "Problem 2");
-            cy.get(cesc("#ca")).should("have.text", "0.167");
+            cy.get("#pcontrols_next").click();
+            cy.get("#problem2_title").should("have.text", "Problem 2");
+            cy.get("#ca").should("have.text", "0.167");
 
             cy.wait(200);
 
@@ -722,12 +704,9 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
 
                 cy.get(answer2Button).should("contain.text", "Check Work");
 
-                cy.get(cesc("#pcontrols_next")).click();
-                cy.get(cesc("#problem3_title")).should(
-                    "have.text",
-                    "Problem 3",
-                );
-                cy.get(cesc("#ca")).should("have.text", "0.167");
+                cy.get("#pcontrols_next").click();
+                cy.get("#problem3_title").should("have.text", "Problem 3");
+                cy.get("#ca").should("have.text", "0.167");
 
                 cy.window().then(async (win) => {
                     let stateVariables = await win.returnAllStateVariables1();
@@ -745,24 +724,18 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
 
                     cy.get(answer3Button).should("contain.text", "Check Work");
 
-                    cy.get(cesc("#pcontrols_previous")).click();
-                    cy.get(cesc("#problem2_title")).should(
-                        "have.text",
-                        "Problem 2",
-                    );
-                    cy.get(cesc("#ca")).should("have.text", "0.167");
+                    cy.get("#pcontrols_previous").click();
+                    cy.get("#problem2_title").should("have.text", "Problem 2");
+                    cy.get("#ca").should("have.text", "0.167");
 
                     cy.get(textInput2Anchor).type("b{enter}");
 
                     cy.get(answer2Button).should("contain.text", "Correct");
-                    cy.get(cesc("#ca")).should("have.text", "0.5");
+                    cy.get("#ca").should("have.text", "0.5");
 
-                    cy.get(cesc("#pcontrols_previous")).click();
-                    cy.get(cesc("#problem1_title")).should(
-                        "have.text",
-                        "Problem 1",
-                    );
-                    cy.get(cesc("#ca")).should("have.text", "0.5");
+                    cy.get("#pcontrols_previous").click();
+                    cy.get("#problem1_title").should("have.text", "Problem 1");
+                    cy.get("#ca").should("have.text", "0.5");
 
                     cy.get(answer1Button).should("contain.text", "Correct");
 
@@ -770,34 +743,25 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                     cy.get(answer1Button).should("contain.text", "Check Work");
                     cy.get(textInput1Anchor).type("{enter}");
                     cy.get(answer1Button).should("contain.text", "Incorrect");
-                    cy.get(cesc("#ca")).should("have.text", "0.333");
+                    cy.get("#ca").should("have.text", "0.333");
 
-                    cy.get(cesc("#pcontrols_next")).click();
-                    cy.get(cesc("#problem2_title")).should(
-                        "have.text",
-                        "Problem 2",
-                    );
-                    cy.get(cesc("#ca")).should("have.text", "0.333");
+                    cy.get("#pcontrols_next").click();
+                    cy.get("#problem2_title").should("have.text", "Problem 2");
+                    cy.get("#ca").should("have.text", "0.333");
 
                     cy.get(answer2Button).should("contain.text", "Correct");
 
-                    cy.get(cesc("#pcontrols_next")).click();
-                    cy.get(cesc("#problem3_title")).should(
-                        "have.text",
-                        "Problem 3",
-                    );
-                    cy.get(cesc("#ca")).should("have.text", "0.333");
+                    cy.get("#pcontrols_next").click();
+                    cy.get("#problem3_title").should("have.text", "Problem 3");
+                    cy.get("#ca").should("have.text", "0.333");
 
                     cy.get(textInput3Anchor).clear().type("c{enter}");
                     cy.get(answer3Button).should("contain.text", "Correct");
-                    cy.get(cesc("#ca")).should("have.text", "0.833");
+                    cy.get("#ca").should("have.text", "0.833");
 
-                    cy.get(cesc("#pcontrols_previous")).click();
-                    cy.get(cesc("#problem2_title")).should(
-                        "have.text",
-                        "Problem 2",
-                    );
-                    cy.get(cesc("#ca")).should("have.text", "0.833");
+                    cy.get("#pcontrols_previous").click();
+                    cy.get("#problem2_title").should("have.text", "Problem 2");
+                    cy.get("#ca").should("have.text", "0.833");
 
                     cy.get(answer2Button).should("contain.text", "Correct");
                 });
@@ -816,22 +780,22 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
+        cy.get("#a").should("have.text", "a"); //wait for page to load
 
-        cy.get(cesc("#problem2_title")).should("have.text", "Problem 2");
-        cy.get(cesc("#ca")).should("have.text", "0.833");
+        cy.get("#problem2_title").should("have.text", "Problem 2");
+        cy.get("#ca").should("have.text", "0.833");
 
-        cy.get(cesc("#pcontrols_previous")).click();
-        cy.get(cesc("#problem1_title")).should("have.text", "Problem 1");
-        cy.get(cesc("#ca")).should("have.text", "0.833");
+        cy.get("#pcontrols_previous").click();
+        cy.get("#problem1_title").should("have.text", "Problem 1");
+        cy.get("#ca").should("have.text", "0.833");
 
-        cy.get(cesc("#pcontrols_next")).click();
-        cy.get(cesc("#problem2_title")).should("have.text", "Problem 2");
-        cy.get(cesc("#ca")).should("have.text", "0.833");
+        cy.get("#pcontrols_next").click();
+        cy.get("#problem2_title").should("have.text", "Problem 2");
+        cy.get("#ca").should("have.text", "0.833");
 
-        cy.get(cesc("#pcontrols_next")).click();
-        cy.get(cesc("#problem3_title")).should("have.text", "Problem 3");
-        cy.get(cesc("#ca")).should("have.text", "0.833");
+        cy.get("#pcontrols_next").click();
+        cy.get("#problem3_title").should("have.text", "Problem 3");
+        cy.get("#ca").should("have.text", "0.833");
     });
 
     // TODO: enable external copies in our cypress setup?
@@ -877,10 +841,10 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
 
         let choices;
 
-        cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
+        cy.get("#text1").should("have.text", "a"); //wait for page to load
 
         cy.get(cesc("#problem1/_title1")).should("have.text", "Animal sounds");
-        cy.get(cesc("#ca")).should("have.text", "0");
+        cy.get("#ca").should("have.text", "0");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
@@ -898,7 +862,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
 
         cy.get(cesc(`#problem1/_choiceInput1_button`)).click();
         cy.get(cesc(`#problem1/_choiceInput1_correct`)).should("be.visible");
-        cy.get(cesc("#ca")).should("have.text", "0.333");
+        cy.get("#ca").should("have.text", "0.333");
 
         cy.wait(2000); // wait for 1 second debounce
         cy.reload();
@@ -911,7 +875,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                 "*",
             );
         });
-        cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
+        cy.get("#text1").should("have.text", "a"); //wait for page to load
 
         // wait until core is loaded
         cy.waitUntil(() =>
@@ -927,14 +891,14 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
 
         cy.get(cesc("#problem1/_title1")).should("have.text", "Animal sounds");
         cy.get(cesc(`#problem1/_choiceInput1_correct`)).should("be.visible");
-        cy.get(cesc("#ca")).should("have.text", "0.333");
+        cy.get("#ca").should("have.text", "0.333");
 
-        cy.get(cesc("#pcontrols_next")).click();
+        cy.get("#pcontrols_next").click();
         cy.get(cesc("#problem2/_title1")).should(
             "have.text",
             "Derivative problem",
         );
-        cy.get(cesc("#ca")).should("have.text", "0.333");
+        cy.get("#ca").should("have.text", "0.333");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -947,9 +911,9 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
 
             cy.get(mathInput2Anchor).type("2x{enter}", { force: true });
             cy.get(mathInput2Correct).should("be.visible");
-            cy.get(cesc("#ca")).should("have.text", "0.667");
+            cy.get("#ca").should("have.text", "0.667");
 
-            cy.get(cesc("#pcontrols_previous")).click();
+            cy.get("#pcontrols_previous").click();
             cy.get(cesc("#problem1/_title1")).should(
                 "have.text",
                 "Animal sounds",
@@ -957,7 +921,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             cy.get(cesc(`#problem1/_choiceInput1_correct`)).should(
                 "be.visible",
             );
-            cy.get(cesc("#ca")).should("have.text", "0.667");
+            cy.get("#ca").should("have.text", "0.667");
 
             cy.wait(2000); // wait for 1 second debounce
             cy.reload();
@@ -970,7 +934,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                     "*",
                 );
             });
-            cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
+            cy.get("#text1").should("have.text", "a"); //wait for page to load
 
             cy.get(cesc("#problem1/_title1")).should(
                 "have.text",
@@ -979,22 +943,22 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             cy.get(cesc(`#problem1/_choiceInput1_correct`)).should(
                 "be.visible",
             );
-            cy.get(cesc("#ca")).should("have.text", "0.667");
+            cy.get("#ca").should("have.text", "0.667");
 
-            cy.get(cesc("#pcontrols_next")).click();
+            cy.get("#pcontrols_next").click();
             cy.get(cesc("#problem2/_title1")).should(
                 "have.text",
                 "Derivative problem",
             );
             cy.get(mathInput2Correct).should("be.visible");
-            cy.get(cesc("#ca")).should("have.text", "0.667");
+            cy.get("#ca").should("have.text", "0.667");
 
-            cy.get(cesc("#pcontrols_next")).click();
+            cy.get("#pcontrols_next").click();
             cy.get(cesc("#problem3/_title1")).should(
                 "have.text",
                 "A hard problem",
             );
-            cy.get(cesc("#ca")).should("have.text", "0.667");
+            cy.get("#ca").should("have.text", "0.667");
 
             cy.get(cesc("#problem3/_mathInput1") + " textarea").type(
                 "2{enter}",
@@ -1003,7 +967,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                 },
             );
             cy.get(cesc("#problem3/_mathInput1_correct")).should("be.visible");
-            cy.get(cesc("#ca")).should("have.text", "1");
+            cy.get("#ca").should("have.text", "1");
 
             cy.wait(2000); // wait for 1 second debounce
             cy.reload();
@@ -1016,24 +980,24 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                     "*",
                 );
             });
-            cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
+            cy.get("#text1").should("have.text", "a"); //wait for page to load
 
             cy.get(cesc("#problem3/_title1")).should(
                 "have.text",
                 "A hard problem",
             );
             cy.get(cesc("#problem3/_mathInput1_correct")).should("be.visible");
-            cy.get(cesc("#ca")).should("have.text", "1");
+            cy.get("#ca").should("have.text", "1");
 
-            cy.get(cesc("#pcontrols_previous")).click();
+            cy.get("#pcontrols_previous").click();
             cy.get(cesc("#problem2/_title1")).should(
                 "have.text",
                 "Derivative problem",
             );
             cy.get(mathInput2Correct).should("be.visible");
-            cy.get(cesc("#ca")).should("have.text", "1");
+            cy.get("#ca").should("have.text", "1");
 
-            cy.get(cesc("#pcontrols_previous")).click();
+            cy.get("#pcontrols_previous").click();
             cy.get(cesc("#problem1/_title1")).should(
                 "have.text",
                 "Animal sounds",
@@ -1041,7 +1005,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             cy.get(cesc(`#problem1/_choiceInput1_correct`)).should(
                 "be.visible",
             );
-            cy.get(cesc("#ca")).should("have.text", "1");
+            cy.get("#ca").should("have.text", "1");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -1066,7 +1030,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             cy.get(cesc(`#problem1/_choiceInput1_incorrect`)).should(
                 "be.visible",
             );
-            cy.get(cesc("#ca")).should("have.text", "0.667");
+            cy.get("#ca").should("have.text", "0.667");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -1088,7 +1052,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             cy.get(cesc(`#problem1/_choiceInput1_correct`)).should(
                 "be.visible",
             );
-            cy.get(cesc("#ca")).should("have.text", "1");
+            cy.get("#ca").should("have.text", "1");
         });
     });
 
@@ -1131,10 +1095,10 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
+        cy.get("#text1").should("have.text", "a"); //wait for page to load
 
         cy.get(cesc("#problem1/_title1")).should("have.text", "Animal sounds");
-        cy.get(cesc("#ca")).should("have.text", "0");
+        cy.get("#ca").should("have.text", "0");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
 
@@ -1153,7 +1117,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
 
         cy.get(cesc(`#problem1/_choiceInput1_button`)).click();
         cy.get(cesc(`#problem1/_choiceInput1_correct`)).should("be.visible");
-        cy.get(cesc("#ca")).should("have.text", "0.333");
+        cy.get("#ca").should("have.text", "0.333");
 
         cy.wait(2000); // wait for 1 second debounce
         cy.reload();
@@ -1166,18 +1130,18 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                 "*",
             );
         });
-        cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
+        cy.get("#text1").should("have.text", "a"); //wait for page to load
 
         cy.get(cesc("#problem1/_title1")).should("have.text", "Animal sounds");
         cy.get(cesc(`#problem1/_choiceInput1_correct`)).should("be.visible");
-        cy.get(cesc("#ca")).should("have.text", "0.333");
+        cy.get("#ca").should("have.text", "0.333");
 
-        cy.get(cesc("#pcontrols_next")).click();
+        cy.get("#pcontrols_next").click();
         cy.get(cesc("#problem2/_title1")).should(
             "have.text",
             "Derivative problem",
         );
-        cy.get(cesc("#ca")).should("have.text", "0.333");
+        cy.get("#ca").should("have.text", "0.333");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -1190,9 +1154,9 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
 
             cy.get(mathInput2Anchor).type("2x{enter}", { force: true });
             cy.get(mathInput2Correct).should("be.visible");
-            cy.get(cesc("#ca")).should("have.text", "0.667");
+            cy.get("#ca").should("have.text", "0.667");
 
-            cy.get(cesc("#pcontrols_previous")).click();
+            cy.get("#pcontrols_previous").click();
             cy.get(cesc("#problem1/_title1")).should(
                 "have.text",
                 "Animal sounds",
@@ -1200,7 +1164,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             cy.get(cesc(`#problem1/_choiceInput1_correct`)).should(
                 "be.visible",
             );
-            cy.get(cesc("#ca")).should("have.text", "0.667");
+            cy.get("#ca").should("have.text", "0.667");
 
             cy.wait(2000); // wait for 1 second debounce
             cy.reload();
@@ -1213,7 +1177,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                     "*",
                 );
             });
-            cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
+            cy.get("#text1").should("have.text", "a"); //wait for page to load
 
             cy.get(cesc("#problem1/_title1")).should(
                 "have.text",
@@ -1222,22 +1186,22 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             cy.get(cesc(`#problem1/_choiceInput1_correct`)).should(
                 "be.visible",
             );
-            cy.get(cesc("#ca")).should("have.text", "0.667");
+            cy.get("#ca").should("have.text", "0.667");
 
-            cy.get(cesc("#pcontrols_next")).click();
+            cy.get("#pcontrols_next").click();
             cy.get(cesc("#problem2/_title1")).should(
                 "have.text",
                 "Derivative problem",
             );
             cy.get(mathInput2Correct).should("be.visible");
-            cy.get(cesc("#ca")).should("have.text", "0.667");
+            cy.get("#ca").should("have.text", "0.667");
 
-            cy.get(cesc("#pcontrols_next")).click();
+            cy.get("#pcontrols_next").click();
             cy.get(cesc("#problem3/_title1")).should(
                 "have.text",
                 "A hard problem",
             );
-            cy.get(cesc("#ca")).should("have.text", "0.667");
+            cy.get("#ca").should("have.text", "0.667");
 
             cy.get(cesc("#problem3/_mathInput1") + " textarea").type(
                 "2{enter}",
@@ -1246,7 +1210,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                 },
             );
             cy.get(cesc("#problem3/_mathInput1_correct")).should("be.visible");
-            cy.get(cesc("#ca")).should("have.text", "1");
+            cy.get("#ca").should("have.text", "1");
 
             cy.wait(2000); // wait for 1 second debounce
             cy.reload();
@@ -1259,24 +1223,24 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                     "*",
                 );
             });
-            cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
+            cy.get("#text1").should("have.text", "a"); //wait for page to load
 
             cy.get(cesc("#problem3/_title1")).should(
                 "have.text",
                 "A hard problem",
             );
             cy.get(cesc("#problem3/_mathInput1_correct")).should("be.visible");
-            cy.get(cesc("#ca")).should("have.text", "1");
+            cy.get("#ca").should("have.text", "1");
 
-            cy.get(cesc("#pcontrols_previous")).click();
+            cy.get("#pcontrols_previous").click();
             cy.get(cesc("#problem2/_title1")).should(
                 "have.text",
                 "Derivative problem",
             );
             cy.get(mathInput2Correct).should("be.visible");
-            cy.get(cesc("#ca")).should("have.text", "1");
+            cy.get("#ca").should("have.text", "1");
 
-            cy.get(cesc("#pcontrols_previous")).click();
+            cy.get("#pcontrols_previous").click();
             cy.get(cesc("#problem1/_title1")).should(
                 "have.text",
                 "Animal sounds",
@@ -1284,7 +1248,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             cy.get(cesc(`#problem1/_choiceInput1_correct`)).should(
                 "be.visible",
             );
-            cy.get(cesc("#ca")).should("have.text", "1");
+            cy.get("#ca").should("have.text", "1");
         });
     });
 
@@ -1314,42 +1278,42 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get(cesc("#title1")).should("have.text", "Problem 1");
+        cy.get("#title1").should("have.text", "Problem 1");
 
-        cy.get(cesc("#ti1_input")).type("1{enter}");
-        cy.get(cesc("#ti1_input")).should("have.value", "1");
+        cy.get("#ti1_input").type("1{enter}");
+        cy.get("#ti1_input").should("have.value", "1");
 
-        cy.get(cesc("#ti1_button")).should("contain.text", "Correct");
-        cy.get(cesc("#ca")).should("have.text", "0.5");
+        cy.get("#ti1_button").should("contain.text", "Correct");
+        cy.get("#ca").should("have.text", "0.5");
 
-        cy.get(cesc("#pcontrols_next")).click();
-        cy.get(cesc("#title2")).should("have.text", "Problem 2");
+        cy.get("#pcontrols_next").click();
+        cy.get("#title2").should("have.text", "Problem 2");
 
-        cy.get(cesc("#ti2_input")).type("2");
-        cy.get(cesc("#ti2_input")).should("have.value", "2");
-        cy.get(cesc("#ti2_button")).should("contain.text", "Check Work");
-        cy.get(cesc("#ca")).should("have.text", "0.5");
+        cy.get("#ti2_input").type("2");
+        cy.get("#ti2_input").should("have.value", "2");
+        cy.get("#ti2_button").should("contain.text", "Check Work");
+        cy.get("#ca").should("have.text", "0.5");
 
         cy.get("#testRunner_toggleControls").click();
         cy.get("#testRunner_readOnly").click();
         cy.wait(100);
         cy.get("#testRunner_toggleControls").click();
 
-        cy.get(cesc("#title1")).should("have.text", "Problem 1");
+        cy.get("#title1").should("have.text", "Problem 1");
 
-        cy.get(cesc("#ti1_input")).should("be.disabled");
-        cy.get(cesc("#ti1_button")).should("be.disabled");
+        cy.get("#ti1_input").should("be.disabled");
+        cy.get("#ti1_button").should("be.disabled");
 
-        cy.get(cesc("#pcontrols_next")).click();
-        cy.get(cesc("#title2")).should("have.text", "Problem 2");
+        cy.get("#pcontrols_next").click();
+        cy.get("#title2").should("have.text", "Problem 2");
 
-        cy.get(cesc("#ti2_input")).should("be.disabled");
-        cy.get(cesc("#ti2_button")).should("be.disabled");
+        cy.get("#ti2_input").should("be.disabled");
+        cy.get("#ti2_button").should("be.disabled");
 
-        cy.get(cesc("#pcontrols_previous")).click();
-        cy.get(cesc("#title1")).should("have.text", "Problem 1");
-        cy.get(cesc("#ti1_input")).should("be.disabled");
-        cy.get(cesc("#ti1_button")).should("be.disabled");
+        cy.get("#pcontrols_previous").click();
+        cy.get("#title1").should("have.text", "Problem 1");
+        cy.get("#ti1_input").should("be.disabled");
+        cy.get("#ti1_button").should("be.disabled");
     });
 
     // TODO: if keep this, move to variant tests?
@@ -1446,13 +1410,13 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                         "*",
                     );
                 });
-                cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
+                cy.get("#text1").should("have.text", "a"); //wait for page to load
             }
 
             let problemInfo = [{}, {}];
             let problemOrder;
 
-            cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
+            cy.get("#text1").should("have.text", "a"); //wait for page to load
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -1472,14 +1436,11 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
 
                 for (let ind = 0; ind < 2; ind++) {
                     if (ind === 1) {
-                        cy.get(cesc("#pcontrols_next")).click();
+                        cy.get("#pcontrols_next").click();
                     }
 
                     cy.wait(0).then((_) => {
-                        cy.get(cesc("#ca")).should(
-                            "have.text",
-                            `${creditAchieved}`,
-                        );
+                        cy.get("#ca").should("have.text", `${creditAchieved}`);
 
                         let thisProbInfo = problemInfo[ind];
                         let thisProbName = `/problem${ind + 1}`;
@@ -1665,7 +1626,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                     "*",
                 );
             });
-            cy.get(cesc("#text1")).should("have.text", "b"); //wait for page to load
+            cy.get("#text1").should("have.text", "b"); //wait for page to load
 
             cy.window().then(async (win) => {
                 win.postMessage(
@@ -1675,7 +1636,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                     "*",
                 );
             });
-            cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
+            cy.get("#text1").should("have.text", "a"); //wait for page to load
 
             // wait until core is loaded
             cy.waitUntil(() =>
@@ -1690,11 +1651,11 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
 
             for (let ind = 1; ind >= 0; ind--) {
                 if (ind === 0) {
-                    cy.get(cesc("#pcontrols_previous")).click();
+                    cy.get("#pcontrols_previous").click();
                 }
 
                 cy.wait(0).then((_) => {
-                    cy.get(cesc("#ca")).should("have.text", `1`);
+                    cy.get("#ca").should("have.text", `1`);
 
                     let thisProbInfo = problemInfo[ind];
                     let thisProbName = `/problem${ind + 1}`;
@@ -1844,7 +1805,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                     "*",
                 );
             });
-            cy.get(cesc("#text1")).should("have.text", "b"); //wait for page to load
+            cy.get("#text1").should("have.text", "b"); //wait for page to load
 
             cy.window().then(async (win) => {
                 win.postMessage(
@@ -1854,7 +1815,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                     "*",
                 );
             });
-            cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
+            cy.get("#text1").should("have.text", "a"); //wait for page to load
 
             // wait until core is loaded
             cy.waitUntil(() =>
@@ -1869,11 +1830,11 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
 
             for (let ind = 0; ind < 2; ind++) {
                 if (ind === 1) {
-                    cy.get(cesc("#pcontrols_next")).click();
+                    cy.get("#pcontrols_next").click();
                 }
 
                 cy.wait(0).then((_) => {
-                    cy.get(cesc("#ca")).should("have.text", `1`);
+                    cy.get("#ca").should("have.text", `1`);
 
                     let thisProbInfo = problemInfo[ind];
                     let thisProbName = `/problem${ind + 1}`;
@@ -2082,8 +2043,8 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get(cesc("#problem1_title")).should("have.text", "Problem 1");
-        cy.get(cesc("#ca")).should("have.text", "0");
+        cy.get("#problem1_title").should("have.text", "Problem 1");
+        cy.get("#ca").should("have.text", "0");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -2117,7 +2078,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             );
             cy.get(answer1Button).click();
 
-            cy.get(cesc("#ca")).should("have.text", "0.25");
+            cy.get("#ca").should("have.text", "0.25");
 
             cy.get(mathInput2Anchor).type(`2${correctAnswer}`, { force: true });
             cy.get(mathInput2DisplayAnchor).should(
@@ -2126,15 +2087,15 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             );
             cy.get(answer2Button).click();
 
-            cy.get(cesc("#ca")).should("have.text", "0.5");
+            cy.get("#ca").should("have.text", "0.5");
 
-            cy.get(cesc("#pcontrols_next")).click();
-            cy.get(cesc("#problem2_title")).should("have.text", "Problem 2");
-            cy.get(cesc("#ca")).should("have.text", "0.5");
+            cy.get("#pcontrols_next").click();
+            cy.get("#problem2_title").should("have.text", "Problem 2");
+            cy.get("#ca").should("have.text", "0.5");
 
-            cy.get(cesc("#pcontrols_previous")).click();
-            cy.get(cesc("#problem1_title")).should("have.text", "Problem 1");
-            cy.get(cesc("#ca")).should("have.text", "0.5");
+            cy.get("#pcontrols_previous").click();
+            cy.get("#problem1_title").should("have.text", "Problem 1");
+            cy.get("#ca").should("have.text", "0.5");
 
             cy.get(mathInput1DisplayAnchor).should(
                 "contain.text",
@@ -2148,9 +2109,9 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
             );
             cy.get(answer2Button).should("contain.text", "Correct");
 
-            cy.get(cesc("#pcontrols_next")).click();
-            cy.get(cesc("#problem2_title")).should("have.text", "Problem 2");
-            cy.get(cesc("#ca")).should("have.text", "0.5");
+            cy.get("#pcontrols_next").click();
+            cy.get("#problem2_title").should("have.text", "Problem 2");
+            cy.get("#ca").should("have.text", "0.5");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -2179,20 +2140,17 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                 cy.get(mathInput3DisplayAnchor).should("contain.text", "1");
                 cy.get(answer3Button).should("contain.text", "Correct");
 
-                cy.get(cesc("#ca")).should("have.text", "0.75");
+                cy.get("#ca").should("have.text", "0.75");
 
                 cy.get(mathInput4Anchor).type(`2{enter}`, { force: true });
                 cy.get(mathInput4DisplayAnchor).should("contain.text", "2");
                 cy.get(answer4Button).should("contain.text", "Correct");
 
-                cy.get(cesc("#ca")).should("have.text", "1");
+                cy.get("#ca").should("have.text", "1");
 
-                cy.get(cesc("#pcontrols_previous")).click();
-                cy.get(cesc("#problem1_title")).should(
-                    "have.text",
-                    "Problem 1",
-                );
-                cy.get(cesc("#ca")).should("have.text", "1");
+                cy.get("#pcontrols_previous").click();
+                cy.get("#problem1_title").should("have.text", "Problem 1");
+                cy.get("#ca").should("have.text", "1");
 
                 cy.get(mathInput1DisplayAnchor).should(
                     "contain.text",
@@ -2206,12 +2164,9 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                 );
                 cy.get(answer2Button).should("contain.text", "Correct");
 
-                cy.get(cesc("#pcontrols_next")).click();
-                cy.get(cesc("#problem2_title")).should(
-                    "have.text",
-                    "Problem 2",
-                );
-                cy.get(cesc("#ca")).should("have.text", "1");
+                cy.get("#pcontrols_next").click();
+                cy.get("#problem2_title").should("have.text", "Problem 2");
+                cy.get("#ca").should("have.text", "1");
 
                 cy.get(mathInput3DisplayAnchor).should("contain.text", "1");
                 cy.get(answer3Button).should("contain.text", "Correct");
@@ -2219,7 +2174,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                 cy.get(mathInput4DisplayAnchor).should("contain.text", "2");
                 cy.get(answer4Button).should("contain.text", "Correct");
 
-                cy.get(cesc("#ca")).should("have.text", "1");
+                cy.get("#ca").should("have.text", "1");
 
                 cy.wait(2000); // wait for 1 second debounce
 
@@ -2232,7 +2187,7 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                     );
                 });
 
-                cy.get(cesc("#b")).should("have.text", "b"); //wait for page to load
+                cy.get("#b").should("have.text", "b"); //wait for page to load
 
                 cy.window().then(async (win) => {
                     win.postMessage(
@@ -2243,11 +2198,8 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                     );
                 });
 
-                cy.get(cesc("#problem2_title")).should(
-                    "have.text",
-                    "Problem 2",
-                );
-                cy.get(cesc("#ca")).should("have.text", "1");
+                cy.get("#problem2_title").should("have.text", "Problem 2");
+                cy.get("#ca").should("have.text", "1");
 
                 cy.get(mathInput3DisplayAnchor).should("contain.text", "1");
                 cy.get(answer3Button).should("contain.text", "Correct");
@@ -2255,14 +2207,11 @@ describe("Paginator Tag Tests", { tags: ["@group3"] }, function () {
                 cy.get(mathInput4DisplayAnchor).should("contain.text", "2");
                 cy.get(answer4Button).should("contain.text", "Correct");
 
-                cy.get(cesc("#ca")).should("have.text", "1");
+                cy.get("#ca").should("have.text", "1");
 
-                cy.get(cesc("#pcontrols_previous")).click();
-                cy.get(cesc("#problem1_title")).should(
-                    "have.text",
-                    "Problem 1",
-                );
-                cy.get(cesc("#ca")).should("have.text", "1");
+                cy.get("#pcontrols_previous").click();
+                cy.get("#problem1_title").should("have.text", "Problem 1");
+                cy.get("#ca").should("have.text", "1");
 
                 cy.get(mathInput1DisplayAnchor).should(
                     "contain.text",

@@ -1,4 +1,3 @@
-import { cesc } from "@doenet/utils";
 import { toMathJaxString } from "../../../src/util/mathDisplay";
 
 describe("Slider Tag Tests", { tags: ["@group1"] }, function () {
@@ -259,7 +258,7 @@ describe("Slider Tag Tests", { tags: ["@group1"] }, function () {
         cy.get("#sv").should("have.text", "0");
         cy.get("#s").should("have.value", "0");
 
-        cy.get(cesc("#s-label")).should(
+        cy.get("#s-label").should(
             "contain.text",
             `Hello ${toMathJaxString(`x2 = 0`)}`,
         );
@@ -283,7 +282,7 @@ describe("Slider Tag Tests", { tags: ["@group1"] }, function () {
         cy.get("#sv").should("have.text", "1");
         cy.get("#s").should("have.value", "1");
 
-        cy.get(cesc("#s-label")).should(
+        cy.get("#s-label").should(
             "contain.text",
             `Hello ${toMathJaxString(`x2 = 1`)}`,
         );

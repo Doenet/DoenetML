@@ -39,7 +39,7 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get(cesc("#a")).should("have.text", "a"); // to wait for page to load
+        cy.get("#a").should("have.text", "a"); // to wait for page to load
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -82,7 +82,7 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
         });
 
         cy.log("change radius");
-        cy.get(cesc("#r") + " textarea").type("{end}{backspace}3{enter}", {
+        cy.get("#r" + " textarea").type("{end}{backspace}3{enter}", {
             force: true,
         });
         cy.get(cesc(`#r`) + ` .mq-editable-field`).should("contain.text", "3");
@@ -113,7 +113,7 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
+        cy.get("#a").should("have.text", "a"); //wait for page to load
 
         // wait until core is loaded
         cy.waitUntil(() =>

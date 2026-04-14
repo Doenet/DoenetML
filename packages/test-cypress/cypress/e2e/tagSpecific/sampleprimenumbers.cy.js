@@ -1,5 +1,3 @@
-import { cesc } from "@doenet/utils";
-
 describe("SamplePrimeNumbers Tag Tests", { tags: ["@group1"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -24,7 +22,7 @@ describe("SamplePrimeNumbers Tag Tests", { tags: ["@group1"] }, function () {
             );
         });
 
-        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
+        cy.get("#a").should("have.text", "a"); //wait for page to load
 
         let samples = [];
 
@@ -60,7 +58,7 @@ describe("SamplePrimeNumbers Tag Tests", { tags: ["@group1"] }, function () {
             );
         });
 
-        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
+        cy.get("#a").should("have.text", "a"); //wait for page to load
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -110,7 +108,7 @@ describe("SamplePrimeNumbers Tag Tests", { tags: ["@group1"] }, function () {
             );
         });
 
-        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
+        cy.get("#a").should("have.text", "a"); //wait for page to load
 
         let samples = [];
 
@@ -136,8 +134,8 @@ describe("SamplePrimeNumbers Tag Tests", { tags: ["@group1"] }, function () {
         });
 
         cy.log("interact so changes will be saved to database");
-        cy.get(cesc("#bi")).click();
-        cy.get(cesc("#b2")).should("have.text", "true");
+        cy.get("#bi").click();
+        cy.get("#b2").should("have.text", "true");
 
         cy.log("wait for debounce");
         cy.wait(1500);
@@ -154,8 +152,8 @@ describe("SamplePrimeNumbers Tag Tests", { tags: ["@group1"] }, function () {
         });
 
         cy.log("make sure core is up and running");
-        cy.get(cesc("#bi")).click();
-        cy.get(cesc("#b2")).should("have.text", "false");
+        cy.get("#bi").click();
+        cy.get("#b2").should("have.text", "false");
 
         cy.log("check that values are unchanged");
         cy.window().then(async (win) => {

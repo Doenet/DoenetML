@@ -1,5 +1,3 @@
-import { cesc } from "@doenet/utils";
-
 describe("Select Tag Tests", { tags: ["@group5"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -24,7 +22,7 @@ describe("Select Tag Tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
-        cy.get(cesc("#sec")).should("not.contain.text", ",");
+        cy.get("#a").should("have.text", "a"); //wait for page to load
+        cy.get("#sec").should("not.contain.text", ",");
     });
 });

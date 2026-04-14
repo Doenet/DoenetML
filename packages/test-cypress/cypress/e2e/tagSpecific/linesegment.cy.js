@@ -1,4 +1,3 @@
-import { cesc } from "@doenet/utils";
 import { toMathJaxString } from "../../../src/util/mathDisplay";
 
 describe("Line Tag Tests", { tags: ["@group4"] }, function () {
@@ -22,7 +21,7 @@ describe("Line Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(cesc("#P1")).should("have.text", toMathJaxString("(1,0)"));
-        cy.get(cesc("#P2")).should("have.text", toMathJaxString("(1,2i)"));
+        cy.get("#P1").should("have.text", toMathJaxString("(1,0)"));
+        cy.get("#P2").should("have.text", toMathJaxString("(1,2i)"));
     });
 });

@@ -1,5 +1,3 @@
-import { cesc } from "@doenet/utils";
-
 describe("Curve Tag Bezier Tests", { tags: ["@group2"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -32,7 +30,7 @@ describe("Curve Tag Bezier Tests", { tags: ["@group2"] }, function () {
             );
         });
 
-        cy.get(cesc("#text1")).should("have.text", "a"); //wait for window to load
+        cy.get("#text1").should("have.text", "a"); //wait for window to load
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -214,7 +212,7 @@ describe("Curve Tag Bezier Tests", { tags: ["@group2"] }, function () {
             );
         });
 
-        cy.get(cesc("#text1")).should("have.text", "a"); //wait for window to load
+        cy.get("#text1").should("have.text", "a"); //wait for window to load
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -360,7 +358,7 @@ describe("Curve Tag Bezier Tests", { tags: ["@group2"] }, function () {
             );
         });
 
-        cy.get(cesc("#text1")).should("have.text", "a"); //wait for window to load
+        cy.get("#text1").should("have.text", "a"); //wait for window to load
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();

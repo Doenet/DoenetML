@@ -1,4 +1,3 @@
-import { cesc } from "@doenet/utils";
 import { toMathJaxString } from "../../../src/util/mathDisplay";
 
 describe("MatrixInput Tag Tests", { tags: ["@group4"] }, function () {
@@ -29,10 +28,10 @@ describe("MatrixInput Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(cesc("#n") + " textarea").type("1", { force: true });
+        cy.get("#n" + " textarea").type("1", { force: true });
 
-        cy.get(cesc("#piv")).should("have.text", "immediate value: [1]");
-        cy.get(cesc("#pv")).should("contain.text", "[\uff3f]");
+        cy.get("#piv").should("have.text", "immediate value: [1]");
+        cy.get("#pv").should("contain.text", "[\uff3f]");
 
         cy.wait(1500); // wait for debounce
 
@@ -47,8 +46,8 @@ describe("MatrixInput Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(cesc("#pv")).should("have.text", "value: [1]");
-        cy.get(cesc("#piv")).should("have.text", "immediate value: [1]");
+        cy.get("#pv").should("have.text", "value: [1]");
+        cy.get("#piv").should("have.text", "immediate value: [1]");
     });
 
     it("with description", () => {

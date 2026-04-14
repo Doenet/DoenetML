@@ -38,7 +38,7 @@ export function waitPastDebounceWindow() {
     cy.wait(PREFIGURE_BUILD_DEBOUNCE_MS + REQUEST_SETTLE_BUFFER_MS);
 }
 
-export function postDebounceTestDoenetML(cesc) {
+export function postDebounceTestDoenetML() {
     cy.window().then(async (win) => {
         win.postMessage(
             {
@@ -54,7 +54,7 @@ export function postDebounceTestDoenetML(cesc) {
         );
     });
 
-    cy.get(cesc("#ready")).should("have.text", "ready");
+    cy.get("#ready").should("have.text", "ready");
 }
 
 export function installMockPrefigureModule({

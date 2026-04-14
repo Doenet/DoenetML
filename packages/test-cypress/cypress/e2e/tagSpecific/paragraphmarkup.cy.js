@@ -1,5 +1,3 @@
-import { cesc } from "@doenet/utils";
-
 describe("Paragraph Markup Tag Tests", { tags: ["@group4"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -19,7 +17,7 @@ describe("Paragraph Markup Tag Tests", { tags: ["@group4"] }, function () {
         });
 
         cy.log("find em");
-        cy.get("em" + cesc("#em1")).should("have.text", "This is italics");
+        cy.get("em" + "#em1").should("have.text", "This is italics");
     });
 
     it("alert", () => {
@@ -35,7 +33,7 @@ describe("Paragraph Markup Tag Tests", { tags: ["@group4"] }, function () {
         });
 
         cy.log("find alert");
-        cy.get("strong" + cesc("#alert1")).should("have.text", "This is bold");
+        cy.get("strong" + "#alert1").should("have.text", "This is bold");
     });
 
     it("q", () => {
@@ -51,7 +49,7 @@ describe("Paragraph Markup Tag Tests", { tags: ["@group4"] }, function () {
         });
 
         cy.log("find quotes");
-        cy.get(cesc("#p1")).should("have.text", "“Double quoted”");
+        cy.get("#p1").should("have.text", "“Double quoted”");
     });
 
     it("sq", () => {
@@ -67,7 +65,7 @@ describe("Paragraph Markup Tag Tests", { tags: ["@group4"] }, function () {
         });
 
         cy.log("find quotes");
-        cy.get(cesc("#p1")).should("have.text", "‘Single quoted’");
+        cy.get("#p1").should("have.text", "‘Single quoted’");
     });
 
     it("c", () => {
@@ -83,7 +81,7 @@ describe("Paragraph Markup Tag Tests", { tags: ["@group4"] }, function () {
         });
 
         cy.log("find quotes");
-        cy.get("code" + cesc("#c1")).should("have.text", "Code!");
+        cy.get("code" + "#c1").should("have.text", "Code!");
     });
 
     it("term", () => {
@@ -99,6 +97,6 @@ describe("Paragraph Markup Tag Tests", { tags: ["@group4"] }, function () {
         });
 
         cy.log("find term");
-        cy.get("strong" + cesc("#term1")).should("have.text", "Homogeneous");
+        cy.get("strong" + "#term1").should("have.text", "Homogeneous");
     });
 });
