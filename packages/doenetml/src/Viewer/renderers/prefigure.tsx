@@ -441,6 +441,7 @@ function hasAnnotationsXml(value: string): boolean {
         return false;
     }
 
+    // The annotations payload uses <diagram> as its root element.
     return /<diagram\b/i.test(trimmed);
 }
 
@@ -1290,11 +1291,15 @@ export default React.memo(function Prefigure({
     }, [diagramXML]);
 
     useEffect(() => {
-        // Call diagcess.Base.init() after content is set
+        // Run diagcess only when annotations were explicitly authored.
+        // When no authored <annotations> exists, we still render a generated
+        // empty <annotations></annotations> container to suppress implicit
+        // PreFigure auto-annotations, but skip diagcess init.
         const diagcess = diagcessApi();
         const prefigureContainer = prefigureContainerRef.current;
 
         if (!hasAuthorAnnotations) {
+            // Remove stale accessibility messages from previous renders.
             removeDiagcessMessages(prefigureContainer);
         }
 

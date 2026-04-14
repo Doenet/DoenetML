@@ -607,6 +607,9 @@ function returnGraphHasAuthorAnnotationsStateVariableDefinition() {
         }: {
             dependencyValues: GraphDependencyValues;
         }) {
+            // True when the author included at least one <annotations> child,
+            // even if that child is explicitly empty. False only when no
+            // authored <annotations> child exists.
             return {
                 setValue: {
                     hasAuthorAnnotations:

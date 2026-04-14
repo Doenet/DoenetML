@@ -89,6 +89,9 @@ export function convertDoenetMLAnnotationsToPreFigureXml({
     graphDescendantComponentIndices,
     functionToCurveComponentIdx,
 }: BuildAnnotationsXmlParams): string {
+    // Always emit an empty <annotations> container when none are authored.
+    // This suppresses PreFigure WASM's implicit auto-generated annotations;
+    // we have not found a separate PreFigure option to disable that behavior.
     if (!Array.isArray(annotations) || annotations.length === 0) {
         return "<annotations></annotations>";
     }
