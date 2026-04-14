@@ -1,4 +1,3 @@
-import { cesc } from "@doenet/utils";
 import { toMathJaxString } from "../../../src/util/mathDisplay";
 
 describe("Math Tag Tests", { tags: ["@group5"] }, function () {
@@ -36,10 +35,10 @@ describe("Math Tag Tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        cy.get(cesc("#m1")).should("have.text", toMathJaxString("w"));
-        cy.get(cesc("#m2")).should("have.text", toMathJaxString("x+y"));
-        cy.get(cesc("#m4")).should("have.text", toMathJaxString("z"));
-        cy.get(cesc("#m5")).should("have.text", toMathJaxString("a+z"));
+        cy.get("#m1").should("have.text", toMathJaxString("w"));
+        cy.get("#m2").should("have.text", toMathJaxString("x+y"));
+        cy.get("#m4").should("have.text", toMathJaxString("z"));
+        cy.get("#m5").should("have.text", toMathJaxString("a+z"));
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -60,22 +59,22 @@ describe("Math Tag Tests", { tags: ["@group5"] }, function () {
             ).eqls(["+", "a", "z"]);
         });
 
-        cy.get(cesc("#mi1") + " textarea").type("{end}{backspace}1{enter}", {
+        cy.get("#mi1" + " textarea").type("{end}{backspace}1{enter}", {
             force: true,
         });
-        cy.get(cesc("#mi2") + " textarea").type("{end}{backspace}2{enter}", {
+        cy.get("#mi2" + " textarea").type("{end}{backspace}2{enter}", {
             force: true,
         });
-        cy.get(cesc("#mi4") + " textarea").type("{end}{backspace}3{enter}", {
+        cy.get("#mi4" + " textarea").type("{end}{backspace}3{enter}", {
             force: true,
         });
 
-        cy.get(cesc("#m4")).should("contain.text", "3");
+        cy.get("#m4").should("contain.text", "3");
 
-        cy.get(cesc("#m1")).should("have.text", toMathJaxString("1"));
-        cy.get(cesc("#m2")).should("have.text", toMathJaxString("x+2"));
-        cy.get(cesc("#m4")).should("have.text", toMathJaxString("3"));
-        cy.get(cesc("#m5")).should("have.text", toMathJaxString("a+3"));
+        cy.get("#m1").should("have.text", toMathJaxString("1"));
+        cy.get("#m2").should("have.text", toMathJaxString("x+2"));
+        cy.get("#m4").should("have.text", toMathJaxString("3"));
+        cy.get("#m5").should("have.text", toMathJaxString("a+3"));
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -109,7 +108,7 @@ describe("Math Tag Tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        cy.get(cesc("#m1")).should("have.text", "1");
+        cy.get("#m1").should("have.text", "1");
 
         // wait until core is loaded
         cy.waitUntil(() =>
@@ -119,10 +118,10 @@ describe("Math Tag Tests", { tags: ["@group5"] }, function () {
             }),
         );
 
-        cy.get(cesc("#m1")).should("have.text", toMathJaxString("1"));
-        cy.get(cesc("#m2")).should("have.text", toMathJaxString("x+2"));
-        cy.get(cesc("#m4")).should("have.text", toMathJaxString("3"));
-        cy.get(cesc("#m5")).should("have.text", toMathJaxString("a+3"));
+        cy.get("#m1").should("have.text", toMathJaxString("1"));
+        cy.get("#m2").should("have.text", toMathJaxString("x+2"));
+        cy.get("#m4").should("have.text", toMathJaxString("3"));
+        cy.get("#m5").should("have.text", toMathJaxString("a+3"));
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -143,22 +142,22 @@ describe("Math Tag Tests", { tags: ["@group5"] }, function () {
             ).eqls(["+", "a", 3]);
         });
 
-        cy.get(cesc("#mi1") + " textarea").type("{end}{backspace}4+5{enter}", {
+        cy.get("#mi1" + " textarea").type("{end}{backspace}4+5{enter}", {
             force: true,
         });
-        cy.get(cesc("#mi3") + " textarea").type("{end}{backspace}6+7{enter}", {
+        cy.get("#mi3" + " textarea").type("{end}{backspace}6+7{enter}", {
             force: true,
         });
-        cy.get(cesc("#mi5") + " textarea").type("{end}{backspace}8+9{enter}", {
+        cy.get("#mi5" + " textarea").type("{end}{backspace}8+9{enter}", {
             force: true,
         });
 
-        cy.get(cesc("#m5")).should("contain.text", "17");
+        cy.get("#m5").should("contain.text", "17");
 
-        cy.get(cesc("#m1")).should("have.text", toMathJaxString("4+5"));
-        cy.get(cesc("#m2")).should("have.text", toMathJaxString("x+6+7"));
-        cy.get(cesc("#m4")).should("have.text", toMathJaxString("17"));
-        cy.get(cesc("#m5")).should("have.text", toMathJaxString("a+17"));
+        cy.get("#m1").should("have.text", toMathJaxString("4+5"));
+        cy.get("#m2").should("have.text", toMathJaxString("x+6+7"));
+        cy.get("#m4").should("have.text", toMathJaxString("17"));
+        cy.get("#m5").should("have.text", toMathJaxString("a+17"));
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -192,7 +191,7 @@ describe("Math Tag Tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        cy.get(cesc("#m1")).should("have.text", toMathJaxString("4+5"));
+        cy.get("#m1").should("have.text", toMathJaxString("4+5"));
 
         // wait until core is loaded
         cy.waitUntil(() =>
@@ -202,10 +201,10 @@ describe("Math Tag Tests", { tags: ["@group5"] }, function () {
             }),
         );
 
-        cy.get(cesc("#m1")).should("have.text", toMathJaxString("4+5"));
-        cy.get(cesc("#m2")).should("have.text", toMathJaxString("x+6+7"));
-        cy.get(cesc("#m4")).should("have.text", toMathJaxString("17"));
-        cy.get(cesc("#m5")).should("have.text", toMathJaxString("a+17"));
+        cy.get("#m1").should("have.text", toMathJaxString("4+5"));
+        cy.get("#m2").should("have.text", toMathJaxString("x+6+7"));
+        cy.get("#m4").should("have.text", toMathJaxString("17"));
+        cy.get("#m5").should("have.text", toMathJaxString("a+17"));
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -255,42 +254,34 @@ describe("Math Tag Tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        cy.get(cesc("#tsd_no_style")).should("have.text", "black");
-        cy.get(cesc("#tc_no_style")).should("have.text", "black");
-        cy.get(cesc("#bc_no_style")).should("have.text", "none");
+        cy.get("#tsd_no_style").should("have.text", "black");
+        cy.get("#tc_no_style").should("have.text", "black");
+        cy.get("#bc_no_style").should("have.text", "none");
 
-        cy.get(cesc("#tsd_fixed_style")).should("have.text", "green");
-        cy.get(cesc("#tc_fixed_style")).should("have.text", "green");
-        cy.get(cesc("#bc_fixed_style")).should("have.text", "none");
+        cy.get("#tsd_fixed_style").should("have.text", "green");
+        cy.get("#tc_fixed_style").should("have.text", "green");
+        cy.get("#bc_fixed_style").should("have.text", "none");
 
-        cy.get(cesc("#tsd_variable_style")).should("have.text", "black");
-        cy.get(cesc("#tc_variable_style")).should("have.text", "black");
-        cy.get(cesc("#bc_variable_style")).should("have.text", "none");
+        cy.get("#tsd_variable_style").should("have.text", "black");
+        cy.get("#tc_variable_style").should("have.text", "black");
+        cy.get("#bc_variable_style").should("have.text", "none");
 
-        cy.get(cesc("#no_style")).should("have.css", "color", "rgb(0, 0, 0)");
-        cy.get(cesc("#no_style")).should(
+        cy.get("#no_style").should("have.css", "color", "rgb(0, 0, 0)");
+        cy.get("#no_style").should(
             "have.css",
             "background-color",
             "rgba(0, 0, 0, 0)",
         );
 
-        cy.get(cesc("#fixed_style")).should(
-            "have.css",
-            "color",
-            "rgb(0, 128, 0)",
-        );
-        cy.get(cesc("#fixed_style")).should(
+        cy.get("#fixed_style").should("have.css", "color", "rgb(0, 128, 0)");
+        cy.get("#fixed_style").should(
             "have.css",
             "background-color",
             "rgba(0, 0, 0, 0)",
         );
 
-        cy.get(cesc("#variable_style")).should(
-            "have.css",
-            "color",
-            "rgb(0, 0, 0)",
-        );
-        cy.get(cesc("#variable_style")).should(
+        cy.get("#variable_style").should("have.css", "color", "rgb(0, 0, 0)");
+        cy.get("#variable_style").should(
             "have.css",
             "background-color",
             "rgba(0, 0, 0, 0)",
@@ -298,94 +289,78 @@ describe("Math Tag Tests", { tags: ["@group5"] }, function () {
 
         // TODO: how to test color in graph
 
-        cy.get(cesc("#sn") + " textarea").type("{end}{backspace}2{enter}", {
+        cy.get("#sn" + " textarea").type("{end}{backspace}2{enter}", {
             force: true,
         });
 
-        cy.get(cesc("#tsd_variable_style")).should("have.text", "green");
-        cy.get(cesc("#tc_variable_style")).should("have.text", "green");
-        cy.get(cesc("#bc_variable_style")).should("have.text", "none");
+        cy.get("#tsd_variable_style").should("have.text", "green");
+        cy.get("#tc_variable_style").should("have.text", "green");
+        cy.get("#bc_variable_style").should("have.text", "none");
 
-        cy.get(cesc("#tsd_no_style")).should("have.text", "black");
-        cy.get(cesc("#tc_no_style")).should("have.text", "black");
-        cy.get(cesc("#bc_no_style")).should("have.text", "none");
+        cy.get("#tsd_no_style").should("have.text", "black");
+        cy.get("#tc_no_style").should("have.text", "black");
+        cy.get("#bc_no_style").should("have.text", "none");
 
-        cy.get(cesc("#tsd_fixed_style")).should("have.text", "green");
-        cy.get(cesc("#tc_fixed_style")).should("have.text", "green");
-        cy.get(cesc("#bc_fixed_style")).should("have.text", "none");
+        cy.get("#tsd_fixed_style").should("have.text", "green");
+        cy.get("#tc_fixed_style").should("have.text", "green");
+        cy.get("#bc_fixed_style").should("have.text", "none");
 
-        cy.get(cesc("#no_style")).should("have.css", "color", "rgb(0, 0, 0)");
-        cy.get(cesc("#no_style")).should(
+        cy.get("#no_style").should("have.css", "color", "rgb(0, 0, 0)");
+        cy.get("#no_style").should(
             "have.css",
             "background-color",
             "rgba(0, 0, 0, 0)",
         );
 
-        cy.get(cesc("#fixed_style")).should(
-            "have.css",
-            "color",
-            "rgb(0, 128, 0)",
-        );
-        cy.get(cesc("#fixed_style")).should(
+        cy.get("#fixed_style").should("have.css", "color", "rgb(0, 128, 0)");
+        cy.get("#fixed_style").should(
             "have.css",
             "background-color",
             "rgba(0, 0, 0, 0)",
         );
 
-        cy.get(cesc("#variable_style")).should(
-            "have.css",
-            "color",
-            "rgb(0, 128, 0)",
-        );
-        cy.get(cesc("#variable_style")).should(
+        cy.get("#variable_style").should("have.css", "color", "rgb(0, 128, 0)");
+        cy.get("#variable_style").should(
             "have.css",
             "background-color",
             "rgba(0, 0, 0, 0)",
         );
 
-        cy.get(cesc("#sn") + " textarea").type("{end}{backspace}3{enter}", {
+        cy.get("#sn" + " textarea").type("{end}{backspace}3{enter}", {
             force: true,
         });
 
-        cy.get(cesc("#tsd_variable_style")).should(
+        cy.get("#tsd_variable_style").should(
             "have.text",
             "red with a blue background",
         );
-        cy.get(cesc("#tc_variable_style")).should("have.text", "red");
-        cy.get(cesc("#bc_variable_style")).should("have.text", "blue");
+        cy.get("#tc_variable_style").should("have.text", "red");
+        cy.get("#bc_variable_style").should("have.text", "blue");
 
-        cy.get(cesc("#tsd_no_style")).should("have.text", "black");
-        cy.get(cesc("#tc_no_style")).should("have.text", "black");
-        cy.get(cesc("#bc_no_style")).should("have.text", "none");
+        cy.get("#tsd_no_style").should("have.text", "black");
+        cy.get("#tc_no_style").should("have.text", "black");
+        cy.get("#bc_no_style").should("have.text", "none");
 
-        cy.get(cesc("#tsd_fixed_style")).should("have.text", "green");
-        cy.get(cesc("#tc_fixed_style")).should("have.text", "green");
-        cy.get(cesc("#bc_fixed_style")).should("have.text", "none");
+        cy.get("#tsd_fixed_style").should("have.text", "green");
+        cy.get("#tc_fixed_style").should("have.text", "green");
+        cy.get("#bc_fixed_style").should("have.text", "none");
 
-        cy.get(cesc("#no_style")).should("have.css", "color", "rgb(0, 0, 0)");
-        cy.get(cesc("#no_style")).should(
+        cy.get("#no_style").should("have.css", "color", "rgb(0, 0, 0)");
+        cy.get("#no_style").should(
             "have.css",
             "background-color",
             "rgba(0, 0, 0, 0)",
         );
 
-        cy.get(cesc("#fixed_style")).should(
-            "have.css",
-            "color",
-            "rgb(0, 128, 0)",
-        );
-        cy.get(cesc("#fixed_style")).should(
+        cy.get("#fixed_style").should("have.css", "color", "rgb(0, 128, 0)");
+        cy.get("#fixed_style").should(
             "have.css",
             "background-color",
             "rgba(0, 0, 0, 0)",
         );
 
-        cy.get(cesc("#variable_style")).should(
-            "have.css",
-            "color",
-            "rgb(255, 0, 0)",
-        );
-        cy.get(cesc("#variable_style")).should(
+        cy.get("#variable_style").should("have.css", "color", "rgb(255, 0, 0)");
+        cy.get("#variable_style").should(
             "have.css",
             "background-color",
             "rgb(0, 0, 255)",
@@ -440,7 +415,7 @@ describe("Math Tag Tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        cy.get(cesc("#a")).should("have.text", "a"); // to wait until loaded
+        cy.get("#a").should("have.text", "a"); // to wait until loaded
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -485,12 +460,12 @@ describe("Math Tag Tests", { tags: ["@group5"] }, function () {
             cy.get(m2cAnchor).should("have.css", "color", "rgb(255, 0, 0)");
             cy.get(m2dAnchor).should("have.css", "color", "rgb(0, 0, 0)");
 
-            cy.get(cesc("#m1coords")).eq(0).should("have.text", "(0,0)");
-            cy.get(cesc("#m2coords")).eq(0).should("have.text", "(3,4)");
-            cy.get(cesc("#m1acoords")).eq(0).should("have.text", "(0,0)");
-            cy.get(cesc("#m2acoords")).eq(0).should("have.text", "(3,4)");
-            cy.get(cesc("#m1bcoords")).eq(0).should("have.text", "(0,0)");
-            cy.get(cesc("#m2bcoords")).eq(0).should("have.text", "(0,0)");
+            cy.get("#m1coords").eq(0).should("have.text", "(0,0)");
+            cy.get("#m2coords").eq(0).should("have.text", "(3,4)");
+            cy.get("#m1acoords").eq(0).should("have.text", "(0,0)");
+            cy.get("#m2acoords").eq(0).should("have.text", "(3,4)");
+            cy.get("#m1bcoords").eq(0).should("have.text", "(0,0)");
+            cy.get("#m2bcoords").eq(0).should("have.text", "(0,0)");
 
             cy.log("move first maths");
             cy.window().then(async (win) => {
@@ -506,14 +481,14 @@ describe("Math Tag Tests", { tags: ["@group5"] }, function () {
                 });
             });
 
-            cy.get(cesc("#m2coords")).should("contain.text", "(4,−5)");
+            cy.get("#m2coords").should("contain.text", "(4,−5)");
 
-            cy.get(cesc("#m1coords")).eq(0).should("have.text", "(−2,3)");
-            cy.get(cesc("#m2coords")).eq(0).should("have.text", "(4,−5)");
-            cy.get(cesc("#m1acoords")).eq(0).should("have.text", "(−2,3)");
-            cy.get(cesc("#m2acoords")).eq(0).should("have.text", "(4,−5)");
-            cy.get(cesc("#m1bcoords")).eq(0).should("have.text", "(0,0)");
-            cy.get(cesc("#m2bcoords")).eq(0).should("have.text", "(0,0)");
+            cy.get("#m1coords").eq(0).should("have.text", "(−2,3)");
+            cy.get("#m2coords").eq(0).should("have.text", "(4,−5)");
+            cy.get("#m1acoords").eq(0).should("have.text", "(−2,3)");
+            cy.get("#m2acoords").eq(0).should("have.text", "(4,−5)");
+            cy.get("#m1bcoords").eq(0).should("have.text", "(0,0)");
+            cy.get("#m2bcoords").eq(0).should("have.text", "(0,0)");
 
             cy.log("move second maths");
             cy.window().then(async (win) => {
@@ -529,14 +504,14 @@ describe("Math Tag Tests", { tags: ["@group5"] }, function () {
                 });
             });
 
-            cy.get(cesc("#m2coords")).should("contain.text", "(−8,2)");
+            cy.get("#m2coords").should("contain.text", "(−8,2)");
 
-            cy.get(cesc("#m1coords")).eq(0).should("have.text", "(7,1)");
-            cy.get(cesc("#m2coords")).eq(0).should("have.text", "(−8,2)");
-            cy.get(cesc("#m1acoords")).eq(0).should("have.text", "(7,1)");
-            cy.get(cesc("#m2acoords")).eq(0).should("have.text", "(−8,2)");
-            cy.get(cesc("#m1bcoords")).eq(0).should("have.text", "(0,0)");
-            cy.get(cesc("#m2bcoords")).eq(0).should("have.text", "(0,0)");
+            cy.get("#m1coords").eq(0).should("have.text", "(7,1)");
+            cy.get("#m2coords").eq(0).should("have.text", "(−8,2)");
+            cy.get("#m1acoords").eq(0).should("have.text", "(7,1)");
+            cy.get("#m2acoords").eq(0).should("have.text", "(−8,2)");
+            cy.get("#m1bcoords").eq(0).should("have.text", "(0,0)");
+            cy.get("#m2bcoords").eq(0).should("have.text", "(0,0)");
 
             cy.log("move third maths");
             cy.window().then(async (win) => {
@@ -552,14 +527,14 @@ describe("Math Tag Tests", { tags: ["@group5"] }, function () {
                 });
             });
 
-            cy.get(cesc("#m2bcoords")).should("contain.text", "(−5,−4)");
+            cy.get("#m2bcoords").should("contain.text", "(−5,−4)");
 
-            cy.get(cesc("#m1coords")).eq(0).should("have.text", "(7,1)");
-            cy.get(cesc("#m2coords")).eq(0).should("have.text", "(−8,2)");
-            cy.get(cesc("#m1acoords")).eq(0).should("have.text", "(7,1)");
-            cy.get(cesc("#m2acoords")).eq(0).should("have.text", "(−8,2)");
-            cy.get(cesc("#m1bcoords")).eq(0).should("have.text", "(−6,3)");
-            cy.get(cesc("#m2bcoords")).eq(0).should("have.text", "(−5,−4)");
+            cy.get("#m1coords").eq(0).should("have.text", "(7,1)");
+            cy.get("#m2coords").eq(0).should("have.text", "(−8,2)");
+            cy.get("#m1acoords").eq(0).should("have.text", "(7,1)");
+            cy.get("#m2acoords").eq(0).should("have.text", "(−8,2)");
+            cy.get("#m1bcoords").eq(0).should("have.text", "(−6,3)");
+            cy.get("#m2bcoords").eq(0).should("have.text", "(−5,−4)");
         });
     });
 });

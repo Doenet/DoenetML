@@ -20,8 +20,8 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(cesc("#p1")).should("have.text", "");
-        cy.get(cesc("#p2")).should("have.text", "");
+        cy.get("#p1").should("have.text", "");
+        cy.get("#p2").should("have.text", "");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -36,10 +36,10 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
         });
 
         cy.log("type text in editor");
-        cy.get(cesc("#editor") + " .cm-activeLine").invoke("text", "Hello!");
+        cy.get("#editor" + " .cm-activeLine").invoke("text", "Hello!");
 
-        cy.get(cesc("#p1")).should("have.text", "Hello!");
-        cy.get(cesc("#p2")).should("have.text", "");
+        cy.get("#p1").should("have.text", "Hello!");
+        cy.get("#p2").should("have.text", "");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -55,8 +55,8 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
 
         cy.log("wait for debounce to update value");
         cy.wait(1500);
-        cy.get(cesc("#p1")).should("have.text", "Hello!");
-        cy.get(cesc("#p2")).should("have.text", "Hello!");
+        cy.get("#p1").should("have.text", "Hello!");
+        cy.get("#p2").should("have.text", "Hello!");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -71,14 +71,11 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
         });
 
         cy.log("type more in editor");
-        cy.get(cesc("#editor") + " .cm-activeLine").type("{enter}");
-        cy.get(cesc("#editor") + " .cm-activeLine").invoke(
-            "text",
-            "More here.",
-        );
+        cy.get("#editor" + " .cm-activeLine").type("{enter}");
+        cy.get("#editor" + " .cm-activeLine").invoke("text", "More here.");
 
-        cy.get(cesc("#p1")).should("have.text", "Hello!\nMore here.");
-        cy.get(cesc("#p2")).should("have.text", "Hello!");
+        cy.get("#p1").should("have.text", "Hello!\nMore here.");
+        cy.get("#p2").should("have.text", "Hello!");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -93,10 +90,10 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
         });
 
         cy.log("blur to update value");
-        cy.get(cesc("#editor") + " .cm-content").blur();
+        cy.get("#editor" + " .cm-content").blur();
 
-        cy.get(cesc("#p1")).should("have.text", "Hello!\nMore here.");
-        cy.get(cesc("#p2")).should("have.text", "Hello!\nMore here.");
+        cy.get("#p1").should("have.text", "Hello!\nMore here.");
+        cy.get("#p2").should("have.text", "Hello!\nMore here.");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -128,8 +125,8 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
 
         cy.get(cesc(`#editor::_id_0`)).should("exist");
 
-        cy.get(cesc("#p1")).should("have.text", "");
-        cy.get(cesc("#p2")).should("have.text", "");
+        cy.get("#p1").should("have.text", "");
+        cy.get("#p2").should("have.text", "");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -148,14 +145,14 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
         });
 
         cy.log("type text in editor");
-        cy.get(cesc("#editor") + " .cm-content").focus();
-        cy.get(cesc("#editor") + " .cm-activeLine").invoke(
+        cy.get("#editor" + " .cm-content").focus();
+        cy.get("#editor" + " .cm-activeLine").invoke(
             "text",
             '<p name="p1">Hello!</p>',
         );
 
-        cy.get(cesc("#p1")).should("have.text", '<p name="p1">Hello!</p>');
-        cy.get(cesc("#p2")).should("have.text", "");
+        cy.get("#p1").should("have.text", '<p name="p1">Hello!</p>');
+        cy.get("#p2").should("have.text", "");
         cy.get(cesc(`#editor::_id_0`)).should("exist");
         cy.get(cesc(`#editor::p1`)).should("not.exist");
 
@@ -176,10 +173,10 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
         });
 
         cy.log("blur updates value but not content");
-        cy.get(cesc("#editor") + " .cm-content").blur();
+        cy.get("#editor" + " .cm-content").blur();
 
-        cy.get(cesc("#p1")).should("have.text", '<p name="p1">Hello!</p>');
-        cy.get(cesc("#p2")).should("have.text", '<p name="p1">Hello!</p>');
+        cy.get("#p1").should("have.text", '<p name="p1">Hello!</p>');
+        cy.get("#p2").should("have.text", '<p name="p1">Hello!</p>');
         cy.get(cesc(`#editor::_id_0`)).should("exist");
         cy.get(cesc(`#editor::p1`)).should("not.exist");
 
@@ -203,8 +200,8 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
         cy.get(`[data-test="Viewer Update Button"]`).click();
 
         cy.get(cesc(`#editor::p1`)).should("have.text", "Hello!");
-        cy.get(cesc("#p1")).should("have.text", '<p name="p1">Hello!</p>');
-        cy.get(cesc("#p2")).should("have.text", '<p name="p1">Hello!</p>');
+        cy.get("#p1").should("have.text", '<p name="p1">Hello!</p>');
+        cy.get("#p2").should("have.text", '<p name="p1">Hello!</p>');
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -227,17 +224,17 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
 
         cy.log("type more content");
 
-        cy.get(cesc("#editor") + " .cm-activeLine").type("{ctrl+end}{enter}");
-        cy.get(cesc("#editor") + " .cm-activeLine").invoke(
+        cy.get("#editor" + " .cm-activeLine").type("{ctrl+end}{enter}");
+        cy.get("#editor" + " .cm-activeLine").invoke(
             "text",
             '<p name="p2"><math simplify>1+1</math></p>',
         );
 
-        cy.get(cesc("#p1")).should(
+        cy.get("#p1").should(
             "have.text",
             '<p name="p1">Hello!</p>\n<p name="p2"><math simplify>1+1</math></p>',
         );
-        cy.get(cesc("#p2")).should("have.text", '<p name="p1">Hello!</p>');
+        cy.get("#p2").should("have.text", '<p name="p1">Hello!</p>');
 
         cy.get(cesc(`#editor::p1`)).should("have.text", "Hello!");
         cy.get(cesc(`#editor::p2`)).should("not.exist");
@@ -266,11 +263,11 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
         });
 
         cy.log("Wait for value to be updated");
-        cy.get(cesc("#p2")).should(
+        cy.get("#p2").should(
             "have.text",
             '<p name="p1">Hello!</p>\n<p name="p2"><math simplify>1+1</math></p>',
         );
-        cy.get(cesc("#p1")).should(
+        cy.get("#p1").should(
             "have.text",
             '<p name="p1">Hello!</p>\n<p name="p2"><math simplify>1+1</math></p>',
         );
@@ -308,11 +305,11 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
 
         cy.get(cesc(`#editor::p2`)).should("contain.text", "2");
 
-        cy.get(cesc("#p1")).should(
+        cy.get("#p1").should(
             "have.text",
             '<p name="p1">Hello!</p>\n<p name="p2"><math simplify>1+1</math></p>',
         );
-        cy.get(cesc("#p2")).should(
+        cy.get("#p2").should(
             "have.text",
             '<p name="p1">Hello!</p>\n<p name="p2"><math simplify>1+1</math></p>',
         );
@@ -366,7 +363,7 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(cesc("#text1")).should("contain.text", "a");
+        cy.get("#text1").should("contain.text", "a");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -376,14 +373,14 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
                     .activeChildren[0].componentIdx;
             let contentAnchor = "#_id_" + cesc(viewerIdx) + "_content";
 
-            cy.get(cesc("#p1")).should("have.text", "");
-            cy.get(cesc("#p2")).should("have.text", "");
-            cy.get(cesc("#p3")).should(
+            cy.get("#p1").should("have.text", "");
+            cy.get("#p2").should("have.text", "");
+            cy.get("#p3").should(
                 "have.text",
                 "The value of the entered math is ",
             );
             cy.get(contentAnchor).should("have.text", "");
-            cy.get(cesc("#m1")).should("not.exist");
+            cy.get("#m1").should("not.exist");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -408,21 +405,18 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             });
 
             cy.log("type text in editor");
-            cy.get(cesc("#editor") + " .cm-content").type(
-                '<p name="p1">Hello!</p>',
-                {
-                    delay: 10,
-                },
-            );
+            cy.get("#editor" + " .cm-content").type('<p name="p1">Hello!</p>', {
+                delay: 10,
+            });
 
-            cy.get(cesc("#p1")).should("have.text", '<p name="p1">Hello!</p>');
-            cy.get(cesc("#p2")).should("have.text", "");
-            cy.get(cesc("#p3")).should(
+            cy.get("#p1").should("have.text", '<p name="p1">Hello!</p>');
+            cy.get("#p2").should("have.text", "");
+            cy.get("#p3").should(
                 "have.text",
                 "The value of the entered math is ",
             );
             cy.get(contentAnchor).should("have.text", "");
-            cy.get(cesc("#m1")).should("not.exist");
+            cy.get("#m1").should("not.exist");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -447,16 +441,16 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             });
 
             cy.log("blur updates value but not content");
-            cy.get(cesc("#editor") + " .cm-content").blur();
+            cy.get("#editor" + " .cm-content").blur();
 
-            cy.get(cesc("#p1")).should("have.text", '<p name="p1">Hello!</p>');
-            cy.get(cesc("#p2")).should("have.text", '<p name="p1">Hello!</p>');
-            cy.get(cesc("#p3")).should(
+            cy.get("#p1").should("have.text", '<p name="p1">Hello!</p>');
+            cy.get("#p2").should("have.text", '<p name="p1">Hello!</p>');
+            cy.get("#p3").should(
                 "have.text",
                 "The value of the entered math is ",
             );
             cy.get(contentAnchor).should("have.text", "");
-            cy.get(cesc("#m1")).should("not.exist");
+            cy.get("#m1").should("not.exist");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -483,14 +477,14 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             cy.log("click to update content");
             cy.get(`[data-test="Viewer Update Button"]`).click();
 
-            cy.get(cesc("#p1")).should("have.text", '<p name="p1">Hello!</p>');
-            cy.get(cesc("#p2")).should("have.text", '<p name="p1">Hello!</p>');
-            cy.get(cesc("#p3")).should(
+            cy.get("#p1").should("have.text", '<p name="p1">Hello!</p>');
+            cy.get("#p2").should("have.text", '<p name="p1">Hello!</p>');
+            cy.get("#p3").should(
                 "have.text",
                 "The value of the entered math is ",
             );
             cy.get(contentAnchor).should("have.text", "Hello!");
-            cy.get(cesc("#m1")).should("not.exist");
+            cy.get("#m1").should("not.exist");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -519,22 +513,22 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             });
 
             cy.log("type more content");
-            cy.get(cesc("#editor") + " .cm-content").type(
+            cy.get("#editor" + " .cm-content").type(
                 '{ctrl+end}{enter}<p name="p2"><math simplify>1+1</math></p>',
                 { delay: 10 },
             );
 
-            cy.get(cesc("#p1")).should(
+            cy.get("#p1").should(
                 "have.text",
                 '<p name="p1">Hello!</p>\n<p name="p2"><math simplify>1+1</math></p>',
             );
-            cy.get(cesc("#p2")).should("have.text", '<p name="p1">Hello!</p>');
-            cy.get(cesc("#p3")).should(
+            cy.get("#p2").should("have.text", '<p name="p1">Hello!</p>');
+            cy.get("#p3").should(
                 "have.text",
                 "The value of the entered math is ",
             );
             cy.get(contentAnchor).should("have.text", "Hello!");
-            cy.get(cesc("#m1")).should("not.exist");
+            cy.get("#m1").should("not.exist");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -565,20 +559,20 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             });
 
             cy.log("Wait for value to be updated");
-            cy.get(cesc("#p2")).should(
+            cy.get("#p2").should(
                 "have.text",
                 '<p name="p1">Hello!</p>\n<p name="p2"><math simplify>1+1</math></p>',
             );
-            cy.get(cesc("#p1")).should(
+            cy.get("#p1").should(
                 "have.text",
                 '<p name="p1">Hello!</p>\n<p name="p2"><math simplify>1+1</math></p>',
             );
-            cy.get(cesc("#p3")).should(
+            cy.get("#p3").should(
                 "have.text",
                 "The value of the entered math is ",
             );
             cy.get(contentAnchor).should("have.text", "Hello!");
-            cy.get(cesc("#m1")).should("not.exist");
+            cy.get("#m1").should("not.exist");
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -613,15 +607,15 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             cy.log("click to update content");
             cy.get(`[data-test="Viewer Update Button"]`).click();
 
-            cy.get(cesc("#p1")).should(
+            cy.get("#p1").should(
                 "have.text",
                 '<p name="p1">Hello!</p>\n<p name="p2"><math simplify>1+1</math></p>',
             );
-            cy.get(cesc("#p2")).should(
+            cy.get("#p2").should(
                 "have.text",
                 '<p name="p1">Hello!</p>\n<p name="p2"><math simplify>1+1</math></p>',
             );
-            cy.get(cesc("#p3")).should(
+            cy.get("#p3").should(
                 "contain.text",
                 "The value of the entered math is 2",
             );
@@ -632,7 +626,7 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
                 .then((text) => {
                     expect(text).eq("2");
                 });
-            cy.get(cesc("#m1") + " .mjx-mrow")
+            cy.get("#m1" + " .mjx-mrow")
                 .eq(0)
                 .invoke("text")
                 .then((text) => {
@@ -703,7 +697,7 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(cesc("#text1")).should("contain.text", "a");
+        cy.get("#text1").should("contain.text", "a");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -712,19 +706,19 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
                 stateVariables[await win.resolvePath1("editor")]
                     .activeChildren[0].componentIdx;
 
-            cy.get(cesc("#px")).should(
+            cy.get("#px").should(
                 "have.text",
                 "The value of the dynamic math is ",
             );
-            cy.get(cesc("#psx")).should(
+            cy.get("#psx").should(
                 "have.text",
                 "The value of the static math is ",
             );
-            cy.get(cesc("#pP")).should(
+            cy.get("#pP").should(
                 "have.text",
                 "The coords of the dynamic point are ",
             );
-            cy.get(cesc("#psP")).should(
+            cy.get("#psP").should(
                 "have.text",
                 "The coords of the static point are ",
             );
@@ -775,26 +769,26 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             });
 
             cy.log("type text in editor");
-            cy.get(cesc("#editor") + " .cm-content").type(
+            cy.get("#editor" + " .cm-content").type(
                 "<p>Enter value <mathInput name='mi' prefill='y' /></p>{enter}",
             );
-            cy.get(cesc("#editor") + " .cm-content").type(
+            cy.get("#editor" + " .cm-content").type(
                 "<p>The value is <copy prop='value' target='$mi' assignNames='x' /></p>{enter}",
             );
 
-            cy.get(cesc("#px")).should(
+            cy.get("#px").should(
                 "have.text",
                 "The value of the dynamic math is ",
             );
-            cy.get(cesc("#psx")).should(
+            cy.get("#psx").should(
                 "have.text",
                 "The value of the static math is ",
             );
-            cy.get(cesc("#pP")).should(
+            cy.get("#pP").should(
                 "have.text",
                 "The coords of the dynamic point are ",
             );
-            cy.get(cesc("#psP")).should(
+            cy.get("#psP").should(
                 "have.text",
                 "The coords of the static point are ",
             );
@@ -847,26 +841,26 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             });
 
             cy.log("blur updates static but not dynamic");
-            cy.get(cesc("#editor") + " .cm-content").blur();
+            cy.get("#editor" + " .cm-content").blur();
 
-            cy.get(cesc("#psx")).should(
+            cy.get("#psx").should(
                 "contain.text",
                 "The value of the static math is y",
             );
-            cy.get(cesc("#px")).should(
+            cy.get("#px").should(
                 "have.text",
                 "The value of the dynamic math is ",
             );
-            cy.get(cesc("#pP")).should(
+            cy.get("#pP").should(
                 "have.text",
                 "The coords of the dynamic point are ",
             );
-            cy.get(cesc("#psP")).should(
+            cy.get("#psP").should(
                 "have.text",
                 "The coords of the static point are ",
             );
 
-            cy.get(cesc("#sx") + " .mjx-mrow")
+            cy.get("#sx" + " .mjx-mrow")
                 .eq(0)
                 .invoke("text")
                 .then((text) => {
@@ -956,30 +950,30 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             cy.log("click to update dynamic content");
             cy.get(`[data-test="Viewer Update Button"]`).click();
 
-            cy.get(cesc("#px")).should(
+            cy.get("#px").should(
                 "contain.text",
                 "The value of the dynamic math is y",
             );
-            cy.get(cesc("#psx")).should(
+            cy.get("#psx").should(
                 "contain.text",
                 "The value of the static math is y",
             );
-            cy.get(cesc("#pP")).should(
+            cy.get("#pP").should(
                 "have.text",
                 "The coords of the dynamic point are ",
             );
-            cy.get(cesc("#psP")).should(
+            cy.get("#psP").should(
                 "have.text",
                 "The coords of the static point are ",
             );
 
-            cy.get(cesc("#x") + " .mjx-mrow")
+            cy.get("#x" + " .mjx-mrow")
                 .eq(0)
                 .invoke("text")
                 .then((text) => {
                     expect(text).eq("y");
                 });
-            cy.get(cesc("#sx") + " .mjx-mrow")
+            cy.get("#sx" + " .mjx-mrow")
                 .eq(0)
                 .invoke("text")
                 .then((text) => {
@@ -1091,30 +1085,30 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
                 { force: true },
             );
 
-            cy.get(cesc("#px")).should(
+            cy.get("#px").should(
                 "contain.text",
                 "The value of the dynamic math is x",
             );
-            cy.get(cesc("#psx")).should(
+            cy.get("#psx").should(
                 "contain.text",
                 "The value of the static math is y",
             );
-            cy.get(cesc("#pP")).should(
+            cy.get("#pP").should(
                 "have.text",
                 "The coords of the dynamic point are ",
             );
-            cy.get(cesc("#psP")).should(
+            cy.get("#psP").should(
                 "have.text",
                 "The coords of the static point are ",
             );
 
-            cy.get(cesc("#x") + " .mjx-mrow")
+            cy.get("#x" + " .mjx-mrow")
                 .eq(0)
                 .invoke("text")
                 .then((text) => {
                     expect(text).eq("x");
                 });
-            cy.get(cesc("#sx") + " .mjx-mrow")
+            cy.get("#sx" + " .mjx-mrow")
                 .eq(0)
                 .invoke("text")
                 .then((text) => {
@@ -1221,42 +1215,42 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             });
 
             cy.log("type text in editor");
-            cy.get(cesc("#editor") + " .cm-content")
+            cy.get("#editor" + " .cm-content")
                 .type(
                     "{ctrl+end}<graph><point name='P'>(3,4)</point></graph>{enter}",
                 )
                 .blur();
 
-            cy.get(cesc("#psP")).should(
+            cy.get("#psP").should(
                 "contain.text",
                 "The coords of the static point are (3,4)",
             );
-            cy.get(cesc("#px")).should(
+            cy.get("#px").should(
                 "contain.text",
                 "The value of the dynamic math is x",
             );
-            cy.get(cesc("#psx")).should(
+            cy.get("#psx").should(
                 "contain.text",
                 "The value of the static math is y",
             );
-            cy.get(cesc("#pP")).should(
+            cy.get("#pP").should(
                 "have.text",
                 "The coords of the dynamic point are ",
             );
 
-            cy.get(cesc("#x") + " .mjx-mrow")
+            cy.get("#x" + " .mjx-mrow")
                 .eq(0)
                 .invoke("text")
                 .then((text) => {
                     expect(text).eq("x");
                 });
-            cy.get(cesc("#sx") + " .mjx-mrow")
+            cy.get("#sx" + " .mjx-mrow")
                 .eq(0)
                 .invoke("text")
                 .then((text) => {
                     expect(text).eq("y");
                 });
-            cy.get(cesc("#sP") + " .mjx-mrow")
+            cy.get("#sP" + " .mjx-mrow")
                 .eq(0)
                 .invoke("text")
                 .then((text) => {
@@ -1371,42 +1365,42 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             cy.log("click to update dynamic content");
             cy.get(`[data-test="Viewer Update Button"]`).click();
 
-            cy.get(cesc("#pP")).should(
+            cy.get("#pP").should(
                 "contain.text",
                 "The coords of the dynamic point are (3,4)",
             );
-            cy.get(cesc("#px")).should(
+            cy.get("#px").should(
                 "contain.text",
                 "The value of the dynamic math is y",
             );
-            cy.get(cesc("#psx")).should(
+            cy.get("#psx").should(
                 "contain.text",
                 "The value of the static math is y",
             );
-            cy.get(cesc("#psP")).should(
+            cy.get("#psP").should(
                 "contain.text",
                 "The coords of the static point are (3,4)",
             );
 
-            cy.get(cesc("#x") + " .mjx-mrow")
+            cy.get("#x" + " .mjx-mrow")
                 .eq(0)
                 .invoke("text")
                 .then((text) => {
                     expect(text).eq("y");
                 });
-            cy.get(cesc("#sx") + " .mjx-mrow")
+            cy.get("#sx" + " .mjx-mrow")
                 .eq(0)
                 .invoke("text")
                 .then((text) => {
                     expect(text).eq("y");
                 });
-            cy.get(cesc("#P") + " .mjx-mrow")
+            cy.get("#P" + " .mjx-mrow")
                 .eq(0)
                 .invoke("text")
                 .then((text) => {
                     expect(text).eq("(3,4)");
                 });
-            cy.get(cesc("#sP") + " .mjx-mrow")
+            cy.get("#sP" + " .mjx-mrow")
                 .eq(0)
                 .invoke("text")
                 .then((text) => {
@@ -1536,42 +1530,42 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
                 });
             });
 
-            cy.get(cesc("#pP")).should(
+            cy.get("#pP").should(
                 "contain.text",
                 "The coords of the dynamic point are (5,7)",
             );
-            cy.get(cesc("#px")).should(
+            cy.get("#px").should(
                 "contain.text",
                 "The value of the dynamic math is y",
             );
-            cy.get(cesc("#psx")).should(
+            cy.get("#psx").should(
                 "contain.text",
                 "The value of the static math is y",
             );
-            cy.get(cesc("#psP")).should(
+            cy.get("#psP").should(
                 "contain.text",
                 "The coords of the static point are (3,4)",
             );
 
-            cy.get(cesc("#x") + " .mjx-mrow")
+            cy.get("#x" + " .mjx-mrow")
                 .eq(0)
                 .invoke("text")
                 .then((text) => {
                     expect(text).eq("y");
                 });
-            cy.get(cesc("#sx") + " .mjx-mrow")
+            cy.get("#sx" + " .mjx-mrow")
                 .eq(0)
                 .invoke("text")
                 .then((text) => {
                     expect(text).eq("y");
                 });
-            cy.get(cesc("#P") + " .mjx-mrow")
+            cy.get("#P" + " .mjx-mrow")
                 .eq(0)
                 .invoke("text")
                 .then((text) => {
                     expect(text).eq("(5,7)");
                 });
-            cy.get(cesc("#sP") + " .mjx-mrow")
+            cy.get("#sP" + " .mjx-mrow")
                 .eq(0)
                 .invoke("text")
                 .then((text) => {
@@ -1731,10 +1725,10 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(cesc("#ce") + " .cm-activeLine").invoke("text", "hello");
+        cy.get("#ce" + " .cm-activeLine").invoke("text", "hello");
 
-        cy.get(cesc("#piv")).should("have.text", "immediate value: hello");
-        cy.get(cesc("#pv")).should("have.text", "value: ");
+        cy.get("#piv").should("have.text", "immediate value: hello");
+        cy.get("#pv").should("have.text", "value: ");
 
         cy.wait(1500); // wait for debounce
 
@@ -1749,8 +1743,8 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(cesc("#pv")).should("have.text", "value: hello");
-        cy.get(cesc("#piv")).should("have.text", "immediate value: hello");
+        cy.get("#pv").should("have.text", "value: hello");
+        cy.get("#piv").should("have.text", "immediate value: hello");
     });
 
     it("undo prompts save", () => {
@@ -1774,10 +1768,10 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(cesc("#p1")).should("have.text", "");
+        cy.get("#p1").should("have.text", "");
 
         cy.log("type text in editor");
-        cy.get(cesc("#editor") + " .cm-activeLine").invoke(
+        cy.get("#editor" + " .cm-activeLine").invoke(
             "text",
             '<p name="p1">Hello!</p>',
         );
@@ -1786,7 +1780,7 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
 
         cy.get(`[data-test="Viewer Update Button"]`).click();
 
-        cy.get(cesc("#p1")).should("have.text", '<p name="p1">Hello!</p>');
+        cy.get("#p1").should("have.text", '<p name="p1">Hello!</p>');
         cy.get(cesc("#editor::p1")).should("have.text", "Hello!");
 
         cy.wait(1500); // wait for 1 second debounce
@@ -1802,19 +1796,19 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(cesc("#p1")).should("have.text", '<p name="p1">Hello!</p>');
+        cy.get("#p1").should("have.text", '<p name="p1">Hello!</p>');
         cy.get(cesc("#editor::p1")).should("have.text", "Hello!");
 
         cy.log("Overwrite text");
 
-        cy.get(cesc("#editor") + " .cm-activeLine").invoke(
+        cy.get("#editor" + " .cm-activeLine").invoke(
             "text",
             '<alert name="alert">Overwritten!</alert>',
         );
 
         cy.get(`[data-test="Viewer Update Button"]`).click();
 
-        cy.get(cesc("#p1")).should(
+        cy.get("#p1").should(
             "have.text",
             '<alert name="alert">Overwritten!</alert>',
         );
@@ -1830,7 +1824,7 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
         }
         cy.get(`[data-test="Viewer Update Button"]`).click();
 
-        cy.get(cesc("#p1")).should("have.text", '<p name="p1">Hello!</p>');
+        cy.get("#p1").should("have.text", '<p name="p1">Hello!</p>');
         cy.get(cesc("#editor::p1")).should("have.text", "Hello!");
         cy.get(cesc("#editor::alert")).should("not.exist");
 
@@ -1847,7 +1841,7 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(cesc("#p1")).should("have.text", '<p name="p1">Hello!</p>');
+        cy.get("#p1").should("have.text", '<p name="p1">Hello!</p>');
         cy.get(cesc("#editor::p1")).should("have.text", "Hello!");
         cy.get(cesc("#editor::alert")).should("not.exist");
     });
@@ -1866,50 +1860,47 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(cesc("#p1")).should("have.text", "");
+        cy.get("#p1").should("have.text", "");
 
         cy.log("type text in editor");
-        cy.get(cesc("#editor") + " .cm-activeLine").invoke(
+        cy.get("#editor" + " .cm-activeLine").invoke(
             "text",
             '<p name="p1">Hello!</p>',
         );
 
-        cy.get(cesc("#editor") + " .cm-content").type("{end}{enter}");
+        cy.get("#editor" + " .cm-content").type("{end}{enter}");
 
         cy.wait(500);
 
         cy.get(`[data-test="Viewer Update Button"]`).click();
 
-        cy.get(cesc("#p1")).should("have.text", '<p name="p1">Hello!</p>\n');
+        cy.get("#p1").should("have.text", '<p name="p1">Hello!</p>\n');
         cy.get(cesc("#editor::p1")).should("have.text", "Hello!");
 
-        cy.get(cesc("#editor") + " .cm-activeLine").type("{ctrl+end}");
+        cy.get("#editor" + " .cm-activeLine").type("{ctrl+end}");
 
-        cy.get(cesc("#editor") + " .cm-activeLine").invoke(
+        cy.get("#editor" + " .cm-activeLine").invoke(
             "text",
             "<text name='ti'>$ti</text>",
         );
 
         cy.get(`[data-test="Viewer Update Button"]`).click();
 
-        cy.get(cesc("#p1")).should(
+        cy.get("#p1").should(
             "have.text",
             "<p name=\"p1\">Hello!</p>\n<text name='ti'>$ti</text>",
         );
 
-        cy.get(cesc("#editor-viewer")).should(
-            "contain.text",
-            "Circular dependency",
-        );
+        cy.get("#editor-viewer").should("contain.text", "Circular dependency");
 
-        cy.get(cesc("#editor") + " .cm-activeLine").invoke(
+        cy.get("#editor" + " .cm-activeLine").invoke(
             "text",
             "<text name='ti'>Bye</text>",
         );
 
         cy.get(`[data-test="Viewer Update Button"]`).click();
 
-        cy.get(cesc("#p1")).should(
+        cy.get("#p1").should(
             "have.text",
             "<p name=\"p1\">Hello!</p>\n<text name='ti'>Bye</text>",
         );
@@ -1940,51 +1931,48 @@ describe("Code Editor Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(cesc("#a")).should("contain.text", "a");
+        cy.get("#a").should("contain.text", "a");
 
         cy.log("type text in editor 1");
-        cy.get(cesc("#editor1") + " .cm-activeLine").invoke(
+        cy.get("#editor1" + " .cm-activeLine").invoke(
             "text",
             "<p name='p1'>Apple</p>",
         );
-        cy.get(cesc("#editor1") + " .cm-content").type("{end}{enter}");
+        cy.get("#editor1" + " .cm-content").type("{end}{enter}");
 
         cy.wait(500);
 
         cy.get(
-            cesc("#editor1-viewer-controls") +
-                ` [data-test="Viewer Update Button"]`,
+            "#editor1-viewer-controls" + ` [data-test="Viewer Update Button"]`,
         ).click();
 
-        cy.get(cesc("#p1")).should("have.text", "<p name='p1'>Apple</p>\n");
+        cy.get("#p1").should("have.text", "<p name='p1'>Apple</p>\n");
         cy.get(cesc("#editor1::p1")).should("contain.text", "Apple");
 
         cy.log("type text in editor 2");
-        cy.get(cesc("#editor2") + " .cm-activeLine").invoke(
+        cy.get("#editor2" + " .cm-activeLine").invoke(
             "text",
             "<p name='p1'>Banana</p>",
         );
-        cy.get(cesc("#editor2") + " .cm-content").type("{end}{enter}");
+        cy.get("#editor2" + " .cm-content").type("{end}{enter}");
         cy.get(
-            cesc("#editor2-viewer-controls") +
-                ` [data-test="Viewer Update Button"]`,
+            "#editor2-viewer-controls" + ` [data-test="Viewer Update Button"]`,
         ).click();
 
-        cy.get(cesc("#p2")).should("have.text", "<p name='p1'>Banana</p>\n");
+        cy.get("#p2").should("have.text", "<p name='p1'>Banana</p>\n");
         cy.get(cesc("#editor2::p1")).should("contain.text", "Banana");
 
         cy.log("type text in editor 3");
-        cy.get(cesc("#editor3") + " .cm-activeLine").invoke(
+        cy.get("#editor3" + " .cm-activeLine").invoke(
             "text",
             "<p name='p1'>Cherry</p>",
         );
-        cy.get(cesc("#editor3") + " .cm-content").type("{end}{enter}");
+        cy.get("#editor3" + " .cm-content").type("{end}{enter}");
         cy.get(
-            cesc("#editor3-viewer-controls") +
-                ` [data-test="Viewer Update Button"]`,
+            "#editor3-viewer-controls" + ` [data-test="Viewer Update Button"]`,
         ).click();
 
-        cy.get(cesc("#p3")).should("have.text", "<p name='p1'>Cherry</p>\n");
+        cy.get("#p3").should("have.text", "<p name='p1'>Cherry</p>\n");
         cy.get(cesc("#editor3::p1")).should("contain.text", "Cherry");
     });
 });

@@ -1,4 +1,3 @@
-import { cesc } from "@doenet/utils";
 import {
     installPrefigureBuildIntercept,
     postDebounceTestDoenetML,
@@ -21,7 +20,7 @@ describe(
 
             postDebounceTestDoenetML(cesc);
 
-            cy.get(cesc("#prefig"))
+            cy.get("#prefig")
                 .find(".svg")
                 .as("svgWrapper")
                 .invoke("css", "width", "120px")

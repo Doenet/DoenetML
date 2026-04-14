@@ -54,7 +54,7 @@ export function postDebounceTestDoenetML(cesc) {
         );
     });
 
-    cy.get(cesc("#ready")).should("have.text", "ready");
+    cy.get("#ready").should("have.text", "ready");
 }
 
 export function installMockPrefigureModule({

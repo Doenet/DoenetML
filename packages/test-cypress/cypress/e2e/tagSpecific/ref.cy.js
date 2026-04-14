@@ -108,7 +108,7 @@ describe("ref Tag Tests", { tags: ["@group1"] }, function () {
         });
 
         // to wait for page to load
-        cy.get(cesc("#section1_title")).should("include.text", "Section 1");
+        cy.get("#section1_title").should("include.text", "Section 1");
 
         cy.get(cesc("#section1.toFour")).click();
         cy.url().should("include", "#section4");
@@ -116,7 +116,7 @@ describe("ref Tag Tests", { tags: ["@group1"] }, function () {
         cy.get(cesc("#section4.toOne")).click();
         cy.url().should("include", "#section1");
 
-        cy.get(cesc("#toThreeii")).click();
+        cy.get("#toThreeii").click();
         cy.url().should("include", "#section3.p2");
 
         cy.get(cesc("#section4.toTwoe")).click();
@@ -135,9 +135,9 @@ describe("ref Tag Tests", { tags: ["@group1"] }, function () {
             );
         });
 
-        cy.get(cesc("#p1")).should("have.text", "A ref to Doenet.");
+        cy.get("#p1").should("have.text", "A ref to Doenet.");
 
-        cy.get(cesc("#ref1"))
+        cy.get("#ref1")
             .should("have.text", "Doenet")
             .invoke("attr", "href")
             .then((href) => expect(href).eq("http://doenet.org"));
@@ -155,9 +155,9 @@ describe("ref Tag Tests", { tags: ["@group1"] }, function () {
             );
         });
 
-        cy.get(cesc("#p1")).should("have.text", "A ref to Doenet.");
+        cy.get("#p1").should("have.text", "A ref to Doenet.");
 
-        cy.get(cesc("#ref1"))
+        cy.get("#ref1")
             .should("have.text", "Doenet")
             .invoke("attr", "href")
             .then((href) => expect(href).eq("http://doenet.org/#a&b"));
@@ -175,9 +175,9 @@ describe("ref Tag Tests", { tags: ["@group1"] }, function () {
             );
         });
 
-        cy.get(cesc("#p1")).should("have.text", "A ref to a Doenet doc.");
+        cy.get("#p1").should("have.text", "A ref to a Doenet doc.");
 
-        cy.get(cesc("#ref1"))
+        cy.get("#ref1")
             .should("have.text", "a Doenet doc")
             .invoke("attr", "href")
             .then((href) =>
@@ -197,7 +197,7 @@ describe("ref Tag Tests", { tags: ["@group1"] }, function () {
             );
         });
 
-        cy.get(cesc("#toDoenet") + " button").should("contain", "Go to Doenet");
+        cy.get("#toDoenet" + " button").should("contain", "Go to Doenet");
     });
 
     // Note: the next 5 test currently do not work as we have not fixed the navigate to target action
@@ -239,10 +239,10 @@ describe("ref Tag Tests", { tags: ["@group1"] }, function () {
         });
 
         // to wait for page to load
-        cy.get(cesc("#asideTitle")).should("have.text", "The aside");
+        cy.get("#asideTitle").should("have.text", "The aside");
 
         cy.log("Aside closed at the beginning");
-        cy.get(cesc("#inside")).should("not.exist");
+        cy.get("#inside").should("not.exist");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
@@ -251,9 +251,9 @@ describe("ref Tag Tests", { tags: ["@group1"] }, function () {
         });
 
         cy.log("clicking ref opens aside");
-        cy.get(cesc("#toAside")).click();
+        cy.get("#toAside").click();
 
-        cy.get(cesc("#inside")).should("have.text", "Inside the aside");
+        cy.get("#inside").should("have.text", "Inside the aside");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
@@ -290,10 +290,10 @@ describe("ref Tag Tests", { tags: ["@group1"] }, function () {
         });
 
         // to wait for page to load
-        cy.get(cesc("#asideTitle")).should("have.text", "The aside");
+        cy.get("#asideTitle").should("have.text", "The aside");
 
         cy.log("Aside closed at the beginning");
-        cy.get(cesc("#inside")).should("not.exist");
+        cy.get("#inside").should("not.exist");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
@@ -302,14 +302,14 @@ describe("ref Tag Tests", { tags: ["@group1"] }, function () {
         });
 
         cy.log("clicking ref opens aside");
-        cy.get(cesc("#toAside")).click();
+        cy.get("#toAside").click();
 
-        cy.get(cesc("#inside")).should(
+        cy.get("#inside").should(
             "have.text",
             "Paragraph inside the section inside the aside.",
         );
 
-        cy.get(cesc("#inside")).then((el) => {
+        cy.get("#inside").then((el) => {
             let rect = el[0].getBoundingClientRect();
             expect(rect.top).gt(-1).lt(1);
         });
@@ -347,10 +347,10 @@ describe("ref Tag Tests", { tags: ["@group1"] }, function () {
         });
 
         // to wait for page to load
-        cy.get(cesc("#asideTitle")).should("have.text", "The aside");
+        cy.get("#asideTitle").should("have.text", "The aside");
 
         cy.log("Aside closed at the beginning");
-        cy.get(cesc("#inside")).should("not.exist");
+        cy.get("#inside").should("not.exist");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
@@ -359,9 +359,9 @@ describe("ref Tag Tests", { tags: ["@group1"] }, function () {
         });
 
         cy.log("clicking action opens aside");
-        cy.get(cesc("#go")).click();
+        cy.get("#go").click();
 
-        cy.get(cesc("#inside")).should("have.text", "Inside the aside");
+        cy.get("#inside").should("have.text", "Inside the aside");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
@@ -399,10 +399,10 @@ describe("ref Tag Tests", { tags: ["@group1"] }, function () {
         });
 
         // to wait for page to load
-        cy.get(cesc("#asideTitle")).should("have.text", "The aside");
+        cy.get("#asideTitle").should("have.text", "The aside");
 
         cy.log("Aside closed at the beginning");
-        cy.get(cesc("#inside")).should("not.exist");
+        cy.get("#inside").should("not.exist");
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
             expect(
@@ -411,14 +411,14 @@ describe("ref Tag Tests", { tags: ["@group1"] }, function () {
         });
 
         cy.log("clicking action opens aside");
-        cy.get(cesc("#go")).click();
+        cy.get("#go").click();
 
-        cy.get(cesc("#inside")).should(
+        cy.get("#inside").should(
             "have.text",
             "Paragraph inside the section inside the aside.",
         );
 
-        cy.get(cesc("#inside")).then((el) => {
+        cy.get("#inside").then((el) => {
             cy.waitUntil(() => {
                 let rect = el[0].getBoundingClientRect();
                 return rect.top > -1 && rect.top < 1;
@@ -467,18 +467,18 @@ describe("ref Tag Tests", { tags: ["@group1"] }, function () {
         });
 
         // to wait for page to load
-        cy.get(cesc("#asideTitle")).should("have.text", "Counting");
+        cy.get("#asideTitle").should("have.text", "Counting");
 
         cy.log("Aside closed at the beginning");
-        cy.get(cesc("#n")).should("not.exist");
+        cy.get("#n").should("not.exist");
 
         cy.log("clicking action opens aside and starts counting");
-        cy.get(cesc("#startCount")).click();
+        cy.get("#startCount").click();
 
-        cy.get(cesc("#n")).should("have.text", "1");
-        cy.get(cesc("#n")).should("have.text", "2");
-        cy.get(cesc("#n")).should("have.text", "3");
-        cy.get(cesc("#n")).should("have.text", "4");
-        cy.get(cesc("#n")).should("have.text", "5");
+        cy.get("#n").should("have.text", "1");
+        cy.get("#n").should("have.text", "2");
+        cy.get("#n").should("have.text", "3");
+        cy.get("#n").should("have.text", "4");
+        cy.get("#n").should("have.text", "5");
     });
 });

@@ -1,5 +1,4 @@
 import me from "math-expressions";
-import { cesc } from "@doenet/utils";
 
 describe("UpdateValue Tag Tests", { tags: ["@group3"] }, function () {
     beforeEach(() => {
@@ -36,16 +35,16 @@ describe("UpdateValue Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get(cesc("#text1")).should("have.text", "a"); //wait for page to load
+        cy.get("#text1").should("have.text", "a"); //wait for page to load
 
-        cy.get(cesc("#m")).should("have.text", "1");
-        cy.get(cesc("#n")).should("have.text", "10");
+        cy.get("#m").should("have.text", "1");
+        cy.get("#n").should("have.text", "10");
 
-        cy.get(cesc("#incm_button")).click();
-        cy.get(cesc("#incn_button")).click();
+        cy.get("#incm_button").click();
+        cy.get("#incn_button").click();
 
-        cy.get(cesc("#m")).should("have.text", "2");
-        cy.get(cesc("#n")).should("have.text", "20");
+        cy.get("#m").should("have.text", "2");
+        cy.get("#n").should("have.text", "20");
 
         cy.wait(2000); // wait to make sure 1 second debounce occurred
 
@@ -65,16 +64,16 @@ describe("UpdateValue Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get(cesc("#incm_button")).should("be.disabled");
-        cy.get(cesc("#incn_button")).should("not.be.disabled");
+        cy.get("#incm_button").should("be.disabled");
+        cy.get("#incn_button").should("not.be.disabled");
 
-        cy.get(cesc("#m")).should("have.text", "2");
-        cy.get(cesc("#n")).should("have.text", "20");
+        cy.get("#m").should("have.text", "2");
+        cy.get("#n").should("have.text", "20");
 
-        cy.get(cesc("#incm_button")).click();
-        cy.get(cesc("#incn_button")).click();
+        cy.get("#incm_button").click();
+        cy.get("#incn_button").click();
 
-        cy.get(cesc("#m")).should("have.text", "2");
-        cy.get(cesc("#n")).should("have.text", "30");
+        cy.get("#m").should("have.text", "2");
+        cy.get("#n").should("have.text", "30");
     });
 });

@@ -1,5 +1,4 @@
 import me from "math-expressions";
-import { cesc } from "@doenet/utils";
 
 describe("Point Tag Tests", { tags: ["@group4"] }, function () {
     beforeEach(() => {
@@ -36,7 +35,7 @@ describe("Point Tag Tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get(cesc("#P0a")).should("have.text", "(3,4)");
+        cy.get("#P0a").should("have.text", "(3,4)");
 
         cy.log("move point using skippable actions to upper right");
         let promises = [];
@@ -74,7 +73,7 @@ describe("Point Tag Tests", { tags: ["@group4"] }, function () {
             });
         });
 
-        cy.get(cesc("#P0a")).should("have.text", "(9.9,9.9)");
+        cy.get("#P0a").should("have.text", "(9.9,9.9)");
 
         cy.log(
             "move point using skippable and non-skippable actions to upper left",
@@ -116,7 +115,7 @@ describe("Point Tag Tests", { tags: ["@group4"] }, function () {
             });
         });
 
-        cy.get(cesc("#P0a")).should("have.text", "(−9.9,9.9)");
+        cy.get("#P0a").should("have.text", "(−9.9,9.9)");
     });
 
     it("restore state with point coords depending on function", () => {

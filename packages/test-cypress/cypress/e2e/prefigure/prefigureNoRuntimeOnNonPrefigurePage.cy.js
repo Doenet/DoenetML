@@ -1,5 +1,3 @@
-import { cesc } from "@doenet/utils";
-
 describe(
     "PreFigure stays unloaded on non-prefigure pages @group4",
     { tags: ["@group4"] },
@@ -68,11 +66,8 @@ describe(
                 );
             });
 
-            cy.get(cesc("#ready")).should("have.text", "ready");
-            cy.get(cesc("#status")).should(
-                "have.text",
-                "no prefigure renderer",
-            );
+            cy.get("#ready").should("have.text", "ready");
+            cy.get("#status").should("have.text", "no prefigure renderer");
 
             cy.wait(500);
 

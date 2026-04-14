@@ -1,5 +1,3 @@
-import { cesc } from "@doenet/utils";
-
 describe("Line Tag Tests", { tags: ["@group3"] }, function () {
     beforeEach(() => {
         cy.clearIndexedDB();
@@ -32,8 +30,8 @@ describe("Line Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get(cesc("#Ac")).should("contain.text", "(1,2)");
-        cy.get(cesc("#Bc")).should("contain.text", "(3,4)");
+        cy.get("#Ac").should("contain.text", "(1,2)");
+        cy.get("#Bc").should("contain.text", "(3,4)");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -58,8 +56,8 @@ describe("Line Tag Tests", { tags: ["@group3"] }, function () {
             });
         });
 
-        cy.get(cesc("#Ac")).should("contain.text", "(9,8)");
-        cy.get(cesc("#Bc")).should("contain.text", "(6,7)");
+        cy.get("#Ac").should("contain.text", "(9,8)");
+        cy.get("#Bc").should("contain.text", "(6,7)");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -85,7 +83,7 @@ describe("Line Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get(cesc("#Ac")).should("contain.text", "(9,8)");
+        cy.get("#Ac").should("contain.text", "(9,8)");
 
         // wait until core is loaded
         cy.waitUntil(() =>
@@ -95,8 +93,8 @@ describe("Line Tag Tests", { tags: ["@group3"] }, function () {
             }),
         );
 
-        cy.get(cesc("#Ac")).should("contain.text", "(9,8)");
-        cy.get(cesc("#Bc")).should("contain.text", "(6,7)");
+        cy.get("#Ac").should("contain.text", "(9,8)");
+        cy.get("#Bc").should("contain.text", "(6,7)");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -116,8 +114,8 @@ describe("Line Tag Tests", { tags: ["@group3"] }, function () {
             });
         });
 
-        cy.get(cesc("#Ac")).should("contain.text", "(0.5,3.5)");
-        cy.get(cesc("#Bc")).should("contain.text", "(6,7)");
+        cy.get("#Ac").should("contain.text", "(0.5,3.5)");
+        cy.get("#Bc").should("contain.text", "(6,7)");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -143,7 +141,7 @@ describe("Line Tag Tests", { tags: ["@group3"] }, function () {
             );
         });
 
-        cy.get(cesc("#Ac")).should("contain.text", "(0.5,3.5)");
+        cy.get("#Ac").should("contain.text", "(0.5,3.5)");
 
         // wait until core is loaded
         cy.waitUntil(() =>
@@ -153,8 +151,8 @@ describe("Line Tag Tests", { tags: ["@group3"] }, function () {
             }),
         );
 
-        cy.get(cesc("#Ac")).should("contain.text", "(0.5,3.5)");
-        cy.get(cesc("#Bc")).should("contain.text", "(6,7)");
+        cy.get("#Ac").should("contain.text", "(0.5,3.5)");
+        cy.get("#Bc").should("contain.text", "(6,7)");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -174,8 +172,8 @@ describe("Line Tag Tests", { tags: ["@group3"] }, function () {
             });
         });
 
-        cy.get(cesc("#Ac")).should("contain.text", "(8.5,1.5)");
-        cy.get(cesc("#Bc")).should("contain.text", "(6,7)");
+        cy.get("#Ac").should("contain.text", "(8.5,1.5)");
+        cy.get("#Bc").should("contain.text", "(6,7)");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();

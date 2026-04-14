@@ -88,7 +88,7 @@ describe("Line-family label placement", { tags: ["@group3"] }, function () {
   </graph>
         `);
 
-        cy.get(cesc("#loaded")).should("have.text", "loaded");
+        cy.get("#loaded").should("have.text", "loaded");
 
         assertLabelFitsHorizontally("graphLine", lineLabel);
         assertLabelFitsHorizontally("graphLineSegment", lineSegmentLabel);

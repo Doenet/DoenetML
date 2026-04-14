@@ -1,4 +1,3 @@
-import { cesc } from "@doenet/utils";
 import { toMathJaxString } from "../../../src/util/mathDisplay";
 
 describe("SelectFromSequence Tag Tests", { tags: ["@group2"] }, function () {
@@ -30,10 +29,10 @@ describe("SelectFromSequence Tag Tests", { tags: ["@group2"] }, function () {
             );
         });
 
-        cy.get(cesc("#b")).should("have.text", "false");
+        cy.get("#b").should("have.text", "false");
 
-        cy.get(cesc("#bi")).click();
-        cy.get(cesc("#b")).should("have.text", "true");
+        cy.get("#bi").click();
+        cy.get("#b").should("have.text", "true");
 
         cy.wait(2000); // wait for debounce
 
@@ -48,11 +47,11 @@ describe("SelectFromSequence Tag Tests", { tags: ["@group2"] }, function () {
             );
         });
 
-        cy.get(cesc("#b")).should("have.text", "true");
+        cy.get("#b").should("have.text", "true");
 
         cy.log("core has not crashed and processes change in bi");
-        cy.get(cesc("#bi")).click();
-        cy.get(cesc("#b")).should("have.text", "false");
+        cy.get("#bi").click();
+        cy.get("#b").should("have.text", "false");
     });
 
     it("selectfromsequence depending on selectfromsequence handles reload 2", () => {
@@ -94,11 +93,11 @@ describe("SelectFromSequence Tag Tests", { tags: ["@group2"] }, function () {
             );
         });
 
-        cy.get(cesc("#m")).should("contain.text", "\uff3f");
+        cy.get("#m").should("contain.text", "\uff3f");
 
-        cy.get(cesc("#mi") + " textarea").type("x{enter}", { force: true });
-        cy.get(cesc("#m")).should("contain.text", toMathJaxString("x"));
-        cy.get(cesc("#m2")).should("contain.text", toMathJaxString("x"));
+        cy.get("#mi" + " textarea").type("x{enter}", { force: true });
+        cy.get("#m").should("contain.text", toMathJaxString("x"));
+        cy.get("#m2").should("contain.text", toMathJaxString("x"));
 
         cy.wait(2000); // wait for debounce
 
@@ -113,17 +112,17 @@ describe("SelectFromSequence Tag Tests", { tags: ["@group2"] }, function () {
             );
         });
 
-        cy.get(cesc("#m")).should("contain.text", toMathJaxString("x"));
+        cy.get("#m").should("contain.text", toMathJaxString("x"));
 
         cy.log("core has not crashed and processes change in bi");
-        cy.get(cesc("#mi") + " textarea")
+        cy.get("#mi" + " textarea")
             .type("{end}{backspace}y", { force: true })
             .blur();
 
-        cy.get(cesc("#m")).should("contain.text", toMathJaxString("y"));
+        cy.get("#m").should("contain.text", toMathJaxString("y"));
 
-        cy.get(cesc("#mi") + " textarea").type("{enter}", { force: true });
-        cy.get(cesc("#m")).should("contain.text", toMathJaxString("y"));
-        cy.get(cesc("#m2")).should("contain.text", toMathJaxString("y"));
+        cy.get("#mi" + " textarea").type("{enter}", { force: true });
+        cy.get("#m").should("contain.text", toMathJaxString("y"));
+        cy.get("#m2").should("contain.text", toMathJaxString("y"));
     });
 });

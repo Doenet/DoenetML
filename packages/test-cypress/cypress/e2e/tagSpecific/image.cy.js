@@ -1,4 +1,4 @@
-import { cesc, widthsBySize } from "@doenet/utils";
+import { widthsBySize } from "@doenet/utils";
 import { assertCenteredWhenDescriptionOpens } from "./utils/mediaAlignment";
 
 describe("Image Tag Tests", { tags: ["@group1"] }, function () {
@@ -20,13 +20,13 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
                 "*",
             );
         });
-        cy.get(cesc("#image1"))
+        cy.get("#image1")
             .invoke("css", "width")
             .then((width) => parseInt(width))
             .should("be.gte", widthsBySize["small"] - 4)
             .and("be.lte", widthsBySize["small"] + 1);
-        // cy.get(cesc('#image1')).invoke('css', 'height').then((height) => expect(height).eq(undefined))
-        cy.get(cesc("#image1"))
+        // cy.get('#image1').invoke('css', 'height').then((height) => expect(height).eq(undefined))
+        cy.get("#image1")
             .invoke("attr", "alt")
             .then((alt) => expect(alt).eq("The Doenet logo"));
     });
@@ -62,28 +62,23 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
             );
         });
 
-        cy.get(cesc("#pWidth1")).should("have.text", "Width 1: 40%");
-        cy.get(cesc("#pWidth2")).should("have.text", "Width 2: 50%");
-        cy.get(cesc("#pAspectRatio1")).should("have.text", "Aspect Ratio 1: 1");
-        cy.get(cesc("#pAspectRatio2")).should(
-            "have.text",
-            "Aspect Ratio 2: NaN",
-        );
-        cy.get(cesc("#image1a"))
+        cy.get("#pWidth1").should("have.text", "Width 1: 40%");
+        cy.get("#pWidth2").should("have.text", "Width 2: 50%");
+        cy.get("#pAspectRatio1").should("have.text", "Aspect Ratio 1: 1");
+        cy.get("#pAspectRatio2").should("have.text", "Aspect Ratio 2: NaN");
+        cy.get("#image1a")
             .invoke("css", "width")
             .then((str) => parseInt(str))
             .should("be.closeTo", 255, 2);
-        cy.get(cesc("#image2a"))
+        cy.get("#image2a")
             .invoke("css", "width")
             .then((str) => parseInt(str))
             .should("be.closeTo", 425, 2);
-        cy.get(cesc("#image1a"))
+        cy.get("#image1a")
             .invoke("css", "aspectRatio")
             .then((str) => parseInt(str))
             .should("equal", 1);
-        cy.get(cesc("#image2a"))
-            .invoke("css", "aspectRatio")
-            .should("equal", "auto");
+        cy.get("#image2a").invoke("css", "aspectRatio").should("equal", "auto");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -105,23 +100,23 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
 
         cy.log("change widths");
 
-        cy.get(cesc("#width1") + " textarea").type(
+        cy.get("#width1" + " textarea").type(
             "{end}{backspace}{backspace}100{enter}",
             { force: true },
         );
-        cy.get(cesc("#width2") + " textarea").type(
+        cy.get("#width2" + " textarea").type(
             "{end}{backspace}{backspace}80{enter}",
             { force: true },
         );
 
-        cy.get(cesc("#pWidth1")).should("have.text", "Width 1: 100%");
-        cy.get(cesc("#pWidth2")).should("have.text", "Width 2: 80%");
+        cy.get("#pWidth1").should("have.text", "Width 1: 100%");
+        cy.get("#pWidth2").should("have.text", "Width 2: 80%");
 
-        cy.get(cesc("#image1a"))
+        cy.get("#image1a")
             .invoke("css", "width")
             .then((str) => parseInt(str))
             .should("be.closeTo", 850, 2);
-        cy.get(cesc("#image2a"))
+        cy.get("#image2a")
             .invoke("css", "width")
             .then((str) => parseInt(str))
             .should("be.closeTo", 595, 2);
@@ -144,11 +139,11 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
             });
         });
 
-        cy.get(cesc("#width1a") + " textarea").type("{end}{backspace}{enter}", {
+        cy.get("#width1a" + " textarea").type("{end}{backspace}{enter}", {
             force: true,
         });
-        cy.get(cesc("#pWidth1")).should("have.text", "Width 1: 10%");
-        cy.get(cesc("#image1a"))
+        cy.get("#pWidth1").should("have.text", "Width 1: 10%");
+        cy.get("#image1a")
             .invoke("css", "width")
             .then((str) => parseInt(str))
             .should("be.closeTo", 70.8, 2);
@@ -166,51 +161,36 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
 
         cy.log("change aspect ratio");
 
-        cy.get(cesc("#aspectRatio1") + " textarea").type(
-            "{end}{backspace}2{enter}",
-            { force: true },
-        );
-        cy.get(cesc("#aspectRatio2") + " textarea").type("1/2{enter}", {
+        cy.get("#aspectRatio1" + " textarea").type("{end}{backspace}2{enter}", {
+            force: true,
+        });
+        cy.get("#aspectRatio2" + " textarea").type("1/2{enter}", {
             force: true,
         });
 
-        cy.get(cesc("#pAspectRatio1")).should("have.text", "Aspect Ratio 1: 2");
-        cy.get(cesc("#pAspectRatio2")).should(
-            "have.text",
-            "Aspect Ratio 2: 0.5",
-        );
-        cy.get(cesc("#image1a"))
+        cy.get("#pAspectRatio1").should("have.text", "Aspect Ratio 1: 2");
+        cy.get("#pAspectRatio2").should("have.text", "Aspect Ratio 2: 0.5");
+        cy.get("#image1a")
             .invoke("css", "aspectRatio")
             .then((str) => parseFloat(str))
             .should("equal", 2);
-        cy.get(cesc("#image2a"))
+        cy.get("#image2a")
             .invoke("css", "aspectRatio")
             .then((str) => parseFloat(str))
             .should("equal", 0.5);
 
-        cy.get(cesc("#aspectRatio1a") + " textarea").type(
-            "{end}{backspace}{enter}",
-            { force: true },
-        );
-        cy.get(cesc("#aspectRatio2") + " textarea").type(
+        cy.get("#aspectRatio1a" + " textarea").type("{end}{backspace}{enter}", {
+            force: true,
+        });
+        cy.get("#aspectRatio2" + " textarea").type(
             "{end}{backspace}{backspace}{backspace}{enter}",
             { force: true },
         );
 
-        cy.get(cesc("#pAspectRatio1")).should(
-            "have.text",
-            "Aspect Ratio 1: NaN",
-        );
-        cy.get(cesc("#pAspectRatio2")).should(
-            "have.text",
-            "Aspect Ratio 2: NaN",
-        );
-        cy.get(cesc("#image1a"))
-            .invoke("css", "aspectRatio")
-            .should("equal", "auto");
-        cy.get(cesc("#image2a"))
-            .invoke("css", "aspectRatio")
-            .should("equal", "auto");
+        cy.get("#pAspectRatio1").should("have.text", "Aspect Ratio 1: NaN");
+        cy.get("#pAspectRatio2").should("have.text", "Aspect Ratio 2: NaN");
+        cy.get("#image1a").invoke("css", "aspectRatio").should("equal", "auto");
+        cy.get("#image2a").invoke("css", "aspectRatio").should("equal", "auto");
     });
 
     it("image in graph, absolute size", () => {
@@ -237,14 +217,14 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
             );
         });
 
-        cy.get(cesc("#pWidth1")).should("have.text", "Width 1: 5px");
-        cy.get(cesc("#pAspectRatio1")).should("have.text", "Aspect Ratio 1: 1");
+        cy.get("#pWidth1").should("have.text", "Width 1: 5px");
+        cy.get("#pAspectRatio1").should("have.text", "Aspect Ratio 1: 1");
 
-        cy.get(cesc("#image1a"))
+        cy.get("#image1a")
             .invoke("css", "width")
             .then((str) => parseInt(str))
             .should("be.closeTo", 70.8, 2);
-        cy.get(cesc("#image1a"))
+        cy.get("#image1a")
             .invoke("css", "aspectRatio")
             .then((str) => parseInt(str))
             .should("equal", 1);
@@ -262,14 +242,14 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
 
         cy.log("change width");
 
-        cy.get(cesc("#width1") + " textarea").type(
+        cy.get("#width1" + " textarea").type(
             "{end}{backspace}{backspace}10{enter}",
             { force: true },
         );
 
-        cy.get(cesc("#pWidth1")).should("have.text", "Width 1: 10px");
+        cy.get("#pWidth1").should("have.text", "Width 1: 10px");
 
-        cy.get(cesc("#image1a"))
+        cy.get("#image1a")
             .invoke("css", "width")
             .then((str) => parseInt(str))
             .should("be.closeTo", 70.8, 2);
@@ -285,13 +265,13 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
             });
         });
 
-        cy.get(cesc("#width1a") + " textarea").type(
+        cy.get("#width1a" + " textarea").type(
             "{end}{backspace}{backspace}15{enter}",
             { force: true },
         );
 
-        cy.get(cesc("#pWidth1")).should("have.text", "Width 1: 15px");
-        cy.get(cesc("#image1a"))
+        cy.get("#pWidth1").should("have.text", "Width 1: 15px");
+        cy.get("#image1a")
             .invoke("css", "width")
             .then((str) => parseInt(str))
             .should("be.closeTo", 70.8, 2);
@@ -309,29 +289,22 @@ describe("Image Tag Tests", { tags: ["@group1"] }, function () {
 
         cy.log("change aspect ratio");
 
-        cy.get(cesc("#aspectRatio1") + " textarea").type(
-            "{end}{backspace}2{enter}",
-            { force: true },
-        );
+        cy.get("#aspectRatio1" + " textarea").type("{end}{backspace}2{enter}", {
+            force: true,
+        });
 
-        cy.get(cesc("#pAspectRatio1")).should("have.text", "Aspect Ratio 1: 2");
-        cy.get(cesc("#image1a"))
+        cy.get("#pAspectRatio1").should("have.text", "Aspect Ratio 1: 2");
+        cy.get("#image1a")
             .invoke("css", "aspectRatio")
             .then((str) => parseFloat(str))
             .should("equal", 2);
 
-        cy.get(cesc("#aspectRatio1a") + " textarea").type(
-            "{end}{backspace}{enter}",
-            { force: true },
-        );
+        cy.get("#aspectRatio1a" + " textarea").type("{end}{backspace}{enter}", {
+            force: true,
+        });
 
-        cy.get(cesc("#pAspectRatio1")).should(
-            "have.text",
-            "Aspect Ratio 1: NaN",
-        );
-        cy.get(cesc("#image1a"))
-            .invoke("css", "aspectRatio")
-            .should("equal", "auto");
+        cy.get("#pAspectRatio1").should("have.text", "Aspect Ratio 1: NaN");
+        cy.get("#image1a").invoke("css", "aspectRatio").should("equal", "auto");
     });
 
     it("with description", () => {

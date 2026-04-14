@@ -1,4 +1,3 @@
-import { cesc } from "@doenet/utils";
 import {
     PREFIGURE_BUILD_DEBOUNCE_MS,
     REQUEST_SETTLE_BUFFER_MS,
@@ -98,11 +97,8 @@ describe(
             waitPastDebounceWindow();
             expectBuildRequestCount(requestTracker, 2);
 
-            cy.get(cesc("#prefig")).should("contain.text", "latest-response");
-            cy.get(cesc("#prefig")).should(
-                "not.contain.text",
-                "older-response",
-            );
+            cy.get("#prefig").should("contain.text", "latest-response");
+            cy.get("#prefig").should("not.contain.text", "older-response");
         });
 
         it("reintroduced prefigure graph builds immediately after being absent", () => {
@@ -126,7 +122,7 @@ describe(
                 );
             });
 
-            cy.get(cesc("#ready")).should("have.text", "ready");
+            cy.get("#ready").should("have.text", "ready");
             cy.wait(PREFIGURE_BUILD_DEBOUNCE_MS + REQUEST_SETTLE_BUFFER_MS);
             expectBuildRequestCount(requestTracker, 1);
 
@@ -145,7 +141,7 @@ describe(
                 );
             });
 
-            cy.get(cesc("#ready")).should("have.text", "ready");
+            cy.get("#ready").should("have.text", "ready");
             cy.wait(250);
             expectBuildRequestCount(requestTracker, 2);
         });

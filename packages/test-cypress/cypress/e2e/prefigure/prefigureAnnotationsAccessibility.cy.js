@@ -1,4 +1,3 @@
-import { cesc } from "@doenet/utils";
 import { installPrefigureBuildIntercept } from "../../support/prefigure";
 
 describe(
@@ -66,7 +65,7 @@ describe(
                 );
             });
 
-            cy.get(cesc("#ready")).should("have.text", "ready");
+            cy.get("#ready").should("have.text", "ready");
             cy.wait("@prefigureBuild");
             cy.wait(450);
 
@@ -75,17 +74,13 @@ describe(
                 expect(requestBodies[0]).to.include(`text="point summary"`);
             });
 
-            cy.get(cesc("#prefig"))
-                .find(".svg")
-                .should("contain.text", "svg-1");
-            cy.get(cesc("#prefig"))
-                .find(".cml")
-                .should("contain.text", "safe-cml-1");
-            cy.get(cesc("#prefig"))
+            cy.get("#prefig").find(".svg").should("contain.text", "svg-1");
+            cy.get("#prefig").find(".cml").should("contain.text", "safe-cml-1");
+            cy.get("#prefig")
                 .find(".cml [onclick], .cml [style]")
                 .should("not.exist");
             cy.window().its("__diagcessInitCount").should("eq", 1);
-            cy.get(cesc("#prefig"))
+            cy.get("#prefig")
                 .children("p.cacc-message")
                 .should("have.length", 1)
                 .and("contain.text", "diagcess init 1");
@@ -107,17 +102,13 @@ describe(
                 expect(requestBodies[1]).to.include(`text="point summary"`);
             });
 
-            cy.get(cesc("#prefig"))
-                .find(".svg")
-                .should("contain.text", "svg-2");
-            cy.get(cesc("#prefig"))
-                .find(".cml")
-                .should("contain.text", "safe-cml-2");
-            cy.get(cesc("#prefig"))
+            cy.get("#prefig").find(".svg").should("contain.text", "svg-2");
+            cy.get("#prefig").find(".cml").should("contain.text", "safe-cml-2");
+            cy.get("#prefig")
                 .find(".cml [onclick], .cml [style]")
                 .should("not.exist");
             cy.window().its("__diagcessInitCount").should("eq", 2);
-            cy.get(cesc("#prefig"))
+            cy.get("#prefig")
                 .children("p.cacc-message")
                 .should("have.length", 1)
                 .and("contain.text", "diagcess init 2");
@@ -159,7 +150,7 @@ describe(
                 "not.have.attr",
                 "open",
             );
-            cy.get(cesc("#prefig")).find(".svg").should("exist");
+            cy.get("#prefig").find(".svg").should("exist");
         });
     },
 );

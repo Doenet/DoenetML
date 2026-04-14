@@ -1,4 +1,3 @@
-import { cesc } from "@doenet/utils";
 import { installPrefigureBuildIntercept } from "../../support/prefigure";
 
 describe(
@@ -32,7 +31,7 @@ describe(
                 );
             });
 
-            cy.get(cesc("#ready")).should("have.text", "ready");
+            cy.get("#ready").should("have.text", "ready");
 
             cy.get(diagcessScriptSelector).should("have.length", 1);
 
@@ -50,7 +49,7 @@ describe(
                 );
             });
 
-            cy.get(cesc("#ready")).should("have.text", "ready");
+            cy.get("#ready").should("have.text", "ready");
 
             cy.get(diagcessScriptSelector).should("have.length", 1);
 
@@ -68,7 +67,7 @@ describe(
                 );
             });
 
-            cy.get(cesc("#ready")).should("have.text", "ready");
+            cy.get("#ready").should("have.text", "ready");
             cy.wait(300);
 
             // Script remains in place after all PreFigure instances unmount.

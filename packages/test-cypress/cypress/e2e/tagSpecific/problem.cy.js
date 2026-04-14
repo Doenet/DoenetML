@@ -43,9 +43,9 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        cy.get(cesc("#swcw_input")).should("not.be.checked");
+        cy.get("#swcw_input").should("not.be.checked");
 
-        cy.get(cesc("#theProblem_button")).should("not.exist");
+        cy.get("#theProblem_button").should("not.exist");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -76,97 +76,74 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             cy.get(helloInputAnchor).type("hello{enter}");
             cy.get(helloInputButtonAnchor).should("contain.text", "Correct");
 
-            cy.get(cesc("#fruitInput_button")).should(
-                "contain.text",
-                "Check Work",
-            );
+            cy.get("#fruitInput_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#fruitInput"))
-                .contains(`banana`)
-                .click({ force: true });
-            cy.get(cesc("#fruitInput_button")).click();
+            cy.get("#fruitInput").contains(`banana`).click({ force: true });
+            cy.get("#fruitInput_button").click();
 
-            cy.get(cesc("#fruitInput_button")).should(
-                "contain.text",
-                "Correct",
-            );
+            cy.get("#fruitInput_button").should("contain.text", "Correct");
 
-            cy.get(cesc("#sum3_button")).should("contain.text", "Check Work");
+            cy.get("#sum3_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#n1") + " textarea").type("2{enter}", {
+            cy.get("#n1" + " textarea").type("2{enter}", {
                 force: true,
             });
-            cy.get(cesc("#n2") + " textarea").type("1{enter}", {
+            cy.get("#n2" + " textarea").type("1{enter}", {
                 force: true,
             });
 
-            cy.get(cesc("#sum3_button")).should("contain.text", "Check Work");
+            cy.get("#sum3_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#sum3_button")).click();
-            cy.get(cesc("#sum3_button")).should("contain.text", "Correct");
+            cy.get("#sum3_button").click();
+            cy.get("#sum3_button").should("contain.text", "Correct");
 
             cy.log("switch to section wide check work");
 
-            cy.get(cesc("#swcw")).click();
-            cy.get(cesc("#swcw_input")).should("be.checked");
+            cy.get("#swcw").click();
+            cy.get("#swcw_input").should("be.checked");
 
             cy.get(twoxInputButtonAnchor).should("not.exist");
 
             cy.get(helloInputButtonAnchor).should("not.exist");
 
-            cy.get(cesc("#fruitInput_button")).should("not.exist");
+            cy.get("#fruitInput_button").should("not.exist");
 
-            cy.get(cesc("#sum3_button")).should("not.exist");
+            cy.get("#sum3_button").should("not.exist");
 
-            cy.get(cesc("#theProblem_button")).should(
-                "contain.text",
-                "Correct",
-            );
+            cy.get("#theProblem_button").should("contain.text", "Correct");
 
             cy.get(twoxInputAnchor).type("{end}{backspace}y{enter}", {
                 force: true,
             });
             cy.get(twoxInputButtonAnchor).should("not.exist");
 
-            cy.get(cesc("#theProblem_button")).should(
-                "contain.text",
-                "Check Work",
-            );
+            cy.get("#theProblem_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#theProblem_button")).click();
-            cy.get(cesc("#theProblem_button")).should(
-                "contain.text",
-                "75% Correct",
-            );
+            cy.get("#theProblem_button").click();
+            cy.get("#theProblem_button").should("contain.text", "75% Correct");
 
             cy.get(helloInputAnchor).type("2{enter}");
             cy.get(helloInputButtonAnchor).should("not.exist");
 
-            cy.get(cesc("#theProblem_button")).should("be.visible");
+            cy.get("#theProblem_button").should("be.visible");
 
-            cy.get(cesc("#theProblem_button")).click();
-            cy.get(cesc("#theProblem_button")).should(
-                "contain.text",
-                "50% Correct",
-            );
+            cy.get("#theProblem_button").click();
+            cy.get("#theProblem_button").should("contain.text", "50% Correct");
 
             cy.log("turn off section wide check work");
 
-            cy.get(cesc("#swcw")).click();
-            cy.get(cesc("#swcw_input")).should("not.be.checked");
+            cy.get("#swcw").click();
+            cy.get("#swcw_input").should("not.be.checked");
 
             cy.get(twoxInputButtonAnchor).should("contain.text", "Incorrect");
 
             cy.get(helloInputButtonAnchor).should("contain.text", "Incorrect");
 
-            cy.get(cesc("#fruitInput_button")).should(
-                "contain.text",
-                "Correct",
-            );
+            cy.get("#fruitInput_button").should("contain.text", "Correct");
 
-            cy.get(cesc("#sum3_button")).should("contain.text", "Correct");
+            cy.get("#sum3_button").should("contain.text", "Correct");
 
-            cy.get(cesc("#theProblem_button")).should("not.exist");
+            cy.get("#theProblem_button").should("not.exist");
         });
     });
 
@@ -207,9 +184,9 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        cy.get(cesc("#swcw_input")).should("not.be.checked");
+        cy.get("#swcw_input").should("not.be.checked");
 
-        cy.get(cesc("#theProblem_button")).should("not.exist");
+        cy.get("#theProblem_button").should("not.exist");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -240,100 +217,74 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             cy.get(helloInputAnchor).type("hello{enter}");
             cy.get(helloInputButtonAnchor).should("contain.text", "Correct");
 
-            cy.get(cesc("#fruitInput_button")).should(
-                "contain.text",
-                "Check Work",
-            );
+            cy.get("#fruitInput_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#fruitInput"))
-                .contains(`banana`)
-                .click({ force: true });
-            cy.get(cesc("#fruitInput_button")).click();
+            cy.get("#fruitInput").contains(`banana`).click({ force: true });
+            cy.get("#fruitInput_button").click();
 
-            cy.get(cesc("#fruitInput_button")).should(
-                "contain.text",
-                "Correct",
-            );
+            cy.get("#fruitInput_button").should("contain.text", "Correct");
 
-            cy.get(cesc("#sum3_button")).should("contain.text", "Check Work");
+            cy.get("#sum3_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#n1") + " textarea").type("2{enter}", {
+            cy.get("#n1" + " textarea").type("2{enter}", {
                 force: true,
             });
-            cy.get(cesc("#n2") + " textarea").type("1{enter}", {
+            cy.get("#n2" + " textarea").type("1{enter}", {
                 force: true,
             });
 
-            cy.get(cesc("#sum3_button")).should("contain.text", "Check Work");
+            cy.get("#sum3_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#sum3_button")).click();
-            cy.get(cesc("#sum3_button")).should("contain.text", "Correct");
+            cy.get("#sum3_button").click();
+            cy.get("#sum3_button").should("contain.text", "Correct");
 
             cy.log("switch to section wide check work");
 
-            cy.get(cesc("#swcw")).click();
-            cy.get(cesc("#swcw_input")).should("be.checked");
+            cy.get("#swcw").click();
+            cy.get("#swcw_input").should("be.checked");
 
             cy.get(twoxInputButtonAnchor).should("not.exist");
 
             cy.get(helloInputButtonAnchor).should("not.exist");
 
-            cy.get(cesc("#fruitInput_button")).should("not.exist");
+            cy.get("#fruitInput_button").should("not.exist");
 
-            cy.get(cesc("#sum3_button")).should("not.exist");
+            cy.get("#sum3_button").should("not.exist");
 
-            cy.get(cesc("#theProblem_button")).should(
-                "contain.text",
-                "Correct",
-            );
+            cy.get("#theProblem_button").should("contain.text", "Correct");
 
             cy.get(twoxInputAnchor).type("{end}{backspace}y{enter}", {
                 force: true,
             });
             cy.get(twoxInputButtonAnchor).should("not.exist");
 
-            cy.get(cesc("#theProblem_button")).should(
-                "contain.text",
-                "Check Work",
-            );
+            cy.get("#theProblem_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#theProblem_button")).click();
-            cy.get(cesc("#theProblem_button")).should(
-                "contain.text",
-                "75% Correct",
-            );
+            cy.get("#theProblem_button").click();
+            cy.get("#theProblem_button").should("contain.text", "75% Correct");
 
             cy.get(helloInputAnchor).type("2{enter}");
             cy.get(helloInputButtonAnchor).should("not.exist");
 
-            cy.get(cesc("#theProblem_button")).should(
-                "contain.text",
-                "Check Work",
-            );
+            cy.get("#theProblem_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#theProblem_button")).click();
-            cy.get(cesc("#theProblem_button")).should(
-                "contain.text",
-                "50% Correct",
-            );
+            cy.get("#theProblem_button").click();
+            cy.get("#theProblem_button").should("contain.text", "50% Correct");
 
             cy.log("turn off section wide check work");
 
-            cy.get(cesc("#swcw")).click();
-            cy.get(cesc("#swcw_input")).should("not.be.checked");
+            cy.get("#swcw").click();
+            cy.get("#swcw_input").should("not.be.checked");
 
             cy.get(twoxInputButtonAnchor).should("contain.text", "Incorrect");
 
             cy.get(helloInputButtonAnchor).should("contain.text", "Incorrect");
 
-            cy.get(cesc("#fruitInput_button")).should(
-                "contain.text",
-                "Correct",
-            );
+            cy.get("#fruitInput_button").should("contain.text", "Correct");
 
-            cy.get(cesc("#sum3_button")).should("contain.text", "Correct");
+            cy.get("#sum3_button").should("contain.text", "Correct");
 
-            cy.get(cesc("#theProblem_button")).should("not.exist");
+            cy.get("#theProblem_button").should("not.exist");
         });
     });
 
@@ -374,9 +325,9 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        cy.get(cesc("#dwcw_input")).should("not.be.checked");
+        cy.get("#dwcw_input").should("not.be.checked");
 
-        cy.get(cesc("#theDocument_button")).should("not.exist");
+        cy.get("#theDocument_button").should("not.exist");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -407,100 +358,74 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             cy.get(helloInputAnchor).type("hello{enter}");
             cy.get(helloInputButtonAnchor).should("contain.text", "Correct");
 
-            cy.get(cesc("#fruitInput_button")).should(
-                "contain.text",
-                "Check Work",
-            );
+            cy.get("#fruitInput_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#fruitInput"))
-                .contains(`banana`)
-                .click({ force: true });
-            cy.get(cesc("#fruitInput_button")).click();
+            cy.get("#fruitInput").contains(`banana`).click({ force: true });
+            cy.get("#fruitInput_button").click();
 
-            cy.get(cesc("#fruitInput_button")).should(
-                "contain.text",
-                "Correct",
-            );
+            cy.get("#fruitInput_button").should("contain.text", "Correct");
 
-            cy.get(cesc("#sum3_button")).should("contain.text", "Check Work");
+            cy.get("#sum3_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#n1") + " textarea").type("2{enter}", {
+            cy.get("#n1" + " textarea").type("2{enter}", {
                 force: true,
             });
-            cy.get(cesc("#n2") + " textarea").type("1{enter}", {
+            cy.get("#n2" + " textarea").type("1{enter}", {
                 force: true,
             });
 
-            cy.get(cesc("#sum3_button")).should("contain.text", "Check Work");
+            cy.get("#sum3_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#sum3_button")).click();
-            cy.get(cesc("#sum3_button")).should("contain.text", "Correct");
+            cy.get("#sum3_button").click();
+            cy.get("#sum3_button").should("contain.text", "Correct");
 
             cy.log("switch to document wide check work");
 
-            cy.get(cesc("#dwcw")).click();
-            cy.get(cesc("#dwcw_input")).should("be.checked");
+            cy.get("#dwcw").click();
+            cy.get("#dwcw_input").should("be.checked");
 
             cy.get(twoxInputButtonAnchor).should("not.exist");
 
             cy.get(helloInputButtonAnchor).should("not.exist");
 
-            cy.get(cesc("#fruitInput_button")).should("not.exist");
+            cy.get("#fruitInput_button").should("not.exist");
 
-            cy.get(cesc("#sum3_button")).should("not.exist");
+            cy.get("#sum3_button").should("not.exist");
 
-            cy.get(cesc("#theDocument_button")).should(
-                "contain.text",
-                "Correct",
-            );
+            cy.get("#theDocument_button").should("contain.text", "Correct");
 
             cy.get(twoxInputAnchor).type("{end}{backspace}y{enter}", {
                 force: true,
             });
             cy.get(twoxInputButtonAnchor).should("not.exist");
 
-            cy.get(cesc("#theDocument_button")).should(
-                "contain.text",
-                "Check Work",
-            );
+            cy.get("#theDocument_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#theDocument_button")).click();
-            cy.get(cesc("#theDocument_button")).should(
-                "contain.text",
-                "75% Correct",
-            );
+            cy.get("#theDocument_button").click();
+            cy.get("#theDocument_button").should("contain.text", "75% Correct");
 
             cy.get(helloInputAnchor).type("2{enter}");
             cy.get(helloInputButtonAnchor).should("not.exist");
 
-            cy.get(cesc("#theDocument_button")).should(
-                "contain.text",
-                "Check Work",
-            );
+            cy.get("#theDocument_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#theDocument_button")).click();
-            cy.get(cesc("#theDocument_button")).should(
-                "contain.text",
-                "50% Correct",
-            );
+            cy.get("#theDocument_button").click();
+            cy.get("#theDocument_button").should("contain.text", "50% Correct");
 
             cy.log("turn off document wide check work");
 
-            cy.get(cesc("#dwcw")).click();
-            cy.get(cesc("#dwcw_input")).should("not.be.checked");
+            cy.get("#dwcw").click();
+            cy.get("#dwcw_input").should("not.be.checked");
 
             cy.get(twoxInputButtonAnchor).should("contain.text", "Incorrect");
 
             cy.get(helloInputButtonAnchor).should("contain.text", "Incorrect");
 
-            cy.get(cesc("#fruitInput_button")).should(
-                "contain.text",
-                "Correct",
-            );
+            cy.get("#fruitInput_button").should("contain.text", "Correct");
 
-            cy.get(cesc("#sum3_button")).should("contain.text", "Correct");
+            cy.get("#sum3_button").should("contain.text", "Correct");
 
-            cy.get(cesc("#theDocument_button")).should("not.exist");
+            cy.get("#theDocument_button").should("not.exist");
         });
     });
 
@@ -544,9 +469,9 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        cy.get(cesc("#swcw_input")).should("not.be.checked");
+        cy.get("#swcw_input").should("not.be.checked");
 
-        cy.get(cesc("#theProblem_button")).should("not.exist");
+        cy.get("#theProblem_button").should("not.exist");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -577,112 +502,80 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             cy.get(helloInputAnchor).type("hello{enter}");
             cy.get(helloInputButtonAnchor).should("contain.text", "Correct");
 
-            cy.get(cesc("#fruitInput_button")).should("not.exist");
-            cy.get(cesc("#sum3_button")).should("not.exist");
+            cy.get("#fruitInput_button").should("not.exist");
+            cy.get("#sum3_button").should("not.exist");
 
-            cy.get(cesc("#subProblem_button")).should(
-                "contain.text",
-                "Check Work",
-            );
+            cy.get("#subProblem_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#fruitInput"))
-                .contains(`banana`)
-                .click({ force: true });
-            cy.get(cesc("#subProblem_button")).click();
+            cy.get("#fruitInput").contains(`banana`).click({ force: true });
+            cy.get("#subProblem_button").click();
 
-            cy.get(cesc("#subProblem_button")).should(
-                "contain.text",
-                "50% Correct",
-            );
+            cy.get("#subProblem_button").should("contain.text", "50% Correct");
 
-            cy.get(cesc("#n1") + " textarea").type("2{enter}", {
+            cy.get("#n1" + " textarea").type("2{enter}", {
                 force: true,
             });
-            cy.get(cesc("#n2") + " textarea").type("1{enter}", {
+            cy.get("#n2" + " textarea").type("1{enter}", {
                 force: true,
             });
 
-            cy.get(cesc("#subProblem_button")).should(
-                "contain.text",
-                "Check Work",
-            );
+            cy.get("#subProblem_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#subProblem_button")).click();
+            cy.get("#subProblem_button").click();
 
-            cy.get(cesc("#subProblem_button")).should(
-                "contain.text",
-                "Correct",
-            );
+            cy.get("#subProblem_button").should("contain.text", "Correct");
 
             cy.log("switch to section wide check work");
 
-            cy.get(cesc("#swcw")).click();
-            cy.get(cesc("#swcw_input")).should("be.checked");
+            cy.get("#swcw").click();
+            cy.get("#swcw_input").should("be.checked");
 
             cy.get(twoxInputButtonAnchor).should("not.exist");
 
             cy.get(helloInputButtonAnchor).should("not.exist");
 
-            cy.get(cesc("#fruitInput_button")).should("not.exist");
+            cy.get("#fruitInput_button").should("not.exist");
 
-            cy.get(cesc("#sum3_button")).should("not.exist");
+            cy.get("#sum3_button").should("not.exist");
 
-            cy.get(cesc("#subProblem_button")).should("not.exist");
+            cy.get("#subProblem_button").should("not.exist");
 
-            cy.get(cesc("#theProblem_button")).should(
-                "contain.text",
-                "Correct",
-            );
+            cy.get("#theProblem_button").should("contain.text", "Correct");
 
             cy.get(twoxInputAnchor).type("{end}{backspace}y{enter}", {
                 force: true,
             });
             cy.get(twoxInputButtonAnchor).should("not.exist");
 
-            cy.get(cesc("#theProblem_button")).should(
-                "contain.text",
-                "Check Work",
-            );
+            cy.get("#theProblem_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#theProblem_button")).click();
-            cy.get(cesc("#theProblem_button")).should(
-                "contain.text",
-                "67% Correct",
-            );
+            cy.get("#theProblem_button").click();
+            cy.get("#theProblem_button").should("contain.text", "67% Correct");
 
             cy.get(helloInputAnchor).type("2{enter}");
             cy.get(helloInputButtonAnchor).should("not.exist");
 
-            cy.get(cesc("#theProblem_button")).should(
-                "contain.text",
-                "Check Work",
-            );
+            cy.get("#theProblem_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#theProblem_button")).click();
-            cy.get(cesc("#theProblem_button")).should(
-                "contain.text",
-                "33% Correct",
-            );
+            cy.get("#theProblem_button").click();
+            cy.get("#theProblem_button").should("contain.text", "33% Correct");
 
             cy.log("turn off section wide check work");
 
-            cy.get(cesc("#swcw")).click();
-            cy.get(cesc("#swcw_input")).should("not.be.checked");
+            cy.get("#swcw").click();
+            cy.get("#swcw_input").should("not.be.checked");
 
             cy.get(twoxInputButtonAnchor).should("contain.text", "Incorrect");
 
             cy.get(helloInputButtonAnchor).should("contain.text", "Incorrect");
 
-            cy.get(cesc("#fruitInput_button")).should("not.exist");
+            cy.get("#fruitInput_button").should("not.exist");
 
-            cy.get(cesc("#sum3_button")).should("not.exist");
+            cy.get("#sum3_button").should("not.exist");
 
-            cy.get(cesc("#subProblem_button")).should(
-                "contain.text",
-                "Correct",
-            );
+            cy.get("#subProblem_button").should("contain.text", "Correct");
 
-            cy.get(cesc("#theProblem_button")).should("not.exist");
+            cy.get("#theProblem_button").should("not.exist");
         });
     });
 
@@ -726,9 +619,9 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        cy.get(cesc("#dwcw_input")).should("not.be.checked");
+        cy.get("#dwcw_input").should("not.be.checked");
 
-        cy.get(cesc("#theDocument_button")).should("not.exist");
+        cy.get("#theDocument_button").should("not.exist");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -759,112 +652,80 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             cy.get(helloInputAnchor).type("hello{enter}");
             cy.get(helloInputButtonAnchor).should("contain.text", "Correct");
 
-            cy.get(cesc("#fruitInput_button")).should("not.exist");
-            cy.get(cesc("#sum3_button")).should("not.exist");
+            cy.get("#fruitInput_button").should("not.exist");
+            cy.get("#sum3_button").should("not.exist");
 
-            cy.get(cesc("#subProblem_button")).should(
-                "contain.text",
-                "Check Work",
-            );
+            cy.get("#subProblem_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#fruitInput"))
-                .contains(`banana`)
-                .click({ force: true });
-            cy.get(cesc("#subProblem_button")).click();
+            cy.get("#fruitInput").contains(`banana`).click({ force: true });
+            cy.get("#subProblem_button").click();
 
-            cy.get(cesc("#subProblem_button")).should(
-                "contain.text",
-                "50% Correct",
-            );
+            cy.get("#subProblem_button").should("contain.text", "50% Correct");
 
-            cy.get(cesc("#n1") + " textarea").type("2{enter}", {
+            cy.get("#n1" + " textarea").type("2{enter}", {
                 force: true,
             });
-            cy.get(cesc("#n2") + " textarea").type("1{enter}", {
+            cy.get("#n2" + " textarea").type("1{enter}", {
                 force: true,
             });
 
-            cy.get(cesc("#subProblem_button")).should(
-                "contain.text",
-                "Check Work",
-            );
+            cy.get("#subProblem_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#subProblem_button")).click();
+            cy.get("#subProblem_button").click();
 
-            cy.get(cesc("#subProblem_button")).should(
-                "contain.text",
-                "Correct",
-            );
+            cy.get("#subProblem_button").should("contain.text", "Correct");
 
             cy.log("switch to document wide check work");
 
-            cy.get(cesc("#dwcw")).click();
-            cy.get(cesc("#dwcw_input")).should("be.checked");
+            cy.get("#dwcw").click();
+            cy.get("#dwcw_input").should("be.checked");
 
             cy.get(twoxInputButtonAnchor).should("not.exist");
 
             cy.get(helloInputButtonAnchor).should("not.exist");
 
-            cy.get(cesc("#fruitInput_button")).should("not.exist");
+            cy.get("#fruitInput_button").should("not.exist");
 
-            cy.get(cesc("#sum3_button")).should("not.exist");
+            cy.get("#sum3_button").should("not.exist");
 
-            cy.get(cesc("#subProblem_button")).should("not.exist");
+            cy.get("#subProblem_button").should("not.exist");
 
-            cy.get(cesc("#theDocument_button")).should(
-                "contain.text",
-                "Correct",
-            );
+            cy.get("#theDocument_button").should("contain.text", "Correct");
 
             cy.get(twoxInputAnchor).type("{end}{backspace}y{enter}", {
                 force: true,
             });
             cy.get(twoxInputButtonAnchor).should("not.exist");
 
-            cy.get(cesc("#theDocument_button")).should(
-                "contain.text",
-                "Check Work",
-            );
+            cy.get("#theDocument_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#theDocument_button")).click();
-            cy.get(cesc("#theDocument_button")).should(
-                "contain.text",
-                "67% Correct",
-            );
+            cy.get("#theDocument_button").click();
+            cy.get("#theDocument_button").should("contain.text", "67% Correct");
 
             cy.get(helloInputAnchor).type("2{enter}");
             cy.get(helloInputButtonAnchor).should("not.exist");
 
-            cy.get(cesc("#theDocument_button")).should(
-                "contain.text",
-                "Check Work",
-            );
+            cy.get("#theDocument_button").should("contain.text", "Check Work");
 
-            cy.get(cesc("#theDocument_button")).click();
-            cy.get(cesc("#theDocument_button")).should(
-                "contain.text",
-                "33% Correct",
-            );
+            cy.get("#theDocument_button").click();
+            cy.get("#theDocument_button").should("contain.text", "33% Correct");
 
             cy.log("turn off document wide check work");
 
-            cy.get(cesc("#dwcw")).click();
-            cy.get(cesc("#dwcw_input")).should("not.be.checked");
+            cy.get("#dwcw").click();
+            cy.get("#dwcw_input").should("not.be.checked");
 
             cy.get(twoxInputButtonAnchor).should("contain.text", "Incorrect");
 
             cy.get(helloInputButtonAnchor).should("contain.text", "Incorrect");
 
-            cy.get(cesc("#fruitInput_button")).should("not.exist");
+            cy.get("#fruitInput_button").should("not.exist");
 
-            cy.get(cesc("#sum3_button")).should("not.exist");
+            cy.get("#sum3_button").should("not.exist");
 
-            cy.get(cesc("#subProblem_button")).should(
-                "contain.text",
-                "Correct",
-            );
+            cy.get("#subProblem_button").should("contain.text", "Correct");
 
-            cy.get(cesc("#theDocument_button")).should("not.exist");
+            cy.get("#theDocument_button").should("not.exist");
         });
     });
 
@@ -893,7 +754,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
 
         // to wait for page to load
-        cy.get(cesc("#a")).should("have.text", "a");
+        cy.get("#a").should("have.text", "a");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -918,79 +779,55 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
                     .inputChildren[0].componentIdx;
             let mathInput4Anchor = cesc("#_id_" + mathInput4Idx) + " textarea";
 
-            cy.get(cesc("#prob1_button")).should("contain.text", "Check Work");
-            cy.get(cesc("#prob2_button")).should("contain.text", "Hit it!");
-            cy.get(cesc("#prob3_button")).should("contain.text", "Check Work");
-            cy.get(cesc("#prob4_button")).should("contain.text", "Hit it!");
+            cy.get("#prob1_button").should("contain.text", "Check Work");
+            cy.get("#prob2_button").should("contain.text", "Hit it!");
+            cy.get("#prob3_button").should("contain.text", "Check Work");
+            cy.get("#prob4_button").should("contain.text", "Hit it!");
 
             cy.get(mathInput1Anchor).type("x{enter}", { force: true });
             cy.get(mathInput2Anchor).type("x{enter}", { force: true });
             cy.get(mathInput3Anchor).type("x{enter}", { force: true });
             cy.get(mathInput4Anchor).type("x{enter}", { force: true });
 
-            cy.get(cesc("#prob1_button")).click();
-            cy.get(cesc("#prob2_button")).click();
-            cy.get(cesc("#prob3_button")).click();
-            cy.get(cesc("#prob4_button")).click();
+            cy.get("#prob1_button").click();
+            cy.get("#prob2_button").click();
+            cy.get("#prob3_button").click();
+            cy.get("#prob4_button").click();
 
-            cy.get(cesc("#prob1_button")).should("contain.text", "Correct");
-            cy.get(cesc("#prob2_button")).should("contain.text", "Correct");
-            cy.get(cesc("#prob3_button")).should("contain.text", "Correct");
-            cy.get(cesc("#prob4_button")).should("contain.text", "Correct");
+            cy.get("#prob1_button").should("contain.text", "Correct");
+            cy.get("#prob2_button").should("contain.text", "Correct");
+            cy.get("#prob3_button").should("contain.text", "Correct");
+            cy.get("#prob4_button").should("contain.text", "Correct");
 
             cy.get("#testRunner_toggleControls").click();
             cy.get("#testRunner_showCorrectness").click();
             cy.wait(100);
             cy.get("#testRunner_toggleControls").click();
 
-            cy.get(cesc("#prob1_button")).should(
-                "contain.text",
-                "Submit Response",
-            );
-            cy.get(cesc("#prob2_button")).should(
-                "contain.text",
-                "Submit Response",
-            );
-            cy.get(cesc("#prob3_button")).should("contain.text", "Guess");
-            cy.get(cesc("#prob4_button")).should("contain.text", "Guess");
+            cy.get("#prob1_button").should("contain.text", "Submit Response");
+            cy.get("#prob2_button").should("contain.text", "Submit Response");
+            cy.get("#prob3_button").should("contain.text", "Guess");
+            cy.get("#prob4_button").should("contain.text", "Guess");
 
-            cy.get(cesc("#prob1_button")).should(
-                "contain.text",
-                "Submit Response",
-            );
-            cy.get(cesc("#prob2_button")).should(
-                "contain.text",
-                "Submit Response",
-            );
-            cy.get(cesc("#prob3_button")).should("contain.text", "Guess");
-            cy.get(cesc("#prob4_button")).should("contain.text", "Guess");
+            cy.get("#prob1_button").should("contain.text", "Submit Response");
+            cy.get("#prob2_button").should("contain.text", "Submit Response");
+            cy.get("#prob3_button").should("contain.text", "Guess");
+            cy.get("#prob4_button").should("contain.text", "Guess");
 
             cy.get(mathInput1Anchor).type("x{enter}", { force: true });
             cy.get(mathInput2Anchor).type("x{enter}", { force: true });
             cy.get(mathInput3Anchor).type("x{enter}", { force: true });
             cy.get(mathInput4Anchor).type("x{enter}", { force: true });
 
-            cy.get(cesc("#prob1_button")).click();
-            cy.get(cesc("#prob2_button")).click();
-            cy.get(cesc("#prob3_button")).click();
-            cy.get(cesc("#prob4_button")).click();
+            cy.get("#prob1_button").click();
+            cy.get("#prob2_button").click();
+            cy.get("#prob3_button").click();
+            cy.get("#prob4_button").click();
 
-            cy.get(cesc("#prob1_button")).should(
-                "contain.text",
-                "Response Saved",
-            );
-            cy.get(cesc("#prob2_button")).should(
-                "contain.text",
-                "Response Saved",
-            );
-            cy.get(cesc("#prob3_button")).should(
-                "contain.text",
-                "Response Saved",
-            );
-            cy.get(cesc("#prob4_button")).should(
-                "contain.text",
-                "Response Saved",
-            );
+            cy.get("#prob1_button").should("contain.text", "Response Saved");
+            cy.get("#prob2_button").should("contain.text", "Response Saved");
+            cy.get("#prob3_button").should("contain.text", "Response Saved");
+            cy.get("#prob4_button").should("contain.text", "Response Saved");
         });
     });
 
@@ -1010,7 +847,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
 
         // to wait for page to load
-        cy.get(cesc("#a")).should("have.text", "a");
+        cy.get("#a").should("have.text", "a");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -1020,31 +857,28 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
                     .inputChildren[0].componentIdx;
             let mathInput1Anchor = cesc("#_id_" + mathInput1Idx) + " textarea";
 
-            cy.get(cesc("#doc_button")).should("contain.text", "Hit it!");
+            cy.get("#doc_button").should("contain.text", "Hit it!");
 
             cy.get(mathInput1Anchor).type("x{enter}", { force: true });
 
-            cy.get(cesc("#doc_button")).click();
+            cy.get("#doc_button").click();
 
-            cy.get(cesc("#doc_button")).should("contain.text", "Correct");
+            cy.get("#doc_button").should("contain.text", "Correct");
 
             cy.get("#testRunner_toggleControls").click();
             cy.get("#testRunner_showCorrectness").click();
             cy.wait(100);
             cy.get("#testRunner_toggleControls").click();
 
-            cy.get(cesc("#doc_button")).should("contain.text", "Guess");
+            cy.get("#doc_button").should("contain.text", "Guess");
 
-            cy.get(cesc("#doc_button")).should("contain.text", "Guess");
+            cy.get("#doc_button").should("contain.text", "Guess");
 
             cy.get(mathInput1Anchor).type("x{enter}", { force: true });
 
-            cy.get(cesc("#doc_button")).click();
+            cy.get("#doc_button").click();
 
-            cy.get(cesc("#doc_button")).should(
-                "contain.text",
-                "Response Saved",
-            );
+            cy.get("#doc_button").should("contain.text", "Response Saved");
         });
     });
 
@@ -1095,7 +929,7 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
+        cy.get("#a").should("have.text", "a"); //wait for page to load
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
@@ -1111,42 +945,13 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             let otherFruitColor =
                 selectedFruitColor === "red" ? "yellow" : "red";
 
-            cy.get(cesc("#ca")).should("have.text", "0");
+            cy.get("#ca").should("have.text", "0");
 
-            cy.get(cesc("#input1_input")).type(`${otherFruitName}{enter}`);
-            cy.get(cesc("#input1_button")).should("contain.text", "Incorrect");
-            cy.get(cesc("#ca")).should("have.text", "0");
+            cy.get("#input1_input").type(`${otherFruitName}{enter}`);
+            cy.get("#input1_button").should("contain.text", "Incorrect");
+            cy.get("#ca").should("have.text", "0");
 
-            cy.get(cesc("#input2_button")).should("contain.text", "Check Work");
-
-            cy.wait(2000); // wait to make sure debounce save happened
-
-            cy.reload();
-
-            cy.window().then(async (win) => {
-                win.postMessage(
-                    {
-                        doenetML,
-                    },
-                    "*",
-                );
-            });
-            cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
-
-            cy.get(cesc("#input1_button")).should("contain.text", "Incorrect");
-            cy.get(cesc("#input2_button")).should("contain.text", "Check Work");
-            cy.get(cesc("#ca")).should("have.text", "0");
-
-            cy.get(cesc("#input1_input")).clear().type(selectedFruitName);
-            cy.get(cesc("#input1_button")).click();
-            cy.get(cesc("#input1_button")).should("contain.text", "Correct");
-            cy.get(cesc("#ca")).should("have.text", "0.5");
-
-            cy.get(cesc("#input2_input"))
-                .clear()
-                .type(`${otherFruitColor}{enter}`);
-            cy.get(cesc("#input2_button")).should("contain.text", "Incorrect");
-            cy.get(cesc("#ca")).should("have.text", "0.5");
+            cy.get("#input2_button").should("contain.text", "Check Work");
 
             cy.wait(2000); // wait to make sure debounce save happened
 
@@ -1160,16 +965,20 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
                     "*",
                 );
             });
-            cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
+            cy.get("#a").should("have.text", "a"); //wait for page to load
 
-            cy.get(cesc("#input1_button")).should("contain.text", "Correct");
-            cy.get(cesc("#input2_button")).should("contain.text", "Incorrect");
-            cy.get(cesc("#ca")).should("have.text", "0.5");
+            cy.get("#input1_button").should("contain.text", "Incorrect");
+            cy.get("#input2_button").should("contain.text", "Check Work");
+            cy.get("#ca").should("have.text", "0");
 
-            cy.get(cesc("#input2_input")).clear().type(selectedFruitColor);
-            cy.get(cesc("#input2_button")).click();
-            cy.get(cesc("#input2_button")).should("contain.text", "Correct");
-            cy.get(cesc("#ca")).should("have.text", "1");
+            cy.get("#input1_input").clear().type(selectedFruitName);
+            cy.get("#input1_button").click();
+            cy.get("#input1_button").should("contain.text", "Correct");
+            cy.get("#ca").should("have.text", "0.5");
+
+            cy.get("#input2_input").clear().type(`${otherFruitColor}{enter}`);
+            cy.get("#input2_button").should("contain.text", "Incorrect");
+            cy.get("#ca").should("have.text", "0.5");
 
             cy.wait(2000); // wait to make sure debounce save happened
 
@@ -1183,11 +992,34 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
                     "*",
                 );
             });
-            cy.get(cesc("#a")).should("have.text", "a"); //wait for page to load
+            cy.get("#a").should("have.text", "a"); //wait for page to load
 
-            cy.get(cesc("#input1_button")).should("contain.text", "Correct");
-            cy.get(cesc("#input2_button")).should("contain.text", "Correct");
-            cy.get(cesc("#ca")).should("have.text", "1");
+            cy.get("#input1_button").should("contain.text", "Correct");
+            cy.get("#input2_button").should("contain.text", "Incorrect");
+            cy.get("#ca").should("have.text", "0.5");
+
+            cy.get("#input2_input").clear().type(selectedFruitColor);
+            cy.get("#input2_button").click();
+            cy.get("#input2_button").should("contain.text", "Correct");
+            cy.get("#ca").should("have.text", "1");
+
+            cy.wait(2000); // wait to make sure debounce save happened
+
+            cy.reload();
+
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML,
+                    },
+                    "*",
+                );
+            });
+            cy.get("#a").should("have.text", "a"); //wait for page to load
+
+            cy.get("#input1_button").should("contain.text", "Correct");
+            cy.get("#input2_button").should("contain.text", "Correct");
+            cy.get("#ca").should("have.text", "1");
         });
     });
 
