@@ -89,8 +89,11 @@ export function convertDoenetMLAnnotationsToPreFigureXml({
     graphDescendantComponentIndices,
     functionToCurveComponentIdx,
 }: BuildAnnotationsXmlParams): string {
+    // Always emit an empty <annotations> container when none are authored.
+    // This suppresses PreFigure WASM's implicit auto-generated annotations;
+    // we have not found a separate PreFigure option to disable that behavior.
     if (!Array.isArray(annotations) || annotations.length === 0) {
-        return "";
+        return "<annotations></annotations>";
     }
 
     const state: AnnotationXmlBuildState = {
@@ -110,7 +113,7 @@ export function convertDoenetMLAnnotationsToPreFigureXml({
         .filter((x): x is string => x !== null)
         .join("");
 
-    return annotationsXml ? `<annotations>${annotationsXml}</annotations>` : "";
+    return `<annotations>${annotationsXml}</annotations>`;
 }
 
 function pushAnnotationWarning({

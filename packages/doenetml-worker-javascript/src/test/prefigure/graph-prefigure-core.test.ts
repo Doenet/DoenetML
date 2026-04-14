@@ -76,7 +76,7 @@ describe("Graph prefigure renderer core @group4", () => {
         const prefigureXML = await getPrefigureXML(prefigureGraph(""));
 
         expect(prefigureXML).eq(
-            `<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /></coordinates></diagram>`,
+            `<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /></coordinates><annotations></annotations></diagram>`,
         );
     });
 
@@ -86,7 +86,7 @@ describe("Graph prefigure renderer core @group4", () => {
         );
 
         expect(prefigureXML).eq(
-            `<diagram dimensions="(425,425)"><coordinates bbox="(0,-10,10,10)"><axes axes="all" /></coordinates></diagram>`,
+            `<diagram dimensions="(425,425)"><coordinates bbox="(0,-10,10,10)"><axes axes="all" /></coordinates><annotations></annotations></diagram>`,
         );
     });
 
@@ -96,7 +96,7 @@ describe("Graph prefigure renderer core @group4", () => {
         );
 
         expect(prefigureXML).eq(
-            `<diagram dimensions="(850,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /></coordinates></diagram>`,
+            `<diagram dimensions="(850,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all" /></coordinates><annotations></annotations></diagram>`,
         );
     });
 
@@ -117,10 +117,10 @@ describe("Graph prefigure renderer core @group4", () => {
         );
 
         expect(gxPrefigureXML).eq(
-            `<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="horizontal" /></coordinates></diagram>`,
+            `<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="horizontal" /></coordinates><annotations></annotations></diagram>`,
         );
         expect(gyPrefigureXML).eq(
-            `<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="vertical" /></coordinates></diagram>`,
+            `<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="vertical" /></coordinates><annotations></annotations></diagram>`,
         );
     });
 
@@ -132,7 +132,7 @@ describe("Graph prefigure renderer core @group4", () => {
         );
 
         expect(prefigureXML).eq(
-            `<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"></coordinates></diagram>`,
+            `<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"></coordinates><annotations></annotations></diagram>`,
         );
     });
 
@@ -238,7 +238,7 @@ describe("Graph prefigure renderer core @group4", () => {
         );
 
         expect(prefigureXML).toMatchInlineSnapshot(
-            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all"><xlabel alignment="nw"><m>x^2</m></xlabel><ylabel alignment="se"><m>y_1</m></ylabel></axes></coordinates></diagram>"`,
+            `"<diagram dimensions="(425,425)"><coordinates bbox="(-10,-10,10,10)"><axes axes="all"><xlabel alignment="nw"><m>x^2</m></xlabel><ylabel alignment="se"><m>y_1</m></ylabel></axes></coordinates><annotations></annotations></diagram>"`,
         );
     });
 
@@ -548,7 +548,8 @@ describe("Graph prefigure renderer core @group4", () => {
         );
 
         const prefigureXML = await getPrefigureXML(doenetML);
-        expect(prefigureXML).not.toContain(`<annotations>`);
+        expect(prefigureXML).toContain(`<annotations></annotations>`);
+        expect(prefigureXML).not.toContain(`<annotation `);
 
         const diagnosticsByType = await getWarnings(doenetML);
         expect(
@@ -569,7 +570,8 @@ describe("Graph prefigure renderer core @group4", () => {
 `;
 
         const prefigureXML = await getPrefigureXML(doenetML);
-        expect(prefigureXML).not.toContain(`<annotations>`);
+        expect(prefigureXML).toContain(`<annotations></annotations>`);
+        expect(prefigureXML).not.toContain(`<annotation `);
 
         const diagnosticsByType = await getWarnings(doenetML);
         expect(
@@ -624,7 +626,8 @@ describe("Graph prefigure renderer core @group4", () => {
 `;
 
         const prefigureXML = await getPrefigureXML(doenetML);
-        expect(prefigureXML).not.toContain(`<annotations>`);
+        expect(prefigureXML).toContain(`<annotations></annotations>`);
+        expect(prefigureXML).not.toContain(`<annotation `);
 
         const diagnosticsByType = await getWarnings(doenetML);
         expect(
@@ -640,7 +643,8 @@ describe("Graph prefigure renderer core @group4", () => {
         );
 
         const prefigureXML = await getPrefigureXML(doenetML);
-        expect(prefigureXML).not.toContain(`<annotations>`);
+        expect(prefigureXML).toContain(`<annotations></annotations>`);
+        expect(prefigureXML).not.toContain(`<annotation `);
 
         const diagnosticsByType = await getWarnings(doenetML);
         expect(

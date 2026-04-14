@@ -589,6 +589,37 @@ function returnGraphPrefigureXMLStateVariableDefinition() {
     };
 }
 
+function returnGraphHasAuthorAnnotationsStateVariableDefinition() {
+    return {
+        public: true,
+        forRenderer: true,
+        shadowingInstructions: {
+            createComponentOfType: "boolean",
+        },
+        returnDependencies: () => ({
+            annotationsChildren: {
+                dependencyType: "child",
+                childGroups: ["annotations"],
+            },
+        }),
+        definition({
+            dependencyValues,
+        }: {
+            dependencyValues: GraphDependencyValues;
+        }) {
+            // True when the author included at least one <annotations> child,
+            // even if that child is explicitly empty. False only when no
+            // authored <annotations> child exists.
+            return {
+                setValue: {
+                    hasAuthorAnnotations:
+                        (dependencyValues.annotationsChildren?.length ?? 0) > 0,
+                },
+            };
+        },
+    };
+}
+
 /**
  * Returns all Graph state-variable definitions needed for prefigure conversion.
  *
@@ -602,6 +633,8 @@ export function returnGraphPrefigureStateVariableDefinitions() {
             returnGraphCurveDescendantComponentIndicesStateVariableDefinition(),
         functionToCurveComponentIdx:
             returnGraphFunctionCurveAliasMapStateVariableDefinition(),
+        hasAuthorAnnotations:
+            returnGraphHasAuthorAnnotationsStateVariableDefinition(),
         prefigureXML: returnGraphPrefigureXMLStateVariableDefinition(),
     };
 }
