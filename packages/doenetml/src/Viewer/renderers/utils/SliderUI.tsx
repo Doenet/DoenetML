@@ -47,16 +47,12 @@ type SliderUIProps = {
 };
 
 /**
- * SliderUI - A range input component with transient (during-drag) vs. final state tracking.
+ * SliderUI - A range input component with transient interaction tracking.
  *
  * Tracks two states: localValue (UI state during dragging) and transient flag (whether user is actively dragging).
- * During drag (transient=true), onChange fires with intermediate values. On pointer up/blur (transient=false),
- * the final value is committed. The parent can use this to distinguish between:
- * - Transient updates: send as skippable actions during drag
- * - Final updates: trigger constraints/snap-to-grid behavior on release
- *
- * The localValue is synced to the external value prop only when not actively dragging,
- * allowing the UI to show pending changes while respecting snap-back when constraints apply.
+ * During drag or keyboard stepping (transient=true), onChange fires with intermediate values so the parent can
+ * send skippable actions. On pointer up/blur, the transient state ends without calling onChange again; the parent
+ * can then re-sync the UI from the latest external, core-constrained value without a duplicate final action.
  */
 export default function SliderUI({
     id,
