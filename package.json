@@ -149,7 +149,7 @@
         "jszip": "^3.10.1",
         "katex": "^0.16.27",
         "lorem-ipsum": "^2.0.8",
-        "math-expressions": "^2.0.0-alpha89",
+        "math-expressions": "^2.0.0-alpha90",
         "micromark": "^4.0.2",
         "nanoid": "^5.1.6",
         "nextra": "^3.3.1",

@@ -154,7 +154,9 @@ function curveDefinitionAtIndex(
  */
 function astToExpressionString(ast: unknown): string | null {
     try {
-        return me.fromAst(ast as any).toString();
+        return me
+            .fromAst(ast as any)
+            .toString({ explicitMultiplicationSymbols: true });
     } catch (_e) {
         return null;
     }
