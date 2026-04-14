@@ -630,13 +630,13 @@ describe(
                     cesc("#_id_" + mathInput4Idx) + " textarea";
                 let answer4Button = cesc("#_id_" + mathInput4Idx + "_button");
 
-                cy.get(`#${"ci_choice1_input"}`)
+                cy.get("#ci_choice1_input")
                     .parent()
                     .should("have.text", choices[choiceOrder[0] - 1]);
-                cy.get(`#${"ci_choice2_input"}`)
+                cy.get("#ci_choice2_input")
                     .parent()
                     .should("have.text", choices[choiceOrder[1] - 1]);
-                cy.get(`#${"ci_choice3_input"}`)
+                cy.get("#ci_choice3_input")
                     .parent()
                     .should("have.text", choices[choiceOrder[2] - 1]);
                 cy.get(`#${cesc("g2.ci_choice1_input")}`)
