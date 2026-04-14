@@ -114,6 +114,108 @@ describe(
                 .and("contain.text", "diagcess init 2");
         });
 
+        it("does not re-init diagcess when updated graph has no authored annotations", () => {
+            const requestBodies = [];
+
+            cy.clearIndexedDB();
+            cy.visit("/", {
+                onBeforeLoad(win) {
+                    win.__diagcessInitCount = 0;
+                    win.diagcess = {
+                        Base: {
+                            molMap: {},
+                            init() {
+                                win.__diagcessInitCount += 1;
+
+                                const container =
+                                    win.document.querySelector("#prefig");
+                                if (!container) {
+                                    return;
+                                }
+
+                                const message = win.document.createElement("p");
+                                message.className = "cacc-message";
+                                message.textContent = `diagcess init ${win.__diagcessInitCount}`;
+                                container.appendChild(message);
+                            },
+                        },
+                    };
+                },
+            });
+
+            cy.intercept("POST", "**/build", (req) => {
+                requestBodies.push(String(req.body));
+
+                const requestNumber = requestBodies.length;
+
+                req.reply({
+                    statusCode: 200,
+                    headers: { "content-type": "application/json" },
+                    body: {
+                        svg: `<svg xmlns="http://www.w3.org/2000/svg"><text>svg-${requestNumber}</text></svg>`,
+                        annotationsXml: `<?xml version="1.0"?><diagram><annotation>safe-cml-${requestNumber}</annotation></diagram>`,
+                    },
+                });
+            }).as("prefigureBuild");
+
+            cy.window().then((win) => {
+                win.postMessage(
+                    {
+                        doenetML: `
+<graph name="prefig" renderer="prefigure">
+  <point name="P">(0,0)</point>
+  <annotations>
+    <annotation ref="$P" text="point summary" />
+  </annotations>
+</graph>
+`,
+                    },
+                    "*",
+                );
+            });
+
+            cy.wait("@prefigureBuild");
+            cy.wait(450);
+
+            cy.then(() => {
+                expect(requestBodies[0]).to.include(`text="point summary"`);
+            });
+            cy.window().its("__diagcessInitCount").should("eq", 1);
+            cy.get("#prefig")
+                .children("p.cacc-message")
+                .should("have.length", 1);
+
+            cy.window().then((win) => {
+                win.postMessage(
+                    {
+                        doenetML: `
+<graph name="prefig" renderer="prefigure">
+  <point>(2,1)</point>
+</graph>
+`,
+                    },
+                    "*",
+                );
+            });
+
+            cy.wait("@prefigureBuild");
+            cy.wait(450);
+
+            cy.then(() => {
+                expect(requestBodies).to.have.length(2);
+                expect(requestBodies[1]).to.include(
+                    "<annotations></annotations>",
+                );
+                expect(requestBodies[1]).not.to.include("<annotation ");
+            });
+
+            cy.get("#prefig").find(".svg").should("contain.text", "svg-2");
+            cy.window().its("__diagcessInitCount").should("eq", 1);
+            cy.get("#prefig")
+                .children("p.cacc-message")
+                .should("have.length", 0);
+        });
+
         it("applies shortDescription and aria-details to a prefigure graph", () => {
             cy.clearIndexedDB();
             cy.visit("/");

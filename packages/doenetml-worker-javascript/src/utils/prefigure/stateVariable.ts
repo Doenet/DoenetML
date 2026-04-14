@@ -600,7 +600,6 @@ function returnGraphHasAuthorAnnotationsStateVariableDefinition() {
             annotationsChildren: {
                 dependencyType: "child",
                 childGroups: ["annotations"],
-                variableNames: ["annotationSubtrees"],
             },
         }),
         definition({

@@ -289,7 +289,7 @@ type PrefigureRendererProps = {
     id: string;
     SVs: {
         prefigureXML: string | null;
-        hasAuthorAnnotations?: boolean;
+        hasAuthorAnnotations: boolean;
         showBorder: boolean;
         width: { size: string; isAbsolute: boolean };
         aspectRatio: number;
@@ -444,6 +444,21 @@ function hasAnnotationsXml(value: string): boolean {
     return /<diagram\b/i.test(trimmed);
 }
 
+function removeDiagcessMessages(container: HTMLElement | null): void {
+    if (!container) {
+        return;
+    }
+
+    for (const child of Array.from(container.children)) {
+        if (
+            child instanceof HTMLParagraphElement &&
+            child.classList.contains("cacc-message")
+        ) {
+            child.remove();
+        }
+    }
+}
+
 const FORBIDDEN_MARKUP_TAGS = new Set([
     "script",
     "foreignobject",
@@ -550,12 +565,12 @@ function applyBuildResultToState({
     data,
     setSvgMarkup,
     setSvgMessage,
-    setCmlContent,
+    setAnnotationsXml,
 }: {
     data: PrefigureBuildResult;
     setSvgMarkup: React.Dispatch<React.SetStateAction<string>>;
     setSvgMessage: React.Dispatch<React.SetStateAction<string>>;
-    setCmlContent: React.Dispatch<React.SetStateAction<string>>;
+    setAnnotationsXml: React.Dispatch<React.SetStateAction<string>>;
 }) {
     const svg = normalizeSerializedMarkup(data.svg);
     if (svg) {
@@ -576,11 +591,11 @@ function applyBuildResultToState({
         setSvgMessage("Error: No SVG found in response.");
     }
 
-    const cml = normalizeSerializedMarkup(data.annotationsXml);
-    if (cml) {
-        setCmlContent(sanitizeAnnotationsMarkup(cml));
+    const annotationsMarkup = normalizeSerializedMarkup(data.annotationsXml);
+    if (annotationsMarkup) {
+        setAnnotationsXml(sanitizeAnnotationsMarkup(annotationsMarkup));
     } else {
-        setCmlContent("");
+        setAnnotationsXml("");
     }
 }
 
@@ -694,11 +709,11 @@ export default React.memo(function Prefigure({
     callAction,
 }: PrefigureRendererProps) {
     const diagramXML = SVs.prefigureXML;
-    const hasAuthorAnnotations = Boolean(SVs.hasAuthorAnnotations);
+    const hasAuthorAnnotations = SVs.hasAuthorAnnotations;
     const coreSliderPoints = SVs.draggablePointsForSliders;
     const [svgMarkup, setSvgMarkup] = useState("");
     const [svgMessage, setSvgMessage] = useState("Building...");
-    const [cmlContent, setCmlContent] = useState("");
+    const [annotationsXml, setAnnotationsXml] = useState("");
     const [diagcessReady, setDiagcessReady] = useState(Boolean(diagcessApi()));
     const [rendererSliderCoordinates, setRendererSliderCoordinates] = useState<
         Record<number, { x: number; y: number }>
@@ -1190,14 +1205,14 @@ export default React.memo(function Prefigure({
             hasStartedBuildRef.current = false;
             setSvgMarkup("");
             setSvgMessage("");
-            setCmlContent("");
+            setAnnotationsXml("");
             return;
         }
 
         const resetBuildState = () => {
             setSvgMarkup("");
             setSvgMessage("Building...");
-            setCmlContent("");
+            setAnnotationsXml("");
         };
 
         const runBuildWithLogging = (startBuild: () => Promise<void>) => {
@@ -1232,7 +1247,7 @@ export default React.memo(function Prefigure({
                     data,
                     setSvgMarkup,
                     setSvgMessage,
-                    setCmlContent,
+                    setAnnotationsXml,
                 });
             } catch (error) {
                 if (isAbortError(error)) {
@@ -1279,33 +1294,19 @@ export default React.memo(function Prefigure({
         const diagcess = diagcessApi();
         const prefigureContainer = prefigureContainerRef.current;
 
-        if (prefigureContainer && !hasAuthorAnnotations) {
-            for (const child of Array.from(prefigureContainer.children)) {
-                if (
-                    child instanceof HTMLParagraphElement &&
-                    child.classList.contains("cacc-message")
-                ) {
-                    child.remove();
-                }
-            }
+        if (!hasAuthorAnnotations) {
+            removeDiagcessMessages(prefigureContainer);
         }
 
         if (
             diagcessReady &&
             svgMarkup &&
             hasAuthorAnnotations &&
-            hasAnnotationsXml(cmlContent) &&
+            hasAnnotationsXml(annotationsXml) &&
             diagcess &&
             prefigureContainer
         ) {
-            for (const child of Array.from(prefigureContainer.children)) {
-                if (
-                    child instanceof HTMLParagraphElement &&
-                    child.classList.contains("cacc-message")
-                ) {
-                    child.remove();
-                }
-            }
+            removeDiagcessMessages(prefigureContainer);
 
             // diagcess mutates molMap during init, so clear any stale
             // entries before re-running it against newly inserted markup.
@@ -1313,7 +1314,7 @@ export default React.memo(function Prefigure({
             if (diagcessTimerRef.current) {
                 clearTimeout(diagcessTimerRef.current);
             }
-            // Wait briefly for the sanitized SVG/CML markup to be present
+            // Wait briefly for the sanitized SVG/annotations XML markup to be present
             // in the live DOM before diagcess scans and annotates it.
             diagcessTimerRef.current = setTimeout(() => {
                 diagcessTimerRef.current = null;
@@ -1327,7 +1328,7 @@ export default React.memo(function Prefigure({
                 diagcessTimerRef.current = null;
             }
         };
-    }, [svgMarkup, cmlContent, diagcessReady, hasAuthorAnnotations]);
+    }, [svgMarkup, annotationsXml, diagcessReady, hasAuthorAnnotations]);
 
     const frameStyle: React.CSSProperties = {
         ...surfaceStyle,
@@ -1367,7 +1368,7 @@ export default React.memo(function Prefigure({
                 )}
                 <div
                     className="cml"
-                    dangerouslySetInnerHTML={{ __html: cmlContent }}
+                    dangerouslySetInnerHTML={{ __html: annotationsXml }}
                 />
             </div>
             {sliderSection}
