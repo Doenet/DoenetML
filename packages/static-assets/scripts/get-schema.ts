@@ -15,6 +15,8 @@ type AttributeObject = {
     public: boolean;
     excludeFromSchema: boolean;
     validValues?: unknown[];
+    valueForTrue?: unknown;
+    valueForFalse?: unknown;
 };
 
 type ComponentClass = {
@@ -127,7 +129,13 @@ type PublicStateVariableDescription = {
     arrayVarNameFromPropIndex?: Function;
 };
 
-type SchemaAttribute = { name: string; values?: unknown[] };
+type SchemaAttribute = {
+    name: string;
+    /** Values accepted by validation/schema checks. */
+    values?: unknown[];
+    /** Optional author-facing subset used for autocomplete suggestions. */
+    autocompleteValues?: unknown[];
+};
 
 type SchemaElement = {
     /** The component type of this component */
@@ -340,12 +348,32 @@ export function getSchema() {
             // one can add a excludeFromSchema to an attribute definition
             // to keep it from showing up in the schema
             if (!attrDef.excludeFromSchema) {
-                const attrSpec: { name: string; values?: unknown[] } = {
+                const attrSpec: SchemaAttribute = {
                     name: attrName,
                 };
 
+                const booleanAliasValues: string[] = [];
+                if (attrDef.valueForTrue !== undefined) {
+                    booleanAliasValues.push("true");
+                }
+                if (attrDef.valueForFalse !== undefined) {
+                    booleanAliasValues.push("false");
+                }
+
                 if (attrDef.validValues) {
-                    attrSpec.values = attrDef.validValues;
+                    if (booleanAliasValues.length > 0) {
+                        // Keep validation permissive for boolean aliases while
+                        // preserving author-facing enum suggestions in autocomplete.
+                        attrSpec.values = [
+                            ...new Set([
+                                ...attrDef.validValues,
+                                ...booleanAliasValues,
+                            ]),
+                        ];
+                        attrSpec.autocompleteValues = attrDef.validValues;
+                    } else {
+                        attrSpec.values = attrDef.validValues;
+                    }
                 } else if (
                     attrDef.createPrimitiveOfType === "boolean" ||
                     attrDef.createComponentOfType === "boolean"

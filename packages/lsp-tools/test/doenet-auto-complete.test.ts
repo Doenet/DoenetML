@@ -27,7 +27,16 @@ const schema = {
             children: ["www"],
             attributes: [
                 { name: "foo", values: ["true", "false"] },
-                { name: "bar", values: ["more", "less"] },
+                {
+                    name: "bar",
+                    values: ["more", "less", "true", "false"],
+                    autocompleteValues: ["more", "less"],
+                },
+                {
+                    name: "modeOneSided",
+                    values: ["none", "full", "true"],
+                    autocompleteValues: ["none", "full"],
+                },
             ],
             top: false,
             acceptsStringChildren: false,
@@ -66,18 +75,11 @@ describe("AutoCompleter", () => {
         {
             let offset = source.indexOf("<b") + 3;
             let elm = autoCompleter.getCompletionItems(offset);
-            expect(elm).toMatchInlineSnapshot(`
-              [
-                {
-                  "kind": 13,
-                  "label": "foo",
-                },
-                {
-                  "kind": 13,
-                  "label": "bar",
-                },
-              ]
-            `);
+            expect(elm.map((item) => item.label)).toEqual([
+                "foo",
+                "bar",
+                "modeOneSided",
+            ]);
         }
         {
             let offset = source.indexOf("<b") + 8;
@@ -128,6 +130,37 @@ describe("AutoCompleter", () => {
             `);
         }
     });
+
+    it("Prefers autocompleteValues for attribute value completions", () => {
+        const source = `<aa><b foo="true" bar="less"></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("<b") + 19;
+
+        const values = autoCompleter
+            .getCompletionItems(offset)
+            .map((item) => String(item.label).replace(/^"|"$/g, ""));
+
+        expect(values).toContain("more");
+        expect(values).toContain("less");
+        expect(values).not.toContain("true");
+        expect(values).not.toContain("false");
+    });
+
+    it("Prefers autocompleteValues for one-sided boolean aliases", () => {
+        const source = `<aa><b modeOneSided="none"></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("modeOneSided") + 15;
+
+        const values = autoCompleter
+            .getCompletionItems(offset)
+            .map((item) => String(item.label).replace(/^"|"$/g, ""));
+
+        expect(values).toContain("none");
+        expect(values).toContain("full");
+        expect(values).not.toContain("true");
+        expect(values).not.toContain("false");
+    });
+
     it("Can suggest closing tag completion when there is no closing tag", () => {
         let source: string;
         let autoCompleter: AutoCompleter;

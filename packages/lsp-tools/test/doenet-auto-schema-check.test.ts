@@ -25,7 +25,19 @@ const schema = {
         {
             name: "b",
             children: ["www"],
-            attributes: [{ name: "foo", values: ["true", "false"] }],
+            attributes: [
+                { name: "foo", values: ["true", "false"] },
+                {
+                    name: "mode",
+                    values: ["none", "full", "true", "false"],
+                    autocompleteValues: ["none", "full"],
+                },
+                {
+                    name: "modeOneSided",
+                    values: ["none", "full", "true"],
+                    autocompleteValues: ["none", "full"],
+                },
+            ],
             top: true,
             acceptsStringChildren: false,
         },
@@ -360,6 +372,47 @@ describe("AutoCompleter", () => {
         source = `<b  foo />`;
         autoCompleter = new AutoCompleter(source, schema.elements);
         expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot("[]");
+
+        source = `<b mode />`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot("[]");
+
+        source = `<b mode="true" />`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot("[]");
+
+        source = `<b mode="false" />`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot("[]");
+
+        source = `<b modeOneSided />`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot("[]");
+
+        source = `<b modeOneSided="true" />`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot("[]");
+
+        source = `<b modeOneSided="false" />`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot(`
+          [
+            {
+              "message": "Attribute \`modeOneSided\` of element \`<b>\` must be one of: \"none\", \"full\", \"true\"",
+              "range": {
+                "end": {
+                  "character": 23,
+                  "line": 0,
+                },
+                "start": {
+                  "character": 16,
+                  "line": 0,
+                },
+              },
+              "severity": 2,
+            },
+          ]
+        `);
     });
 
     it("allows styleDefinition and feedbackDefinition at the root with Doenet schema", () => {

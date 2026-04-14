@@ -778,9 +778,13 @@ export function getCompletionItems(
         const allowedAttributes =
             this.schemaElementsByName[elmName]?.attributes || [];
         const attribute = this._getAttributeContainsOffset(element, offset);
-        const allowedAttrValues = allowedAttributes.find(
+        const allowedAttribute = allowedAttributes.find(
             (a) => a.name === attribute?.name,
-        )?.values;
+        );
+        // Prefer explicit autocomplete values when provided; fall back to
+        // full validation values otherwise.
+        const allowedAttrValues =
+            allowedAttribute?.autocompleteValues ?? allowedAttribute?.values;
         if (!allowedAttrValues) {
             return [{ label: '""', kind: CompletionItemKind.Value }];
         }
