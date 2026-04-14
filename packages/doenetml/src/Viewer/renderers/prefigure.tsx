@@ -289,6 +289,7 @@ type PrefigureRendererProps = {
     id: string;
     SVs: {
         prefigureXML: string | null;
+        hasAuthorAnnotations?: boolean;
         showBorder: boolean;
         width: { size: string; isAbsolute: boolean };
         aspectRatio: number;
@@ -693,6 +694,7 @@ export default React.memo(function Prefigure({
     callAction,
 }: PrefigureRendererProps) {
     const diagramXML = SVs.prefigureXML;
+    const hasAuthorAnnotations = Boolean(SVs.hasAuthorAnnotations);
     const coreSliderPoints = SVs.draggablePointsForSliders;
     const [svgMarkup, setSvgMarkup] = useState("");
     const [svgMessage, setSvgMessage] = useState("Building...");
@@ -1275,36 +1277,48 @@ export default React.memo(function Prefigure({
     useEffect(() => {
         // Call diagcess.Base.init() after content is set
         const diagcess = diagcessApi();
+        const prefigureContainer = prefigureContainerRef.current;
+
+        if (prefigureContainer && !hasAuthorAnnotations) {
+            for (const child of Array.from(prefigureContainer.children)) {
+                if (
+                    child instanceof HTMLParagraphElement &&
+                    child.classList.contains("cacc-message")
+                ) {
+                    child.remove();
+                }
+            }
+        }
+
         if (
             diagcessReady &&
             svgMarkup &&
+            hasAuthorAnnotations &&
             hasAnnotationsXml(cmlContent) &&
-            diagcess
+            diagcess &&
+            prefigureContainer
         ) {
-            const prefigureContainer = prefigureContainerRef.current;
-            if (prefigureContainer) {
-                for (const child of Array.from(prefigureContainer.children)) {
-                    if (
-                        child instanceof HTMLParagraphElement &&
-                        child.classList.contains("cacc-message")
-                    ) {
-                        child.remove();
-                    }
+            for (const child of Array.from(prefigureContainer.children)) {
+                if (
+                    child instanceof HTMLParagraphElement &&
+                    child.classList.contains("cacc-message")
+                ) {
+                    child.remove();
                 }
-
-                // diagcess mutates molMap during init, so clear any stale
-                // entries before re-running it against newly inserted markup.
-                diagcess.Base.molMap = {};
-                if (diagcessTimerRef.current) {
-                    clearTimeout(diagcessTimerRef.current);
-                }
-                // Wait briefly for the sanitized SVG/CML markup to be present
-                // in the live DOM before diagcess scans and annotates it.
-                diagcessTimerRef.current = setTimeout(() => {
-                    diagcessTimerRef.current = null;
-                    diagcess.Base.init();
-                }, DIAGCESS_REINIT_DELAY_MS);
             }
+
+            // diagcess mutates molMap during init, so clear any stale
+            // entries before re-running it against newly inserted markup.
+            diagcess.Base.molMap = {};
+            if (diagcessTimerRef.current) {
+                clearTimeout(diagcessTimerRef.current);
+            }
+            // Wait briefly for the sanitized SVG/CML markup to be present
+            // in the live DOM before diagcess scans and annotates it.
+            diagcessTimerRef.current = setTimeout(() => {
+                diagcessTimerRef.current = null;
+                diagcess.Base.init();
+            }, DIAGCESS_REINIT_DELAY_MS);
         }
 
         return () => {
@@ -1313,7 +1327,7 @@ export default React.memo(function Prefigure({
                 diagcessTimerRef.current = null;
             }
         };
-    }, [svgMarkup, cmlContent, diagcessReady]);
+    }, [svgMarkup, cmlContent, diagcessReady, hasAuthorAnnotations]);
 
     const frameStyle: React.CSSProperties = {
         ...surfaceStyle,

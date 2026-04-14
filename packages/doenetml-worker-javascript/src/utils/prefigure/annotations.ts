@@ -90,7 +90,7 @@ export function convertDoenetMLAnnotationsToPreFigureXml({
     functionToCurveComponentIdx,
 }: BuildAnnotationsXmlParams): string {
     if (!Array.isArray(annotations) || annotations.length === 0) {
-        return "";
+        return "<annotations></annotations>";
     }
 
     const state: AnnotationXmlBuildState = {
@@ -110,7 +110,7 @@ export function convertDoenetMLAnnotationsToPreFigureXml({
         .filter((x): x is string => x !== null)
         .join("");
 
-    return annotationsXml ? `<annotations>${annotationsXml}</annotations>` : "";
+    return `<annotations>${annotationsXml}</annotations>`;
 }
 
 function pushAnnotationWarning({
