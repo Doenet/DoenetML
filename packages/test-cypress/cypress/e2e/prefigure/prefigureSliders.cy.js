@@ -188,11 +188,11 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
             force: true,
         });
         cy.get('[aria-label="y coordinate for P"]')
-            .invoke("val", "6.3")
+            .invoke("val", "6.4")
             .trigger("input", { force: true });
 
         cy.get(cesc("#Px")).should("have.text", "4.2");
-        cy.get(cesc("#Py")).should("have.text", "6.3");
+        cy.get(cesc("#Py")).should("have.text", "6.4");
 
         cy.get('[aria-label="x coordinate for P"]').trigger("pointerup", {
             pointerId: 1,
