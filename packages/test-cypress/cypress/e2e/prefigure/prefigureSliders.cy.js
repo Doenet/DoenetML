@@ -206,6 +206,61 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         });
     });
 
+    it("syncs non-dragged axis while constrained drag is still transient", () => {
+        cy.clearIndexedDB();
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph renderer="prefigure" addSliders size="small">
+  <line name="l">y=x</line>
+    <point name="P" labelIsName><constrainTo>$l</constrainTo>(0,0)</point>
+</graph>
+<p>Px: <number name="Px">$P.x</number></p>
+<p>Py: <number name="Py">$P.y</number></p>
+`);
+
+        cy.get(cesc("#ready")).should("have.text", "ready");
+        waitPastDebounceWindow();
+
+        cy.get('[aria-label="x coordinate for P"]').should("have.value", "0");
+        cy.get('[aria-label="y coordinate for P"]').should("have.value", "0");
+
+        cy.get('[aria-label="x coordinate for P"]').trigger("pointerdown", {
+            pointerId: 1,
+            pointerType: "mouse",
+            buttons: 1,
+            force: true,
+        });
+
+        cy.get('[aria-label="x coordinate for P"]')
+            .invoke("val", "4")
+            .trigger("input", { force: true });
+
+        // The constrained point should snap to the closest point on y=x: (2,2).
+        // While x remains transient and displays the dragged value, y should still
+        // synchronize to the latest non-transient core value from constraints.
+        cy.get('[aria-label="x coordinate for P"]').should("have.value", "4");
+        cy.get(cesc("#Px")).should("have.text", "2");
+        cy.get(cesc("#Py")).should("have.text", "2");
+        cy.get('[aria-label="y coordinate for P"]').should("have.value", "2");
+
+        cy.wait(2000);
+
+        cy.get('[aria-label="x coordinate for P"]').trigger("pointerup", {
+            pointerId: 1,
+            pointerType: "mouse",
+            force: true,
+        });
+
+        cy.get('[aria-label="x coordinate for P"]').should("have.value", "2");
+        cy.get('[aria-label="y coordinate for P"]').should("have.value", "2");
+        cy.get(cesc("#Px")).should("have.text", "2");
+        cy.get(cesc("#Py")).should("have.text", "2");
+    });
+
     it("normalizes slider min and max for reversed graph bounds", () => {
         cy.clearIndexedDB();
         cy.visit("/");

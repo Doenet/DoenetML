@@ -543,7 +543,7 @@ export default React.memo(function Prefigure({
     const latestSliderCoordinatesRef = useRef<
         Record<number, { x: number; y: number }>
     >({});
-    const [transientSliderSet, setTransientSliderSet] = useState<Set<number>>(
+    const [transientSliderSet, setTransientSliderSet] = useState<Set<string>>(
         new Set(),
     );
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -552,6 +552,13 @@ export default React.memo(function Prefigure({
     const prefigureContainerRef = useRef<HTMLDivElement | null>(null);
     const requestSequenceRef = useRef(0);
     const hasStartedBuildRef = useRef(false);
+
+    function sliderAxisTransientKey(
+        componentIdx: number,
+        axis: "x" | "y",
+    ): string {
+        return `${componentIdx}|${axis}`;
+    }
 
     useEffect(() => {
         // Merge new state values into ref without overwriting values that
@@ -569,24 +576,48 @@ export default React.memo(function Prefigure({
      * This effect runs whenever coreSliderPoints or transientSliderSet changes.
      *
      * Performs two key operations:
-     * 1. Sync rendererSliderCoordinates: Updates x/y values from coreSliderPoints for non-actively-dragging points.
+     * 1. Sync rendererSliderCoordinates: Updates x/y values from coreSliderPoints for
+     *    non-actively-dragging slider axes.
      *    Removes entries for points no longer in coreSliderPoints (cleanup).
-     * 2. Filter transientSliderSet: Removes inactive points from the dragging set,
-     *    maintaining consistency when points are added or removed.
+     * 2. Filter transientSliderSet: Removes inactive slider-axis keys from the dragging set,
+     *    maintaining consistency when points or rendered slider axes are removed.
      *
      * This design allows the UI to display transient (mid-drag) values while respecting
      * snap-back behavior from constraints when the user releases the mouse.
      */
     useEffect(() => {
-        // Compute activePointIndices once from coreSliderPoints, outside any state updater.
+        // Compute active point and slider-axis keys once from coreSliderPoints,
+        // outside any state updater.
         // Both setRendererSliderCoordinates and setTransientSliderSet will read this
         // immutable set without mutation.
         const activePointIndices = new Set<number>(
             coreSliderPoints.map((p) => p.componentIdx),
         );
+        const activeSliderAxisKeys = new Set<string>();
+
+        for (const { componentIdx, addSliders } of coreSliderPoints) {
+            const normalizedAddSliders = addSliders.toLowerCase();
+            if (
+                normalizedAddSliders !== "yonly" &&
+                normalizedAddSliders !== "none"
+            ) {
+                activeSliderAxisKeys.add(
+                    sliderAxisTransientKey(componentIdx, "x"),
+                );
+            }
+
+            if (
+                normalizedAddSliders !== "xonly" &&
+                normalizedAddSliders !== "none"
+            ) {
+                activeSliderAxisKeys.add(
+                    sliderAxisTransientKey(componentIdx, "y"),
+                );
+            }
+        }
 
         // This update keeps renderer coordinates aligned with core values for
-        // non-transient points and removes coordinates for inactive points.
+        // non-transient axes and removes coordinates for inactive points.
         setRendererSliderCoordinates((previousCoordinates) => {
             const nextCoordinates = { ...previousCoordinates };
             let changed = false;
@@ -596,19 +627,35 @@ export default React.memo(function Prefigure({
                 x: coreX,
                 y: coreY,
             } of coreSliderPoints) {
-                // Only update from coreSliderPoints if this point is not currently being dragged.
-                // Active drags use transient local values until release.
-                if (!transientSliderSet.has(componentIdx)) {
-                    const previousPointCoordinates =
-                        previousCoordinates[componentIdx];
+                const previousPointCoordinates =
+                    previousCoordinates[componentIdx];
+                const latestPointCoordinates =
+                    latestSliderCoordinatesRef.current[componentIdx];
+                const xIsTransient = transientSliderSet.has(
+                    sliderAxisTransientKey(componentIdx, "x"),
+                );
+                const yIsTransient = transientSliderSet.has(
+                    sliderAxisTransientKey(componentIdx, "y"),
+                );
+                const nextPointCoordinates = {
+                    x: xIsTransient
+                        ? (previousPointCoordinates?.x ??
+                          latestPointCoordinates?.x ??
+                          coreX)
+                        : coreX,
+                    y: yIsTransient
+                        ? (previousPointCoordinates?.y ??
+                          latestPointCoordinates?.y ??
+                          coreY)
+                        : coreY,
+                };
 
-                    if (
-                        previousPointCoordinates?.x !== coreX ||
-                        previousPointCoordinates?.y !== coreY
-                    ) {
-                        nextCoordinates[componentIdx] = { x: coreX, y: coreY };
-                        changed = true;
-                    }
+                if (
+                    previousPointCoordinates?.x !== nextPointCoordinates.x ||
+                    previousPointCoordinates?.y !== nextPointCoordinates.y
+                ) {
+                    nextCoordinates[componentIdx] = nextPointCoordinates;
+                    changed = true;
                 }
             }
 
@@ -625,14 +672,14 @@ export default React.memo(function Prefigure({
         });
 
         // This update is only for pruning transient entries that no longer
-        // correspond to active points in coreSliderPoints.
+        // correspond to active slider-axis keys.
         setTransientSliderSet((previousTransientSliderSet) => {
-            const nextTransientSliderSet = new Set<number>();
+            const nextTransientSliderSet = new Set<string>();
 
-            // Keep only transient points that are still active.
-            for (const componentIdx of previousTransientSliderSet) {
-                if (activePointIndices.has(componentIdx)) {
-                    nextTransientSliderSet.add(componentIdx);
+            // Keep only transient slider-axis keys that are still active.
+            for (const sliderAxisKey of previousTransientSliderSet) {
+                if (activeSliderAxisKeys.has(sliderAxisKey)) {
+                    nextTransientSliderSet.add(sliderAxisKey);
                 }
             }
 
@@ -642,8 +689,8 @@ export default React.memo(function Prefigure({
             ) {
                 let changed = false;
 
-                for (const componentIdx of nextTransientSliderSet) {
-                    if (!previousTransientSliderSet.has(componentIdx)) {
+                for (const sliderAxisKey of nextTransientSliderSet) {
+                    if (!previousTransientSliderSet.has(sliderAxisKey)) {
                         changed = true;
                         break;
                     }
@@ -661,13 +708,20 @@ export default React.memo(function Prefigure({
     /**
      * Update coordinates for a point based on slider input.
      *
-     * Manages transient (mid-drag) vs. final (on release) state:
-     * - During drag (transient=true): Updates UI locally, sends soft action (skippable=true)
-     * - On release (transient=false): Snapshots core coordinates, sends final action
+     * For pointer/touch drags, onChange is only called with transient=true (during drag).
+     * Drag release is handled by onDragEnd (in renderAxisSlider), which clears the
+     * transient axis key and lets the sync effect snap the slider to the core value
+     * without dispatching a duplicate movePoint action.
      *
-     * For constrained points (e.g., on grid), the core state may snap to valid values.
-     * On final commit we keep the just-selected value locally; the synchronization
-     * effect then applies any snapped core coordinates when they arrive.
+     * This means a pointer drag can complete without any transient=false movePoint call.
+     * Since transient updates are marked skippable, the last drag sample may also be
+     * skipped if superseded by another action before execution. We accept this tradeoff:
+     * users already saw the immediate drag response, and on release the slider handle
+     * is synchronized to the latest core value.
+     *
+     * For keyboard input, draggingRef is never set, so onChange fires with transient=false
+     * directly. Those non-transient calls still go through this function and are dispatched
+     * as non-skippable actions so that constraint evaluation fires immediately.
      */
     async function updatePointCoordinateFromSlider({
         componentIdx,
@@ -709,30 +763,34 @@ export default React.memo(function Prefigure({
             [componentIdx]: nextCoordinates,
         }));
 
-        function clearTransientForPoint() {
+        function clearTransientForAxis() {
+            const transientKey = sliderAxisTransientKey(componentIdx, axis);
+
             setTransientSliderSet((previousTransientSliderSet) => {
-                if (!previousTransientSliderSet.has(componentIdx)) {
+                if (!previousTransientSliderSet.has(transientKey)) {
                     return previousTransientSliderSet;
                 }
 
                 const nextTransientSliderSet = new Set(
                     previousTransientSliderSet,
                 );
-                nextTransientSliderSet.delete(componentIdx);
+                nextTransientSliderSet.delete(transientKey);
                 return nextTransientSliderSet;
             });
         }
 
         if (transient) {
+            const transientKey = sliderAxisTransientKey(componentIdx, axis);
+
             setTransientSliderSet((previousTransientSliderSet) => {
-                if (previousTransientSliderSet.has(componentIdx)) {
+                if (previousTransientSliderSet.has(transientKey)) {
                     return previousTransientSliderSet;
                 }
 
                 const nextTransientSliderSet = new Set(
                     previousTransientSliderSet,
                 );
-                nextTransientSliderSet.add(componentIdx);
+                nextTransientSliderSet.add(transientKey);
                 return nextTransientSliderSet;
             });
         }
@@ -758,7 +816,7 @@ export default React.memo(function Prefigure({
                 // DocViewer has already dispatched the updated core state values.
                 // Clearing transient first would allow the sync effect to pull
                 // stale pre-action core coordinates and cause a snap-back flicker.
-                clearTransientForPoint();
+                clearTransientForAxis();
             }
         }
     }
@@ -847,6 +905,23 @@ export default React.memo(function Prefigure({
                         defaultY: currentCoordinates.y,
                     })
                 }
+                onDragEnd={() => {
+                    // Clear only this axis's transient key on drag release. This
+                    // lets the sync effect pull the core-constrained value back
+                    // into the slider without sending a duplicate movePoint action.
+                    const transientKey = sliderAxisTransientKey(
+                        point.componentIdx,
+                        axis,
+                    );
+                    setTransientSliderSet((prev) => {
+                        if (!prev.has(transientKey)) {
+                            return prev;
+                        }
+                        const next = new Set(prev);
+                        next.delete(transientKey);
+                        return next;
+                    });
+                }}
             />
         );
     }

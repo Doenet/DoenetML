@@ -24,6 +24,7 @@ type SliderUIProps = {
     step: number;
     value: number;
     onChange: (value: number, transient: boolean) => void;
+    onDragEnd?: () => void;
 };
 
 /**
@@ -47,6 +48,7 @@ export default function SliderUI({
     step,
     value,
     onChange,
+    onDragEnd,
 }: SliderUIProps) {
     const [localValue, setLocalValue] = useState(value);
     const [transient, setTransient] = useState(false);
@@ -60,14 +62,16 @@ export default function SliderUI({
     }
 
     /**
-     * Commit slider value and exit transient state.
-     * Called on pointer up, pointer cancel, or blur while dragging.
+     * End a pointer drag without sending a new action to core.
+     * Clears transient flag so the useEffect below syncs localValue back to
+     * whatever the parent's value prop says (i.e. the core-constrained value).
+     * Notifies the parent via onDragEnd so it can clear its own transient
+     * bookkeeping without dispatching a duplicate movePoint action.
      */
-    function commitFinal(value: number): void {
+    function endDrag(): void {
         draggingRef.current = false;
         setTransient(false);
-        setLocalValue(value);
-        onChange(value, false);
+        onDragEnd?.();
     }
 
     /**
@@ -108,14 +112,14 @@ export default function SliderUI({
                     setTransient(true);
                 }}
                 onPointerUp={(e) => {
-                    commitFinal(extractInputValue(e.target));
+                    endDrag();
                 }}
                 onPointerCancel={(e) => {
-                    commitFinal(extractInputValue(e.target));
+                    endDrag();
                 }}
                 onBlur={(e) => {
                     if (transient) {
-                        commitFinal(extractInputValue(e.target));
+                        endDrag();
                     } else {
                         draggingRef.current = false;
                     }
