@@ -76,7 +76,7 @@ describe(
                 modulePath: "/mock-prefigure-abort-during-compile.js",
                 initDelayMs: 40,
                 compileDelayMs: 450,
-                renderLabel: "local-should-not-render-after-abort",
+                renderLabel: "local-replacement-render-after-abort",
             });
 
             cy.intercept("POST", PREFIGURE_BUILD_URL_PATTERN, {
@@ -117,7 +117,7 @@ describe(
             cy.wait(550);
             cy.get(cesc("#prefig2"), { timeout: 2000 }).should(
                 "contain.text",
-                "local-should-not-render-after-abort",
+                "local-replacement-render-after-abort",
             );
             cy.get(cesc("#prefig2")).should("not.contain.text", "Error:");
         });
