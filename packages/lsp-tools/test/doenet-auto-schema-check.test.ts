@@ -25,7 +25,14 @@ const schema = {
         {
             name: "b",
             children: ["www"],
-            attributes: [{ name: "foo", values: ["true", "false"] }],
+            attributes: [
+                { name: "foo", values: ["true", "false"] },
+                {
+                    name: "mode",
+                    values: ["none", "full", "true", "false"],
+                    autocompleteValues: ["none", "full"],
+                },
+            ],
             top: true,
             acceptsStringChildren: false,
         },
@@ -358,6 +365,18 @@ describe("AutoCompleter", () => {
 
         // No error for correct values
         source = `<b  foo />`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot("[]");
+
+        source = `<b mode />`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot("[]");
+
+        source = `<b mode="true" />`;
+        autoCompleter = new AutoCompleter(source, schema.elements);
+        expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot("[]");
+
+        source = `<b mode="false" />`;
         autoCompleter = new AutoCompleter(source, schema.elements);
         expect(autoCompleter.getSchemaViolations()).toMatchInlineSnapshot("[]");
     });

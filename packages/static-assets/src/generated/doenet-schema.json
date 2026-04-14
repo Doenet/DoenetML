@@ -408,6 +408,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -6346,6 +6355,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -6618,6 +6636,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -6885,6 +6912,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -7148,6 +7184,15 @@
                 {
                     "name": "simplifyOnCompare",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -7486,6 +7531,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -7820,6 +7874,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -8150,6 +8213,15 @@
                 {
                     "name": "simplifyOnCompare",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -8497,6 +8569,15 @@
                 {
                     "name": "simplify",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -9093,6 +9174,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -9685,6 +9775,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -10265,6 +10364,15 @@
                 {
                     "name": "simplify",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -10853,6 +10961,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -11437,6 +11554,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -12013,6 +12139,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -12565,6 +12700,15 @@
                 {
                     "name": "simplify",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -13137,6 +13281,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -13701,6 +13854,15 @@
                 {
                     "name": "simplify",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -14273,6 +14435,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -14837,6 +15008,15 @@
                 {
                     "name": "simplify",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -15433,6 +15613,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -16021,6 +16210,15 @@
                 {
                     "name": "simplify",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -16629,6 +16827,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -17233,6 +17440,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -17821,6 +18037,15 @@
                 {
                     "name": "simplify",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -18417,6 +18642,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -19005,6 +19239,15 @@
                 {
                     "name": "simplify",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -19601,6 +19844,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -20189,6 +20441,15 @@
                 {
                     "name": "simplify",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -20785,6 +21046,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -21371,6 +21641,15 @@
                 {
                     "name": "simplify",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -22044,6 +22323,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -22709,6 +22997,15 @@
                 {
                     "name": "simplify",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -39321,6 +39618,14 @@
                         "none",
                         "both",
                         "xOnly",
+                        "yOnly",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "both",
+                        "xOnly",
                         "yOnly"
                     ]
                 },
@@ -41394,6 +41699,15 @@
                 {
                     "name": "simplify",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -48214,6 +48528,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -48663,6 +48986,15 @@
                 {
                     "name": "simplify",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -50452,6 +50784,14 @@
                         "none",
                         "both",
                         "xOnly",
+                        "yOnly",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "both",
+                        "xOnly",
                         "yOnly"
                     ]
                 },
@@ -50814,6 +51154,15 @@
                 {
                     "name": "simplify",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -57274,6 +57623,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -57942,6 +58300,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -58379,6 +58746,15 @@
                 {
                     "name": "simplifyOnCompare",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -62318,6 +62694,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -62893,6 +63278,15 @@
                 {
                     "name": "simplify",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -63519,6 +63913,15 @@
                 {
                     "name": "simplify",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -70192,6 +70595,13 @@
                     "values": [
                         "unsorted",
                         "increasing",
+                        "decreasing",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "unsorted",
+                        "increasing",
                         "decreasing"
                     ]
                 },
@@ -70974,6 +71384,15 @@
                 {
                     "name": "simplify",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -71880,6 +72299,13 @@
                     "values": [
                         "unsorted",
                         "increasing",
+                        "decreasing",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "unsorted",
+                        "increasing",
                         "decreasing"
                     ]
                 },
@@ -72401,6 +72827,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -72584,6 +73019,15 @@
                 {
                     "name": "simplify",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -75904,6 +76348,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 }
@@ -78362,6 +78815,14 @@
                         "none",
                         "both",
                         "xOnly",
+                        "yOnly",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "both",
+                        "xOnly",
                         "yOnly"
                     ]
                 },
@@ -79915,6 +80376,15 @@
                 {
                     "name": "simplify",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",
@@ -82232,6 +82702,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -83501,6 +83980,15 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
                         "normalizeOrder"
                     ]
                 },
@@ -83836,6 +84324,15 @@
                 {
                     "name": "simplify",
                     "values": [
+                        "none",
+                        "full",
+                        "numbers",
+                        "numbersPreserveOrder",
+                        "normalizeOrder",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
                         "none",
                         "full",
                         "numbers",

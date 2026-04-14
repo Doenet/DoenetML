@@ -27,7 +27,11 @@ const schema = {
             children: ["www"],
             attributes: [
                 { name: "foo", values: ["true", "false"] },
-                { name: "bar", values: ["more", "less"] },
+                {
+                    name: "bar",
+                    values: ["more", "less", "true", "false"],
+                    autocompleteValues: ["more", "less"],
+                },
             ],
             top: false,
             acceptsStringChildren: false,
@@ -127,6 +131,21 @@ describe("AutoCompleter", () => {
               ]
             `);
         }
+    });
+
+    it("Prefers autocompleteValues for attribute value completions", () => {
+        const source = `<aa><b foo="true" bar="less"></b></aa>`;
+        const autoCompleter = new AutoCompleter(source, schema.elements);
+        const offset = source.indexOf("<b") + 19;
+
+        const values = autoCompleter
+            .getCompletionItems(offset)
+            .map((item) => String(item.label).replace(/^"|"$/g, ""));
+
+        expect(values).toContain("more");
+        expect(values).toContain("less");
+        expect(values).not.toContain("true");
+        expect(values).not.toContain("false");
     });
     it("Can suggest closing tag completion when there is no closing tag", () => {
         let source: string;

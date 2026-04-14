@@ -14,7 +14,11 @@ import type { RustResolverAdapter } from "./rust-resolver-adapter";
 type ElementSchema = {
     name: string;
     top: boolean;
-    attributes: { name: string; values?: string[] }[];
+    attributes: {
+        name: string;
+        values?: string[];
+        autocompleteValues?: string[];
+    }[];
     properties?: { name: string }[];
     children: string[];
     acceptsStringChildren: boolean;

@@ -15,6 +15,8 @@ type AttributeObject = {
     public: boolean;
     excludeFromSchema: boolean;
     validValues?: unknown[];
+    valueForTrue?: unknown;
+    valueForFalse?: unknown;
 };
 
 type ComponentClass = {
@@ -127,7 +129,11 @@ type PublicStateVariableDescription = {
     arrayVarNameFromPropIndex?: Function;
 };
 
-type SchemaAttribute = { name: string; values?: unknown[] };
+type SchemaAttribute = {
+    name: string;
+    values?: unknown[];
+    autocompleteValues?: unknown[];
+};
 
 type SchemaElement = {
     /** The component type of this component */
@@ -340,12 +346,31 @@ export function getSchema() {
             // one can add a excludeFromSchema to an attribute definition
             // to keep it from showing up in the schema
             if (!attrDef.excludeFromSchema) {
-                const attrSpec: { name: string; values?: unknown[] } = {
+                const attrSpec: {
+                    name: string;
+                    values?: unknown[];
+                    autocompleteValues?: unknown[];
+                } = {
                     name: attrName,
                 };
 
+                const hasBooleanAlias =
+                    attrDef.valueForTrue !== undefined ||
+                    attrDef.valueForFalse !== undefined;
+
                 if (attrDef.validValues) {
-                    attrSpec.values = attrDef.validValues;
+                    if (hasBooleanAlias) {
+                        attrSpec.values = [
+                            ...new Set([
+                                ...attrDef.validValues,
+                                "true",
+                                "false",
+                            ]),
+                        ];
+                        attrSpec.autocompleteValues = attrDef.validValues;
+                    } else {
+                        attrSpec.values = attrDef.validValues;
+                    }
                 } else if (
                     attrDef.createPrimitiveOfType === "boolean" ||
                     attrDef.createComponentOfType === "boolean"
