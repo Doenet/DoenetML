@@ -1419,8 +1419,15 @@ export default React.memo(function Prefigure({
         };
     }, [svgMarkup, annotationsXml, diagcessReady, hasAuthorAnnotations]);
 
+    const { marginTop, marginBottom, ...frameSurfaceStyle } = surfaceStyle;
+
+    const wrapperStyle: React.CSSProperties = {
+        marginTop,
+        marginBottom,
+    };
+
     const frameStyle: React.CSSProperties = {
-        ...surfaceStyle,
+        ...frameSurfaceStyle,
         overflow: "hidden",
         backgroundColor: "var(--canvas)",
         color: "var(--canvasText)",
@@ -1470,7 +1477,6 @@ export default React.memo(function Prefigure({
         display: "flex",
         flexDirection: "column",
         gap: "12px",
-        marginTop: useSideLayout ? surfaceStyle.marginTop : undefined,
         width: useSideLayout ? `${SIDE_SLIDER_COLUMN_WIDTH_PX}px` : "100%",
         maxWidth: useSideLayout
             ? `${SIDE_SLIDER_COLUMN_WIDTH_PX}px`
@@ -1481,6 +1487,7 @@ export default React.memo(function Prefigure({
         <div
             id={id}
             ref={prefigureContainerRef}
+            style={wrapperStyle}
             data-slider-position-requested={requestedSliderPosition}
             data-slider-position-effective={effectiveSliderPosition}
             data-slider-position-side-fallback={
