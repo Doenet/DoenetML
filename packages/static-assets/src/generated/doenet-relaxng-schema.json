@@ -64256,7 +64256,7 @@
                         "false"
                     ]
                 },
-                "addSliders": {
+                "addControls": {
                     "optional": true,
                     "type": [
                         "none",
@@ -64622,7 +64622,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "addSliders",
+                    "name": "addControls",
                     "type": "text",
                     "isArray": false
                 },
@@ -83648,7 +83648,7 @@
                         "false"
                     ]
                 },
-                "addSliders": {
+                "addControls": {
                     "optional": true,
                     "type": [
                         "none",
@@ -84000,7 +84000,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "addSliders",
+                    "name": "addControls",
                     "type": "text",
                     "isArray": false
                 },
@@ -99310,14 +99310,18 @@
                         "false"
                     ]
                 },
-                "addSliders": {
+                "addControls": {
                     "optional": true,
                     "type": [
+                        "all",
+                        "slidersOnly",
+                        "inputsOnly",
+                        "none",
                         "true",
                         "false"
                     ]
                 },
-                "sliderPosition": {
+                "controlsPosition": {
                     "optional": true,
                     "type": [
                         "bottom",
@@ -99921,12 +99925,12 @@
                     "isArray": false
                 },
                 {
-                    "name": "addSliders",
-                    "type": "boolean",
+                    "name": "addControls",
+                    "type": "text",
                     "isArray": false
                 },
                 {
-                    "name": "sliderPosition",
+                    "name": "controlsPosition",
                     "type": "text",
                     "isArray": false
                 },
@@ -127896,7 +127900,7 @@
                         "false"
                     ]
                 },
-                "addSliders": {
+                "addControls": {
                     "optional": true,
                     "type": [
                         "none",
@@ -128262,7 +128266,7 @@
                     "isArray": false
                 },
                 {
-                    "name": "addSliders",
+                    "name": "addControls",
                     "type": "text",
                     "isArray": false
                 },

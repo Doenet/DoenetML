@@ -22,7 +22,7 @@ const RANGE_INPUT_KEYS = new Set([
  * Props for the SliderUI component
  * @typedef {Object} SliderUIProps
  * @property {string} id - HTML id for the range input
- * @property {string} label - Display label for the slider
+ * @property {React.ReactNode} label - Display label content for the slider (text or JSX)
  * @property {string} ariaLabel - Accessible label for screen readers
  * @property {number} min - Minimum value
  * @property {number} max - Maximum value
@@ -36,7 +36,7 @@ const RANGE_INPUT_KEYS = new Set([
  */
 type SliderUIProps = {
     id: string;
-    label: string;
+    label: React.ReactNode;
     ariaLabel: string;
     min: number;
     max: number;
@@ -69,6 +69,8 @@ export default function SliderUI({
     const [transient, setTransient] = useState(false);
     const draggingRef = useRef(false);
     const keyboardActiveRef = useRef(false);
+    const hasPlainTextLabel =
+        typeof label === "string" || typeof label === "number";
 
     /**
      * Extract numeric value from input element with fallback to localValue
@@ -102,8 +104,31 @@ export default function SliderUI({
     }, [value, transient]);
 
     return (
-        <div>
-            <label htmlFor={id}>{label}</label>
+        <div style={{ width: "100%", minWidth: 0 }}>
+            {hasPlainTextLabel ? (
+                <label
+                    htmlFor={id}
+                    style={{
+                        display: "block",
+                        width: "100%",
+                        minWidth: 0,
+                        overflowWrap: "anywhere",
+                    }}
+                >
+                    {label}
+                </label>
+            ) : (
+                <div
+                    style={{
+                        display: "block",
+                        width: "100%",
+                        minWidth: 0,
+                        overflowWrap: "anywhere",
+                    }}
+                >
+                    {label}
+                </div>
+            )}
             <input
                 id={id}
                 type="range"

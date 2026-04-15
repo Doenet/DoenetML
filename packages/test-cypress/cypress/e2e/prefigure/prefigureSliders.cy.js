@@ -33,7 +33,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph name="g" renderer="prefigure" addSliders>
+<graph name="g" renderer="prefigure" addControls>
   <point name="Q">(3,4)</point>
   <point name="P" labelIsName>(-2,1)</point>
 </graph>
@@ -85,7 +85,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph renderer="prefigure" addSliders>
+<graph renderer="prefigure" addControls="slidersOnly">
   <point name="Q">(3,4)</point>
   <point name="P" labelIsName>
     <constrainToGrid />
@@ -124,7 +124,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph renderer="prefigure" addSliders>
+<graph renderer="prefigure" addControls="slidersOnly">
   <point name="P" labelIsName>
     <constrainToGrid />
     (3,4)
@@ -172,7 +172,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph renderer="prefigure" addSliders>
+<graph renderer="prefigure" addControls="slidersOnly">
   <point name="P" labelIsName>(1,2)</point>
 </graph>
 <p>Px: <number name="Px">$P.x</number></p>
@@ -224,7 +224,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph renderer="prefigure" addSliders size="small">
+<graph renderer="prefigure" addControls size="small">
   <line name="l">y=x</line>
     <point name="P" labelIsName><constrainTo>$l</constrainTo>(0,0)</point>
 </graph>
@@ -278,7 +278,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph renderer="prefigure" addSliders xMin="10" xMax="-10" yMin="5" yMax="-5">
+<graph renderer="prefigure" addControls xMin="10" xMax="-10" yMin="5" yMax="-5">
   <point name="P" labelIsName>(1,2)</point>
 </graph>
 <p>Px: <number name="Px">$P.x</number></p>
@@ -309,7 +309,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph renderer="prefigure" addSliders>
+<graph renderer="prefigure" addControls="slidersOnly">
     <point>(1,1)</point>
     <point draggable="false">(2,2)</point>
     <point fixed="true">(3,3)</point>
@@ -336,7 +336,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         postDoenetML(`
 <text name="ready">ready</text>
 <booleanInput name="middleDraggable" prefill="true" />
-<graph renderer="prefigure" addSliders>
+<graph renderer="prefigure" addControls>
     <point>(1,1)</point>
     <point draggable="$middleDraggable.value">(2,2)</point>
     <point>(3,3)</point>
@@ -368,7 +368,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph renderer="prefigure" addSliders>
+<graph renderer="prefigure" addControls="slidersOnly">
     <point name="P" labelIsName displayDecimals="1">(1.555, 2.777)</point>
     <point name="Q" labelIsName displayDigits="2">(3.456, 4.789)</point>
     <point name="R" labelIsName>(0.123, 0.456)</point>
@@ -421,7 +421,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph renderer="prefigure" addSliders>
+<graph renderer="prefigure" addControls="slidersOnly">
     <point name="P" labelIsName displayDecimals="2" padZeros="true">(1.5, 2)</point>
     <point name="Q" labelIsName displayDigits="3" padZeros="true">(3.45, 4.56)</point>
 </graph>
@@ -453,7 +453,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         });
     });
 
-    it("addSliders='none' on a point suppresses both sliders for that point", () => {
+    it("addControls='none' on a point suppresses both sliders for that point", () => {
         cy.clearIndexedDB();
         cy.visit("/");
 
@@ -461,9 +461,9 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph renderer="prefigure" addSliders>
+<graph renderer="prefigure" addControls>
     <point>(1,1)</point>
-    <point addSliders="none">(2,2)</point>
+    <point addControls="none">(2,2)</point>
     <point>(3,3)</point>
 </graph>
 `);
@@ -479,7 +479,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         cy.get('[aria-label="y coordinate for Point 3"]').should("exist");
     });
 
-    it("addSliders='xOnly' on a point renders only the x slider", () => {
+    it("addControls='xOnly' on a point renders only the x slider", () => {
         cy.clearIndexedDB();
         cy.visit("/");
 
@@ -487,8 +487,8 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph renderer="prefigure" addSliders>
-    <point name="P" labelIsName addSliders="xOnly">(3,4)</point>
+<graph renderer="prefigure" addControls>
+    <point name="P" labelIsName addControls="xOnly">(3,4)</point>
     <point name="Q" labelIsName>(1,2)</point>
 </graph>
 <p>Px: <number name="Px">$P.x</number></p>
@@ -514,7 +514,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         cy.get("#Px").should("have.text", "5");
     });
 
-    it("addSliders='yOnly' on a point renders only the y slider", () => {
+    it("addControls='yOnly' on a point renders only the y slider", () => {
         cy.clearIndexedDB();
         cy.visit("/");
 
@@ -522,8 +522,8 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph renderer="prefigure" addSliders>
-    <point name="P" labelIsName addSliders="yOnly">(3,4)</point>
+<graph renderer="prefigure" addControls>
+    <point name="P" labelIsName addControls="yOnly">(3,4)</point>
     <point name="Q" labelIsName>(1,2)</point>
 </graph>
 <p>Px: <number name="Px">$P.x</number></p>
@@ -549,7 +549,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         cy.get("#Py").should("have.text", "7");
     });
 
-    it("addSliders defaults to 'both' when graph-level addSliders is set", () => {
+    it("addControls defaults to 'both' when graph-level addControls is set", () => {
         cy.clearIndexedDB();
         cy.visit("/");
 
@@ -557,7 +557,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph renderer="prefigure" addSliders>
+<graph renderer="prefigure" addControls>
     <point name="P" labelIsName>(3,4)</point>
 </graph>
 `);
@@ -569,6 +569,131 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         cy.get('input[type="range"]').should("have.length", 2);
     });
 
+    it("addControls='slidersOnly' keeps slider-only rendering", () => {
+        cy.clearIndexedDB();
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph renderer="prefigure" addControls="slidersOnly">
+    <point name="P" labelIsName>(3,4)</point>
+</graph>
+`);
+
+        cy.get("#ready").should("have.text", "ready");
+
+        cy.get('[aria-label="x coordinate for P"]').should("exist");
+        cy.get('[aria-label="y coordinate for P"]').should("exist");
+        cy.get('input[type="range"]').should("have.length", 2);
+        cy.get('input[type="text"]').should("have.length", 0);
+    });
+
+    it("addControls='inputsOnly' renders coordinate inputs and validates before moving", () => {
+        cy.clearIndexedDB();
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph renderer="prefigure" addControls="inputsOnly">
+  <point name="P" labelIsName>(3,4)</point>
+  <point name="Q" labelIsName addControls="xOnly">(1,2)</point>
+</graph>
+<p>Px: <number name="Px">$P.x</number></p>
+<p>Py: <number name="Py">$P.y</number></p>
+<p>Qx: <number name="Qx">$Q.x</number></p>
+<p>Qy: <number name="Qy">$Q.y</number></p>
+`);
+
+        cy.get("#ready").should("have.text", "ready");
+
+        cy.get('input[type="range"]').should("have.length", 0);
+        cy.get('[aria-label="coordinates for P"]').should(
+            "have.value",
+            "(3,4)",
+        );
+        cy.get('[aria-label="x input for Q"]').should("have.value", "1");
+
+        cy.get('[aria-label="coordinates for P"]').clear().type("(6,7){enter}");
+        cy.get("#Px").should("have.text", "6");
+        cy.get("#Py").should("have.text", "7");
+
+        cy.get('[aria-label="coordinates for P"]')
+            .clear()
+            .type("not-a-pair{enter}");
+        cy.get('[aria-label="coordinates for P"]').should(
+            "have.attr",
+            "aria-invalid",
+            "true",
+        );
+        cy.get("#Px").should("have.text", "6");
+        cy.get("#Py").should("have.text", "7");
+
+        cy.get('[aria-label="x input for Q"]').clear().type("2+3{enter}");
+        cy.get("#Qx").should("have.text", "5");
+        cy.get("#Qy").should("have.text", "2");
+    });
+
+    it("addControls='all' keeps sliders and syncs inline inputs", () => {
+        cy.clearIndexedDB();
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph renderer="prefigure" addControls="all">
+  <point name="P" labelIsName>(3,4)</point>
+</graph>
+<p>Px: <number name="Px">$P.x</number></p>
+`);
+
+        cy.get("#ready").should("have.text", "ready");
+
+        cy.get('[aria-label="x coordinate for P"]').trigger("mousedown");
+        cy.get('[aria-label="x coordinate for P"]')
+            .invoke("val", "5")
+            .trigger("input");
+        cy.get('[aria-label="x coordinate for P"]').trigger("mouseup");
+        cy.get('input[aria-label="x value input for P"]')
+            .parents("label")
+            .should("have.length", 0);
+        cy.get('input[aria-label="x value input for P"]').should(
+            "have.value",
+            "5",
+        );
+        cy.get("#Px").should("have.text", "5");
+
+        cy.get('input[aria-label="x value input for P"]')
+            .clear()
+            .type("8{enter}");
+        cy.get('[aria-label="x coordinate for P"]').should("have.value", "8");
+        cy.get("#Px").should("have.text", "8");
+    });
+
+    it("addControls='none' renders no controls", () => {
+        cy.clearIndexedDB();
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph name="g" renderer="prefigure" addControls="none">
+  <point name="P" labelIsName>(2,3)</point>
+</graph>
+`);
+
+        cy.get("#ready").should("have.text", "ready");
+        cy.get('#g [data-point-slider-card="true"]').should("not.exist");
+        cy.get('#g input[type="range"]').should("have.length", 0);
+        cy.get('#g input[type="text"]').should("have.length", 0);
+        cy.get("#g > div").children().should("have.length", 1);
+    });
+
     it("keyboard arrow keys accumulate as transient and commit final value on blur", () => {
         cy.clearIndexedDB();
         cy.visit("/");
@@ -577,7 +702,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph renderer="prefigure" addSliders size="small">
+<graph renderer="prefigure" addControls size="small">
   <point name="P" labelIsName><constrainToGrid/>(0,0)</point>
 </graph>
 <p>Px: <number name="Px">$P.x</number></p>
@@ -622,7 +747,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph renderer="prefigure" addSliders size="small">
+<graph renderer="prefigure" addControls size="small">
   <line name="l">y=x</line>
   <point name="P" labelIsName><constrainTo>$l</constrainTo>(0,0)</point>
 </graph>
@@ -668,7 +793,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         cy.get("#Py").should("have.text", "0.1");
     });
 
-    it("defaults sliderPosition to left and keeps side-by-side on wide layout", () => {
+    it("defaults controlsPosition to left and keeps side-by-side on wide layout", () => {
         cy.clearIndexedDB();
         cy.viewport(1400, 900);
         cy.visit("/");
@@ -677,16 +802,16 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph name="g" renderer="prefigure" addSliders width="640px">
+<graph name="g" renderer="prefigure" addControls width="640px">
   <point name="P" labelIsName>(2,3)</point>
 </graph>
 `);
 
         cy.get("#ready").should("have.text", "ready");
         cy.get("#g")
-            .should("have.attr", "data-slider-position-requested", "left")
-            .and("have.attr", "data-slider-position-effective", "left")
-            .and("have.attr", "data-slider-position-side-fallback", "false");
+            .should("have.attr", "data-controls-position-requested", "left")
+            .and("have.attr", "data-controls-position-effective", "left")
+            .and("have.attr", "data-controls-position-side-fallback", "false");
 
         cy.get("#g > div").should("have.css", "flex-direction", "row");
         cy.get("#g .ChemAccess-element")
@@ -715,16 +840,16 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph name="g" renderer="prefigure" addSliders sliderPosition="left">
+<graph name="g" renderer="prefigure" addControls controlsPosition="left">
   <point name="P" labelIsName>(2,3)</point>
 </graph>
 `);
 
         cy.get("#ready").should("have.text", "ready");
         cy.get("#g")
-            .should("have.attr", "data-slider-position-requested", "left")
-            .and("have.attr", "data-slider-position-effective", "top")
-            .and("have.attr", "data-slider-position-side-fallback", "true");
+            .should("have.attr", "data-controls-position-requested", "left")
+            .and("have.attr", "data-controls-position-effective", "top")
+            .and("have.attr", "data-controls-position-side-fallback", "true");
 
         cy.get("#g > div").should("have.css", "flex-direction", "column");
     });
@@ -738,16 +863,16 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph name="g" renderer="prefigure" addSliders sliderPosition="right">
+<graph name="g" renderer="prefigure" addControls controlsPosition="right">
   <point name="P" labelIsName>(2,3)</point>
 </graph>
 `);
 
         cy.get("#ready").should("have.text", "ready");
         cy.get("#g")
-            .should("have.attr", "data-slider-position-requested", "right")
-            .and("have.attr", "data-slider-position-effective", "bottom")
-            .and("have.attr", "data-slider-position-side-fallback", "true");
+            .should("have.attr", "data-controls-position-requested", "right")
+            .and("have.attr", "data-controls-position-effective", "bottom")
+            .and("have.attr", "data-controls-position-side-fallback", "true");
 
         cy.get("#g > div").should("have.css", "flex-direction", "column");
         cy.get("#g .ChemAccess-element")
@@ -764,25 +889,25 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph name="g" renderer="prefigure" addSliders sliderPosition="left">
+<graph name="g" renderer="prefigure" addControls controlsPosition="left">
   <point name="P" labelIsName>(2,3)</point>
 </graph>
 `);
 
         cy.get("#ready").should("have.text", "ready");
         cy.get("#g")
-            .should("have.attr", "data-slider-position-effective", "left")
-            .and("have.attr", "data-slider-position-side-fallback", "false");
+            .should("have.attr", "data-controls-position-effective", "left")
+            .and("have.attr", "data-controls-position-side-fallback", "false");
 
         cy.viewport(420, 900);
         cy.get("#g")
-            .should("have.attr", "data-slider-position-effective", "top")
-            .and("have.attr", "data-slider-position-side-fallback", "true");
+            .should("have.attr", "data-controls-position-effective", "top")
+            .and("have.attr", "data-controls-position-side-fallback", "true");
 
         cy.viewport(1400, 900);
         cy.get("#g")
-            .should("have.attr", "data-slider-position-effective", "left")
-            .and("have.attr", "data-slider-position-side-fallback", "false");
+            .should("have.attr", "data-controls-position-effective", "left")
+            .and("have.attr", "data-controls-position-side-fallback", "false");
         cy.get("#g > div").should("have.css", "flex-direction", "row");
     });
 
@@ -794,7 +919,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph name="g" renderer="prefigure" addSliders sliderPosition="top">
+<graph name="g" renderer="prefigure" addControls controlsPosition="top">
   <shortDescription>Graph first semantic order test</shortDescription>
   <point name="P" labelIsName>(2,3)</point>
 </graph>
@@ -819,8 +944,8 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         });
 
         cy.get("#g")
-            .should("have.attr", "data-slider-position-effective", "top")
-            .and("have.attr", "data-slider-position-side-fallback", "false");
+            .should("have.attr", "data-controls-position-effective", "top")
+            .and("have.attr", "data-controls-position-side-fallback", "false");
         cy.get("#g .ChemAccess-element")
             .parent()
             .should("have.css", "order", "2");
@@ -835,8 +960,8 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph name="g" renderer="prefigure" addSliders sliderPosition="left" width="640px">
-  <point name="P" labelIsName addSliders="false">(2,3)</point>
+<graph name="g" renderer="prefigure" addControls controlsPosition="left" width="640px">
+  <point name="P" labelIsName addControls="false">(2,3)</point>
 </graph>
 `);
 
@@ -846,7 +971,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         cy.get("#g > div > div .ChemAccess-element").should("have.length", 1);
     });
 
-    it("addSliders false on point is equivalent to none", () => {
+    it("addControls false on point is equivalent to none", () => {
         cy.clearIndexedDB();
         cy.visit("/");
 
@@ -854,8 +979,8 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         postDoenetML(`
 <text name="ready">ready</text>
-<graph renderer="prefigure" addSliders>
-    <point name="P" labelIsName addSliders="false">(3,4)</point>
+<graph renderer="prefigure" addControls>
+    <point name="P" labelIsName addControls="false">(3,4)</point>
     <point name="Q" labelIsName>(1,2)</point>
 </graph>
 `);
