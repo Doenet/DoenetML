@@ -105,16 +105,20 @@ export default class Graph extends BlockComponent {
             public: true,
             forRenderer: true,
         };
-        attributes.addSliders = {
-            createComponentOfType: "boolean",
-            createStateVariable: "addSliders",
-            defaultValue: false,
+        attributes.addControls = {
+            createComponentOfType: "text",
+            createStateVariable: "addControls",
+            defaultValue: "none",
             public: true,
+            toLowerCase: true,
+            validValues: ["all", "slidersOnly", "inputsOnly", "none"],
+            valueForTrue: "all",
+            valueForFalse: "none",
             forRenderer: true,
         };
-        attributes.sliderPosition = {
+        attributes.controlsPosition = {
             createComponentOfType: "text",
-            createStateVariable: "sliderPosition",
+            createStateVariable: "controlsPosition",
             defaultValue: "left",
             public: true,
             forRenderer: true,
@@ -567,12 +571,12 @@ export default class Graph extends BlockComponent {
             },
         };
 
-        stateVariableDefinitions.draggablePointsForSliders = {
+        stateVariableDefinitions.draggablePointsForControls = {
             forRenderer: true,
             returnDependencies: () => ({
-                addSliders: {
+                addControls: {
                     dependencyType: "stateVariable",
-                    variableName: "addSliders",
+                    variableName: "addControls",
                 },
                 effectiveRenderer: {
                     dependencyType: "stateVariable",
@@ -586,7 +590,7 @@ export default class Graph extends BlockComponent {
                         "draggable",
                         "fixed",
                         "fixLocation",
-                        "addSliders",
+                        "addControls",
                         "label",
                         "labelHasLatex",
                         "displayDigits",
@@ -597,19 +601,19 @@ export default class Graph extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                // Feature only applies to PreFigure renderer when addSliders is enabled at graph level
+                // Feature only applies to PreFigure renderer when controls are enabled at graph level
                 if (
-                    !dependencyValues.addSliders ||
+                    dependencyValues.addControls === "none" ||
                     dependencyValues.effectiveRenderer !== "prefigure"
                 ) {
                     return {
                         setValue: {
-                            draggablePointsForSliders: [],
+                            draggablePointsForControls: [],
                         },
                     };
                 }
 
-                const draggablePointsForSliders = [];
+                const draggablePointsForControls = [];
 
                 for (const [pointInd, pointDescendant] of (
                     dependencyValues.pointDescendants ?? []
@@ -634,18 +638,18 @@ export default class Graph extends BlockComponent {
                     const draggable = stateValues.draggable !== false;
                     const fixed = stateValues.fixed === true;
                     const fixLocation = stateValues.fixLocation === true;
-                    const addSliders = stateValues.addSliders;
+                    const addControls = stateValues.addControls;
 
-                    // Skip points that cannot be interacted with via sliders:
+                    // Skip points that cannot be interacted with via controls:
                     // - not draggable (fixed by default)
                     // - explicitly marked as fixed
                     // - constrained via fixLocation
-                    // - author explicitly set addSliders="none" on the point
+                    // - author explicitly set addControls="none" on the point
                     if (
                         !draggable ||
                         fixed ||
                         fixLocation ||
-                        addSliders === "none"
+                        addControls === "none"
                     ) {
                         continue;
                     }
@@ -655,12 +659,12 @@ export default class Graph extends BlockComponent {
                         continue;
                     }
 
-                    draggablePointsForSliders.push({
+                    draggablePointsForControls.push({
                         componentIdx,
                         pointNumber,
                         x,
                         y,
-                        addSliders,
+                        addControls,
                         label:
                             typeof stateValues.label === "string"
                                 ? stateValues.label
@@ -675,7 +679,7 @@ export default class Graph extends BlockComponent {
 
                 return {
                     setValue: {
-                        draggablePointsForSliders,
+                        draggablePointsForControls,
                     },
                 };
             },

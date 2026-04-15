@@ -36,7 +36,7 @@ const RANGE_INPUT_KEYS = new Set([
  */
 type SliderUIProps = {
     id: string;
-    label: string;
+    label: React.ReactNode;
     ariaLabel: string;
     min: number;
     max: number;
@@ -102,8 +102,18 @@ export default function SliderUI({
     }, [value, transient]);
 
     return (
-        <div>
-            <label htmlFor={id}>{label}</label>
+        <div style={{ width: "100%", minWidth: 0 }}>
+            <label
+                htmlFor={id}
+                style={{
+                    display: "block",
+                    width: "100%",
+                    minWidth: 0,
+                    overflowWrap: "anywhere",
+                }}
+            >
+                {label}
+            </label>
             <input
                 id={id}
                 type="range"

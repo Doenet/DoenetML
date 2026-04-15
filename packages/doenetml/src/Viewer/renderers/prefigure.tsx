@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import DOMPurify from "dompurify";
+import me from "math-expressions";
 import { roundForDisplay } from "@doenet/utils";
 import {
     PREFIGURE_BUILD_ENDPOINT,
@@ -32,7 +33,9 @@ type PrefigureBuildWinner =
     | { backend: "service"; data: PrefigureBuildResult }
     | { backend: "local"; module: PrefigureModule };
 
-type SliderPosition = "bottom" | "left" | "right" | "top";
+type ControlsPosition = "bottom" | "left" | "right" | "top";
+type GraphControlsMode = "all" | "slidersonly" | "inputsonly" | "none";
+type PointControlsMode = "both" | "xonly" | "yonly" | "none";
 
 const MIN_GRAPH_WIDTH_FOR_SIDE_LAYOUT_PX = 280;
 const SIDE_SLIDER_COLUMN_WIDTH_PX = 220;
@@ -44,7 +47,7 @@ const MIN_SIDE_LAYOUT_WIDTH_PX =
     SIDE_SLIDER_COLUMN_WIDTH_PX +
     SIDE_LAYOUT_GAP_PX;
 
-function normalizeSliderPosition(value: unknown): SliderPosition {
+function normalizeControlsPosition(value: unknown): ControlsPosition {
     if (
         value === "bottom" ||
         value === "left" ||
@@ -55,6 +58,82 @@ function normalizeSliderPosition(value: unknown): SliderPosition {
     }
 
     return "left";
+}
+
+function normalizeGraphControlsMode(value: unknown): GraphControlsMode {
+    if (typeof value !== "string") {
+        return "none";
+    }
+
+    const normalized = value.toLowerCase();
+    if (
+        normalized === "all" ||
+        normalized === "slidersonly" ||
+        normalized === "inputsonly" ||
+        normalized === "none"
+    ) {
+        return normalized;
+    }
+
+    return "none";
+}
+
+function normalizePointControlsMode(value: unknown): PointControlsMode {
+    if (typeof value !== "string") {
+        return "both";
+    }
+
+    const normalized = value.toLowerCase();
+    if (
+        normalized === "both" ||
+        normalized === "xonly" ||
+        normalized === "yonly" ||
+        normalized === "none"
+    ) {
+        return normalized;
+    }
+
+    return "both";
+}
+
+function parseSingleMathNumber(input: string): number | null {
+    try {
+        const expression = me.fromText(input);
+        const value = expression?.evaluate_to_constant?.();
+        return Number.isFinite(value) ? value : null;
+    } catch (_error) {
+        return null;
+    }
+}
+
+function parseOrderedPair(input: string): { x: number; y: number } | null {
+    try {
+        const expression = me.fromText(input);
+        const tree = expression?.tree;
+        if (!Array.isArray(tree) || tree.length !== 3) {
+            return null;
+        }
+
+        const operator = tree[0];
+        if (operator !== "tuple" && operator !== "vector") {
+            return null;
+        }
+
+        const x = me.fromAst(tree[1])?.evaluate_to_constant?.();
+        const y = me.fromAst(tree[2])?.evaluate_to_constant?.();
+
+        if (x === null || y === null) {
+            return null;
+        }
+
+        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+            return null;
+        }
+
+        return { x, y };
+    } catch (_error) {
+        return null;
+    }
 }
 
 async function importPrefigureFromUrl(url: string): Promise<PrefigureModule> {
@@ -323,18 +402,18 @@ type PrefigureRendererProps = {
         showBorder: boolean;
         width: { size: string; isAbsolute: boolean };
         aspectRatio: number;
-        addSliders: boolean;
-        sliderPosition: SliderPosition;
+        addControls: string;
+        controlsPosition: ControlsPosition;
         xMin: number;
         xMax: number;
         yMin: number;
         yMax: number;
-        draggablePointsForSliders: Array<{
+        draggablePointsForControls: Array<{
             componentIdx: number;
             pointNumber: number;
             x: number;
             y: number;
-            addSliders: string;
+            addControls: string;
             label: string;
             labelHasLatex: boolean;
             displayDigits: number;
@@ -734,6 +813,29 @@ function sanitizeAnnotationsMarkup(markup: string): string {
     });
 }
 
+function pruneRecordByActiveKeys(
+    previousRecord: Record<string, string>,
+    activeKeys: Set<string>,
+): Record<string, string> {
+    const nextRecord: Record<string, string> = {};
+    let changed = false;
+
+    for (const key in previousRecord) {
+        if (!Object.prototype.hasOwnProperty.call(previousRecord, key)) {
+            continue;
+        }
+
+        const value = previousRecord[key];
+        if (activeKeys.has(key)) {
+            nextRecord[key] = value;
+        } else {
+            changed = true;
+        }
+    }
+
+    return changed ? nextRecord : previousRecord;
+}
+
 export default React.memo(function Prefigure({
     id,
     SVs,
@@ -742,13 +844,24 @@ export default React.memo(function Prefigure({
 }: PrefigureRendererProps) {
     const diagramXML = SVs.prefigureXML;
     const hasAuthorAnnotations = SVs.hasAuthorAnnotations;
-    const coreSliderPoints = SVs.draggablePointsForSliders;
+    const coreControlPoints = SVs.draggablePointsForControls;
+    const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
+    const includeSliders =
+        graphControlsMode === "all" || graphControlsMode === "slidersonly";
+    const includeInputs =
+        graphControlsMode === "all" || graphControlsMode === "inputsonly";
     const [svgMarkup, setSvgMarkup] = useState("");
     const [svgMessage, setSvgMessage] = useState("Building...");
     const [annotationsXml, setAnnotationsXml] = useState("");
     const [diagcessReady, setDiagcessReady] = useState(Boolean(diagcessApi()));
     const [rendererSliderCoordinates, setRendererSliderCoordinates] = useState<
         Record<number, { x: number; y: number }>
+    >({});
+    const [inputDraftByKey, setInputDraftByKey] = useState<
+        Record<string, string>
+    >({});
+    const [inputErrorByKey, setInputErrorByKey] = useState<
+        Record<string, string>
     >({});
     const latestSliderCoordinatesRef = useRef<
         Record<number, { x: number; y: number }>
@@ -771,6 +884,22 @@ export default React.memo(function Prefigure({
         return `${componentIdx}|${axis}`;
     }
 
+    function pointAxisInputKey(componentIdx: number, axis: "x" | "y"): string {
+        return `${componentIdx}|${axis}`;
+    }
+
+    function pointPairInputKey(componentIdx: number): string {
+        return `${componentIdx}|pair`;
+    }
+
+    function setInputDraftValue(key: string, value: string) {
+        setInputDraftByKey((previousDraftByKey) => ({
+            ...previousDraftByKey,
+            [key]: value,
+        }));
+        setInputError(key, null);
+    }
+
     useEffect(() => {
         // Merge new state values into ref without overwriting values that
         // updatePointCoordinateFromSlider may have just set. This prevents
@@ -784,12 +913,12 @@ export default React.memo(function Prefigure({
 
     /**
      * Synchronize slider coordinates state with core state and transient drag state.
-     * This effect runs whenever coreSliderPoints or transientSliderSet changes.
+     * This effect runs whenever coreControlPoints, includeSliders, or transientSliderSet changes.
      *
      * Performs two key operations:
-     * 1. Sync rendererSliderCoordinates: Updates x/y values from coreSliderPoints for
+     * 1. Sync rendererSliderCoordinates: Updates x/y values from coreControlPoints for
      *    non-actively-dragging slider axes.
-     *    Removes entries for points no longer in coreSliderPoints (cleanup).
+     *    Removes entries for points no longer in coreControlPoints (cleanup).
      * 2. Filter transientSliderSet: Removes inactive slider-axis keys from the dragging set,
      *    maintaining consistency when points or rendered slider axes are removed.
      *
@@ -797,20 +926,25 @@ export default React.memo(function Prefigure({
      * snap-back behavior from constraints when the user releases the mouse.
      */
     useEffect(() => {
-        // Compute active point and slider-axis keys once from coreSliderPoints,
+        // Compute active point and slider-axis keys once from coreControlPoints,
         // outside any state updater.
         // Both setRendererSliderCoordinates and setTransientSliderSet will read this
         // immutable set without mutation.
         const activePointIndices = new Set<number>(
-            coreSliderPoints.map((p) => p.componentIdx),
+            coreControlPoints.map((p) => p.componentIdx),
         );
         const activeSliderAxisKeys = new Set<string>();
 
-        for (const { componentIdx, addSliders } of coreSliderPoints) {
-            const normalizedAddSliders = addSliders.toLowerCase();
+        for (const { componentIdx, addControls } of coreControlPoints) {
+            if (!includeSliders) {
+                continue;
+            }
+
+            const normalizedAddControls =
+                normalizePointControlsMode(addControls);
             if (
-                normalizedAddSliders !== "yonly" &&
-                normalizedAddSliders !== "none"
+                normalizedAddControls !== "yonly" &&
+                normalizedAddControls !== "none"
             ) {
                 activeSliderAxisKeys.add(
                     sliderAxisTransientKey(componentIdx, "x"),
@@ -818,8 +952,8 @@ export default React.memo(function Prefigure({
             }
 
             if (
-                normalizedAddSliders !== "xonly" &&
-                normalizedAddSliders !== "none"
+                normalizedAddControls !== "xonly" &&
+                normalizedAddControls !== "none"
             ) {
                 activeSliderAxisKeys.add(
                     sliderAxisTransientKey(componentIdx, "y"),
@@ -837,7 +971,7 @@ export default React.memo(function Prefigure({
                 componentIdx,
                 x: coreX,
                 y: coreY,
-            } of coreSliderPoints) {
+            } of coreControlPoints) {
                 const previousPointCoordinates =
                     previousCoordinates[componentIdx];
                 const latestPointCoordinates =
@@ -870,7 +1004,7 @@ export default React.memo(function Prefigure({
                 }
             }
 
-            // Clean up coordinates for points that no longer exist in coreSliderPoints.
+            // Clean up coordinates for points that no longer exist in coreControlPoints.
             for (const componentIdxString of Object.keys(nextCoordinates)) {
                 const componentIdx = Number(componentIdxString);
                 if (!activePointIndices.has(componentIdx)) {
@@ -914,7 +1048,71 @@ export default React.memo(function Prefigure({
 
             return nextTransientSliderSet;
         });
-    }, [coreSliderPoints, transientSliderSet]);
+    }, [coreControlPoints, includeSliders, transientSliderSet]);
+
+    /**
+     * Keeps input draft/error state aligned with the currently rendered controls.
+     *
+     * As graph mode, point mode, or eligible points change, some inputs may no
+     * longer exist (for example switching from `all` to `slidersOnly`, or a point
+     * changing from `both` to `xOnly`). This effect computes the active input-key
+     * set for the current render configuration, then prunes stale entries from:
+     * - inputDraftByKey: temporary user-edited values not yet committed
+     * - inputErrorByKey: validation errors associated with input controls
+     *
+     * It intentionally preserves keys that are still active so in-progress edits
+     * are not lost during unrelated updates.
+     */
+    useEffect(() => {
+        const activeInputKeys = new Set<string>();
+
+        if (includeInputs) {
+            for (const point of coreControlPoints) {
+                const pointControlsMode = normalizePointControlsMode(
+                    point.addControls,
+                );
+
+                if (pointControlsMode === "none") {
+                    continue;
+                }
+
+                if (graphControlsMode === "all") {
+                    if (pointControlsMode !== "yonly") {
+                        activeInputKeys.add(
+                            pointAxisInputKey(point.componentIdx, "x"),
+                        );
+                    }
+                    if (pointControlsMode !== "xonly") {
+                        activeInputKeys.add(
+                            pointAxisInputKey(point.componentIdx, "y"),
+                        );
+                    }
+                } else if (graphControlsMode === "inputsonly") {
+                    if (pointControlsMode === "both") {
+                        activeInputKeys.add(
+                            pointPairInputKey(point.componentIdx),
+                        );
+                    } else if (pointControlsMode === "xonly") {
+                        activeInputKeys.add(
+                            pointAxisInputKey(point.componentIdx, "x"),
+                        );
+                    } else if (pointControlsMode === "yonly") {
+                        activeInputKeys.add(
+                            pointAxisInputKey(point.componentIdx, "y"),
+                        );
+                    }
+                }
+            }
+        }
+
+        // Remove drafts and validation errors for inputs that are no longer rendered.
+        setInputDraftByKey((previousDraftByKey) =>
+            pruneRecordByActiveKeys(previousDraftByKey, activeInputKeys),
+        );
+        setInputErrorByKey((previousErrorByKey) =>
+            pruneRecordByActiveKeys(previousErrorByKey, activeInputKeys),
+        );
+    }, [coreControlPoints, graphControlsMode, includeInputs]);
 
     /**
      * Update coordinates for a point based on slider input.
@@ -1053,7 +1251,7 @@ export default React.memo(function Prefigure({
      */
     function formatCoordinateForSlider(
         value: number,
-        point: (typeof coreSliderPoints)[number],
+        point: (typeof coreControlPoints)[number],
     ): string {
         const rounded = roundForDisplay({
             value,
@@ -1080,15 +1278,155 @@ export default React.memo(function Prefigure({
 
     const { xMin, xMax, yMin, yMax } = SVs;
 
+    async function updatePointCoordinatesFromControls({
+        componentIdx,
+        x,
+        y,
+    }: {
+        componentIdx: number;
+        x: number;
+        y: number;
+    }) {
+        const nextCoordinates = { x, y };
+
+        latestSliderCoordinatesRef.current = {
+            ...latestSliderCoordinatesRef.current,
+            [componentIdx]: nextCoordinates,
+        };
+
+        setRendererSliderCoordinates((previousCoordinates) => ({
+            ...previousCoordinates,
+            [componentIdx]: nextCoordinates,
+        }));
+
+        try {
+            await callAction({
+                action: { actionName: "movePoint", componentIdx },
+                args: {
+                    x,
+                    y,
+                    transient: false,
+                    skippable: false,
+                },
+            });
+        } catch (error) {
+            console.error(
+                `[prefigure] movePoint failed for component ${componentIdx}`,
+                error,
+            );
+        }
+    }
+
+    function setInputError(key: string, error: string | null) {
+        setInputErrorByKey((previousErrorByKey) => {
+            if (error) {
+                if (previousErrorByKey[key] === error) {
+                    return previousErrorByKey;
+                }
+                return { ...previousErrorByKey, [key]: error };
+            }
+
+            if (!(key in previousErrorByKey)) {
+                return previousErrorByKey;
+            }
+
+            const nextErrorByKey = { ...previousErrorByKey };
+            delete nextErrorByKey[key];
+            return nextErrorByKey;
+        });
+    }
+
+    function clearInputDraft(key: string) {
+        setInputDraftByKey((previousDraftByKey) => {
+            if (!(key in previousDraftByKey)) {
+                return previousDraftByKey;
+            }
+
+            const nextDraftByKey = { ...previousDraftByKey };
+            delete nextDraftByKey[key];
+            return nextDraftByKey;
+        });
+    }
+
+    async function submitAxisInput({
+        componentIdx,
+        axis,
+        rawValue,
+        currentCoordinates,
+        inputKey,
+    }: {
+        componentIdx: number;
+        axis: "x" | "y";
+        rawValue: string;
+        currentCoordinates: { x: number; y: number };
+        inputKey: string;
+    }) {
+        const parsedValue = parseSingleMathNumber(rawValue);
+        if (parsedValue === null) {
+            setInputError(
+                inputKey,
+                "Enter a valid number or numeric expression.",
+            );
+            return;
+        }
+
+        const nextCoordinates = {
+            x: axis === "x" ? parsedValue : currentCoordinates.x,
+            y: axis === "y" ? parsedValue : currentCoordinates.y,
+        };
+
+        setInputError(inputKey, null);
+        clearInputDraft(inputKey);
+        await updatePointCoordinatesFromControls({
+            componentIdx,
+            x: nextCoordinates.x,
+            y: nextCoordinates.y,
+        });
+    }
+
+    async function submitPairInput({
+        componentIdx,
+        rawValue,
+        inputKey,
+    }: {
+        componentIdx: number;
+        rawValue: string;
+        inputKey: string;
+    }) {
+        const parsedPair = parseOrderedPair(rawValue);
+        if (!parsedPair) {
+            setInputError(
+                inputKey,
+                "Enter an ordered pair like (x,y) with numeric values.",
+            );
+            return;
+        }
+
+        setInputError(inputKey, null);
+        clearInputDraft(inputKey);
+        await updatePointCoordinatesFromControls({
+            componentIdx,
+            x: parsedPair.x,
+            y: parsedPair.y,
+        });
+    }
+
     /**
      * Helper to render a single axis slider (x or y).
      * Reduces duplication in the sliderSection mapping.
      */
     function renderAxisSlider(
         axis: "x" | "y",
-        point: (typeof coreSliderPoints)[number],
+        point: (typeof coreControlPoints)[number],
         currentCoordinates: { x: number; y: number },
         pointLabelForAria: string,
+        axisInputConfig?: {
+            value: string;
+            error: string | undefined;
+            describedBy: string;
+            onChange: (value: string) => void;
+            onCommit: (value: string) => Promise<void>;
+        },
     ) {
         const isX = axis === "x";
         const value = isX ? currentCoordinates.x : currentCoordinates.y;
@@ -1097,12 +1435,81 @@ export default React.memo(function Prefigure({
         const { min, max } = normalizedSliderBounds(rawMin, rawMax);
         const step = max !== min ? (max - min) / 100 : 1;
         const axisLabel = isX ? "x" : "y";
+        const label = axisInputConfig ? (
+            <span
+                style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: "6px",
+                    flexWrap: "wrap",
+                    width: "100%",
+                }}
+            >
+                <span>{`${axisLabel}:`}</span>
+                <input
+                    type="text"
+                    value={axisInputConfig.value}
+                    aria-label={`${axisLabel} value input for ${pointLabelForAria}`}
+                    aria-invalid={axisInputConfig.error ? true : undefined}
+                    aria-describedby={
+                        axisInputConfig.error
+                            ? axisInputConfig.describedBy
+                            : undefined
+                    }
+                    onChange={(event) => {
+                        axisInputConfig.onChange(event.target.value);
+                    }}
+                    onBlur={(event) => {
+                        axisInputConfig
+                            .onCommit(event.target.value)
+                            .catch((error) => {
+                                console.error(
+                                    `[prefigure] failed to commit ${axisLabel} input for component ${point.componentIdx}`,
+                                    error,
+                                );
+                            });
+                    }}
+                    onKeyDown={(event) => {
+                        if (event.key === "Enter") {
+                            event.preventDefault();
+                            axisInputConfig
+                                .onCommit(event.currentTarget.value)
+                                .catch((error) => {
+                                    console.error(
+                                        `[prefigure] failed to commit ${axisLabel} input for component ${point.componentIdx}`,
+                                        error,
+                                    );
+                                });
+                        }
+                    }}
+                    style={{ width: "84px" }}
+                />
+                {axisInputConfig.error ? (
+                    <span
+                        id={axisInputConfig.describedBy}
+                        style={{
+                            color: "#b00020",
+                            fontSize: "0.85em",
+                            flexBasis: "100%",
+                            width: "100%",
+                            whiteSpace: "normal",
+                            overflowWrap: "anywhere",
+                            wordBreak: "break-word",
+                        }}
+                    >
+                        {axisInputConfig.error}
+                    </span>
+                ) : null}
+            </span>
+        ) : (
+            `${axisLabel}: ${formatCoordinateForSlider(value, point)}`
+        );
 
         return (
             <SliderUI
                 key={axis}
                 id={`${id}-point-${point.componentIdx}-${axis}`}
-                label={`${axisLabel}: ${formatCoordinateForSlider(value, point)}`}
+                label={label}
                 ariaLabel={`${axis} coordinate for ${pointLabelForAria}`}
                 min={min}
                 max={max}
@@ -1139,64 +1546,374 @@ export default React.memo(function Prefigure({
         );
     }
 
-    const sliderSection = SVs.addSliders
-        ? coreSliderPoints.map((point) => {
-              const {
-                  componentIdx,
-                  x: defaultX,
-                  y: defaultY,
-                  pointNumber,
-                  label,
-                  labelHasLatex,
-              } = point;
-              const currentCoordinates = rendererSliderCoordinates[
-                  componentIdx
-              ] ?? {
-                  x: defaultX,
-                  y: defaultY,
-              };
-              const pointFallbackLabel = `Point ${pointNumber}`;
-              const pointLabelForAria = accessibleLabelText({
-                  label,
-                  labelHasLatex,
-                  fallback: pointFallbackLabel,
-              });
-              const pointLabelForDisplay = label.trim()
-                  ? renderLabelWithLatex({ label, labelHasLatex })
-                  : pointFallbackLabel;
+    const controlsSection = coreControlPoints
+        .map((point) => {
+            const {
+                componentIdx,
+                x: defaultX,
+                y: defaultY,
+                pointNumber,
+                label,
+                labelHasLatex,
+            } = point;
+            const pointControlsMode = normalizePointControlsMode(
+                point.addControls,
+            );
+            if (pointControlsMode === "none") {
+                return null;
+            }
 
-              return (
-                  <div
-                      key={componentIdx}
-                      data-point-slider-card="true"
-                      style={{
-                          padding: "10px",
-                          border: "1px solid var(--canvasText)",
-                          borderRadius: "8px",
-                      }}
-                  >
-                      <div style={{ fontWeight: 600 }}>
-                          {pointLabelForDisplay}
-                      </div>
-                      {point.addSliders !== "yonly" &&
-                          renderAxisSlider(
+            const currentCoordinates = rendererSliderCoordinates[
+                componentIdx
+            ] ?? {
+                x: defaultX,
+                y: defaultY,
+            };
+            const pointFallbackLabel = `Point ${pointNumber}`;
+            const pointLabelForAria = accessibleLabelText({
+                label,
+                labelHasLatex,
+                fallback: pointFallbackLabel,
+            });
+            const pointLabelForDisplay = label.trim()
+                ? renderLabelWithLatex({ label, labelHasLatex })
+                : pointFallbackLabel;
+
+            const xInputKey = pointAxisInputKey(componentIdx, "x");
+            const yInputKey = pointAxisInputKey(componentIdx, "y");
+            const pairInputKey = pointPairInputKey(componentIdx);
+
+            const formattedX = formatCoordinateForSlider(
+                currentCoordinates.x,
+                point,
+            );
+            const formattedY = formatCoordinateForSlider(
+                currentCoordinates.y,
+                point,
+            );
+
+            const xInputValue = inputDraftByKey[xInputKey] ?? formattedX;
+            const yInputValue = inputDraftByKey[yInputKey] ?? formattedY;
+            const pairInputValue =
+                inputDraftByKey[pairInputKey] ??
+                `(${formattedX},${formattedY})`;
+
+            const xInputError = inputErrorByKey[xInputKey];
+            const yInputError = inputErrorByKey[yInputKey];
+            const pairInputError = inputErrorByKey[pairInputKey];
+
+            const showXAxis = pointControlsMode !== "yonly";
+            const showYAxis = pointControlsMode !== "xonly";
+            const showAxisInputsInline = graphControlsMode === "all";
+            const showSlidersForPoint = includeSliders;
+            const showInputsOnlyForPoint =
+                graphControlsMode === "inputsonly" && includeInputs;
+
+            return (
+                <div
+                    key={componentIdx}
+                    data-point-slider-card="true"
+                    style={{
+                        width: "100%",
+                        boxSizing: "border-box",
+                        padding: "10px",
+                        border: "1px solid var(--canvasText)",
+                        borderRadius: "8px",
+                    }}
+                >
+                    <div style={{ fontWeight: 600 }}>
+                        {pointLabelForDisplay}
+                    </div>
+                    {showInputsOnlyForPoint && pointControlsMode === "both" ? (
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "4px",
+                                marginTop: "8px",
+                            }}
+                        >
+                            <label htmlFor={`${id}-point-${componentIdx}-pair`}>
+                                Coordinates
+                            </label>
+                            <input
+                                id={`${id}-point-${componentIdx}-pair`}
+                                type="text"
+                                value={pairInputValue}
+                                aria-label={`coordinates for ${pointLabelForAria}`}
+                                aria-invalid={pairInputError ? true : undefined}
+                                aria-describedby={
+                                    pairInputError
+                                        ? `${id}-error-point-${componentIdx}-pair`
+                                        : undefined
+                                }
+                                onChange={(event) => {
+                                    setInputDraftValue(
+                                        pairInputKey,
+                                        event.target.value,
+                                    );
+                                }}
+                                onBlur={(event) => {
+                                    submitPairInput({
+                                        componentIdx,
+                                        rawValue: event.target.value,
+                                        inputKey: pairInputKey,
+                                    }).catch((error) => {
+                                        console.error(
+                                            `[prefigure] failed to commit pair input for component ${componentIdx}`,
+                                            error,
+                                        );
+                                    });
+                                }}
+                                onKeyDown={(event) => {
+                                    if (event.key === "Enter") {
+                                        event.preventDefault();
+                                        submitPairInput({
+                                            componentIdx,
+                                            rawValue: event.currentTarget.value,
+                                            inputKey: pairInputKey,
+                                        }).catch((error) => {
+                                            console.error(
+                                                `[prefigure] failed to commit pair input for component ${componentIdx}`,
+                                                error,
+                                            );
+                                        });
+                                    }
+                                }}
+                            />
+                            {pairInputError ? (
+                                <span
+                                    id={`${id}-error-point-${componentIdx}-pair`}
+                                    style={{
+                                        color: "#b00020",
+                                        fontSize: "0.85em",
+                                    }}
+                                >
+                                    {pairInputError}
+                                </span>
+                            ) : null}
+                        </div>
+                    ) : null}
+
+                    {showInputsOnlyForPoint && pointControlsMode === "xonly" ? (
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "4px",
+                                marginTop: "8px",
+                            }}
+                        >
+                            <label
+                                htmlFor={`${id}-point-${componentIdx}-x-input`}
+                            >
+                                x
+                            </label>
+                            <input
+                                id={`${id}-point-${componentIdx}-x-input`}
+                                type="text"
+                                value={xInputValue}
+                                aria-label={`x input for ${pointLabelForAria}`}
+                                aria-invalid={xInputError ? true : undefined}
+                                aria-describedby={
+                                    xInputError
+                                        ? `${id}-error-point-${componentIdx}-x`
+                                        : undefined
+                                }
+                                onChange={(event) => {
+                                    setInputDraftValue(
+                                        xInputKey,
+                                        event.target.value,
+                                    );
+                                }}
+                                onBlur={(event) => {
+                                    submitAxisInput({
+                                        componentIdx,
+                                        axis: "x",
+                                        rawValue: event.target.value,
+                                        currentCoordinates,
+                                        inputKey: xInputKey,
+                                    }).catch((error) => {
+                                        console.error(
+                                            `[prefigure] failed to commit x input for component ${componentIdx}`,
+                                            error,
+                                        );
+                                    });
+                                }}
+                                onKeyDown={(event) => {
+                                    if (event.key === "Enter") {
+                                        event.preventDefault();
+                                        submitAxisInput({
+                                            componentIdx,
+                                            axis: "x",
+                                            rawValue: event.currentTarget.value,
+                                            currentCoordinates,
+                                            inputKey: xInputKey,
+                                        }).catch((error) => {
+                                            console.error(
+                                                `[prefigure] failed to commit x input for component ${componentIdx}`,
+                                                error,
+                                            );
+                                        });
+                                    }
+                                }}
+                            />
+                            {xInputError ? (
+                                <span
+                                    id={`${id}-error-point-${componentIdx}-x`}
+                                    style={{
+                                        color: "#b00020",
+                                        fontSize: "0.85em",
+                                    }}
+                                >
+                                    {xInputError}
+                                </span>
+                            ) : null}
+                        </div>
+                    ) : null}
+
+                    {showInputsOnlyForPoint && pointControlsMode === "yonly" ? (
+                        <div
+                            style={{
+                                display: "flex",
+                                flexDirection: "column",
+                                gap: "4px",
+                                marginTop: "8px",
+                            }}
+                        >
+                            <label
+                                htmlFor={`${id}-point-${componentIdx}-y-input`}
+                            >
+                                y
+                            </label>
+                            <input
+                                id={`${id}-point-${componentIdx}-y-input`}
+                                type="text"
+                                value={yInputValue}
+                                aria-label={`y input for ${pointLabelForAria}`}
+                                aria-invalid={yInputError ? true : undefined}
+                                aria-describedby={
+                                    yInputError
+                                        ? `${id}-error-point-${componentIdx}-y`
+                                        : undefined
+                                }
+                                onChange={(event) => {
+                                    setInputDraftValue(
+                                        yInputKey,
+                                        event.target.value,
+                                    );
+                                }}
+                                onBlur={(event) => {
+                                    submitAxisInput({
+                                        componentIdx,
+                                        axis: "y",
+                                        rawValue: event.target.value,
+                                        currentCoordinates,
+                                        inputKey: yInputKey,
+                                    }).catch((error) => {
+                                        console.error(
+                                            `[prefigure] failed to commit y input for component ${componentIdx}`,
+                                            error,
+                                        );
+                                    });
+                                }}
+                                onKeyDown={(event) => {
+                                    if (event.key === "Enter") {
+                                        event.preventDefault();
+                                        submitAxisInput({
+                                            componentIdx,
+                                            axis: "y",
+                                            rawValue: event.currentTarget.value,
+                                            currentCoordinates,
+                                            inputKey: yInputKey,
+                                        }).catch((error) => {
+                                            console.error(
+                                                `[prefigure] failed to commit y input for component ${componentIdx}`,
+                                                error,
+                                            );
+                                        });
+                                    }
+                                }}
+                            />
+                            {yInputError ? (
+                                <span
+                                    id={`${id}-error-point-${componentIdx}-y`}
+                                    style={{
+                                        color: "#b00020",
+                                        fontSize: "0.85em",
+                                    }}
+                                >
+                                    {yInputError}
+                                </span>
+                            ) : null}
+                        </div>
+                    ) : null}
+
+                    {showSlidersForPoint && showXAxis
+                        ? renderAxisSlider(
                               "x",
                               point,
                               currentCoordinates,
                               pointLabelForAria,
-                          )}
-                      {point.addSliders !== "xonly" &&
-                          renderAxisSlider(
+                              showAxisInputsInline
+                                  ? {
+                                        value: xInputValue,
+                                        error: xInputError,
+                                        describedBy: `${id}-error-point-${componentIdx}-x`,
+                                        onChange: (value) => {
+                                            setInputDraftValue(
+                                                xInputKey,
+                                                value,
+                                            );
+                                        },
+                                        onCommit: async (value) => {
+                                            await submitAxisInput({
+                                                componentIdx,
+                                                axis: "x",
+                                                rawValue: value,
+                                                currentCoordinates,
+                                                inputKey: xInputKey,
+                                            });
+                                        },
+                                    }
+                                  : undefined,
+                          )
+                        : null}
+                    {showSlidersForPoint && showYAxis
+                        ? renderAxisSlider(
                               "y",
                               point,
                               currentCoordinates,
                               pointLabelForAria,
-                          )}
-                  </div>
-              );
-          })
-        : [];
-    const hasSliderSection = sliderSection.length > 0;
+                              showAxisInputsInline
+                                  ? {
+                                        value: yInputValue,
+                                        error: yInputError,
+                                        describedBy: `${id}-error-point-${componentIdx}-y`,
+                                        onChange: (value) => {
+                                            setInputDraftValue(
+                                                yInputKey,
+                                                value,
+                                            );
+                                        },
+                                        onCommit: async (value) => {
+                                            await submitAxisInput({
+                                                componentIdx,
+                                                axis: "y",
+                                                rawValue: value,
+                                                currentCoordinates,
+                                                inputKey: yInputKey,
+                                            });
+                                        },
+                                    }
+                                  : undefined,
+                          )
+                        : null}
+                </div>
+            );
+        })
+        .filter((section): section is React.JSX.Element => Boolean(section));
+    const hasControlsSection = controlsSection.length > 0;
 
     useEffect(() => {
         const fallbackElement = prefigureContainerRef.current;
@@ -1230,21 +1947,23 @@ export default React.memo(function Prefigure({
         };
     }, []);
 
-    const requestedSliderPosition = normalizeSliderPosition(SVs.sliderPosition);
+    const requestedControlsPosition = normalizeControlsPosition(
+        SVs.controlsPosition,
+    );
     const requestedSideLayout =
-        requestedSliderPosition === "left" ||
-        requestedSliderPosition === "right";
+        requestedControlsPosition === "left" ||
+        requestedControlsPosition === "right";
     const canUseSideLayout =
         availableWidth === null || availableWidth >= MIN_SIDE_LAYOUT_WIDTH_PX;
-    const effectiveSliderPosition: SliderPosition =
-        requestedSliderPosition === "left" && !canUseSideLayout
+    const effectiveControlsPosition: ControlsPosition =
+        requestedControlsPosition === "left" && !canUseSideLayout
             ? "top"
-            : requestedSliderPosition === "right" && !canUseSideLayout
+            : requestedControlsPosition === "right" && !canUseSideLayout
               ? "bottom"
-              : requestedSliderPosition;
+              : requestedControlsPosition;
     const useSideLayout =
-        effectiveSliderPosition === "left" ||
-        effectiveSliderPosition === "right";
+        effectiveControlsPosition === "left" ||
+        effectiveControlsPosition === "right";
 
     // Load diagcess script
     useEffect(() => {
@@ -1294,18 +2013,31 @@ export default React.memo(function Prefigure({
             return;
         }
 
+        /**
+         * Resets renderer-visible build state before a cold-path compile request.
+         */
         const resetBuildState = () => {
             setSvgMarkup("");
             setSvgMessage("Building...");
             setAnnotationsXml("");
         };
 
+        /**
+         * Executes a build task and centralizes top-level error logging.
+         * The inner build function already handles user-facing error state.
+         */
         const runBuildWithLogging = (startBuild: () => Promise<void>) => {
             startBuild().catch((error) => {
                 console.error("[prefigure] build failed", error);
             });
         };
 
+        /**
+         * Performs one concrete build attempt for the current XML snapshot.
+         *
+         * It creates a new abort controller, races service/local backends, and only
+         * applies results if this request is still the newest sequence.
+         */
         const startBuild = async () => {
             const requestSequence = ++requestSequenceRef.current;
             const abortController = new AbortController();
@@ -1453,25 +2185,26 @@ export default React.memo(function Prefigure({
         flexDirection: useSideLayout ? "row" : "column",
         alignItems: useSideLayout ? "flex-start" : "stretch",
         gap: `${SIDE_LAYOUT_GAP_PX}px`,
+        width: "100%",
+        minWidth: 0,
     };
 
     // Keep graph first in DOM for focus/screen-reader flow, and reorder only visually.
     const graphSectionStyle: React.CSSProperties = {
         order:
-            effectiveSliderPosition === "top" ||
-            effectiveSliderPosition === "left"
+            effectiveControlsPosition === "top" ||
+            effectiveControlsPosition === "left"
                 ? 2
                 : 1,
         flex: useSideLayout ? "1 1 auto" : undefined,
-        minWidth: useSideLayout
-            ? `${MIN_GRAPH_WIDTH_FOR_SIDE_LAYOUT_PX}px`
-            : undefined,
+        width: useSideLayout ? undefined : "100%",
+        minWidth: useSideLayout ? `${MIN_GRAPH_WIDTH_FOR_SIDE_LAYOUT_PX}px` : 0,
     };
 
     const sliderSectionStyle: React.CSSProperties = {
         order:
-            effectiveSliderPosition === "top" ||
-            effectiveSliderPosition === "left"
+            effectiveControlsPosition === "top" ||
+            effectiveControlsPosition === "left"
                 ? 1
                 : 2,
         display: "flex",
@@ -1481,6 +2214,8 @@ export default React.memo(function Prefigure({
         maxWidth: useSideLayout
             ? `${SIDE_SLIDER_COLUMN_WIDTH_PX}px`
             : undefined,
+        minWidth: 0,
+        overflowX: "hidden",
     };
 
     return (
@@ -1488,9 +2223,9 @@ export default React.memo(function Prefigure({
             id={id}
             ref={prefigureContainerRef}
             style={wrapperStyle}
-            data-slider-position-requested={requestedSliderPosition}
-            data-slider-position-effective={effectiveSliderPosition}
-            data-slider-position-side-fallback={
+            data-controls-position-requested={requestedControlsPosition}
+            data-controls-position-effective={effectiveControlsPosition}
+            data-controls-position-side-fallback={
                 requestedSideLayout && !canUseSideLayout ? "true" : "false"
             }
         >
@@ -1524,8 +2259,8 @@ export default React.memo(function Prefigure({
                         />
                     </div>
                 </div>
-                {hasSliderSection ? (
-                    <div style={sliderSectionStyle}>{sliderSection}</div>
+                {hasControlsSection ? (
+                    <div style={sliderSectionStyle}>{controlsSection}</div>
                 ) : null}
             </div>
         </div>

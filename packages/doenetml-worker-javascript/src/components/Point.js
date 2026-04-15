@@ -100,9 +100,9 @@ export default class Point extends GraphicalComponent {
             forRenderer: true,
         };
 
-        attributes.addSliders = {
+        attributes.addControls = {
             createComponentOfType: "text",
-            createStateVariable: "addSliders",
+            createStateVariable: "addControls",
             defaultValue: "both",
             public: true,
             toLowerCase: true,
