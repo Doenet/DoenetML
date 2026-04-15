@@ -112,9 +112,20 @@ export default React.memo(function Graph(props) {
     const descriptionChild =
         SVs.descriptionChildInd !== -1 && children[SVs.descriptionChildInd];
 
-    const requestedControlsPosition = normalizeControlsPosition(
-        SVs.controlsPosition,
-    );
+    const graphControlsMode =
+        typeof SVs.addControls === "string"
+            ? SVs.addControls.toLowerCase()
+            : "none";
+    const controlsEnabledAtGraphLevel = graphControlsMode !== "none";
+    const hasControlPoints =
+        Array.isArray(SVs.draggablePointsForControls) &&
+        SVs.draggablePointsForControls.length > 0;
+    const shouldRenderControls =
+        controlsEnabledAtGraphLevel && hasControlPoints;
+
+    const requestedControlsPosition = shouldRenderControls
+        ? normalizeControlsPosition(SVs.controlsPosition)
+        : "left";
     const canUseSideLayout =
         availableWidth === null || availableWidth >= MIN_SIDE_LAYOUT_WIDTH_PX;
     const effectiveControlsPosition: ControlsPosition =
@@ -124,8 +135,9 @@ export default React.memo(function Graph(props) {
               ? "bottom"
               : requestedControlsPosition;
     const useSideLayout =
-        effectiveControlsPosition === "left" ||
-        effectiveControlsPosition === "right";
+        shouldRenderControls &&
+        (effectiveControlsPosition === "left" ||
+            effectiveControlsPosition === "right");
 
     const layoutStyle: React.CSSProperties = {
         display: "flex",
@@ -168,38 +180,40 @@ export default React.memo(function Graph(props) {
             containerRef={containerRef}
             descriptionChild={descriptionChild}
         >
-            {(surfaceStyle) => (
-                <div style={layoutStyle}>
-                    <div style={graphSectionStyle}>
-                        {isPrefigureRenderer ? (
-                            <Prefigure
-                                id={id}
+            {(surfaceStyle) => {
+                const graphContent = isPrefigureRenderer ? (
+                    <Prefigure id={id} SVs={SVs} surfaceStyle={surfaceStyle} />
+                ) : (
+                    <JSXGraphRenderer
+                        id={id}
+                        SVs={SVs}
+                        ignoreUpdate={ignoreUpdate}
+                        actions={actions}
+                        callAction={callAction}
+                        BoardContext={BoardContext}
+                        surfaceStyle={surfaceStyle}
+                    >
+                        {graphicalChildren}
+                    </JSXGraphRenderer>
+                );
+
+                if (!shouldRenderControls) {
+                    return graphContent;
+                }
+
+                return (
+                    <div style={layoutStyle}>
+                        <div style={graphSectionStyle}>{graphContent}</div>
+                        <div style={controlsSectionStyle}>
+                            <GraphControls
+                                id={`${id}-controls`}
                                 SVs={SVs}
-                                surfaceStyle={surfaceStyle}
-                            />
-                        ) : (
-                            <JSXGraphRenderer
-                                id={id}
-                                SVs={SVs}
-                                ignoreUpdate={ignoreUpdate}
-                                actions={actions}
                                 callAction={callAction}
-                                BoardContext={BoardContext}
-                                surfaceStyle={surfaceStyle}
-                            >
-                                {graphicalChildren}
-                            </JSXGraphRenderer>
-                        )}
+                            />
+                        </div>
                     </div>
-                    <div style={controlsSectionStyle}>
-                        <GraphControls
-                            id={`${id}-controls`}
-                            SVs={SVs}
-                            callAction={callAction}
-                        />
-                    </div>
-                </div>
-            )}
+                );
+            }}
         </GraphFrame>
     );
 });

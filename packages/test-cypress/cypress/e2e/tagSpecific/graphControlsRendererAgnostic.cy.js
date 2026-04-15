@@ -10,21 +10,25 @@ describe(
 
         it("supports addControls modes on default graph renderer", () => {
             cy.clearIndexedDB();
+            cy.viewport(1400, 900);
             cy.visit("/");
 
             postDoenetML(`
 <text name="ready">ready</text>
-<graph name="gAll" addControls="all">
+<graph name="gAll" addControls="all" controlsPosition="left" width="640px">
   <point name="P" labelIsName>(3,4)</point>
 </graph>
-<graph name="gSliders" addControls="slidersOnly">
+<graph name="gSliders" addControls="slidersOnly" controlsPosition="left" width="640px">
   <point name="Q" labelIsName>(3,4)</point>
 </graph>
-<graph name="gInputs" addControls="inputsOnly">
+<graph name="gInputs" addControls="inputsOnly" controlsPosition="left" width="640px">
   <point name="R" labelIsName>(3,4)</point>
 </graph>
-<graph name="gNone" addControls="none">
+<graph name="gNone" addControls="none" controlsPosition="left" width="640px">
   <point name="S" labelIsName>(3,4)</point>
+</graph>
+<graph name="gNoEligible" addControls="all" controlsPosition="left" width="640px">
+  <point name="T" labelIsName draggable="false">(3,4)</point>
 </graph>
 `);
 
@@ -46,6 +50,19 @@ describe(
             });
 
             cy.get("#gNone-controls").should("not.exist");
+            cy.get("#gNoEligible-controls").should("not.exist");
+
+            cy.get("#gNone").should(($graph) => {
+                expect(
+                    $graph[0].getBoundingClientRect().width,
+                ).to.be.greaterThan(500);
+            });
+
+            cy.get("#gNoEligible").should(($graph) => {
+                expect(
+                    $graph[0].getBoundingClientRect().width,
+                ).to.be.greaterThan(500);
+            });
         });
 
         it("updates from sliders and inline inputs on default graph renderer", () => {
@@ -173,8 +190,8 @@ describe(
                 "column",
             );
 
-            cy.get("#gLeft .jxgbox").parent().should("have.css", "order", "2");
-            cy.get("#gRight .jxgbox").parent().should("have.css", "order", "1");
+            cy.get("#gLeft").parent().should("have.css", "order", "2");
+            cy.get("#gRight").parent().should("have.css", "order", "1");
         });
     },
 );
