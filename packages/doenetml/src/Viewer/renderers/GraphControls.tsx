@@ -585,7 +585,9 @@ export default React.memo(function GraphControls({
                 return { ...previousErrorByKey, [key]: error };
             }
 
-            if (!Object.prototype.hasOwnProperty.call(previousErrorByKey, key)) {
+            if (
+                !Object.prototype.hasOwnProperty.call(previousErrorByKey, key)
+            ) {
                 return previousErrorByKey;
             }
 
@@ -597,7 +599,9 @@ export default React.memo(function GraphControls({
 
     function clearInputDraft(key: string) {
         setInputDraftByKey((previousDraftByKey) => {
-            if (!Object.prototype.hasOwnProperty.call(previousDraftByKey, key)) {
+            if (
+                !Object.prototype.hasOwnProperty.call(previousDraftByKey, key)
+            ) {
                 return previousDraftByKey;
             }
 
