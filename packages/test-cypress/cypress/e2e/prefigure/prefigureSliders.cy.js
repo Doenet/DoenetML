@@ -727,20 +727,17 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
             keyboardStepRangeRight(xSlider);
         }
 
-        // Slider handle should show the accumulated transient value while core
+        // Slider handle should show the accumulated value (1.0) while core
         // still reflects constrained state.
-        cy.get(xSlider)
-            .invoke("val")
-            .then((transientValue) => {
-                cy.get("#Px").should("have.text", "0");
+        cy.get(xSlider).should("have.value", "1");
+        cy.get("#Px").should("have.text", "0");
 
-                // Blurring triggers the final non-transient commit.
-                cy.get(xSlider).blur();
+        // Blurring triggers the final non-transient commit.
+        cy.get(xSlider).blur();
 
-                // After blur, both slider and core settle on the committed value.
-                cy.get(xSlider).should("have.value", String(transientValue));
-                cy.get("#Px").should("have.text", String(transientValue));
-            });
+        // Core evaluates constrainToGrid once against 1.0 -> snaps to 1.
+        cy.get(xSlider).should("have.value", "1");
+        cy.get("#Px").should("have.text", "1");
     });
 
     it("keyboard blur on constrained point does not send another movePoint", () => {

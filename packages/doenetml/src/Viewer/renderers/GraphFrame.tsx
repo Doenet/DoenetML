@@ -9,6 +9,7 @@ export default function GraphFrame({
     isPrefigureRenderer,
     containerRef,
     descriptionChild,
+    hasInteractiveControls,
     children,
 }) {
     const contentStyle: React.CSSProperties = {
@@ -45,7 +46,8 @@ export default function GraphFrame({
     contentStyle.color = "var(--canvasText)";
 
     let ariaLabel: string | undefined = SVs.shortDescription;
-    let role: string | undefined = isPrefigureRenderer ? "group" : "img";
+    let role: string | undefined =
+        isPrefigureRenderer || hasInteractiveControls ? "group" : "img";
     let ariaHidden = false;
     if (SVs.decorative) {
         ariaLabel = undefined;
