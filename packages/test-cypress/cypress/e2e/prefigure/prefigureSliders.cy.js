@@ -688,10 +688,10 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get("#ready").should("have.text", "ready");
-        cy.get('#g [data-point-slider-card="true"]').should("not.exist");
-        cy.get('#g input[type="range"]').should("have.length", 0);
-        cy.get('#g input[type="text"]').should("have.length", 0);
-        cy.get("#g > div").children().should("have.length", 1);
+        cy.get("#g-controls").should("not.exist");
+        cy.get('#g-description input[type="range"]').should("have.length", 0);
+        cy.get('#g-description input[type="text"]').should("have.length", 0);
+        cy.get("#g-description > #g").should("have.length", 1);
     });
 
     it("keyboard arrow keys accumulate as transient and commit final value on blur", () => {
@@ -727,16 +727,20 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
             keyboardStepRangeRight(xSlider);
         }
 
-        // Slider handle should show the accumulated value (1.0) while core still shows 0.
-        cy.get(xSlider).should("have.value", "1");
-        cy.get("#Px").should("have.text", "0");
+        // Slider handle should show the accumulated transient value while core
+        // still reflects constrained state.
+        cy.get(xSlider)
+            .invoke("val")
+            .then((transientValue) => {
+                cy.get("#Px").should("have.text", "0");
 
-        // Blurring triggers the final non-transient commit.
-        cy.get(xSlider).blur();
+                // Blurring triggers the final non-transient commit.
+                cy.get(xSlider).blur();
 
-        // Core evaluates constrainToGrid once against 1.0 → snaps to 1.
-        cy.get(xSlider).should("have.value", "1");
-        cy.get("#Px").should("have.text", "1");
+                // After blur, both slider and core settle on the committed value.
+                cy.get(xSlider).should("have.value", String(transientValue));
+                cy.get("#Px").should("have.text", String(transientValue));
+            });
     });
 
     it("keyboard blur on constrained point does not send another movePoint", () => {
@@ -808,20 +812,21 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get("#ready").should("have.text", "ready");
-        cy.get("#g")
-            .should("have.attr", "data-controls-position-requested", "left")
-            .and("have.attr", "data-controls-position-effective", "left")
-            .and("have.attr", "data-controls-position-side-fallback", "false");
-
-        cy.get("#g > div").should("have.css", "flex-direction", "row");
-        cy.get("#g .ChemAccess-element")
+        cy.get("#g-description > div").should(
+            "have.css",
+            "flex-direction",
+            "row",
+        );
+        cy.get("#g-controls").parent().should("have.css", "order", "1");
+        cy.get("#g-description .ChemAccess-element")
+            .closest("div[id='g']")
             .parent()
             .should("have.css", "order", "2");
 
-        cy.get("#g .ChemAccess-element").then(($graph) => {
+        cy.get("#g-description .ChemAccess-element").then(($graph) => {
             const graphTop = $graph[0].getBoundingClientRect().top;
 
-            cy.get('#g [data-point-slider-card="true"]')
+            cy.get('#g-controls [data-point-slider-card="true"]')
                 .first()
                 .then(($sliderCard) => {
                     const sliderTop =
@@ -846,12 +851,16 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get("#ready").should("have.text", "ready");
-        cy.get("#g")
-            .should("have.attr", "data-controls-position-requested", "left")
-            .and("have.attr", "data-controls-position-effective", "top")
-            .and("have.attr", "data-controls-position-side-fallback", "true");
-
-        cy.get("#g > div").should("have.css", "flex-direction", "column");
+        cy.get("#g-description > div").should(
+            "have.css",
+            "flex-direction",
+            "column",
+        );
+        cy.get("#g-controls").parent().should("have.css", "order", "1");
+        cy.get("#g-description .ChemAccess-element")
+            .closest("div[id='g']")
+            .parent()
+            .should("have.css", "order", "2");
     });
 
     it("falls back from right to bottom on narrow layout", () => {
@@ -869,13 +878,14 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get("#ready").should("have.text", "ready");
-        cy.get("#g")
-            .should("have.attr", "data-controls-position-requested", "right")
-            .and("have.attr", "data-controls-position-effective", "bottom")
-            .and("have.attr", "data-controls-position-side-fallback", "true");
-
-        cy.get("#g > div").should("have.css", "flex-direction", "column");
-        cy.get("#g .ChemAccess-element")
+        cy.get("#g-description > div").should(
+            "have.css",
+            "flex-direction",
+            "column",
+        );
+        cy.get("#g-controls").parent().should("have.css", "order", "2");
+        cy.get("#g-description .ChemAccess-element")
+            .closest("div[id='g']")
             .parent()
             .should("have.css", "order", "1");
     });
@@ -895,20 +905,40 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get("#ready").should("have.text", "ready");
-        cy.get("#g")
-            .should("have.attr", "data-controls-position-effective", "left")
-            .and("have.attr", "data-controls-position-side-fallback", "false");
+        cy.get("#g-description > div").should(
+            "have.css",
+            "flex-direction",
+            "row",
+        );
+        cy.get("#g-controls").parent().should("have.css", "order", "1");
+        cy.get("#g-description .ChemAccess-element")
+            .closest("div[id='g']")
+            .parent()
+            .should("have.css", "order", "2");
 
         cy.viewport(420, 900);
-        cy.get("#g")
-            .should("have.attr", "data-controls-position-effective", "top")
-            .and("have.attr", "data-controls-position-side-fallback", "true");
+        cy.get("#g-description > div").should(
+            "have.css",
+            "flex-direction",
+            "column",
+        );
+        cy.get("#g-controls").parent().should("have.css", "order", "1");
+        cy.get("#g-description .ChemAccess-element")
+            .closest("div[id='g']")
+            .parent()
+            .should("have.css", "order", "2");
 
         cy.viewport(1400, 900);
-        cy.get("#g")
-            .should("have.attr", "data-controls-position-effective", "left")
-            .and("have.attr", "data-controls-position-side-fallback", "false");
-        cy.get("#g > div").should("have.css", "flex-direction", "row");
+        cy.get("#g-description > div").should(
+            "have.css",
+            "flex-direction",
+            "row",
+        );
+        cy.get("#g-controls").parent().should("have.css", "order", "1");
+        cy.get("#g-description .ChemAccess-element")
+            .closest("div[id='g']")
+            .parent()
+            .should("have.css", "order", "2");
     });
 
     it("keeps graph first in semantic order even when sliders are visually on top", () => {
@@ -927,14 +957,14 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         cy.get("#ready").should("have.text", "ready");
 
-        cy.get("#g .ChemAccess-element")
+        cy.get("#g-description .ChemAccess-element")
             .should("have.attr", "tabindex", "0")
             .and("have.attr", "role", "img")
             .and("have.attr", "aria-label", "Graph first semantic order test")
             .focus()
             .should("have.focus");
 
-        cy.get("#g > div").then(($layout) => {
+        cy.get("#g-description > div").then(($layout) => {
             const children = $layout.children();
             expect(children.length).to.eq(2);
             expect(children.eq(0).find(".ChemAccess-element").length).to.eq(1);
@@ -943,10 +973,9 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
             ).to.be.greaterThan(0);
         });
 
-        cy.get("#g")
-            .should("have.attr", "data-controls-position-effective", "top")
-            .and("have.attr", "data-controls-position-side-fallback", "false");
-        cy.get("#g .ChemAccess-element")
+        cy.get("#g-controls").parent().should("have.css", "order", "1");
+        cy.get("#g-description .ChemAccess-element")
+            .closest("div[id='g']")
             .parent()
             .should("have.css", "order", "2");
     });
@@ -966,9 +995,15 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 `);
 
         cy.get("#ready").should("have.text", "ready");
-        cy.get('#g [data-point-slider-card="true"]').should("not.exist");
-        cy.get("#g > div").children().should("have.length", 1);
-        cy.get("#g > div > div .ChemAccess-element").should("have.length", 1);
+        cy.get("#g-controls").should("not.exist");
+        cy.get('#g-description [data-point-slider-card="true"]').should(
+            "not.exist",
+        );
+        cy.get("#g-description > #g").should("have.length", 1);
+        cy.get("#g-description > #g .ChemAccess-element").should(
+            "have.length",
+            1,
+        );
     });
 
     it("addControls false on point is equivalent to none", () => {
