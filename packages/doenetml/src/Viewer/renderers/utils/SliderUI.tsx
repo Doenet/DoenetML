@@ -69,6 +69,8 @@ export default function SliderUI({
     const [transient, setTransient] = useState(false);
     const draggingRef = useRef(false);
     const keyboardActiveRef = useRef(false);
+    const hasPlainTextLabel =
+        typeof label === "string" || typeof label === "number";
 
     /**
      * Extract numeric value from input element with fallback to localValue
@@ -103,17 +105,30 @@ export default function SliderUI({
 
     return (
         <div style={{ width: "100%", minWidth: 0 }}>
-            <label
-                htmlFor={id}
-                style={{
-                    display: "block",
-                    width: "100%",
-                    minWidth: 0,
-                    overflowWrap: "anywhere",
-                }}
-            >
-                {label}
-            </label>
+            {hasPlainTextLabel ? (
+                <label
+                    htmlFor={id}
+                    style={{
+                        display: "block",
+                        width: "100%",
+                        minWidth: 0,
+                        overflowWrap: "anywhere",
+                    }}
+                >
+                    {label}
+                </label>
+            ) : (
+                <div
+                    style={{
+                        display: "block",
+                        width: "100%",
+                        minWidth: 0,
+                        overflowWrap: "anywhere",
+                    }}
+                >
+                    {label}
+                </div>
+            )}
             <input
                 id={id}
                 type="range"

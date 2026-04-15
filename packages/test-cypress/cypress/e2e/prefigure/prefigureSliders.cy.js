@@ -658,6 +658,9 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
             .invoke("val", "5")
             .trigger("input");
         cy.get('[aria-label="x coordinate for P"]').trigger("mouseup");
+        cy.get('input[aria-label="x value input for P"]')
+            .parents("label")
+            .should("have.length", 0);
         cy.get('input[aria-label="x value input for P"]').should(
             "have.value",
             "5",
