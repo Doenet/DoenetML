@@ -1,6 +1,6 @@
 import { installPrefigureBuildIntercept } from "../../support/prefigure";
 
-describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
+describe("PreFigure controls @group4", { tags: ["@group4"] }, () => {
     function postDoenetML(doenetML) {
         cy.window().then((win) => {
             win.postMessage({ doenetML }, "*");
@@ -938,7 +938,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
             .should("have.css", "order", "2");
     });
 
-    it("keeps graph first in semantic order even when sliders are visually on top", () => {
+    it("keeps graph first in semantic order even when controls are visually on top", () => {
         cy.clearIndexedDB();
         cy.visit("/");
 
@@ -977,7 +977,7 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
             .should("have.css", "order", "2");
     });
 
-    it("does not render slider wrapper when no slider-enabled points exist", () => {
+    it("does not render controls wrapper when no control-enabled points exist", () => {
         cy.clearIndexedDB();
         cy.viewport(1400, 900);
         cy.visit("/");
