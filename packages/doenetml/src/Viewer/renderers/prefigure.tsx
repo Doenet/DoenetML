@@ -32,6 +32,29 @@ type PrefigureBuildWinner =
     | { backend: "service"; data: PrefigureBuildResult }
     | { backend: "local"; module: PrefigureModule };
 
+type SliderPosition = "bottom" | "left" | "right" | "top";
+
+const MIN_GRAPH_WIDTH_FOR_SIDE_LAYOUT_PX = 280;
+const SIDE_SLIDER_COLUMN_WIDTH_PX = 220;
+const SIDE_LAYOUT_GAP_PX = 12;
+const MIN_SIDE_LAYOUT_WIDTH_PX =
+    MIN_GRAPH_WIDTH_FOR_SIDE_LAYOUT_PX +
+    SIDE_SLIDER_COLUMN_WIDTH_PX +
+    SIDE_LAYOUT_GAP_PX;
+
+function normalizeSliderPosition(value: unknown): SliderPosition {
+    if (
+        value === "bottom" ||
+        value === "left" ||
+        value === "right" ||
+        value === "top"
+    ) {
+        return value;
+    }
+
+    return "bottom";
+}
+
 async function importPrefigureFromUrl(url: string): Promise<PrefigureModule> {
     return import(/* @vite-ignore */ url);
 }
@@ -290,10 +313,12 @@ type PrefigureRendererProps = {
     SVs: {
         prefigureXML: string | null;
         hasAuthorAnnotations: boolean;
+        decorative: boolean;
         showBorder: boolean;
         width: { size: string; isAbsolute: boolean };
         aspectRatio: number;
         addSliders: boolean;
+        sliderPosition: SliderPosition;
         xMin: number;
         xMax: number;
         yMin: number;
@@ -725,6 +750,7 @@ export default React.memo(function Prefigure({
     const [transientSliderSet, setTransientSliderSet] = useState<Set<string>>(
         new Set(),
     );
+    const [availableWidth, setAvailableWidth] = useState<number | null>(null);
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const fetchAbortControllerRef = useRef<AbortController | null>(null);
     const diagcessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1136,8 +1162,8 @@ export default React.memo(function Prefigure({
               return (
                   <div
                       key={componentIdx}
+                      data-point-slider-card="true"
                       style={{
-                          marginTop: "12px",
                           padding: "10px",
                           border: "1px solid var(--canvasText)",
                           borderRadius: "8px",
@@ -1164,6 +1190,54 @@ export default React.memo(function Prefigure({
               );
           })
         : null;
+
+    useEffect(() => {
+        const fallbackElement = prefigureContainerRef.current;
+        if (!fallbackElement) {
+            return;
+        }
+
+        const measuredElement =
+            document.getElementById(`${id}-container`) ?? fallbackElement;
+
+        function updateContainerWidth() {
+            setAvailableWidth(measuredElement.clientWidth);
+        }
+
+        updateContainerWidth();
+
+        if (typeof ResizeObserver === "undefined") {
+            window.addEventListener("resize", updateContainerWidth);
+            return () => {
+                window.removeEventListener("resize", updateContainerWidth);
+            };
+        }
+
+        const observer = new ResizeObserver(() => {
+            updateContainerWidth();
+        });
+        observer.observe(measuredElement);
+
+        return () => {
+            observer.disconnect();
+        };
+    }, []);
+
+    const requestedSliderPosition = normalizeSliderPosition(SVs.sliderPosition);
+    const requestedSideLayout =
+        requestedSliderPosition === "left" ||
+        requestedSliderPosition === "right";
+    const canUseSideLayout =
+        availableWidth === null || availableWidth >= MIN_SIDE_LAYOUT_WIDTH_PX;
+    const effectiveSliderPosition: SliderPosition =
+        requestedSliderPosition === "left" && !canUseSideLayout
+            ? "top"
+            : requestedSliderPosition === "right" && !canUseSideLayout
+              ? "bottom"
+              : requestedSliderPosition;
+    const useSideLayout =
+        effectiveSliderPosition === "left" ||
+        effectiveSliderPosition === "right";
 
     // Load diagcess script
     useEffect(() => {
@@ -1357,26 +1431,79 @@ export default React.memo(function Prefigure({
         justifyContent: "center",
     };
 
+    const layoutStyle: React.CSSProperties = {
+        display: "flex",
+        flexDirection: useSideLayout ? "row" : "column",
+        alignItems: useSideLayout ? "flex-start" : "stretch",
+        gap: `${SIDE_LAYOUT_GAP_PX}px`,
+    };
+
+    const graphSectionStyle: React.CSSProperties = {
+        order:
+            effectiveSliderPosition === "top" ||
+            effectiveSliderPosition === "left"
+                ? 2
+                : 1,
+        flex: useSideLayout ? "1 1 auto" : undefined,
+        minWidth: useSideLayout
+            ? `${MIN_GRAPH_WIDTH_FOR_SIDE_LAYOUT_PX}px`
+            : undefined,
+    };
+
+    const sliderSectionStyle: React.CSSProperties = {
+        order:
+            effectiveSliderPosition === "top" ||
+            effectiveSliderPosition === "left"
+                ? 1
+                : 2,
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+        marginTop: useSideLayout ? surfaceStyle.marginTop : undefined,
+        width: useSideLayout ? `${SIDE_SLIDER_COLUMN_WIDTH_PX}px` : "100%",
+        maxWidth: useSideLayout
+            ? `${SIDE_SLIDER_COLUMN_WIDTH_PX}px`
+            : undefined,
+    };
+
     return (
-        <div id={id} ref={prefigureContainerRef}>
-            <div className="ChemAccess-element" style={frameStyle}>
-                {svgMarkup ? (
+        <div
+            id={id}
+            ref={prefigureContainerRef}
+            data-slider-position-requested={requestedSliderPosition}
+            data-slider-position-effective={effectiveSliderPosition}
+            data-slider-position-side-fallback={
+                requestedSideLayout && !canUseSideLayout ? "true" : "false"
+            }
+        >
+            <div style={layoutStyle}>
+                <div style={graphSectionStyle}>
                     <div
-                        className="svg"
-                        style={svgContainerStyle}
-                        dangerouslySetInnerHTML={{ __html: svgMarkup }}
-                    />
-                ) : (
-                    <div className="svg" style={svgMessageStyle}>
-                        {svgMessage}
+                        className="ChemAccess-element"
+                        style={frameStyle}
+                        tabIndex={SVs.decorative ? undefined : 0}
+                    >
+                        {svgMarkup ? (
+                            <div
+                                className="svg"
+                                style={svgContainerStyle}
+                                dangerouslySetInnerHTML={{ __html: svgMarkup }}
+                            />
+                        ) : (
+                            <div className="svg" style={svgMessageStyle}>
+                                {svgMessage}
+                            </div>
+                        )}
+                        <div
+                            className="cml"
+                            dangerouslySetInnerHTML={{ __html: annotationsXml }}
+                        />
                     </div>
-                )}
-                <div
-                    className="cml"
-                    dangerouslySetInnerHTML={{ __html: annotationsXml }}
-                />
+                </div>
+                {sliderSection ? (
+                    <div style={sliderSectionStyle}>{sliderSection}</div>
+                ) : null}
             </div>
-            {sliderSection}
         </div>
     );
 });

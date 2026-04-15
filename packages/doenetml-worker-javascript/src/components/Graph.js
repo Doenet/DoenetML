@@ -112,6 +112,15 @@ export default class Graph extends BlockComponent {
             public: true,
             forRenderer: true,
         };
+        attributes.sliderPosition = {
+            createComponentOfType: "text",
+            createStateVariable: "sliderPosition",
+            defaultValue: "left",
+            public: true,
+            forRenderer: true,
+            toLowerCase: true,
+            validValues: ["bottom", "left", "right", "top"],
+        };
         attributes.displayXAxisTicks = {
             createComponentOfType: "boolean",
             createStateVariable: "displayXAxisTicks",
