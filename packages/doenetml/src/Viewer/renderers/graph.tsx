@@ -7,11 +7,11 @@ import Prefigure from "./prefigure";
 import GraphControls from "./GraphControls";
 import GraphFrame from "./GraphFrame";
 import JSXGraphRenderer from "./JSXGraphRenderer";
+import { normalizeGraphControlsMode } from "./utils/graphControls";
 
 export const BoardContext = createContext<JXGBoard | null>(null);
 
 type ControlsPosition = "bottom" | "left" | "right" | "top";
-type GraphControlsMode = "all" | "slidersonly" | "inputsonly" | "none";
 
 const MIN_GRAPH_WIDTH_FOR_SIDE_LAYOUT_PX = 280;
 const SIDE_SLIDER_COLUMN_WIDTH_PX = 220;
@@ -32,24 +32,6 @@ function normalizeControlsPosition(value: unknown): ControlsPosition {
     }
 
     return "left";
-}
-
-function normalizeGraphControlsMode(value: unknown): GraphControlsMode {
-    if (typeof value !== "string") {
-        return "none";
-    }
-
-    const normalized = value.toLowerCase();
-    if (
-        normalized === "all" ||
-        normalized === "slidersonly" ||
-        normalized === "inputsonly" ||
-        normalized === "none"
-    ) {
-        return normalized;
-    }
-
-    return "none";
 }
 
 export default React.memo(function Graph(props) {

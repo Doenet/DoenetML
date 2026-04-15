@@ -2,12 +2,12 @@ import React, { useEffect, useRef, useState } from "react";
 import me from "math-expressions";
 import { roundForDisplay } from "@doenet/utils";
 import SliderUI from "./utils/SliderUI";
+import { normalizeGraphControlsMode } from "./utils/graphControls";
 import {
     accessibleLabelText,
     renderLabelWithLatex,
 } from "./utils/labelWithLatex";
 
-type GraphControlsMode = "all" | "slidersonly" | "inputsonly" | "none";
 type PointControlsMode = "both" | "xonly" | "yonly" | "none";
 
 type GraphControlsProps = {
@@ -34,30 +34,6 @@ type GraphControlsProps = {
     };
     callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };
-
-/**
- * Graph-level controls mode parser.
- *
- * Invalid or missing values are treated as "none" to avoid rendering
- * controls that the core did not explicitly request.
- */
-function normalizeGraphControlsMode(value: unknown): GraphControlsMode {
-    if (typeof value !== "string") {
-        return "none";
-    }
-
-    const normalized = value.toLowerCase();
-    if (
-        normalized === "all" ||
-        normalized === "slidersonly" ||
-        normalized === "inputsonly" ||
-        normalized === "none"
-    ) {
-        return normalized;
-    }
-
-    return "none";
-}
 
 /**
  * Point-level controls mode parser.
@@ -147,7 +123,7 @@ function pruneRecordByActiveKeys(
     const nextRecord: Record<string, string> = {};
     let changed = false;
 
-    for (const key in previousRecord) {
+    for (const key of Object.keys(previousRecord)) {
         const value = previousRecord[key];
         if (activeKeys.has(key)) {
             nextRecord[key] = value;
@@ -609,7 +585,7 @@ export default React.memo(function GraphControls({
                 return { ...previousErrorByKey, [key]: error };
             }
 
-            if (!(key in previousErrorByKey)) {
+            if (!Object.prototype.hasOwnProperty.call(previousErrorByKey, key)) {
                 return previousErrorByKey;
             }
 
@@ -621,7 +597,7 @@ export default React.memo(function GraphControls({
 
     function clearInputDraft(key: string) {
         setInputDraftByKey((previousDraftByKey) => {
-            if (!(key in previousDraftByKey)) {
+            if (!Object.prototype.hasOwnProperty.call(previousDraftByKey, key)) {
                 return previousDraftByKey;
             }
 
@@ -657,7 +633,7 @@ export default React.memo(function GraphControls({
         errorMessage: string;
         isUnchanged: (parsed: { x: number; y: number }) => boolean;
     }) {
-        if (!(inputKey in inputDraftByKey)) {
+        if (!Object.prototype.hasOwnProperty.call(inputDraftByKey, inputKey)) {
             return;
         }
 
