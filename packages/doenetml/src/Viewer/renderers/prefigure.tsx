@@ -866,6 +866,7 @@ export default React.memo(function Prefigure({
     const latestSliderCoordinatesRef = useRef<
         Record<number, { x: number; y: number }>
     >({});
+    const committingInputKeysRef = useRef<Set<string>>(new Set());
     const [transientSliderSet, setTransientSliderSet] = useState<Set<string>>(
         new Set(),
     );
@@ -1361,54 +1362,110 @@ export default React.memo(function Prefigure({
         currentCoordinates: { x: number; y: number };
         inputKey: string;
     }) {
-        const parsedValue = parseSingleMathNumber(rawValue);
-        if (parsedValue === null) {
-            setInputError(
-                inputKey,
-                "Enter a valid number or numeric expression.",
-            );
+        const hasDraft = Object.prototype.hasOwnProperty.call(
+            inputDraftByKey,
+            inputKey,
+        );
+        if (!hasDraft) {
             return;
         }
 
-        const nextCoordinates = {
-            x: axis === "x" ? parsedValue : currentCoordinates.x,
-            y: axis === "y" ? parsedValue : currentCoordinates.y,
-        };
+        if (committingInputKeysRef.current.has(inputKey)) {
+            return;
+        }
+        committingInputKeysRef.current.add(inputKey);
 
-        setInputError(inputKey, null);
-        clearInputDraft(inputKey);
-        await updatePointCoordinatesFromControls({
-            componentIdx,
-            x: nextCoordinates.x,
-            y: nextCoordinates.y,
-        });
+        try {
+            const parsedValue = parseSingleMathNumber(rawValue);
+            if (parsedValue === null) {
+                setInputError(
+                    inputKey,
+                    "Enter a valid number or numeric expression.",
+                );
+                return;
+            }
+
+            const nextCoordinates = {
+                x: axis === "x" ? parsedValue : currentCoordinates.x,
+                y: axis === "y" ? parsedValue : currentCoordinates.y,
+            };
+
+            const axisValueUnchanged =
+                (axis === "x" && parsedValue === currentCoordinates.x) ||
+                (axis === "y" && parsedValue === currentCoordinates.y);
+
+            if (axisValueUnchanged) {
+                setInputError(inputKey, null);
+                clearInputDraft(inputKey);
+                return;
+            }
+
+            setInputError(inputKey, null);
+            clearInputDraft(inputKey);
+            await updatePointCoordinatesFromControls({
+                componentIdx,
+                x: nextCoordinates.x,
+                y: nextCoordinates.y,
+            });
+        } finally {
+            committingInputKeysRef.current.delete(inputKey);
+        }
     }
 
     async function submitPairInput({
         componentIdx,
         rawValue,
+        currentCoordinates,
         inputKey,
     }: {
         componentIdx: number;
         rawValue: string;
+        currentCoordinates: { x: number; y: number };
         inputKey: string;
     }) {
-        const parsedPair = parseOrderedPair(rawValue);
-        if (!parsedPair) {
-            setInputError(
-                inputKey,
-                "Enter an ordered pair like (x,y) with numeric values.",
-            );
+        const hasDraft = Object.prototype.hasOwnProperty.call(
+            inputDraftByKey,
+            inputKey,
+        );
+        if (!hasDraft) {
             return;
         }
 
-        setInputError(inputKey, null);
-        clearInputDraft(inputKey);
-        await updatePointCoordinatesFromControls({
-            componentIdx,
-            x: parsedPair.x,
-            y: parsedPair.y,
-        });
+        if (committingInputKeysRef.current.has(inputKey)) {
+            return;
+        }
+        committingInputKeysRef.current.add(inputKey);
+
+        try {
+            const parsedPair = parseOrderedPair(rawValue);
+            if (!parsedPair) {
+                setInputError(
+                    inputKey,
+                    "Enter an ordered pair like (x,y) with numeric values.",
+                );
+                return;
+            }
+
+            const pairUnchanged =
+                parsedPair.x === currentCoordinates.x &&
+                parsedPair.y === currentCoordinates.y;
+
+            if (pairUnchanged) {
+                setInputError(inputKey, null);
+                clearInputDraft(inputKey);
+                return;
+            }
+
+            setInputError(inputKey, null);
+            clearInputDraft(inputKey);
+            await updatePointCoordinatesFromControls({
+                componentIdx,
+                x: parsedPair.x,
+                y: parsedPair.y,
+            });
+        } finally {
+            committingInputKeysRef.current.delete(inputKey);
+        }
     }
 
     /**
@@ -1609,10 +1666,14 @@ export default React.memo(function Prefigure({
             const showInputsOnlyForPoint =
                 graphControlsMode === "inputsonly" && includeInputs;
 
+            const pointHeadingId = `${id}-point-${componentIdx}-heading`;
+
             return (
                 <div
                     key={componentIdx}
                     data-point-slider-card="true"
+                    role="group"
+                    aria-labelledby={pointHeadingId}
                     style={{
                         width: "100%",
                         boxSizing: "border-box",
@@ -1621,7 +1682,7 @@ export default React.memo(function Prefigure({
                         borderRadius: "8px",
                     }}
                 >
-                    <div style={{ fontWeight: 600 }}>
+                    <div id={pointHeadingId} style={{ fontWeight: 600 }}>
                         {pointLabelForDisplay}
                     </div>
                     {showInputsOnlyForPoint && pointControlsMode === "both" ? (
@@ -1657,6 +1718,7 @@ export default React.memo(function Prefigure({
                                     submitPairInput({
                                         componentIdx,
                                         rawValue: event.target.value,
+                                        currentCoordinates,
                                         inputKey: pairInputKey,
                                     }).catch((error) => {
                                         console.error(
@@ -1671,6 +1733,7 @@ export default React.memo(function Prefigure({
                                         submitPairInput({
                                             componentIdx,
                                             rawValue: event.currentTarget.value,
+                                            currentCoordinates,
                                             inputKey: pairInputKey,
                                         }).catch((error) => {
                                             console.error(
@@ -2156,7 +2219,13 @@ export default React.memo(function Prefigure({
     const wrapperStyle: React.CSSProperties = {
         marginTop,
         marginBottom,
+        position: "relative",
     };
+
+    // Accessible live region text: announce build progress and errors to screen
+    // readers. Empty string when the SVG is visible (success is self-evident by
+    // the diagram appearing in the accessibility tree).
+    const statusLiveText = svgMarkup ? "" : svgMessage;
 
     const frameStyle: React.CSSProperties = {
         ...frameSurfaceStyle,
@@ -2229,6 +2298,24 @@ export default React.memo(function Prefigure({
                 requestedSideLayout && !canUseSideLayout ? "true" : "false"
             }
         >
+            {/* Announce build / error status to screen readers without cluttering
+                the visual layout. Lives outside role="img" so the live region is
+                not suppressed by the img role's presentational children semantics. */}
+            <span
+                aria-live="polite"
+                aria-atomic="true"
+                style={{
+                    position: "absolute",
+                    width: "1px",
+                    height: "1px",
+                    overflow: "hidden",
+                    clip: "rect(0, 0, 0, 0)",
+                    whiteSpace: "nowrap",
+                    border: 0,
+                }}
+            >
+                {statusLiveText}
+            </span>
             <div style={layoutStyle}>
                 <div style={graphSectionStyle}>
                     <div
@@ -2239,7 +2326,7 @@ export default React.memo(function Prefigure({
                         aria-label={
                             SVs.decorative
                                 ? undefined
-                                : SVs.shortDescription || undefined
+                                : SVs.shortDescription?.trim() || "Diagram"
                         }
                     >
                         {svgMarkup ? (
@@ -2260,7 +2347,13 @@ export default React.memo(function Prefigure({
                     </div>
                 </div>
                 {hasControlsSection ? (
-                    <div style={sliderSectionStyle}>{controlsSection}</div>
+                    <div
+                        role="group"
+                        aria-label="Point controls"
+                        style={sliderSectionStyle}
+                    >
+                        {controlsSection}
+                    </div>
                 ) : null}
             </div>
         </div>
