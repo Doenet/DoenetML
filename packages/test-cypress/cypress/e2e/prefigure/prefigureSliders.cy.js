@@ -804,6 +804,8 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
 
         cy.get("#g .ChemAccess-element")
             .should("have.attr", "tabindex", "0")
+            .and("have.attr", "role", "img")
+            .and("have.attr", "aria-label", "Graph first semantic order test")
             .focus()
             .should("have.focus");
 
