@@ -148,10 +148,6 @@ function pruneRecordByActiveKeys(
     let changed = false;
 
     for (const key in previousRecord) {
-        if (!Object.prototype.hasOwnProperty.call(previousRecord, key)) {
-            continue;
-        }
-
         const value = previousRecord[key];
         if (activeKeys.has(key)) {
             nextRecord[key] = value;
@@ -161,6 +157,28 @@ function pruneRecordByActiveKeys(
     }
 
     return changed ? nextRecord : previousRecord;
+}
+
+/**
+ * Generate a unified input key for state tracking.
+ * Supports different suffixes: x-axis, y-axis, or pair input.
+ */
+function makeInputKey(
+    componentIdx: number,
+    suffix: "x" | "y" | "pair",
+): string {
+    return `${componentIdx}|${suffix}`;
+}
+
+/**
+ * Generate an error message ID for aria-describedby attributes.
+ */
+function makeErrorId(
+    elementId: string,
+    componentIdx: number,
+    suffix: string,
+): string {
+    return `${elementId}-error-point-${componentIdx}-${suffix}`;
 }
 
 export default React.memo(function GraphControls({
@@ -192,21 +210,12 @@ export default React.memo(function GraphControls({
         new Set(),
     );
 
-    function sliderAxisTransientKey(
-        componentIdx: number,
-        axis: "x" | "y",
-    ): string {
-        return `${componentIdx}|${axis}`;
-    }
+    // Alias for readability when generating transient slider keys
+    const sliderAxisTransientKey = makeInputKey;
 
-    function pointAxisInputKey(componentIdx: number, axis: "x" | "y"): string {
-        return `${componentIdx}|${axis}`;
-    }
-
-    function pointPairInputKey(componentIdx: number): string {
-        return `${componentIdx}|pair`;
-    }
-
+    /**
+     * Update draft input value and clear any associated error.
+     */
     function setInputDraftValue(key: string, value: string) {
         setInputDraftByKey((previousDraftByKey) => ({
             ...previousDraftByKey,
@@ -224,13 +233,20 @@ export default React.memo(function GraphControls({
         };
     }, [rendererSliderCoordinates]);
 
-    // Reconcile renderer-local slider state against core SVs whenever points,
-    // controls modes, or transient drag status change.
-    //
-    // During transient drags, keep the in-progress axis value from renderer
-    // state instead of immediately snapping back to core coordinates.
-    // Once the non-transient commit arrives, the transient flag is cleared and
-    // the axis follows core values again.
+    /**
+     * Reconcile renderer-local slider coordinates with core SVs.
+     *
+     * During transient (in-progress) drags:
+     * - Preserve the rendered slider value for the active axis
+     * - This prevents core updates from snapping values mid-drag
+     * - Track transient edges via transientSliderSet
+     *
+     * Once a non-transient (committed) update arrives:
+     * - Clear the transient flag for that axis
+     * - Renderer coordinates are synced to core values
+     *
+     * Also prunes stale coordinates for removed points.
+     */
     useEffect(() => {
         const activePointIndices = new Set<number>(
             coreControlPoints.map((p) => p.componentIdx),
@@ -364,26 +380,26 @@ export default React.memo(function GraphControls({
                 if (graphControlsMode === "all") {
                     if (pointControlsMode !== "yonly") {
                         activeInputKeys.add(
-                            pointAxisInputKey(point.componentIdx, "x"),
+                            makeInputKey(point.componentIdx, "x"),
                         );
                     }
                     if (pointControlsMode !== "xonly") {
                         activeInputKeys.add(
-                            pointAxisInputKey(point.componentIdx, "y"),
+                            makeInputKey(point.componentIdx, "y"),
                         );
                     }
                 } else if (graphControlsMode === "inputsonly") {
                     if (pointControlsMode === "both") {
                         activeInputKeys.add(
-                            pointPairInputKey(point.componentIdx),
+                            makeInputKey(point.componentIdx, "pair"),
                         );
                     } else if (pointControlsMode === "xonly") {
                         activeInputKeys.add(
-                            pointAxisInputKey(point.componentIdx, "x"),
+                            makeInputKey(point.componentIdx, "x"),
                         );
                     } else if (pointControlsMode === "yonly") {
                         activeInputKeys.add(
-                            pointAxisInputKey(point.componentIdx, "y"),
+                            makeInputKey(point.componentIdx, "y"),
                         );
                     }
                 }
@@ -399,11 +415,18 @@ export default React.memo(function GraphControls({
     }, [coreControlPoints, graphControlsMode, includeInputs]);
 
     /**
-     * Handle slider movement for one axis.
+     * Update point coordinate from slider interaction.
      *
-     * We optimistically update local renderer state for responsiveness, send a
-     * movePoint action, and track transient axis flags so core updates do not
-     * overwrite in-flight drag positions.
+     * Handles optimistic updates during drags (transient=true) and committed
+     * updates (transient=false). Transient flags prevent core updates from
+     * overwriting in-progress drag values.
+     *
+     * @param componentIdx - Point component index
+     * @param axis - "x" or "y" axis
+     * @param value - New coordinate value
+     * @param transient - True during drag, false after commit
+     * @param defaultX - Fallback x if no previous state
+     * @param defaultY - Fallback y if no previous state
      */
     async function updatePointCoordinateFromSlider({
         componentIdx,
@@ -609,13 +632,67 @@ export default React.memo(function GraphControls({
     }
 
     /**
-     * Commit a single-axis text input.
+     * Generic input submission with integrated parsing and validation.
      *
-     * Guardrails:
-     * - Ignore if no draft is present.
-     * - Prevent duplicate concurrent commits per input key.
-     * - Validate numeric expression and surface inline errors.
-     * - Skip action dispatch when the value is unchanged.
+     * Handles guardrails:
+     * - Ignores if no draft present
+     * - Prevents duplicate concurrent commits
+     * - Surfaces validation errors inline
+     * - Skips dispatch when coordinates unchanged
+     */
+    async function submitInputValue({
+        inputKey,
+        rawValue,
+        currentCoordinates,
+        componentIdx,
+        parser,
+        errorMessage,
+        isUnchanged,
+    }: {
+        inputKey: string;
+        rawValue: string;
+        currentCoordinates: { x: number; y: number };
+        componentIdx: number;
+        parser: (input: string) => { x: number; y: number } | null;
+        errorMessage: string;
+        isUnchanged: (parsed: { x: number; y: number }) => boolean;
+    }) {
+        if (!(inputKey in inputDraftByKey)) {
+            return;
+        }
+
+        if (committingInputKeysRef.current.has(inputKey)) {
+            return;
+        }
+        committingInputKeysRef.current.add(inputKey);
+
+        try {
+            const parsed = parser(rawValue);
+            if (!parsed) {
+                setInputError(inputKey, errorMessage);
+                return;
+            }
+
+            if (isUnchanged(parsed)) {
+                setInputError(inputKey, null);
+                clearInputDraft(inputKey);
+                return;
+            }
+
+            setInputError(inputKey, null);
+            clearInputDraft(inputKey);
+            await updatePointCoordinatesFromControls({
+                componentIdx,
+                x: parsed.x,
+                y: parsed.y,
+            });
+        } finally {
+            committingInputKeysRef.current.delete(inputKey);
+        }
+    }
+
+    /**
+     * Commit a single-axis text input.
      */
     async function submitAxisInput({
         componentIdx,
@@ -630,61 +707,29 @@ export default React.memo(function GraphControls({
         currentCoordinates: { x: number; y: number };
         inputKey: string;
     }) {
-        const hasDraft = Object.prototype.hasOwnProperty.call(
-            inputDraftByKey,
+        await submitInputValue({
             inputKey,
-        );
-        if (!hasDraft) {
-            return;
-        }
-
-        if (committingInputKeysRef.current.has(inputKey)) {
-            return;
-        }
-        committingInputKeysRef.current.add(inputKey);
-
-        try {
-            const parsedValue = parseSingleMathNumber(rawValue);
-            if (parsedValue === null) {
-                setInputError(
-                    inputKey,
-                    "Enter a valid number or numeric expression.",
-                );
-                return;
-            }
-
-            const nextCoordinates = {
-                x: axis === "x" ? parsedValue : currentCoordinates.x,
-                y: axis === "y" ? parsedValue : currentCoordinates.y,
-            };
-
-            const axisValueUnchanged =
-                (axis === "x" && parsedValue === currentCoordinates.x) ||
-                (axis === "y" && parsedValue === currentCoordinates.y);
-
-            if (axisValueUnchanged) {
-                setInputError(inputKey, null);
-                clearInputDraft(inputKey);
-                return;
-            }
-
-            setInputError(inputKey, null);
-            clearInputDraft(inputKey);
-            await updatePointCoordinatesFromControls({
-                componentIdx,
-                x: nextCoordinates.x,
-                y: nextCoordinates.y,
-            });
-        } finally {
-            committingInputKeysRef.current.delete(inputKey);
-        }
+            rawValue,
+            currentCoordinates,
+            componentIdx,
+            parser: (input: string) => {
+                const parsed = parseSingleMathNumber(input);
+                return parsed !== null
+                    ? {
+                          x: axis === "x" ? parsed : currentCoordinates.x,
+                          y: axis === "y" ? parsed : currentCoordinates.y,
+                      }
+                    : null;
+            },
+            errorMessage: "Enter a valid number or numeric expression.",
+            isUnchanged: (parsed) =>
+                (axis === "x" && parsed.x === currentCoordinates.x) ||
+                (axis === "y" && parsed.y === currentCoordinates.y),
+        });
     }
 
     /**
-     * Commit an ordered-pair text input for "inputsonly" + "both" points.
-     *
-     * Uses the same draft/commit guards as axis inputs and only dispatches
-     * movePoint when at least one coordinate changed.
+     * Commit an ordered-pair text input.
      */
     async function submitPairInput({
         componentIdx,
@@ -697,51 +742,34 @@ export default React.memo(function GraphControls({
         currentCoordinates: { x: number; y: number };
         inputKey: string;
     }) {
-        const hasDraft = Object.prototype.hasOwnProperty.call(
-            inputDraftByKey,
+        await submitInputValue({
             inputKey,
-        );
-        if (!hasDraft) {
-            return;
-        }
-
-        if (committingInputKeysRef.current.has(inputKey)) {
-            return;
-        }
-        committingInputKeysRef.current.add(inputKey);
-
-        try {
-            const parsedPair = parseOrderedPair(rawValue);
-            if (!parsedPair) {
-                setInputError(
-                    inputKey,
-                    "Enter an ordered pair like (x,y) with numeric values.",
-                );
-                return;
-            }
-
-            const pairUnchanged =
-                parsedPair.x === currentCoordinates.x &&
-                parsedPair.y === currentCoordinates.y;
-
-            if (pairUnchanged) {
-                setInputError(inputKey, null);
-                clearInputDraft(inputKey);
-                return;
-            }
-
-            setInputError(inputKey, null);
-            clearInputDraft(inputKey);
-            await updatePointCoordinatesFromControls({
-                componentIdx,
-                x: parsedPair.x,
-                y: parsedPair.y,
-            });
-        } finally {
-            committingInputKeysRef.current.delete(inputKey);
-        }
+            rawValue,
+            currentCoordinates,
+            componentIdx,
+            parser: parseOrderedPair,
+            errorMessage:
+                "Enter an ordered pair like (x,y) with numeric values.",
+            isUnchanged: (parsed) =>
+                parsed.x === currentCoordinates.x &&
+                parsed.y === currentCoordinates.y,
+        });
     }
 
+    /**
+     * Render a slider control for one axis, optionally with inline text input.
+     *
+     * When axisInputConfig is provided, displays slider label with input field
+     * and error message. Otherwise, shows slider with formatted coordinate label.
+     * Handles transient/optimistic updates during drag and clears transient flag
+     * on drag end.
+     *
+     * @param axis - "x" or "y"
+     * @param point - Point data including display rounding settings
+     * @param currentCoordinates - Current displayed slider position
+     * @param pointLabelForAria - Accessible label for point
+     * @param axisInputConfig - Optional config for inline input mode
+     */
     function renderAxisSlider(
         axis: "x" | "y",
         point: (typeof coreControlPoints)[number],
@@ -907,9 +935,9 @@ export default React.memo(function GraphControls({
                 ? renderLabelWithLatex({ label, labelHasLatex })
                 : pointFallbackLabel;
 
-            const xInputKey = pointAxisInputKey(componentIdx, "x");
-            const yInputKey = pointAxisInputKey(componentIdx, "y");
-            const pairInputKey = pointPairInputKey(componentIdx);
+            const xInputKey = makeInputKey(componentIdx, "x");
+            const yInputKey = makeInputKey(componentIdx, "y");
+            const pairInputKey = makeInputKey(componentIdx, "pair");
 
             const formattedX = formatCoordinateForSlider(
                 currentCoordinates.x,
@@ -976,7 +1004,7 @@ export default React.memo(function GraphControls({
                                 aria-invalid={pairInputError ? true : undefined}
                                 aria-describedby={
                                     pairInputError
-                                        ? `${id}-error-point-${componentIdx}-pair`
+                                        ? makeErrorId(id, componentIdx, "pair")
                                         : undefined
                                 }
                                 onChange={(event) => {
@@ -1017,7 +1045,7 @@ export default React.memo(function GraphControls({
                             />
                             {pairInputError ? (
                                 <span
-                                    id={`${id}-error-point-${componentIdx}-pair`}
+                                    id={makeErrorId(id, componentIdx, "pair")}
                                     style={{
                                         color: "#b00020",
                                         fontSize: "0.85em",
@@ -1051,7 +1079,7 @@ export default React.memo(function GraphControls({
                                 aria-invalid={xInputError ? true : undefined}
                                 aria-describedby={
                                     xInputError
-                                        ? `${id}-error-point-${componentIdx}-x`
+                                        ? makeErrorId(id, componentIdx, "x")
                                         : undefined
                                 }
                                 onChange={(event) => {
@@ -1094,7 +1122,7 @@ export default React.memo(function GraphControls({
                             />
                             {xInputError ? (
                                 <span
-                                    id={`${id}-error-point-${componentIdx}-x`}
+                                    id={makeErrorId(id, componentIdx, "x")}
                                     style={{
                                         color: "#b00020",
                                         fontSize: "0.85em",
@@ -1128,7 +1156,7 @@ export default React.memo(function GraphControls({
                                 aria-invalid={yInputError ? true : undefined}
                                 aria-describedby={
                                     yInputError
-                                        ? `${id}-error-point-${componentIdx}-y`
+                                        ? makeErrorId(id, componentIdx, "y")
                                         : undefined
                                 }
                                 onChange={(event) => {
@@ -1171,7 +1199,7 @@ export default React.memo(function GraphControls({
                             />
                             {yInputError ? (
                                 <span
-                                    id={`${id}-error-point-${componentIdx}-y`}
+                                    id={makeErrorId(id, componentIdx, "y")}
                                     style={{
                                         color: "#b00020",
                                         fontSize: "0.85em",
@@ -1193,7 +1221,11 @@ export default React.memo(function GraphControls({
                                   ? {
                                         value: xInputValue,
                                         error: xInputError,
-                                        describedBy: `${id}-error-point-${componentIdx}-x`,
+                                        describedBy: makeErrorId(
+                                            id,
+                                            componentIdx,
+                                            "x",
+                                        ),
                                         onChange: (value) => {
                                             setInputDraftValue(
                                                 xInputKey,
@@ -1223,7 +1255,11 @@ export default React.memo(function GraphControls({
                                   ? {
                                         value: yInputValue,
                                         error: yInputError,
-                                        describedBy: `${id}-error-point-${componentIdx}-y`,
+                                        describedBy: makeErrorId(
+                                            id,
+                                            componentIdx,
+                                            "y",
+                                        ),
                                         onChange: (value) => {
                                             setInputDraftValue(
                                                 yInputKey,
