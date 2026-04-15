@@ -578,10 +578,6 @@ export default class Graph extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "addControls",
                 },
-                effectiveRenderer: {
-                    dependencyType: "stateVariable",
-                    variableName: "effectiveRenderer",
-                },
                 pointDescendants: {
                     dependencyType: "descendant",
                     componentTypes: ["point"],
@@ -601,11 +597,7 @@ export default class Graph extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                // Feature only applies to PreFigure renderer when controls are enabled at graph level
-                if (
-                    dependencyValues.addControls === "none" ||
-                    dependencyValues.effectiveRenderer !== "prefigure"
-                ) {
+                if (dependencyValues.addControls === "none") {
                     return {
                         setValue: {
                             draggablePointsForControls: [],
