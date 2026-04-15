@@ -61916,6 +61916,15 @@
                     ]
                 },
                 {
+                    "name": "sliderPosition",
+                    "values": [
+                        "bottom",
+                        "left",
+                        "right",
+                        "top"
+                    ]
+                },
+                {
                     "name": "displayXAxisTicks",
                     "values": [
                         "true",
@@ -62089,6 +62098,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "sliderPosition",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "displayXAxisTicks",
                     "type": "boolean",
                     "isArray": false
@@ -62211,6 +62225,11 @@
                 {
                     "name": "yLabel",
                     "type": "label",
+                    "isArray": false
+                },
+                {
+                    "name": "hasAuthorAnnotations",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {

@@ -32,6 +32,31 @@ type PrefigureBuildWinner =
     | { backend: "service"; data: PrefigureBuildResult }
     | { backend: "local"; module: PrefigureModule };
 
+type SliderPosition = "bottom" | "left" | "right" | "top";
+
+const MIN_GRAPH_WIDTH_FOR_SIDE_LAYOUT_PX = 280;
+const SIDE_SLIDER_COLUMN_WIDTH_PX = 220;
+const SIDE_LAYOUT_GAP_PX = 12;
+// Side layout needs enough room for graph + slider column + gap.
+// Current breakpoint: 280 + 220 + 12 = 512px.
+const MIN_SIDE_LAYOUT_WIDTH_PX =
+    MIN_GRAPH_WIDTH_FOR_SIDE_LAYOUT_PX +
+    SIDE_SLIDER_COLUMN_WIDTH_PX +
+    SIDE_LAYOUT_GAP_PX;
+
+function normalizeSliderPosition(value: unknown): SliderPosition {
+    if (
+        value === "bottom" ||
+        value === "left" ||
+        value === "right" ||
+        value === "top"
+    ) {
+        return value;
+    }
+
+    return "left";
+}
+
 async function importPrefigureFromUrl(url: string): Promise<PrefigureModule> {
     return import(/* @vite-ignore */ url);
 }
@@ -232,23 +257,26 @@ async function buildPrefigureDiagram(
     });
 
     try {
-        const serviceBuildPromise: Promise<PrefigureBuildWinner> =
-            buildWithPrefigureService(
+        async function buildServicePromise(): Promise<PrefigureBuildWinner> {
+            const data = await buildWithPrefigureService(
                 diagramXML,
                 serviceAbortController.signal,
-            ).then((data) => {
-                return { backend: "service", data };
-            });
+            );
+            return { backend: "service", data };
+        }
 
-        const localReadyPromise: Promise<PrefigureBuildWinner> =
-            startPrefigureWarmup()
-                .then((module) => {
-                    return { backend: "local" as const, module };
-                })
-                .catch((error) => {
-                    logWarmupFailure(error);
-                    throw error;
-                });
+        async function buildLocalPromise(): Promise<PrefigureBuildWinner> {
+            try {
+                const module = await startPrefigureWarmup();
+                return { backend: "local" as const, module };
+            } catch (error) {
+                logWarmupFailure(error);
+                throw error;
+            }
+        }
+
+        const serviceBuildPromise = buildServicePromise();
+        const localReadyPromise = buildLocalPromise();
 
         const winner = await Promise.race([
             firstSuccessful([serviceBuildPromise, localReadyPromise]),
@@ -290,10 +318,13 @@ type PrefigureRendererProps = {
     SVs: {
         prefigureXML: string | null;
         hasAuthorAnnotations: boolean;
+        shortDescription?: string;
+        decorative: boolean;
         showBorder: boolean;
         width: { size: string; isAbsolute: boolean };
         aspectRatio: number;
         addSliders: boolean;
+        sliderPosition: SliderPosition;
         xMin: number;
         xMax: number;
         yMin: number;
@@ -725,6 +756,7 @@ export default React.memo(function Prefigure({
     const [transientSliderSet, setTransientSliderSet] = useState<Set<string>>(
         new Set(),
     );
+    const [availableWidth, setAvailableWidth] = useState<number | null>(null);
     const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
     const fetchAbortControllerRef = useRef<AbortController | null>(null);
     const diagcessTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -1136,8 +1168,8 @@ export default React.memo(function Prefigure({
               return (
                   <div
                       key={componentIdx}
+                      data-point-slider-card="true"
                       style={{
-                          marginTop: "12px",
                           padding: "10px",
                           border: "1px solid var(--canvasText)",
                           borderRadius: "8px",
@@ -1163,21 +1195,73 @@ export default React.memo(function Prefigure({
                   </div>
               );
           })
-        : null;
+        : [];
+    const hasSliderSection = sliderSection.length > 0;
+
+    useEffect(() => {
+        const fallbackElement = prefigureContainerRef.current;
+        if (!fallbackElement) {
+            return;
+        }
+
+        const measuredElement =
+            document.getElementById(`${id}-container`) ?? fallbackElement;
+
+        function updateContainerWidth() {
+            setAvailableWidth(measuredElement.clientWidth);
+        }
+
+        updateContainerWidth();
+
+        if (typeof ResizeObserver === "undefined") {
+            window.addEventListener("resize", updateContainerWidth);
+            return () => {
+                window.removeEventListener("resize", updateContainerWidth);
+            };
+        }
+
+        const observer = new ResizeObserver(() => {
+            updateContainerWidth();
+        });
+        observer.observe(measuredElement);
+
+        return () => {
+            observer.disconnect();
+        };
+    }, []);
+
+    const requestedSliderPosition = normalizeSliderPosition(SVs.sliderPosition);
+    const requestedSideLayout =
+        requestedSliderPosition === "left" ||
+        requestedSliderPosition === "right";
+    const canUseSideLayout =
+        availableWidth === null || availableWidth >= MIN_SIDE_LAYOUT_WIDTH_PX;
+    const effectiveSliderPosition: SliderPosition =
+        requestedSliderPosition === "left" && !canUseSideLayout
+            ? "top"
+            : requestedSliderPosition === "right" && !canUseSideLayout
+              ? "bottom"
+              : requestedSliderPosition;
+    const useSideLayout =
+        effectiveSliderPosition === "left" ||
+        effectiveSliderPosition === "right";
 
     // Load diagcess script
     useEffect(() => {
         let active = true;
 
-        ensureDiagcessScriptLoaded()
-            .then(() => {
+        async function loadDiagcessScript() {
+            try {
+                await ensureDiagcessScriptLoaded();
                 if (active) {
                     setDiagcessReady(true);
                 }
-            })
-            .catch((error) => {
+            } catch (error) {
                 console.error(error);
-            });
+            }
+        }
+
+        loadDiagcessScript();
 
         return () => {
             active = false;
@@ -1335,8 +1419,15 @@ export default React.memo(function Prefigure({
         };
     }, [svgMarkup, annotationsXml, diagcessReady, hasAuthorAnnotations]);
 
+    const { marginTop, marginBottom, ...frameSurfaceStyle } = surfaceStyle;
+
+    const wrapperStyle: React.CSSProperties = {
+        marginTop,
+        marginBottom,
+    };
+
     const frameStyle: React.CSSProperties = {
-        ...surfaceStyle,
+        ...frameSurfaceStyle,
         overflow: "hidden",
         backgroundColor: "var(--canvas)",
         color: "var(--canvasText)",
@@ -1357,26 +1448,86 @@ export default React.memo(function Prefigure({
         justifyContent: "center",
     };
 
+    const layoutStyle: React.CSSProperties = {
+        display: "flex",
+        flexDirection: useSideLayout ? "row" : "column",
+        alignItems: useSideLayout ? "flex-start" : "stretch",
+        gap: `${SIDE_LAYOUT_GAP_PX}px`,
+    };
+
+    // Keep graph first in DOM for focus/screen-reader flow, and reorder only visually.
+    const graphSectionStyle: React.CSSProperties = {
+        order:
+            effectiveSliderPosition === "top" ||
+            effectiveSliderPosition === "left"
+                ? 2
+                : 1,
+        flex: useSideLayout ? "1 1 auto" : undefined,
+        minWidth: useSideLayout
+            ? `${MIN_GRAPH_WIDTH_FOR_SIDE_LAYOUT_PX}px`
+            : undefined,
+    };
+
+    const sliderSectionStyle: React.CSSProperties = {
+        order:
+            effectiveSliderPosition === "top" ||
+            effectiveSliderPosition === "left"
+                ? 1
+                : 2,
+        display: "flex",
+        flexDirection: "column",
+        gap: "12px",
+        width: useSideLayout ? `${SIDE_SLIDER_COLUMN_WIDTH_PX}px` : "100%",
+        maxWidth: useSideLayout
+            ? `${SIDE_SLIDER_COLUMN_WIDTH_PX}px`
+            : undefined,
+    };
+
     return (
-        <div id={id} ref={prefigureContainerRef}>
-            <div className="ChemAccess-element" style={frameStyle}>
-                {svgMarkup ? (
+        <div
+            id={id}
+            ref={prefigureContainerRef}
+            style={wrapperStyle}
+            data-slider-position-requested={requestedSliderPosition}
+            data-slider-position-effective={effectiveSliderPosition}
+            data-slider-position-side-fallback={
+                requestedSideLayout && !canUseSideLayout ? "true" : "false"
+            }
+        >
+            <div style={layoutStyle}>
+                <div style={graphSectionStyle}>
                     <div
-                        className="svg"
-                        style={svgContainerStyle}
-                        dangerouslySetInnerHTML={{ __html: svgMarkup }}
-                    />
-                ) : (
-                    <div className="svg" style={svgMessageStyle}>
-                        {svgMessage}
+                        className="ChemAccess-element"
+                        style={frameStyle}
+                        tabIndex={SVs.decorative ? undefined : 0}
+                        role={SVs.decorative ? undefined : "img"}
+                        aria-label={
+                            SVs.decorative
+                                ? undefined
+                                : SVs.shortDescription || undefined
+                        }
+                    >
+                        {svgMarkup ? (
+                            <div
+                                className="svg"
+                                style={svgContainerStyle}
+                                dangerouslySetInnerHTML={{ __html: svgMarkup }}
+                            />
+                        ) : (
+                            <div className="svg" style={svgMessageStyle}>
+                                {svgMessage}
+                            </div>
+                        )}
+                        <div
+                            className="cml"
+                            dangerouslySetInnerHTML={{ __html: annotationsXml }}
+                        />
                     </div>
-                )}
-                <div
-                    className="cml"
-                    dangerouslySetInnerHTML={{ __html: annotationsXml }}
-                />
+                </div>
+                {hasSliderSection ? (
+                    <div style={sliderSectionStyle}>{sliderSection}</div>
+                ) : null}
             </div>
-            {sliderSection}
         </div>
     );
 });

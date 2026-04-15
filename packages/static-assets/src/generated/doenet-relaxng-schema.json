@@ -870,7 +870,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -11805,7 +11807,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "unorderedCompare": {
@@ -12372,7 +12376,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "unorderedCompare": {
@@ -12685,7 +12691,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "unorderedCompare": {
@@ -12998,7 +13006,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "unorderedCompare": {
@@ -13311,7 +13321,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "unorderedCompare": {
@@ -13825,7 +13837,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "unorderedCompare": {
@@ -14339,7 +14353,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "unorderedCompare": {
@@ -14869,7 +14885,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -15659,7 +15677,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -16449,7 +16469,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -17237,7 +17259,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -18025,7 +18049,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -18813,7 +18839,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -19590,7 +19618,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -20344,7 +20374,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -21110,7 +21142,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -21876,7 +21910,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -22642,7 +22678,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -23408,7 +23446,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -24198,7 +24238,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -24988,7 +25030,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -25790,7 +25834,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -26592,7 +26638,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -27382,7 +27430,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -28172,7 +28222,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -28962,7 +29014,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -29752,7 +29806,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -30542,7 +30598,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -31332,7 +31390,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -32123,7 +32183,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -33023,7 +33085,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -33923,7 +33987,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -64196,7 +64262,9 @@
                         "none",
                         "both",
                         "xOnly",
-                        "yOnly"
+                        "yOnly",
+                        "true",
+                        "false"
                     ]
                 },
                 "hideOffGraphIndicator": {
@@ -66969,7 +67037,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -79772,7 +79842,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "unorderedCompare": {
@@ -80499,7 +80571,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -83580,7 +83654,9 @@
                         "none",
                         "both",
                         "xOnly",
-                        "yOnly"
+                        "yOnly",
+                        "true",
+                        "false"
                     ]
                 },
                 "hideOffGraphIndicator": {
@@ -84150,7 +84226,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -92747,7 +92825,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expandOnCompare": {
@@ -93659,7 +93739,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "unorderedCompare": {
@@ -94324,7 +94406,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "unorderedCompare": {
@@ -99233,6 +99317,15 @@
                         "false"
                     ]
                 },
+                "sliderPosition": {
+                    "optional": true,
+                    "type": [
+                        "bottom",
+                        "left",
+                        "right",
+                        "top"
+                    ]
+                },
                 "displayXAxisTicks": {
                     "optional": true,
                     "type": [
@@ -99833,6 +99926,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "sliderPosition",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "displayXAxisTicks",
                     "type": "boolean",
                     "isArray": false
@@ -99955,6 +100053,11 @@
                 {
                     "name": "yLabel",
                     "type": "label",
+                    "isArray": false
+                },
+                {
+                    "name": "hasAuthorAnnotations",
+                    "type": "boolean",
                     "isArray": false
                 },
                 {
@@ -100402,7 +100505,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -101280,7 +101385,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -101894,7 +102001,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -113726,7 +113835,9 @@
                     "type": [
                         "unsorted",
                         "increasing",
-                        "decreasing"
+                        "decreasing",
+                        "true",
+                        "false"
                     ]
                 },
                 "excludeCombinations": {
@@ -115059,7 +115170,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -116111,7 +116224,9 @@
                     "type": [
                         "unsorted",
                         "increasing",
-                        "decreasing"
+                        "decreasing",
+                        "true",
+                        "false"
                     ]
                 },
                 "excludeCombinations": {
@@ -116444,7 +116559,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "displayDigits": {
@@ -117342,7 +117459,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -123132,7 +123251,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 }
             },
@@ -127781,7 +127902,9 @@
                         "none",
                         "both",
                         "xOnly",
-                        "yOnly"
+                        "yOnly",
+                        "true",
+                        "false"
                     ]
                 },
                 "hideOffGraphIndicator": {
@@ -130717,7 +130840,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {
@@ -134325,7 +134450,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "unorderedCompare": {
@@ -136157,7 +136284,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "unorderedCompare": {
@@ -136759,7 +136888,9 @@
                         "full",
                         "numbers",
                         "numbersPreserveOrder",
-                        "normalizeOrder"
+                        "normalizeOrder",
+                        "true",
+                        "false"
                     ]
                 },
                 "expand": {

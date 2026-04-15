@@ -668,6 +668,184 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
         cy.get("#Py").should("have.text", "0.1");
     });
 
+    it("defaults sliderPosition to left and keeps side-by-side on wide layout", () => {
+        cy.clearIndexedDB();
+        cy.viewport(1400, 900);
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph name="g" renderer="prefigure" addSliders width="640px">
+  <point name="P" labelIsName>(2,3)</point>
+</graph>
+`);
+
+        cy.get("#ready").should("have.text", "ready");
+        cy.get("#g")
+            .should("have.attr", "data-slider-position-requested", "left")
+            .and("have.attr", "data-slider-position-effective", "left")
+            .and("have.attr", "data-slider-position-side-fallback", "false");
+
+        cy.get("#g > div").should("have.css", "flex-direction", "row");
+        cy.get("#g .ChemAccess-element")
+            .parent()
+            .should("have.css", "order", "2");
+
+        cy.get("#g .ChemAccess-element").then(($graph) => {
+            const graphTop = $graph[0].getBoundingClientRect().top;
+
+            cy.get('#g [data-point-slider-card="true"]')
+                .first()
+                .then(($sliderCard) => {
+                    const sliderTop =
+                        $sliderCard[0].getBoundingClientRect().top;
+                    expect(Math.abs(sliderTop - graphTop)).to.be.lessThan(2);
+                });
+        });
+    });
+
+    it("falls back from left to top on narrow layout", () => {
+        cy.clearIndexedDB();
+        cy.viewport(420, 900);
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph name="g" renderer="prefigure" addSliders sliderPosition="left">
+  <point name="P" labelIsName>(2,3)</point>
+</graph>
+`);
+
+        cy.get("#ready").should("have.text", "ready");
+        cy.get("#g")
+            .should("have.attr", "data-slider-position-requested", "left")
+            .and("have.attr", "data-slider-position-effective", "top")
+            .and("have.attr", "data-slider-position-side-fallback", "true");
+
+        cy.get("#g > div").should("have.css", "flex-direction", "column");
+    });
+
+    it("falls back from right to bottom on narrow layout", () => {
+        cy.clearIndexedDB();
+        cy.viewport(420, 900);
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph name="g" renderer="prefigure" addSliders sliderPosition="right">
+  <point name="P" labelIsName>(2,3)</point>
+</graph>
+`);
+
+        cy.get("#ready").should("have.text", "ready");
+        cy.get("#g")
+            .should("have.attr", "data-slider-position-requested", "right")
+            .and("have.attr", "data-slider-position-effective", "bottom")
+            .and("have.attr", "data-slider-position-side-fallback", "true");
+
+        cy.get("#g > div").should("have.css", "flex-direction", "column");
+        cy.get("#g .ChemAccess-element")
+            .parent()
+            .should("have.css", "order", "1");
+    });
+
+    it("returns from top fallback back to left when width increases again", () => {
+        cy.clearIndexedDB();
+        cy.viewport(1400, 900);
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph name="g" renderer="prefigure" addSliders sliderPosition="left">
+  <point name="P" labelIsName>(2,3)</point>
+</graph>
+`);
+
+        cy.get("#ready").should("have.text", "ready");
+        cy.get("#g")
+            .should("have.attr", "data-slider-position-effective", "left")
+            .and("have.attr", "data-slider-position-side-fallback", "false");
+
+        cy.viewport(420, 900);
+        cy.get("#g")
+            .should("have.attr", "data-slider-position-effective", "top")
+            .and("have.attr", "data-slider-position-side-fallback", "true");
+
+        cy.viewport(1400, 900);
+        cy.get("#g")
+            .should("have.attr", "data-slider-position-effective", "left")
+            .and("have.attr", "data-slider-position-side-fallback", "false");
+        cy.get("#g > div").should("have.css", "flex-direction", "row");
+    });
+
+    it("keeps graph first in semantic order even when sliders are visually on top", () => {
+        cy.clearIndexedDB();
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph name="g" renderer="prefigure" addSliders sliderPosition="top">
+  <shortDescription>Graph first semantic order test</shortDescription>
+  <point name="P" labelIsName>(2,3)</point>
+</graph>
+`);
+
+        cy.get("#ready").should("have.text", "ready");
+
+        cy.get("#g .ChemAccess-element")
+            .should("have.attr", "tabindex", "0")
+            .and("have.attr", "role", "img")
+            .and("have.attr", "aria-label", "Graph first semantic order test")
+            .focus()
+            .should("have.focus");
+
+        cy.get("#g > div").then(($layout) => {
+            const children = $layout.children();
+            expect(children.length).to.eq(2);
+            expect(children.eq(0).find(".ChemAccess-element").length).to.eq(1);
+            expect(
+                children.eq(1).find('input[type="range"]').length,
+            ).to.be.greaterThan(0);
+        });
+
+        cy.get("#g")
+            .should("have.attr", "data-slider-position-effective", "top")
+            .and("have.attr", "data-slider-position-side-fallback", "false");
+        cy.get("#g .ChemAccess-element")
+            .parent()
+            .should("have.css", "order", "2");
+    });
+
+    it("does not render slider wrapper when no slider-enabled points exist", () => {
+        cy.clearIndexedDB();
+        cy.viewport(1400, 900);
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph name="g" renderer="prefigure" addSliders sliderPosition="left" width="640px">
+  <point name="P" labelIsName addSliders="false">(2,3)</point>
+</graph>
+`);
+
+        cy.get("#ready").should("have.text", "ready");
+        cy.get('#g [data-point-slider-card="true"]').should("not.exist");
+        cy.get("#g > div").children().should("have.length", 1);
+        cy.get("#g > div > div .ChemAccess-element").should("have.length", 1);
+    });
+
     it("addSliders false on point is equivalent to none", () => {
         cy.clearIndexedDB();
         cy.visit("/");
