@@ -22,7 +22,7 @@ const RANGE_INPUT_KEYS = new Set([
  * Props for the SliderUI component
  * @typedef {Object} SliderUIProps
  * @property {string} id - HTML id for the range input
- * @property {string} label - Display label for the slider
+ * @property {React.ReactNode} label - Display label content for the slider (text or JSX)
  * @property {string} ariaLabel - Accessible label for screen readers
  * @property {number} min - Minimum value
  * @property {number} max - Maximum value
