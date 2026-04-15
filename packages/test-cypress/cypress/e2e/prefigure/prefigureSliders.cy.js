@@ -824,6 +824,26 @@ describe("PreFigure sliders @group4", { tags: ["@group4"] }, () => {
             .should("have.css", "order", "2");
     });
 
+    it("does not render slider wrapper when no slider-enabled points exist", () => {
+        cy.clearIndexedDB();
+        cy.viewport(1400, 900);
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph name="g" renderer="prefigure" addSliders sliderPosition="left" width="640px">
+  <point name="P" labelIsName addSliders="false">(2,3)</point>
+</graph>
+`);
+
+        cy.get("#ready").should("have.text", "ready");
+        cy.get('#g [data-point-slider-card="true"]').should("not.exist");
+        cy.get("#g > div").children().should("have.length", 1);
+        cy.get("#g > div > div .ChemAccess-element").should("have.length", 1);
+    });
+
     it("addSliders false on point is equivalent to none", () => {
         cy.clearIndexedDB();
         cy.visit("/");

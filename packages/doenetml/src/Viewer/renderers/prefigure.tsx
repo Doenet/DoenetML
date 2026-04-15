@@ -52,7 +52,7 @@ function normalizeSliderPosition(value: unknown): SliderPosition {
         return value;
     }
 
-    return "bottom";
+    return "left";
 }
 
 async function importPrefigureFromUrl(url: string): Promise<PrefigureModule> {
@@ -1189,7 +1189,8 @@ export default React.memo(function Prefigure({
                   </div>
               );
           })
-        : null;
+        : [];
+    const hasSliderSection = sliderSection.length > 0;
 
     useEffect(() => {
         const fallbackElement = prefigureContainerRef.current;
@@ -1500,7 +1501,7 @@ export default React.memo(function Prefigure({
                         />
                     </div>
                 </div>
-                {sliderSection ? (
+                {hasSliderSection ? (
                     <div style={sliderSectionStyle}>{sliderSection}</div>
                 ) : null}
             </div>
