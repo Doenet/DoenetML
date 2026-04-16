@@ -5,7 +5,7 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
-async function getPolygonVerticesAndCenter(core: any, componentIdx: number) {
+async function getShapeVerticesAndCenter(core: any, componentIdx: number) {
     const stateVariables = await core.returnAllStateVariables(false, true);
     const polygonState = stateVariables[componentIdx].stateValues;
 
@@ -29,10 +29,7 @@ describe("Polyline/Polygon/Triangle center actions @group2", async () => {
 
         const plIdx = await resolvePathToNodeIdx("pl");
 
-        let { vertices, center } = await getPolygonVerticesAndCenter(
-            core,
-            plIdx,
-        );
+        let { vertices, center } = await getShapeVerticesAndCenter(core, plIdx);
         expect(vertices).eqls([
             [0, 0, 0],
             [4, 0, 2],
@@ -45,7 +42,7 @@ describe("Polyline/Polygon/Triangle center actions @group2", async () => {
             args: { center: [5, 3, 7] },
         });
 
-        ({ vertices, center } = await getPolygonVerticesAndCenter(core, plIdx));
+        ({ vertices, center } = await getShapeVerticesAndCenter(core, plIdx));
         expect(vertices).eqls([
             [3, 3, 6],
             [7, 3, 8],
@@ -68,7 +65,7 @@ describe("Polyline/Polygon/Triangle center actions @group2", async () => {
         const sourceIdx = await resolvePathToNodeIdx("g1.pg");
         const copyIdx = await resolvePathToNodeIdx("g2.pg");
 
-        let { vertices, center } = await getPolygonVerticesAndCenter(
+        let { vertices, center } = await getShapeVerticesAndCenter(
             core,
             sourceIdx,
         );
@@ -87,7 +84,7 @@ describe("Polyline/Polygon/Triangle center actions @group2", async () => {
             args: { center: [5, -3] },
         });
 
-        ({ vertices, center } = await getPolygonVerticesAndCenter(
+        ({ vertices, center } = await getShapeVerticesAndCenter(
             core,
             sourceIdx,
         ));
@@ -99,7 +96,7 @@ describe("Polyline/Polygon/Triangle center actions @group2", async () => {
         ]);
         expect(center).eqls([5, -3]);
 
-        const copied = await getPolygonVerticesAndCenter(core, copyIdx);
+        const copied = await getShapeVerticesAndCenter(core, copyIdx);
         expect(copied.vertices).eqls(vertices);
         expect(copied.center).eqls(center);
     });
@@ -121,7 +118,7 @@ describe("Polyline/Polygon/Triangle center actions @group2", async () => {
             args: { center: [5, -3, 99] },
         });
 
-        const { vertices, center } = await getPolygonVerticesAndCenter(
+        const { vertices, center } = await getShapeVerticesAndCenter(
             core,
             pgIdx,
         );
@@ -145,7 +142,7 @@ describe("Polyline/Polygon/Triangle center actions @group2", async () => {
         });
 
         const pgIdx = await resolvePathToNodeIdx("pg");
-        const { polygonState } = await getPolygonVerticesAndCenter(core, pgIdx);
+        const { polygonState } = await getShapeVerticesAndCenter(core, pgIdx);
 
         expect(JSON.stringify(polygonState.center[0].tree)).contain("a");
         expect(polygonState.center[1].evaluate_to_constant()).closeTo(
@@ -165,7 +162,7 @@ describe("Polyline/Polygon/Triangle center actions @group2", async () => {
 
         const triIdx = await resolvePathToNodeIdx("tri");
 
-        let { vertices, center } = await getPolygonVerticesAndCenter(
+        let { vertices, center } = await getShapeVerticesAndCenter(
             core,
             triIdx,
         );
@@ -182,10 +179,7 @@ describe("Polyline/Polygon/Triangle center actions @group2", async () => {
             args: { center: [4, 5] },
         });
 
-        ({ vertices, center } = await getPolygonVerticesAndCenter(
-            core,
-            triIdx,
-        ));
+        ({ vertices, center } = await getShapeVerticesAndCenter(core, triIdx));
         expect(vertices).eqls([
             [2, 4],
             [8, 4],
@@ -211,10 +205,7 @@ describe("Polyline/Polygon/Triangle center actions @group2", async () => {
 
         const pgIdx = await resolvePathToNodeIdx("pg");
 
-        let { vertices, center } = await getPolygonVerticesAndCenter(
-            core,
-            pgIdx,
-        );
+        let { vertices, center } = await getShapeVerticesAndCenter(core, pgIdx);
         expect(vertices).eqls([
             [3, 5],
             [-4, -1],
@@ -229,7 +220,7 @@ describe("Polyline/Polygon/Triangle center actions @group2", async () => {
             args: { center: [4.5, 6] },
         });
 
-        ({ vertices, center } = await getPolygonVerticesAndCenter(core, pgIdx));
+        ({ vertices, center } = await getShapeVerticesAndCenter(core, pgIdx));
         // Constrained vertex snaps to the grid, so the rigid-translation correction
         // applies the same adjusted offset to the other vertices.
         expect(vertices).eqls([

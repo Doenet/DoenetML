@@ -2148,6 +2148,17 @@ export default class Polyline extends GraphicalComponent {
         return stateVariableDefinitions;
     }
 
+    /**
+     * After a move action has been applied, checks whether constraints caused
+     * a strict subset of vertices to land at positions other than the ones
+     * requested.  If so, and if all displaced vertices share the same
+     * translational offset (i.e. the displacement is a rigid translation),
+     * the remaining (unconstrained) vertices are adjusted by that same offset
+     * so the polyline moves as a rigid body.
+     *
+     * Returns the result of the follow-up `performUpdate` call when a
+     * correction was applied, or `null` when no correction was needed.
+     */
     async _attemptConstrainedRigidTranslationReconciliation({
         transient,
         actionId,
