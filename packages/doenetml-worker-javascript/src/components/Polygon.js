@@ -7,6 +7,7 @@ export default class Polygon extends Polyline {
 
         Object.assign(this.actions, {
             movePolygon: this.movePolygon.bind(this),
+            movePolygonCenter: this.movePolygonCenter.bind(this),
             reflectPolygon: this.reflectPolygon.bind(this),
             polygonClicked: this.polygonClicked.bind(this),
             polygonFocused: this.polygonFocused.bind(this),
@@ -17,6 +18,14 @@ export default class Polygon extends Polyline {
 
     get movePolygon() {
         return this.movePolyline;
+    }
+
+    /**
+     * Delegates to parent Polyline's movePolylineCenter action.
+     * Provides polygon-specific naming for semantic clarity.
+     */
+    get movePolygonCenter() {
+        return this.movePolylineCenter;
     }
 
     get reflectPolygon() {
