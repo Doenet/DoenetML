@@ -1,6 +1,6 @@
 import React from "react";
 import PointGraphControls from "./PointGraphControls";
-import { GraphControlPoint } from "./utils/graphControls";
+import type { GraphControlPoint } from "./utils/graphControls";
 
 type GraphControlsProps = {
     id: string;

@@ -45,6 +45,7 @@ async function startPrefigureWarmup() {
         })().catch((error) => {
             // Keep fallback-to-service behavior and allow future retries.
             prefigureWarmupPromise = null;
+            prefigureModulePromise = null;
             throw error;
         });
     }

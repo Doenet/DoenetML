@@ -1,6 +1,6 @@
 import me from "math-expressions";
 import { roundForDisplay } from "@doenet/utils";
-import { GraphControlPoint } from "./graphControls";
+import type { GraphControlPoint } from "./graphControls";
 
 /**
  * Parse a single numeric expression used by x/y text inputs.
