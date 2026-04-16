@@ -231,13 +231,13 @@ export default React.memo(function VectorGraphControls({
                                 ariaDescribedBy={error ? errorId : undefined}
                                 onChange={(value) => setDraft(inputKey, value)}
                                 onCommit={async (rawValue) => {
-                                    commitNumberInput({
+                                    await commitNumberInput({
                                         key: inputKey,
                                         rawValue,
                                         onParsed: async (parsed) => {
                                             onChange(parsed, false);
                                         },
-                                    }).catch(() => {});
+                                    });
                                 }}
                                 commitErrorContext={`[graph-controls] failed to commit ${inputKey} input`}
                             />
@@ -294,13 +294,13 @@ export default React.memo(function VectorGraphControls({
                     ariaDescribedBy={error ? errorId : undefined}
                     onChange={(value) => setDraft(inputKey, value)}
                     onCommit={async (rawValue) => {
-                        commitNumberInput({
+                        await commitNumberInput({
                             key: inputKey,
                             rawValue,
                             onParsed: async (parsed) => {
                                 onChange(parsed);
                             },
-                        }).catch(() => {});
+                        });
                     }}
                     commitErrorContext={`[graph-controls] failed to commit ${inputKey} input`}
                 />

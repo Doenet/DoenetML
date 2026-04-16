@@ -268,7 +268,7 @@ export default React.memo(function LineSegmentGraphControls({
                                                 setDraft(pairKey, value)
                                             }
                                             onCommit={async (rawValue) => {
-                                                commitPairInput({
+                                                await commitPairInput({
                                                     key: pairKey,
                                                     rawValue,
                                                     onParsed: async (value) => {
@@ -280,7 +280,7 @@ export default React.memo(function LineSegmentGraphControls({
                                                             transient: false,
                                                         });
                                                     },
-                                                }).catch(() => {});
+                                                });
                                             }}
                                             commitErrorContext={`[graph-controls] failed to commit ${pairKey} input`}
                                         />
@@ -331,7 +331,7 @@ export default React.memo(function LineSegmentGraphControls({
                                                             onCommit={async (
                                                                 rawValue,
                                                             ) => {
-                                                                commitNumberInput(
+                                                                await commitNumberInput(
                                                                     {
                                                                         key: xKey,
                                                                         rawValue,
@@ -350,8 +350,6 @@ export default React.memo(function LineSegmentGraphControls({
                                                                                 );
                                                                             },
                                                                     },
-                                                                ).catch(
-                                                                    () => {},
                                                                 );
                                                             }}
                                                             commitErrorContext={`[graph-controls] failed to commit ${xKey} input`}
@@ -422,7 +420,7 @@ export default React.memo(function LineSegmentGraphControls({
                                                             onCommit={async (
                                                                 rawValue,
                                                             ) => {
-                                                                commitNumberInput(
+                                                                await commitNumberInput(
                                                                     {
                                                                         key: yKey,
                                                                         rawValue,
@@ -441,8 +439,6 @@ export default React.memo(function LineSegmentGraphControls({
                                                                                 );
                                                                             },
                                                                     },
-                                                                ).catch(
-                                                                    () => {},
                                                                 );
                                                             }}
                                                             commitErrorContext={`[graph-controls] failed to commit ${yKey} input`}

@@ -240,7 +240,7 @@ export default React.memo(function CircleGraphControls({
                                     }
                                     onChange={(value) => setDraft(xKey, value)}
                                     onCommit={async (rawValue) => {
-                                        commitNumberInput({
+                                        await commitNumberInput({
                                             key: xKey,
                                             rawValue,
                                             onParsed: async (value) => {
@@ -254,7 +254,7 @@ export default React.memo(function CircleGraphControls({
                                                     transient: false,
                                                 });
                                             },
-                                        }).catch(() => {});
+                                        });
                                     }}
                                     commitErrorContext={`[graph-controls] failed to commit ${xKey} input`}
                                 />
@@ -281,7 +281,7 @@ export default React.memo(function CircleGraphControls({
                                     }
                                     onChange={(value) => setDraft(yKey, value)}
                                     onCommit={async (rawValue) => {
-                                        commitNumberInput({
+                                        await commitNumberInput({
                                             key: yKey,
                                             rawValue,
                                             onParsed: async (value) => {
@@ -295,7 +295,7 @@ export default React.memo(function CircleGraphControls({
                                                     transient: false,
                                                 });
                                             },
-                                        }).catch(() => {});
+                                        });
                                     }}
                                     commitErrorContext={`[graph-controls] failed to commit ${yKey} input`}
                                 />
@@ -336,7 +336,7 @@ export default React.memo(function CircleGraphControls({
                                     }
                                     onChange={(value) => setDraft(rKey, value)}
                                     onCommit={async (rawValue) => {
-                                        commitNumberInput({
+                                        await commitNumberInput({
                                             key: rKey,
                                             rawValue,
                                             onParsed: async (value) => {
@@ -346,7 +346,7 @@ export default React.memo(function CircleGraphControls({
                                                     transient: false,
                                                 });
                                             },
-                                        }).catch(() => {});
+                                        });
                                     }}
                                     commitErrorContext={`[graph-controls] failed to commit ${rKey} input`}
                                 />
@@ -393,7 +393,7 @@ export default React.memo(function CircleGraphControls({
                                                     setDraft(xKey, value)
                                                 }
                                                 onCommit={async (rawValue) => {
-                                                    commitNumberInput({
+                                                    await commitNumberInput({
                                                         key: xKey,
                                                         rawValue,
                                                         onParsed: async (
@@ -411,7 +411,7 @@ export default React.memo(function CircleGraphControls({
                                                                 transient: false,
                                                             });
                                                         },
-                                                    }).catch(() => {});
+                                                    });
                                                 }}
                                                 commitErrorContext={`[graph-controls] failed to commit ${xKey} input`}
                                             />
@@ -474,7 +474,7 @@ export default React.memo(function CircleGraphControls({
                                                     setDraft(yKey, value)
                                                 }
                                                 onCommit={async (rawValue) => {
-                                                    commitNumberInput({
+                                                    await commitNumberInput({
                                                         key: yKey,
                                                         rawValue,
                                                         onParsed: async (
@@ -492,7 +492,7 @@ export default React.memo(function CircleGraphControls({
                                                                 transient: false,
                                                             });
                                                         },
-                                                    }).catch(() => {});
+                                                    });
                                                 }}
                                                 commitErrorContext={`[graph-controls] failed to commit ${yKey} input`}
                                             />
@@ -555,7 +555,7 @@ export default React.memo(function CircleGraphControls({
                                                 setDraft(rKey, value)
                                             }
                                             onCommit={async (rawValue) => {
-                                                commitNumberInput({
+                                                await commitNumberInput({
                                                     key: rKey,
                                                     rawValue,
                                                     onParsed: async (value) => {
@@ -570,7 +570,7 @@ export default React.memo(function CircleGraphControls({
                                                             },
                                                         );
                                                     },
-                                                }).catch(() => {});
+                                                });
                                             }}
                                             commitErrorContext={`[graph-controls] failed to commit ${rKey} input`}
                                         />
