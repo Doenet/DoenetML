@@ -13,6 +13,10 @@ export default class Triangle extends Polygon {
     static componentType = "triangle";
     static rendererType = "polygon";
 
+    /**
+     * Delegates to parent Polygon's movePolygonCenter action.
+     * Provides triangle-specific naming for semantic clarity.
+     */
     get moveTriangleCenter() {
         return this.movePolygonCenter;
     }

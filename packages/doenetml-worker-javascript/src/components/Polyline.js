@@ -2028,7 +2028,8 @@ export default class Polyline extends GraphicalComponent {
                         continue;
                     }
 
-                    let centerComponent = globalDependencyValues.vertices[0][dim];
+                    let centerComponent =
+                        globalDependencyValues.vertices[0][dim];
 
                     for (let pointInd = 1; pointInd < numVertices; pointInd++) {
                         centerComponent = centerComponent.add(
@@ -2036,7 +2037,9 @@ export default class Polyline extends GraphicalComponent {
                         );
                     }
 
-                    center[arrayKey] = centerComponent.divide(numVertices).simplify();
+                    center[arrayKey] = centerComponent
+                        .divide(numVertices)
+                        .simplify();
                 }
 
                 return { setValue: { center } };
@@ -2049,7 +2052,9 @@ export default class Polyline extends GraphicalComponent {
             }) {
                 let center = await stateValues.center;
 
-                let desiredVertices = globalDependencyValues.vertices.map((v) => [...v]);
+                let desiredVertices = globalDependencyValues.vertices.map(
+                    (v) => [...v],
+                );
 
                 for (let arrayKey in desiredStateVariableValues.center) {
                     let dim = Number(arrayKey);
@@ -2058,8 +2063,14 @@ export default class Polyline extends GraphicalComponent {
                         .subtract(center[dim])
                         .simplify();
 
-                    for (let pointInd = 0; pointInd < desiredVertices.length; pointInd++) {
-                        desiredVertices[pointInd][dim] = desiredVertices[pointInd][dim]
+                    for (
+                        let pointInd = 0;
+                        pointInd < desiredVertices.length;
+                        pointInd++
+                    ) {
+                        desiredVertices[pointInd][dim] = desiredVertices[
+                            pointInd
+                        ][dim]
                             .add(offset)
                             .simplify();
                     }
@@ -2256,10 +2267,12 @@ export default class Polyline extends GraphicalComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
+        // Polyline must be draggable for center movement to work
         if (!(await this.stateValues.draggable)) {
             return;
         }
 
+        // Center must be a 2D array
         if (!Array.isArray(center) || center.length < 2) {
             return;
         }
@@ -2276,36 +2289,35 @@ export default class Polyline extends GraphicalComponent {
 
         // Note: we set skipRendererUpdate to true
         // so that renderer updates are consolidated at the end of the action.
+        const performUpdateArgs = {
+            updateInstructions,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate: true,
+        };
+
         if (transient) {
-            await this.coreFunctions.performUpdate({
-                updateInstructions,
-                transient,
-                skippable,
-                actionId,
-                sourceInformation,
-                skipRendererUpdate: true,
-            });
+            performUpdateArgs.transient = true;
+            performUpdateArgs.skippable = skippable;
         } else {
-            await this.coreFunctions.performUpdate({
-                updateInstructions,
-                actionId,
-                sourceInformation,
-                skipRendererUpdate: true,
-                event: {
-                    verb: "interacted",
-                    object: {
-                        componentIdx: this.componentIdx,
-                        componentType: this.componentType,
-                    },
-                    result: {
-                        center,
-                    },
+            performUpdateArgs.event = {
+                verb: "interacted",
+                object: {
+                    componentIdx: this.componentIdx,
+                    componentType: this.componentType,
                 },
-            });
+                result: {
+                    center,
+                },
+            };
         }
+
+        await this.coreFunctions.performUpdate(performUpdateArgs);
 
         // Attempt to preserve rigid translation when constraints alter
         // a subset of vertices during a center move.
+        // E.g., if moving center causes some vertices to snap to a grid,
+        // we adjust other vertices to maintain the translation offset.
         let reconciliationResult =
             await this._attemptConstrainedRigidTranslationReconciliation({
                 transient,

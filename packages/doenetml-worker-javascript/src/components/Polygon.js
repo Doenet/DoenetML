@@ -20,6 +20,10 @@ export default class Polygon extends Polyline {
         return this.movePolyline;
     }
 
+    /**
+     * Delegates to parent Polyline's movePolylineCenter action.
+     * Provides polygon-specific naming for semantic clarity.
+     */
     get movePolygonCenter() {
         return this.movePolylineCenter;
     }
