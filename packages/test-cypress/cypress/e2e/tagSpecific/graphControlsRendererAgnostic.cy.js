@@ -193,5 +193,220 @@ describe(
             cy.get("#gLeft").parent().should("have.css", "order", "2");
             cy.get("#gRight").parent().should("have.css", "order", "1");
         });
+
+        it("renders and updates circle, line segment, and vector controls", () => {
+            cy.clearIndexedDB();
+            cy.visit("/");
+
+            postDoenetML(`
+<text name="ready">ready</text>
+<graph name="g" addControls="all" controlsPosition="left">
+  <circle name="C" labelIsName center="(1,2)" radius="3" addControls="centerAndRadius" />
+  <lineSegment name="L" labelIsName endpoints="(0,0) (2,2)" addControls="endpoints" />
+  <vector name="V" labelIsName tail="(0,0)" displacement="(2,3)" addControls="displacement" />
+</graph>
+<number name="CRadius" extend="$C.radius" />
+<number name="LEndpoint1X" extend="$L.endpoint1.x" />
+<number name="VHeadX" extend="$V.head.x" />
+`);
+
+            cy.get("#ready").should("have.text", "ready");
+            cy.get("#CRadius").should("have.text", "3");
+            cy.get("#LEndpoint1X").should("have.text", "0");
+            cy.get("#VHeadX").should("have.text", "2");
+
+            cy.get('[aria-label="center x coordinate for C"]').should("exist");
+            cy.get('[aria-label="radius for C"]').should("exist");
+            cy.get('[aria-label="endpoint 1 x coordinate for L"]').should(
+                "exist",
+            );
+            cy.get('[aria-label="endpoint 2 y coordinate for L"]').should(
+                "exist",
+            );
+            cy.get('[aria-label="displacement x for V"]').should("exist");
+            cy.get('[aria-label="displacement y for V"]').should("exist");
+
+            cy.get('[aria-label="radius for C"]').trigger("mousedown");
+            cy.get('[aria-label="radius for C"]')
+                .invoke("val", "5")
+                .trigger("input");
+            cy.get('[aria-label="radius for C"]').trigger("mouseup");
+            cy.get("#CRadius").should("have.text", "5");
+            cy.get('[aria-label="radius for C"]').should("have.value", "5");
+
+            cy.get('[aria-label="endpoint 1 x coordinate for L"]').trigger(
+                "mousedown",
+            );
+            cy.get('[aria-label="endpoint 1 x coordinate for L"]')
+                .invoke("val", "4")
+                .trigger("input");
+            cy.get('[aria-label="endpoint 1 x coordinate for L"]').trigger(
+                "mouseup",
+            );
+            cy.get("#LEndpoint1X").should("have.text", "4");
+            cy.get('[aria-label="endpoint 1 x coordinate for L"]').should(
+                "have.value",
+                "4",
+            );
+
+            cy.get('[aria-label="displacement x for V"]').trigger("mousedown");
+            cy.get('[aria-label="displacement x for V"]')
+                .invoke("val", "1")
+                .trigger("input");
+            cy.get('[aria-label="displacement x for V"]').trigger("mouseup");
+            cy.get("#VHeadX").should("have.text", "1");
+            cy.get('[aria-label="displacement x for V"]').should(
+                "have.value",
+                "1",
+            );
+        });
+
+        it("renders headOnly and tailOnly vector controls", () => {
+            cy.clearIndexedDB();
+            cy.visit("/");
+
+            postDoenetML(`
+<text name="ready">ready</text>
+<graph name="g" addControls="slidersOnly">
+  <vector name="Vh" labelIsName tail="(0,0)" head="(2,3)" addControls="headOnly" />
+  <vector name="Vt" labelIsName tail="(1,1)" head="(3,4)" addControls="tailOnly" />
+</graph>
+<point name="VhHead" extend="$Vh.head" />
+<number name="VhHeadX" extend="$VhHead.x" />
+<point name="VtTail" extend="$Vt.tail" />
+<number name="VtTailY" extend="$VtTail.y" />
+`);
+
+            cy.get("#ready").should("have.text", "ready");
+            cy.get("#VhHeadX").should("have.text", "2");
+            cy.get("#VtTailY").should("have.text", "1");
+
+            // headOnly vector: head x and head y sliders present, no tail sliders
+            cy.get('[aria-label="head x for Vh"]').should("exist");
+            cy.get('[aria-label="head y for Vh"]').should("exist");
+            cy.get('[aria-label="tail x for Vh"]').should("not.exist");
+            cy.get('[aria-label="tail y for Vh"]').should("not.exist");
+
+            // tailOnly vector: tail x and tail y sliders present, no head sliders
+            cy.get('[aria-label="tail x for Vt"]').should("exist");
+            cy.get('[aria-label="tail y for Vt"]').should("exist");
+            cy.get('[aria-label="head x for Vt"]').should("not.exist");
+            cy.get('[aria-label="head y for Vt"]').should("not.exist");
+
+            // Interact with head x slider
+            cy.get('[aria-label="head x for Vh"]').trigger("mousedown");
+            cy.get('[aria-label="head x for Vh"]')
+                .invoke("val", "5")
+                .trigger("input");
+            cy.get('[aria-label="head x for Vh"]').trigger("mouseup");
+            cy.get("#VhHeadX").should("have.text", "5");
+            cy.get('[aria-label="head x for Vh"]').should("have.value", "5");
+
+            // Interact with tail y slider
+            cy.get('[aria-label="tail y for Vt"]').trigger("mousedown");
+            cy.get('[aria-label="tail y for Vt"]')
+                .invoke("val", "-2")
+                .trigger("input");
+            cy.get('[aria-label="tail y for Vt"]').trigger("mouseup");
+            cy.get("#VtTailY").should("have.text", "-2");
+            cy.get('[aria-label="tail y for Vt"]').should("have.value", "-2");
+        });
+
+        it("renders headAndTail vector controls with all four sliders", () => {
+            cy.clearIndexedDB();
+            cy.visit("/");
+
+            postDoenetML(`
+<text name="ready">ready</text>
+<graph name="g" addControls="slidersOnly">
+  <vector name="V" labelIsName tail="(0,0)" head="(2,3)" addControls="headAndTail" />
+</graph>
+`);
+
+            cy.get("#ready").should("have.text", "ready");
+
+            cy.get('[aria-label="head x for V"]').should("exist");
+            cy.get('[aria-label="head y for V"]').should("exist");
+            cy.get('[aria-label="tail x for V"]').should("exist");
+            cy.get('[aria-label="tail y for V"]').should("exist");
+        });
+
+        it("headAndTail with only head draggable shows headOnly controls", () => {
+            cy.clearIndexedDB();
+            cy.visit("/");
+
+            postDoenetML(`
+<text name="ready">ready</text>
+<graph name="g" addControls="slidersOnly">
+  <vector name="V" labelIsName tail="(0,0)" head="(2,3)" addControls="headAndTail" tailDraggable="false" />
+</graph>
+`);
+
+            cy.get("#ready").should("have.text", "ready");
+
+            // Only head controls should appear
+            cy.get('[aria-label="head x for V"]').should("exist");
+            cy.get('[aria-label="head y for V"]').should("exist");
+            cy.get('[aria-label="tail x for V"]').should("not.exist");
+            cy.get('[aria-label="tail y for V"]').should("not.exist");
+        });
+
+        it("headAndTail with only tail draggable shows tailOnly controls", () => {
+            cy.clearIndexedDB();
+            cy.visit("/");
+
+            postDoenetML(`
+<text name="ready">ready</text>
+<graph name="g" addControls="slidersOnly">
+  <vector name="V" labelIsName tail="(0,0)" head="(2,3)" addControls="headAndTail" headDraggable="false" />
+</graph>
+`);
+
+            cy.get("#ready").should("have.text", "ready");
+
+            // Only tail controls should appear
+            cy.get('[aria-label="tail x for V"]').should("exist");
+            cy.get('[aria-label="tail y for V"]').should("exist");
+            cy.get('[aria-label="head x for V"]').should("not.exist");
+            cy.get('[aria-label="head y for V"]').should("not.exist");
+        });
+
+        it("headAndTail with neither head nor tail draggable shows no controls", () => {
+            cy.clearIndexedDB();
+            cy.visit("/");
+
+            postDoenetML(`
+<text name="ready">ready</text>
+<graph name="g" addControls="slidersOnly">
+  <vector name="V" labelIsName tail="(0,0)" head="(2,3)" addControls="headAndTail" headDraggable="false" tailDraggable="false" />
+</graph>
+`);
+
+            cy.get("#ready").should("have.text", "ready");
+
+            cy.get('[aria-label="head x for V"]').should("not.exist");
+            cy.get('[aria-label="head y for V"]').should("not.exist");
+            cy.get('[aria-label="tail x for V"]').should("not.exist");
+            cy.get('[aria-label="tail y for V"]').should("not.exist");
+            cy.get("#g-controls").should("not.exist");
+        });
+
+        it("displacement with headDraggable=false shows no controls", () => {
+            cy.clearIndexedDB();
+            cy.visit("/");
+
+            postDoenetML(`
+<text name="ready">ready</text>
+<graph name="g" addControls="slidersOnly">
+  <vector name="V" labelIsName tail="(0,0)" displacement="(2,3)" addControls="displacement" headDraggable="false" />
+</graph>
+`);
+
+            cy.get("#ready").should("have.text", "ready");
+
+            cy.get('[aria-label="displacement x for V"]').should("not.exist");
+            cy.get('[aria-label="displacement y for V"]').should("not.exist");
+            cy.get("#g-controls").should("not.exist");
+        });
     },
 );

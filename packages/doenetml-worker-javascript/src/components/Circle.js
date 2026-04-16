@@ -13,6 +13,7 @@ export default class Circle extends Curve {
 
         Object.assign(this.actions, {
             moveCircle: this.moveCircle.bind(this),
+            changeRadius: this.changeRadius.bind(this),
             circleClicked: this.circleClicked.bind(this),
             circleFocused: this.circleFocused.bind(this),
         });
@@ -32,6 +33,18 @@ export default class Circle extends Curve {
         };
         attributes.radius = {
             createComponentOfType: "math",
+        };
+
+        attributes.addControls = {
+            createComponentOfType: "text",
+            createStateVariable: "addControls",
+            defaultValue: "centerAndRadius",
+            public: true,
+            forRenderer: true,
+            toLowerCase: true,
+            validValues: ["center", "radius", "centerAndRadius", "none"],
+            valueForTrue: "centerAndRadius",
+            valueForFalse: "none",
         };
 
         attributes.filled = {
@@ -3191,6 +3204,59 @@ export default class Circle extends Curve {
 
         // if no modifications were made, still need to update renderers
         // as original update was performed with skipping renderer update
+        return await this.coreFunctions.updateRenderers({
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+        });
+    }
+
+    async changeRadius({
+        radius,
+        transient,
+        skippable,
+        actionId,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        // Radius slider/input values are numeric, so update numericalRadius directly.
+        const updateInstructions = [
+            {
+                updateType: "updateValue",
+                componentIdx: this.componentIdx,
+                stateVariable: "numericalRadius",
+                value: radius,
+            },
+        ];
+
+        if (transient) {
+            await this.coreFunctions.performUpdate({
+                updateInstructions,
+                transient,
+                skippable,
+                actionId,
+                sourceInformation,
+                skipRendererUpdate: true,
+            });
+        } else {
+            await this.coreFunctions.performUpdate({
+                updateInstructions,
+                actionId,
+                sourceInformation,
+                skipRendererUpdate: true,
+                event: {
+                    verb: "interacted",
+                    object: {
+                        componentIdx: this.componentIdx,
+                        componentType: this.componentType,
+                    },
+                    result: {
+                        radius,
+                    },
+                },
+            });
+        }
+
         return await this.coreFunctions.updateRenderers({
             actionId,
             sourceInformation,

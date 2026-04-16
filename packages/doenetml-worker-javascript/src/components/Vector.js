@@ -73,6 +73,24 @@ export default class Vector extends GraphicalComponent {
             createComponentOfType: "point",
         };
 
+        attributes.addControls = {
+            createComponentOfType: "text",
+            createStateVariable: "addControls",
+            defaultValue: "displacement",
+            public: true,
+            forRenderer: true,
+            toLowerCase: true,
+            validValues: [
+                "displacement",
+                "headAndTail",
+                "headOnly",
+                "tailOnly",
+                "none",
+            ],
+            valueForTrue: "displacement",
+            valueForFalse: "none",
+        };
+
         attributes.labelPosition = returnLineFamilyLabelPositionAttribute();
 
         Object.assign(attributes, returnRoundingAttributes());
@@ -2475,6 +2493,7 @@ export default class Vector extends GraphicalComponent {
     async moveVector({
         tailcoords,
         headcoords,
+        displacement,
         transient,
         skippable,
         sourceDetails,
@@ -2482,6 +2501,60 @@ export default class Vector extends GraphicalComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
+        if (
+            displacement !== undefined &&
+            tailcoords === undefined &&
+            headcoords === undefined
+        ) {
+            if (!(await this.stateValues.headDraggable)) {
+                return;
+            }
+
+            const updateInstructions = [
+                {
+                    updateType: "updateValue",
+                    componentIdx: this.componentIdx,
+                    stateVariable: "displacement",
+                    value: displacement.map((x) => me.fromAst(x)),
+                    sourceDetails,
+                },
+            ];
+
+            if (transient) {
+                await this.coreFunctions.performUpdate({
+                    updateInstructions,
+                    transient,
+                    skippable,
+                    actionId,
+                    sourceInformation,
+                    skipRendererUpdate: true,
+                });
+            } else {
+                await this.coreFunctions.performUpdate({
+                    updateInstructions,
+                    actionId,
+                    sourceInformation,
+                    skipRendererUpdate: true,
+                    event: {
+                        verb: "interacted",
+                        object: {
+                            componentIdx: this.componentIdx,
+                            componentType: this.componentType,
+                        },
+                        result: {
+                            displacement,
+                        },
+                    },
+                });
+            }
+
+            return await this.coreFunctions.updateRenderers({
+                actionId,
+                sourceInformation,
+                skipRendererUpdate,
+            });
+        }
+
         if (tailcoords !== undefined) {
             if (headcoords !== undefined) {
                 // dragged entire vector

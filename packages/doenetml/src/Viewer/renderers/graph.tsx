@@ -118,8 +118,21 @@ export default React.memo(function Graph(props) {
     const hasControlPoints =
         Array.isArray(SVs.draggablePointsForControls) &&
         SVs.draggablePointsForControls.length > 0;
+    const hasControlCircles =
+        Array.isArray(SVs.draggableCirclesForControls) &&
+        SVs.draggableCirclesForControls.length > 0;
+    const hasControlLineSegments =
+        Array.isArray(SVs.draggableLineSegmentsForControls) &&
+        SVs.draggableLineSegmentsForControls.length > 0;
+    const hasControlVectors =
+        Array.isArray(SVs.draggableVectorsForControls) &&
+        SVs.draggableVectorsForControls.length > 0;
     const shouldRenderControls =
-        controlsEnabledAtGraphLevel && hasControlPoints;
+        controlsEnabledAtGraphLevel &&
+        (hasControlPoints ||
+            hasControlCircles ||
+            hasControlLineSegments ||
+            hasControlVectors);
 
     const requestedControlsPosition = shouldRenderControls
         ? normalizeControlsPosition(SVs.controlsPosition)

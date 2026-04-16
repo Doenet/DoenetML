@@ -40,6 +40,18 @@ export default class LineSegment extends GraphicalComponent {
             createComponentOfType: "pointList",
         };
 
+        attributes.addControls = {
+            createComponentOfType: "text",
+            createStateVariable: "addControls",
+            defaultValue: "endpoints",
+            public: true,
+            forRenderer: true,
+            toLowerCase: true,
+            validValues: ["endpoints", "none"],
+            valueForTrue: "endpoints",
+            valueForFalse: "none",
+        };
+
         attributes.showCoordsWhenDragging = {
             createComponentOfType: "boolean",
             createStateVariable: "showCoordsWhenDragging",

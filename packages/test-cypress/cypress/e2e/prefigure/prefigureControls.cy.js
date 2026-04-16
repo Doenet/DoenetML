@@ -1025,4 +1025,57 @@ describe("PreFigure controls @group4", { tags: ["@group4"] }, () => {
         cy.get('[aria-label="y coordinate for Q"]').should("exist");
         cy.get('input[type="range"]').should("have.length", 2);
     });
+
+    it("renders circle, line segment, and vector controls on prefigure graphs", () => {
+        cy.clearIndexedDB();
+        cy.visit("/");
+
+        installPrefigureBuildIntercept();
+
+        postDoenetML(`
+<text name="ready">ready</text>
+<graph renderer="prefigure" addControls="all">
+  <circle name="C" labelIsName center="(1,2)" radius="3" addControls="centerAndRadius" />
+  <lineSegment name="L" labelIsName endpoints="(0,0) (2,2)" addControls="endpoints" />
+  <vector name="V" labelIsName tail="(0,0)" displacement="(2,3)" addControls="displacement" />
+</graph>
+`);
+
+        cy.get("#ready").should("have.text", "ready");
+
+        cy.get('[aria-label="center x coordinate for C"]').should("exist");
+        cy.get('[aria-label="radius for C"]').should("exist");
+        cy.get('[aria-label="endpoint 1 x coordinate for L"]').should("exist");
+        cy.get('[aria-label="endpoint 2 y coordinate for L"]').should("exist");
+        cy.get('[aria-label="displacement x for V"]').should("exist");
+        cy.get('[aria-label="displacement y for V"]').should("exist");
+
+        cy.get('[aria-label="radius for C"]').trigger("mousedown");
+        cy.get('[aria-label="radius for C"]')
+            .invoke("val", "5")
+            .trigger("input");
+        cy.get('[aria-label="radius for C"]').trigger("mouseup");
+        cy.get('[aria-label="radius for C"]').should("have.value", "5");
+
+        cy.get('[aria-label="endpoint 1 x coordinate for L"]').trigger(
+            "mousedown",
+        );
+        cy.get('[aria-label="endpoint 1 x coordinate for L"]')
+            .invoke("val", "4")
+            .trigger("input");
+        cy.get('[aria-label="endpoint 1 x coordinate for L"]').trigger(
+            "mouseup",
+        );
+        cy.get('[aria-label="endpoint 1 x coordinate for L"]').should(
+            "have.value",
+            "4",
+        );
+
+        cy.get('[aria-label="displacement x for V"]').trigger("mousedown");
+        cy.get('[aria-label="displacement x for V"]')
+            .invoke("val", "1")
+            .trigger("input");
+        cy.get('[aria-label="displacement x for V"]').trigger("mouseup");
+        cy.get('[aria-label="displacement x for V"]').should("have.value", "1");
+    });
 });

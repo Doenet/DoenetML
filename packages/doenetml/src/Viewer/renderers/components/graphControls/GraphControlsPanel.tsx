@@ -13,7 +13,7 @@ export default function GraphControlsPanel({
         <div id={id} style={{ marginTop: "12px", marginBottom: "12px" }}>
             <div
                 role="group"
-                aria-label="Point controls"
+                aria-label="Graph controls"
                 style={{
                     display: "flex",
                     flexDirection: "column",

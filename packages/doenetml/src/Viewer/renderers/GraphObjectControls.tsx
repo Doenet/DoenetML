@@ -1,5 +1,8 @@
 import React from "react";
-import GraphObjectControls from "./GraphObjectControls";
+import PointGraphControls from "./PointGraphControls";
+import CircleGraphControls from "./CircleGraphControls";
+import LineSegmentGraphControls from "./LineSegmentGraphControls";
+import VectorGraphControls from "./VectorGraphControls";
 import type {
     GraphControlCircle,
     GraphControlLineSegment,
@@ -7,7 +10,7 @@ import type {
     GraphControlVector,
 } from "./utils/graphControls";
 
-type GraphControlsProps = {
+type GraphObjectControlsProps = {
     id: string;
     SVs: {
         addControls: string;
@@ -23,12 +26,15 @@ type GraphControlsProps = {
     callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };
 
-/**
- * Renderer-agnostic graph-controls entry point.
- *
- * Delegates to object-family controls (points, circles, line segments,
- * and vectors) while keeping a stable composition boundary.
- */
-export default React.memo(function GraphControls(props: GraphControlsProps) {
-    return <GraphObjectControls {...props} />;
+export default React.memo(function GraphObjectControls(
+    props: GraphObjectControlsProps,
+) {
+    return (
+        <>
+            <PointGraphControls {...props} />
+            <CircleGraphControls {...props} />
+            <LineSegmentGraphControls {...props} />
+            <VectorGraphControls {...props} />
+        </>
+    );
 });

@@ -1,12 +1,74 @@
 export type GraphControlsMode = "all" | "slidersonly" | "inputsonly" | "none";
 export type PointControlsMode = "both" | "xonly" | "yonly" | "none";
+export type CircleControlsMode =
+    | "center"
+    | "radius"
+    | "centerandradius"
+    | "none";
+export type LineSegmentControlsMode = "endpoints" | "none";
+export type VectorControlsMode =
+    | "displacement"
+    | "headandtail"
+    | "headonly"
+    | "tailonly"
+    | "none";
 export type GraphControlAxis = "x" | "y";
+
+export type GraphControlDisplaySettings = {
+    displayDigits: number;
+    displayDecimals: number;
+    displaySmallAsZero: number;
+    padZeros: boolean;
+};
 
 export type GraphControlPoint = {
     componentIdx: number;
     pointNumber: number;
     x: number;
     y: number;
+    addControls: string;
+    label: string;
+    labelHasLatex: boolean;
+    displayDigits: number;
+    displayDecimals: number;
+    displaySmallAsZero: number;
+    padZeros: boolean;
+};
+
+export type GraphControlCircle = {
+    componentIdx: number;
+    circleNumber: number;
+    center: { x: number; y: number };
+    radius: number;
+    addControls: string;
+    label: string;
+    labelHasLatex: boolean;
+    displayDigits: number;
+    displayDecimals: number;
+    displaySmallAsZero: number;
+    padZeros: boolean;
+};
+
+export type GraphControlLineSegment = {
+    componentIdx: number;
+    lineSegmentNumber: number;
+    endpoint1: { x: number; y: number };
+    endpoint2: { x: number; y: number };
+    addControls: string;
+    label: string;
+    labelHasLatex: boolean;
+    displayDigits: number;
+    displayDecimals: number;
+    displaySmallAsZero: number;
+    padZeros: boolean;
+};
+
+export type GraphControlVector = {
+    componentIdx: number;
+    vectorNumber: number;
+    head: { x: number; y: number };
+    tail: { x: number; y: number };
+    displacement: { x: number; y: number };
     addControls: string;
     label: string;
     labelHasLatex: boolean;
@@ -64,8 +126,74 @@ export function normalizePointControlsMode(value: unknown): PointControlsMode {
     return "both";
 }
 
+export function normalizeCircleControlsMode(
+    value: unknown,
+): CircleControlsMode {
+    if (typeof value !== "string") {
+        return "centerandradius";
+    }
+
+    const normalized = value.toLowerCase();
+    if (
+        normalized === "center" ||
+        normalized === "radius" ||
+        normalized === "centerandradius" ||
+        normalized === "none"
+    ) {
+        return normalized;
+    }
+
+    return "centerandradius";
+}
+
 /**
- * Remove stale entries from an input state record when points/modes change.
+ * Line-segment controls mode parser.
+ *
+ * Invalid or missing values are treated as "endpoints".
+ */
+export function normalizeLineSegmentControlsMode(
+    value: unknown,
+): LineSegmentControlsMode {
+    if (typeof value !== "string") {
+        return "endpoints";
+    }
+
+    const normalized = value.toLowerCase();
+    if (normalized === "endpoints" || normalized === "none") {
+        return normalized;
+    }
+
+    return "endpoints";
+}
+
+/**
+ * Vector controls mode parser.
+ *
+ * Invalid or missing values are treated as "displacement".
+ */
+export function normalizeVectorControlsMode(
+    value: unknown,
+): VectorControlsMode {
+    if (typeof value !== "string") {
+        return "displacement";
+    }
+
+    const normalized = value.toLowerCase();
+    if (
+        normalized === "displacement" ||
+        normalized === "headandtail" ||
+        normalized === "headonly" ||
+        normalized === "tailonly" ||
+        normalized === "none"
+    ) {
+        return normalized;
+    }
+
+    return "displacement";
+}
+
+/**
+ * Remove stale entries from an input state record when active controls change.
  *
  * Returns the original object when no keys were removed so React can avoid
  * unnecessary rerenders caused by identity changes.
