@@ -15,6 +15,17 @@ import {
 // see src/utils/prefigure/README.md
 import { returnGraphPrefigureStateVariableDefinitions } from "../utils/prefigure/stateVariable";
 
+function extractControlDisplaySettings(stateValues) {
+    return {
+        label: typeof stateValues.label === "string" ? stateValues.label : "",
+        labelHasLatex: Boolean(stateValues.labelHasLatex),
+        displayDigits: stateValues.displayDigits,
+        displayDecimals: stateValues.displayDecimals,
+        displaySmallAsZero: stateValues.displaySmallAsZero,
+        padZeros: stateValues.padZeros,
+    };
+}
+
 export default class Graph extends BlockComponent {
     constructor(args) {
         super(args);
@@ -657,15 +668,7 @@ export default class Graph extends BlockComponent {
                         x,
                         y,
                         addControls,
-                        label:
-                            typeof stateValues.label === "string"
-                                ? stateValues.label
-                                : "",
-                        labelHasLatex: Boolean(stateValues.labelHasLatex),
-                        displayDigits: stateValues.displayDigits,
-                        displayDecimals: stateValues.displayDecimals,
-                        displaySmallAsZero: stateValues.displaySmallAsZero,
-                        padZeros: stateValues.padZeros,
+                        ...extractControlDisplaySettings(stateValues),
                     });
                 }
 
@@ -761,15 +764,7 @@ export default class Graph extends BlockComponent {
                         },
                         radius,
                         addControls,
-                        label:
-                            typeof stateValues.label === "string"
-                                ? stateValues.label
-                                : "",
-                        labelHasLatex: Boolean(stateValues.labelHasLatex),
-                        displayDigits: stateValues.displayDigits,
-                        displayDecimals: stateValues.displayDecimals,
-                        displaySmallAsZero: stateValues.displaySmallAsZero,
-                        padZeros: stateValues.padZeros,
+                        ...extractControlDisplaySettings(stateValues),
                     });
                 }
 
@@ -875,15 +870,7 @@ export default class Graph extends BlockComponent {
                         endpoint1: { x: endpoint1x, y: endpoint1y },
                         endpoint2: { x: endpoint2x, y: endpoint2y },
                         addControls,
-                        label:
-                            typeof stateValues.label === "string"
-                                ? stateValues.label
-                                : "",
-                        labelHasLatex: Boolean(stateValues.labelHasLatex),
-                        displayDigits: stateValues.displayDigits,
-                        displayDecimals: stateValues.displayDecimals,
-                        displaySmallAsZero: stateValues.displaySmallAsZero,
-                        padZeros: stateValues.padZeros,
+                        ...extractControlDisplaySettings(stateValues),
                     });
                 }
 
@@ -1019,15 +1006,7 @@ export default class Graph extends BlockComponent {
                             y: headY - tailY,
                         },
                         addControls: effectiveAddControls,
-                        label:
-                            typeof stateValues.label === "string"
-                                ? stateValues.label
-                                : "",
-                        labelHasLatex: Boolean(stateValues.labelHasLatex),
-                        displayDigits: stateValues.displayDigits,
-                        displayDecimals: stateValues.displayDecimals,
-                        displaySmallAsZero: stateValues.displaySmallAsZero,
-                        padZeros: stateValues.padZeros,
+                        ...extractControlDisplaySettings(stateValues),
                     });
                 }
 

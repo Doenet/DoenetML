@@ -4,12 +4,17 @@ import SliderUI from "./utils/SliderUI";
 import {
     normalizeCircleControlsMode,
     normalizeGraphControlsMode,
+    normalizedSliderBounds,
     type GraphControlCircle,
 } from "./utils/graphControls";
 import {
     formatCoordinateForControls,
     parseSingleMathNumber,
 } from "./utils/graphControlsMath";
+import {
+    commitParsedInput,
+    setDraftAndClearError,
+} from "./utils/graphControlsInputState";
 import {
     accessibleLabelText,
     renderLabelWithLatex,
@@ -27,10 +32,6 @@ type CircleGraphControlsProps = {
     };
     callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };
-
-function clampMinMax(min: number, max: number) {
-    return { min: Math.min(min, max), max: Math.max(min, max) };
-}
 
 export default React.memo(function CircleGraphControls({
     id,
@@ -119,14 +120,11 @@ export default React.memo(function CircleGraphControls({
     }
 
     function setDraft(key: string, value: string) {
-        setDraftByKey((prev) => ({ ...prev, [key]: value }));
-        setErrorByKey((prev) => {
-            if (!Object.prototype.hasOwnProperty.call(prev, key)) {
-                return prev;
-            }
-            const next = { ...prev };
-            delete next[key];
-            return next;
+        setDraftAndClearError({
+            key,
+            value,
+            setDraftByKey,
+            setErrorByKey,
         });
     }
 
@@ -139,38 +137,19 @@ export default React.memo(function CircleGraphControls({
         rawValue: string;
         onParsed: (value: number) => Promise<void>;
     }) {
-        const parsed = parseSingleMathNumber(rawValue);
-        if (parsed === null) {
-            setErrorByKey((prev) => ({
-                ...prev,
-                [key]: "Enter a valid number or numeric expression.",
-            }));
-            return;
-        }
-
-        setErrorByKey((prev) => {
-            if (!Object.prototype.hasOwnProperty.call(prev, key)) {
-                return prev;
-            }
-            const next = { ...prev };
-            delete next[key];
-            return next;
+        await commitParsedInput({
+            key,
+            rawValue,
+            parse: parseSingleMathNumber,
+            errorMessage: "Enter a valid number or numeric expression.",
+            setDraftByKey,
+            setErrorByKey,
+            onParsed,
         });
-
-        setDraftByKey((prev) => {
-            if (!Object.prototype.hasOwnProperty.call(prev, key)) {
-                return prev;
-            }
-            const next = { ...prev };
-            delete next[key];
-            return next;
-        });
-
-        await onParsed(parsed);
     }
 
-    const { min: xMin, max: xMax } = clampMinMax(SVs.xMin, SVs.xMax);
-    const { min: yMin, max: yMax } = clampMinMax(SVs.yMin, SVs.yMax);
+    const { min: xMin, max: xMax } = normalizedSliderBounds(SVs.xMin, SVs.xMax);
+    const { min: yMin, max: yMax } = normalizedSliderBounds(SVs.yMin, SVs.yMax);
     const defaultRadiusMax = Math.max(
         1,
         Math.abs(SVs.xMax - SVs.xMin),
@@ -543,15 +522,16 @@ export default React.memo(function CircleGraphControls({
                                                     key: rKey,
                                                     rawValue: e.target.value,
                                                     onParsed: async (value) => {
-                                                        await updateCircle({
-                                                            circle,
-                                                            center: circle.center,
-                                                            radius: Math.max(
-                                                                0,
-                                                                value,
-                                                            ),
-                                                            transient: false,
-                                                        });
+                                                        await changeCircleRadius(
+                                                            {
+                                                                circle,
+                                                                radius: Math.max(
+                                                                    0,
+                                                                    value,
+                                                                ),
+                                                                transient: false,
+                                                            },
+                                                        );
                                                     },
                                                 }).catch(() => {});
                                             }}

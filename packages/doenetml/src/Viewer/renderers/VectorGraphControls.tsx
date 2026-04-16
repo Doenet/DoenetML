@@ -3,6 +3,7 @@ import GraphControlsPanel from "./components/graphControls/GraphControlsPanel";
 import SliderUI from "./utils/SliderUI";
 import {
     normalizeGraphControlsMode,
+    normalizedSliderBounds,
     normalizeVectorControlsMode,
     type GraphControlVector,
 } from "./utils/graphControls";
@@ -14,6 +15,10 @@ import {
     accessibleLabelText,
     renderLabelWithLatex,
 } from "./utils/labelWithLatex";
+import {
+    commitParsedInput,
+    setDraftAndClearError,
+} from "./utils/graphControlsInputState";
 
 type VectorGraphControlsProps = {
     id: string;
@@ -27,10 +32,6 @@ type VectorGraphControlsProps = {
     };
     callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };
-
-function clampMinMax(min: number, max: number) {
-    return { min: Math.min(min, max), max: Math.max(min, max) };
-}
 
 export default React.memo(function VectorGraphControls({
     id,
@@ -54,8 +55,8 @@ export default React.memo(function VectorGraphControls({
         return null;
     }
 
-    const { min: xMin, max: xMax } = clampMinMax(SVs.xMin, SVs.xMax);
-    const { min: yMin, max: yMax } = clampMinMax(SVs.yMin, SVs.yMax);
+    const { min: xMin, max: xMax } = normalizedSliderBounds(SVs.xMin, SVs.xMax);
+    const { min: yMin, max: yMax } = normalizedSliderBounds(SVs.yMin, SVs.yMax);
 
     const [draftByKey, setDraftByKey] = useState<Record<string, string>>({});
     const [errorByKey, setErrorByKey] = useState<Record<string, string>>({});
@@ -154,14 +155,11 @@ export default React.memo(function VectorGraphControls({
     }
 
     function setDraft(key: string, value: string) {
-        setDraftByKey((prev) => ({ ...prev, [key]: value }));
-        setErrorByKey((prev) => {
-            if (!Object.prototype.hasOwnProperty.call(prev, key)) {
-                return prev;
-            }
-            const next = { ...prev };
-            delete next[key];
-            return next;
+        setDraftAndClearError({
+            key,
+            value,
+            setDraftByKey,
+            setErrorByKey,
         });
     }
 
@@ -174,34 +172,15 @@ export default React.memo(function VectorGraphControls({
         rawValue: string;
         onParsed: (value: number) => Promise<void>;
     }) {
-        const parsed = parseSingleMathNumber(rawValue);
-        if (parsed === null) {
-            setErrorByKey((prev) => ({
-                ...prev,
-                [key]: "Enter a valid number or numeric expression.",
-            }));
-            return;
-        }
-
-        setErrorByKey((prev) => {
-            if (!Object.prototype.hasOwnProperty.call(prev, key)) {
-                return prev;
-            }
-            const next = { ...prev };
-            delete next[key];
-            return next;
+        await commitParsedInput({
+            key,
+            rawValue,
+            parse: parseSingleMathNumber,
+            errorMessage: "Enter a valid number or numeric expression.",
+            setDraftByKey,
+            setErrorByKey,
+            onParsed,
         });
-
-        setDraftByKey((prev) => {
-            if (!Object.prototype.hasOwnProperty.call(prev, key)) {
-                return prev;
-            }
-            const next = { ...prev };
-            delete next[key];
-            return next;
-        });
-
-        await onParsed(parsed);
     }
 
     function makeSliderRow({

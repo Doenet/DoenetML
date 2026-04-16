@@ -23,12 +23,28 @@ describe(
             });
         }
 
-        it("supports addControls modes on default graph renderer", () => {
+        function loadGraphTest(doenetML, options = {}) {
+            const { prefigure = false, viewport = null } = options;
+
             cy.clearIndexedDB();
-            cy.viewport(1400, 900);
+
+            if (Array.isArray(viewport) && viewport.length === 2) {
+                cy.viewport(viewport[0], viewport[1]);
+            }
+
             cy.visit("/");
 
-            postDoenetML(`
+            if (prefigure) {
+                installPrefigureBuildIntercept();
+            }
+
+            postDoenetML(doenetML);
+            cy.get("#ready").should("have.text", "ready");
+        }
+
+        it("supports addControls modes on default graph renderer", () => {
+            loadGraphTest(
+                `
 <text name="ready">ready</text>
 <graph name="gAll" addControls="all" controlsPosition="left" width="640px">
   <point name="P" labelIsName>(3,4)</point>
@@ -45,9 +61,9 @@ describe(
 <graph name="gNoEligible" addControls="all" controlsPosition="left" width="640px">
   <point name="T" labelIsName draggable="false">(3,4)</point>
 </graph>
-`);
-
-            cy.get("#ready").should("have.text", "ready");
+`,
+                { viewport: [1400, 900] },
+            );
 
             cy.get("#gAll-controls").within(() => {
                 cy.get('input[type="range"]').should("have.length", 2);
@@ -81,18 +97,13 @@ describe(
         });
 
         it("updates from sliders and inline inputs on default graph renderer", () => {
-            cy.clearIndexedDB();
-            cy.visit("/");
-
-            postDoenetML(`
+            loadGraphTest(`
 <text name="ready">ready</text>
 <graph name="g" addControls="all">
   <point name="P" labelIsName>(3,4)</point>
 </graph>
 <p>Px: <number name="Px">$P.x</number></p>
 `);
-
-            cy.get("#ready").should("have.text", "ready");
 
             cy.get('[aria-label="x coordinate for P"]').trigger("mousedown");
             cy.get('[aria-label="x coordinate for P"]')
@@ -110,18 +121,15 @@ describe(
                 .clear()
                 .type("8{enter}");
 
+            cy.get("#Px").should("have.text", "8");
             cy.get('[aria-label="x coordinate for P"]').should(
                 "have.value",
                 "8",
             );
-            cy.get("#Px").should("have.text", "8");
         });
 
         it("validates inputsOnly controls on default graph renderer", () => {
-            cy.clearIndexedDB();
-            cy.visit("/");
-
-            postDoenetML(`
+            loadGraphTest(`
 <text name="ready">ready</text>
 <graph name="g" addControls="inputsOnly">
   <point name="P" labelIsName>(3,4)</point>
@@ -132,8 +140,6 @@ describe(
 <p>Qx: <number name="Qx">$Q.x</number></p>
 <p>Qy: <number name="Qy">$Q.y</number></p>
 `);
-
-            cy.get("#ready").should("have.text", "ready");
 
             cy.get('#g-controls input[type="range"]').should("have.length", 0);
             cy.get('[aria-label="coordinates for P"]').should(
@@ -165,11 +171,8 @@ describe(
         });
 
         it("applies controlsPosition fallback on default graph renderer", () => {
-            cy.clearIndexedDB();
-            cy.viewport(1400, 900);
-            cy.visit("/");
-
-            postDoenetML(`
+            loadGraphTest(
+                `
 <text name="ready">ready</text>
 <graph name="gLeft" addControls controlsPosition="left" width="640px">
   <point name="P" labelIsName>(2,3)</point>
@@ -177,9 +180,9 @@ describe(
 <graph name="gRight" addControls controlsPosition="right" width="640px">
   <point name="Q" labelIsName>(2,3)</point>
 </graph>
-`);
-
-            cy.get("#ready").should("have.text", "ready");
+`,
+                { viewport: [1400, 900] },
+            );
 
             cy.get("#gLeft-description > div").should(
                 "have.css",
@@ -210,10 +213,7 @@ describe(
         });
 
         it("renders and updates circle, line segment, and vector controls", () => {
-            cy.clearIndexedDB();
-            cy.visit("/");
-
-            postDoenetML(`
+            loadGraphTest(`
 <text name="ready">ready</text>
 <graph name="g" addControls="all" controlsPosition="left">
   <circle name="C" labelIsName center="(1,2)" radius="3" addControls="centerAndRadius" />
@@ -224,8 +224,6 @@ describe(
 <number name="LEndpoint1X" extend="$L.endpoint1.x" />
 <number name="VHeadX" extend="$V.head.x" />
 `);
-
-            cy.get("#ready").should("have.text", "ready");
             cy.get("#CRadius").should("have.text", "3");
             cy.get("#LEndpoint1X").should("have.text", "0");
             cy.get("#VHeadX").should("have.text", "2");
@@ -248,6 +246,11 @@ describe(
             cy.get('[aria-label="radius for C"]').trigger("mouseup");
             cy.get("#CRadius").should("have.text", "5");
             cy.get('[aria-label="radius for C"]').should("have.value", "5");
+
+            cy.get('[aria-label="radius input for C"]').clear().type("6");
+            cy.get('[aria-label="radius input for C"]').blur();
+            cy.get("#CRadius").should("have.text", "6");
+            cy.get('[aria-label="radius for C"]').should("have.value", "6");
 
             cy.get('[aria-label="endpoint 1 x coordinate for L"]').trigger(
                 "mousedown",
@@ -640,12 +643,8 @@ describe(
         });
 
         it("renders point sliders and updates an unconstrained point on prefigure renderer", () => {
-            cy.clearIndexedDB();
-            cy.visit("/");
-
-            installPrefigureBuildIntercept();
-
-            postDoenetML(`
+            loadGraphTest(
+                `
 <text name="ready">ready</text>
 <graph name="g" renderer="prefigure" addControls>
   <point name="Q">(3,4)</point>
@@ -655,9 +654,9 @@ describe(
 <p>Qy: <number name="Qy">$Q.y</number></p>
 <p>Px: <number name="Px">$P.x</number></p>
 <p>Py: <number name="Py">$P.y</number></p>
-`);
-
-            cy.get("#ready").should("have.text", "ready");
+`,
+                { prefigure: true },
+            );
 
             cy.get('[aria-label="x coordinate for Point 1"]').should(
                 "have.value",
@@ -683,22 +682,22 @@ describe(
                 .invoke("val", "5.6")
                 .trigger("input");
 
+            cy.get("#Qx").should("have.text", "5.6");
+            cy.get("#Qy").should("have.text", "4");
             cy.get('[aria-label="x coordinate for Point 1"]').should(
                 "have.value",
                 "5.6",
             );
-            cy.get("#Qx").should("have.text", "5.6");
-            cy.get("#Qy").should("have.text", "4");
 
             cy.get('[aria-label="x coordinate for Point 1"]').trigger(
                 "mouseup",
             );
+            cy.get("#Qx").should("have.text", "5.6");
+            cy.get("#Qy").should("have.text", "4");
             cy.get('[aria-label="x coordinate for Point 1"]').should(
                 "have.value",
                 "5.6",
             );
-            cy.get("#Qx").should("have.text", "5.6");
-            cy.get("#Qy").should("have.text", "4");
         });
 
         it("snaps a constrained point slider to the core value on mouseup", () => {
@@ -731,11 +730,11 @@ describe(
                 .invoke("val", "3.6")
                 .trigger("input");
 
+            cy.get("#Px").should("have.text", "4");
             cy.get('[aria-label="x coordinate for P"]').should(
                 "have.value",
                 "3.6",
             );
-            cy.get("#Px").should("have.text", "4");
 
             cy.get('[aria-label="x coordinate for P"]').trigger("mouseup");
 
@@ -781,11 +780,11 @@ describe(
                 .invoke("val", "3.6")
                 .trigger("input", { force: true });
 
+            cy.get("#Px").should("have.text", "4");
             cy.get('[aria-label="x coordinate for P"]').should(
                 "have.value",
                 "3.6",
             );
-            cy.get("#Px").should("have.text", "4");
 
             cy.get('[aria-label="x coordinate for P"]').trigger("pointerup", {
                 pointerId: 1,
@@ -801,21 +800,17 @@ describe(
         });
 
         it("preserves latest other-axis value across rapid slider interactions", () => {
-            cy.clearIndexedDB();
-            cy.visit("/");
-
-            installPrefigureBuildIntercept();
-
-            postDoenetML(`
+            loadGraphTest(
+                `
 <text name="ready">ready</text>
 <graph renderer="prefigure" addControls="slidersOnly">
   <point name="P" labelIsName>(1,2)</point>
 </graph>
 <p>Px: <number name="Px">$P.x</number></p>
 <p>Py: <number name="Py">$P.y</number></p>
-`);
-
-            cy.get("#ready").should("have.text", "ready");
+`,
+                { prefigure: true },
+            );
 
             cy.get('[aria-label="x coordinate for P"]').trigger("pointerdown", {
                 pointerId: 1,
@@ -888,12 +883,12 @@ describe(
                 .invoke("val", "4")
                 .trigger("input", { force: true });
 
+            cy.get("#Px").should("have.text", "2");
+            cy.get("#Py").should("have.text", "2");
             cy.get('[aria-label="x coordinate for P"]').should(
                 "have.value",
                 "4",
             );
-            cy.get("#Px").should("have.text", "2");
-            cy.get("#Py").should("have.text", "2");
             cy.get('[aria-label="y coordinate for P"]').should(
                 "have.value",
                 "2",
@@ -920,21 +915,17 @@ describe(
         });
 
         it("keyboard arrow keys accumulate as transient and commit final value on blur", () => {
-            cy.clearIndexedDB();
-            cy.visit("/");
-
-            installPrefigureBuildIntercept();
-
-            postDoenetML(`
+            loadGraphTest(
+                `
 <text name="ready">ready</text>
 <graph renderer="prefigure" addControls size="small">
   <point name="P" labelIsName><constrainToGrid/>(0,0)</point>
 </graph>
 <p>Px: <number name="Px">$P.x</number></p>
 <p>Py: <number name="Py">$P.y</number></p>
-`);
-
-            cy.get("#ready").should("have.text", "ready");
+`,
+                { prefigure: true },
+            );
 
             cy.get('[aria-label="x coordinate for P"]').should(
                 "have.value",
@@ -948,8 +939,8 @@ describe(
                 keyboardStepRangeRight(xSlider);
             }
 
-            cy.get(xSlider).should("have.value", "1");
             cy.get("#Px").should("have.text", "0");
+            cy.get(xSlider).should("have.value", "1");
 
             cy.get(xSlider).blur();
 

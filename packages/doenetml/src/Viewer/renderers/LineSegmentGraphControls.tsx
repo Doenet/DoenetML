@@ -4,6 +4,7 @@ import SliderUI from "./utils/SliderUI";
 import {
     normalizeGraphControlsMode,
     normalizeLineSegmentControlsMode,
+    normalizedSliderBounds,
     type GraphControlLineSegment,
 } from "./utils/graphControls";
 import {
@@ -15,6 +16,10 @@ import {
     accessibleLabelText,
     renderLabelWithLatex,
 } from "./utils/labelWithLatex";
+import {
+    commitParsedInput,
+    setDraftAndClearError,
+} from "./utils/graphControlsInputState";
 
 type LineSegmentGraphControlsProps = {
     id: string;
@@ -28,10 +33,6 @@ type LineSegmentGraphControlsProps = {
     };
     callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };
-
-function clampMinMax(min: number, max: number) {
-    return { min: Math.min(min, max), max: Math.max(min, max) };
-}
 
 export default React.memo(function LineSegmentGraphControls({
     id,
@@ -58,8 +59,8 @@ export default React.memo(function LineSegmentGraphControls({
     const [draftByKey, setDraftByKey] = useState<Record<string, string>>({});
     const [errorByKey, setErrorByKey] = useState<Record<string, string>>({});
 
-    const { min: xMin, max: xMax } = clampMinMax(SVs.xMin, SVs.xMax);
-    const { min: yMin, max: yMax } = clampMinMax(SVs.yMin, SVs.yMax);
+    const { min: xMin, max: xMax } = normalizedSliderBounds(SVs.xMin, SVs.xMax);
+    const { min: yMin, max: yMax } = normalizedSliderBounds(SVs.yMin, SVs.yMax);
 
     async function moveEndpoint({
         lineSegment,
@@ -96,14 +97,11 @@ export default React.memo(function LineSegmentGraphControls({
     }
 
     function setDraft(key: string, value: string) {
-        setDraftByKey((prev) => ({ ...prev, [key]: value }));
-        setErrorByKey((prev) => {
-            if (!Object.prototype.hasOwnProperty.call(prev, key)) {
-                return prev;
-            }
-            const next = { ...prev };
-            delete next[key];
-            return next;
+        setDraftAndClearError({
+            key,
+            value,
+            setDraftByKey,
+            setErrorByKey,
         });
     }
 
@@ -116,34 +114,15 @@ export default React.memo(function LineSegmentGraphControls({
         rawValue: string;
         onParsed: (value: number) => Promise<void>;
     }) {
-        const parsed = parseSingleMathNumber(rawValue);
-        if (parsed === null) {
-            setErrorByKey((prev) => ({
-                ...prev,
-                [key]: "Enter a valid number or numeric expression.",
-            }));
-            return;
-        }
-
-        setErrorByKey((prev) => {
-            if (!Object.prototype.hasOwnProperty.call(prev, key)) {
-                return prev;
-            }
-            const next = { ...prev };
-            delete next[key];
-            return next;
+        await commitParsedInput({
+            key,
+            rawValue,
+            parse: parseSingleMathNumber,
+            errorMessage: "Enter a valid number or numeric expression.",
+            setDraftByKey,
+            setErrorByKey,
+            onParsed,
         });
-
-        setDraftByKey((prev) => {
-            if (!Object.prototype.hasOwnProperty.call(prev, key)) {
-                return prev;
-            }
-            const next = { ...prev };
-            delete next[key];
-            return next;
-        });
-
-        await onParsed(parsed);
     }
 
     async function commitPairInput({
@@ -155,34 +134,16 @@ export default React.memo(function LineSegmentGraphControls({
         rawValue: string;
         onParsed: (value: { x: number; y: number }) => Promise<void>;
     }) {
-        const parsed = parseOrderedPair(rawValue);
-        if (parsed === null) {
-            setErrorByKey((prev) => ({
-                ...prev,
-                [key]: "Enter an ordered pair like (x,y) with numeric values.",
-            }));
-            return;
-        }
-
-        setErrorByKey((prev) => {
-            if (!Object.prototype.hasOwnProperty.call(prev, key)) {
-                return prev;
-            }
-            const next = { ...prev };
-            delete next[key];
-            return next;
+        await commitParsedInput({
+            key,
+            rawValue,
+            parse: parseOrderedPair,
+            errorMessage:
+                "Enter an ordered pair like (x,y) with numeric values.",
+            setDraftByKey,
+            setErrorByKey,
+            onParsed,
         });
-
-        setDraftByKey((prev) => {
-            if (!Object.prototype.hasOwnProperty.call(prev, key)) {
-                return prev;
-            }
-            const next = { ...prev };
-            delete next[key];
-            return next;
-        });
-
-        await onParsed(parsed);
     }
 
     const cards = lineSegments
