@@ -1,6 +1,5 @@
 import { returnRoundingAttributeComponentShadowing } from "../utils/rounding";
 import Polyline from "./Polyline";
-import me from "math-expressions";
 
 export default class Polygon extends Polyline {
     constructor(args) {
@@ -19,6 +18,10 @@ export default class Polygon extends Polyline {
 
     get movePolygon() {
         return this.movePolyline;
+    }
+
+    get movePolygonCenter() {
+        return this.movePolylineCenter;
     }
 
     get reflectPolygon() {
@@ -360,125 +363,6 @@ export default class Polygon extends Polyline {
             },
         };
 
-        stateVariableDefinitions.center = {
-            public: true,
-            forRenderer: true,
-            isLocation: true,
-            isArray: true,
-            entryPrefixes: ["centerX"],
-            shadowingInstructions: {
-                createComponentOfType: "math",
-                addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
-                returnWrappingComponents(prefix) {
-                    if (prefix === "centerX") {
-                        return [];
-                    } else {
-                        // entire array
-                        // wrap by both <point> and <xs>
-                        return [
-                            [
-                                "point",
-                                {
-                                    componentType: "mathList",
-                                    isAttributeNamed: "xs",
-                                },
-                            ],
-                        ];
-                    }
-                },
-            },
-
-            returnArraySizeDependencies: () => ({}),
-            returnArraySize: () => [2],
-
-            returnArrayDependenciesByKey() {
-                let globalDependencies = {
-                    vertices: {
-                        dependencyType: "stateVariable",
-                        variableName: "vertices",
-                    },
-                    numVertices: {
-                        dependencyType: "stateVariable",
-                        variableName: "numVertices",
-                    },
-                };
-
-                return { globalDependencies };
-            },
-
-            arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
-                let center = {};
-                let numVertices = globalDependencyValues.numVertices;
-
-                for (let arrayKey of arrayKeys) {
-                    let dim = Number(arrayKey);
-
-                    if (!(numVertices > 0)) {
-                        center[arrayKey] = me.fromAst(NaN);
-                        continue;
-                    }
-
-                    let centerComponent =
-                        globalDependencyValues.vertices[0][dim];
-
-                    for (let pointInd = 1; pointInd < numVertices; pointInd++) {
-                        centerComponent = centerComponent.add(
-                            globalDependencyValues.vertices[pointInd][dim],
-                        );
-                    }
-
-                    center[arrayKey] = centerComponent
-                        .divide(numVertices)
-                        .simplify();
-                }
-
-                return { setValue: { center } };
-            },
-
-            async inverseArrayDefinitionByKey({
-                desiredStateVariableValues,
-                globalDependencyValues,
-                stateValues,
-            }) {
-                let center = await stateValues.center;
-
-                let desiredVertices = globalDependencyValues.vertices.map(
-                    (v) => [...v],
-                );
-
-                for (let arrayKey in desiredStateVariableValues.center) {
-                    let dim = Number(arrayKey);
-
-                    let offset = desiredStateVariableValues.center[arrayKey]
-                        .subtract(center[dim])
-                        .simplify();
-
-                    for (
-                        let pointInd = 0;
-                        pointInd < desiredVertices.length;
-                        pointInd++
-                    ) {
-                        desiredVertices[pointInd][dim] = desiredVertices[
-                            pointInd
-                        ][dim]
-                            .add(offset)
-                            .simplify();
-                    }
-                }
-
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setDependency: "vertices",
-                            desiredValue: desiredVertices,
-                        },
-                    ],
-                };
-            },
-        };
-
         // overwrite nearestPoint so that it includes
         // segment between first and last vertex
         stateVariableDefinitions.nearestPoint = {
@@ -731,69 +615,5 @@ export default class Polygon extends Polyline {
         };
 
         return stateVariableDefinitions;
-    }
-
-    async movePolygonCenter({
-        center,
-        transient,
-        skippable,
-        sourceDetails,
-        actionId,
-        sourceInformation = {},
-        skipRendererUpdate = false,
-    }) {
-        if (!(await this.stateValues.draggable)) {
-            return;
-        }
-
-        if (!Array.isArray(center) || center.length < 2) {
-            return;
-        }
-
-        let updateInstructions = [
-            {
-                updateType: "updateValue",
-                componentIdx: this.componentIdx,
-                stateVariable: "center",
-                value: center.map((x) => me.fromAst(x)),
-                sourceDetails,
-            },
-        ];
-
-        // Note: we set skipRendererUpdate to true
-        // so that renderer updates are consolidated at the end of the action.
-        if (transient) {
-            await this.coreFunctions.performUpdate({
-                updateInstructions,
-                transient,
-                skippable,
-                actionId,
-                sourceInformation,
-                skipRendererUpdate: true,
-            });
-        } else {
-            await this.coreFunctions.performUpdate({
-                updateInstructions,
-                actionId,
-                sourceInformation,
-                skipRendererUpdate: true,
-                event: {
-                    verb: "interacted",
-                    object: {
-                        componentIdx: this.componentIdx,
-                        componentType: this.componentType,
-                    },
-                    result: {
-                        center,
-                    },
-                },
-            });
-        }
-
-        return await this.coreFunctions.updateRenderers({
-            actionId,
-            sourceInformation,
-            skipRendererUpdate,
-        });
     }
 }

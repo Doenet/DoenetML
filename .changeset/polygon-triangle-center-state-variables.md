@@ -4,9 +4,9 @@
 "@doenet/doenetml-iframe": patch
 ---
 
-Add center state-variable support for polygons and triangles in the worker layer.
+Add center state-variable support for polylines, polygons and triangles in the worker layer.
 
-- Polygon now exposes a public renderer-facing center location computed from the average of vertex coordinates, with symbolic math support.
-- Polygon now supports a movePolygonCenter action that updates center semantically and propagates through inverse definitions.
-- Triangle now supports moveTriangleCenter by delegating to polygon center movement behavior.
-- Add targeted worker tests covering polygon center computation, symbolic center behavior, center-driven translation, and triangle center movement.
+- Polyline now exposes a public renderer-facing center location computed from the average of vertex coordinates, with symbolic math support for derived polygon and triangle components.
+- Polyline now supports a semantic center-move action that polygon center movement delegates to through the shared base implementation.
+- Triangle now supports moveTriangleCenter by delegating to the shared polygon/polyline center movement behavior.
+- Add targeted worker tests covering polygon center computation, symbolic center behavior, center-driven translation, constrained center-driven translation, and triangle center movement.

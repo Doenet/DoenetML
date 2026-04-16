@@ -128,4 +128,51 @@ describe("Polygon/Triangle center actions @group2", async () => {
         ]);
         expect(center).eqls([4, 5]);
     });
+
+    it("movePolygonCenter preserves rigid translation with constrained vertices", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <graph>
+    <point>(3,5)</point>
+    <point>(-4,-1)</point>
+    <point>(5,2)
+      <constrainToGrid dx="3" dy="4" />
+    </point>
+    <point>(-3,4)</point>
+    <polygon vertices="$_point1 $_point2 $_point3 $_point4" name="pg" />
+  </graph>
+  `,
+        });
+
+        const pgIdx = await resolvePathToNodeIdx("pg");
+
+        let { vertices, center } = await getPolygonVerticesAndCenter(
+            core,
+            pgIdx,
+        );
+        expect(vertices).eqls([
+            [3, 5],
+            [-4, -1],
+            [6, 4],
+            [-3, 4],
+        ]);
+        expect(center).eqls([0.5, 3]);
+
+        await core.requestAction({
+            componentIdx: pgIdx,
+            actionName: "movePolygonCenter",
+            args: { center: [4.5, 6] },
+        });
+
+        ({ vertices, center } = await getPolygonVerticesAndCenter(core, pgIdx));
+        // Constrained vertex snaps to the grid, so the rigid-translation correction
+        // applies the same adjusted offset to the other vertices.
+        expect(vertices).eqls([
+            [6, 9],
+            [-1, 3],
+            [9, 8],
+            [0, 8],
+        ]);
+        expect(center).eqls([3.5, 7]);
+    });
 });
