@@ -1998,8 +1998,15 @@ export default class Polyline extends GraphicalComponent {
                 },
             },
 
-            returnArraySizeDependencies: () => ({}),
-            returnArraySize: () => [2],
+            returnArraySizeDependencies: () => ({
+                numDimensions: {
+                    dependencyType: "stateVariable",
+                    variableName: "numDimensions",
+                },
+            }),
+            returnArraySize({ dependencyValues }) {
+                return [dependencyValues.numDimensions];
+            },
 
             returnArrayDependenciesByKey() {
                 let globalDependencies = {
@@ -2234,12 +2241,11 @@ export default class Polyline extends GraphicalComponent {
 
         let newVertexComponents = {};
         for (let ind in newNumericalVertices) {
-            newVertexComponents[ind + ",0"] = me.fromAst(
-                newNumericalVertices[ind][0],
-            );
-            newVertexComponents[ind + ",1"] = me.fromAst(
-                newNumericalVertices[ind][1],
-            );
+            for (let dim = 0; dim < newNumericalVertices[ind].length; dim++) {
+                newVertexComponents[`${ind},${dim}`] = me.fromAst(
+                    newNumericalVertices[ind][dim],
+                );
+            }
         }
 
         return await this.coreFunctions.performUpdate({
@@ -2272,8 +2278,10 @@ export default class Polyline extends GraphicalComponent {
             return;
         }
 
-        // Center must be a 2D array
-        if (!Array.isArray(center) || center.length < 2) {
+        let numDimensions = await this.stateValues.numDimensions;
+
+        // Center must match the polyline dimensionality exactly.
+        if (!Array.isArray(center) || center.length !== numDimensions) {
             return;
         }
 

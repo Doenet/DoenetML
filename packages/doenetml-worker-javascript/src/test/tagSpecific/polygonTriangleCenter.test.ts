@@ -17,7 +17,42 @@ async function getPolygonVerticesAndCenter(core: any, componentIdx: number) {
     return { vertices, center, polygonState };
 }
 
-describe("Polygon/Triangle center actions @group2", async () => {
+describe("Polyline/Polygon/Triangle center actions @group2", async () => {
+    it("polyline center matches dimensionality and translates all coordinates", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <graph>
+    <polyline name="pl" vertices="(0,0,0) (4,0,2)" />
+  </graph>
+  `,
+        });
+
+        const plIdx = await resolvePathToNodeIdx("pl");
+
+        let { vertices, center } = await getPolygonVerticesAndCenter(
+            core,
+            plIdx,
+        );
+        expect(vertices).eqls([
+            [0, 0, 0],
+            [4, 0, 2],
+        ]);
+        expect(center).eqls([2, 0, 1]);
+
+        await core.requestAction({
+            componentIdx: plIdx,
+            actionName: "movePolylineCenter",
+            args: { center: [5, 3, 7] },
+        });
+
+        ({ vertices, center } = await getPolygonVerticesAndCenter(core, plIdx));
+        expect(vertices).eqls([
+            [3, 3, 6],
+            [7, 3, 8],
+        ]);
+        expect(center).eqls([5, 3, 7]);
+    });
+
     it("polygon has center and movePolygonCenter translates vertices", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
@@ -67,6 +102,36 @@ describe("Polygon/Triangle center actions @group2", async () => {
         const copied = await getPolygonVerticesAndCenter(core, copyIdx);
         expect(copied.vertices).eqls(vertices);
         expect(copied.center).eqls(center);
+    });
+
+    it("movePolygonCenter ignores malformed center payloads", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <graph>
+    <polygon name="pg" vertices="(0,0) (4,0) (4,2) (0,2)" />
+  </graph>
+  `,
+        });
+
+        const pgIdx = await resolvePathToNodeIdx("pg");
+
+        await core.requestAction({
+            componentIdx: pgIdx,
+            actionName: "movePolygonCenter",
+            args: { center: [5, -3, 99] },
+        });
+
+        const { vertices, center } = await getPolygonVerticesAndCenter(
+            core,
+            pgIdx,
+        );
+        expect(vertices).eqls([
+            [0, 0],
+            [4, 0],
+            [4, 2],
+            [0, 2],
+        ]);
+        expect(center).eqls([2, 1]);
     });
 
     it("polygon center remains symbolic when vertices are symbolic", async () => {
