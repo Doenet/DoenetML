@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import GraphControlsCommitInput from "./components/graphControls/GraphControlsCommitInput";
 import GraphControlsPanel from "./components/graphControls/GraphControlsPanel";
 import SliderUI from "./utils/SliderUI";
 import {
+    makeInputErrorId,
     normalizeGraphControlsMode,
     normalizeLineSegmentControlsMode,
     normalizedSliderBounds,
@@ -209,6 +211,24 @@ export default React.memo(function LineSegmentGraphControls({
                             lineSegment,
                         );
                         const pairDisplay = `(${xDisplay},${yDisplay})`;
+                        const pairError = errorByKey[pairKey];
+                        const pairErrorId = makeInputErrorId(
+                            id,
+                            "line-segment",
+                            pairKey,
+                        );
+                        const xError = errorByKey[xKey];
+                        const xErrorId = makeInputErrorId(
+                            id,
+                            "line-segment",
+                            xKey,
+                        );
+                        const yError = errorByKey[yKey];
+                        const yErrorId = makeInputErrorId(
+                            id,
+                            "line-segment",
+                            yKey,
+                        );
 
                         return (
                             <div
@@ -232,28 +252,25 @@ export default React.memo(function LineSegmentGraphControls({
                                 graphControlsMode === "inputsonly" ? (
                                     <label>
                                         Coordinates
-                                        <input
-                                            type="text"
+                                        <GraphControlsCommitInput
                                             value={
                                                 draftByKey[pairKey] ??
                                                 pairDisplay
                                             }
-                                            aria-label={`${title.toLowerCase()} coordinates for ${labelForAria}`}
-                                            aria-invalid={
-                                                errorByKey[pairKey]
-                                                    ? true
+                                            ariaLabel={`${title.toLowerCase()} coordinates for ${labelForAria}`}
+                                            ariaInvalid={Boolean(pairError)}
+                                            ariaDescribedBy={
+                                                pairError
+                                                    ? pairErrorId
                                                     : undefined
                                             }
-                                            onChange={(e) =>
-                                                setDraft(
-                                                    pairKey,
-                                                    e.target.value,
-                                                )
+                                            onChange={(value) =>
+                                                setDraft(pairKey, value)
                                             }
-                                            onBlur={(e) => {
+                                            onCommit={async (rawValue) => {
                                                 commitPairInput({
                                                     key: pairKey,
-                                                    rawValue: e.target.value,
+                                                    rawValue,
                                                     onParsed: async (value) => {
                                                         await moveEndpoint({
                                                             lineSegment,
@@ -265,18 +282,20 @@ export default React.memo(function LineSegmentGraphControls({
                                                     },
                                                 }).catch(() => {});
                                             }}
+                                            commitErrorContext={`[graph-controls] failed to commit ${pairKey} input`}
                                         />
                                     </label>
                                 ) : null}
 
-                                {errorByKey[pairKey] ? (
+                                {pairError ? (
                                     <div
+                                        id={pairErrorId}
                                         style={{
                                             color: "#b00020",
                                             fontSize: "0.85em",
                                         }}
                                     >
-                                        {errorByKey[pairKey]}
+                                        {pairError}
                                     </div>
                                 ) : null}
 
@@ -288,34 +307,34 @@ export default React.memo(function LineSegmentGraphControls({
                                                 showInlineInputs ? (
                                                     <span>
                                                         x:{" "}
-                                                        <input
-                                                            type="text"
+                                                        <GraphControlsCommitInput
                                                             value={
                                                                 draftByKey[
                                                                     xKey
                                                                 ] ?? xDisplay
                                                             }
-                                                            aria-label={`${title.toLowerCase()} x input for ${labelForAria}`}
-                                                            aria-invalid={
-                                                                errorByKey[xKey]
-                                                                    ? true
+                                                            ariaLabel={`${title.toLowerCase()} x input for ${labelForAria}`}
+                                                            ariaInvalid={Boolean(
+                                                                xError,
+                                                            )}
+                                                            ariaDescribedBy={
+                                                                xError
+                                                                    ? xErrorId
                                                                     : undefined
                                                             }
-                                                            onChange={(e) =>
+                                                            onChange={(value) =>
                                                                 setDraft(
                                                                     xKey,
-                                                                    e.target
-                                                                        .value,
+                                                                    value,
                                                                 )
                                                             }
-                                                            onBlur={(e) => {
+                                                            onCommit={async (
+                                                                rawValue,
+                                                            ) => {
                                                                 commitNumberInput(
                                                                     {
                                                                         key: xKey,
-                                                                        rawValue:
-                                                                            e
-                                                                                .target
-                                                                                .value,
+                                                                        rawValue,
                                                                         onParsed:
                                                                             async (
                                                                                 value,
@@ -335,7 +354,20 @@ export default React.memo(function LineSegmentGraphControls({
                                                                     () => {},
                                                                 );
                                                             }}
+                                                            commitErrorContext={`[graph-controls] failed to commit ${xKey} input`}
                                                         />
+                                                        {xError ? (
+                                                            <span
+                                                                id={xErrorId}
+                                                                style={{
+                                                                    color: "#b00020",
+                                                                    fontSize:
+                                                                        "0.85em",
+                                                                }}
+                                                            >
+                                                                {xError}
+                                                            </span>
+                                                        ) : null}
                                                     </span>
                                                 ) : (
                                                     `x: ${xDisplay}`
@@ -366,34 +398,34 @@ export default React.memo(function LineSegmentGraphControls({
                                                 showInlineInputs ? (
                                                     <span>
                                                         y:{" "}
-                                                        <input
-                                                            type="text"
+                                                        <GraphControlsCommitInput
                                                             value={
                                                                 draftByKey[
                                                                     yKey
                                                                 ] ?? yDisplay
                                                             }
-                                                            aria-label={`${title.toLowerCase()} y input for ${labelForAria}`}
-                                                            aria-invalid={
-                                                                errorByKey[yKey]
-                                                                    ? true
+                                                            ariaLabel={`${title.toLowerCase()} y input for ${labelForAria}`}
+                                                            ariaInvalid={Boolean(
+                                                                yError,
+                                                            )}
+                                                            ariaDescribedBy={
+                                                                yError
+                                                                    ? yErrorId
                                                                     : undefined
                                                             }
-                                                            onChange={(e) =>
+                                                            onChange={(value) =>
                                                                 setDraft(
                                                                     yKey,
-                                                                    e.target
-                                                                        .value,
+                                                                    value,
                                                                 )
                                                             }
-                                                            onBlur={(e) => {
+                                                            onCommit={async (
+                                                                rawValue,
+                                                            ) => {
                                                                 commitNumberInput(
                                                                     {
                                                                         key: yKey,
-                                                                        rawValue:
-                                                                            e
-                                                                                .target
-                                                                                .value,
+                                                                        rawValue,
                                                                         onParsed:
                                                                             async (
                                                                                 value,
@@ -413,7 +445,20 @@ export default React.memo(function LineSegmentGraphControls({
                                                                     () => {},
                                                                 );
                                                             }}
+                                                            commitErrorContext={`[graph-controls] failed to commit ${yKey} input`}
                                                         />
+                                                        {yError ? (
+                                                            <span
+                                                                id={yErrorId}
+                                                                style={{
+                                                                    color: "#b00020",
+                                                                    fontSize:
+                                                                        "0.85em",
+                                                                }}
+                                                            >
+                                                                {yError}
+                                                            </span>
+                                                        ) : null}
                                                     </span>
                                                 ) : (
                                                     `y: ${yDisplay}`
@@ -453,7 +498,10 @@ export default React.memo(function LineSegmentGraphControls({
     }
 
     return (
-        <GraphControlsPanel id={`${id}-lineSegments`}>
+        <GraphControlsPanel
+            id={`${id}-lineSegments`}
+            ariaLabel="Line segment controls"
+        >
             {cards}
         </GraphControlsPanel>
     );

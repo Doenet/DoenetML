@@ -2,18 +2,20 @@ import React from "react";
 
 type GraphControlsPanelProps = {
     id: string;
+    ariaLabel?: string;
     children: React.ReactNode;
 };
 
 export default function GraphControlsPanel({
     id,
+    ariaLabel = "Graph controls",
     children,
 }: GraphControlsPanelProps) {
     return (
         <div id={id} style={{ marginTop: "12px", marginBottom: "12px" }}>
             <div
                 role="group"
-                aria-label="Graph controls"
+                aria-label={ariaLabel}
                 style={{
                     display: "flex",
                     flexDirection: "column",

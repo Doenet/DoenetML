@@ -155,5 +155,9 @@ export default React.memo(function PointGraphControls({
         return null;
     }
 
-    return <GraphControlsPanel id={id}>{controlsSection}</GraphControlsPanel>;
+    return (
+        <GraphControlsPanel id={id} ariaLabel="Point controls">
+            {controlsSection}
+        </GraphControlsPanel>
+    );
 });

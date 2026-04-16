@@ -105,11 +105,11 @@ describe(
 <p>Px: <number name="Px">$P.x</number></p>
 `);
 
-            cy.get('[aria-label="x coordinate for P"]').trigger("mousedown");
+            cy.get('[aria-label="x coordinate for P"]').trigger("pointerdown");
             cy.get('[aria-label="x coordinate for P"]')
                 .invoke("val", "5")
                 .trigger("input");
-            cy.get('[aria-label="x coordinate for P"]').trigger("mouseup");
+            cy.get('[aria-label="x coordinate for P"]').trigger("pointerup");
 
             cy.get("#Px").should("have.text", "5");
             cy.get('input[aria-label="x value input for P"]').should(
@@ -239,11 +239,11 @@ describe(
             cy.get('[aria-label="displacement x for V"]').should("exist");
             cy.get('[aria-label="displacement y for V"]').should("exist");
 
-            cy.get('[aria-label="radius for C"]').trigger("mousedown");
+            cy.get('[aria-label="radius for C"]').trigger("pointerdown");
             cy.get('[aria-label="radius for C"]')
                 .invoke("val", "5")
                 .trigger("input");
-            cy.get('[aria-label="radius for C"]').trigger("mouseup");
+            cy.get('[aria-label="radius for C"]').trigger("pointerup");
             cy.get("#CRadius").should("have.text", "5");
             cy.get('[aria-label="radius for C"]').should("have.value", "5");
 
@@ -267,11 +267,13 @@ describe(
                 "4",
             );
 
-            cy.get('[aria-label="displacement x for V"]').trigger("mousedown");
+            cy.get('[aria-label="displacement x for V"]').trigger(
+                "pointerdown",
+            );
             cy.get('[aria-label="displacement x for V"]')
                 .invoke("val", "1")
                 .trigger("input");
-            cy.get('[aria-label="displacement x for V"]').trigger("mouseup");
+            cy.get('[aria-label="displacement x for V"]').trigger("pointerup");
             cy.get("#VHeadX").should("have.text", "1");
             cy.get('[aria-label="displacement x for V"]').should(
                 "have.value",
@@ -312,20 +314,20 @@ describe(
             cy.get('[aria-label="head y for Vt"]').should("not.exist");
 
             // Interact with head x slider
-            cy.get('[aria-label="head x for Vh"]').trigger("mousedown");
+            cy.get('[aria-label="head x for Vh"]').trigger("pointerdown");
             cy.get('[aria-label="head x for Vh"]')
                 .invoke("val", "5")
                 .trigger("input");
-            cy.get('[aria-label="head x for Vh"]').trigger("mouseup");
+            cy.get('[aria-label="head x for Vh"]').trigger("pointerup");
             cy.get("#VhHeadX").should("have.text", "5");
             cy.get('[aria-label="head x for Vh"]').should("have.value", "5");
 
             // Interact with tail y slider
-            cy.get('[aria-label="tail y for Vt"]').trigger("mousedown");
+            cy.get('[aria-label="tail y for Vt"]').trigger("pointerdown");
             cy.get('[aria-label="tail y for Vt"]')
                 .invoke("val", "-2")
                 .trigger("input");
-            cy.get('[aria-label="tail y for Vt"]').trigger("mouseup");
+            cy.get('[aria-label="tail y for Vt"]').trigger("pointerup");
             cy.get("#VtTailY").should("have.text", "-2");
             cy.get('[aria-label="tail y for Vt"]').should("have.value", "-2");
         });
@@ -448,12 +450,12 @@ describe(
                 .should("have.attr", "min", "-5")
                 .and("have.attr", "max", "5");
 
-            cy.get('[aria-label="x coordinate for P"]').trigger("mousedown");
+            cy.get('[aria-label="x coordinate for P"]').trigger("pointerdown");
             cy.get('[aria-label="x coordinate for P"]')
                 .invoke("val", "7")
                 .trigger("input");
             cy.get("#Px").should("have.text", "7");
-            cy.get('[aria-label="x coordinate for P"]').trigger("mouseup");
+            cy.get('[aria-label="x coordinate for P"]').trigger("pointerup");
         });
 
         it("keeps fallback numbering stable when a point becomes non-draggable", () => {
@@ -552,12 +554,12 @@ describe(
             cy.get('[aria-label="x coordinate for R"]').should("exist");
             cy.get('[aria-label="y coordinate for R"]').should("exist");
 
-            cy.get('[aria-label="y coordinate for Q"]').trigger("mousedown");
+            cy.get('[aria-label="y coordinate for Q"]').trigger("pointerdown");
             cy.get('[aria-label="y coordinate for Q"]')
                 .invoke("val", "7")
                 .trigger("input");
             cy.get("#Qy").should("have.text", "7");
-            cy.get('[aria-label="y coordinate for Q"]').trigger("mouseup");
+            cy.get('[aria-label="y coordinate for Q"]').trigger("pointerup");
         });
 
         it("addControls=false string on point is equivalent to none", () => {
@@ -725,7 +727,7 @@ describe(
             );
             cy.get("#Px").should("have.text", "3");
 
-            cy.get('[aria-label="x coordinate for P"]').trigger("mousedown");
+            cy.get('[aria-label="x coordinate for P"]').trigger("pointerdown");
             cy.get('[aria-label="x coordinate for P"]')
                 .invoke("val", "3.6")
                 .trigger("input");
@@ -736,7 +738,7 @@ describe(
                 "3.6",
             );
 
-            cy.get('[aria-label="x coordinate for P"]').trigger("mouseup");
+            cy.get('[aria-label="x coordinate for P"]').trigger("pointerup");
 
             cy.get('[aria-label="x coordinate for P"]').should(
                 "have.value",

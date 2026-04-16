@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import GraphControlsCommitInput from "./components/graphControls/GraphControlsCommitInput";
 import GraphControlsPanel from "./components/graphControls/GraphControlsPanel";
 import SliderUI from "./utils/SliderUI";
 import {
+    makeInputErrorId,
     normalizeCircleControlsMode,
     normalizeGraphControlsMode,
     normalizedSliderBounds,
@@ -193,6 +195,12 @@ export default React.memo(function CircleGraphControls({
                 circle,
             );
             const rDisplay = formatCoordinateForControls(circle.radius, circle);
+            const xError = errorByKey[xKey];
+            const yError = errorByKey[yKey];
+            const rError = errorByKey[rKey];
+            const xErrorId = makeInputErrorId(id, "circle", xKey);
+            const yErrorId = makeInputErrorId(id, "circle", yKey);
+            const rErrorId = makeInputErrorId(id, "circle", rKey);
 
             const radiusMax = Math.max(defaultRadiusMax, circle.radius);
             const radiusStep = radiusMax > 0 ? radiusMax / 100 : 1;
@@ -223,20 +231,18 @@ export default React.memo(function CircleGraphControls({
                         >
                             <label>
                                 x
-                                <input
-                                    type="text"
+                                <GraphControlsCommitInput
                                     value={draftByKey[xKey] ?? xDisplay}
-                                    aria-label={`center x input for ${labelForAria}`}
-                                    aria-invalid={
-                                        errorByKey[xKey] ? true : undefined
+                                    ariaLabel={`center x input for ${labelForAria}`}
+                                    ariaInvalid={Boolean(xError)}
+                                    ariaDescribedBy={
+                                        xError ? xErrorId : undefined
                                     }
-                                    onChange={(e) =>
-                                        setDraft(xKey, e.target.value)
-                                    }
-                                    onBlur={(e) => {
+                                    onChange={(value) => setDraft(xKey, value)}
+                                    onCommit={async (rawValue) => {
                                         commitNumberInput({
                                             key: xKey,
-                                            rawValue: e.target.value,
+                                            rawValue,
                                             onParsed: async (value) => {
                                                 await updateCircle({
                                                     circle,
@@ -250,34 +256,34 @@ export default React.memo(function CircleGraphControls({
                                             },
                                         }).catch(() => {});
                                     }}
+                                    commitErrorContext={`[graph-controls] failed to commit ${xKey} input`}
                                 />
                             </label>
-                            {errorByKey[xKey] ? (
+                            {xError ? (
                                 <span
+                                    id={xErrorId}
                                     style={{
                                         color: "#b00020",
                                         fontSize: "0.85em",
                                     }}
                                 >
-                                    {errorByKey[xKey]}
+                                    {xError}
                                 </span>
                             ) : null}
                             <label>
                                 y
-                                <input
-                                    type="text"
+                                <GraphControlsCommitInput
                                     value={draftByKey[yKey] ?? yDisplay}
-                                    aria-label={`center y input for ${labelForAria}`}
-                                    aria-invalid={
-                                        errorByKey[yKey] ? true : undefined
+                                    ariaLabel={`center y input for ${labelForAria}`}
+                                    ariaInvalid={Boolean(yError)}
+                                    ariaDescribedBy={
+                                        yError ? yErrorId : undefined
                                     }
-                                    onChange={(e) =>
-                                        setDraft(yKey, e.target.value)
-                                    }
-                                    onBlur={(e) => {
+                                    onChange={(value) => setDraft(yKey, value)}
+                                    onCommit={async (rawValue) => {
                                         commitNumberInput({
                                             key: yKey,
-                                            rawValue: e.target.value,
+                                            rawValue,
                                             onParsed: async (value) => {
                                                 await updateCircle({
                                                     circle,
@@ -291,16 +297,18 @@ export default React.memo(function CircleGraphControls({
                                             },
                                         }).catch(() => {});
                                     }}
+                                    commitErrorContext={`[graph-controls] failed to commit ${yKey} input`}
                                 />
                             </label>
-                            {errorByKey[yKey] ? (
+                            {yError ? (
                                 <span
+                                    id={yErrorId}
                                     style={{
                                         color: "#b00020",
                                         fontSize: "0.85em",
                                     }}
                                 >
-                                    {errorByKey[yKey]}
+                                    {yError}
                                 </span>
                             ) : null}
                         </div>
@@ -319,20 +327,18 @@ export default React.memo(function CircleGraphControls({
                         >
                             <label>
                                 radius
-                                <input
-                                    type="text"
+                                <GraphControlsCommitInput
                                     value={draftByKey[rKey] ?? rDisplay}
-                                    aria-label={`radius input for ${labelForAria}`}
-                                    aria-invalid={
-                                        errorByKey[rKey] ? true : undefined
+                                    ariaLabel={`radius input for ${labelForAria}`}
+                                    ariaInvalid={Boolean(rError)}
+                                    ariaDescribedBy={
+                                        rError ? rErrorId : undefined
                                     }
-                                    onChange={(e) =>
-                                        setDraft(rKey, e.target.value)
-                                    }
-                                    onBlur={(e) => {
+                                    onChange={(value) => setDraft(rKey, value)}
+                                    onCommit={async (rawValue) => {
                                         commitNumberInput({
                                             key: rKey,
-                                            rawValue: e.target.value,
+                                            rawValue,
                                             onParsed: async (value) => {
                                                 await changeCircleRadius({
                                                     circle,
@@ -342,16 +348,18 @@ export default React.memo(function CircleGraphControls({
                                             },
                                         }).catch(() => {});
                                     }}
+                                    commitErrorContext={`[graph-controls] failed to commit ${rKey} input`}
                                 />
                             </label>
-                            {errorByKey[rKey] ? (
+                            {rError ? (
                                 <span
+                                    id={rErrorId}
                                     style={{
                                         color: "#b00020",
                                         fontSize: "0.85em",
                                     }}
                                 >
-                                    {errorByKey[rKey]}
+                                    {rError}
                                 </span>
                             ) : null}
                         </div>
@@ -363,30 +371,31 @@ export default React.memo(function CircleGraphControls({
                                 id={`${id}-circle-${circle.componentIdx}-cx`}
                                 label={
                                     showInlineInputs ? (
-                                        <span>
+                                        <span
+                                            style={{
+                                                display: "inline-flex",
+                                                flexDirection: "column",
+                                            }}
+                                        >
                                             x:{" "}
-                                            <input
-                                                type="text"
+                                            <GraphControlsCommitInput
                                                 value={
                                                     draftByKey[xKey] ?? xDisplay
                                                 }
-                                                aria-label={`center x input for ${labelForAria}`}
-                                                aria-invalid={
-                                                    errorByKey[xKey]
-                                                        ? true
+                                                ariaLabel={`center x input for ${labelForAria}`}
+                                                ariaInvalid={Boolean(xError)}
+                                                ariaDescribedBy={
+                                                    xError
+                                                        ? xErrorId
                                                         : undefined
                                                 }
-                                                onChange={(e) =>
-                                                    setDraft(
-                                                        xKey,
-                                                        e.target.value,
-                                                    )
+                                                onChange={(value) =>
+                                                    setDraft(xKey, value)
                                                 }
-                                                onBlur={(e) => {
+                                                onCommit={async (rawValue) => {
                                                     commitNumberInput({
                                                         key: xKey,
-                                                        rawValue:
-                                                            e.target.value,
+                                                        rawValue,
                                                         onParsed: async (
                                                             value,
                                                         ) => {
@@ -404,7 +413,19 @@ export default React.memo(function CircleGraphControls({
                                                         },
                                                     }).catch(() => {});
                                                 }}
+                                                commitErrorContext={`[graph-controls] failed to commit ${xKey} input`}
                                             />
+                                            {xError ? (
+                                                <span
+                                                    id={xErrorId}
+                                                    style={{
+                                                        color: "#b00020",
+                                                        fontSize: "0.85em",
+                                                    }}
+                                                >
+                                                    {xError}
+                                                </span>
+                                            ) : null}
                                         </span>
                                     ) : (
                                         `x: ${xDisplay}`
@@ -431,30 +452,31 @@ export default React.memo(function CircleGraphControls({
                                 id={`${id}-circle-${circle.componentIdx}-cy`}
                                 label={
                                     showInlineInputs ? (
-                                        <span>
+                                        <span
+                                            style={{
+                                                display: "inline-flex",
+                                                flexDirection: "column",
+                                            }}
+                                        >
                                             y:{" "}
-                                            <input
-                                                type="text"
+                                            <GraphControlsCommitInput
                                                 value={
                                                     draftByKey[yKey] ?? yDisplay
                                                 }
-                                                aria-label={`center y input for ${labelForAria}`}
-                                                aria-invalid={
-                                                    errorByKey[yKey]
-                                                        ? true
+                                                ariaLabel={`center y input for ${labelForAria}`}
+                                                ariaInvalid={Boolean(yError)}
+                                                ariaDescribedBy={
+                                                    yError
+                                                        ? yErrorId
                                                         : undefined
                                                 }
-                                                onChange={(e) =>
-                                                    setDraft(
-                                                        yKey,
-                                                        e.target.value,
-                                                    )
+                                                onChange={(value) =>
+                                                    setDraft(yKey, value)
                                                 }
-                                                onBlur={(e) => {
+                                                onCommit={async (rawValue) => {
                                                     commitNumberInput({
                                                         key: yKey,
-                                                        rawValue:
-                                                            e.target.value,
+                                                        rawValue,
                                                         onParsed: async (
                                                             value,
                                                         ) => {
@@ -472,7 +494,19 @@ export default React.memo(function CircleGraphControls({
                                                         },
                                                     }).catch(() => {});
                                                 }}
+                                                commitErrorContext={`[graph-controls] failed to commit ${yKey} input`}
                                             />
+                                            {yError ? (
+                                                <span
+                                                    id={yErrorId}
+                                                    style={{
+                                                        color: "#b00020",
+                                                        fontSize: "0.85em",
+                                                    }}
+                                                >
+                                                    {yError}
+                                                </span>
+                                            ) : null}
                                         </span>
                                     ) : (
                                         `y: ${yDisplay}`
@@ -503,24 +537,27 @@ export default React.memo(function CircleGraphControls({
                             id={`${id}-circle-${circle.componentIdx}-r`}
                             label={
                                 showInlineInputs ? (
-                                    <span>
+                                    <span
+                                        style={{
+                                            display: "inline-flex",
+                                            flexDirection: "column",
+                                        }}
+                                    >
                                         radius:{" "}
-                                        <input
-                                            type="text"
+                                        <GraphControlsCommitInput
                                             value={draftByKey[rKey] ?? rDisplay}
-                                            aria-label={`radius input for ${labelForAria}`}
-                                            aria-invalid={
-                                                errorByKey[rKey]
-                                                    ? true
-                                                    : undefined
+                                            ariaLabel={`radius input for ${labelForAria}`}
+                                            ariaInvalid={Boolean(rError)}
+                                            ariaDescribedBy={
+                                                rError ? rErrorId : undefined
                                             }
-                                            onChange={(e) =>
-                                                setDraft(rKey, e.target.value)
+                                            onChange={(value) =>
+                                                setDraft(rKey, value)
                                             }
-                                            onBlur={(e) => {
+                                            onCommit={async (rawValue) => {
                                                 commitNumberInput({
                                                     key: rKey,
-                                                    rawValue: e.target.value,
+                                                    rawValue,
                                                     onParsed: async (value) => {
                                                         await changeCircleRadius(
                                                             {
@@ -535,7 +572,19 @@ export default React.memo(function CircleGraphControls({
                                                     },
                                                 }).catch(() => {});
                                             }}
+                                            commitErrorContext={`[graph-controls] failed to commit ${rKey} input`}
                                         />
+                                        {rError ? (
+                                            <span
+                                                id={rErrorId}
+                                                style={{
+                                                    color: "#b00020",
+                                                    fontSize: "0.85em",
+                                                }}
+                                            >
+                                                {rError}
+                                            </span>
+                                        ) : null}
                                     </span>
                                 ) : (
                                     `radius: ${rDisplay}`
@@ -565,6 +614,8 @@ export default React.memo(function CircleGraphControls({
     }
 
     return (
-        <GraphControlsPanel id={`${id}-circles`}>{cards}</GraphControlsPanel>
+        <GraphControlsPanel id={`${id}-circles`} ariaLabel="Circle controls">
+            {cards}
+        </GraphControlsPanel>
     );
 });

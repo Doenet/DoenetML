@@ -1,7 +1,9 @@
 import React, { useState } from "react";
+import GraphControlsCommitInput from "./components/graphControls/GraphControlsCommitInput";
 import GraphControlsPanel from "./components/graphControls/GraphControlsPanel";
 import SliderUI from "./utils/SliderUI";
 import {
+    makeInputErrorId,
     normalizeGraphControlsMode,
     normalizedSliderBounds,
     normalizeVectorControlsMode,
@@ -207,34 +209,49 @@ export default React.memo(function VectorGraphControls({
         onChange: (v: number, transient: boolean) => void;
     }) {
         const display = draftByKey[inputKey] ?? displayValue;
+        const error = errorByKey[inputKey];
+        const errorId = makeInputErrorId(id, "vector", inputKey);
         return (
             <SliderUI
                 key={sliderId}
                 id={sliderId}
                 label={
                     includeInputs ? (
-                        <span>
+                        <span
+                            style={{
+                                display: "inline-flex",
+                                flexDirection: "column",
+                            }}
+                        >
                             {label}:{" "}
-                            <input
-                                type="text"
+                            <GraphControlsCommitInput
                                 value={draftByKey[inputKey] ?? displayValue}
-                                aria-label={`${ariaLabel} input`}
-                                aria-invalid={
-                                    errorByKey[inputKey] ? true : undefined
-                                }
-                                onChange={(e) =>
-                                    setDraft(inputKey, e.target.value)
-                                }
-                                onBlur={(e) => {
+                                ariaLabel={`${ariaLabel} input`}
+                                ariaInvalid={Boolean(error)}
+                                ariaDescribedBy={error ? errorId : undefined}
+                                onChange={(value) => setDraft(inputKey, value)}
+                                onCommit={async (rawValue) => {
                                     commitNumberInput({
                                         key: inputKey,
-                                        rawValue: e.target.value,
+                                        rawValue,
                                         onParsed: async (parsed) => {
                                             onChange(parsed, false);
                                         },
                                     }).catch(() => {});
                                 }}
+                                commitErrorContext={`[graph-controls] failed to commit ${inputKey} input`}
                             />
+                            {error ? (
+                                <span
+                                    id={errorId}
+                                    style={{
+                                        color: "#b00020",
+                                        fontSize: "0.85em",
+                                    }}
+                                >
+                                    {error}
+                                </span>
+                            ) : null}
                         </span>
                     ) : (
                         `${label}: ${display}`
@@ -265,28 +282,34 @@ export default React.memo(function VectorGraphControls({
         value: number;
         onChange: (v: number) => void;
     }) {
+        const error = errorByKey[inputKey];
+        const errorId = makeInputErrorId(id, "vector", inputKey);
         return (
             <label key={inputKey}>
                 {label}
-                <input
-                    type="text"
+                <GraphControlsCommitInput
                     value={draftByKey[inputKey] ?? displayValue}
-                    aria-label={`${ariaLabel} input`}
-                    aria-invalid={errorByKey[inputKey] ? true : undefined}
-                    onChange={(e) => setDraft(inputKey, e.target.value)}
-                    onBlur={(e) => {
+                    ariaLabel={`${ariaLabel} input`}
+                    ariaInvalid={Boolean(error)}
+                    ariaDescribedBy={error ? errorId : undefined}
+                    onChange={(value) => setDraft(inputKey, value)}
+                    onCommit={async (rawValue) => {
                         commitNumberInput({
                             key: inputKey,
-                            rawValue: e.target.value,
+                            rawValue,
                             onParsed: async (parsed) => {
                                 onChange(parsed);
                             },
                         }).catch(() => {});
                     }}
+                    commitErrorContext={`[graph-controls] failed to commit ${inputKey} input`}
                 />
-                {errorByKey[inputKey] ? (
-                    <span style={{ color: "#b00020", fontSize: "0.85em" }}>
-                        {errorByKey[inputKey]}
+                {error ? (
+                    <span
+                        id={errorId}
+                        style={{ color: "#b00020", fontSize: "0.85em" }}
+                    >
+                        {error}
                     </span>
                 ) : null}
             </label>
@@ -791,6 +814,8 @@ export default React.memo(function VectorGraphControls({
     }
 
     return (
-        <GraphControlsPanel id={`${id}-vectors`}>{cards}</GraphControlsPanel>
+        <GraphControlsPanel id={`${id}-vectors`} ariaLabel="Vector controls">
+            {cards}
+        </GraphControlsPanel>
     );
 });

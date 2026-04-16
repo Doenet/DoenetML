@@ -240,6 +240,17 @@ export function makeErrorId(
 }
 
 /**
+ * Generate an error message ID for input keys used across graph control families.
+ */
+export function makeInputErrorId(
+    elementId: string,
+    controlFamily: string,
+    inputKey: string,
+): string {
+    return `${elementId}-error-${controlFamily}-${inputKey.replace(/\|/g, "-")}`;
+}
+
+/**
  * Normalize slider bounds for reversed graph axis ranges.
  */
 export function normalizedSliderBounds(rawMin: number, rawMax: number) {
