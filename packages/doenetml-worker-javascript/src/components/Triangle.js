@@ -2,8 +2,20 @@ import Polygon from "./Polygon";
 import me from "math-expressions";
 
 export default class Triangle extends Polygon {
+    constructor(args) {
+        super(args);
+
+        Object.assign(this.actions, {
+            moveTriangleCenter: this.moveTriangleCenter.bind(this),
+        });
+    }
+
     static componentType = "triangle";
     static rendererType = "polygon";
+
+    get moveTriangleCenter() {
+        return this.movePolygonCenter;
+    }
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
