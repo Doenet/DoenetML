@@ -66,6 +66,10 @@ export function currentPrefigureDebounceMs() {
         : PREFIGURE_BUILD_DEBOUNCE_COLD_MS;
 }
 
+export function isPrefigureRuntimeReady() {
+    return Boolean(prefigureReadyModule);
+}
+
 async function buildWithPrefigureService(
     diagramXML: string,
     signal: AbortSignal,

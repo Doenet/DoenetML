@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import {
     buildPrefigureDiagram,
     currentPrefigureDebounceMs,
+    isPrefigureRuntimeReady,
     isAbortError,
     warmupPrefigureInBackground,
 } from "./utils/prefigureRuntime";
@@ -138,9 +139,7 @@ export default React.memo(function Prefigure({
             const requestSequence = ++requestSequenceRef.current;
             const abortController = new AbortController();
             fetchAbortControllerRef.current = abortController;
-            // currentPrefigureDebounceMs() is sourced from runtime readiness;
-            // this keeps warm/cold UI behavior aligned with runtime selection.
-            const isWarmMode = currentPrefigureDebounceMs() < 1000;
+            const isWarmMode = isPrefigureRuntimeReady();
 
             // In warm mode, keep the previous render on screen to avoid flash while
             // the fast local compile is in progress.

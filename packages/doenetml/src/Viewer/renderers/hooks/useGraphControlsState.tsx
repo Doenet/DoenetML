@@ -6,13 +6,15 @@ import {
     GraphControlsMode,
     deriveActiveInputKeys,
     deriveActiveSliderAxisKeys,
-    formatCoordinateForControls,
     makeInputKey,
     normalizedSliderBounds,
-    parseOrderedPair,
-    parseSingleMathNumber,
     pruneRecordByActiveKeys,
 } from "../utils/graphControls";
+import {
+    formatCoordinateForControls,
+    parseOrderedPair,
+    parseSingleMathNumber,
+} from "../utils/graphControlsMath";
 
 type UseGraphControlsStateArgs = {
     id: string;

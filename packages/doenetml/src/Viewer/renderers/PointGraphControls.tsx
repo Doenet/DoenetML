@@ -4,11 +4,11 @@ import GraphControlsPanel from "./components/graphControls/GraphControlsPanel";
 import GraphPointControlCard from "./components/graphControls/GraphPointControlCard";
 import {
     GraphControlPoint,
-    formatCoordinateForControls,
     makeInputKey,
     normalizeGraphControlsMode,
     normalizePointControlsMode,
 } from "./utils/graphControls";
+import { formatCoordinateForControls } from "./utils/graphControlsMath";
 import {
     accessibleLabelText,
     renderLabelWithLatex,
