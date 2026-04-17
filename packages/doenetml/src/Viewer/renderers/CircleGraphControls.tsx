@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 import GraphControlsCommitInput from "./components/graphControls/GraphControlsCommitInput";
 import GraphControlsPanel from "./components/graphControls/GraphControlsPanel";
 import SliderUI from "./utils/SliderUI";
@@ -13,14 +13,17 @@ import {
     formatCoordinateForControls,
     parseSingleMathNumber,
 } from "./utils/graphControlsMath";
-import {
-    commitParsedInput,
-    setDraftAndClearError,
-} from "./utils/graphControlsInputState";
+import { useGraphControlsInputState } from "./hooks/useGraphControlsInputState";
 import {
     accessibleLabelText,
     renderLabelWithLatex,
 } from "./utils/labelWithLatex";
+import { useLatestControlValues } from "./hooks/useLatestControlValues";
+
+type CircleControlState = {
+    center: { x: number; y: number };
+    radius: number;
+};
 
 type CircleGraphControlsProps = {
     id: string;
@@ -57,8 +60,59 @@ export default React.memo(function CircleGraphControls({
         return null;
     }
 
-    const [draftByKey, setDraftByKey] = useState<Record<string, string>>({});
-    const [errorByKey, setErrorByKey] = useState<Record<string, string>>({});
+    const {
+        draftByKey,
+        errorByKey,
+        setDraft,
+        hasDraft,
+        isCommitting,
+        commitParsedInput,
+    } = useGraphControlsInputState();
+
+    const latestCircleValuesByKey = useMemo(() => {
+        const valuesByKey: Record<
+            string,
+            { center: { x: number; y: number }; radius: number }
+        > = {};
+        for (const circle of circles) {
+            valuesByKey[String(circle.componentIdx)] = {
+                center: { x: circle.center.x, y: circle.center.y },
+                radius: circle.radius,
+            };
+        }
+        return valuesByKey;
+    }, [circles]);
+
+    const { getLatestValue, setLatestValue } = useLatestControlValues(
+        latestCircleValuesByKey,
+    );
+
+    function circleStateKey(circle: GraphControlCircle) {
+        return String(circle.componentIdx);
+    }
+
+    function circleStateFromCore(
+        circle: GraphControlCircle,
+    ): CircleControlState {
+        return {
+            center: { x: circle.center.x, y: circle.center.y },
+            radius: circle.radius,
+        };
+    }
+
+    function getCircleState(circle: GraphControlCircle): CircleControlState {
+        return getLatestValue(
+            circleStateKey(circle),
+            circleStateFromCore(circle),
+        );
+    }
+
+    function setCircleState(
+        circle: GraphControlCircle,
+        state: CircleControlState,
+    ) {
+        setLatestValue(circleStateKey(circle), state);
+    }
 
     async function updateCircle({
         circle,
@@ -121,22 +175,15 @@ export default React.memo(function CircleGraphControls({
         }
     }
 
-    function setDraft(key: string, value: string) {
-        setDraftAndClearError({
-            key,
-            value,
-            setDraftByKey,
-            setErrorByKey,
-        });
-    }
-
     async function commitNumberInput({
         key,
         rawValue,
+        currentValue,
         onParsed,
     }: {
         key: string;
         rawValue: string;
+        currentValue: number;
         onParsed: (value: number) => Promise<void>;
     }) {
         await commitParsedInput({
@@ -144,9 +191,113 @@ export default React.memo(function CircleGraphControls({
             rawValue,
             parse: parseSingleMathNumber,
             errorMessage: "Enter a valid number or numeric expression.",
-            setDraftByKey,
-            setErrorByKey,
+            isUnchanged: (value) => value === currentValue,
             onParsed,
+        });
+    }
+
+    async function updateCenterAxis({
+        circle,
+        axis,
+        value,
+        transient,
+    }: {
+        circle: GraphControlCircle;
+        axis: "x" | "y";
+        value: number;
+        transient: boolean;
+    }) {
+        const latest = getCircleState(circle);
+        const center =
+            axis === "x"
+                ? { x: value, y: latest.center.y }
+                : { x: latest.center.x, y: value };
+
+        setCircleState(circle, {
+            center,
+            radius: latest.radius,
+        });
+
+        await updateCircle({
+            circle,
+            center,
+            radius: latest.radius,
+            transient,
+        });
+    }
+
+    async function commitCenterAxisInput({
+        circle,
+        key,
+        rawValue,
+        axis,
+    }: {
+        circle: GraphControlCircle;
+        key: string;
+        rawValue: string;
+        axis: "x" | "y";
+    }) {
+        const latest = getCircleState(circle);
+        await commitNumberInput({
+            key,
+            rawValue,
+            currentValue: axis === "x" ? latest.center.x : latest.center.y,
+            onParsed: async (value) => {
+                await updateCenterAxis({
+                    circle,
+                    axis,
+                    value,
+                    transient: false,
+                });
+            },
+        });
+    }
+
+    async function updateRadiusValue({
+        circle,
+        value,
+        transient,
+    }: {
+        circle: GraphControlCircle;
+        value: number;
+        transient: boolean;
+    }) {
+        const latest = getCircleState(circle);
+        const nextRadius = Math.max(0, value);
+
+        setCircleState(circle, {
+            center: latest.center,
+            radius: nextRadius,
+        });
+
+        await changeCircleRadius({
+            circle,
+            radius: nextRadius,
+            transient,
+        });
+    }
+
+    async function commitRadiusInput({
+        circle,
+        key,
+        rawValue,
+    }: {
+        circle: GraphControlCircle;
+        key: string;
+        rawValue: string;
+    }) {
+        const latest = getCircleState(circle);
+        await commitNumberInput({
+            key,
+            rawValue,
+            currentValue: latest.radius,
+            onParsed: async (value) => {
+                await updateRadiusValue({
+                    circle,
+                    value,
+                    transient: false,
+                });
+            },
         });
     }
 
@@ -240,22 +391,15 @@ export default React.memo(function CircleGraphControls({
                                     }
                                     onChange={(value) => setDraft(xKey, value)}
                                     onCommit={async (rawValue) => {
-                                        await commitNumberInput({
+                                        await commitCenterAxisInput({
+                                            circle,
                                             key: xKey,
                                             rawValue,
-                                            onParsed: async (value) => {
-                                                await updateCircle({
-                                                    circle,
-                                                    center: {
-                                                        x: value,
-                                                        y: circle.center.y,
-                                                    },
-                                                    radius: circle.radius,
-                                                    transient: false,
-                                                });
-                                            },
+                                            axis: "x",
                                         });
                                     }}
+                                    hasDraft={hasDraft(xKey)}
+                                    isCommitting={isCommitting(xKey)}
                                     commitErrorContext={`[graph-controls] failed to commit ${xKey} input`}
                                 />
                             </label>
@@ -281,22 +425,15 @@ export default React.memo(function CircleGraphControls({
                                     }
                                     onChange={(value) => setDraft(yKey, value)}
                                     onCommit={async (rawValue) => {
-                                        await commitNumberInput({
+                                        await commitCenterAxisInput({
+                                            circle,
                                             key: yKey,
                                             rawValue,
-                                            onParsed: async (value) => {
-                                                await updateCircle({
-                                                    circle,
-                                                    center: {
-                                                        x: circle.center.x,
-                                                        y: value,
-                                                    },
-                                                    radius: circle.radius,
-                                                    transient: false,
-                                                });
-                                            },
+                                            axis: "y",
                                         });
                                     }}
+                                    hasDraft={hasDraft(yKey)}
+                                    isCommitting={isCommitting(yKey)}
                                     commitErrorContext={`[graph-controls] failed to commit ${yKey} input`}
                                 />
                             </label>
@@ -336,18 +473,14 @@ export default React.memo(function CircleGraphControls({
                                     }
                                     onChange={(value) => setDraft(rKey, value)}
                                     onCommit={async (rawValue) => {
-                                        await commitNumberInput({
+                                        await commitRadiusInput({
+                                            circle,
                                             key: rKey,
                                             rawValue,
-                                            onParsed: async (value) => {
-                                                await changeCircleRadius({
-                                                    circle,
-                                                    radius: Math.max(0, value),
-                                                    transient: false,
-                                                });
-                                            },
                                         });
                                     }}
+                                    hasDraft={hasDraft(rKey)}
+                                    isCommitting={isCommitting(rKey)}
                                     commitErrorContext={`[graph-controls] failed to commit ${rKey} input`}
                                 />
                             </label>
@@ -393,26 +526,19 @@ export default React.memo(function CircleGraphControls({
                                                     setDraft(xKey, value)
                                                 }
                                                 onCommit={async (rawValue) => {
-                                                    await commitNumberInput({
-                                                        key: xKey,
-                                                        rawValue,
-                                                        onParsed: async (
-                                                            value,
-                                                        ) => {
-                                                            await updateCircle({
-                                                                circle,
-                                                                center: {
-                                                                    x: value,
-                                                                    y: circle
-                                                                        .center
-                                                                        .y,
-                                                                },
-                                                                radius: circle.radius,
-                                                                transient: false,
-                                                            });
+                                                    await commitCenterAxisInput(
+                                                        {
+                                                            circle,
+                                                            key: xKey,
+                                                            rawValue,
+                                                            axis: "x",
                                                         },
-                                                    });
+                                                    );
                                                 }}
+                                                hasDraft={hasDraft(xKey)}
+                                                isCommitting={isCommitting(
+                                                    xKey,
+                                                )}
                                                 commitErrorContext={`[graph-controls] failed to commit ${xKey} input`}
                                             />
                                             {xError ? (
@@ -437,13 +563,10 @@ export default React.memo(function CircleGraphControls({
                                 step={xMax !== xMin ? (xMax - xMin) / 100 : 1}
                                 value={circle.center.x}
                                 onChange={(value, transient) => {
-                                    updateCircle({
+                                    updateCenterAxis({
                                         circle,
-                                        center: {
-                                            x: value,
-                                            y: circle.center.y,
-                                        },
-                                        radius: circle.radius,
+                                        axis: "x",
+                                        value,
                                         transient,
                                     }).catch(() => {});
                                 }}
@@ -474,26 +597,19 @@ export default React.memo(function CircleGraphControls({
                                                     setDraft(yKey, value)
                                                 }
                                                 onCommit={async (rawValue) => {
-                                                    await commitNumberInput({
-                                                        key: yKey,
-                                                        rawValue,
-                                                        onParsed: async (
-                                                            value,
-                                                        ) => {
-                                                            await updateCircle({
-                                                                circle,
-                                                                center: {
-                                                                    x: circle
-                                                                        .center
-                                                                        .x,
-                                                                    y: value,
-                                                                },
-                                                                radius: circle.radius,
-                                                                transient: false,
-                                                            });
+                                                    await commitCenterAxisInput(
+                                                        {
+                                                            circle,
+                                                            key: yKey,
+                                                            rawValue,
+                                                            axis: "y",
                                                         },
-                                                    });
+                                                    );
                                                 }}
+                                                hasDraft={hasDraft(yKey)}
+                                                isCommitting={isCommitting(
+                                                    yKey,
+                                                )}
                                                 commitErrorContext={`[graph-controls] failed to commit ${yKey} input`}
                                             />
                                             {yError ? (
@@ -518,13 +634,10 @@ export default React.memo(function CircleGraphControls({
                                 step={yMax !== yMin ? (yMax - yMin) / 100 : 1}
                                 value={circle.center.y}
                                 onChange={(value, transient) => {
-                                    updateCircle({
+                                    updateCenterAxis({
                                         circle,
-                                        center: {
-                                            x: circle.center.x,
-                                            y: value,
-                                        },
-                                        radius: circle.radius,
+                                        axis: "y",
+                                        value,
                                         transient,
                                     }).catch(() => {});
                                 }}
@@ -555,23 +668,14 @@ export default React.memo(function CircleGraphControls({
                                                 setDraft(rKey, value)
                                             }
                                             onCommit={async (rawValue) => {
-                                                await commitNumberInput({
+                                                await commitRadiusInput({
+                                                    circle,
                                                     key: rKey,
                                                     rawValue,
-                                                    onParsed: async (value) => {
-                                                        await changeCircleRadius(
-                                                            {
-                                                                circle,
-                                                                radius: Math.max(
-                                                                    0,
-                                                                    value,
-                                                                ),
-                                                                transient: false,
-                                                            },
-                                                        );
-                                                    },
                                                 });
                                             }}
+                                            hasDraft={hasDraft(rKey)}
+                                            isCommitting={isCommitting(rKey)}
                                             commitErrorContext={`[graph-controls] failed to commit ${rKey} input`}
                                         />
                                         {rError ? (
@@ -596,9 +700,9 @@ export default React.memo(function CircleGraphControls({
                             step={radiusStep}
                             value={circle.radius}
                             onChange={(value, transient) => {
-                                changeCircleRadius({
+                                updateRadiusValue({
                                     circle,
-                                    radius: Math.max(0, value),
+                                    value,
                                     transient,
                                 }).catch(() => {});
                             }}

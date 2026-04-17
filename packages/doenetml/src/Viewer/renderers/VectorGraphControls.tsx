@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 import GraphControlsCommitInput from "./components/graphControls/GraphControlsCommitInput";
 import GraphControlsPanel from "./components/graphControls/GraphControlsPanel";
 import SliderUI from "./utils/SliderUI";
@@ -17,10 +17,16 @@ import {
     accessibleLabelText,
     renderLabelWithLatex,
 } from "./utils/labelWithLatex";
-import {
-    commitParsedInput,
-    setDraftAndClearError,
-} from "./utils/graphControlsInputState";
+import { useGraphControlsInputState } from "./hooks/useGraphControlsInputState";
+import { useLatestControlValues } from "./hooks/useLatestControlValues";
+
+type VectorControlState = {
+    displacement: { x: number; y: number };
+    head: { x: number; y: number };
+    tail: { x: number; y: number };
+};
+
+type VectorField = "displacement" | "head" | "tail";
 
 type VectorGraphControlsProps = {
     id: string;
@@ -60,8 +66,73 @@ export default React.memo(function VectorGraphControls({
     const { min: xMin, max: xMax } = normalizedSliderBounds(SVs.xMin, SVs.xMax);
     const { min: yMin, max: yMax } = normalizedSliderBounds(SVs.yMin, SVs.yMax);
 
-    const [draftByKey, setDraftByKey] = useState<Record<string, string>>({});
-    const [errorByKey, setErrorByKey] = useState<Record<string, string>>({});
+    const {
+        draftByKey,
+        errorByKey,
+        setDraft,
+        hasDraft,
+        isCommitting,
+        commitParsedInput,
+    } = useGraphControlsInputState();
+
+    const latestVectorValuesByKey = useMemo(() => {
+        const valuesByKey: Record<
+            string,
+            {
+                displacement: { x: number; y: number };
+                head: { x: number; y: number };
+                tail: { x: number; y: number };
+            }
+        > = {};
+
+        for (const vector of vectors) {
+            valuesByKey[String(vector.componentIdx)] = {
+                displacement: {
+                    x: vector.displacement.x,
+                    y: vector.displacement.y,
+                },
+                head: { x: vector.head.x, y: vector.head.y },
+                tail: { x: vector.tail.x, y: vector.tail.y },
+            };
+        }
+
+        return valuesByKey;
+    }, [vectors]);
+
+    const { getLatestValue, setLatestValue } = useLatestControlValues(
+        latestVectorValuesByKey,
+    );
+
+    function vectorStateKey(vector: GraphControlVector) {
+        return String(vector.componentIdx);
+    }
+
+    function vectorStateFromCore(
+        vector: GraphControlVector,
+    ): VectorControlState {
+        return {
+            displacement: {
+                x: vector.displacement.x,
+                y: vector.displacement.y,
+            },
+            head: { x: vector.head.x, y: vector.head.y },
+            tail: { x: vector.tail.x, y: vector.tail.y },
+        };
+    }
+
+    function getVectorState(vector: GraphControlVector): VectorControlState {
+        return getLatestValue(
+            vectorStateKey(vector),
+            vectorStateFromCore(vector),
+        );
+    }
+
+    function setVectorState(
+        vector: GraphControlVector,
+        state: VectorControlState,
+    ) {
+        setLatestValue(vectorStateKey(vector), state);
+    }
 
     async function moveDisplacement({
         vector,
@@ -156,22 +227,67 @@ export default React.memo(function VectorGraphControls({
         }
     }
 
-    function setDraft(key: string, value: string) {
-        setDraftAndClearError({
-            key,
-            value,
-            setDraftByKey,
-            setErrorByKey,
+    async function updateVectorFieldAxis({
+        vector,
+        field,
+        axis,
+        value,
+        transient,
+    }: {
+        vector: GraphControlVector;
+        field: VectorField;
+        axis: "x" | "y";
+        value: number;
+        transient: boolean;
+    }) {
+        const latest = getVectorState(vector);
+        const nextFieldValue = {
+            x: axis === "x" ? value : latest[field].x,
+            y: axis === "y" ? value : latest[field].y,
+        };
+
+        setVectorState(vector, {
+            ...latest,
+            [field]: nextFieldValue,
+        });
+
+        if (field === "displacement") {
+            await moveDisplacement({
+                vector,
+                dx: nextFieldValue.x,
+                dy: nextFieldValue.y,
+                transient,
+            });
+            return;
+        }
+
+        if (field === "head") {
+            await moveHead({
+                vector,
+                hx: nextFieldValue.x,
+                hy: nextFieldValue.y,
+                transient,
+            });
+            return;
+        }
+
+        await moveTail({
+            vector,
+            tx: nextFieldValue.x,
+            ty: nextFieldValue.y,
+            transient,
         });
     }
 
     async function commitNumberInput({
         key,
         rawValue,
+        currentValue,
         onParsed,
     }: {
         key: string;
         rawValue: string;
+        currentValue: number;
         onParsed: (value: number) => Promise<void>;
     }) {
         await commitParsedInput({
@@ -179,9 +295,40 @@ export default React.memo(function VectorGraphControls({
             rawValue,
             parse: parseSingleMathNumber,
             errorMessage: "Enter a valid number or numeric expression.",
-            setDraftByKey,
-            setErrorByKey,
+            isUnchanged: (value) => value === currentValue,
             onParsed,
+        });
+    }
+
+    async function commitVectorFieldAxisInput({
+        vector,
+        key,
+        field,
+        axis,
+        rawValue,
+    }: {
+        vector: GraphControlVector;
+        key: string;
+        field: VectorField;
+        axis: "x" | "y";
+        rawValue: string;
+    }) {
+        const latest = getVectorState(vector);
+        const currentValue = axis === "x" ? latest[field].x : latest[field].y;
+
+        await commitNumberInput({
+            key,
+            rawValue,
+            currentValue,
+            onParsed: async (value) => {
+                await updateVectorFieldAxis({
+                    vector,
+                    field,
+                    axis,
+                    value,
+                    transient: false,
+                });
+            },
         });
     }
 
@@ -196,6 +343,7 @@ export default React.memo(function VectorGraphControls({
         step,
         value,
         onChange,
+        onCommit,
     }: {
         id: string;
         label: string;
@@ -207,6 +355,7 @@ export default React.memo(function VectorGraphControls({
         step: number;
         value: number;
         onChange: (v: number, transient: boolean) => void;
+        onCommit: (rawValue: string) => Promise<void>;
     }) {
         const display = draftByKey[inputKey] ?? displayValue;
         const error = errorByKey[inputKey];
@@ -230,15 +379,9 @@ export default React.memo(function VectorGraphControls({
                                 ariaInvalid={Boolean(error)}
                                 ariaDescribedBy={error ? errorId : undefined}
                                 onChange={(value) => setDraft(inputKey, value)}
-                                onCommit={async (rawValue) => {
-                                    await commitNumberInput({
-                                        key: inputKey,
-                                        rawValue,
-                                        onParsed: async (parsed) => {
-                                            onChange(parsed, false);
-                                        },
-                                    });
-                                }}
+                                onCommit={onCommit}
+                                hasDraft={hasDraft(inputKey)}
+                                isCommitting={isCommitting(inputKey)}
                                 commitErrorContext={`[graph-controls] failed to commit ${inputKey} input`}
                             />
                             {error ? (
@@ -274,6 +417,7 @@ export default React.memo(function VectorGraphControls({
         displayValue,
         value,
         onChange,
+        onCommit,
     }: {
         label: string;
         ariaLabel: string;
@@ -281,6 +425,7 @@ export default React.memo(function VectorGraphControls({
         displayValue: string;
         value: number;
         onChange: (v: number) => void;
+        onCommit: (rawValue: string) => Promise<void>;
     }) {
         const error = errorByKey[inputKey];
         const errorId = makeInputErrorId(id, "vector", inputKey);
@@ -293,15 +438,9 @@ export default React.memo(function VectorGraphControls({
                     ariaInvalid={Boolean(error)}
                     ariaDescribedBy={error ? errorId : undefined}
                     onChange={(value) => setDraft(inputKey, value)}
-                    onCommit={async (rawValue) => {
-                        await commitNumberInput({
-                            key: inputKey,
-                            rawValue,
-                            onParsed: async (parsed) => {
-                                onChange(parsed);
-                            },
-                        });
-                    }}
+                    onCommit={onCommit}
+                    hasDraft={hasDraft(inputKey)}
+                    isCommitting={isCommitting(inputKey)}
                     commitErrorContext={`[graph-controls] failed to commit ${inputKey} input`}
                 />
                 {error ? (
@@ -368,12 +507,22 @@ export default React.memo(function VectorGraphControls({
                             step: xStep,
                             value: vector.displacement.x,
                             onChange: (v, transient) => {
-                                moveDisplacement({
+                                updateVectorFieldAxis({
                                     vector,
-                                    dx: v,
-                                    dy: vector.displacement.y,
+                                    field: "displacement",
+                                    axis: "x",
+                                    value: v,
                                     transient,
                                 }).catch(() => {});
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: dxKey,
+                                    field: "displacement",
+                                    axis: "x",
+                                    rawValue,
+                                });
                             },
                         }),
                         makeSliderRow({
@@ -387,12 +536,22 @@ export default React.memo(function VectorGraphControls({
                             step: yStep,
                             value: vector.displacement.y,
                             onChange: (v, transient) => {
-                                moveDisplacement({
+                                updateVectorFieldAxis({
                                     vector,
-                                    dx: vector.displacement.x,
-                                    dy: v,
+                                    field: "displacement",
+                                    axis: "y",
+                                    value: v,
                                     transient,
                                 }).catch(() => {});
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: dyKey,
+                                    field: "displacement",
+                                    axis: "y",
+                                    rawValue,
+                                });
                             },
                         }),
                     );
@@ -406,12 +565,22 @@ export default React.memo(function VectorGraphControls({
                             displayValue: dxDisplay,
                             value: vector.displacement.x,
                             onChange: (v) => {
-                                moveDisplacement({
+                                updateVectorFieldAxis({
                                     vector,
-                                    dx: v,
-                                    dy: vector.displacement.y,
+                                    field: "displacement",
+                                    axis: "x",
+                                    value: v,
                                     transient: false,
                                 }).catch(() => {});
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: dxKey,
+                                    field: "displacement",
+                                    axis: "x",
+                                    rawValue,
+                                });
                             },
                         }),
                         makeInputOnlyRow({
@@ -421,12 +590,22 @@ export default React.memo(function VectorGraphControls({
                             displayValue: dyDisplay,
                             value: vector.displacement.y,
                             onChange: (v) => {
-                                moveDisplacement({
+                                updateVectorFieldAxis({
                                     vector,
-                                    dx: vector.displacement.x,
-                                    dy: v,
+                                    field: "displacement",
+                                    axis: "y",
+                                    value: v,
                                     transient: false,
                                 }).catch(() => {});
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: dyKey,
+                                    field: "displacement",
+                                    axis: "y",
+                                    rawValue,
+                                });
                             },
                         }),
                     );
@@ -456,12 +635,22 @@ export default React.memo(function VectorGraphControls({
                             step: xStep,
                             value: vector.head.x,
                             onChange: (v, transient) => {
-                                moveHead({
+                                updateVectorFieldAxis({
                                     vector,
-                                    hx: v,
-                                    hy: vector.head.y,
+                                    field: "head",
+                                    axis: "x",
+                                    value: v,
                                     transient,
                                 }).catch(() => {});
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: hxKey,
+                                    field: "head",
+                                    axis: "x",
+                                    rawValue,
+                                });
                             },
                         }),
                         makeSliderRow({
@@ -475,12 +664,22 @@ export default React.memo(function VectorGraphControls({
                             step: yStep,
                             value: vector.head.y,
                             onChange: (v, transient) => {
-                                moveHead({
+                                updateVectorFieldAxis({
                                     vector,
-                                    hx: vector.head.x,
-                                    hy: v,
+                                    field: "head",
+                                    axis: "y",
+                                    value: v,
                                     transient,
                                 }).catch(() => {});
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: hyKey,
+                                    field: "head",
+                                    axis: "y",
+                                    rawValue,
+                                });
                             },
                         }),
                     );
@@ -494,12 +693,22 @@ export default React.memo(function VectorGraphControls({
                             displayValue: hxDisplay,
                             value: vector.head.x,
                             onChange: (v) => {
-                                moveHead({
+                                updateVectorFieldAxis({
                                     vector,
-                                    hx: v,
-                                    hy: vector.head.y,
+                                    field: "head",
+                                    axis: "x",
+                                    value: v,
                                     transient: false,
                                 }).catch(() => {});
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: hxKey,
+                                    field: "head",
+                                    axis: "x",
+                                    rawValue,
+                                });
                             },
                         }),
                         makeInputOnlyRow({
@@ -509,12 +718,22 @@ export default React.memo(function VectorGraphControls({
                             displayValue: hyDisplay,
                             value: vector.head.y,
                             onChange: (v) => {
-                                moveHead({
+                                updateVectorFieldAxis({
                                     vector,
-                                    hx: vector.head.x,
-                                    hy: v,
+                                    field: "head",
+                                    axis: "y",
+                                    value: v,
                                     transient: false,
                                 }).catch(() => {});
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: hyKey,
+                                    field: "head",
+                                    axis: "y",
+                                    rawValue,
+                                });
                             },
                         }),
                     );
@@ -544,12 +763,22 @@ export default React.memo(function VectorGraphControls({
                             step: xStep,
                             value: vector.tail.x,
                             onChange: (v, transient) => {
-                                moveTail({
+                                updateVectorFieldAxis({
                                     vector,
-                                    tx: v,
-                                    ty: vector.tail.y,
+                                    field: "tail",
+                                    axis: "x",
+                                    value: v,
                                     transient,
                                 }).catch(() => {});
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: txKey,
+                                    field: "tail",
+                                    axis: "x",
+                                    rawValue,
+                                });
                             },
                         }),
                         makeSliderRow({
@@ -563,12 +792,22 @@ export default React.memo(function VectorGraphControls({
                             step: yStep,
                             value: vector.tail.y,
                             onChange: (v, transient) => {
-                                moveTail({
+                                updateVectorFieldAxis({
                                     vector,
-                                    tx: vector.tail.x,
-                                    ty: v,
+                                    field: "tail",
+                                    axis: "y",
+                                    value: v,
                                     transient,
                                 }).catch(() => {});
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: tyKey,
+                                    field: "tail",
+                                    axis: "y",
+                                    rawValue,
+                                });
                             },
                         }),
                     );
@@ -582,12 +821,22 @@ export default React.memo(function VectorGraphControls({
                             displayValue: txDisplay,
                             value: vector.tail.x,
                             onChange: (v) => {
-                                moveTail({
+                                updateVectorFieldAxis({
                                     vector,
-                                    tx: v,
-                                    ty: vector.tail.y,
+                                    field: "tail",
+                                    axis: "x",
+                                    value: v,
                                     transient: false,
                                 }).catch(() => {});
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: txKey,
+                                    field: "tail",
+                                    axis: "x",
+                                    rawValue,
+                                });
                             },
                         }),
                         makeInputOnlyRow({
@@ -597,12 +846,22 @@ export default React.memo(function VectorGraphControls({
                             displayValue: tyDisplay,
                             value: vector.tail.y,
                             onChange: (v) => {
-                                moveTail({
+                                updateVectorFieldAxis({
                                     vector,
-                                    tx: vector.tail.x,
-                                    ty: v,
+                                    field: "tail",
+                                    axis: "y",
+                                    value: v,
                                     transient: false,
                                 }).catch(() => {});
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: tyKey,
+                                    field: "tail",
+                                    axis: "y",
+                                    rawValue,
+                                });
                             },
                         }),
                     );
@@ -642,12 +901,22 @@ export default React.memo(function VectorGraphControls({
                             step: xStep,
                             value: vector.head.x,
                             onChange: (v, transient) => {
-                                moveHead({
+                                updateVectorFieldAxis({
                                     vector,
-                                    hx: v,
-                                    hy: vector.head.y,
+                                    field: "head",
+                                    axis: "x",
+                                    value: v,
                                     transient,
                                 }).catch(() => {});
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: hxKey,
+                                    field: "head",
+                                    axis: "x",
+                                    rawValue,
+                                });
                             },
                         }),
                         makeSliderRow({
@@ -661,12 +930,22 @@ export default React.memo(function VectorGraphControls({
                             step: yStep,
                             value: vector.head.y,
                             onChange: (v, transient) => {
-                                moveHead({
+                                updateVectorFieldAxis({
                                     vector,
-                                    hx: vector.head.x,
-                                    hy: v,
+                                    field: "head",
+                                    axis: "y",
+                                    value: v,
                                     transient,
                                 }).catch(() => {});
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: hyKey,
+                                    field: "head",
+                                    axis: "y",
+                                    rawValue,
+                                });
                             },
                         }),
                         makeSliderRow({
@@ -680,12 +959,22 @@ export default React.memo(function VectorGraphControls({
                             step: xStep,
                             value: vector.tail.x,
                             onChange: (v, transient) => {
-                                moveTail({
+                                updateVectorFieldAxis({
                                     vector,
-                                    tx: v,
-                                    ty: vector.tail.y,
+                                    field: "tail",
+                                    axis: "x",
+                                    value: v,
                                     transient,
                                 }).catch(() => {});
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: txKey,
+                                    field: "tail",
+                                    axis: "x",
+                                    rawValue,
+                                });
                             },
                         }),
                         makeSliderRow({
@@ -699,12 +988,22 @@ export default React.memo(function VectorGraphControls({
                             step: yStep,
                             value: vector.tail.y,
                             onChange: (v, transient) => {
-                                moveTail({
+                                updateVectorFieldAxis({
                                     vector,
-                                    tx: vector.tail.x,
-                                    ty: v,
+                                    field: "tail",
+                                    axis: "y",
+                                    value: v,
                                     transient,
                                 }).catch(() => {});
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: tyKey,
+                                    field: "tail",
+                                    axis: "y",
+                                    rawValue,
+                                });
                             },
                         }),
                     );
@@ -718,12 +1017,22 @@ export default React.memo(function VectorGraphControls({
                             displayValue: hxDisplay,
                             value: vector.head.x,
                             onChange: (v) => {
-                                moveHead({
+                                updateVectorFieldAxis({
                                     vector,
-                                    hx: v,
-                                    hy: vector.head.y,
+                                    field: "head",
+                                    axis: "x",
+                                    value: v,
                                     transient: false,
                                 }).catch(() => {});
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: hxKey,
+                                    field: "head",
+                                    axis: "x",
+                                    rawValue,
+                                });
                             },
                         }),
                         makeInputOnlyRow({
@@ -733,12 +1042,22 @@ export default React.memo(function VectorGraphControls({
                             displayValue: hyDisplay,
                             value: vector.head.y,
                             onChange: (v) => {
-                                moveHead({
+                                updateVectorFieldAxis({
                                     vector,
-                                    hx: vector.head.x,
-                                    hy: v,
+                                    field: "head",
+                                    axis: "y",
+                                    value: v,
                                     transient: false,
                                 }).catch(() => {});
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: hyKey,
+                                    field: "head",
+                                    axis: "y",
+                                    rawValue,
+                                });
                             },
                         }),
                         makeInputOnlyRow({
@@ -748,12 +1067,22 @@ export default React.memo(function VectorGraphControls({
                             displayValue: txDisplay,
                             value: vector.tail.x,
                             onChange: (v) => {
-                                moveTail({
+                                updateVectorFieldAxis({
                                     vector,
-                                    tx: v,
-                                    ty: vector.tail.y,
+                                    field: "tail",
+                                    axis: "x",
+                                    value: v,
                                     transient: false,
                                 }).catch(() => {});
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: txKey,
+                                    field: "tail",
+                                    axis: "x",
+                                    rawValue,
+                                });
                             },
                         }),
                         makeInputOnlyRow({
@@ -763,12 +1092,22 @@ export default React.memo(function VectorGraphControls({
                             displayValue: tyDisplay,
                             value: vector.tail.y,
                             onChange: (v) => {
-                                moveTail({
+                                updateVectorFieldAxis({
                                     vector,
-                                    tx: vector.tail.x,
-                                    ty: v,
+                                    field: "tail",
+                                    axis: "y",
+                                    value: v,
                                     transient: false,
                                 }).catch(() => {});
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: tyKey,
+                                    field: "tail",
+                                    axis: "y",
+                                    rawValue,
+                                });
                             },
                         }),
                     );

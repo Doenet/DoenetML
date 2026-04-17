@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 import GraphControlsCommitInput from "./components/graphControls/GraphControlsCommitInput";
 import GraphControlsPanel from "./components/graphControls/GraphControlsPanel";
 import SliderUI from "./utils/SliderUI";
@@ -18,10 +18,10 @@ import {
     accessibleLabelText,
     renderLabelWithLatex,
 } from "./utils/labelWithLatex";
-import {
-    commitParsedInput,
-    setDraftAndClearError,
-} from "./utils/graphControlsInputState";
+import { useGraphControlsInputState } from "./hooks/useGraphControlsInputState";
+import { useLatestControlValues } from "./hooks/useLatestControlValues";
+
+type EndpointValue = { x: number; y: number };
 
 type LineSegmentGraphControlsProps = {
     id: string;
@@ -58,8 +58,65 @@ export default React.memo(function LineSegmentGraphControls({
         return null;
     }
 
-    const [draftByKey, setDraftByKey] = useState<Record<string, string>>({});
-    const [errorByKey, setErrorByKey] = useState<Record<string, string>>({});
+    const {
+        draftByKey,
+        errorByKey,
+        setDraft,
+        hasDraft,
+        isCommitting,
+        commitParsedInput,
+    } = useGraphControlsInputState();
+
+    const latestEndpointValuesByKey = useMemo(() => {
+        const valuesByKey: Record<string, { x: number; y: number }> = {};
+        for (const lineSegment of lineSegments) {
+            valuesByKey[`${lineSegment.componentIdx}|1`] = {
+                x: lineSegment.endpoint1.x,
+                y: lineSegment.endpoint1.y,
+            };
+            valuesByKey[`${lineSegment.componentIdx}|2`] = {
+                x: lineSegment.endpoint2.x,
+                y: lineSegment.endpoint2.y,
+            };
+        }
+        return valuesByKey;
+    }, [lineSegments]);
+
+    const { getLatestValue, setLatestValue } = useLatestControlValues(
+        latestEndpointValuesByKey,
+    );
+
+    function endpointStateKey(
+        lineSegment: GraphControlLineSegment,
+        endpoint: 1 | 2,
+    ) {
+        return `${lineSegment.componentIdx}|${endpoint}`;
+    }
+
+    function endpointStateFromCore(
+        lineSegment: GraphControlLineSegment,
+        endpoint: 1 | 2,
+    ): EndpointValue {
+        return endpoint === 1 ? lineSegment.endpoint1 : lineSegment.endpoint2;
+    }
+
+    function getEndpointState(
+        lineSegment: GraphControlLineSegment,
+        endpoint: 1 | 2,
+    ): EndpointValue {
+        return getLatestValue(
+            endpointStateKey(lineSegment, endpoint),
+            endpointStateFromCore(lineSegment, endpoint),
+        );
+    }
+
+    function setEndpointState(
+        lineSegment: GraphControlLineSegment,
+        endpoint: 1 | 2,
+        value: EndpointValue,
+    ) {
+        setLatestValue(endpointStateKey(lineSegment, endpoint), value);
+    }
 
     const { min: xMin, max: xMax } = normalizedSliderBounds(SVs.xMin, SVs.xMax);
     const { min: yMin, max: yMax } = normalizedSliderBounds(SVs.yMin, SVs.yMax);
@@ -98,22 +155,15 @@ export default React.memo(function LineSegmentGraphControls({
         }
     }
 
-    function setDraft(key: string, value: string) {
-        setDraftAndClearError({
-            key,
-            value,
-            setDraftByKey,
-            setErrorByKey,
-        });
-    }
-
     async function commitNumberInput({
         key,
         rawValue,
+        currentValue,
         onParsed,
     }: {
         key: string;
         rawValue: string;
+        currentValue: number;
         onParsed: (value: number) => Promise<void>;
     }) {
         await commitParsedInput({
@@ -121,8 +171,7 @@ export default React.memo(function LineSegmentGraphControls({
             rawValue,
             parse: parseSingleMathNumber,
             errorMessage: "Enter a valid number or numeric expression.",
-            setDraftByKey,
-            setErrorByKey,
+            isUnchanged: (value) => value === currentValue,
             onParsed,
         });
     }
@@ -130,10 +179,12 @@ export default React.memo(function LineSegmentGraphControls({
     async function commitPairInput({
         key,
         rawValue,
+        currentValue,
         onParsed,
     }: {
         key: string;
         rawValue: string;
+        currentValue: { x: number; y: number };
         onParsed: (value: { x: number; y: number }) => Promise<void>;
     }) {
         await commitParsedInput({
@@ -142,9 +193,100 @@ export default React.memo(function LineSegmentGraphControls({
             parse: parseOrderedPair,
             errorMessage:
                 "Enter an ordered pair like (x,y) with numeric values.",
-            setDraftByKey,
-            setErrorByKey,
+            isUnchanged: (value) =>
+                value.x === currentValue.x && value.y === currentValue.y,
             onParsed,
+        });
+    }
+
+    async function updateEndpointAxis({
+        lineSegment,
+        endpoint,
+        axis,
+        value,
+        transient,
+    }: {
+        lineSegment: GraphControlLineSegment;
+        endpoint: 1 | 2;
+        axis: "x" | "y";
+        value: number;
+        transient: boolean;
+    }) {
+        const latest = getEndpointState(lineSegment, endpoint);
+        const next = {
+            x: axis === "x" ? value : latest.x,
+            y: axis === "y" ? value : latest.y,
+        };
+
+        setEndpointState(lineSegment, endpoint, next);
+
+        await moveEndpoint({
+            lineSegment,
+            endpoint,
+            x: next.x,
+            y: next.y,
+            transient,
+        });
+    }
+
+    async function commitEndpointAxisInput({
+        lineSegment,
+        endpoint,
+        key,
+        axis,
+        rawValue,
+    }: {
+        lineSegment: GraphControlLineSegment;
+        endpoint: 1 | 2;
+        key: string;
+        axis: "x" | "y";
+        rawValue: string;
+    }) {
+        const latest = getEndpointState(lineSegment, endpoint);
+
+        await commitNumberInput({
+            key,
+            rawValue,
+            currentValue: axis === "x" ? latest.x : latest.y,
+            onParsed: async (value) => {
+                await updateEndpointAxis({
+                    lineSegment,
+                    endpoint,
+                    axis,
+                    value,
+                    transient: false,
+                });
+            },
+        });
+    }
+
+    async function commitEndpointPairInput({
+        lineSegment,
+        endpoint,
+        key,
+        rawValue,
+    }: {
+        lineSegment: GraphControlLineSegment;
+        endpoint: 1 | 2;
+        key: string;
+        rawValue: string;
+    }) {
+        const latest = getEndpointState(lineSegment, endpoint);
+
+        await commitPairInput({
+            key,
+            rawValue,
+            currentValue: latest,
+            onParsed: async (value) => {
+                setEndpointState(lineSegment, endpoint, value);
+                await moveEndpoint({
+                    lineSegment,
+                    endpoint,
+                    x: value.x,
+                    y: value.y,
+                    transient: false,
+                });
+            },
         });
     }
 
@@ -268,20 +410,15 @@ export default React.memo(function LineSegmentGraphControls({
                                                 setDraft(pairKey, value)
                                             }
                                             onCommit={async (rawValue) => {
-                                                await commitPairInput({
+                                                await commitEndpointPairInput({
+                                                    lineSegment,
+                                                    endpoint,
                                                     key: pairKey,
                                                     rawValue,
-                                                    onParsed: async (value) => {
-                                                        await moveEndpoint({
-                                                            lineSegment,
-                                                            endpoint,
-                                                            x: value.x,
-                                                            y: value.y,
-                                                            transient: false,
-                                                        });
-                                                    },
                                                 });
                                             }}
+                                            hasDraft={hasDraft(pairKey)}
+                                            isCommitting={isCommitting(pairKey)}
                                             commitErrorContext={`[graph-controls] failed to commit ${pairKey} input`}
                                         />
                                     </label>
@@ -331,27 +468,22 @@ export default React.memo(function LineSegmentGraphControls({
                                                             onCommit={async (
                                                                 rawValue,
                                                             ) => {
-                                                                await commitNumberInput(
+                                                                await commitEndpointAxisInput(
                                                                     {
+                                                                        lineSegment,
+                                                                        endpoint,
                                                                         key: xKey,
+                                                                        axis: "x",
                                                                         rawValue,
-                                                                        onParsed:
-                                                                            async (
-                                                                                value,
-                                                                            ) => {
-                                                                                await moveEndpoint(
-                                                                                    {
-                                                                                        lineSegment,
-                                                                                        endpoint,
-                                                                                        x: value,
-                                                                                        y: coords.y,
-                                                                                        transient: false,
-                                                                                    },
-                                                                                );
-                                                                            },
                                                                     },
                                                                 );
                                                             }}
+                                                            hasDraft={hasDraft(
+                                                                xKey,
+                                                            )}
+                                                            isCommitting={isCommitting(
+                                                                xKey,
+                                                            )}
                                                             commitErrorContext={`[graph-controls] failed to commit ${xKey} input`}
                                                         />
                                                         {xError ? (
@@ -381,11 +513,11 @@ export default React.memo(function LineSegmentGraphControls({
                                             }
                                             value={coords.x}
                                             onChange={(value, transient) => {
-                                                moveEndpoint({
+                                                updateEndpointAxis({
                                                     lineSegment,
                                                     endpoint,
-                                                    x: value,
-                                                    y: coords.y,
+                                                    axis: "x",
+                                                    value,
                                                     transient,
                                                 }).catch(() => {});
                                             }}
@@ -420,27 +552,22 @@ export default React.memo(function LineSegmentGraphControls({
                                                             onCommit={async (
                                                                 rawValue,
                                                             ) => {
-                                                                await commitNumberInput(
+                                                                await commitEndpointAxisInput(
                                                                     {
+                                                                        lineSegment,
+                                                                        endpoint,
                                                                         key: yKey,
+                                                                        axis: "y",
                                                                         rawValue,
-                                                                        onParsed:
-                                                                            async (
-                                                                                value,
-                                                                            ) => {
-                                                                                await moveEndpoint(
-                                                                                    {
-                                                                                        lineSegment,
-                                                                                        endpoint,
-                                                                                        x: coords.x,
-                                                                                        y: value,
-                                                                                        transient: false,
-                                                                                    },
-                                                                                );
-                                                                            },
                                                                     },
                                                                 );
                                                             }}
+                                                            hasDraft={hasDraft(
+                                                                yKey,
+                                                            )}
+                                                            isCommitting={isCommitting(
+                                                                yKey,
+                                                            )}
                                                             commitErrorContext={`[graph-controls] failed to commit ${yKey} input`}
                                                         />
                                                         {yError ? (
@@ -470,11 +597,11 @@ export default React.memo(function LineSegmentGraphControls({
                                             }
                                             value={coords.y}
                                             onChange={(value, transient) => {
-                                                moveEndpoint({
+                                                updateEndpointAxis({
                                                     lineSegment,
                                                     endpoint,
-                                                    x: coords.x,
-                                                    y: value,
+                                                    axis: "y",
+                                                    value,
                                                     transient,
                                                 }).catch(() => {});
                                             }}
