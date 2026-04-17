@@ -253,13 +253,15 @@ describe(
             cy.get('[aria-label="radius for C"]').should("have.value", "6");
 
             cy.get('[aria-label="endpoint 1 x coordinate for L"]').trigger(
-                "mousedown",
+                "pointerdown",
+                { pointerId: 1, buttons: 1 },
             );
             cy.get('[aria-label="endpoint 1 x coordinate for L"]')
                 .invoke("val", "4")
                 .trigger("input");
             cy.get('[aria-label="endpoint 1 x coordinate for L"]').trigger(
-                "mouseup",
+                "pointerup",
+                { pointerId: 1, buttons: 0 },
             );
             cy.get("#LEndpoint1X").should("have.text", "4");
             cy.get('[aria-label="endpoint 1 x coordinate for L"]').should(
@@ -678,7 +680,8 @@ describe(
             );
 
             cy.get('[aria-label="x coordinate for Point 1"]').trigger(
-                "mousedown",
+                "pointerdown",
+                { pointerId: 1, buttons: 1 },
             );
             cy.get('[aria-label="x coordinate for Point 1"]')
                 .invoke("val", "5.6")
@@ -692,7 +695,8 @@ describe(
             );
 
             cy.get('[aria-label="x coordinate for Point 1"]').trigger(
-                "mouseup",
+                "pointerup",
+                { pointerId: 1, buttons: 0 },
             );
             cy.get("#Qx").should("have.text", "5.6");
             cy.get("#Qy").should("have.text", "4");
