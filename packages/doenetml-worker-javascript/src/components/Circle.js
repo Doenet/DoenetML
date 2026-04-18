@@ -2965,28 +2965,14 @@ export default class Circle extends Curve {
 
         if (pointRole !== "center") {
             console.warn(`Invalid pointRole for circle: ${pointRole}`);
-            return await this.coreFunctions.performUpdate({
-                updateInstructions: [],
-                transient,
-                skippable,
-                actionId,
-                sourceInformation,
-                skipRendererUpdate,
-            });
+            return;
         }
 
         if (!Number.isFinite(x) || !Number.isFinite(y)) {
             console.warn(
                 `Invalid center coordinates for circle move: x=${x}, y=${y}`,
             );
-            return await this.coreFunctions.performUpdate({
-                updateInstructions: [],
-                transient,
-                skippable,
-                actionId,
-                sourceInformation,
-                skipRendererUpdate,
-            });
+            return;
         }
 
         const center = [x, y];
