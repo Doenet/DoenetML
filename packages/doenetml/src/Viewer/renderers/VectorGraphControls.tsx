@@ -1,7 +1,9 @@
 import React, { useMemo } from "react";
-import GraphControlsCommitInput from "./components/graphControls/GraphControlsCommitInput";
+import GraphControl from "./components/graphControls/GraphControl";
 import GraphControlsPanel from "./components/graphControls/GraphControlsPanel";
-import SliderUI from "./utils/SliderUI";
+import PointControl from "./components/graphControls/PointControl";
+import { useGraphControlsInputState } from "./hooks/useGraphControlsInputState";
+import { useLatestControlValues } from "./hooks/useLatestControlValues";
 import {
     makeInputErrorId,
     normalizeGraphControlsMode,
@@ -11,14 +13,13 @@ import {
 } from "./utils/graphControls";
 import {
     formatCoordinateForControls,
+    parseOrderedPair,
     parseSingleMathNumber,
 } from "./utils/graphControlsMath";
 import {
     accessibleLabelText,
     renderLabelWithLatex,
 } from "./utils/labelWithLatex";
-import { useGraphControlsInputState } from "./hooks/useGraphControlsInputState";
-import { useLatestControlValues } from "./hooks/useLatestControlValues";
 
 type VectorControlState = {
     displacement: { x: number; y: number };
@@ -41,6 +42,24 @@ type VectorGraphControlsProps = {
     callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };
 
+type VectorPointControlConfig = {
+    vector: GraphControlVector;
+    field: VectorField;
+    sectionHeading?: React.ReactNode;
+    sectionHeadingHasDivider?: boolean;
+    controlId: string;
+    labelForAria: string;
+    xInputKey: string;
+    yInputKey: string;
+    pairInputKey: string;
+    xLabel: string;
+    yLabel: string;
+    xSliderAriaLabel: string;
+    ySliderAriaLabel: string;
+    xInputAriaLabel: string;
+    yInputAriaLabel: string;
+};
+
 export default React.memo(function VectorGraphControls({
     id,
     SVs,
@@ -50,11 +69,7 @@ export default React.memo(function VectorGraphControls({
     if (graphControlsMode === "none") {
         return null;
     }
-
-    const includeSliders =
-        graphControlsMode === "all" || graphControlsMode === "slidersonly";
-    const includeInputs =
-        graphControlsMode === "all" || graphControlsMode === "inputsonly";
+    const nonNoneGraphControlsMode = graphControlsMode;
 
     const vectors = Array.isArray(SVs.draggableVectorsForControls)
         ? SVs.draggableVectorsForControls
@@ -65,6 +80,8 @@ export default React.memo(function VectorGraphControls({
 
     const { min: xMin, max: xMax } = normalizedSliderBounds(SVs.xMin, SVs.xMax);
     const { min: yMin, max: yMax } = normalizedSliderBounds(SVs.yMin, SVs.yMax);
+    const xStep = xMax !== xMin ? (xMax - xMin) / 100 : 1;
+    const yStep = yMax !== yMin ? (yMax - yMin) / 100 : 1;
 
     const {
         draftByKey,
@@ -76,14 +93,7 @@ export default React.memo(function VectorGraphControls({
     } = useGraphControlsInputState();
 
     const latestVectorValuesByKey = useMemo(() => {
-        const valuesByKey: Record<
-            string,
-            {
-                displacement: { x: number; y: number };
-                head: { x: number; y: number };
-                tail: { x: number; y: number };
-            }
-        > = {};
+        const valuesByKey: Record<string, VectorControlState> = {};
 
         for (const vector of vectors) {
             valuesByKey[String(vector.componentIdx)] = {
@@ -227,6 +237,52 @@ export default React.memo(function VectorGraphControls({
         }
     }
 
+    async function updateVectorField({
+        vector,
+        field,
+        value,
+        transient,
+    }: {
+        vector: GraphControlVector;
+        field: VectorField;
+        value: { x: number; y: number };
+        transient: boolean;
+    }) {
+        const latest = getVectorState(vector);
+
+        setVectorState(vector, {
+            ...latest,
+            [field]: value,
+        });
+
+        if (field === "displacement") {
+            await moveDisplacement({
+                vector,
+                dx: value.x,
+                dy: value.y,
+                transient,
+            });
+            return;
+        }
+
+        if (field === "head") {
+            await moveHead({
+                vector,
+                hx: value.x,
+                hy: value.y,
+                transient,
+            });
+            return;
+        }
+
+        await moveTail({
+            vector,
+            tx: value.x,
+            ty: value.y,
+            transient,
+        });
+    }
+
     async function updateVectorFieldAxis({
         vector,
         field,
@@ -246,35 +302,10 @@ export default React.memo(function VectorGraphControls({
             y: axis === "y" ? value : latest[field].y,
         };
 
-        setVectorState(vector, {
-            ...latest,
-            [field]: nextFieldValue,
-        });
-
-        if (field === "displacement") {
-            await moveDisplacement({
-                vector,
-                dx: nextFieldValue.x,
-                dy: nextFieldValue.y,
-                transient,
-            });
-            return;
-        }
-
-        if (field === "head") {
-            await moveHead({
-                vector,
-                hx: nextFieldValue.x,
-                hy: nextFieldValue.y,
-                transient,
-            });
-            return;
-        }
-
-        await moveTail({
+        await updateVectorField({
             vector,
-            tx: nextFieldValue.x,
-            ty: nextFieldValue.y,
+            field,
+            value: nextFieldValue,
             transient,
         });
     }
@@ -332,134 +363,189 @@ export default React.memo(function VectorGraphControls({
         });
     }
 
-    function makeSliderRow({
-        id: sliderId,
-        label,
-        ariaLabel,
-        inputKey,
-        displayValue,
-        min,
-        max,
-        step,
-        value,
-        onChange,
-        onCommit,
+    async function commitVectorFieldPairInput({
+        vector,
+        key,
+        field,
+        rawValue,
     }: {
-        id: string;
-        label: string;
-        ariaLabel: string;
-        inputKey: string;
-        displayValue: string;
-        min: number;
-        max: number;
-        step: number;
-        value: number;
-        onChange: (v: number, transient: boolean) => void;
-        onCommit: (rawValue: string) => Promise<void>;
+        vector: GraphControlVector;
+        key: string;
+        field: VectorField;
+        rawValue: string;
     }) {
-        const display = draftByKey[inputKey] ?? displayValue;
-        const error = errorByKey[inputKey];
-        const errorId = makeInputErrorId(id, "vector", inputKey);
+        const latest = getVectorState(vector);
+        const currentValue = latest[field];
+
+        await commitParsedInput({
+            key,
+            rawValue,
+            parse: parseOrderedPair,
+            errorMessage:
+                "Enter an ordered pair like (x,y) with numeric values.",
+            isUnchanged: (value) => {
+                return value.x === currentValue.x && value.y === currentValue.y;
+            },
+            onParsed: async (value) => {
+                await updateVectorField({
+                    vector,
+                    field,
+                    value,
+                    transient: false,
+                });
+            },
+        });
+    }
+
+    function renderVectorPointControl({
+        vector,
+        field,
+        sectionHeading,
+        sectionHeadingHasDivider = true,
+        controlId,
+        labelForAria,
+        xInputKey,
+        yInputKey,
+        pairInputKey,
+        xLabel,
+        yLabel,
+        xSliderAriaLabel,
+        ySliderAriaLabel,
+        xInputAriaLabel,
+        yInputAriaLabel,
+    }: VectorPointControlConfig): React.JSX.Element {
+        const currentCoordinates = getVectorState(vector)[field];
+        const xDisplay = formatCoordinateForControls(
+            currentCoordinates.x,
+            vector,
+        );
+        const yDisplay = formatCoordinateForControls(
+            currentCoordinates.y,
+            vector,
+        );
+        const xErrorId = makeInputErrorId(id, "vector", xInputKey);
+        const yErrorId = makeInputErrorId(id, "vector", yInputKey);
+
         return (
-            <SliderUI
-                key={sliderId}
-                id={sliderId}
-                label={
-                    includeInputs ? (
-                        <span
-                            style={{
-                                display: "inline-flex",
-                                flexDirection: "column",
-                            }}
-                        >
-                            {label}:{" "}
-                            <GraphControlsCommitInput
-                                value={draftByKey[inputKey] ?? displayValue}
-                                ariaLabel={`${ariaLabel} input`}
-                                ariaInvalid={Boolean(error)}
-                                ariaDescribedBy={error ? errorId : undefined}
-                                onChange={(value) => setDraft(inputKey, value)}
-                                onCommit={onCommit}
-                                hasDraft={hasDraft(inputKey)}
-                                isCommitting={isCommitting(inputKey)}
-                                commitErrorContext={`[graph-controls] failed to commit ${inputKey} input`}
-                            />
-                            {error ? (
-                                <span
-                                    id={errorId}
-                                    style={{
-                                        color: "#b00020",
-                                        fontSize: "0.85em",
-                                    }}
-                                >
-                                    {error}
-                                </span>
-                            ) : null}
-                        </span>
-                    ) : (
-                        `${label}: ${display}`
-                    )
-                }
-                ariaLabel={ariaLabel}
-                min={min}
-                max={max}
-                step={step}
-                value={value}
-                onChange={(v, transient) => onChange(v, transient)}
+            <PointControl
+                key={controlId}
+                id={id}
+                controlId={controlId}
+                sectionHeading={sectionHeading}
+                sectionHeadingHasDivider={sectionHeadingHasDivider}
+                labelForAria={labelForAria}
+                graphControlsMode={nonNoneGraphControlsMode}
+                controlsMode="both"
+                pairInput={{
+                    value:
+                        draftByKey[pairInputKey] ?? `(${xDisplay},${yDisplay})`,
+                    ariaLabel: `coordinates for ${labelForAria}`,
+                    error: errorByKey[pairInputKey],
+                    errorId: makeInputErrorId(id, "vector", pairInputKey),
+                    onDraftChange: (value) => {
+                        setDraft(pairInputKey, value);
+                    },
+                    onCommit: async (rawValue) => {
+                        await commitVectorFieldPairInput({
+                            vector,
+                            key: pairInputKey,
+                            field,
+                            rawValue,
+                        });
+                    },
+                    hasDraft: hasDraft(pairInputKey),
+                    isCommitting: isCommitting(pairInputKey),
+                    commitErrorContext: `[graph-controls] failed to commit ${pairInputKey} input`,
+                }}
+                axisControls={{
+                    x: {
+                        label: xLabel,
+                        sliderAriaLabel: xSliderAriaLabel,
+                        displayValue: xDisplay,
+                        min: xMin,
+                        max: xMax,
+                        step: xStep,
+                        value: currentCoordinates.x,
+                        onSliderChange: (nextValue, transient) => {
+                            updateVectorFieldAxis({
+                                vector,
+                                field,
+                                axis: "x",
+                                value: nextValue,
+                                transient,
+                            }).catch(() => {});
+                        },
+                        input: {
+                            value: draftByKey[xInputKey] ?? xDisplay,
+                            ariaLabel: xInputAriaLabel,
+                            error: errorByKey[xInputKey],
+                            errorId: xErrorId,
+                            onDraftChange: (value) => {
+                                setDraft(xInputKey, value);
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: xInputKey,
+                                    field,
+                                    axis: "x",
+                                    rawValue,
+                                });
+                            },
+                            hasDraft: hasDraft(xInputKey),
+                            isCommitting: isCommitting(xInputKey),
+                            commitErrorContext: `[graph-controls] failed to commit ${xInputKey} input`,
+                        },
+                    },
+                    y: {
+                        label: yLabel,
+                        sliderAriaLabel: ySliderAriaLabel,
+                        displayValue: yDisplay,
+                        min: yMin,
+                        max: yMax,
+                        step: yStep,
+                        value: currentCoordinates.y,
+                        onSliderChange: (nextValue, transient) => {
+                            updateVectorFieldAxis({
+                                vector,
+                                field,
+                                axis: "y",
+                                value: nextValue,
+                                transient,
+                            }).catch(() => {});
+                        },
+                        input: {
+                            value: draftByKey[yInputKey] ?? yDisplay,
+                            ariaLabel: yInputAriaLabel,
+                            error: errorByKey[yInputKey],
+                            errorId: yErrorId,
+                            onDraftChange: (value) => {
+                                setDraft(yInputKey, value);
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitVectorFieldAxisInput({
+                                    vector,
+                                    key: yInputKey,
+                                    field,
+                                    axis: "y",
+                                    rawValue,
+                                });
+                            },
+                            hasDraft: hasDraft(yInputKey),
+                            isCommitting: isCommitting(yInputKey),
+                            commitErrorContext: `[graph-controls] failed to commit ${yInputKey} input`,
+                        },
+                    },
+                }}
             />
         );
     }
 
-    function makeInputOnlyRow({
-        label,
-        ariaLabel,
-        inputKey,
-        displayValue,
-        value,
-        onChange,
-        onCommit,
-    }: {
-        label: string;
-        ariaLabel: string;
-        inputKey: string;
-        displayValue: string;
-        value: number;
-        onChange: (v: number) => void;
-        onCommit: (rawValue: string) => Promise<void>;
-    }) {
-        const error = errorByKey[inputKey];
-        const errorId = makeInputErrorId(id, "vector", inputKey);
-        return (
-            <label key={inputKey}>
-                {label}
-                <GraphControlsCommitInput
-                    value={draftByKey[inputKey] ?? displayValue}
-                    ariaLabel={`${ariaLabel} input`}
-                    ariaInvalid={Boolean(error)}
-                    ariaDescribedBy={error ? errorId : undefined}
-                    onChange={(value) => setDraft(inputKey, value)}
-                    onCommit={onCommit}
-                    hasDraft={hasDraft(inputKey)}
-                    isCommitting={isCommitting(inputKey)}
-                    commitErrorContext={`[graph-controls] failed to commit ${inputKey} input`}
-                />
-                {error ? (
-                    <span
-                        id={errorId}
-                        style={{ color: "#b00020", fontSize: "0.85em" }}
-                    >
-                        {error}
-                    </span>
-                ) : null}
-            </label>
-        );
-    }
-
     const cards = vectors
-        .map((vector) => {
+        .reduce<React.JSX.Element[]>((acc, vector) => {
             const mode = normalizeVectorControlsMode(vector.addControls);
             if (mode === "none") {
-                return null;
+                return acc;
             }
 
             const fallbackLabel = `Vector ${vector.vectorNumber}`;
@@ -476,676 +562,140 @@ export default React.memo(function VectorGraphControls({
                 : fallbackLabel;
 
             const cIdx = vector.componentIdx;
-            const xStep = xMax !== xMin ? (xMax - xMin) / 100 : 1;
-            const yStep = yMax !== yMin ? (yMax - yMin) / 100 : 1;
-
-            let sliderRows: React.JSX.Element[] = [];
-            let inputRows: React.JSX.Element[] = [];
 
             if (mode === "displacement") {
-                const dxKey = `${cIdx}|dx`;
-                const dyKey = `${cIdx}|dy`;
-                const dxDisplay = formatCoordinateForControls(
-                    vector.displacement.x,
-                    vector,
+                acc.push(
+                    <GraphControl
+                        key={`${cIdx}-displacement`}
+                        id={`${id}-vector-${cIdx}`}
+                        headingId={`${id}-vector-${cIdx}-heading`}
+                        heading={labelForDisplay}
+                    >
+                        {renderVectorPointControl({
+                            vector,
+                            field: "displacement",
+                            controlId: `vector-${cIdx}-displacement`,
+                            labelForAria: `displacement for ${labelForAria}`,
+                            xInputKey: `${cIdx}|dx`,
+                            yInputKey: `${cIdx}|dy`,
+                            pairInputKey: `${cIdx}|dpair`,
+                            xLabel: "Δx",
+                            yLabel: "Δy",
+                            xSliderAriaLabel: `displacement x for ${labelForAria}`,
+                            ySliderAriaLabel: `displacement y for ${labelForAria}`,
+                            xInputAriaLabel: `displacement x for ${labelForAria} input`,
+                            yInputAriaLabel: `displacement y for ${labelForAria} input`,
+                        })}
+                    </GraphControl>,
                 );
-                const dyDisplay = formatCoordinateForControls(
-                    vector.displacement.y,
-                    vector,
-                );
-
-                if (includeSliders) {
-                    sliderRows.push(
-                        makeSliderRow({
-                            id: `${id}-vector-${cIdx}-dx`,
-                            label: "Δx",
-                            ariaLabel: `displacement x for ${labelForAria}`,
-                            inputKey: dxKey,
-                            displayValue: dxDisplay,
-                            min: xMin,
-                            max: xMax,
-                            step: xStep,
-                            value: vector.displacement.x,
-                            onChange: (v, transient) => {
-                                updateVectorFieldAxis({
-                                    vector,
-                                    field: "displacement",
-                                    axis: "x",
-                                    value: v,
-                                    transient,
-                                }).catch(() => {});
-                            },
-                            onCommit: async (rawValue) => {
-                                await commitVectorFieldAxisInput({
-                                    vector,
-                                    key: dxKey,
-                                    field: "displacement",
-                                    axis: "x",
-                                    rawValue,
-                                });
-                            },
-                        }),
-                        makeSliderRow({
-                            id: `${id}-vector-${cIdx}-dy`,
-                            label: "Δy",
-                            ariaLabel: `displacement y for ${labelForAria}`,
-                            inputKey: dyKey,
-                            displayValue: dyDisplay,
-                            min: yMin,
-                            max: yMax,
-                            step: yStep,
-                            value: vector.displacement.y,
-                            onChange: (v, transient) => {
-                                updateVectorFieldAxis({
-                                    vector,
-                                    field: "displacement",
-                                    axis: "y",
-                                    value: v,
-                                    transient,
-                                }).catch(() => {});
-                            },
-                            onCommit: async (rawValue) => {
-                                await commitVectorFieldAxisInput({
-                                    vector,
-                                    key: dyKey,
-                                    field: "displacement",
-                                    axis: "y",
-                                    rawValue,
-                                });
-                            },
-                        }),
-                    );
-                }
-                if (!includeSliders && includeInputs) {
-                    inputRows.push(
-                        makeInputOnlyRow({
-                            label: "Δx",
-                            ariaLabel: `displacement x for ${labelForAria}`,
-                            inputKey: dxKey,
-                            displayValue: dxDisplay,
-                            value: vector.displacement.x,
-                            onChange: (v) => {
-                                updateVectorFieldAxis({
-                                    vector,
-                                    field: "displacement",
-                                    axis: "x",
-                                    value: v,
-                                    transient: false,
-                                }).catch(() => {});
-                            },
-                            onCommit: async (rawValue) => {
-                                await commitVectorFieldAxisInput({
-                                    vector,
-                                    key: dxKey,
-                                    field: "displacement",
-                                    axis: "x",
-                                    rawValue,
-                                });
-                            },
-                        }),
-                        makeInputOnlyRow({
-                            label: "Δy",
-                            ariaLabel: `displacement y for ${labelForAria}`,
-                            inputKey: dyKey,
-                            displayValue: dyDisplay,
-                            value: vector.displacement.y,
-                            onChange: (v) => {
-                                updateVectorFieldAxis({
-                                    vector,
-                                    field: "displacement",
-                                    axis: "y",
-                                    value: v,
-                                    transient: false,
-                                }).catch(() => {});
-                            },
-                            onCommit: async (rawValue) => {
-                                await commitVectorFieldAxisInput({
-                                    vector,
-                                    key: dyKey,
-                                    field: "displacement",
-                                    axis: "y",
-                                    rawValue,
-                                });
-                            },
-                        }),
-                    );
-                }
-            } else if (mode === "headonly") {
-                const hxKey = `${cIdx}|hx`;
-                const hyKey = `${cIdx}|hy`;
-                const hxDisplay = formatCoordinateForControls(
-                    vector.head.x,
-                    vector,
-                );
-                const hyDisplay = formatCoordinateForControls(
-                    vector.head.y,
-                    vector,
-                );
-
-                if (includeSliders) {
-                    sliderRows.push(
-                        makeSliderRow({
-                            id: `${id}-vector-${cIdx}-hx`,
-                            label: "head x",
-                            ariaLabel: `head x for ${labelForAria}`,
-                            inputKey: hxKey,
-                            displayValue: hxDisplay,
-                            min: xMin,
-                            max: xMax,
-                            step: xStep,
-                            value: vector.head.x,
-                            onChange: (v, transient) => {
-                                updateVectorFieldAxis({
-                                    vector,
-                                    field: "head",
-                                    axis: "x",
-                                    value: v,
-                                    transient,
-                                }).catch(() => {});
-                            },
-                            onCommit: async (rawValue) => {
-                                await commitVectorFieldAxisInput({
-                                    vector,
-                                    key: hxKey,
-                                    field: "head",
-                                    axis: "x",
-                                    rawValue,
-                                });
-                            },
-                        }),
-                        makeSliderRow({
-                            id: `${id}-vector-${cIdx}-hy`,
-                            label: "head y",
-                            ariaLabel: `head y for ${labelForAria}`,
-                            inputKey: hyKey,
-                            displayValue: hyDisplay,
-                            min: yMin,
-                            max: yMax,
-                            step: yStep,
-                            value: vector.head.y,
-                            onChange: (v, transient) => {
-                                updateVectorFieldAxis({
-                                    vector,
-                                    field: "head",
-                                    axis: "y",
-                                    value: v,
-                                    transient,
-                                }).catch(() => {});
-                            },
-                            onCommit: async (rawValue) => {
-                                await commitVectorFieldAxisInput({
-                                    vector,
-                                    key: hyKey,
-                                    field: "head",
-                                    axis: "y",
-                                    rawValue,
-                                });
-                            },
-                        }),
-                    );
-                }
-                if (!includeSliders && includeInputs) {
-                    inputRows.push(
-                        makeInputOnlyRow({
-                            label: "head x",
-                            ariaLabel: `head x for ${labelForAria}`,
-                            inputKey: hxKey,
-                            displayValue: hxDisplay,
-                            value: vector.head.x,
-                            onChange: (v) => {
-                                updateVectorFieldAxis({
-                                    vector,
-                                    field: "head",
-                                    axis: "x",
-                                    value: v,
-                                    transient: false,
-                                }).catch(() => {});
-                            },
-                            onCommit: async (rawValue) => {
-                                await commitVectorFieldAxisInput({
-                                    vector,
-                                    key: hxKey,
-                                    field: "head",
-                                    axis: "x",
-                                    rawValue,
-                                });
-                            },
-                        }),
-                        makeInputOnlyRow({
-                            label: "head y",
-                            ariaLabel: `head y for ${labelForAria}`,
-                            inputKey: hyKey,
-                            displayValue: hyDisplay,
-                            value: vector.head.y,
-                            onChange: (v) => {
-                                updateVectorFieldAxis({
-                                    vector,
-                                    field: "head",
-                                    axis: "y",
-                                    value: v,
-                                    transient: false,
-                                }).catch(() => {});
-                            },
-                            onCommit: async (rawValue) => {
-                                await commitVectorFieldAxisInput({
-                                    vector,
-                                    key: hyKey,
-                                    field: "head",
-                                    axis: "y",
-                                    rawValue,
-                                });
-                            },
-                        }),
-                    );
-                }
-            } else if (mode === "tailonly") {
-                const txKey = `${cIdx}|tx`;
-                const tyKey = `${cIdx}|ty`;
-                const txDisplay = formatCoordinateForControls(
-                    vector.tail.x,
-                    vector,
-                );
-                const tyDisplay = formatCoordinateForControls(
-                    vector.tail.y,
-                    vector,
-                );
-
-                if (includeSliders) {
-                    sliderRows.push(
-                        makeSliderRow({
-                            id: `${id}-vector-${cIdx}-tx`,
-                            label: "tail x",
-                            ariaLabel: `tail x for ${labelForAria}`,
-                            inputKey: txKey,
-                            displayValue: txDisplay,
-                            min: xMin,
-                            max: xMax,
-                            step: xStep,
-                            value: vector.tail.x,
-                            onChange: (v, transient) => {
-                                updateVectorFieldAxis({
-                                    vector,
-                                    field: "tail",
-                                    axis: "x",
-                                    value: v,
-                                    transient,
-                                }).catch(() => {});
-                            },
-                            onCommit: async (rawValue) => {
-                                await commitVectorFieldAxisInput({
-                                    vector,
-                                    key: txKey,
-                                    field: "tail",
-                                    axis: "x",
-                                    rawValue,
-                                });
-                            },
-                        }),
-                        makeSliderRow({
-                            id: `${id}-vector-${cIdx}-ty`,
-                            label: "tail y",
-                            ariaLabel: `tail y for ${labelForAria}`,
-                            inputKey: tyKey,
-                            displayValue: tyDisplay,
-                            min: yMin,
-                            max: yMax,
-                            step: yStep,
-                            value: vector.tail.y,
-                            onChange: (v, transient) => {
-                                updateVectorFieldAxis({
-                                    vector,
-                                    field: "tail",
-                                    axis: "y",
-                                    value: v,
-                                    transient,
-                                }).catch(() => {});
-                            },
-                            onCommit: async (rawValue) => {
-                                await commitVectorFieldAxisInput({
-                                    vector,
-                                    key: tyKey,
-                                    field: "tail",
-                                    axis: "y",
-                                    rawValue,
-                                });
-                            },
-                        }),
-                    );
-                }
-                if (!includeSliders && includeInputs) {
-                    inputRows.push(
-                        makeInputOnlyRow({
-                            label: "tail x",
-                            ariaLabel: `tail x for ${labelForAria}`,
-                            inputKey: txKey,
-                            displayValue: txDisplay,
-                            value: vector.tail.x,
-                            onChange: (v) => {
-                                updateVectorFieldAxis({
-                                    vector,
-                                    field: "tail",
-                                    axis: "x",
-                                    value: v,
-                                    transient: false,
-                                }).catch(() => {});
-                            },
-                            onCommit: async (rawValue) => {
-                                await commitVectorFieldAxisInput({
-                                    vector,
-                                    key: txKey,
-                                    field: "tail",
-                                    axis: "x",
-                                    rawValue,
-                                });
-                            },
-                        }),
-                        makeInputOnlyRow({
-                            label: "tail y",
-                            ariaLabel: `tail y for ${labelForAria}`,
-                            inputKey: tyKey,
-                            displayValue: tyDisplay,
-                            value: vector.tail.y,
-                            onChange: (v) => {
-                                updateVectorFieldAxis({
-                                    vector,
-                                    field: "tail",
-                                    axis: "y",
-                                    value: v,
-                                    transient: false,
-                                }).catch(() => {});
-                            },
-                            onCommit: async (rawValue) => {
-                                await commitVectorFieldAxisInput({
-                                    vector,
-                                    key: tyKey,
-                                    field: "tail",
-                                    axis: "y",
-                                    rawValue,
-                                });
-                            },
-                        }),
-                    );
-                }
-            } else if (mode === "headandtail") {
-                const hxKey = `${cIdx}|hx`;
-                const hyKey = `${cIdx}|hy`;
-                const txKey = `${cIdx}|tx`;
-                const tyKey = `${cIdx}|ty`;
-                const hxDisplay = formatCoordinateForControls(
-                    vector.head.x,
-                    vector,
-                );
-                const hyDisplay = formatCoordinateForControls(
-                    vector.head.y,
-                    vector,
-                );
-                const txDisplay = formatCoordinateForControls(
-                    vector.tail.x,
-                    vector,
-                );
-                const tyDisplay = formatCoordinateForControls(
-                    vector.tail.y,
-                    vector,
-                );
-
-                if (includeSliders) {
-                    sliderRows.push(
-                        makeSliderRow({
-                            id: `${id}-vector-${cIdx}-hx`,
-                            label: "head x",
-                            ariaLabel: `head x for ${labelForAria}`,
-                            inputKey: hxKey,
-                            displayValue: hxDisplay,
-                            min: xMin,
-                            max: xMax,
-                            step: xStep,
-                            value: vector.head.x,
-                            onChange: (v, transient) => {
-                                updateVectorFieldAxis({
-                                    vector,
-                                    field: "head",
-                                    axis: "x",
-                                    value: v,
-                                    transient,
-                                }).catch(() => {});
-                            },
-                            onCommit: async (rawValue) => {
-                                await commitVectorFieldAxisInput({
-                                    vector,
-                                    key: hxKey,
-                                    field: "head",
-                                    axis: "x",
-                                    rawValue,
-                                });
-                            },
-                        }),
-                        makeSliderRow({
-                            id: `${id}-vector-${cIdx}-hy`,
-                            label: "head y",
-                            ariaLabel: `head y for ${labelForAria}`,
-                            inputKey: hyKey,
-                            displayValue: hyDisplay,
-                            min: yMin,
-                            max: yMax,
-                            step: yStep,
-                            value: vector.head.y,
-                            onChange: (v, transient) => {
-                                updateVectorFieldAxis({
-                                    vector,
-                                    field: "head",
-                                    axis: "y",
-                                    value: v,
-                                    transient,
-                                }).catch(() => {});
-                            },
-                            onCommit: async (rawValue) => {
-                                await commitVectorFieldAxisInput({
-                                    vector,
-                                    key: hyKey,
-                                    field: "head",
-                                    axis: "y",
-                                    rawValue,
-                                });
-                            },
-                        }),
-                        makeSliderRow({
-                            id: `${id}-vector-${cIdx}-tx`,
-                            label: "tail x",
-                            ariaLabel: `tail x for ${labelForAria}`,
-                            inputKey: txKey,
-                            displayValue: txDisplay,
-                            min: xMin,
-                            max: xMax,
-                            step: xStep,
-                            value: vector.tail.x,
-                            onChange: (v, transient) => {
-                                updateVectorFieldAxis({
-                                    vector,
-                                    field: "tail",
-                                    axis: "x",
-                                    value: v,
-                                    transient,
-                                }).catch(() => {});
-                            },
-                            onCommit: async (rawValue) => {
-                                await commitVectorFieldAxisInput({
-                                    vector,
-                                    key: txKey,
-                                    field: "tail",
-                                    axis: "x",
-                                    rawValue,
-                                });
-                            },
-                        }),
-                        makeSliderRow({
-                            id: `${id}-vector-${cIdx}-ty`,
-                            label: "tail y",
-                            ariaLabel: `tail y for ${labelForAria}`,
-                            inputKey: tyKey,
-                            displayValue: tyDisplay,
-                            min: yMin,
-                            max: yMax,
-                            step: yStep,
-                            value: vector.tail.y,
-                            onChange: (v, transient) => {
-                                updateVectorFieldAxis({
-                                    vector,
-                                    field: "tail",
-                                    axis: "y",
-                                    value: v,
-                                    transient,
-                                }).catch(() => {});
-                            },
-                            onCommit: async (rawValue) => {
-                                await commitVectorFieldAxisInput({
-                                    vector,
-                                    key: tyKey,
-                                    field: "tail",
-                                    axis: "y",
-                                    rawValue,
-                                });
-                            },
-                        }),
-                    );
-                }
-                if (!includeSliders && includeInputs) {
-                    inputRows.push(
-                        makeInputOnlyRow({
-                            label: "head x",
-                            ariaLabel: `head x for ${labelForAria}`,
-                            inputKey: hxKey,
-                            displayValue: hxDisplay,
-                            value: vector.head.x,
-                            onChange: (v) => {
-                                updateVectorFieldAxis({
-                                    vector,
-                                    field: "head",
-                                    axis: "x",
-                                    value: v,
-                                    transient: false,
-                                }).catch(() => {});
-                            },
-                            onCommit: async (rawValue) => {
-                                await commitVectorFieldAxisInput({
-                                    vector,
-                                    key: hxKey,
-                                    field: "head",
-                                    axis: "x",
-                                    rawValue,
-                                });
-                            },
-                        }),
-                        makeInputOnlyRow({
-                            label: "head y",
-                            ariaLabel: `head y for ${labelForAria}`,
-                            inputKey: hyKey,
-                            displayValue: hyDisplay,
-                            value: vector.head.y,
-                            onChange: (v) => {
-                                updateVectorFieldAxis({
-                                    vector,
-                                    field: "head",
-                                    axis: "y",
-                                    value: v,
-                                    transient: false,
-                                }).catch(() => {});
-                            },
-                            onCommit: async (rawValue) => {
-                                await commitVectorFieldAxisInput({
-                                    vector,
-                                    key: hyKey,
-                                    field: "head",
-                                    axis: "y",
-                                    rawValue,
-                                });
-                            },
-                        }),
-                        makeInputOnlyRow({
-                            label: "tail x",
-                            ariaLabel: `tail x for ${labelForAria}`,
-                            inputKey: txKey,
-                            displayValue: txDisplay,
-                            value: vector.tail.x,
-                            onChange: (v) => {
-                                updateVectorFieldAxis({
-                                    vector,
-                                    field: "tail",
-                                    axis: "x",
-                                    value: v,
-                                    transient: false,
-                                }).catch(() => {});
-                            },
-                            onCommit: async (rawValue) => {
-                                await commitVectorFieldAxisInput({
-                                    vector,
-                                    key: txKey,
-                                    field: "tail",
-                                    axis: "x",
-                                    rawValue,
-                                });
-                            },
-                        }),
-                        makeInputOnlyRow({
-                            label: "tail y",
-                            ariaLabel: `tail y for ${labelForAria}`,
-                            inputKey: tyKey,
-                            displayValue: tyDisplay,
-                            value: vector.tail.y,
-                            onChange: (v) => {
-                                updateVectorFieldAxis({
-                                    vector,
-                                    field: "tail",
-                                    axis: "y",
-                                    value: v,
-                                    transient: false,
-                                }).catch(() => {});
-                            },
-                            onCommit: async (rawValue) => {
-                                await commitVectorFieldAxisInput({
-                                    vector,
-                                    key: tyKey,
-                                    field: "tail",
-                                    axis: "y",
-                                    rawValue,
-                                });
-                            },
-                        }),
-                    );
-                }
+                return acc;
             }
 
-            if (sliderRows.length === 0 && inputRows.length === 0) {
-                return null;
+            if (mode === "headonly") {
+                acc.push(
+                    <GraphControl
+                        key={`${cIdx}-head`}
+                        id={`${id}-vector-${cIdx}`}
+                        headingId={`${id}-vector-${cIdx}-heading`}
+                        heading={labelForDisplay}
+                    >
+                        {renderVectorPointControl({
+                            vector,
+                            field: "head",
+                            controlId: `vector-${cIdx}-head`,
+                            labelForAria: `head for ${labelForAria}`,
+                            xInputKey: `${cIdx}|hx`,
+                            yInputKey: `${cIdx}|hy`,
+                            pairInputKey: `${cIdx}|hpair`,
+                            xLabel: "head x",
+                            yLabel: "head y",
+                            xSliderAriaLabel: `head x for ${labelForAria}`,
+                            ySliderAriaLabel: `head y for ${labelForAria}`,
+                            xInputAriaLabel: `head x for ${labelForAria} input`,
+                            yInputAriaLabel: `head y for ${labelForAria} input`,
+                        })}
+                    </GraphControl>,
+                );
+                return acc;
             }
 
-            return (
-                <div
-                    key={vector.componentIdx}
-                    style={{
-                        width: "100%",
-                        boxSizing: "border-box",
-                        padding: "10px",
-                        border: "1px solid var(--canvasText)",
-                        borderRadius: "8px",
-                    }}
-                >
-                    <div style={{ fontWeight: 600 }}>{labelForDisplay}</div>
-                    {inputRows.length > 0 ? (
-                        <div
-                            style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: "6px",
-                                marginTop: "8px",
-                            }}
-                        >
-                            {inputRows}
-                        </div>
-                    ) : null}
-                    {sliderRows}
-                </div>
-            );
-        })
+            if (mode === "tailonly") {
+                acc.push(
+                    <GraphControl
+                        key={`${cIdx}-tail`}
+                        id={`${id}-vector-${cIdx}`}
+                        headingId={`${id}-vector-${cIdx}-heading`}
+                        heading={labelForDisplay}
+                    >
+                        {renderVectorPointControl({
+                            vector,
+                            field: "tail",
+                            controlId: `vector-${cIdx}-tail`,
+                            labelForAria: `tail for ${labelForAria}`,
+                            xInputKey: `${cIdx}|tx`,
+                            yInputKey: `${cIdx}|ty`,
+                            pairInputKey: `${cIdx}|tpair`,
+                            xLabel: "tail x",
+                            yLabel: "tail y",
+                            xSliderAriaLabel: `tail x for ${labelForAria}`,
+                            ySliderAriaLabel: `tail y for ${labelForAria}`,
+                            xInputAriaLabel: `tail x for ${labelForAria} input`,
+                            yInputAriaLabel: `tail y for ${labelForAria} input`,
+                        })}
+                    </GraphControl>,
+                );
+                return acc;
+            }
+
+            if (mode === "headandtail") {
+                acc.push(
+                    <GraphControl
+                        key={`${cIdx}-headandtail`}
+                        id={`${id}-vector-${cIdx}`}
+                        headingId={`${id}-vector-${cIdx}-heading`}
+                        heading={labelForDisplay}
+                    >
+                        {renderVectorPointControl({
+                            vector,
+                            field: "head",
+                            sectionHeading: "Head",
+                            sectionHeadingHasDivider: false,
+                            controlId: `vector-${cIdx}-head`,
+                            labelForAria: `head for ${labelForAria}`,
+                            xInputKey: `${cIdx}|hx`,
+                            yInputKey: `${cIdx}|hy`,
+                            pairInputKey: `${cIdx}|hpair`,
+                            xLabel: "head x",
+                            yLabel: "head y",
+                            xSliderAriaLabel: `head x for ${labelForAria}`,
+                            ySliderAriaLabel: `head y for ${labelForAria}`,
+                            xInputAriaLabel: `head x for ${labelForAria} input`,
+                            yInputAriaLabel: `head y for ${labelForAria} input`,
+                        })}
+                        {renderVectorPointControl({
+                            vector,
+                            field: "tail",
+                            sectionHeading: "Tail",
+                            sectionHeadingHasDivider: true,
+                            controlId: `vector-${cIdx}-tail`,
+                            labelForAria: `tail for ${labelForAria}`,
+                            xInputKey: `${cIdx}|tx`,
+                            yInputKey: `${cIdx}|ty`,
+                            pairInputKey: `${cIdx}|tpair`,
+                            xLabel: "tail x",
+                            yLabel: "tail y",
+                            xSliderAriaLabel: `tail x for ${labelForAria}`,
+                            ySliderAriaLabel: `tail y for ${labelForAria}`,
+                            xInputAriaLabel: `tail x for ${labelForAria} input`,
+                            yInputAriaLabel: `tail y for ${labelForAria} input`,
+                        })}
+                    </GraphControl>,
+                );
+                return acc;
+            }
+
+            return acc;
+        }, [])
         .filter((card): card is React.JSX.Element => Boolean(card));
 
     if (cards.length === 0) {

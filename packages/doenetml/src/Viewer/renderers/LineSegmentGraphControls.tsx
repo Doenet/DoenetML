@@ -1,7 +1,9 @@
 import React, { useMemo } from "react";
-import GraphControlsCommitInput from "./components/graphControls/GraphControlsCommitInput";
+import GraphControl from "./components/graphControls/GraphControl";
 import GraphControlsPanel from "./components/graphControls/GraphControlsPanel";
-import SliderUI from "./utils/SliderUI";
+import PointControl from "./components/graphControls/PointControl";
+import { useGraphControlsInputState } from "./hooks/useGraphControlsInputState";
+import { useLatestControlValues } from "./hooks/useLatestControlValues";
 import {
     makeInputErrorId,
     normalizeGraphControlsMode,
@@ -18,8 +20,6 @@ import {
     accessibleLabelText,
     renderLabelWithLatex,
 } from "./utils/labelWithLatex";
-import { useGraphControlsInputState } from "./hooks/useGraphControlsInputState";
-import { useLatestControlValues } from "./hooks/useLatestControlValues";
 
 type EndpointValue = { x: number; y: number };
 
@@ -36,6 +36,14 @@ type LineSegmentGraphControlsProps = {
     callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };
 
+type EndpointControlConfig = {
+    lineSegment: GraphControlLineSegment;
+    endpoint: 1 | 2;
+    sectionHeading: React.ReactNode;
+    sectionHeadingHasDivider?: boolean;
+    labelForAria: string;
+};
+
 export default React.memo(function LineSegmentGraphControls({
     id,
     SVs,
@@ -45,11 +53,8 @@ export default React.memo(function LineSegmentGraphControls({
     if (graphControlsMode === "none") {
         return null;
     }
+    const nonNoneGraphControlsMode = graphControlsMode;
 
-    const includeSliders =
-        graphControlsMode === "all" || graphControlsMode === "slidersonly";
-    const includeInputs =
-        graphControlsMode === "all" || graphControlsMode === "inputsonly";
 
     const lineSegments = Array.isArray(SVs.draggableLineSegmentsForControls)
         ? SVs.draggableLineSegmentsForControls
@@ -68,7 +73,7 @@ export default React.memo(function LineSegmentGraphControls({
     } = useGraphControlsInputState();
 
     const latestEndpointValuesByKey = useMemo(() => {
-        const valuesByKey: Record<string, { x: number; y: number }> = {};
+        const valuesByKey: Record<string, EndpointValue> = {};
         for (const lineSegment of lineSegments) {
             valuesByKey[`${lineSegment.componentIdx}|1`] = {
                 x: lineSegment.endpoint1.x,
@@ -85,6 +90,11 @@ export default React.memo(function LineSegmentGraphControls({
     const { getLatestValue, setLatestValue } = useLatestControlValues(
         latestEndpointValuesByKey,
     );
+
+    const { min: xMin, max: xMax } = normalizedSliderBounds(SVs.xMin, SVs.xMax);
+    const { min: yMin, max: yMax } = normalizedSliderBounds(SVs.yMin, SVs.yMax);
+    const xStep = xMax !== xMin ? (xMax - xMin) / 100 : 1;
+    const yStep = yMax !== yMin ? (yMax - yMin) / 100 : 1;
 
     function endpointStateKey(
         lineSegment: GraphControlLineSegment,
@@ -118,9 +128,6 @@ export default React.memo(function LineSegmentGraphControls({
         setLatestValue(endpointStateKey(lineSegment, endpoint), value);
     }
 
-    const { min: xMin, max: xMax } = normalizedSliderBounds(SVs.xMin, SVs.xMax);
-    const { min: yMin, max: yMax } = normalizedSliderBounds(SVs.yMin, SVs.yMax);
-
     async function moveEndpoint({
         lineSegment,
         endpoint,
@@ -153,6 +160,36 @@ export default React.memo(function LineSegmentGraphControls({
                 error,
             );
         }
+    }
+
+    async function updateEndpointAxis({
+        lineSegment,
+        endpoint,
+        axis,
+        value,
+        transient,
+    }: {
+        lineSegment: GraphControlLineSegment;
+        endpoint: 1 | 2;
+        axis: "x" | "y";
+        value: number;
+        transient: boolean;
+    }) {
+        const latest = getEndpointState(lineSegment, endpoint);
+        const next = {
+            x: axis === "x" ? value : latest.x,
+            y: axis === "y" ? value : latest.y,
+        };
+
+        setEndpointState(lineSegment, endpoint, next);
+
+        await moveEndpoint({
+            lineSegment,
+            endpoint,
+            x: next.x,
+            y: next.y,
+            transient,
+        });
     }
 
     async function commitNumberInput({
@@ -196,36 +233,6 @@ export default React.memo(function LineSegmentGraphControls({
             isUnchanged: (value) =>
                 value.x === currentValue.x && value.y === currentValue.y,
             onParsed,
-        });
-    }
-
-    async function updateEndpointAxis({
-        lineSegment,
-        endpoint,
-        axis,
-        value,
-        transient,
-    }: {
-        lineSegment: GraphControlLineSegment;
-        endpoint: 1 | 2;
-        axis: "x" | "y";
-        value: number;
-        transient: boolean;
-    }) {
-        const latest = getEndpointState(lineSegment, endpoint);
-        const next = {
-            x: axis === "x" ? value : latest.x,
-            y: axis === "y" ? value : latest.y,
-        };
-
-        setEndpointState(lineSegment, endpoint, next);
-
-        await moveEndpoint({
-            lineSegment,
-            endpoint,
-            x: next.x,
-            y: next.y,
-            transient,
         });
     }
 
@@ -290,13 +297,157 @@ export default React.memo(function LineSegmentGraphControls({
         });
     }
 
+    function renderEndpointControl({
+        lineSegment,
+        endpoint,
+        sectionHeading,
+        sectionHeadingHasDivider = true,
+        labelForAria,
+    }: EndpointControlConfig): React.JSX.Element {
+        const cIdx = lineSegment.componentIdx;
+        const xKey = `${cIdx}|${endpoint}|x`;
+        const yKey = `${cIdx}|${endpoint}|y`;
+        const pairKey = `${cIdx}|${endpoint}|pair`;
+
+        const endpointLabel = `endpoint ${endpoint}`;
+        const currentCoordinates = getEndpointState(lineSegment, endpoint);
+        const xDisplay = formatCoordinateForControls(
+            currentCoordinates.x,
+            lineSegment,
+        );
+        const yDisplay = formatCoordinateForControls(
+            currentCoordinates.y,
+            lineSegment,
+        );
+        const pairDisplay = `(${xDisplay},${yDisplay})`;
+
+        const xErrorId = makeInputErrorId(id, "line-segment", xKey);
+        const yErrorId = makeInputErrorId(id, "line-segment", yKey);
+
+        const endpointXInputAriaLabel = `${endpointLabel} x input for ${labelForAria}`;
+        const endpointYInputAriaLabel = `${endpointLabel} y input for ${labelForAria}`;
+
+        return (
+            <PointControl
+                key={`${cIdx}-${endpoint}`}
+                id={id}
+                controlId={`lineSegment-${cIdx}-${endpoint}`}
+                sectionHeading={sectionHeading}
+                sectionHeadingHasDivider={sectionHeadingHasDivider}
+                labelForAria={`${endpointLabel} for ${labelForAria}`}
+                graphControlsMode={nonNoneGraphControlsMode}
+                controlsMode="both"
+                pairInput={{
+                    value: draftByKey[pairKey] ?? pairDisplay,
+                    ariaLabel: `coordinates for endpoint ${endpoint} for ${labelForAria}`,
+                    error: errorByKey[pairKey],
+                    errorId: makeInputErrorId(id, "line-segment", pairKey),
+                    onDraftChange: (value) => {
+                        setDraft(pairKey, value);
+                    },
+                    onCommit: async (rawValue) => {
+                        await commitEndpointPairInput({
+                            lineSegment,
+                            endpoint,
+                            key: pairKey,
+                            rawValue,
+                        });
+                    },
+                    hasDraft: hasDraft(pairKey),
+                    isCommitting: isCommitting(pairKey),
+                    commitErrorContext: `[graph-controls] failed to commit ${pairKey} input`,
+                }}
+                axisControls={{
+                    x: {
+                        label: "x",
+                        sliderAriaLabel: `${endpointLabel} x coordinate for ${labelForAria}`,
+                        displayValue: xDisplay,
+                        min: xMin,
+                        max: xMax,
+                        step: xStep,
+                        value: currentCoordinates.x,
+                        onSliderChange: (nextValue, transient) => {
+                            updateEndpointAxis({
+                                lineSegment,
+                                endpoint,
+                                axis: "x",
+                                value: nextValue,
+                                transient,
+                            }).catch(() => {});
+                        },
+                        input: {
+                            value: draftByKey[xKey] ?? xDisplay,
+                            ariaLabel: endpointXInputAriaLabel,
+                            error: errorByKey[xKey],
+                            errorId: xErrorId,
+                            onDraftChange: (value) => {
+                                setDraft(xKey, value);
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitEndpointAxisInput({
+                                    lineSegment,
+                                    endpoint,
+                                    key: xKey,
+                                    axis: "x",
+                                    rawValue,
+                                });
+                            },
+                            hasDraft: hasDraft(xKey),
+                            isCommitting: isCommitting(xKey),
+                            commitErrorContext: `[graph-controls] failed to commit ${xKey} input`,
+                        },
+                    },
+                    y: {
+                        label: "y",
+                        sliderAriaLabel: `${endpointLabel} y coordinate for ${labelForAria}`,
+                        displayValue: yDisplay,
+                        min: yMin,
+                        max: yMax,
+                        step: yStep,
+                        value: currentCoordinates.y,
+                        onSliderChange: (nextValue, transient) => {
+                            updateEndpointAxis({
+                                lineSegment,
+                                endpoint,
+                                axis: "y",
+                                value: nextValue,
+                                transient,
+                            }).catch(() => {});
+                        },
+                        input: {
+                            value: draftByKey[yKey] ?? yDisplay,
+                            ariaLabel: endpointYInputAriaLabel,
+                            error: errorByKey[yKey],
+                            errorId: yErrorId,
+                            onDraftChange: (value) => {
+                                setDraft(yKey, value);
+                            },
+                            onCommit: async (rawValue) => {
+                                await commitEndpointAxisInput({
+                                    lineSegment,
+                                    endpoint,
+                                    key: yKey,
+                                    axis: "y",
+                                    rawValue,
+                                });
+                            },
+                            hasDraft: hasDraft(yKey),
+                            isCommitting: isCommitting(yKey),
+                            commitErrorContext: `[graph-controls] failed to commit ${yKey} input`,
+                        },
+                    },
+                }}
+            />
+        );
+    }
+
     const cards = lineSegments
-        .map((lineSegment) => {
+        .reduce<React.JSX.Element[]>((acc, lineSegment) => {
             const mode = normalizeLineSegmentControlsMode(
                 lineSegment.addControls,
             );
             if (mode === "none") {
-                return null;
+                return acc;
             }
 
             const fallbackLabel = `Line segment ${lineSegment.lineSegmentNumber}`;
@@ -311,309 +462,33 @@ export default React.memo(function LineSegmentGraphControls({
                       labelHasLatex: lineSegment.labelHasLatex,
                   })
                 : fallbackLabel;
-            const showInlineInputs = graphControlsMode === "all";
 
-            const endpointConfig = [
-                {
-                    endpoint: 1 as const,
-                    title: "Endpoint 1",
-                    coords: lineSegment.endpoint1,
-                },
-                {
-                    endpoint: 2 as const,
-                    title: "Endpoint 2",
-                    coords: lineSegment.endpoint2,
-                },
-            ];
-
-            return (
-                <div
+            acc.push(
+                <GraphControl
                     key={lineSegment.componentIdx}
-                    style={{
-                        width: "100%",
-                        boxSizing: "border-box",
-                        padding: "10px",
-                        border: "1px solid var(--canvasText)",
-                        borderRadius: "8px",
-                    }}
+                    id={`${id}-lineSegment-${lineSegment.componentIdx}`}
+                    headingId={`${id}-lineSegment-${lineSegment.componentIdx}-heading`}
+                    heading={labelForDisplay}
                 >
-                    <div style={{ fontWeight: 600 }}>{labelForDisplay}</div>
-
-                    {endpointConfig.map(({ endpoint, title, coords }) => {
-                        const xKey = `${lineSegment.componentIdx}|${endpoint}|x`;
-                        const yKey = `${lineSegment.componentIdx}|${endpoint}|y`;
-                        const pairKey = `${lineSegment.componentIdx}|${endpoint}|pair`;
-
-                        const xDisplay = formatCoordinateForControls(
-                            coords.x,
-                            lineSegment,
-                        );
-                        const yDisplay = formatCoordinateForControls(
-                            coords.y,
-                            lineSegment,
-                        );
-                        const pairDisplay = `(${xDisplay},${yDisplay})`;
-                        const pairError = errorByKey[pairKey];
-                        const pairErrorId = makeInputErrorId(
-                            id,
-                            "line-segment",
-                            pairKey,
-                        );
-                        const xError = errorByKey[xKey];
-                        const xErrorId = makeInputErrorId(
-                            id,
-                            "line-segment",
-                            xKey,
-                        );
-                        const yError = errorByKey[yKey];
-                        const yErrorId = makeInputErrorId(
-                            id,
-                            "line-segment",
-                            yKey,
-                        );
-
-                        return (
-                            <div
-                                key={endpoint}
-                                style={{
-                                    marginTop: "10px",
-                                    borderTop: "1px solid #d0d0d0",
-                                    paddingTop: "8px",
-                                }}
-                            >
-                                <div
-                                    style={{
-                                        fontWeight: 600,
-                                        fontSize: "0.95em",
-                                    }}
-                                >
-                                    {title}
-                                </div>
-
-                                {includeInputs &&
-                                graphControlsMode === "inputsonly" ? (
-                                    <label>
-                                        Coordinates
-                                        <GraphControlsCommitInput
-                                            value={
-                                                draftByKey[pairKey] ??
-                                                pairDisplay
-                                            }
-                                            ariaLabel={`${title.toLowerCase()} coordinates for ${labelForAria}`}
-                                            ariaInvalid={Boolean(pairError)}
-                                            ariaDescribedBy={
-                                                pairError
-                                                    ? pairErrorId
-                                                    : undefined
-                                            }
-                                            onChange={(value) =>
-                                                setDraft(pairKey, value)
-                                            }
-                                            onCommit={async (rawValue) => {
-                                                await commitEndpointPairInput({
-                                                    lineSegment,
-                                                    endpoint,
-                                                    key: pairKey,
-                                                    rawValue,
-                                                });
-                                            }}
-                                            hasDraft={hasDraft(pairKey)}
-                                            isCommitting={isCommitting(pairKey)}
-                                            commitErrorContext={`[graph-controls] failed to commit ${pairKey} input`}
-                                        />
-                                    </label>
-                                ) : null}
-
-                                {pairError ? (
-                                    <div
-                                        id={pairErrorId}
-                                        style={{
-                                            color: "#b00020",
-                                            fontSize: "0.85em",
-                                        }}
-                                    >
-                                        {pairError}
-                                    </div>
-                                ) : null}
-
-                                {includeSliders ? (
-                                    <>
-                                        <SliderUI
-                                            id={`${id}-lineSegment-${lineSegment.componentIdx}-${endpoint}-x`}
-                                            label={
-                                                showInlineInputs ? (
-                                                    <span>
-                                                        x:{" "}
-                                                        <GraphControlsCommitInput
-                                                            value={
-                                                                draftByKey[
-                                                                    xKey
-                                                                ] ?? xDisplay
-                                                            }
-                                                            ariaLabel={`${title.toLowerCase()} x input for ${labelForAria}`}
-                                                            ariaInvalid={Boolean(
-                                                                xError,
-                                                            )}
-                                                            ariaDescribedBy={
-                                                                xError
-                                                                    ? xErrorId
-                                                                    : undefined
-                                                            }
-                                                            onChange={(value) =>
-                                                                setDraft(
-                                                                    xKey,
-                                                                    value,
-                                                                )
-                                                            }
-                                                            onCommit={async (
-                                                                rawValue,
-                                                            ) => {
-                                                                await commitEndpointAxisInput(
-                                                                    {
-                                                                        lineSegment,
-                                                                        endpoint,
-                                                                        key: xKey,
-                                                                        axis: "x",
-                                                                        rawValue,
-                                                                    },
-                                                                );
-                                                            }}
-                                                            hasDraft={hasDraft(
-                                                                xKey,
-                                                            )}
-                                                            isCommitting={isCommitting(
-                                                                xKey,
-                                                            )}
-                                                            commitErrorContext={`[graph-controls] failed to commit ${xKey} input`}
-                                                        />
-                                                        {xError ? (
-                                                            <span
-                                                                id={xErrorId}
-                                                                style={{
-                                                                    color: "#b00020",
-                                                                    fontSize:
-                                                                        "0.85em",
-                                                                }}
-                                                            >
-                                                                {xError}
-                                                            </span>
-                                                        ) : null}
-                                                    </span>
-                                                ) : (
-                                                    `x: ${xDisplay}`
-                                                )
-                                            }
-                                            ariaLabel={`${title.toLowerCase()} x coordinate for ${labelForAria}`}
-                                            min={xMin}
-                                            max={xMax}
-                                            step={
-                                                xMax !== xMin
-                                                    ? (xMax - xMin) / 100
-                                                    : 1
-                                            }
-                                            value={coords.x}
-                                            onChange={(value, transient) => {
-                                                updateEndpointAxis({
-                                                    lineSegment,
-                                                    endpoint,
-                                                    axis: "x",
-                                                    value,
-                                                    transient,
-                                                }).catch(() => {});
-                                            }}
-                                        />
-                                        <SliderUI
-                                            id={`${id}-lineSegment-${lineSegment.componentIdx}-${endpoint}-y`}
-                                            label={
-                                                showInlineInputs ? (
-                                                    <span>
-                                                        y:{" "}
-                                                        <GraphControlsCommitInput
-                                                            value={
-                                                                draftByKey[
-                                                                    yKey
-                                                                ] ?? yDisplay
-                                                            }
-                                                            ariaLabel={`${title.toLowerCase()} y input for ${labelForAria}`}
-                                                            ariaInvalid={Boolean(
-                                                                yError,
-                                                            )}
-                                                            ariaDescribedBy={
-                                                                yError
-                                                                    ? yErrorId
-                                                                    : undefined
-                                                            }
-                                                            onChange={(value) =>
-                                                                setDraft(
-                                                                    yKey,
-                                                                    value,
-                                                                )
-                                                            }
-                                                            onCommit={async (
-                                                                rawValue,
-                                                            ) => {
-                                                                await commitEndpointAxisInput(
-                                                                    {
-                                                                        lineSegment,
-                                                                        endpoint,
-                                                                        key: yKey,
-                                                                        axis: "y",
-                                                                        rawValue,
-                                                                    },
-                                                                );
-                                                            }}
-                                                            hasDraft={hasDraft(
-                                                                yKey,
-                                                            )}
-                                                            isCommitting={isCommitting(
-                                                                yKey,
-                                                            )}
-                                                            commitErrorContext={`[graph-controls] failed to commit ${yKey} input`}
-                                                        />
-                                                        {yError ? (
-                                                            <span
-                                                                id={yErrorId}
-                                                                style={{
-                                                                    color: "#b00020",
-                                                                    fontSize:
-                                                                        "0.85em",
-                                                                }}
-                                                            >
-                                                                {yError}
-                                                            </span>
-                                                        ) : null}
-                                                    </span>
-                                                ) : (
-                                                    `y: ${yDisplay}`
-                                                )
-                                            }
-                                            ariaLabel={`${title.toLowerCase()} y coordinate for ${labelForAria}`}
-                                            min={yMin}
-                                            max={yMax}
-                                            step={
-                                                yMax !== yMin
-                                                    ? (yMax - yMin) / 100
-                                                    : 1
-                                            }
-                                            value={coords.y}
-                                            onChange={(value, transient) => {
-                                                updateEndpointAxis({
-                                                    lineSegment,
-                                                    endpoint,
-                                                    axis: "y",
-                                                    value,
-                                                    transient,
-                                                }).catch(() => {});
-                                            }}
-                                        />
-                                    </>
-                                ) : null}
-                            </div>
-                        );
+                    {renderEndpointControl({
+                        lineSegment,
+                        endpoint: 1,
+                        sectionHeading: "Endpoint 1",
+                        sectionHeadingHasDivider: false,
+                        labelForAria,
                     })}
-                </div>
+                    {renderEndpointControl({
+                        lineSegment,
+                        endpoint: 2,
+                        sectionHeading: "Endpoint 2",
+                        sectionHeadingHasDivider: true,
+                        labelForAria,
+                    })}
+                </GraphControl>,
             );
-        })
+
+            return acc;
+        }, [])
         .filter((card): card is React.JSX.Element => Boolean(card));
 
     if (cards.length === 0) {

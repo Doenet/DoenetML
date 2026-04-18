@@ -1,7 +1,8 @@
 import React, { useMemo } from "react";
-import GraphControlsCommitInput from "./components/graphControls/GraphControlsCommitInput";
 import GraphControlsPanel from "./components/graphControls/GraphControlsPanel";
-import SliderUI from "./utils/SliderUI";
+import GraphControl from "./components/graphControls/GraphControl";
+import NumberControl from "./components/graphControls/NumberControl";
+import PointControl from "./components/graphControls/PointControl";
 import {
     makeInputErrorId,
     normalizeCircleControlsMode,
@@ -11,6 +12,7 @@ import {
 } from "./utils/graphControls";
 import {
     formatCoordinateForControls,
+    parseOrderedPair,
     parseSingleMathNumber,
 } from "./utils/graphControlsMath";
 import { useGraphControlsInputState } from "./hooks/useGraphControlsInputState";
@@ -47,11 +49,6 @@ export default React.memo(function CircleGraphControls({
     if (graphControlsMode === "none") {
         return null;
     }
-
-    const includeSliders =
-        graphControlsMode === "all" || graphControlsMode === "slidersonly";
-    const includeInputs =
-        graphControlsMode === "all" || graphControlsMode === "inputsonly";
 
     const circles = Array.isArray(SVs.draggableCirclesForControls)
         ? SVs.draggableCirclesForControls
@@ -253,6 +250,39 @@ export default React.memo(function CircleGraphControls({
         });
     }
 
+    async function commitCenterPairInput({
+        circle,
+        key,
+        rawValue,
+    }: {
+        circle: GraphControlCircle;
+        key: string;
+        rawValue: string;
+    }) {
+        const latest = getCircleState(circle);
+        await commitParsedInput({
+            key,
+            rawValue,
+            parse: parseOrderedPair,
+            errorMessage:
+                "Enter an ordered pair like (x,y) with numeric values.",
+            isUnchanged: (value) =>
+                value.x === latest.center.x && value.y === latest.center.y,
+            onParsed: async (value) => {
+                setCircleState(circle, {
+                    center: value,
+                    radius: latest.radius,
+                });
+                await updateCircle({
+                    circle,
+                    center: value,
+                    radius: latest.radius,
+                    transient: false,
+                });
+            },
+        });
+    }
+
     async function updateRadiusValue({
         circle,
         value,
@@ -331,384 +361,179 @@ export default React.memo(function CircleGraphControls({
 
             const showCenter = mode === "center" || mode === "centerandradius";
             const showRadius = mode === "radius" || mode === "centerandradius";
-            const showInlineInputs = graphControlsMode === "all";
 
             const xKey = `${circle.componentIdx}|cx`;
             const yKey = `${circle.componentIdx}|cy`;
+            const centerPairKey = `${circle.componentIdx}|cpair`;
             const rKey = `${circle.componentIdx}|r`;
 
+            const currentCircleState = getCircleState(circle);
+
             const xDisplay = formatCoordinateForControls(
-                circle.center.x,
+                currentCircleState.center.x,
                 circle,
             );
             const yDisplay = formatCoordinateForControls(
-                circle.center.y,
+                currentCircleState.center.y,
                 circle,
             );
-            const rDisplay = formatCoordinateForControls(circle.radius, circle);
-            const xError = errorByKey[xKey];
-            const yError = errorByKey[yKey];
-            const rError = errorByKey[rKey];
-            const xErrorId = makeInputErrorId(id, "circle", xKey);
-            const yErrorId = makeInputErrorId(id, "circle", yKey);
-            const rErrorId = makeInputErrorId(id, "circle", rKey);
+            const rDisplay = formatCoordinateForControls(currentCircleState.radius, circle);
 
-            const radiusMax = Math.max(defaultRadiusMax, circle.radius);
+            const radiusMax = Math.max(defaultRadiusMax, currentCircleState.radius);
             const radiusStep = radiusMax > 0 ? radiusMax / 100 : 1;
 
+            const headingId = `${id}-circle-${circle.componentIdx}-heading`;
+
             return (
-                <div
+                <GraphControl
                     key={circle.componentIdx}
-                    style={{
-                        width: "100%",
-                        boxSizing: "border-box",
-                        padding: "10px",
-                        border: "1px solid var(--canvasText)",
-                        borderRadius: "8px",
-                    }}
+                    id={`${id}-circle-${circle.componentIdx}`}
+                    headingId={headingId}
+                    heading={labelForDisplay}
                 >
-                    <div style={{ fontWeight: 600 }}>{labelForDisplay}</div>
-
-                    {includeInputs &&
-                    graphControlsMode === "inputsonly" &&
-                    showCenter ? (
-                        <div
-                            style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: "6px",
-                                marginTop: "8px",
+                    {showCenter ? (
+                        <PointControl
+                            id={id}
+                            controlId={`circle-${circle.componentIdx}-center`}
+                            sectionHeading="Center"
+                            sectionHeadingHasDivider={false}
+                            labelForAria={`center of ${labelForAria}`}
+                            graphControlsMode={graphControlsMode}
+                            controlsMode="both"
+                            pairInput={{
+                                value: draftByKey[centerPairKey] ?? `(${xDisplay},${yDisplay})`,
+                                ariaLabel: `center coordinates for ${labelForAria}`,
+                                error: errorByKey[centerPairKey],
+                                errorId: makeInputErrorId(id, "circle", centerPairKey),
+                                onDraftChange: (value) => setDraft(centerPairKey, value),
+                                onCommit: async (rawValue) => {
+                                    await commitCenterPairInput({
+                                        circle,
+                                        key: centerPairKey,
+                                        rawValue,
+                                    });
+                                },
+                                hasDraft: hasDraft(centerPairKey),
+                                isCommitting: isCommitting(centerPairKey),
+                                commitErrorContext: `[graph-controls] failed to commit ${centerPairKey} input`,
                             }}
-                        >
-                            <label>
-                                x
-                                <GraphControlsCommitInput
-                                    value={draftByKey[xKey] ?? xDisplay}
-                                    ariaLabel={`center x input for ${labelForAria}`}
-                                    ariaInvalid={Boolean(xError)}
-                                    ariaDescribedBy={
-                                        xError ? xErrorId : undefined
-                                    }
-                                    onChange={(value) => setDraft(xKey, value)}
-                                    onCommit={async (rawValue) => {
-                                        await commitCenterAxisInput({
+                            axisControls={{
+                                x: {
+                                    label: "x",
+                                    sliderAriaLabel: `center x coordinate for ${labelForAria}`,
+                                    displayValue: xDisplay,
+                                    min: xMin,
+                                    max: xMax,
+                                    step: xMax !== xMin ? (xMax - xMin) / 100 : 1,
+                                    value: currentCircleState.center.x,
+                                    onSliderChange: (value, transient) => {
+                                        updateCenterAxis({
                                             circle,
-                                            key: xKey,
-                                            rawValue,
                                             axis: "x",
-                                        });
-                                    }}
-                                    hasDraft={hasDraft(xKey)}
-                                    isCommitting={isCommitting(xKey)}
-                                    commitErrorContext={`[graph-controls] failed to commit ${xKey} input`}
-                                />
-                            </label>
-                            {xError ? (
-                                <span
-                                    id={xErrorId}
-                                    style={{
-                                        color: "#b00020",
-                                        fontSize: "0.85em",
-                                    }}
-                                >
-                                    {xError}
-                                </span>
-                            ) : null}
-                            <label>
-                                y
-                                <GraphControlsCommitInput
-                                    value={draftByKey[yKey] ?? yDisplay}
-                                    ariaLabel={`center y input for ${labelForAria}`}
-                                    ariaInvalid={Boolean(yError)}
-                                    ariaDescribedBy={
-                                        yError ? yErrorId : undefined
-                                    }
-                                    onChange={(value) => setDraft(yKey, value)}
-                                    onCommit={async (rawValue) => {
-                                        await commitCenterAxisInput({
+                                            value,
+                                            transient,
+                                        }).catch(() => {});
+                                    },
+                                    input: {
+                                        value: draftByKey[xKey] ?? xDisplay,
+                                        ariaLabel: `center x input for ${labelForAria}`,
+                                        error: errorByKey[xKey],
+                                        errorId: makeInputErrorId(id, "circle", xKey),
+                                        onDraftChange: (value) => setDraft(xKey, value),
+                                        onCommit: async (rawValue) => {
+                                            await commitCenterAxisInput({
+                                                circle,
+                                                key: xKey,
+                                                rawValue,
+                                                axis: "x",
+                                            });
+                                        },
+                                        hasDraft: hasDraft(xKey),
+                                        isCommitting: isCommitting(xKey),
+                                        commitErrorContext: `[graph-controls] failed to commit ${xKey} input`,
+                                    },
+                                },
+                                y: {
+                                    label: "y",
+                                    sliderAriaLabel: `center y coordinate for ${labelForAria}`,
+                                    displayValue: yDisplay,
+                                    min: yMin,
+                                    max: yMax,
+                                    step: yMax !== yMin ? (yMax - yMin) / 100 : 1,
+                                    value: currentCircleState.center.y,
+                                    onSliderChange: (value, transient) => {
+                                        updateCenterAxis({
                                             circle,
-                                            key: yKey,
-                                            rawValue,
                                             axis: "y",
-                                        });
-                                    }}
-                                    hasDraft={hasDraft(yKey)}
-                                    isCommitting={isCommitting(yKey)}
-                                    commitErrorContext={`[graph-controls] failed to commit ${yKey} input`}
-                                />
-                            </label>
-                            {yError ? (
-                                <span
-                                    id={yErrorId}
-                                    style={{
-                                        color: "#b00020",
-                                        fontSize: "0.85em",
-                                    }}
-                                >
-                                    {yError}
-                                </span>
-                            ) : null}
-                        </div>
-                    ) : null}
-
-                    {includeInputs &&
-                    graphControlsMode === "inputsonly" &&
-                    showRadius ? (
-                        <div
-                            style={{
-                                display: "flex",
-                                flexDirection: "column",
-                                gap: "6px",
-                                marginTop: "8px",
-                            }}
-                        >
-                            <label>
-                                radius
-                                <GraphControlsCommitInput
-                                    value={draftByKey[rKey] ?? rDisplay}
-                                    ariaLabel={`radius input for ${labelForAria}`}
-                                    ariaInvalid={Boolean(rError)}
-                                    ariaDescribedBy={
-                                        rError ? rErrorId : undefined
-                                    }
-                                    onChange={(value) => setDraft(rKey, value)}
-                                    onCommit={async (rawValue) => {
-                                        await commitRadiusInput({
-                                            circle,
-                                            key: rKey,
-                                            rawValue,
-                                        });
-                                    }}
-                                    hasDraft={hasDraft(rKey)}
-                                    isCommitting={isCommitting(rKey)}
-                                    commitErrorContext={`[graph-controls] failed to commit ${rKey} input`}
-                                />
-                            </label>
-                            {rError ? (
-                                <span
-                                    id={rErrorId}
-                                    style={{
-                                        color: "#b00020",
-                                        fontSize: "0.85em",
-                                    }}
-                                >
-                                    {rError}
-                                </span>
-                            ) : null}
-                        </div>
-                    ) : null}
-
-                    {includeSliders && showCenter ? (
-                        <>
-                            <SliderUI
-                                id={`${id}-circle-${circle.componentIdx}-cx`}
-                                label={
-                                    showInlineInputs ? (
-                                        <span
-                                            style={{
-                                                display: "inline-flex",
-                                                flexDirection: "column",
-                                            }}
-                                        >
-                                            x:{" "}
-                                            <GraphControlsCommitInput
-                                                value={
-                                                    draftByKey[xKey] ?? xDisplay
-                                                }
-                                                ariaLabel={`center x input for ${labelForAria}`}
-                                                ariaInvalid={Boolean(xError)}
-                                                ariaDescribedBy={
-                                                    xError
-                                                        ? xErrorId
-                                                        : undefined
-                                                }
-                                                onChange={(value) =>
-                                                    setDraft(xKey, value)
-                                                }
-                                                onCommit={async (rawValue) => {
-                                                    await commitCenterAxisInput(
-                                                        {
-                                                            circle,
-                                                            key: xKey,
-                                                            rawValue,
-                                                            axis: "x",
-                                                        },
-                                                    );
-                                                }}
-                                                hasDraft={hasDraft(xKey)}
-                                                isCommitting={isCommitting(
-                                                    xKey,
-                                                )}
-                                                commitErrorContext={`[graph-controls] failed to commit ${xKey} input`}
-                                            />
-                                            {xError ? (
-                                                <span
-                                                    id={xErrorId}
-                                                    style={{
-                                                        color: "#b00020",
-                                                        fontSize: "0.85em",
-                                                    }}
-                                                >
-                                                    {xError}
-                                                </span>
-                                            ) : null}
-                                        </span>
-                                    ) : (
-                                        `x: ${xDisplay}`
-                                    )
-                                }
-                                ariaLabel={`center x coordinate for ${labelForAria}`}
-                                min={xMin}
-                                max={xMax}
-                                step={xMax !== xMin ? (xMax - xMin) / 100 : 1}
-                                value={circle.center.x}
-                                onChange={(value, transient) => {
-                                    updateCenterAxis({
-                                        circle,
-                                        axis: "x",
-                                        value,
-                                        transient,
-                                    }).catch(() => {});
-                                }}
-                            />
-                            <SliderUI
-                                id={`${id}-circle-${circle.componentIdx}-cy`}
-                                label={
-                                    showInlineInputs ? (
-                                        <span
-                                            style={{
-                                                display: "inline-flex",
-                                                flexDirection: "column",
-                                            }}
-                                        >
-                                            y:{" "}
-                                            <GraphControlsCommitInput
-                                                value={
-                                                    draftByKey[yKey] ?? yDisplay
-                                                }
-                                                ariaLabel={`center y input for ${labelForAria}`}
-                                                ariaInvalid={Boolean(yError)}
-                                                ariaDescribedBy={
-                                                    yError
-                                                        ? yErrorId
-                                                        : undefined
-                                                }
-                                                onChange={(value) =>
-                                                    setDraft(yKey, value)
-                                                }
-                                                onCommit={async (rawValue) => {
-                                                    await commitCenterAxisInput(
-                                                        {
-                                                            circle,
-                                                            key: yKey,
-                                                            rawValue,
-                                                            axis: "y",
-                                                        },
-                                                    );
-                                                }}
-                                                hasDraft={hasDraft(yKey)}
-                                                isCommitting={isCommitting(
-                                                    yKey,
-                                                )}
-                                                commitErrorContext={`[graph-controls] failed to commit ${yKey} input`}
-                                            />
-                                            {yError ? (
-                                                <span
-                                                    id={yErrorId}
-                                                    style={{
-                                                        color: "#b00020",
-                                                        fontSize: "0.85em",
-                                                    }}
-                                                >
-                                                    {yError}
-                                                </span>
-                                            ) : null}
-                                        </span>
-                                    ) : (
-                                        `y: ${yDisplay}`
-                                    )
-                                }
-                                ariaLabel={`center y coordinate for ${labelForAria}`}
-                                min={yMin}
-                                max={yMax}
-                                step={yMax !== yMin ? (yMax - yMin) / 100 : 1}
-                                value={circle.center.y}
-                                onChange={(value, transient) => {
-                                    updateCenterAxis({
-                                        circle,
-                                        axis: "y",
-                                        value,
-                                        transient,
-                                    }).catch(() => {});
-                                }}
-                            />
-                        </>
-                    ) : null}
-
-                    {includeSliders && showRadius ? (
-                        <SliderUI
-                            id={`${id}-circle-${circle.componentIdx}-r`}
-                            label={
-                                showInlineInputs ? (
-                                    <span
-                                        style={{
-                                            display: "inline-flex",
-                                            flexDirection: "column",
-                                        }}
-                                    >
-                                        radius:{" "}
-                                        <GraphControlsCommitInput
-                                            value={draftByKey[rKey] ?? rDisplay}
-                                            ariaLabel={`radius input for ${labelForAria}`}
-                                            ariaInvalid={Boolean(rError)}
-                                            ariaDescribedBy={
-                                                rError ? rErrorId : undefined
-                                            }
-                                            onChange={(value) =>
-                                                setDraft(rKey, value)
-                                            }
-                                            onCommit={async (rawValue) => {
-                                                await commitRadiusInput({
-                                                    circle,
-                                                    key: rKey,
-                                                    rawValue,
-                                                });
-                                            }}
-                                            hasDraft={hasDraft(rKey)}
-                                            isCommitting={isCommitting(rKey)}
-                                            commitErrorContext={`[graph-controls] failed to commit ${rKey} input`}
-                                        />
-                                        {rError ? (
-                                            <span
-                                                id={rErrorId}
-                                                style={{
-                                                    color: "#b00020",
-                                                    fontSize: "0.85em",
-                                                }}
-                                            >
-                                                {rError}
-                                            </span>
-                                        ) : null}
-                                    </span>
-                                ) : (
-                                    `radius: ${rDisplay}`
-                                )
-                            }
-                            ariaLabel={`radius for ${labelForAria}`}
-                            min={0}
-                            max={radiusMax}
-                            step={radiusStep}
-                            value={circle.radius}
-                            onChange={(value, transient) => {
-                                updateRadiusValue({
-                                    circle,
-                                    value,
-                                    transient,
-                                }).catch(() => {});
+                                            value,
+                                            transient,
+                                        }).catch(() => {});
+                                    },
+                                    input: {
+                                        value: draftByKey[yKey] ?? yDisplay,
+                                        ariaLabel: `center y input for ${labelForAria}`,
+                                        error: errorByKey[yKey],
+                                        errorId: makeInputErrorId(id, "circle", yKey),
+                                        onDraftChange: (value) => setDraft(yKey, value),
+                                        onCommit: async (rawValue) => {
+                                            await commitCenterAxisInput({
+                                                circle,
+                                                key: yKey,
+                                                rawValue,
+                                                axis: "y",
+                                            });
+                                        },
+                                        hasDraft: hasDraft(yKey),
+                                        isCommitting: isCommitting(yKey),
+                                        commitErrorContext: `[graph-controls] failed to commit ${yKey} input`,
+                                    },
+                                },
                             }}
                         />
                     ) : null}
-                </div>
+
+                    {showRadius ? (
+                        <NumberControl
+                            sectionHeading="Radius"
+                            sectionHeadingHasDivider={showCenter}
+                            label="radius"
+                            graphControlsMode={graphControlsMode}
+                            input={{
+                                value: draftByKey[rKey] ?? rDisplay,
+                                ariaLabel: `radius input for ${labelForAria}`,
+                                error: errorByKey[rKey],
+                                errorId: makeInputErrorId(id, "circle", rKey),
+                                onDraftChange: (value) => setDraft(rKey, value),
+                                onCommit: async (rawValue) => {
+                                    await commitRadiusInput({
+                                        circle,
+                                        key: rKey,
+                                        rawValue,
+                                    });
+                                },
+                                hasDraft: hasDraft(rKey),
+                                isCommitting: isCommitting(rKey),
+                                commitErrorContext: `[graph-controls] failed to commit ${rKey} input`,
+                            }}
+                            slider={{
+                                id: `${id}-circle-${rKey.replace(/\|/g, "-")}`,
+                                ariaLabel: `radius for ${labelForAria}`,
+                                min: 0,
+                                max: radiusMax,
+                                step: radiusStep,
+                                value: currentCircleState.radius,
+                                displayValue: rDisplay,
+                                onSliderChange: (value, transient) => {
+                                    updateRadiusValue({
+                                        circle,
+                                        value,
+                                        transient,
+                                    }).catch(() => {});
+                                },
+                            }}
+                        />
+                    ) : null}
+                </GraphControl>
             );
         })
         .filter((card): card is React.JSX.Element => Boolean(card));
