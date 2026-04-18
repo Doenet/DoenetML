@@ -4,6 +4,7 @@ import ControlCard from "../primitives/ControlCard";
 import ScalarControlCoordinator from "../primitives/ScalarControlCoordinator";
 import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import {
+    CircleControlsMode,
     PointMoveRole,
     normalizeCircleControlsMode,
     normalizeGraphControlsMode,
@@ -31,6 +32,30 @@ type CircleControlsFamilyProps = {
     callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };
 
+type CircleSectionConfig = {
+    kind: "center" | "radius";
+    sectionHeadingHasDivider: boolean;
+};
+
+function getCircleSections(mode: CircleControlsMode): CircleSectionConfig[] {
+    if (mode === "center") {
+        return [{ kind: "center", sectionHeadingHasDivider: false }];
+    }
+
+    if (mode === "radius") {
+        return [{ kind: "radius", sectionHeadingHasDivider: false }];
+    }
+
+    if (mode === "centerandradius") {
+        return [
+            { kind: "center", sectionHeadingHasDivider: false },
+            { kind: "radius", sectionHeadingHasDivider: true },
+        ];
+    }
+
+    return [];
+}
+
 export default React.memo(function CircleControlsFamily({
     id,
     SVs,
@@ -54,6 +79,7 @@ export default React.memo(function CircleControlsFamily({
         x,
         y,
         transient,
+        skippable,
     }: {
         componentIdx: number;
         pointRole: PointMoveRole;
@@ -62,10 +88,7 @@ export default React.memo(function CircleControlsFamily({
         transient: boolean;
         skippable: boolean;
     }) {
-        const circle = circles.find(
-            (candidate) => candidate.componentIdx === componentIdx,
-        );
-        if (!circle || pointRole !== "center") {
+        if (pointRole !== "center") {
             return;
         }
 
@@ -73,20 +96,19 @@ export default React.memo(function CircleControlsFamily({
             await callAction({
                 action: {
                     actionName: "moveCircle",
-                    componentIdx: circle.componentIdx,
+                    componentIdx,
                 },
                 args: {
                     x,
                     y,
                     pointRole: "center",
-                    radius: circle.radius,
                     transient,
-                    skippable: transient,
+                    skippable,
                 },
             });
         } catch (error) {
             console.error(
-                `[graph-controls] moveCircle failed for component ${circle.componentIdx}`,
+                `[graph-controls] moveCircle failed for component ${componentIdx}`,
                 error,
             );
         }
@@ -97,6 +119,7 @@ export default React.memo(function CircleControlsFamily({
         scalarRole,
         value,
         transient,
+        skippable,
     }: {
         componentIdx: number;
         scalarRole: string;
@@ -108,31 +131,23 @@ export default React.memo(function CircleControlsFamily({
             return;
         }
 
-        const circle = circles.find(
-            (candidate) => candidate.componentIdx === componentIdx,
-        );
-
-        if (!circle) {
-            return;
-        }
-
         const radius = Math.max(0, value);
 
         try {
             await callAction({
                 action: {
                     actionName: "changeRadius",
-                    componentIdx: circle.componentIdx,
+                    componentIdx,
                 },
                 args: {
                     radius,
                     transient,
-                    skippable: transient,
+                    skippable,
                 },
             });
         } catch (error) {
             console.error(
-                `[graph-controls] changeRadius failed for component ${circle.componentIdx}`,
+                `[graph-controls] changeRadius failed for component ${componentIdx}`,
                 error,
             );
         }
@@ -147,7 +162,8 @@ export default React.memo(function CircleControlsFamily({
     const cards = circles
         .map((circle) => {
             const mode = normalizeCircleControlsMode(circle.addControls);
-            if (mode === "none") {
+            const sections = getCircleSections(mode);
+            if (sections.length === 0) {
                 return null;
             }
 
@@ -164,9 +180,6 @@ export default React.memo(function CircleControlsFamily({
                   })
                 : fallbackLabel;
 
-            const showCenter = mode === "center" || mode === "centerandradius";
-            const showRadius = mode === "radius" || mode === "centerandradius";
-
             const radiusMax = Math.max(defaultRadiusMax, circle.radius);
             const radiusStep = radiusMax > 0 ? radiusMax / 100 : 1;
 
@@ -179,60 +192,66 @@ export default React.memo(function CircleControlsFamily({
                     headingId={headingId}
                     heading={labelForDisplay}
                 >
-                    {showCenter ? (
-                        <PointControlCoordinator
-                            id={id}
-                            controlId={`circle-${circle.componentIdx}-center`}
-                            componentIdx={circle.componentIdx}
-                            pointRole="center"
-                            sectionHeading="Center"
-                            sectionHeadingHasDivider={false}
-                            labelForAria={`center of ${labelForAria}`}
-                            pairAriaLabel={`center coordinates for ${labelForAria}`}
-                            xSliderAriaLabel={`center x coordinate for ${labelForAria}`}
-                            ySliderAriaLabel={`center y coordinate for ${labelForAria}`}
-                            xInputAriaLabel={`center x input for ${labelForAria}`}
-                            yInputAriaLabel={`center y input for ${labelForAria}`}
-                            graphControlsMode={graphControlsMode}
-                            pointControlsMode="both"
-                            x={circle.center.x}
-                            y={circle.center.y}
-                            xMin={SVs.xMin}
-                            xMax={SVs.xMax}
-                            yMin={SVs.yMin}
-                            yMax={SVs.yMax}
-                            formatCoordinate={(value) =>
-                                formatCoordinateForControls(value, circle)
-                            }
-                            onMovePointLike={moveCircle}
-                        />
-                    ) : null}
-
-                    {showRadius ? (
-                        <ScalarControlCoordinator
-                            id={id}
-                            controlId={`circle-${circle.componentIdx}-radius`}
-                            componentIdx={circle.componentIdx}
-                            scalarRole="radius"
-                            sectionHeading="Radius"
-                            sectionHeadingHasDivider={showCenter}
-                            label="radius"
-                            graphControlsMode={graphControlsMode}
-                            value={circle.radius}
-                            min={0}
-                            max={radiusMax}
-                            step={radiusStep}
-                            formatValue={(value) =>
-                                formatCoordinateForControls(value, circle)
-                            }
-                            parseValue={parseSingleMathNumber}
-                            controlFamily="circle"
-                            sliderAriaLabel={`radius for ${labelForAria}`}
-                            inputAriaLabel={`radius input for ${labelForAria}`}
-                            commitErrorContext={`[graph-controls] failed to commit circle ${circle.componentIdx} radius input`}
-                            onUpdateScalar={changeCircleRadius}
-                        />
-                    ) : null}
+                    {sections.map((section) =>
+                        section.kind === "center" ? (
+                            <PointControlCoordinator
+                                key={`${circle.componentIdx}-center`}
+                                id={id}
+                                controlId={`circle-${circle.componentIdx}-center`}
+                                componentIdx={circle.componentIdx}
+                                pointRole="center"
+                                sectionHeading="Center"
+                                sectionHeadingHasDivider={
+                                    section.sectionHeadingHasDivider
+                                }
+                                labelForAria={`center of ${labelForAria}`}
+                                pairAriaLabel={`center coordinates for ${labelForAria}`}
+                                xSliderAriaLabel={`center x coordinate for ${labelForAria}`}
+                                ySliderAriaLabel={`center y coordinate for ${labelForAria}`}
+                                xInputAriaLabel={`center x input for ${labelForAria}`}
+                                yInputAriaLabel={`center y input for ${labelForAria}`}
+                                graphControlsMode={graphControlsMode}
+                                pointControlsMode="both"
+                                x={circle.center.x}
+                                y={circle.center.y}
+                                xMin={SVs.xMin}
+                                xMax={SVs.xMax}
+                                yMin={SVs.yMin}
+                                yMax={SVs.yMax}
+                                formatCoordinate={(value) =>
+                                    formatCoordinateForControls(value, circle)
+                                }
+                                onMovePointLike={moveCircle}
+                            />
+                        ) : (
+                            <ScalarControlCoordinator
+                                key={`${circle.componentIdx}-radius`}
+                                id={id}
+                                controlId={`circle-${circle.componentIdx}-radius`}
+                                componentIdx={circle.componentIdx}
+                                scalarRole="radius"
+                                sectionHeading="Radius"
+                                sectionHeadingHasDivider={
+                                    section.sectionHeadingHasDivider
+                                }
+                                label="radius"
+                                graphControlsMode={graphControlsMode}
+                                value={circle.radius}
+                                min={0}
+                                max={radiusMax}
+                                step={radiusStep}
+                                formatValue={(value) =>
+                                    formatCoordinateForControls(value, circle)
+                                }
+                                parseValue={parseSingleMathNumber}
+                                controlFamily="circle"
+                                sliderAriaLabel={`radius for ${labelForAria}`}
+                                inputAriaLabel={`radius input for ${labelForAria}`}
+                                commitErrorContext={`[graph-controls] failed to commit circle ${circle.componentIdx} radius input`}
+                                onUpdateScalar={changeCircleRadius}
+                            />
+                        ),
+                    )}
                 </ControlCard>
             );
         })

@@ -84,6 +84,7 @@ export default function PointControlCoordinator({
         setDraft,
         hasDraft,
         isCommitting,
+        pruneToActiveKeys: pruneInputKeysToActive,
         commitParsedInput,
     } = useControlInputState();
 
@@ -167,6 +168,36 @@ export default function PointControlCoordinator({
     const xInputKey = makePointLikeDraftKey(componentIdx, pointRole, "x");
     const yInputKey = makePointLikeDraftKey(componentIdx, pointRole, "y");
     const pairInputKey = makePointLikeDraftKey(componentIdx, pointRole, "pair");
+
+    useEffect(() => {
+        const activeInputKeys = new Set<string>();
+
+        if (graphControlsMode === "all") {
+            if (pointControlsMode !== "yonly" && pointControlsMode !== "none") {
+                activeInputKeys.add(xInputKey);
+            }
+            if (pointControlsMode !== "xonly" && pointControlsMode !== "none") {
+                activeInputKeys.add(yInputKey);
+            }
+        } else if (graphControlsMode === "inputsonly") {
+            if (pointControlsMode === "both") {
+                activeInputKeys.add(pairInputKey);
+            } else if (pointControlsMode === "xonly") {
+                activeInputKeys.add(xInputKey);
+            } else if (pointControlsMode === "yonly") {
+                activeInputKeys.add(yInputKey);
+            }
+        }
+
+        pruneInputKeysToActive(activeInputKeys);
+    }, [
+        graphControlsMode,
+        pairInputKey,
+        pointControlsMode,
+        pruneInputKeysToActive,
+        xInputKey,
+        yInputKey,
+    ]);
 
     const formattedX = formatCoordinate(rendererSliderCoordinates.x);
     const formattedY = formatCoordinate(rendererSliderCoordinates.y);
@@ -358,7 +389,12 @@ export default function PointControlCoordinator({
                             axis: "x",
                             value,
                             transient,
-                        }).catch(() => {});
+                        }).catch((error) => {
+                            console.error(
+                                `[graph-controls] failed to update x slider for ${componentIdx}:${pointRole}`,
+                                error,
+                            );
+                        });
                     },
                     onDragEnd: () => {
                         clearTransientAxis("x");
@@ -401,7 +437,12 @@ export default function PointControlCoordinator({
                             axis: "y",
                             value,
                             transient,
-                        }).catch(() => {});
+                        }).catch((error) => {
+                            console.error(
+                                `[graph-controls] failed to update y slider for ${componentIdx}:${pointRole}`,
+                                error,
+                            );
+                        });
                     },
                     onDragEnd: () => {
                         clearTransientAxis("y");

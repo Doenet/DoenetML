@@ -1,9 +1,10 @@
 import React from "react";
-import GraphControl from "../primitives/ControlCard";
-import GraphControlsPanel from "../primitives/ControlsStack";
+import ControlCard from "../primitives/ControlCard";
+import ControlsStack from "../primitives/ControlsStack";
 import PointControlController from "../primitives/PointControlCoordinator";
 import {
     GraphControlPoint,
+    PointControlsMode,
     normalizeGraphControlsMode,
     normalizePointControlsMode,
 } from "../model";
@@ -26,7 +27,20 @@ type PointGraphControlsProps = {
     callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };
 
-export default React.memo(function PointGraphControls({
+type PointSectionConfig = {
+    controlIdSuffix: string;
+    pointControlsMode: PointControlsMode;
+};
+
+function getPointSections(mode: PointControlsMode): PointSectionConfig[] {
+    if (mode === "none") {
+        return [];
+    }
+
+    return [{ controlIdSuffix: "point", pointControlsMode: mode }];
+}
+
+export default React.memo(function PointControlsFamily({
     id,
     SVs,
     callAction,
@@ -76,7 +90,8 @@ export default React.memo(function PointGraphControls({
             const pointControlsMode = normalizePointControlsMode(
                 point.addControls,
             );
-            if (pointControlsMode === "none") {
+            const sections = getPointSections(pointControlsMode);
+            if (sections.length === 0) {
                 return null;
             }
 
@@ -94,32 +109,35 @@ export default React.memo(function PointGraphControls({
                 : pointFallbackLabel;
 
             return (
-                <GraphControl
+                <ControlCard
                     key={point.componentIdx}
                     id={`${id}-point-${point.componentIdx}`}
                     headingId={`${id}-point-${point.componentIdx}-heading`}
                     heading={pointLabelForDisplay}
                 >
-                    <PointControlController
-                        id={id}
-                        controlId={`point-${point.componentIdx}`}
-                        componentIdx={point.componentIdx}
-                        pointRole="point"
-                        labelForAria={pointLabelForAria}
-                        graphControlsMode={graphControlsMode}
-                        pointControlsMode={pointControlsMode}
-                        x={point.x}
-                        y={point.y}
-                        xMin={SVs.xMin}
-                        xMax={SVs.xMax}
-                        yMin={SVs.yMin}
-                        yMax={SVs.yMax}
-                        formatCoordinate={(value) =>
-                            formatCoordinateForControls(value, point)
-                        }
-                        onMovePointLike={movePointLike}
-                    />
-                </GraphControl>
+                    {sections.map((section) => (
+                        <PointControlController
+                            key={`${point.componentIdx}-${section.controlIdSuffix}`}
+                            id={id}
+                            controlId={`${section.controlIdSuffix}-${point.componentIdx}`}
+                            componentIdx={point.componentIdx}
+                            pointRole="point"
+                            labelForAria={pointLabelForAria}
+                            graphControlsMode={graphControlsMode}
+                            pointControlsMode={section.pointControlsMode}
+                            x={point.x}
+                            y={point.y}
+                            xMin={SVs.xMin}
+                            xMax={SVs.xMax}
+                            yMin={SVs.yMin}
+                            yMax={SVs.yMax}
+                            formatCoordinate={(value) =>
+                                formatCoordinateForControls(value, point)
+                            }
+                            onMovePointLike={movePointLike}
+                        />
+                    ))}
+                </ControlCard>
             );
         })
         .filter((section): section is React.JSX.Element => Boolean(section));
@@ -129,8 +147,8 @@ export default React.memo(function PointGraphControls({
     }
 
     return (
-        <GraphControlsPanel id={id} ariaLabel="Point controls">
+        <ControlsStack id={id} ariaLabel="Point controls">
             {controlsSection}
-        </GraphControlsPanel>
+        </ControlsStack>
     );
 });

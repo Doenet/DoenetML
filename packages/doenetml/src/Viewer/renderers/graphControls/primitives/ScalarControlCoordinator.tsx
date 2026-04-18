@@ -70,6 +70,7 @@ export default function ScalarControlCoordinator({
         setDraft,
         hasDraft,
         isCommitting,
+        pruneToActiveKeys: pruneInputKeysToActive,
         commitParsedInput,
     } = useControlInputState();
 
@@ -90,6 +91,14 @@ export default function ScalarControlCoordinator({
 
     const draftKey = makeScalarDraftKey(componentIdx, scalarRole);
     const transientKey = makeScalarTransientKey(componentIdx, scalarRole);
+
+    useEffect(() => {
+        const activeInputKeys =
+            graphControlsMode === "all" || graphControlsMode === "inputsonly"
+                ? new Set([draftKey])
+                : new Set<string>();
+        pruneInputKeysToActive(activeInputKeys);
+    }, [draftKey, graphControlsMode, pruneInputKeysToActive]);
 
     useEffect(() => {
         pruneTransientKeysToActive(new Set([transientKey]));
@@ -184,7 +193,12 @@ export default function ScalarControlCoordinator({
                     updateScalarFromSlider({
                         nextValue,
                         transient,
-                    }).catch(() => {});
+                    }).catch((error) => {
+                        console.error(
+                            `[graph-controls] failed to update scalar slider for ${componentIdx}:${scalarRole}`,
+                            error,
+                        );
+                    });
                 },
                 onSliderDragEnd: clearTransientScalar,
             }}
