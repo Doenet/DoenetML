@@ -29,6 +29,7 @@ type ScalarControlSliderConfig = {
     value: number;
     displayValue: string;
     onSliderChange: (value: number, transient: boolean) => void;
+    onSliderDragEnd: () => void;
 };
 
 type ScalarControlProps = {
@@ -118,6 +119,7 @@ export default function ScalarControl({
                 step={slider.step}
                 value={slider.value}
                 onChange={slider.onSliderChange}
+                onDragEnd={slider.onSliderDragEnd}
             />
         </>
     );

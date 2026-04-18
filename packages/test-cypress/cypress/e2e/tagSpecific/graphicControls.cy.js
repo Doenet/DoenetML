@@ -999,6 +999,78 @@ describe(
             cy.get("#Py").should("have.text", "0.1");
         });
 
+        it("snaps constrained circle radius slider and input to grid-constrained value", () => {
+            loadGraphTest(`
+<text name="ready">ready</text>
+<graph name="g" addControls="all" controlsPosition="left">
+  <circle name="C" labelIsName center="(1,2)" radius="$P.x" addControls="centerAndRadius" />
+  <point name="P" labelIsName><constrainToGrid/>(3,4)</point>
+</graph>
+<number name="Cr" extend="$C.radius" />
+`);
+
+            const radiusSlider = '[aria-label="radius for C"]';
+            const radiusInput = '[aria-label="radius input for C"]';
+
+            cy.get("#Cr").should("have.text", "3");
+            cy.get(radiusSlider).should("have.attr", "value", "3");
+
+            cy.get(radiusSlider).trigger("pointerdown", {
+                pointerId: 1,
+                pointerType: "mouse",
+                buttons: 1,
+                force: true,
+            });
+            cy.get(radiusSlider).invoke("val", "3.6").trigger("input", {
+                force: true,
+            });
+
+            cy.get("#Cr").should("have.text", "4");
+            cy.get(radiusSlider).should("have.attr", "value", "3.6");
+
+            cy.get(radiusSlider).trigger("pointerup", {
+                pointerId: 1,
+                pointerType: "mouse",
+                force: true,
+            });
+
+            cy.get("#Cr").should("have.text", "4");
+            cy.get(radiusSlider).should("have.attr", "value", "4");
+            cy.get(radiusInput).should("have.attr", "value", "4");
+
+            cy.get(radiusInput).clear().type("5.6").blur();
+            cy.get("#Cr").should("have.text", "6");
+            cy.get(radiusSlider).should("have.attr", "value", "6");
+            cy.get(radiusInput).should("have.attr", "value", "6");
+        });
+
+        it("clears transient constrained circle radius slider value on blur", () => {
+            loadGraphTest(`
+<text name="ready">ready</text>
+<graph name="g" addControls="all" controlsPosition="left">
+  <circle name="C" labelIsName center="(1,2)" radius="$P.x" addControls="centerAndRadius" />
+  <point name="P" labelIsName><constrainToGrid/>(3,4)</point>
+</graph>
+<number name="Cr" extend="$C.radius" />
+`);
+
+            const radiusSlider = '[aria-label="radius for C"]';
+            const centerXSlider = '[aria-label="center x coordinate for C"]';
+
+            cy.get(radiusSlider).focus();
+            keyboardStepRangeRight(radiusSlider);
+            keyboardStepRangeRight(radiusSlider);
+            keyboardStepRangeRight(radiusSlider);
+
+            cy.get("#Cr").should("have.text", "3");
+            cy.get(radiusSlider).should("have.attr", "value", "3.6");
+
+            cy.get(centerXSlider).focus();
+
+            cy.get("#Cr").should("have.text", "3");
+            cy.get(radiusSlider).should("have.attr", "value", "3");
+        });
+
         it("snaps constrained circle center slider and input to grid-constrained value", () => {
             loadGraphTest(`
 <text name="ready">ready</text>

@@ -35,6 +35,7 @@ export type UnifiedPointMovePayload = {
 };
 
 export type PointLikeInputSuffix = GraphControlAxis | "pair";
+export type ScalarControlRole = string;
 
 export type GraphControlDisplaySettings = {
     displayDigits: number;
@@ -282,6 +283,26 @@ export function makePointLikeDraftKey(
 }
 
 /**
+ * Build a role-aware draft key for scalar control state.
+ */
+export function makeScalarDraftKey(
+    componentIdx: number,
+    scalarRole: ScalarControlRole,
+): string {
+    return `${componentIdx}:${scalarRole}:value:draft`;
+}
+
+/**
+ * Build a role-aware transient key for scalar slider state.
+ */
+export function makeScalarTransientKey(
+    componentIdx: number,
+    scalarRole: ScalarControlRole,
+): string {
+    return `${componentIdx}:${scalarRole}:value:transient`;
+}
+
+/**
  * Normalize slider bounds for reversed graph axis ranges.
  */
 export function normalizedSliderBounds(rawMin: number, rawMax: number) {
@@ -289,4 +310,3 @@ export function normalizedSliderBounds(rawMin: number, rawMax: number) {
     const max = Math.max(rawMin, rawMax);
     return { min, max };
 }
-

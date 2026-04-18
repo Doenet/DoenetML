@@ -1,8 +1,5 @@
 import React from "react";
-import {
-    GraphControlsMode,
-    PointControlsMode,
-} from "../model";
+import { GraphControlsMode, PointControlsMode } from "../model";
 import SliderUI from "../../utils/SliderUI";
 import InputWithError from "./InputWithError";
 import {
@@ -33,7 +30,7 @@ type AxisControlConfig = {
     step: number;
     value: number;
     onSliderChange: (value: number, transient: boolean) => void;
-    onDragEnd?: () => void;
+    onDragEnd: () => void;
     input: TextInputConfig;
 };
 
@@ -150,7 +147,9 @@ export default function PointControlView({
 
             {showInputsOnly && controlsMode === "both" ? (
                 <div style={GRAPH_CONTROL_INPUT_BLOCK_STYLE}>
-                    <label htmlFor={`${id}-${controlId}-pair`}>Coordinates</label>
+                    <label htmlFor={`${id}-${controlId}-pair`}>
+                        Coordinates
+                    </label>
                     <InputWithError
                         id={`${id}-${controlId}-pair`}
                         value={pairInput.value}
@@ -166,39 +165,35 @@ export default function PointControlView({
                 </div>
             ) : null}
 
-            {showInputsOnly && controlsMode === "xonly" ? (
-                renderLabeledInput({
-                    inputId: `${id}-${controlId}-x-input`,
-                    label: "x",
-                    input: {
-                        ...axisControls.x.input,
-                        ariaLabel:
-                            axisControls.x.inputOnlyAriaLabel ??
-                            `x input for ${labelForAria}`,
-                    },
-                })
-            ) : null}
-
-            {showInputsOnly && controlsMode === "yonly" ? (
-                renderLabeledInput({
-                    inputId: `${id}-${controlId}-y-input`,
-                    label: "y",
-                    input: {
-                        ...axisControls.y.input,
-                        ariaLabel:
-                            axisControls.y.inputOnlyAriaLabel ??
-                            `y input for ${labelForAria}`,
-                    },
-                })
-            ) : null}
-
-            {includeSliders && showXAxis
-                ? renderAxisSlider("x")
+            {showInputsOnly && controlsMode === "xonly"
+                ? renderLabeledInput({
+                      inputId: `${id}-${controlId}-x-input`,
+                      label: "x",
+                      input: {
+                          ...axisControls.x.input,
+                          ariaLabel:
+                              axisControls.x.inputOnlyAriaLabel ??
+                              `x input for ${labelForAria}`,
+                      },
+                  })
                 : null}
 
-            {includeSliders && showYAxis
-                ? renderAxisSlider("y")
+            {showInputsOnly && controlsMode === "yonly"
+                ? renderLabeledInput({
+                      inputId: `${id}-${controlId}-y-input`,
+                      label: "y",
+                      input: {
+                          ...axisControls.y.input,
+                          ariaLabel:
+                              axisControls.y.inputOnlyAriaLabel ??
+                              `y input for ${labelForAria}`,
+                      },
+                  })
                 : null}
+
+            {includeSliders && showXAxis ? renderAxisSlider("x") : null}
+
+            {includeSliders && showYAxis ? renderAxisSlider("y") : null}
         </>
     );
 }

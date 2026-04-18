@@ -11,10 +11,7 @@ import {
     makePointLikeTransientAxisKey,
     normalizedSliderBounds,
 } from "../model";
-import {
-    parseOrderedPair,
-    parseSingleMathNumber,
-} from "../mathFormatParse";
+import { parseOrderedPair, parseSingleMathNumber } from "../mathFormatParse";
 import PointControlView from "./PointControlView";
 
 type PointControlCoordinatorProps = {

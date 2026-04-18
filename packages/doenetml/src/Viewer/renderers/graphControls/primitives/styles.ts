@@ -37,9 +37,10 @@ export const GRAPH_CONTROL_SECTION_HEADING_STYLE: React.CSSProperties = {
     fontSize: "0.9em",
 };
 
-export const GRAPH_CONTROL_SECTION_HEADING_WITH_DIVIDER_STYLE: React.CSSProperties = {
-    ...GRAPH_CONTROL_SECTION_HEADING_STYLE,
-    marginTop: "12px",
-    paddingTop: "8px",
-    borderTop: "1px solid var(--canvasText)",
-};
+export const GRAPH_CONTROL_SECTION_HEADING_WITH_DIVIDER_STYLE: React.CSSProperties =
+    {
+        ...GRAPH_CONTROL_SECTION_HEADING_STYLE,
+        marginTop: "12px",
+        paddingTop: "8px",
+        borderTop: "1px solid var(--canvasText)",
+    };
