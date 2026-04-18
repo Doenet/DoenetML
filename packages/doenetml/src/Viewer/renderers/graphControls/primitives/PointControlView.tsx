@@ -2,14 +2,14 @@ import React from "react";
 import {
     GraphControlsMode,
     PointControlsMode,
-} from "../../utils/graphControls";
+} from "../model";
 import SliderUI from "../../utils/SliderUI";
-import CommitInputWithError from "./CommitInputWithError";
+import InputWithError from "./InputWithError";
 import {
     GRAPH_CONTROL_INLINE_INPUT_STACK_STYLE,
     GRAPH_CONTROL_INPUT_BLOCK_STYLE,
-} from "./graphControlStyles";
-import GraphControlSectionHeading from "./GraphControlSectionHeading";
+} from "./styles";
+import ControlSectionHeading from "./ControlSectionHeading";
 
 type TextInputConfig = {
     value: string;
@@ -37,10 +37,10 @@ type AxisControlConfig = {
     input: TextInputConfig;
 };
 
-type PointControlProps = {
+type PointControlViewProps = {
     id: string;
     controlId: string;
-    /** Optional subheading rendered for use when multiple controls share one GraphControl card. */
+    /** Optional subheading rendered when multiple controls share one control card. */
     sectionHeading?: React.ReactNode;
     sectionHeadingHasDivider?: boolean;
     labelForAria: string;
@@ -53,7 +53,7 @@ type PointControlProps = {
     };
 };
 
-export default function PointControl({
+export default function PointControlView({
     id,
     controlId,
     sectionHeading,
@@ -63,7 +63,7 @@ export default function PointControl({
     controlsMode,
     pairInput,
     axisControls,
-}: PointControlProps) {
+}: PointControlViewProps) {
     const includeSliders =
         graphControlsMode === "all" || graphControlsMode === "slidersonly";
     const includeInputs =
@@ -86,7 +86,7 @@ export default function PointControl({
         return (
             <div style={GRAPH_CONTROL_INPUT_BLOCK_STYLE}>
                 <label htmlFor={inputId}>{label}</label>
-                <CommitInputWithError
+                <InputWithError
                     id={inputId}
                     value={input.value}
                     ariaLabel={input.ariaLabel}
@@ -112,7 +112,7 @@ export default function PointControl({
                     showAxisInputsInline ? (
                         <span style={GRAPH_CONTROL_INLINE_INPUT_STACK_STYLE}>
                             {axisControl.label}:{" "}
-                            <CommitInputWithError
+                            <InputWithError
                                 value={axisControl.input.value}
                                 ariaLabel={axisControl.input.ariaLabel}
                                 error={axisControl.input.error}
@@ -143,7 +143,7 @@ export default function PointControl({
 
     return (
         <>
-            <GraphControlSectionHeading
+            <ControlSectionHeading
                 heading={sectionHeading}
                 withDivider={sectionHeadingHasDivider}
             />
@@ -151,7 +151,7 @@ export default function PointControl({
             {showInputsOnly && controlsMode === "both" ? (
                 <div style={GRAPH_CONTROL_INPUT_BLOCK_STYLE}>
                     <label htmlFor={`${id}-${controlId}-pair`}>Coordinates</label>
-                    <CommitInputWithError
+                    <InputWithError
                         id={`${id}-${controlId}-pair`}
                         value={pairInput.value}
                         ariaLabel={pairInput.ariaLabel}

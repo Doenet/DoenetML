@@ -1,8 +1,8 @@
 import React from "react";
-import GraphControlsCommitInput from "./GraphControlsCommitInput";
-import { GRAPH_CONTROL_ERROR_TEXT_STYLE } from "./graphControlStyles";
+import CommitTextInput from "./CommitTextInput";
+import { GRAPH_CONTROL_ERROR_TEXT_STYLE } from "./styles";
 
-type CommitInputWithErrorProps = {
+type InputWithErrorProps = {
     id?: string;
     value: string;
     ariaLabel: string;
@@ -15,7 +15,7 @@ type CommitInputWithErrorProps = {
     commitErrorContext: string;
 };
 
-export default function CommitInputWithError({
+export default function InputWithError({
     id,
     value,
     ariaLabel,
@@ -26,10 +26,10 @@ export default function CommitInputWithError({
     hasDraft,
     isCommitting,
     commitErrorContext,
-}: CommitInputWithErrorProps) {
+}: InputWithErrorProps) {
     return (
         <>
-            <GraphControlsCommitInput
+            <CommitTextInput
                 id={id}
                 value={value}
                 ariaLabel={ariaLabel}

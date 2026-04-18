@@ -1,16 +1,16 @@
 import React from "react";
-import PointGraphControls from "./PointGraphControls";
-import CircleGraphControls from "./CircleGraphControls";
-import LineSegmentGraphControls from "./LineSegmentGraphControls";
-import VectorGraphControls from "./VectorGraphControls";
+import PointControlsFamily from "./families/PointControlsFamily";
+import CircleControlsFamily from "./families/CircleControlsFamily";
+import LineSegmentControlsFamily from "./families/LineSegmentControlsFamily";
+import VectorControlsFamily from "./families/VectorControlsFamily";
 import type {
     GraphControlCircle,
     GraphControlLineSegment,
     GraphControlPoint,
     GraphControlVector,
-} from "./utils/graphControls";
+} from "./model";
 
-type GraphObjectControlsProps = {
+type GraphControlsRootProps = {
     id: string;
     SVs: {
         addControls: string;
@@ -26,15 +26,15 @@ type GraphObjectControlsProps = {
     callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };
 
-export default React.memo(function GraphObjectControls(
-    props: GraphObjectControlsProps,
+export default React.memo(function GraphControlsRoot(
+    props: GraphControlsRootProps,
 ) {
     return (
         <>
-            <PointGraphControls {...props} />
-            <CircleGraphControls {...props} />
-            <LineSegmentGraphControls {...props} />
-            <VectorGraphControls {...props} />
+            <PointControlsFamily {...props} />
+            <CircleControlsFamily {...props} />
+            <LineSegmentControlsFamily {...props} />
+            <VectorControlsFamily {...props} />
         </>
     );
 });

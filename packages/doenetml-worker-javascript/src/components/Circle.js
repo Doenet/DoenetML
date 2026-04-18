@@ -2947,14 +2947,49 @@ export default class Circle extends Curve {
     }
 
     async moveCircle({
-        center,
+        x,
+        y,
         radius,
         throughAngles,
         transient,
+        skippable,
         actionId,
+        sourceDetails,
         sourceInformation = {},
         skipRendererUpdate = false,
+        pointRole = "center",
     }) {
+        if (!transient) {
+            skippable = false;
+        }
+
+        if (pointRole !== "center") {
+            console.warn(`Invalid pointRole for circle: ${pointRole}`);
+            return await this.coreFunctions.performUpdate({
+                updateInstructions: [],
+                transient,
+                skippable,
+                actionId,
+                sourceInformation,
+                skipRendererUpdate,
+            });
+        }
+
+        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+            console.warn(
+                `Invalid center coordinates for circle move: x=${x}, y=${y}`,
+            );
+            return await this.coreFunctions.performUpdate({
+                updateInstructions: [],
+                transient,
+                skippable,
+                actionId,
+                sourceInformation,
+                skipRendererUpdate,
+            });
+        }
+
+        const center = [x, y];
         let instructions = [];
 
         let numThroughPoints = await this.stateValues.numThroughPoints;
@@ -2967,6 +3002,7 @@ export default class Circle extends Curve {
                 componentIdx: this.componentIdx,
                 stateVariable: "numericalCenter",
                 value: center,
+                sourceDetails,
             });
         }
 
@@ -3001,6 +3037,7 @@ export default class Circle extends Curve {
                 componentIdx: this.componentIdx,
                 stateVariable: "numericalThroughPoints",
                 value: numericalThroughPoints,
+                sourceDetails,
             });
         }
 
@@ -3010,6 +3047,7 @@ export default class Circle extends Curve {
             await this.coreFunctions.performUpdate({
                 updateInstructions: instructions,
                 transient,
+                skippable,
                 actionId,
                 sourceInformation,
                 skipRendererUpdate: true,
@@ -3077,6 +3115,7 @@ export default class Circle extends Curve {
                 return await this.coreFunctions.performUpdate({
                     updateInstructions: newInstructions,
                     transient,
+                    skippable,
                     actionId,
                     sourceInformation,
                     skipRendererUpdate,
@@ -3101,6 +3140,7 @@ export default class Circle extends Curve {
                 return await this.coreFunctions.performUpdate({
                     updateInstructions: newInstructions,
                     transient,
+                    skippable,
                     actionId,
                     sourceInformation,
                     skipRendererUpdate,
@@ -3194,6 +3234,7 @@ export default class Circle extends Curve {
                     return await this.coreFunctions.performUpdate({
                         updateInstructions: newInstructions,
                         transient,
+                        skippable,
                         actionId,
                         sourceInformation,
                         skipRendererUpdate,

@@ -2,21 +2,21 @@ import React from "react";
 import {
     GRAPH_CONTROL_CARD_STYLE,
     GRAPH_CONTROL_HEADING_STYLE,
-} from "./graphControlStyles";
+} from "./styles";
 
-type GraphControlProps = {
+type ControlCardProps = {
     id?: string;
     headingId: string;
     heading: React.ReactNode;
     children: React.ReactNode;
 };
 
-export default function GraphControl({
+export default function ControlCard({
     id,
     headingId,
     heading,
     children,
-}: GraphControlProps) {
+}: ControlCardProps) {
     return (
         <div
             id={id}

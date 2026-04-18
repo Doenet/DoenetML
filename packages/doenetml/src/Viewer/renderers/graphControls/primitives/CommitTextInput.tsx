@@ -1,6 +1,6 @@
 import React from "react";
 
-type GraphControlsCommitInputProps = {
+type CommitTextInputProps = {
     id?: string;
     value: string;
     ariaLabel: string;
@@ -13,7 +13,7 @@ type GraphControlsCommitInputProps = {
     isCommitting?: boolean;
 };
 
-export default function GraphControlsCommitInput({
+export default function CommitTextInput({
     id,
     value,
     ariaLabel,
@@ -24,7 +24,7 @@ export default function GraphControlsCommitInput({
     commitErrorContext,
     hasDraft = true,
     isCommitting = false,
-}: GraphControlsCommitInputProps) {
+}: CommitTextInputProps) {
     const suppressNextBlurCommitRef = React.useRef(false);
 
     function commitValue(rawValue: string) {

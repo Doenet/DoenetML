@@ -1329,10 +1329,18 @@ export default class Point extends GraphicalComponent {
         y,
         z,
         transient,
+        skippable,
         actionId,
+        sourceDetails,
         sourceInformation = {},
         skipRendererUpdate = false,
+        pointRole = "point",
     }) {
+        if (pointRole !== "point") {
+            console.warn(`Invalid pointRole: ${pointRole}`);
+            return;
+        }
+
         let components = {};
         if (x !== undefined) {
             components[0] = me.fromAst(x);
@@ -1351,9 +1359,11 @@ export default class Point extends GraphicalComponent {
                         componentIdx: this.componentIdx,
                         stateVariable: "xs",
                         value: components,
+                        sourceDetails,
                     },
                 ],
                 transient,
+                skippable,
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,
@@ -1366,6 +1376,7 @@ export default class Point extends GraphicalComponent {
                         componentIdx: this.componentIdx,
                         stateVariable: "xs",
                         value: components,
+                        sourceDetails,
                     },
                 ],
                 actionId,

@@ -1,14 +1,14 @@
 import React from "react";
-import { GraphControlsMode } from "../../utils/graphControls";
+import { GraphControlsMode } from "../model";
 import SliderUI from "../../utils/SliderUI";
-import CommitInputWithError from "./CommitInputWithError";
-import GraphControlSectionHeading from "./GraphControlSectionHeading";
+import InputWithError from "./InputWithError";
+import ControlSectionHeading from "./ControlSectionHeading";
 import {
     GRAPH_CONTROL_INLINE_INPUT_STACK_STYLE,
     GRAPH_CONTROL_INPUT_BLOCK_STYLE,
-} from "./graphControlStyles";
+} from "./styles";
 
-type NumberControlInputConfig = {
+type ScalarControlInputConfig = {
     value: string;
     ariaLabel: string;
     error: string | undefined;
@@ -20,7 +20,7 @@ type NumberControlInputConfig = {
     commitErrorContext: string;
 };
 
-type NumberControlSliderConfig = {
+type ScalarControlSliderConfig = {
     id: string;
     ariaLabel: string;
     min: number;
@@ -31,23 +31,23 @@ type NumberControlSliderConfig = {
     onSliderChange: (value: number, transient: boolean) => void;
 };
 
-type NumberControlProps = {
+type ScalarControlProps = {
     sectionHeading?: React.ReactNode;
     sectionHeadingHasDivider?: boolean;
     label: string;
     graphControlsMode: Exclude<GraphControlsMode, "none">;
-    input: NumberControlInputConfig;
-    slider: NumberControlSliderConfig;
+    input: ScalarControlInputConfig;
+    slider: ScalarControlSliderConfig;
 };
 
-export default function NumberControl({
+export default function ScalarControl({
     sectionHeading,
     sectionHeadingHasDivider = true,
     label,
     graphControlsMode,
     input,
     slider,
-}: NumberControlProps) {
+}: ScalarControlProps) {
     const includeSliders =
         graphControlsMode === "all" || graphControlsMode === "slidersonly";
     const includeInputs =
@@ -56,14 +56,14 @@ export default function NumberControl({
     if (!includeSliders && includeInputs) {
         return (
             <>
-                <GraphControlSectionHeading
+                <ControlSectionHeading
                     heading={sectionHeading}
                     withDivider={sectionHeadingHasDivider}
                 />
                 <div style={GRAPH_CONTROL_INPUT_BLOCK_STYLE}>
                     <label>
                         {label}
-                        <CommitInputWithError
+                        <InputWithError
                             value={input.value}
                             ariaLabel={input.ariaLabel}
                             error={input.error}
@@ -86,7 +86,7 @@ export default function NumberControl({
 
     return (
         <>
-            <GraphControlSectionHeading
+            <ControlSectionHeading
                 heading={sectionHeading}
                 withDivider={sectionHeadingHasDivider}
             />
@@ -96,7 +96,7 @@ export default function NumberControl({
                     graphControlsMode === "all" ? (
                         <span style={GRAPH_CONTROL_INLINE_INPUT_STACK_STYLE}>
                             {label}:
-                            <CommitInputWithError
+                            <InputWithError
                                 value={input.value}
                                 ariaLabel={input.ariaLabel}
                                 error={input.error}

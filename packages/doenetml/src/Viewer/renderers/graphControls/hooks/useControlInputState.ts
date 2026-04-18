@@ -22,7 +22,7 @@ function clearKeyFromRecord(
  * - in-flight commit de-duplication
  * - optional unchanged-value short-circuit
  */
-export function useGraphControlsInputState() {
+export function useControlInputState() {
     const [draftByKey, setDraftByKey] = useState<Record<string, string>>({});
     const [errorByKey, setErrorByKey] = useState<Record<string, string>>({});
     const draftByKeyRef = useRef<Record<string, string>>({});

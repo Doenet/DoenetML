@@ -1,33 +1,32 @@
 import React, { useMemo } from "react";
-import GraphControlsPanel from "./components/graphControls/GraphControlsPanel";
-import GraphControl from "./components/graphControls/GraphControl";
-import NumberControl from "./components/graphControls/NumberControl";
-import PointControl from "./components/graphControls/PointControl";
+import ControlsStack from "../primitives/ControlsStack";
+import ControlCard from "../primitives/ControlCard";
+import ScalarControl from "../primitives/ScalarControl";
+import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import {
+    PointMoveRole,
     makeInputErrorId,
     normalizeCircleControlsMode,
     normalizeGraphControlsMode,
-    normalizedSliderBounds,
     type GraphControlCircle,
-} from "./utils/graphControls";
+} from "../model";
 import {
     formatCoordinateForControls,
-    parseOrderedPair,
     parseSingleMathNumber,
-} from "./utils/graphControlsMath";
-import { useGraphControlsInputState } from "./hooks/useGraphControlsInputState";
+} from "../mathFormatParse";
+import { useControlInputState } from "../hooks/useControlInputState";
 import {
     accessibleLabelText,
     renderLabelWithLatex,
-} from "./utils/labelWithLatex";
-import { useLatestControlValues } from "./hooks/useLatestControlValues";
+} from "../../utils/labelWithLatex";
+import { useLatestValues } from "../hooks/useLatestValues";
 
 type CircleControlState = {
     center: { x: number; y: number };
     radius: number;
 };
 
-type CircleGraphControlsProps = {
+type CircleControlsFamilyProps = {
     id: string;
     SVs: {
         addControls: string;
@@ -40,11 +39,11 @@ type CircleGraphControlsProps = {
     callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };
 
-export default React.memo(function CircleGraphControls({
+export default React.memo(function CircleControlsFamily({
     id,
     SVs,
     callAction,
-}: CircleGraphControlsProps) {
+}: CircleControlsFamilyProps) {
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     if (graphControlsMode === "none") {
         return null;
@@ -64,7 +63,7 @@ export default React.memo(function CircleGraphControls({
         hasDraft,
         isCommitting,
         commitParsedInput,
-    } = useGraphControlsInputState();
+    } = useControlInputState();
 
     const latestCircleValuesByKey = useMemo(() => {
         const valuesByKey: Record<
@@ -80,7 +79,7 @@ export default React.memo(function CircleGraphControls({
         return valuesByKey;
     }, [circles]);
 
-    const { getLatestValue, setLatestValue } = useLatestControlValues(
+    const { getLatestValue, setLatestValue } = useLatestValues(
         latestCircleValuesByKey,
     );
 
@@ -129,7 +128,9 @@ export default React.memo(function CircleGraphControls({
                     componentIdx: circle.componentIdx,
                 },
                 args: {
-                    center: [center.x, center.y],
+                    x: center.x,
+                    y: center.y,
+                    pointRole: "center",
                     radius,
                     transient,
                     skippable: transient,
@@ -141,6 +142,37 @@ export default React.memo(function CircleGraphControls({
                 error,
             );
         }
+    }
+
+    async function moveCenterPointLike({
+        componentIdx,
+        pointRole,
+        x,
+        y,
+        transient,
+    }: {
+        componentIdx: number;
+        pointRole: PointMoveRole;
+        x: number;
+        y: number;
+        transient: boolean;
+        skippable: boolean;
+    }) {
+        const circle = circles.find(
+            (candidate) => candidate.componentIdx === componentIdx,
+        );
+        if (!circle || pointRole !== "center") {
+            return;
+        }
+        const center = { x, y };
+        const radius = getCircleState(circle).radius;
+
+        await updateCircle({
+            circle,
+            center,
+            radius,
+            transient,
+        });
     }
 
     async function changeCircleRadius({
@@ -193,96 +225,6 @@ export default React.memo(function CircleGraphControls({
         });
     }
 
-    async function updateCenterAxis({
-        circle,
-        axis,
-        value,
-        transient,
-    }: {
-        circle: GraphControlCircle;
-        axis: "x" | "y";
-        value: number;
-        transient: boolean;
-    }) {
-        const latest = getCircleState(circle);
-        const center =
-            axis === "x"
-                ? { x: value, y: latest.center.y }
-                : { x: latest.center.x, y: value };
-
-        setCircleState(circle, {
-            center,
-            radius: latest.radius,
-        });
-
-        await updateCircle({
-            circle,
-            center,
-            radius: latest.radius,
-            transient,
-        });
-    }
-
-    async function commitCenterAxisInput({
-        circle,
-        key,
-        rawValue,
-        axis,
-    }: {
-        circle: GraphControlCircle;
-        key: string;
-        rawValue: string;
-        axis: "x" | "y";
-    }) {
-        const latest = getCircleState(circle);
-        await commitNumberInput({
-            key,
-            rawValue,
-            currentValue: axis === "x" ? latest.center.x : latest.center.y,
-            onParsed: async (value) => {
-                await updateCenterAxis({
-                    circle,
-                    axis,
-                    value,
-                    transient: false,
-                });
-            },
-        });
-    }
-
-    async function commitCenterPairInput({
-        circle,
-        key,
-        rawValue,
-    }: {
-        circle: GraphControlCircle;
-        key: string;
-        rawValue: string;
-    }) {
-        const latest = getCircleState(circle);
-        await commitParsedInput({
-            key,
-            rawValue,
-            parse: parseOrderedPair,
-            errorMessage:
-                "Enter an ordered pair like (x,y) with numeric values.",
-            isUnchanged: (value) =>
-                value.x === latest.center.x && value.y === latest.center.y,
-            onParsed: async (value) => {
-                setCircleState(circle, {
-                    center: value,
-                    radius: latest.radius,
-                });
-                await updateCircle({
-                    circle,
-                    center: value,
-                    radius: latest.radius,
-                    transient: false,
-                });
-            },
-        });
-    }
-
     async function updateRadiusValue({
         circle,
         value,
@@ -296,7 +238,8 @@ export default React.memo(function CircleGraphControls({
         const nextRadius = Math.max(0, value);
 
         setCircleState(circle, {
-            center: latest.center,
+            // Keep center sourced from core so transient center drags can snap back correctly.
+            center: { x: circle.center.x, y: circle.center.y },
             radius: nextRadius,
         });
 
@@ -331,8 +274,6 @@ export default React.memo(function CircleGraphControls({
         });
     }
 
-    const { min: xMin, max: xMax } = normalizedSliderBounds(SVs.xMin, SVs.xMax);
-    const { min: yMin, max: yMax } = normalizedSliderBounds(SVs.yMin, SVs.yMax);
     const defaultRadiusMax = Math.max(
         1,
         Math.abs(SVs.xMax - SVs.xMin),
@@ -362,138 +303,59 @@ export default React.memo(function CircleGraphControls({
             const showCenter = mode === "center" || mode === "centerandradius";
             const showRadius = mode === "radius" || mode === "centerandradius";
 
-            const xKey = `${circle.componentIdx}|cx`;
-            const yKey = `${circle.componentIdx}|cy`;
-            const centerPairKey = `${circle.componentIdx}|cpair`;
             const rKey = `${circle.componentIdx}|r`;
-
             const currentCircleState = getCircleState(circle);
-
-            const xDisplay = formatCoordinateForControls(
-                currentCircleState.center.x,
+            const rDisplay = formatCoordinateForControls(
+                currentCircleState.radius,
                 circle,
             );
-            const yDisplay = formatCoordinateForControls(
-                currentCircleState.center.y,
-                circle,
-            );
-            const rDisplay = formatCoordinateForControls(currentCircleState.radius, circle);
 
-            const radiusMax = Math.max(defaultRadiusMax, currentCircleState.radius);
+            const radiusMax = Math.max(
+                defaultRadiusMax,
+                currentCircleState.radius,
+            );
             const radiusStep = radiusMax > 0 ? radiusMax / 100 : 1;
 
             const headingId = `${id}-circle-${circle.componentIdx}-heading`;
 
             return (
-                <GraphControl
+                <ControlCard
                     key={circle.componentIdx}
                     id={`${id}-circle-${circle.componentIdx}`}
                     headingId={headingId}
                     heading={labelForDisplay}
                 >
                     {showCenter ? (
-                        <PointControl
+                        <PointControlCoordinator
                             id={id}
                             controlId={`circle-${circle.componentIdx}-center`}
+                            componentIdx={circle.componentIdx}
+                            pointRole="center"
                             sectionHeading="Center"
                             sectionHeadingHasDivider={false}
                             labelForAria={`center of ${labelForAria}`}
+                            pairAriaLabel={`center coordinates for ${labelForAria}`}
+                            xSliderAriaLabel={`center x coordinate for ${labelForAria}`}
+                            ySliderAriaLabel={`center y coordinate for ${labelForAria}`}
+                            xInputAriaLabel={`center x input for ${labelForAria}`}
+                            yInputAriaLabel={`center y input for ${labelForAria}`}
                             graphControlsMode={graphControlsMode}
-                            controlsMode="both"
-                            pairInput={{
-                                value: draftByKey[centerPairKey] ?? `(${xDisplay},${yDisplay})`,
-                                ariaLabel: `center coordinates for ${labelForAria}`,
-                                error: errorByKey[centerPairKey],
-                                errorId: makeInputErrorId(id, "circle", centerPairKey),
-                                onDraftChange: (value) => setDraft(centerPairKey, value),
-                                onCommit: async (rawValue) => {
-                                    await commitCenterPairInput({
-                                        circle,
-                                        key: centerPairKey,
-                                        rawValue,
-                                    });
-                                },
-                                hasDraft: hasDraft(centerPairKey),
-                                isCommitting: isCommitting(centerPairKey),
-                                commitErrorContext: `[graph-controls] failed to commit ${centerPairKey} input`,
-                            }}
-                            axisControls={{
-                                x: {
-                                    label: "x",
-                                    sliderAriaLabel: `center x coordinate for ${labelForAria}`,
-                                    displayValue: xDisplay,
-                                    min: xMin,
-                                    max: xMax,
-                                    step: xMax !== xMin ? (xMax - xMin) / 100 : 1,
-                                    value: currentCircleState.center.x,
-                                    onSliderChange: (value, transient) => {
-                                        updateCenterAxis({
-                                            circle,
-                                            axis: "x",
-                                            value,
-                                            transient,
-                                        }).catch(() => {});
-                                    },
-                                    input: {
-                                        value: draftByKey[xKey] ?? xDisplay,
-                                        ariaLabel: `center x input for ${labelForAria}`,
-                                        error: errorByKey[xKey],
-                                        errorId: makeInputErrorId(id, "circle", xKey),
-                                        onDraftChange: (value) => setDraft(xKey, value),
-                                        onCommit: async (rawValue) => {
-                                            await commitCenterAxisInput({
-                                                circle,
-                                                key: xKey,
-                                                rawValue,
-                                                axis: "x",
-                                            });
-                                        },
-                                        hasDraft: hasDraft(xKey),
-                                        isCommitting: isCommitting(xKey),
-                                        commitErrorContext: `[graph-controls] failed to commit ${xKey} input`,
-                                    },
-                                },
-                                y: {
-                                    label: "y",
-                                    sliderAriaLabel: `center y coordinate for ${labelForAria}`,
-                                    displayValue: yDisplay,
-                                    min: yMin,
-                                    max: yMax,
-                                    step: yMax !== yMin ? (yMax - yMin) / 100 : 1,
-                                    value: currentCircleState.center.y,
-                                    onSliderChange: (value, transient) => {
-                                        updateCenterAxis({
-                                            circle,
-                                            axis: "y",
-                                            value,
-                                            transient,
-                                        }).catch(() => {});
-                                    },
-                                    input: {
-                                        value: draftByKey[yKey] ?? yDisplay,
-                                        ariaLabel: `center y input for ${labelForAria}`,
-                                        error: errorByKey[yKey],
-                                        errorId: makeInputErrorId(id, "circle", yKey),
-                                        onDraftChange: (value) => setDraft(yKey, value),
-                                        onCommit: async (rawValue) => {
-                                            await commitCenterAxisInput({
-                                                circle,
-                                                key: yKey,
-                                                rawValue,
-                                                axis: "y",
-                                            });
-                                        },
-                                        hasDraft: hasDraft(yKey),
-                                        isCommitting: isCommitting(yKey),
-                                        commitErrorContext: `[graph-controls] failed to commit ${yKey} input`,
-                                    },
-                                },
-                            }}
+                            pointControlsMode="both"
+                            x={circle.center.x}
+                            y={circle.center.y}
+                            xMin={SVs.xMin}
+                            xMax={SVs.xMax}
+                            yMin={SVs.yMin}
+                            yMax={SVs.yMax}
+                            formatCoordinate={(value) =>
+                                formatCoordinateForControls(value, circle)
+                            }
+                            onMovePointLike={moveCenterPointLike}
                         />
                     ) : null}
 
                     {showRadius ? (
-                        <NumberControl
+                        <ScalarControl
                             sectionHeading="Radius"
                             sectionHeadingHasDivider={showCenter}
                             label="radius"
@@ -533,7 +395,7 @@ export default React.memo(function CircleGraphControls({
                             }}
                         />
                     ) : null}
-                </GraphControl>
+                </ControlCard>
             );
         })
         .filter((card): card is React.JSX.Element => Boolean(card));
@@ -543,8 +405,8 @@ export default React.memo(function CircleGraphControls({
     }
 
     return (
-        <GraphControlsPanel id={`${id}-circles`} ariaLabel="Circle controls">
+        <ControlsStack id={`${id}-circles`} ariaLabel="Circle controls">
             {cards}
-        </GraphControlsPanel>
+        </ControlsStack>
     );
 });

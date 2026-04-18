@@ -2,17 +2,17 @@ import React from "react";
 import {
     GRAPH_CONTROL_SECTION_HEADING_STYLE,
     GRAPH_CONTROL_SECTION_HEADING_WITH_DIVIDER_STYLE,
-} from "./graphControlStyles";
+} from "./styles";
 
-type GraphControlSectionHeadingProps = {
+type ControlSectionHeadingProps = {
     heading?: React.ReactNode;
     withDivider?: boolean;
 };
 
-export default function GraphControlSectionHeading({
+export default function ControlSectionHeading({
     heading,
     withDivider = true,
-}: GraphControlSectionHeadingProps) {
+}: ControlSectionHeadingProps) {
     if (!heading) {
         return null;
     }

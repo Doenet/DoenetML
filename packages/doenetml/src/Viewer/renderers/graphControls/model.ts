@@ -14,6 +14,28 @@ export type VectorControlsMode =
     | "none";
 export type GraphControlAxis = "x" | "y";
 
+export type PointMoveRole =
+    | "point"
+    | "center"
+    | "endpoint1"
+    | "endpoint2"
+    | "displacement"
+    | "head"
+    | "tail";
+
+export type UnifiedPointMovePayload = {
+    componentIdx: number;
+    pointRole: PointMoveRole;
+    x: number;
+    y: number;
+    transient: boolean;
+    skippable: boolean;
+    sourceDetails?: Record<string, any>;
+    actionId?: string;
+};
+
+export type PointLikeInputSuffix = GraphControlAxis | "pair";
+
 export type GraphControlDisplaySettings = {
     displayDigits: number;
     displayDecimals: number;
@@ -218,28 +240,6 @@ export function pruneRecordByActiveKeys(
 }
 
 /**
- * Generate a unified input key for state tracking.
- * Supports different suffixes: x-axis, y-axis, or pair input.
- */
-export function makeInputKey(
-    componentIdx: number,
-    suffix: GraphControlAxis | "pair",
-): string {
-    return `${componentIdx}|${suffix}`;
-}
-
-/**
- * Generate an error message ID for aria-describedby attributes.
- */
-export function makeErrorId(
-    elementId: string,
-    componentIdx: number,
-    suffix: string,
-): string {
-    return `${elementId}-error-point-${componentIdx}-${suffix}`;
-}
-
-/**
  * Generate an error message ID for input keys used across graph control families.
  */
 export function makeInputErrorId(
@@ -247,7 +247,38 @@ export function makeInputErrorId(
     controlFamily: string,
     inputKey: string,
 ): string {
-    return `${elementId}-error-${controlFamily}-${inputKey.replace(/\|/g, "-")}`;
+    return `${elementId}-error-${controlFamily}-${inputKey.replace(/[|:]/g, "-")}`;
+}
+
+/**
+ * Build a role-aware input key for point-like control draft/error state.
+ */
+export function makePointLikeInputKey(
+    componentIdx: number,
+    pointRole: PointMoveRole,
+    suffix: PointLikeInputSuffix,
+    kind: "draft" | "error",
+): string {
+    return `${componentIdx}:${pointRole}:${suffix}:${kind}`;
+}
+
+/**
+ * Build a role-aware key for point-like transient slider state.
+ */
+export function makePointLikeTransientAxisKey(
+    componentIdx: number,
+    pointRole: PointMoveRole,
+    axis: GraphControlAxis,
+): string {
+    return `${componentIdx}:${pointRole}:${axis}:transient`;
+}
+
+export function makePointLikeDraftKey(
+    componentIdx: number,
+    pointRole: PointMoveRole,
+    suffix: PointLikeInputSuffix,
+): string {
+    return makePointLikeInputKey(componentIdx, pointRole, suffix, "draft");
 }
 
 /**
@@ -259,85 +290,3 @@ export function normalizedSliderBounds(rawMin: number, rawMax: number) {
     return { min, max };
 }
 
-/**
- * Build the active input key set for current graph- and point-level modes.
- */
-export function deriveActiveInputKeys({
-    includeInputs,
-    coreControlPoints,
-    graphControlsMode,
-}: {
-    includeInputs: boolean;
-    coreControlPoints: GraphControlPoint[];
-    graphControlsMode: GraphControlsMode;
-}): Set<string> {
-    const activeInputKeys = new Set<string>();
-
-    if (!includeInputs) {
-        return activeInputKeys;
-    }
-
-    for (const point of coreControlPoints) {
-        const pointControlsMode = normalizePointControlsMode(point.addControls);
-
-        if (pointControlsMode === "none") {
-            continue;
-        }
-
-        if (graphControlsMode === "all") {
-            if (pointControlsMode !== "yonly") {
-                activeInputKeys.add(makeInputKey(point.componentIdx, "x"));
-            }
-            if (pointControlsMode !== "xonly") {
-                activeInputKeys.add(makeInputKey(point.componentIdx, "y"));
-            }
-        } else if (graphControlsMode === "inputsonly") {
-            if (pointControlsMode === "both") {
-                activeInputKeys.add(makeInputKey(point.componentIdx, "pair"));
-            } else if (pointControlsMode === "xonly") {
-                activeInputKeys.add(makeInputKey(point.componentIdx, "x"));
-            } else if (pointControlsMode === "yonly") {
-                activeInputKeys.add(makeInputKey(point.componentIdx, "y"));
-            }
-        }
-    }
-
-    return activeInputKeys;
-}
-
-/**
- * Build the active transient-slider key set for current point mode filters.
- */
-export function deriveActiveSliderAxisKeys({
-    includeSliders,
-    coreControlPoints,
-}: {
-    includeSliders: boolean;
-    coreControlPoints: GraphControlPoint[];
-}): Set<string> {
-    const activeSliderAxisKeys = new Set<string>();
-
-    if (!includeSliders) {
-        return activeSliderAxisKeys;
-    }
-
-    for (const { componentIdx, addControls } of coreControlPoints) {
-        const normalizedAddControls = normalizePointControlsMode(addControls);
-
-        if (
-            normalizedAddControls !== "yonly" &&
-            normalizedAddControls !== "none"
-        ) {
-            activeSliderAxisKeys.add(makeInputKey(componentIdx, "x"));
-        }
-
-        if (
-            normalizedAddControls !== "xonly" &&
-            normalizedAddControls !== "none"
-        ) {
-            activeSliderAxisKeys.add(makeInputKey(componentIdx, "y"));
-        }
-    }
-
-    return activeSliderAxisKeys;
-}

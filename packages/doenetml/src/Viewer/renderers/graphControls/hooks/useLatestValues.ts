@@ -6,7 +6,7 @@ import { useEffect, useRef } from "react";
  * Families can merge incoming core values by key and then update/read the
  * latest value during overlapping transient interactions without stale closures.
  */
-export function useLatestControlValues<T>(valuesByKey: Record<string, T>) {
+export function useLatestValues<T>(valuesByKey: Record<string, T>) {
     const latestValuesRef = useRef<Record<string, T>>({});
 
     useEffect(() => {

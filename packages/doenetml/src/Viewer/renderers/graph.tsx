@@ -4,10 +4,10 @@ import useDoenetRenderer from "../useDoenetRenderer";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { JXGBoard } from "./jsxgraph-distrib/types";
 import Prefigure from "./prefigure";
-import GraphControls from "./GraphControls";
+import GraphControlsRoot from "./graphControls/GraphControlsRoot";
 import GraphFrame from "./GraphFrame";
 import JSXGraphRenderer from "./JSXGraphRenderer";
-import { normalizeGraphControlsMode } from "./utils/graphControls";
+import { normalizeGraphControlsMode } from "./graphControls/model";
 
 export const BoardContext = createContext<JXGBoard | null>(null);
 
@@ -217,7 +217,7 @@ export default React.memo(function Graph(props) {
                     <div style={layoutStyle}>
                         <div style={graphSectionStyle}>{graphContent}</div>
                         <div style={controlsSectionStyle}>
-                            <GraphControls
+                            <GraphControlsRoot
                                 id={`${id}-controls`}
                                 SVs={SVs}
                                 callAction={callAction}

@@ -998,5 +998,142 @@ describe(
             cy.get("#Px").should("have.text", "0.1");
             cy.get("#Py").should("have.text", "0.1");
         });
+
+        it("snaps constrained circle center slider and input to grid-constrained value", () => {
+            loadGraphTest(`
+<text name="ready">ready</text>
+<graph name="g" addControls="all" controlsPosition="left">
+  <circle name="C" labelIsName center="$P" radius="3" addControls="centerAndRadius" />
+  <point name="P" labelIsName><constrainToGrid/>(3,4)</point>
+</graph>
+<number name="Cx" extend="$C.center.x" />
+`);
+
+            const centerXSlider = '[aria-label="center x coordinate for C"]';
+            const centerXInput = '[aria-label="center x input for C"]';
+
+            cy.get("#Cx").should("have.text", "3");
+            cy.get(centerXSlider).should("have.attr", "value", "3");
+
+            cy.get(centerXSlider).trigger("pointerdown", {
+                pointerId: 1,
+                pointerType: "mouse",
+                buttons: 1,
+                force: true,
+            });
+            cy.get(centerXSlider)
+                .invoke("val", "3.6")
+                .trigger("input", { force: true });
+
+            cy.get("#Cx").should("have.text", "4");
+            cy.get(centerXSlider).should("have.attr", "value", "3.6");
+
+            cy.get(centerXSlider).trigger("pointerup", {
+                pointerId: 1,
+                pointerType: "mouse",
+                force: true,
+            });
+
+            cy.get("#Cx").should("have.text", "4");
+            cy.get(centerXSlider).should("have.attr", "value", "4");
+            cy.get(centerXInput).should("have.attr", "value", "4");
+
+            cy.get(centerXInput).clear().type("5.6").blur();
+            cy.get("#Cx").should("have.text", "6");
+            cy.get(centerXSlider).should("have.attr", "value", "6");
+            cy.get(centerXInput).should("have.attr", "value", "6");
+        });
+
+        it("snaps constrained line-segment endpoint slider and input to grid-constrained value", () => {
+            loadGraphTest(`
+<text name="ready">ready</text>
+<graph name="g" addControls="all" controlsPosition="left">
+  <lineSegment name="L" labelIsName endpoints="$P (2,2)" addControls="endpoints" />
+  <point name="P" labelIsName><constrainToGrid/>(3,4)</point>
+</graph>
+<number name="Lx" extend="$L.endpoint1.x" />
+`);
+
+            const endpointXSlider =
+                '[aria-label="endpoint 1 x coordinate for L"]';
+            const endpointXInput = '[aria-label="endpoint 1 x input for L"]';
+
+            cy.get("#Lx").should("have.text", "3");
+            cy.get(endpointXSlider).should("have.attr", "value", "3");
+
+            cy.get(endpointXSlider).trigger("pointerdown", {
+                pointerId: 1,
+                pointerType: "mouse",
+                buttons: 1,
+                force: true,
+            });
+            cy.get(endpointXSlider)
+                .invoke("val", "3.6")
+                .trigger("input", { force: true });
+
+            cy.get("#Lx").should("have.text", "4");
+            cy.get(endpointXSlider).should("have.attr", "value", "3.6");
+
+            cy.get(endpointXSlider).trigger("pointerup", {
+                pointerId: 1,
+                pointerType: "mouse",
+                force: true,
+            });
+
+            cy.get("#Lx").should("have.text", "4");
+            cy.get(endpointXSlider).should("have.attr", "value", "4");
+            cy.get(endpointXInput).should("have.attr", "value", "4");
+
+            cy.get(endpointXInput).clear().type("5.6").blur();
+            cy.get("#Lx").should("have.text", "6");
+            cy.get(endpointXSlider).should("have.attr", "value", "6");
+            cy.get(endpointXInput).should("have.attr", "value", "6");
+        });
+
+        it("snaps constrained vector displacement slider and input to grid-constrained value", () => {
+            loadGraphTest(`
+<text name="ready">ready</text>
+<graph name="g" addControls="all" controlsPosition="left">
+  <vector name="V" labelIsName tail="(0,0)" displacement="$P" addControls="displacement" />
+  <point name="P" labelIsName><constrainToGrid/>(3,4)</point>
+</graph>
+<number name="Vdx" extend="$V.displacement.x" />
+`);
+
+            const displacementXSlider = '[aria-label="displacement x for V"]';
+            const displacementXInput =
+                '[aria-label="displacement x for V input"]';
+
+            cy.get("#Vdx").should("have.text", "3");
+            cy.get(displacementXSlider).should("have.attr", "value", "3");
+
+            cy.get(displacementXSlider).trigger("pointerdown", {
+                pointerId: 1,
+                pointerType: "mouse",
+                buttons: 1,
+                force: true,
+            });
+            cy.get(displacementXSlider)
+                .invoke("val", "3.6")
+                .trigger("input", { force: true });
+
+            cy.get("#Vdx").should("have.text", "4");
+            cy.get(displacementXSlider).should("have.attr", "value", "3.6");
+
+            cy.get(displacementXSlider).trigger("pointerup", {
+                pointerId: 1,
+                pointerType: "mouse",
+                force: true,
+            });
+
+            cy.get("#Vdx").should("have.text", "4");
+            cy.get(displacementXSlider).should("have.attr", "value", "4");
+            cy.get(displacementXInput).should("have.attr", "value", "4");
+
+            cy.get(displacementXInput).clear().type("5.6").blur();
+            cy.get("#Vdx").should("have.text", "6");
+            cy.get(displacementXSlider).should("have.attr", "value", "6");
+            cy.get(displacementXInput).should("have.attr", "value", "6");
+        });
     },
 );

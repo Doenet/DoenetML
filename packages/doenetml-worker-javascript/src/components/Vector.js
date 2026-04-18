@@ -23,6 +23,7 @@ export default class Vector extends GraphicalComponent {
 
         Object.assign(this.actions, {
             moveVector: this.moveVector.bind(this),
+            moveVectorSinglePoint: this.moveVectorSinglePoint.bind(this),
             vectorClicked: this.vectorClicked.bind(this),
             vectorFocused: this.vectorFocused.bind(this),
         });
@@ -2490,6 +2491,60 @@ export default class Vector extends GraphicalComponent {
         },
     ];
 
+    async moveVectorSinglePoint({
+        x,
+        y,
+        pointRole,
+        transient,
+        skippable,
+        actionId,
+        sourceDetails,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+            console.warn(
+                `Invalid vector point coordinates: x=${x}, y=${y}, role=${pointRole}`,
+            );
+            return;
+        }
+
+        if (pointRole === "head") {
+            return await this.moveVector({
+                headcoords: [x, y],
+                transient,
+                skippable,
+                actionId,
+                sourceDetails,
+                sourceInformation,
+                skipRendererUpdate,
+            });
+        } else if (pointRole === "tail") {
+            return await this.moveVector({
+                tailcoords: [x, y],
+                transient,
+                skippable,
+                actionId,
+                sourceDetails,
+                sourceInformation,
+                skipRendererUpdate,
+            });
+        } else if (pointRole === "displacement") {
+            return await this.moveVector({
+                displacement: [x, y],
+                transient,
+                skippable,
+                actionId,
+                sourceDetails,
+                sourceInformation,
+                skipRendererUpdate,
+            });
+        } else {
+            console.warn(`Invalid pointRole for vector: ${pointRole}`);
+            return;
+        }
+    }
+
     async moveVector({
         tailcoords,
         headcoords,
@@ -2501,6 +2556,9 @@ export default class Vector extends GraphicalComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
+        if (!transient) {
+            skippable = false;
+        }
         if (
             displacement !== undefined &&
             tailcoords === undefined &&
@@ -2784,6 +2842,7 @@ export default class Vector extends GraphicalComponent {
                 return await this.coreFunctions.performUpdate({
                     updateInstructions: newInstructions,
                     transient,
+                    skippable,
                     actionId,
                     sourceInformation,
                     skipRendererUpdate,

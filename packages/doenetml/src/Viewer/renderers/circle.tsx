@@ -278,7 +278,8 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             callAction({
                 action: actions.moveCircle,
                 args: {
-                    center: centerCoords.current,
+                    x: centerCoords.current?.[0],
+                    y: centerCoords.current?.[1],
                     radius: radiusAtDown.current,
                     throughAngles: throughAnglesAtDown.current,
                     transient: true,
@@ -297,7 +298,8 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                 callAction({
                     action: actions.moveCircle,
                     args: {
-                        center: centerCoords.current,
+                        x: centerCoords.current?.[0],
+                        y: centerCoords.current?.[1],
                         radius: radiusAtDown.current,
                         throughAngles: throughAnglesAtDown.current,
                     },
@@ -316,7 +318,8 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                 callAction({
                     action: actions.moveCircle,
                     args: {
-                        center: centerCoords.current,
+                        x: centerCoords.current?.[0],
+                        y: centerCoords.current?.[1],
                         radius: radiusAtDown.current,
                         throughAngles: throughAnglesAtDown.current,
                     },
@@ -366,7 +369,8 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                     callAction({
                         action: actions.moveCircle,
                         args: {
-                            center: centerCoords.current,
+                            x: centerCoords.current?.[0],
+                            y: centerCoords.current?.[1],
                             radius: radiusAtDown.current,
                             throughAngles: throughAnglesAtDown.current,
                         },
@@ -404,7 +408,8 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             callAction({
                 action: actions.moveCircle,
                 args: {
-                    center: centerCoords.current,
+                    x: centerCoords.current?.[0],
+                    y: centerCoords.current?.[1],
                     radius: radiusAtDown.current,
                     throughAngles: throughAnglesAtDown.current,
                     transient: true,
@@ -418,7 +423,8 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                 callAction({
                     action: actions.moveCircle,
                     args: {
-                        center: centerCoords.current,
+                        x: centerCoords.current?.[0],
+                        y: centerCoords.current?.[1],
                         radius: radiusAtDown.current,
                         throughAngles: throughAnglesAtDown.current,
                     },
@@ -437,7 +443,8 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                 callAction({
                     action: actions.moveCircle,
                     args: {
-                        center: centerCoords.current,
+                        x: centerCoords.current?.[0],
+                        y: centerCoords.current?.[1],
                         radius: radiusAtDown.current,
                         throughAngles: throughAnglesAtDown.current,
                     },
@@ -527,7 +534,8 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                     callAction({
                         action: actions.moveCircle,
                         args: {
-                            center: centerCoords.current,
+                            x: centerCoords.current?.[0],
+                            y: centerCoords.current?.[1],
                             radius: radiusAtDown.current,
                             throughAngles: throughAnglesAtDown.current,
                         },
