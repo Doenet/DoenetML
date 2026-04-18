@@ -1,7 +1,7 @@
 import React from "react";
 import ControlCard from "../primitives/ControlCard";
 import ControlsStack from "../primitives/ControlsStack";
-import PointControlController from "../primitives/PointControlCoordinator";
+import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import {
     GraphControlPoint,
     PointControlsMode,
@@ -116,7 +116,7 @@ export default React.memo(function PointControlsFamily({
                     heading={pointLabelForDisplay}
                 >
                     {sections.map((section) => (
-                        <PointControlController
+                        <PointControlCoordinator
                             key={`${point.componentIdx}-${section.controlIdSuffix}`}
                             id={id}
                             controlId={`${section.controlIdSuffix}-${point.componentIdx}`}
