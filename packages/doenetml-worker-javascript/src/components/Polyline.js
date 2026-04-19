@@ -2276,14 +2276,33 @@ export default class Polyline extends GraphicalComponent {
     }
 
     async movePolylineCenter({
-        center,
+        x,
+        y,
         transient,
         skippable,
-        sourceDetails,
         actionId,
+        sourceDetails,
         sourceInformation = {},
         skipRendererUpdate = false,
+        pointRole = "polyline",
     }) {
+        if (!transient) {
+            skippable = false;
+        }
+
+        if (!["polyline", "polygon", "triangle"].includes(pointRole)) {
+            console.warn(`Invalid pointRole for polyline: ${pointRole}`);
+            return;
+        }
+
+        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+            console.warn(
+                `Invalid center coordinates for ${pointRole} move: x=${x}, y=${y}`,
+            );
+            return;
+        }
+
+        const center = [x, y];
         // Polyline must be draggable for center movement to work
         if (!(await this.stateValues.draggable)) {
             return;

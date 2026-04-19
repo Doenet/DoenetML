@@ -3,6 +3,16 @@ import Polygon from "./Polygon";
 import me from "math-expressions";
 
 export default class Rectangle extends Polygon {
+    constructor(args) {
+        super(args);
+
+        Object.assign(this.actions, {
+            changeWidth: this.changeWidth.bind(this),
+            changeHeight: this.changeHeight.bind(this),
+            movePolygon: this.movePolygon.bind(this),
+            moveRectangleCenter: this.moveRectangleCenter.bind(this),
+        });
+    }
     static componentType = "rectangle";
     static rendererType = "polygon";
 
@@ -1403,6 +1413,193 @@ export default class Rectangle extends Polygon {
         };
 
         return stateVariableDefinitions;
+    }
+
+    async moveRectangleCenter({
+        x,
+        y,
+        transient,
+        skippable,
+        actionId,
+        sourceDetails,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+        pointRole = "rectangle",
+    }) {
+        if (!transient) {
+            skippable = false;
+        }
+
+        if (pointRole !== "rectangle") {
+            console.warn(`Invalid pointRole for rectangle: ${pointRole}`);
+            return;
+        }
+
+        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+            console.warn(
+                `Invalid center coordinates for ${pointRole} move: x=${x}, y=${y}`,
+            );
+            return;
+        }
+
+        if (!(await this.stateValues.draggable)) {
+            return;
+        }
+
+        const center = [x, y];
+
+        let updateInstructions = [
+            {
+                updateType: "updateValue",
+                componentIdx: this.componentIdx,
+                stateVariable: "center",
+                value: center.map((x) => me.fromAst(x)),
+                sourceDetails,
+            },
+        ];
+
+        const performUpdateArgs = {
+            updateInstructions,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+        };
+
+        if (transient) {
+            performUpdateArgs.transient = true;
+            performUpdateArgs.skippable = skippable;
+        } else {
+            performUpdateArgs.event = {
+                verb: "interacted",
+                object: {
+                    componentIdx: this.componentIdx,
+                    componentType: this.componentType,
+                },
+                result: {
+                    center,
+                },
+            };
+        }
+
+        return await this.coreFunctions.performUpdate(performUpdateArgs);
+    }
+
+    async changeWidth({
+        width,
+        transient,
+        skippable,
+        actionId,
+        sourceDetails,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        if (!transient) {
+            skippable = false;
+        }
+
+        if (!Number.isFinite(width)) {
+            console.warn(`Invalid width for rectangle change: width=${width}`);
+            return;
+        }
+
+        if (!(await this.stateValues.verticesDraggable)) {
+            return;
+        }
+
+        let updateInstructions = [
+            {
+                updateType: "updateValue",
+                componentIdx: this.componentIdx,
+                stateVariable: "width",
+                value: Math.max(0, width),
+                sourceDetails,
+            },
+        ];
+
+        const performUpdateArgs = {
+            updateInstructions,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+        };
+
+        if (transient) {
+            performUpdateArgs.transient = true;
+            performUpdateArgs.skippable = skippable;
+        } else {
+            performUpdateArgs.event = {
+                verb: "interacted",
+                object: {
+                    componentIdx: this.componentIdx,
+                    componentType: this.componentType,
+                },
+                result: {
+                    width,
+                },
+            };
+        }
+
+        return await this.coreFunctions.performUpdate(performUpdateArgs);
+    }
+
+    async changeHeight({
+        height,
+        transient,
+        skippable,
+        actionId,
+        sourceDetails,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        if (!transient) {
+            skippable = false;
+        }
+
+        if (!Number.isFinite(height)) {
+            console.warn(
+                `Invalid height for rectangle change: height=${height}`,
+            );
+            return;
+        }
+
+        if (!(await this.stateValues.verticesDraggable)) {
+            return;
+        }
+
+        let updateInstructions = [
+            {
+                updateType: "updateValue",
+                componentIdx: this.componentIdx,
+                stateVariable: "height",
+                value: Math.max(0, height),
+                sourceDetails,
+            },
+        ];
+
+        const performUpdateArgs = {
+            updateInstructions,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+        };
+
+        if (transient) {
+            performUpdateArgs.transient = true;
+            performUpdateArgs.skippable = skippable;
+        } else {
+            performUpdateArgs.event = {
+                verb: "interacted",
+                object: {
+                    componentIdx: this.componentIdx,
+                    componentType: this.componentType,
+                },
+                result: {
+                    height,
+                },
+            };
+        }
+
+        return await this.coreFunctions.performUpdate(performUpdateArgs);
     }
 
     async movePolygon({

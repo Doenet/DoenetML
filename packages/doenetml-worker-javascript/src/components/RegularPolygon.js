@@ -3,6 +3,16 @@ import Polygon from "./Polygon";
 import me from "math-expressions";
 
 export default class RegularPolygon extends Polygon {
+    constructor(args) {
+        super(args);
+
+        Object.assign(this.actions, {
+            movePolygonCenter: this.movePolygonCenter.bind(this),
+            changeRadius: this.changeRadius.bind(this),
+            movePolygon: this.movePolygon.bind(this),
+        });
+    }
+
     static componentType = "regularPolygon";
     static rendererType = "polygon";
 
@@ -2006,14 +2016,147 @@ export default class RegularPolygon extends Polygon {
         return stateVariableDefinitions;
     }
 
+    async movePolygonCenter({
+        x,
+        y,
+        transient,
+        skippable,
+        actionId,
+        sourceDetails,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+        pointRole = "regularPolygon",
+    }) {
+        if (!transient) {
+            skippable = false;
+        }
+
+        if (pointRole !== "regularPolygon") {
+            console.warn(`Invalid pointRole for regular polygon: ${pointRole}`);
+            return;
+        }
+
+        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+            console.warn(
+                `Invalid center coordinates for ${pointRole} move: x=${x}, y=${y}`,
+            );
+            return;
+        }
+
+        if (!(await this.stateValues.draggable)) {
+            return;
+        }
+
+        const center = [x, y];
+
+        let updateInstructions = [
+            {
+                updateType: "updateValue",
+                componentIdx: this.componentIdx,
+                stateVariable: "center",
+                value: center.map((x) => me.fromAst(x)),
+                sourceDetails,
+            },
+        ];
+
+        const performUpdateArgs = {
+            updateInstructions,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+        };
+
+        if (transient) {
+            performUpdateArgs.transient = true;
+            performUpdateArgs.skippable = skippable;
+        } else {
+            performUpdateArgs.event = {
+                verb: "interacted",
+                object: {
+                    componentIdx: this.componentIdx,
+                    componentType: this.componentType,
+                },
+                result: {
+                    center,
+                },
+            };
+        }
+
+        return await this.coreFunctions.performUpdate(performUpdateArgs);
+    }
+
+    async changeRadius({
+        radius,
+        transient,
+        skippable,
+        actionId,
+        sourceDetails,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        if (!transient) {
+            skippable = false;
+        }
+
+        if (!Number.isFinite(radius)) {
+            console.warn(
+                `Invalid radius for regular polygon change: radius=${radius}`,
+            );
+            return;
+        }
+
+        if (!(await this.stateValues.verticesDraggable)) {
+            return;
+        }
+        let updateInstructions = [
+            {
+                updateType: "updateValue",
+                componentIdx: this.componentIdx,
+                stateVariable: "circumradius",
+                value: Math.max(0, radius),
+                sourceDetails,
+            },
+        ];
+
+        const performUpdateArgs = {
+            updateInstructions,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+        };
+
+        if (transient) {
+            performUpdateArgs.transient = true;
+            performUpdateArgs.skippable = skippable;
+        } else {
+            performUpdateArgs.event = {
+                verb: "interacted",
+                object: {
+                    componentIdx: this.componentIdx,
+                    componentType: this.componentType,
+                },
+                result: {
+                    radius,
+                },
+            };
+        }
+
+        return await this.coreFunctions.performUpdate(performUpdateArgs);
+    }
+
     async movePolygon({
         pointCoords,
         transient,
+        skippable,
         sourceDetails,
         actionId,
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
+        if (!transient) {
+            skippable = false;
+        }
+
         let numVerticesMoved = Object.keys(pointCoords).length;
 
         if (numVerticesMoved === 1) {
@@ -2048,6 +2191,7 @@ export default class RegularPolygon extends Polygon {
                     },
                 ],
                 transient,
+                skippable,
                 actionId,
                 sourceInformation,
                 skipRendererUpdate: true,
