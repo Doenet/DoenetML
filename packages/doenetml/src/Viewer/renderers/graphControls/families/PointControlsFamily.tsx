@@ -147,7 +147,7 @@ export default React.memo(function PointControlsFamily({
     }
 
     return (
-        <ControlsStack id={id} ariaLabel="Point controls">
+        <ControlsStack id={`${id}-points`} ariaLabel="Point controls">
             {controlsSection}
         </ControlsStack>
     );

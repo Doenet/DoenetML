@@ -29,12 +29,14 @@ type GraphControlsRootProps = {
 export default React.memo(function GraphControlsRoot(
     props: GraphControlsRootProps,
 ) {
+    const { id } = props;
+
     return (
-        <>
+        <div id={id}>
             <PointControlsFamily {...props} />
             <CircleControlsFamily {...props} />
             <LineSegmentControlsFamily {...props} />
             <VectorControlsFamily {...props} />
-        </>
+        </div>
     );
 });

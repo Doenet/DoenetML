@@ -69,6 +69,7 @@ describe(
                 cy.get('input[type="range"]').should("have.length", 2);
                 cy.get('input[type="text"]').should("have.length", 2);
             });
+            cy.get("#gAll-controls-points").should("exist");
 
             cy.get("#gSliders-controls").within(() => {
                 cy.get('input[type="range"]').should("have.length", 2);
@@ -238,6 +239,12 @@ describe(
             );
             cy.get('[aria-label="displacement x for V"]').should("exist");
             cy.get('[aria-label="displacement y for V"]').should("exist");
+
+            cy.get("#g-controls").should("exist");
+            cy.get("#g-controls-circles").should("exist");
+            cy.get("#g-controls-lineSegments").should("exist");
+            cy.get("#g-controls-vectors").should("exist");
+            cy.get("#g-controls-points").should("not.exist");
 
             cy.get('[aria-label="radius for C"]').trigger("pointerdown");
             cy.get('[aria-label="radius for C"]')
