@@ -4,10 +4,10 @@ import useDoenetRenderer from "../useDoenetRenderer";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { JXGBoard } from "./jsxgraph-distrib/types";
 import Prefigure from "./prefigure";
-import GraphControls from "./GraphControls";
+import GraphControlsRoot from "./graphControls/GraphControlsRoot";
 import GraphFrame from "./GraphFrame";
 import JSXGraphRenderer from "./JSXGraphRenderer";
-import { normalizeGraphControlsMode } from "./utils/graphControls";
+import { normalizeGraphControlsMode } from "./graphControls/model";
 
 export const BoardContext = createContext<JXGBoard | null>(null);
 
@@ -118,8 +118,21 @@ export default React.memo(function Graph(props) {
     const hasControlPoints =
         Array.isArray(SVs.draggablePointsForControls) &&
         SVs.draggablePointsForControls.length > 0;
+    const hasControlCircles =
+        Array.isArray(SVs.draggableCirclesForControls) &&
+        SVs.draggableCirclesForControls.length > 0;
+    const hasControlLineSegments =
+        Array.isArray(SVs.draggableLineSegmentsForControls) &&
+        SVs.draggableLineSegmentsForControls.length > 0;
+    const hasControlVectors =
+        Array.isArray(SVs.draggableVectorsForControls) &&
+        SVs.draggableVectorsForControls.length > 0;
     const shouldRenderControls =
-        controlsEnabledAtGraphLevel && hasControlPoints;
+        controlsEnabledAtGraphLevel &&
+        (hasControlPoints ||
+            hasControlCircles ||
+            hasControlLineSegments ||
+            hasControlVectors);
 
     const requestedControlsPosition = shouldRenderControls
         ? normalizeControlsPosition(SVs.controlsPosition)
@@ -204,7 +217,7 @@ export default React.memo(function Graph(props) {
                     <div style={layoutStyle}>
                         <div style={graphSectionStyle}>{graphContent}</div>
                         <div style={controlsSectionStyle}>
-                            <GraphControls
+                            <GraphControlsRoot
                                 id={`${id}-controls`}
                                 SVs={SVs}
                                 callAction={callAction}

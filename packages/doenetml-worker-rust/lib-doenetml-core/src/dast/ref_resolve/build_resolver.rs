@@ -172,17 +172,16 @@ impl Resolver {
                 let references = name_map.remove(&name_with_source_doc);
 
                 match references {
-                    Some(Ref::Unique(idx)) => {
-                        // Note is is possible that `parent_idx` does not have an entry in the name map
-                        // its descendant `node_idx`. This could happen if either
+                    Some(Ref::Unique(idx)) if idx != node_idx => {
+                        // Note it is possible that `parent_idx` does not have an entry in the name map
+                        // for its descendant `node_idx`. This could happen if either
                         // 1. one of its descendants had a `DontSearchChildren` `ResolutionAlgorithm`, or
                         // 2. one of its descendants was added later by `add_nodes`.
                         // In this case, the unique index found might not match the deleted node `node_idx`,
-                        // add we add the name back to the name map
-                        if idx != node_idx {
-                            name_map.insert(name_with_source_doc.clone(), Ref::Unique(idx));
-                        }
+                        // so we add the name back to the name map
+                        name_map.insert(name_with_source_doc.clone(), Ref::Unique(idx));
                     }
+                    Some(Ref::Unique(_)) => {}
                     Some(Ref::Ambiguous(indices)) => {
                         // remove the deleted node `node_idx` from the ambiguous list, setting the result to unique if there is only one reference left
                         let new_indices = indices

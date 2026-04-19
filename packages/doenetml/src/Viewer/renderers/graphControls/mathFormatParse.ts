@@ -1,6 +1,6 @@
 import me from "math-expressions";
 import { roundForDisplay } from "@doenet/utils";
-import type { GraphControlPoint } from "./graphControls";
+import type { GraphControlDisplaySettings } from "./model";
 
 /**
  * Parse a single numeric expression used by x/y text inputs.
@@ -60,24 +60,24 @@ export function parseOrderedPair(
  */
 export function formatCoordinateForControls(
     value: number,
-    point: GraphControlPoint,
+    displaySettings: GraphControlDisplaySettings,
 ): string {
     const rounded = roundForDisplay({
         value,
         dependencyValues: {
-            displayDigits: point.displayDigits,
-            displayDecimals: point.displayDecimals,
-            displaySmallAsZero: point.displaySmallAsZero,
+            displayDigits: displaySettings.displayDigits,
+            displayDecimals: displaySettings.displayDecimals,
+            displaySmallAsZero: displaySettings.displaySmallAsZero,
         },
     });
 
     const params: any = {};
-    if (point.padZeros) {
-        if (Number.isFinite(point.displayDecimals)) {
-            params.padToDecimals = point.displayDecimals;
+    if (displaySettings.padZeros) {
+        if (Number.isFinite(displaySettings.displayDecimals)) {
+            params.padToDecimals = displaySettings.displayDecimals;
         }
-        if (point.displayDigits >= 1) {
-            params.padToDigits = point.displayDigits;
+        if (displaySettings.displayDigits >= 1) {
+            params.padToDigits = displaySettings.displayDigits;
         }
     }
 

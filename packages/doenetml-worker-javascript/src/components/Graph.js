@@ -15,6 +15,17 @@ import {
 // see src/utils/prefigure/README.md
 import { returnGraphPrefigureStateVariableDefinitions } from "../utils/prefigure/stateVariable";
 
+function extractControlDisplaySettings(stateValues) {
+    return {
+        label: typeof stateValues.label === "string" ? stateValues.label : "",
+        labelHasLatex: Boolean(stateValues.labelHasLatex),
+        displayDigits: stateValues.displayDigits,
+        displayDecimals: stateValues.displayDecimals,
+        displaySmallAsZero: stateValues.displaySmallAsZero,
+        padZeros: stateValues.padZeros,
+    };
+}
+
 export default class Graph extends BlockComponent {
     constructor(args) {
         super(args);
@@ -657,21 +668,351 @@ export default class Graph extends BlockComponent {
                         x,
                         y,
                         addControls,
-                        label:
-                            typeof stateValues.label === "string"
-                                ? stateValues.label
-                                : "",
-                        labelHasLatex: Boolean(stateValues.labelHasLatex),
-                        displayDigits: stateValues.displayDigits,
-                        displayDecimals: stateValues.displayDecimals,
-                        displaySmallAsZero: stateValues.displaySmallAsZero,
-                        padZeros: stateValues.padZeros,
+                        ...extractControlDisplaySettings(stateValues),
                     });
                 }
 
                 return {
                     setValue: {
                         draggablePointsForControls,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.draggableCirclesForControls = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                addControls: {
+                    dependencyType: "stateVariable",
+                    variableName: "addControls",
+                },
+                circleDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["circle"],
+                    variableNames: [
+                        "numericalCenter",
+                        "numericalRadius",
+                        "draggable",
+                        "fixed",
+                        "fixLocation",
+                        "addControls",
+                        "label",
+                        "labelHasLatex",
+                        "displayDigits",
+                        "displayDecimals",
+                        "displaySmallAsZero",
+                        "padZeros",
+                    ],
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (dependencyValues.addControls === "none") {
+                    return {
+                        setValue: {
+                            draggableCirclesForControls: [],
+                        },
+                    };
+                }
+
+                const draggableCirclesForControls = [];
+
+                for (const [circleInd, circleDescendant] of (
+                    dependencyValues.circleDescendants ?? []
+                ).entries()) {
+                    const stateValues = circleDescendant.stateValues ?? {};
+                    const circleNumber = circleInd + 1;
+                    const componentIdx = circleDescendant.componentIdx;
+                    const center = stateValues.numericalCenter;
+                    const radius = Number(stateValues.numericalRadius);
+                    const addControls = stateValues.addControls;
+
+                    if (!Number.isFinite(componentIdx)) {
+                        continue;
+                    }
+
+                    if (
+                        !Array.isArray(center) ||
+                        center.length < 2 ||
+                        !Number.isFinite(center[0]) ||
+                        !Number.isFinite(center[1]) ||
+                        !Number.isFinite(radius) ||
+                        radius < 0
+                    ) {
+                        continue;
+                    }
+
+                    const draggable = stateValues.draggable !== false;
+                    const fixed = stateValues.fixed === true;
+                    const fixLocation = stateValues.fixLocation === true;
+
+                    if (
+                        fixed ||
+                        fixLocation ||
+                        addControls === "none" ||
+                        !draggable
+                    ) {
+                        continue;
+                    }
+
+                    draggableCirclesForControls.push({
+                        componentIdx,
+                        circleNumber,
+                        center: {
+                            x: Number(center[0]),
+                            y: Number(center[1]),
+                        },
+                        radius,
+                        addControls,
+                        ...extractControlDisplaySettings(stateValues),
+                    });
+                }
+
+                return {
+                    setValue: {
+                        draggableCirclesForControls,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.draggableLineSegmentsForControls = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                addControls: {
+                    dependencyType: "stateVariable",
+                    variableName: "addControls",
+                },
+                lineSegmentDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["lineSegment"],
+                    variableNames: [
+                        "numericalEndpoints",
+                        "endpointsDraggable",
+                        "fixed",
+                        "fixLocation",
+                        "addControls",
+                        "label",
+                        "labelHasLatex",
+                        "displayDigits",
+                        "displayDecimals",
+                        "displaySmallAsZero",
+                        "padZeros",
+                    ],
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (dependencyValues.addControls === "none") {
+                    return {
+                        setValue: {
+                            draggableLineSegmentsForControls: [],
+                        },
+                    };
+                }
+
+                const draggableLineSegmentsForControls = [];
+
+                for (const [lineSegmentInd, lineSegmentDescendant] of (
+                    dependencyValues.lineSegmentDescendants ?? []
+                ).entries()) {
+                    const stateValues = lineSegmentDescendant.stateValues ?? {};
+                    const lineSegmentNumber = lineSegmentInd + 1;
+                    const componentIdx = lineSegmentDescendant.componentIdx;
+                    const numericalEndpoints = stateValues.numericalEndpoints;
+                    const addControls = stateValues.addControls;
+
+                    if (!Number.isFinite(componentIdx)) {
+                        continue;
+                    }
+
+                    if (
+                        !Array.isArray(numericalEndpoints) ||
+                        numericalEndpoints.length < 2 ||
+                        !Array.isArray(numericalEndpoints[0]) ||
+                        !Array.isArray(numericalEndpoints[1]) ||
+                        numericalEndpoints[0].length < 2 ||
+                        numericalEndpoints[1].length < 2
+                    ) {
+                        continue;
+                    }
+
+                    const endpoint1x = Number(numericalEndpoints[0][0]);
+                    const endpoint1y = Number(numericalEndpoints[0][1]);
+                    const endpoint2x = Number(numericalEndpoints[1][0]);
+                    const endpoint2y = Number(numericalEndpoints[1][1]);
+
+                    if (
+                        !Number.isFinite(endpoint1x) ||
+                        !Number.isFinite(endpoint1y) ||
+                        !Number.isFinite(endpoint2x) ||
+                        !Number.isFinite(endpoint2y)
+                    ) {
+                        continue;
+                    }
+
+                    const fixed = stateValues.fixed === true;
+                    const fixLocation = stateValues.fixLocation === true;
+                    const endpointsDraggable =
+                        stateValues.endpointsDraggable !== false;
+
+                    if (
+                        fixed ||
+                        fixLocation ||
+                        addControls === "none" ||
+                        !endpointsDraggable
+                    ) {
+                        continue;
+                    }
+
+                    draggableLineSegmentsForControls.push({
+                        componentIdx,
+                        lineSegmentNumber,
+                        endpoint1: { x: endpoint1x, y: endpoint1y },
+                        endpoint2: { x: endpoint2x, y: endpoint2y },
+                        addControls,
+                        ...extractControlDisplaySettings(stateValues),
+                    });
+                }
+
+                return {
+                    setValue: {
+                        draggableLineSegmentsForControls,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.draggableVectorsForControls = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                addControls: {
+                    dependencyType: "stateVariable",
+                    variableName: "addControls",
+                },
+                vectorDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["vector"],
+                    variableNames: [
+                        "numericalEndpoints",
+                        "headDraggable",
+                        "tailDraggable",
+                        "fixed",
+                        "fixLocation",
+                        "addControls",
+                        "label",
+                        "labelHasLatex",
+                        "displayDigits",
+                        "displayDecimals",
+                        "displaySmallAsZero",
+                        "padZeros",
+                    ],
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (dependencyValues.addControls === "none") {
+                    return {
+                        setValue: {
+                            draggableVectorsForControls: [],
+                        },
+                    };
+                }
+
+                const draggableVectorsForControls = [];
+
+                for (const [vectorInd, vectorDescendant] of (
+                    dependencyValues.vectorDescendants ?? []
+                ).entries()) {
+                    const stateValues = vectorDescendant.stateValues ?? {};
+                    const vectorNumber = vectorInd + 1;
+                    const componentIdx = vectorDescendant.componentIdx;
+                    const numericalEndpoints = stateValues.numericalEndpoints;
+                    const addControls = stateValues.addControls;
+
+                    if (!Number.isFinite(componentIdx)) {
+                        continue;
+                    }
+
+                    if (
+                        !Array.isArray(numericalEndpoints) ||
+                        numericalEndpoints.length < 2 ||
+                        !Array.isArray(numericalEndpoints[0]) ||
+                        !Array.isArray(numericalEndpoints[1]) ||
+                        numericalEndpoints[0].length < 2 ||
+                        numericalEndpoints[1].length < 2
+                    ) {
+                        continue;
+                    }
+
+                    const tailX = Number(numericalEndpoints[0][0]);
+                    const tailY = Number(numericalEndpoints[0][1]);
+                    const headX = Number(numericalEndpoints[1][0]);
+                    const headY = Number(numericalEndpoints[1][1]);
+
+                    if (
+                        !Number.isFinite(tailX) ||
+                        !Number.isFinite(tailY) ||
+                        !Number.isFinite(headX) ||
+                        !Number.isFinite(headY)
+                    ) {
+                        continue;
+                    }
+
+                    const fixed = stateValues.fixed === true;
+                    const fixLocation = stateValues.fixLocation === true;
+                    const headDraggable = stateValues.headDraggable !== false;
+                    const tailDraggable = stateValues.tailDraggable !== false;
+
+                    if (fixed || fixLocation || addControls === "none") {
+                        continue;
+                    }
+
+                    let effectiveAddControls = addControls;
+
+                    if (effectiveAddControls === "displacement") {
+                        if (!headDraggable) {
+                            continue;
+                        }
+                    } else if (effectiveAddControls === "headandtail") {
+                        if (headDraggable && !tailDraggable) {
+                            effectiveAddControls = "headonly";
+                        } else if (tailDraggable && !headDraggable) {
+                            effectiveAddControls = "tailonly";
+                        } else if (!headDraggable && !tailDraggable) {
+                            continue;
+                        }
+                    } else if (effectiveAddControls === "headonly") {
+                        if (!headDraggable) {
+                            continue;
+                        }
+                    } else if (effectiveAddControls === "tailonly") {
+                        if (!tailDraggable) {
+                            continue;
+                        }
+                    }
+
+                    draggableVectorsForControls.push({
+                        componentIdx,
+                        vectorNumber,
+                        head: {
+                            x: headX,
+                            y: headY,
+                        },
+                        tail: {
+                            x: tailX,
+                            y: tailY,
+                        },
+                        displacement: {
+                            x: headX - tailX,
+                            y: headY - tailY,
+                        },
+                        addControls: effectiveAddControls,
+                        ...extractControlDisplaySettings(stateValues),
+                    });
+                }
+
+                return {
+                    setValue: {
+                        draggableVectorsForControls,
                     },
                 };
             },

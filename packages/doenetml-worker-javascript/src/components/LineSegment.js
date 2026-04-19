@@ -15,6 +15,8 @@ export default class LineSegment extends GraphicalComponent {
 
         Object.assign(this.actions, {
             moveLineSegment: this.moveLineSegment.bind(this),
+            moveLineSegmentSinglePoint:
+                this.moveLineSegmentSinglePoint.bind(this),
             lineSegmentClicked: this.lineSegmentClicked.bind(this),
             lineSegmentFocused: this.lineSegmentFocused.bind(this),
         });
@@ -38,6 +40,18 @@ export default class LineSegment extends GraphicalComponent {
 
         attributes.endpoints = {
             createComponentOfType: "pointList",
+        };
+
+        attributes.addControls = {
+            createComponentOfType: "text",
+            createStateVariable: "addControls",
+            defaultValue: "endpoints",
+            public: true,
+            forRenderer: true,
+            toLowerCase: true,
+            validValues: ["endpoints", "none"],
+            valueForTrue: "endpoints",
+            valueForFalse: "none",
         };
 
         attributes.showCoordsWhenDragging = {
@@ -1153,15 +1167,63 @@ export default class LineSegment extends GraphicalComponent {
         },
     ];
 
-    async moveLineSegment({
-        point1coords,
-        point2coords,
+    async moveLineSegmentSinglePoint({
+        x,
+        y,
+        pointRole,
         transient,
+        skippable,
         actionId,
         sourceDetails,
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
+        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+            console.warn(
+                `Invalid endpoint coordinates for line segment move: x=${x}, y=${y}`,
+            );
+            return;
+        }
+
+        if (pointRole === "endpoint1") {
+            return await this.moveLineSegment({
+                point1coords: [x, y],
+                transient,
+                skippable,
+                actionId,
+                sourceDetails,
+                sourceInformation,
+                skipRendererUpdate,
+            });
+        } else if (pointRole === "endpoint2") {
+            return await this.moveLineSegment({
+                point2coords: [x, y],
+                transient,
+                skippable,
+                actionId,
+                sourceDetails,
+                sourceInformation,
+                skipRendererUpdate,
+            });
+        } else {
+            console.warn(`Invalid pointRole for line segment: ${pointRole}`);
+            return;
+        }
+    }
+
+    async moveLineSegment({
+        point1coords,
+        point2coords,
+        transient,
+        skippable,
+        actionId,
+        sourceDetails,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        if (!transient) {
+            skippable = false;
+        }
         if (point1coords === undefined || point2coords === undefined) {
             // single point dragged
             if (!(await this.stateValues.endpointsDraggable)) {
@@ -1199,6 +1261,7 @@ export default class LineSegment extends GraphicalComponent {
                     },
                 ],
                 transient: true,
+                skippable,
                 actionId,
                 sourceInformation,
                 skipRendererUpdate: true,
@@ -1300,6 +1363,7 @@ export default class LineSegment extends GraphicalComponent {
                 return await this.coreFunctions.performUpdate({
                     updateInstructions: newInstructions,
                     transient,
+                    skippable,
                     actionId,
                     sourceInformation,
                     skipRendererUpdate,

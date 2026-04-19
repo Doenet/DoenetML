@@ -95,6 +95,32 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             return null;
         }
 
+        function dispatchMoveCircle(
+            args: Omit<
+                Record<string, any>,
+                "x" | "y" | "radius" | "throughAngles"
+            > = {},
+        ) {
+            if (
+                !centerCoords.current ||
+                !Number.isFinite(centerCoords.current[0]) ||
+                !Number.isFinite(centerCoords.current[1])
+            ) {
+                return;
+            }
+
+            callAction({
+                action: actions.moveCircle,
+                args: {
+                    x: centerCoords.current[0],
+                    y: centerCoords.current[1],
+                    radius: radiusAtDown.current,
+                    throughAngles: throughAnglesAtDown.current,
+                    ...args,
+                },
+            });
+        }
+
         let lineColor =
             darkMode === "dark"
                 ? SVs.selectedStyle.lineColorDarkMode
@@ -275,15 +301,9 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                 ];
             }
 
-            callAction({
-                action: actions.moveCircle,
-                args: {
-                    center: centerCoords.current,
-                    radius: radiusAtDown.current,
-                    throughAngles: throughAnglesAtDown.current,
-                    transient: true,
-                    skippable: true,
-                },
+            dispatchMoveCircle({
+                transient: true,
+                skippable: true,
             });
 
             circleJXG.current!.center.coords.setCoordinates(
@@ -294,14 +314,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
 
         circleJXG.current.on("up", function (e) {
             if (dragged.current) {
-                callAction({
-                    action: actions.moveCircle,
-                    args: {
-                        center: centerCoords.current,
-                        radius: radiusAtDown.current,
-                        throughAngles: throughAnglesAtDown.current,
-                    },
-                });
+                dispatchMoveCircle();
             } else if (!pointerMovedSinceDown.current && !fixed.current) {
                 callAction({
                     action: actions.circleClicked,
@@ -313,14 +326,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
 
         circleJXG.current.on("keyfocusout", function (e) {
             if (dragged.current) {
-                callAction({
-                    action: actions.moveCircle,
-                    args: {
-                        center: centerCoords.current,
-                        radius: radiusAtDown.current,
-                        throughAngles: throughAnglesAtDown.current,
-                    },
-                });
+                dispatchMoveCircle();
                 dragged.current = false;
             }
             pointerIsDown.current = false;
@@ -363,14 +369,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         circleJXG.current.on("keydown", function (e) {
             if (e.key === "Enter") {
                 if (dragged.current) {
-                    callAction({
-                        action: actions.moveCircle,
-                        args: {
-                            center: centerCoords.current,
-                            radius: radiusAtDown.current,
-                            throughAngles: throughAnglesAtDown.current,
-                        },
-                    });
+                    dispatchMoveCircle();
                     dragged.current = false;
                 }
                 callAction({
@@ -401,28 +400,15 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                     offGraphIndicatorOffsetAtDown.current[1],
             ];
 
-            callAction({
-                action: actions.moveCircle,
-                args: {
-                    center: centerCoords.current,
-                    radius: radiusAtDown.current,
-                    throughAngles: throughAnglesAtDown.current,
-                    transient: true,
-                    skippable: true,
-                },
+            dispatchMoveCircle({
+                transient: true,
+                skippable: true,
             });
         });
 
         indicatorJXG.current.on("up", function (e) {
             if (dragged.current) {
-                callAction({
-                    action: actions.moveCircle,
-                    args: {
-                        center: centerCoords.current,
-                        radius: radiusAtDown.current,
-                        throughAngles: throughAnglesAtDown.current,
-                    },
-                });
+                dispatchMoveCircle();
             } else if (!pointerMovedSinceDown.current && !fixed.current) {
                 callAction({
                     action: actions.circleClicked,
@@ -434,14 +420,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
 
         indicatorJXG.current.on("keyfocusout", function (e) {
             if (dragged.current) {
-                callAction({
-                    action: actions.moveCircle,
-                    args: {
-                        center: centerCoords.current,
-                        radius: radiusAtDown.current,
-                        throughAngles: throughAnglesAtDown.current,
-                    },
-                });
+                dispatchMoveCircle();
                 dragged.current = false;
             }
             pointerIsDown.current = false;
@@ -524,14 +503,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         indicatorJXG.current.on("keydown", function (e) {
             if (e.key === "Enter") {
                 if (dragged.current) {
-                    callAction({
-                        action: actions.moveCircle,
-                        args: {
-                            center: centerCoords.current,
-                            radius: radiusAtDown.current,
-                            throughAngles: throughAnglesAtDown.current,
-                        },
-                    });
+                    dispatchMoveCircle();
                     dragged.current = false;
                 }
                 callAction({

@@ -64017,6 +64017,18 @@
                     "isArray": false
                 },
                 {
+                    "name": "center",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "point"
+                        }
+                    ]
+                },
+                {
                     "name": "initialPoint",
                     "type": "math",
                     "isArray": true,
@@ -85639,6 +85651,15 @@
                         "string"
                     ]
                 },
+                "addControls": {
+                    "optional": true,
+                    "type": [
+                        "endpoints",
+                        "none",
+                        "true",
+                        "false"
+                    ]
+                },
                 "showCoordsWhenDragging": {
                     "optional": true,
                     "type": [
@@ -85745,6 +85766,11 @@
                 {
                     "name": "draggable",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "addControls",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -86575,6 +86601,18 @@
                     "name": "length",
                     "type": "number",
                     "isArray": false
+                },
+                {
+                    "name": "center",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "point"
+                        }
+                    ]
                 }
             ]
         },
@@ -86982,6 +87020,18 @@
                             "type": "point",
                             "numDimensions": 1
                         },
+                        {
+                            "isArray": false,
+                            "type": "point"
+                        }
+                    ]
+                },
+                {
+                    "name": "center",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
                         {
                             "isArray": false,
                             "type": "point"
@@ -87419,6 +87469,18 @@
                             "type": "point",
                             "numDimensions": 1
                         },
+                        {
+                            "isArray": false,
+                            "type": "point"
+                        }
+                    ]
+                },
+                {
+                    "name": "center",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
                         {
                             "isArray": false,
                             "type": "point"
@@ -87881,6 +87943,18 @@
                     ]
                 },
                 {
+                    "name": "center",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "point"
+                        }
+                    ]
+                },
+                {
                     "name": "borderStyleDescription",
                     "type": "text",
                     "isArray": false
@@ -87899,18 +87973,6 @@
                     "name": "area",
                     "type": "number",
                     "isArray": false
-                },
-                {
-                    "name": "center",
-                    "type": "math",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": false,
-                            "type": "point"
-                        }
-                    ]
                 },
                 {
                     "name": "width",
@@ -88393,6 +88455,18 @@
                     ]
                 },
                 {
+                    "name": "center",
+                    "type": "math",
+                    "isArray": true,
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": false,
+                            "type": "point"
+                        }
+                    ]
+                },
+                {
                     "name": "borderStyleDescription",
                     "type": "text",
                     "isArray": false
@@ -88411,18 +88485,6 @@
                     "name": "area",
                     "type": "number",
                     "isArray": false
-                },
-                {
-                    "name": "center",
-                    "type": "math",
-                    "isArray": true,
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": false,
-                            "type": "point"
-                        }
-                    ]
                 },
                 {
                     "name": "circumradius",
@@ -88661,6 +88723,17 @@
                     "optional": true,
                     "type": [
                         "string"
+                    ]
+                },
+                "addControls": {
+                    "optional": true,
+                    "type": [
+                        "center",
+                        "radius",
+                        "centerAndRadius",
+                        "none",
+                        "true",
+                        "false"
                     ]
                 },
                 "filled": {
@@ -89019,6 +89092,11 @@
                 {
                     "name": "showCoordsWhenDragging",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "addControls",
+                    "type": "text",
                     "isArray": false
                 },
                 {
@@ -91590,6 +91668,18 @@
                         "string"
                     ]
                 },
+                "addControls": {
+                    "optional": true,
+                    "type": [
+                        "displacement",
+                        "headAndTail",
+                        "headOnly",
+                        "tailOnly",
+                        "none",
+                        "true",
+                        "false"
+                    ]
+                },
                 "labelPosition": {
                     "optional": true,
                     "type": [
@@ -91940,6 +92030,11 @@
                 {
                     "name": "draggable",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "addControls",
+                    "type": "text",
                     "isArray": false
                 },
                 {

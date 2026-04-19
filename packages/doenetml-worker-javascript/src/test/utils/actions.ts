@@ -482,7 +482,7 @@ export async function moveCircle({
     await core.requestAction({
         componentIdx,
         actionName: "moveCircle",
-        args: { center: [cx, cy] },
+        args: { x: cx, y: cy },
     });
 }
 

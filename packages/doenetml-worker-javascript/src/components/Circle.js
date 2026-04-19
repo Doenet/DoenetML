@@ -13,6 +13,7 @@ export default class Circle extends Curve {
 
         Object.assign(this.actions, {
             moveCircle: this.moveCircle.bind(this),
+            changeRadius: this.changeRadius.bind(this),
             circleClicked: this.circleClicked.bind(this),
             circleFocused: this.circleFocused.bind(this),
         });
@@ -32,6 +33,18 @@ export default class Circle extends Curve {
         };
         attributes.radius = {
             createComponentOfType: "math",
+        };
+
+        attributes.addControls = {
+            createComponentOfType: "text",
+            createStateVariable: "addControls",
+            defaultValue: "centerAndRadius",
+            public: true,
+            forRenderer: true,
+            toLowerCase: true,
+            validValues: ["center", "radius", "centerAndRadius", "none"],
+            valueForTrue: "centerAndRadius",
+            valueForFalse: "none",
         };
 
         attributes.filled = {
@@ -2934,14 +2947,35 @@ export default class Circle extends Curve {
     }
 
     async moveCircle({
-        center,
+        x,
+        y,
         radius,
         throughAngles,
         transient,
+        skippable,
         actionId,
+        sourceDetails,
         sourceInformation = {},
         skipRendererUpdate = false,
+        pointRole = "center",
     }) {
+        if (!transient) {
+            skippable = false;
+        }
+
+        if (pointRole !== "center") {
+            console.warn(`Invalid pointRole for circle: ${pointRole}`);
+            return;
+        }
+
+        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+            console.warn(
+                `Invalid center coordinates for circle move: x=${x}, y=${y}`,
+            );
+            return;
+        }
+
+        const center = [x, y];
         let instructions = [];
 
         let numThroughPoints = await this.stateValues.numThroughPoints;
@@ -2954,6 +2988,7 @@ export default class Circle extends Curve {
                 componentIdx: this.componentIdx,
                 stateVariable: "numericalCenter",
                 value: center,
+                sourceDetails,
             });
         }
 
@@ -2988,6 +3023,7 @@ export default class Circle extends Curve {
                 componentIdx: this.componentIdx,
                 stateVariable: "numericalThroughPoints",
                 value: numericalThroughPoints,
+                sourceDetails,
             });
         }
 
@@ -2997,6 +3033,7 @@ export default class Circle extends Curve {
             await this.coreFunctions.performUpdate({
                 updateInstructions: instructions,
                 transient,
+                skippable,
                 actionId,
                 sourceInformation,
                 skipRendererUpdate: true,
@@ -3064,6 +3101,7 @@ export default class Circle extends Curve {
                 return await this.coreFunctions.performUpdate({
                     updateInstructions: newInstructions,
                     transient,
+                    skippable,
                     actionId,
                     sourceInformation,
                     skipRendererUpdate,
@@ -3088,6 +3126,7 @@ export default class Circle extends Curve {
                 return await this.coreFunctions.performUpdate({
                     updateInstructions: newInstructions,
                     transient,
+                    skippable,
                     actionId,
                     sourceInformation,
                     skipRendererUpdate,
@@ -3181,6 +3220,7 @@ export default class Circle extends Curve {
                     return await this.coreFunctions.performUpdate({
                         updateInstructions: newInstructions,
                         transient,
+                        skippable,
                         actionId,
                         sourceInformation,
                         skipRendererUpdate,
@@ -3191,6 +3231,68 @@ export default class Circle extends Curve {
 
         // if no modifications were made, still need to update renderers
         // as original update was performed with skipping renderer update
+        return await this.coreFunctions.updateRenderers({
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+        });
+    }
+
+    async changeRadius({
+        radius,
+        transient,
+        skippable,
+        actionId,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        if (!transient) {
+            skippable = false;
+        }
+
+        if (!Number.isFinite(radius)) {
+            console.warn(`Invalid radius for circle change: radius=${radius}`);
+            return;
+        }
+
+        // Radius slider/input values are numeric, so update numericalRadius directly.
+        const updateInstructions = [
+            {
+                updateType: "updateValue",
+                componentIdx: this.componentIdx,
+                stateVariable: "numericalRadius",
+                value: Math.max(0, radius),
+            },
+        ];
+
+        if (transient) {
+            await this.coreFunctions.performUpdate({
+                updateInstructions,
+                transient,
+                skippable,
+                actionId,
+                sourceInformation,
+                skipRendererUpdate: true,
+            });
+        } else {
+            await this.coreFunctions.performUpdate({
+                updateInstructions,
+                actionId,
+                sourceInformation,
+                skipRendererUpdate: true,
+                event: {
+                    verb: "interacted",
+                    object: {
+                        componentIdx: this.componentIdx,
+                        componentType: this.componentType,
+                    },
+                    result: {
+                        radius,
+                    },
+                },
+            });
+        }
+
         return await this.coreFunctions.updateRenderers({
             actionId,
             sourceInformation,

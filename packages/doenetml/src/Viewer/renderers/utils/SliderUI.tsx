@@ -43,7 +43,7 @@ type SliderUIProps = {
     step: number;
     value: number;
     onChange: (value: number, transient: boolean) => void;
-    onDragEnd?: () => void;
+    onDragEnd: () => void;
 };
 
 /**
@@ -90,7 +90,7 @@ export default function SliderUI({
         draggingRef.current = false;
         keyboardActiveRef.current = false;
         setTransient(false);
-        onDragEnd?.();
+        onDragEnd();
     }
 
     /**

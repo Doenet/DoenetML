@@ -23,6 +23,7 @@ export default class Vector extends GraphicalComponent {
 
         Object.assign(this.actions, {
             moveVector: this.moveVector.bind(this),
+            moveVectorSinglePoint: this.moveVectorSinglePoint.bind(this),
             vectorClicked: this.vectorClicked.bind(this),
             vectorFocused: this.vectorFocused.bind(this),
         });
@@ -71,6 +72,24 @@ export default class Vector extends GraphicalComponent {
         };
         attributes.tail = {
             createComponentOfType: "point",
+        };
+
+        attributes.addControls = {
+            createComponentOfType: "text",
+            createStateVariable: "addControls",
+            defaultValue: "displacement",
+            public: true,
+            forRenderer: true,
+            toLowerCase: true,
+            validValues: [
+                "displacement",
+                "headAndTail",
+                "headOnly",
+                "tailOnly",
+                "none",
+            ],
+            valueForTrue: "displacement",
+            valueForFalse: "none",
         };
 
         attributes.labelPosition = returnLineFamilyLabelPositionAttribute();
@@ -2472,9 +2491,64 @@ export default class Vector extends GraphicalComponent {
         },
     ];
 
+    async moveVectorSinglePoint({
+        x,
+        y,
+        pointRole,
+        transient,
+        skippable,
+        actionId,
+        sourceDetails,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+            console.warn(
+                `Invalid vector point coordinates: x=${x}, y=${y}, role=${pointRole}`,
+            );
+            return;
+        }
+
+        if (pointRole === "head") {
+            return await this.moveVector({
+                headcoords: [x, y],
+                transient,
+                skippable,
+                actionId,
+                sourceDetails,
+                sourceInformation,
+                skipRendererUpdate,
+            });
+        } else if (pointRole === "tail") {
+            return await this.moveVector({
+                tailcoords: [x, y],
+                transient,
+                skippable,
+                actionId,
+                sourceDetails,
+                sourceInformation,
+                skipRendererUpdate,
+            });
+        } else if (pointRole === "displacement") {
+            return await this.moveVector({
+                displacement: [x, y],
+                transient,
+                skippable,
+                actionId,
+                sourceDetails,
+                sourceInformation,
+                skipRendererUpdate,
+            });
+        } else {
+            console.warn(`Invalid pointRole for vector: ${pointRole}`);
+            return;
+        }
+    }
+
     async moveVector({
         tailcoords,
         headcoords,
+        displacement,
         transient,
         skippable,
         sourceDetails,
@@ -2482,6 +2556,63 @@ export default class Vector extends GraphicalComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
+        if (!transient) {
+            skippable = false;
+        }
+        if (
+            displacement !== undefined &&
+            tailcoords === undefined &&
+            headcoords === undefined
+        ) {
+            if (!(await this.stateValues.headDraggable)) {
+                return;
+            }
+
+            const updateInstructions = [
+                {
+                    updateType: "updateValue",
+                    componentIdx: this.componentIdx,
+                    stateVariable: "displacement",
+                    value: displacement.map((x) => me.fromAst(x)),
+                    sourceDetails,
+                },
+            ];
+
+            if (transient) {
+                await this.coreFunctions.performUpdate({
+                    updateInstructions,
+                    transient,
+                    skippable,
+                    actionId,
+                    sourceInformation,
+                    skipRendererUpdate: true,
+                });
+            } else {
+                await this.coreFunctions.performUpdate({
+                    updateInstructions,
+                    actionId,
+                    sourceInformation,
+                    skipRendererUpdate: true,
+                    event: {
+                        verb: "interacted",
+                        object: {
+                            componentIdx: this.componentIdx,
+                            componentType: this.componentType,
+                        },
+                        result: {
+                            displacement,
+                        },
+                    },
+                });
+            }
+
+            return await this.coreFunctions.updateRenderers({
+                actionId,
+                sourceInformation,
+                skipRendererUpdate,
+            });
+        }
+
         if (tailcoords !== undefined) {
             if (headcoords !== undefined) {
                 // dragged entire vector
@@ -2711,6 +2842,7 @@ export default class Vector extends GraphicalComponent {
                 return await this.coreFunctions.performUpdate({
                     updateInstructions: newInstructions,
                     transient,
+                    skippable,
                     actionId,
                     sourceInformation,
                     skipRendererUpdate,
