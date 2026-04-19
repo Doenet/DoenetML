@@ -3246,6 +3246,15 @@ export default class Circle extends Curve {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
+        if (!transient) {
+            skippable = false;
+        }
+
+        if (!Number.isFinite(radius)) {
+            console.warn(`Invalid radius for circle change: radius=${radius}`);
+            return;
+        }
+
         // Radius slider/input values are numeric, so update numericalRadius directly.
         const updateInstructions = [
             {
