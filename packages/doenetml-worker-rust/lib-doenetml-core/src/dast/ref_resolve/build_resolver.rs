@@ -173,12 +173,12 @@ impl Resolver {
 
                 match references {
                     Some(Ref::Unique(idx)) if idx != node_idx => {
-                        // Note is is possible that `parent_idx` does not have an entry in the name map
-                        // its descendant `node_idx`. This could happen if either
+                        // Note it is possible that `parent_idx` does not have an entry in the name map
+                        // for its descendant `node_idx`. This could happen if either
                         // 1. one of its descendants had a `DontSearchChildren` `ResolutionAlgorithm`, or
                         // 2. one of its descendants was added later by `add_nodes`.
                         // In this case, the unique index found might not match the deleted node `node_idx`,
-                        // add we add the name back to the name map
+                        // so we add the name back to the name map
                         name_map.insert(name_with_source_doc.clone(), Ref::Unique(idx));
                     }
                     Some(Ref::Unique(_)) => {}

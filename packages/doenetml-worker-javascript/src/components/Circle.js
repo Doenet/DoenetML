@@ -3261,7 +3261,7 @@ export default class Circle extends Curve {
                 updateType: "updateValue",
                 componentIdx: this.componentIdx,
                 stateVariable: "numericalRadius",
-                value: radius,
+                value: Math.max(0, radius),
             },
         ];
 

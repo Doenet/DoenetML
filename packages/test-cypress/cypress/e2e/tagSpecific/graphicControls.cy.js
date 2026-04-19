@@ -900,8 +900,6 @@ describe(
                 "2",
             );
 
-            cy.wait(500);
-
             cy.get('[aria-label="x coordinate for P"]').trigger("pointerup", {
                 pointerId: 1,
                 pointerType: "mouse",
