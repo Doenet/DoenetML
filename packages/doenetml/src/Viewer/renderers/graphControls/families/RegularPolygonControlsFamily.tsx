@@ -4,7 +4,7 @@ import ControlCard from "../primitives/ControlCard";
 import ScalarControlCoordinator from "../primitives/ScalarControlCoordinator";
 import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import {
-    GraphControlItem,
+    GraphControlsFamilyProps,
     PointMoveRole,
     RegularPolygonControlsMode,
     normalizeGraphControlsMode,
@@ -19,19 +19,6 @@ import {
     accessibleLabelText,
     renderLabelWithLatex,
 } from "../../utils/labelWithLatex";
-
-type RegularPolygonControlsFamilyProps = {
-    id: string;
-    SVs: {
-        addControls: string;
-        xMin: number;
-        xMax: number;
-        yMin: number;
-        yMax: number;
-        graphicalDescendantsForControls: GraphControlItem[];
-    };
-    callAction: (argObj: Record<string, any>) => Promise<any> | void;
-};
 
 type RegularPolygonSectionConfig = {
     kind: "center" | "radius";
@@ -63,7 +50,7 @@ export default React.memo(function RegularPolygonControlsFamily({
     id,
     SVs,
     callAction,
-}: RegularPolygonControlsFamilyProps) {
+}: GraphControlsFamilyProps) {
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     if (graphControlsMode === "none") {
         return null;

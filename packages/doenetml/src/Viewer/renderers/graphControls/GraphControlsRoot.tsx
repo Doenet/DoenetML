@@ -7,28 +7,20 @@ import RegularPolygonControlsFamily from "./families/RegularPolygonControlsFamil
 import RectangleControlsFamily from "./families/RectangleControlsFamily";
 import LineSegmentControlsFamily from "./families/LineSegmentControlsFamily";
 import VectorControlsFamily from "./families/VectorControlsFamily";
-import type { GraphControlItem } from "./model";
-
-type GraphControlsRootProps = {
-    id: string;
-    SVs: {
-        addControls: string;
-        xMin: number;
-        xMax: number;
-        yMin: number;
-        yMax: number;
-        graphicalDescendantsForControls: GraphControlItem[];
-    };
-    callAction: (argObj: Record<string, any>) => Promise<any> | void;
-};
+import type { GraphControlsFamilyProps } from "./model";
 
 export default React.memo(function GraphControlsRoot(
-    props: GraphControlsRootProps,
+    props: GraphControlsFamilyProps,
 ) {
     const { id } = props;
 
     return (
         <div id={id}>
+            {/*
+             * Temporary renderer ordering: controls are still grouped by family
+             * until a follow-up PR switches to a single interleaved dispatch.
+             * Each family preserves document order within its own control type.
+             */}
             <PointControlsFamily {...props} />
             <CircleControlsFamily {...props} />
             <PolygonControlsFamily {...props} />

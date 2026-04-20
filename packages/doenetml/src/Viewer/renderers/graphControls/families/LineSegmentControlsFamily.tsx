@@ -3,7 +3,7 @@ import ControlCard from "../primitives/ControlCard";
 import ControlsStack from "../primitives/ControlsStack";
 import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import {
-    GraphControlItem,
+    GraphControlsFamilyProps,
     GraphControlLineSegment,
     LineSegmentControlsMode,
     PointMoveRole,
@@ -16,19 +16,6 @@ import {
     accessibleLabelText,
     renderLabelWithLatex,
 } from "../../utils/labelWithLatex";
-
-type LineSegmentControlsFamilyProps = {
-    id: string;
-    SVs: {
-        addControls: string;
-        xMin: number;
-        xMax: number;
-        yMin: number;
-        yMax: number;
-        graphicalDescendantsForControls: GraphControlItem[];
-    };
-    callAction: (argObj: Record<string, any>) => Promise<any> | void;
-};
 
 type LineSegmentSectionConfig = {
     controlIdSuffix: "endpoint1" | "endpoint2";
@@ -98,7 +85,7 @@ export default React.memo(function LineSegmentControlsFamily({
     id,
     SVs,
     callAction,
-}: LineSegmentControlsFamilyProps) {
+}: GraphControlsFamilyProps) {
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     if (graphControlsMode === "none") {
         return null;

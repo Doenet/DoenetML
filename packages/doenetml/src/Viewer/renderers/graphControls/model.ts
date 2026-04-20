@@ -190,6 +190,21 @@ export type GraphControlItem =
     | GraphControlLineSegment
     | GraphControlVector;
 
+export type GraphControlsFamilySVs = {
+    addControls: string;
+    xMin: number;
+    xMax: number;
+    yMin: number;
+    yMax: number;
+    graphicalDescendantsForControls: GraphControlItem[];
+};
+
+export type GraphControlsFamilyProps = {
+    id: string;
+    SVs: GraphControlsFamilySVs;
+    callAction: (argObj: Record<string, any>) => Promise<any> | void;
+};
+
 /**
  * Select controls of a single discriminator from the unified controls list.
  */

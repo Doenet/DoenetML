@@ -3,7 +3,7 @@ import ControlCard from "../primitives/ControlCard";
 import ControlsStack from "../primitives/ControlsStack";
 import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import {
-    GraphControlItem,
+    GraphControlsFamilyProps,
     PointMoveRole,
     normalizeGraphControlsMode,
     selectGraphControlsByType,
@@ -15,24 +15,11 @@ import {
     renderLabelWithLatex,
 } from "../../utils/labelWithLatex";
 
-type TriangleControlsFamilyProps = {
-    id: string;
-    SVs: {
-        addControls: string;
-        xMin: number;
-        xMax: number;
-        yMin: number;
-        yMax: number;
-        graphicalDescendantsForControls: GraphControlItem[];
-    };
-    callAction: (argObj: Record<string, any>) => Promise<any> | void;
-};
-
 export default React.memo(function TriangleControlsFamily({
     id,
     SVs,
     callAction,
-}: TriangleControlsFamilyProps) {
+}: GraphControlsFamilyProps) {
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     if (graphControlsMode === "none") {
         return null;

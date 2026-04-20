@@ -4,7 +4,7 @@ import ControlsStack from "../primitives/ControlsStack";
 import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import ScalarControlCoordinator from "../primitives/ScalarControlCoordinator";
 import {
-    GraphControlItem,
+    GraphControlsFamilyProps,
     PointMoveRole,
     RectangleControlsMode,
     normalizeGraphControlsMode,
@@ -19,19 +19,6 @@ import {
     accessibleLabelText,
     renderLabelWithLatex,
 } from "../../utils/labelWithLatex";
-
-type RectangleControlsFamilyProps = {
-    id: string;
-    SVs: {
-        addControls: string;
-        xMin: number;
-        xMax: number;
-        yMin: number;
-        yMax: number;
-        graphicalDescendantsForControls: GraphControlItem[];
-    };
-    callAction: (argObj: Record<string, any>) => Promise<any> | void;
-};
 
 type RectangleSectionConfig =
     | {
@@ -87,7 +74,7 @@ export default React.memo(function RectangleControlsFamily({
     id,
     SVs,
     callAction,
-}: RectangleControlsFamilyProps) {
+}: GraphControlsFamilyProps) {
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     if (graphControlsMode === "none") {
         return null;
