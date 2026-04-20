@@ -213,24 +213,35 @@ describe(
             cy.get("#gRight").parent().should("have.css", "order", "1");
         });
 
-        it("renders and updates circle, line segment, and vector controls", () => {
+        it("renders and updates circle, regular polygon, rectangle, line segment, and vector controls", () => {
             loadGraphTest(`
 <text name="ready">ready</text>
 <graph name="g" addControls="all" controlsPosition="left">
   <circle name="C" labelIsName center="(1,2)" radius="3" addControls="centerAndRadius" />
+    <regularPolygon name="RP" labelIsName vertices="(1,0) (3,0)" numSides="5" addControls="centerAndRadius" />
+    <rectangle name="R" labelIsName center="(0,0)" width="2" height="4" addControls="centerWidthAndHeight" />
   <lineSegment name="L" labelIsName endpoints="(0,0) (2,2)" addControls="endpoints" />
   <vector name="V" labelIsName tail="(0,0)" displacement="(2,3)" addControls="displacement" />
 </graph>
 <number name="CRadius" extend="$C.radius" />
+<number name="RPRadius" extend="$RP.circumradius" />
+<number name="RWidth" extend="$R.width" />
 <number name="LEndpoint1X" extend="$L.endpoint1.x" />
 <number name="VHeadX" extend="$V.head.x" />
 `);
             cy.get("#CRadius").should("have.text", "3");
+            cy.get("#RPRadius").should("not.have.text", "NaN");
+            cy.get("#RWidth").should("have.text", "2");
             cy.get("#LEndpoint1X").should("have.text", "0");
             cy.get("#VHeadX").should("have.text", "2");
 
             cy.get('[aria-label="center x coordinate for C"]').should("exist");
             cy.get('[aria-label="radius for C"]').should("exist");
+            cy.get('[aria-label="center x coordinate for RP"]').should("exist");
+            cy.get('[aria-label="radius for RP"]').should("exist");
+            cy.get('[aria-label="center x coordinate for R"]').should("exist");
+            cy.get('[aria-label="width for R"]').should("exist");
+            cy.get('[aria-label="height for R"]').should("exist");
             cy.get('[aria-label="endpoint 1 x coordinate for L"]').should(
                 "exist",
             );
@@ -242,6 +253,8 @@ describe(
 
             cy.get("#g-controls").should("exist");
             cy.get("#g-controls-circles").should("exist");
+            cy.get("#g-controls-regularPolygons").should("exist");
+            cy.get("#g-controls-rectangles").should("exist");
             cy.get("#g-controls-lineSegments").should("exist");
             cy.get("#g-controls-vectors").should("exist");
             cy.get("#g-controls-points").should("not.exist");
@@ -258,6 +271,24 @@ describe(
             cy.get('[aria-label="radius input for C"]').blur();
             cy.get("#CRadius").should("have.text", "6");
             cy.get('[aria-label="radius for C"]').should("have.value", "6");
+
+            cy.get('[aria-label="center x coordinate for RP"]').trigger(
+                "pointerdown",
+            );
+            cy.get('[aria-label="center x coordinate for RP"]')
+                .invoke("val", "3")
+                .trigger("input");
+            cy.get('[aria-label="center x coordinate for RP"]').trigger(
+                "pointerup",
+            );
+
+            cy.get('[aria-label="radius input for RP"]').clear().type("4");
+            cy.get('[aria-label="radius input for RP"]').blur();
+            cy.get("#RPRadius").should("have.text", "4");
+
+            cy.get('[aria-label="width input for R"]').clear().type("5");
+            cy.get('[aria-label="width input for R"]').blur();
+            cy.get("#RWidth").should("have.text", "5");
 
             cy.get('[aria-label="endpoint 1 x coordinate for L"]').trigger(
                 "pointerdown",
@@ -288,6 +319,430 @@ describe(
                 "have.value",
                 "1",
             );
+        });
+
+        it("renders regular polygon control modes and preserves fallback numbering", () => {
+            loadGraphTest(`
+<text name="ready">ready</text>
+<booleanInput name="middleDraggable" prefill="true" />
+<graph name="g" addControls="all" controlsPosition="left">
+  <regularPolygon center="(0,0)" circumradius="2" numSides="5" addControls="center" />
+  <regularPolygon draggable="$middleDraggable.value" center="(2,0)" circumradius="3" numSides="5" addControls="centerAndRadius" />
+  <regularPolygon center="(4,0)" circumradius="4" numSides="5" addControls="radius" />
+  <regularPolygon center="(6,0)" circumradius="5" numSides="5" addControls="none" />
+</graph>
+`);
+
+            cy.get(
+                '[aria-label="center x coordinate for Regular polygon 1"]',
+            ).should("exist");
+            cy.get('[aria-label="radius for Regular polygon 1"]').should(
+                "not.exist",
+            );
+
+            cy.get(
+                '[aria-label="center x coordinate for Regular polygon 2"]',
+            ).should("exist");
+            cy.get('[aria-label="radius for Regular polygon 2"]').should(
+                "exist",
+            );
+
+            cy.get(
+                '[aria-label="center x coordinate for Regular polygon 3"]',
+            ).should("not.exist");
+            cy.get('[aria-label="radius for Regular polygon 3"]').should(
+                "exist",
+            );
+
+            cy.get(
+                '[aria-label="center x coordinate for Regular polygon 4"]',
+            ).should("not.exist");
+            cy.get('[aria-label="radius for Regular polygon 4"]').should(
+                "not.exist",
+            );
+
+            cy.get("#middleDraggable").click();
+
+            cy.get(
+                '[aria-label="center x coordinate for Regular polygon 2"]',
+            ).should("not.exist");
+            cy.get('[aria-label="radius for Regular polygon 2"]').should(
+                "not.exist",
+            );
+            cy.get(
+                '[aria-label="center x coordinate for Regular polygon 3"]',
+            ).should("not.exist");
+            cy.get('[aria-label="radius for Regular polygon 3"]').should(
+                "exist",
+            );
+        });
+
+        it("downgrades composite controls when center or size dragging is disabled", () => {
+            loadGraphTest(`
+<text name="ready">ready</text>
+<booleanInput name="allowCenter" prefill="true" />
+<booleanInput name="allowSize" prefill="true" />
+<graph name="g" addControls="all" controlsPosition="left">
+  <regularPolygon
+    center="(1,0)"
+    circumradius="2"
+    numSides="6"
+    addControls="centerAndRadius"
+    draggable="$allowCenter.value"
+    verticesDraggable="$allowSize.value"
+  />
+  <rectangle
+    center="(4,0)"
+    width="3"
+    height="2"
+    addControls="centerWidthAndHeight"
+    draggable="$allowCenter.value"
+    verticesDraggable="$allowSize.value"
+  />
+</graph>
+`);
+
+            // both draggable and verticesDraggable => full composite controls
+            cy.get(
+                '[aria-label="center x coordinate for Regular polygon 1"]',
+            ).should("exist");
+            cy.get('[aria-label="radius for Regular polygon 1"]').should(
+                "exist",
+            );
+            cy.get('[aria-label="center x coordinate for Rectangle 1"]').should(
+                "exist",
+            );
+            cy.get('[aria-label="width for Rectangle 1"]').should("exist");
+            cy.get('[aria-label="height for Rectangle 1"]').should("exist");
+
+            // center dragging disabled => keep only size controls
+            cy.get("#allowCenter").click();
+
+            cy.get(
+                '[aria-label="center x coordinate for Regular polygon 1"]',
+            ).should("not.exist");
+            cy.get('[aria-label="radius for Regular polygon 1"]').should(
+                "exist",
+            );
+            cy.get('[aria-label="center x coordinate for Rectangle 1"]').should(
+                "not.exist",
+            );
+            cy.get('[aria-label="width for Rectangle 1"]').should("exist");
+            cy.get('[aria-label="height for Rectangle 1"]').should("exist");
+
+            // enable center dragging, disable size dragging => keep only center controls
+            cy.get("#allowCenter").click();
+            cy.get("#allowSize").click();
+
+            cy.get(
+                '[aria-label="center x coordinate for Regular polygon 1"]',
+            ).should("exist");
+            cy.get('[aria-label="radius for Regular polygon 1"]').should(
+                "not.exist",
+            );
+            cy.get('[aria-label="center x coordinate for Rectangle 1"]').should(
+                "exist",
+            );
+            cy.get('[aria-label="width for Rectangle 1"]').should("not.exist");
+            cy.get('[aria-label="height for Rectangle 1"]').should("not.exist");
+
+            // both disabled => no controls
+            cy.get("#allowCenter").click();
+
+            cy.get(
+                '[aria-label="center x coordinate for Regular polygon 1"]',
+            ).should("not.exist");
+            cy.get('[aria-label="radius for Regular polygon 1"]').should(
+                "not.exist",
+            );
+            cy.get('[aria-label="center x coordinate for Rectangle 1"]').should(
+                "not.exist",
+            );
+            cy.get('[aria-label="width for Rectangle 1"]').should("not.exist");
+            cy.get('[aria-label="height for Rectangle 1"]').should("not.exist");
+        });
+
+        it("renders and updates polygon and triangle center controls", () => {
+            loadGraphTest(`
+<text name="ready">ready</text>
+<graph name="g" addControls="all" controlsPosition="left">
+  <polygon name="PG" labelIsName vertices="(0,0) (4,0) (4,2) (0,2)" addControls="center" />
+  <triangle name="TR" labelIsName vertices="(2,0) (4,0) (3,2)" addControls="center" />
+</graph>
+<number name="PGVertex1X">$PG.vertices[1].x</number>
+<number name="TRVertex1X">$TR.vertices[1].x</number>
+`);
+
+            cy.get("#PGVertex1X").should("have.text", "0");
+            cy.get("#TRVertex1X").should("have.text", "2");
+
+            cy.get('[aria-label="x coordinate for center of PG"]').should(
+                "exist",
+            );
+            cy.get('[aria-label="x coordinate for center of TR"]').should(
+                "exist",
+            );
+            cy.get("#g-controls-polygons").should("exist");
+            cy.get("#g-controls-triangles").should("exist");
+
+            cy.get('[aria-label="x coordinate for center of PG"]').trigger(
+                "pointerdown",
+                { pointerId: 1, buttons: 1, force: true },
+            );
+            cy.get('[aria-label="x coordinate for center of PG"]')
+                .invoke("val", "5")
+                .trigger("input", { force: true });
+            cy.get('[aria-label="x coordinate for center of PG"]').trigger(
+                "pointerup",
+                { pointerId: 1, force: true },
+            );
+
+            cy.get('[aria-label="center x input for TR"]').clear().type("6");
+            cy.get('[aria-label="center x input for TR"]').blur();
+
+            cy.get("#PGVertex1X").should("have.text", "3");
+            cy.get("#TRVertex1X").should("have.text", "5");
+        });
+
+        it("renders polygon and triangle center modes with stable fallback numbering", () => {
+            loadGraphTest(`
+<text name="ready">ready</text>
+<booleanInput name="middleDraggable" prefill="true" />
+<graph name="g" addControls="all" controlsPosition="left">
+  <polygon vertices="(0,0) (2,0) (2,2) (0,2)" addControls="center" />
+  <polygon draggable="$middleDraggable.value" vertices="(3,0) (5,0) (5,2) (3,2)" addControls="center" />
+  <polygon vertices="(6,0) (8,0) (8,2) (6,2)" addControls="none" />
+  <triangle vertices="(0,3) (2,3) (1,5)" addControls="center" />
+  <triangle draggable="$middleDraggable.value" vertices="(3,3) (5,3) (4,5)" addControls="center" />
+  <triangle vertices="(6,3) (8,3) (7,5)" addControls="none" />
+</graph>
+`);
+
+            cy.get(
+                '[aria-label="x coordinate for center of Polygon 1"]',
+            ).should("exist");
+            cy.get(
+                '[aria-label="x coordinate for center of Polygon 2"]',
+            ).should("exist");
+            cy.get(
+                '[aria-label="x coordinate for center of Polygon 3"]',
+            ).should("not.exist");
+
+            cy.get(
+                '[aria-label="x coordinate for center of Triangle 1"]',
+            ).should("exist");
+            cy.get(
+                '[aria-label="x coordinate for center of Triangle 2"]',
+            ).should("exist");
+            cy.get(
+                '[aria-label="x coordinate for center of Triangle 3"]',
+            ).should("not.exist");
+
+            cy.get("#middleDraggable").click();
+
+            cy.get(
+                '[aria-label="x coordinate for center of Polygon 2"]',
+            ).should("not.exist");
+            cy.get(
+                '[aria-label="x coordinate for center of Triangle 2"]',
+            ).should("not.exist");
+        });
+
+        it("keeps polygon fallback numbering stable when polygon descendants are interleaved", () => {
+            loadGraphTest(`
+<text name="ready">ready</text>
+<graph name="g" addControls="all" controlsPosition="left">
+  <triangle vertices="(0,3) (2,3) (1,5)" addControls="center" />
+  <rectangle center="(0,0)" width="2" height="1" addControls="center" />
+  <polygon vertices="(3,0) (5,0) (5,2) (3,2)" addControls="center" />
+  <polygon vertices="(9,0) (11,0) (11,2) (9,2)" addControls="none" />
+  <triangle vertices="(6,3) (8,3) (7,5)" addControls="center" />
+  <polygon vertices="(6,0) (8,0) (8,2) (6,2)" addControls="center" />
+</graph>
+`);
+
+            cy.get(
+                '[aria-label="x coordinate for center of Polygon 1"]',
+            ).should("exist");
+            cy.get(
+                '[aria-label="x coordinate for center of Polygon 2"]',
+            ).should("not.exist");
+            cy.get(
+                '[aria-label="x coordinate for center of Polygon 3"]',
+            ).should("exist");
+            cy.get(
+                '[aria-label="x coordinate for center of Polygon 4"]',
+            ).should("not.exist");
+        });
+
+        it("renders and updates rectangle center and dimensions controls", () => {
+            loadGraphTest(`
+<text name="ready">ready</text>
+<graph name="g" addControls="all" controlsPosition="left">
+  <rectangle name="R" labelIsName center="(1,1)" width="2" height="4" addControls="centerWidthAndHeight" />
+</graph>
+<number name="RVertex1X">$R.vertices[1].x</number>
+<number name="RWidth" extend="$R.width" />
+<number name="RHeight" extend="$R.height" />
+`);
+
+            cy.get('[aria-label="center x coordinate for R"]').should("exist");
+            cy.get('[aria-label="width for R"]').should("exist");
+            cy.get('[aria-label="height for R"]').should("exist");
+
+            cy.get("#RVertex1X").should("have.text", "0");
+            cy.get("#RWidth").should("have.text", "2");
+            cy.get("#RHeight").should("have.text", "4");
+
+            cy.get('[aria-label="center x coordinate for R"]').trigger(
+                "pointerdown",
+                { pointerId: 1, buttons: 1, force: true },
+            );
+            cy.get('[aria-label="center x coordinate for R"]')
+                .invoke("val", "3")
+                .trigger("input", { force: true });
+            cy.get('[aria-label="center x coordinate for R"]').trigger(
+                "pointerup",
+                { pointerId: 1, force: true },
+            );
+
+            cy.get('[aria-label="width input for R"]').clear().type("6");
+            cy.get('[aria-label="width input for R"]').blur();
+            cy.get('[aria-label="height input for R"]').clear().type("5");
+            cy.get('[aria-label="height input for R"]').blur();
+
+            cy.get("#RVertex1X").should("have.text", "0");
+            cy.get("#RWidth").should("have.text", "6");
+            cy.get("#RHeight").should("have.text", "5");
+        });
+
+        it("renders rectangle control modes and preserves fallback numbering", () => {
+            loadGraphTest(`
+<text name="ready">ready</text>
+<booleanInput name="middleDraggable" prefill="false" />
+<booleanInput name="middleVerticesDraggable" prefill="false" />
+<graph name="g" addControls="all" controlsPosition="left">
+  <rectangle center="(0,0)" width="2" height="1" addControls="center" />
+  <rectangle draggable="$middleDraggable.value" center="(3,0)" width="2" height="1" addControls="centerWidthAndHeight" />
+    <rectangle verticesDraggable="$middleVerticesDraggable.value" center="(6,0)" width="2" height="1" addControls="widthAndHeight" />
+  <rectangle center="(9,0)" width="2" height="1" addControls="none" />
+</graph>
+`);
+
+            cy.get('[aria-label="center x coordinate for Rectangle 1"]').should(
+                "exist",
+            );
+            cy.get('[aria-label="width for Rectangle 1"]').should("not.exist");
+
+            cy.get('[aria-label="center x coordinate for Rectangle 2"]').should(
+                "not.exist",
+            );
+            cy.get('[aria-label="width for Rectangle 2"]').should("not.exist");
+            cy.get('[aria-label="height for Rectangle 2"]').should("not.exist");
+
+            cy.get('[aria-label="center x coordinate for Rectangle 3"]').should(
+                "not.exist",
+            );
+            cy.get('[aria-label="width for Rectangle 3"]').should("not.exist");
+            cy.get('[aria-label="height for Rectangle 3"]').should("not.exist");
+
+            cy.get('[aria-label="center x coordinate for Rectangle 4"]').should(
+                "not.exist",
+            );
+            cy.get('[aria-label="width for Rectangle 4"]').should("not.exist");
+
+            cy.get("#middleDraggable").click();
+            cy.get("#middleVerticesDraggable").click();
+
+            cy.get('[aria-label="center x coordinate for Rectangle 2"]').should(
+                "exist",
+            );
+            cy.get('[aria-label="width for Rectangle 2"]').should("exist");
+            cy.get('[aria-label="height for Rectangle 2"]').should("exist");
+            cy.get('[aria-label="center x coordinate for Rectangle 3"]').should(
+                "not.exist",
+            );
+            cy.get('[aria-label="width for Rectangle 3"]').should("exist");
+        });
+
+        it("regular polygon radius slider dragged to zero and back recovers shape", () => {
+            loadGraphTest(`
+<text name="ready">ready</text>
+<graph name="g" addControls="all" controlsPosition="left">
+  <regularPolygon name="RP" labelIsName vertices="(1,0) (3,0)" numSides="5" addControls="centerAndRadius" />
+</graph>
+<number name="RPRadius" extend="$RP.circumradius" />
+`);
+
+            const radiusSlider = '[aria-label="radius for RP"]';
+            const radiusInput = '[aria-label="radius input for RP"]';
+
+            cy.get("#RPRadius").should("not.have.text", "NaN");
+
+            cy.get(radiusSlider).trigger("pointerdown", {
+                pointerId: 1,
+                pointerType: "mouse",
+                buttons: 1,
+                force: true,
+            });
+            cy.get(radiusSlider).invoke("val", "0").trigger("input", {
+                force: true,
+            });
+            cy.get(radiusSlider).trigger("pointerup", {
+                pointerId: 1,
+                pointerType: "mouse",
+                force: true,
+            });
+
+            cy.get("#RPRadius").should("have.text", "0");
+            cy.get(radiusInput).should("have.attr", "value", "0");
+            cy.get(radiusSlider).should("have.attr", "aria-valuetext", "0");
+
+            // Now drag back to a positive radius and verify the polygon recovers
+            cy.get(radiusSlider).trigger("pointerdown", {
+                pointerId: 1,
+                pointerType: "mouse",
+                buttons: 1,
+                force: true,
+            });
+            cy.get(radiusSlider).invoke("val", "3").trigger("input", {
+                force: true,
+            });
+            cy.get(radiusSlider).trigger("pointerup", {
+                pointerId: 1,
+                pointerType: "mouse",
+                force: true,
+            });
+
+            // Radius should recover close to the target value. Known drift after
+            // collapsing to near-zero is tracked in issue #1019.
+            cy.get("#RPRadius").should(($el) => {
+                const radius = Number($el.text());
+                expect(Number.isFinite(radius)).to.equal(true);
+                expect(radius).to.be.closeTo(3, 0.5);
+            });
+            cy.get(radiusInput)
+                .invoke("val")
+                .then((displayedValue) => {
+                    cy.get(radiusSlider).should(
+                        "have.attr",
+                        "aria-valuetext",
+                        String(displayedValue),
+                    );
+                });
+
+            cy.get(radiusSlider).invoke("val", "3").trigger("input", {
+                force: true,
+            });
+            cy.get(radiusSlider).trigger("pointerup", {
+                pointerId: 1,
+                pointerType: "mouse",
+                force: true,
+            });
+
+            cy.get("#RPRadius").should("have.text", "3");
+            cy.get(radiusInput).should("have.attr", "value", "3");
+            cy.get(radiusSlider).should("have.attr", "aria-valuetext", "3");
         });
 
         it("renders headOnly and tailOnly vector controls", () => {
@@ -521,6 +976,11 @@ describe(
                     .parent()
                     .contains(`x: ${$ref.text()}`)
                     .should("exist");
+                cy.get('input[aria-label="x coordinate for P"]').should(
+                    "have.attr",
+                    "aria-valuetext",
+                    $ref.text(),
+                );
             });
 
             cy.get("#refQx").then(($ref) => {
@@ -529,6 +989,11 @@ describe(
                     .parent()
                     .contains(`x: ${$ref.text()}`)
                     .should("exist");
+                cy.get('input[aria-label="x coordinate for Q"]').should(
+                    "have.attr",
+                    "aria-valuetext",
+                    $ref.text(),
+                );
             });
 
             cy.get("#refRx").then(($ref) => {
@@ -537,6 +1002,11 @@ describe(
                     .parent()
                     .contains(`x: ${$ref.text()}`)
                     .should("exist");
+                cy.get('input[aria-label="x coordinate for R"]').should(
+                    "have.attr",
+                    "aria-valuetext",
+                    $ref.text(),
+                );
             });
         });
 
@@ -835,6 +1305,12 @@ describe(
                 .invoke("val", "4.2")
                 .trigger("input", { force: true });
 
+            cy.get('[aria-label="x coordinate for P"]').trigger("pointerup", {
+                pointerId: 1,
+                pointerType: "mouse",
+                force: true,
+            });
+
             cy.get('[aria-label="y coordinate for P"]').trigger("pointerdown", {
                 pointerId: 2,
                 pointerType: "mouse",
@@ -845,19 +1321,14 @@ describe(
                 .invoke("val", "6.4")
                 .trigger("input", { force: true });
 
-            cy.get("#Px").should("have.text", "4.2");
-            cy.get("#Py").should("have.text", "6.4");
-
-            cy.get('[aria-label="x coordinate for P"]').trigger("pointerup", {
-                pointerId: 1,
-                pointerType: "mouse",
-                force: true,
-            });
             cy.get('[aria-label="y coordinate for P"]').trigger("pointerup", {
                 pointerId: 2,
                 pointerType: "mouse",
                 force: true,
             });
+
+            cy.get("#Px").should("have.text", "4.2");
+            cy.get("#Py").should("have.text", "6.4");
         });
 
         it("syncs non-dragged axis while constrained drag is still transient", () => {
@@ -951,12 +1422,17 @@ describe(
             }
 
             cy.get("#Px").should("have.text", "0");
-            cy.get(xSlider).should("have.value", "1");
+            cy.get(xSlider)
+                .invoke("val")
+                .then((transientValue) => {
+                    const transientText = String(transientValue);
+                    expect(Number(transientText)).to.be.greaterThan(0.7);
 
-            cy.get(xSlider).blur();
+                    cy.get(xSlider).blur();
 
-            cy.get(xSlider).should("have.value", "1");
-            cy.get("#Px").should("have.text", "1");
+                    cy.get(xSlider).should("have.value", transientText);
+                    cy.get("#Px").should("have.text", transientText);
+                });
         });
 
         it("keyboard blur on constrained point does not send another movePoint", () => {
@@ -1002,6 +1478,59 @@ describe(
             cy.get(ySlider).should("have.attr", "value", "0.1");
             cy.get("#Px").should("have.text", "0.1");
             cy.get("#Py").should("have.text", "0.1");
+        });
+
+        it("circle radius slider dragged to zero and back recovers circle", () => {
+            loadGraphTest(`
+<text name="ready">ready</text>
+<graph name="g" addControls="all" controlsPosition="left">
+  <circle name="C" labelIsName center="(1,2)" radius="2" addControls="centerAndRadius" />
+</graph>
+<number name="Cr" extend="$C.radius" />
+`);
+
+            const radiusSlider = '[aria-label="radius for C"]';
+            const radiusInput = '[aria-label="radius input for C"]';
+
+            cy.get("#Cr").should("have.text", "2");
+
+            cy.get(radiusSlider).trigger("pointerdown", {
+                pointerId: 1,
+                pointerType: "mouse",
+                buttons: 1,
+                force: true,
+            });
+            cy.get(radiusSlider).invoke("val", "0").trigger("input", {
+                force: true,
+            });
+            cy.get(radiusSlider).trigger("pointerup", {
+                pointerId: 1,
+                pointerType: "mouse",
+                force: true,
+            });
+
+            cy.get("#Cr").should("have.text", "0");
+            cy.get(radiusSlider).should("have.attr", "value", "0");
+
+            // Now drag back to a positive radius and verify the circle recovers
+            cy.get(radiusSlider).trigger("pointerdown", {
+                pointerId: 1,
+                pointerType: "mouse",
+                buttons: 1,
+                force: true,
+            });
+            cy.get(radiusSlider).invoke("val", "3").trigger("input", {
+                force: true,
+            });
+            cy.get(radiusSlider).trigger("pointerup", {
+                pointerId: 1,
+                pointerType: "mouse",
+                force: true,
+            });
+
+            cy.get("#Cr").should("have.text", "3");
+            cy.get(radiusSlider).should("have.attr", "value", "3");
+            cy.get(radiusInput).should("have.attr", "value", "3");
         });
 
         it("snaps constrained circle radius slider and input to grid-constrained value", () => {

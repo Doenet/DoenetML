@@ -4,11 +4,11 @@ import ControlCard from "../primitives/ControlCard";
 import ScalarControlCoordinator from "../primitives/ScalarControlCoordinator";
 import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import {
-    CircleControlsMode,
     PointMoveRole,
-    normalizeCircleControlsMode,
+    RegularPolygonControlsMode,
     normalizeGraphControlsMode,
-    type GraphControlCircle,
+    normalizeRegularPolygonControlsMode,
+    type GraphControlRegularPolygon,
 } from "../model";
 import {
     formatCoordinateForControls,
@@ -19,7 +19,7 @@ import {
     renderLabelWithLatex,
 } from "../../utils/labelWithLatex";
 
-type CircleControlsFamilyProps = {
+type RegularPolygonControlsFamilyProps = {
     id: string;
     SVs: {
         addControls: string;
@@ -27,17 +27,19 @@ type CircleControlsFamilyProps = {
         xMax: number;
         yMin: number;
         yMax: number;
-        draggableCirclesForControls: GraphControlCircle[];
+        draggableRegularPolygonsForControls: GraphControlRegularPolygon[];
     };
     callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };
 
-type CircleSectionConfig = {
+type RegularPolygonSectionConfig = {
     kind: "center" | "radius";
     sectionHeadingHasDivider: boolean;
 };
 
-function getCircleSections(mode: CircleControlsMode): CircleSectionConfig[] {
+function getRegularPolygonSections(
+    mode: RegularPolygonControlsMode,
+): RegularPolygonSectionConfig[] {
     if (mode === "center") {
         return [{ kind: "center", sectionHeadingHasDivider: false }];
     }
@@ -56,24 +58,26 @@ function getCircleSections(mode: CircleControlsMode): CircleSectionConfig[] {
     return [];
 }
 
-export default React.memo(function CircleControlsFamily({
+export default React.memo(function RegularPolygonControlsFamily({
     id,
     SVs,
     callAction,
-}: CircleControlsFamilyProps) {
+}: RegularPolygonControlsFamilyProps) {
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     if (graphControlsMode === "none") {
         return null;
     }
 
-    const circles = Array.isArray(SVs.draggableCirclesForControls)
-        ? SVs.draggableCirclesForControls
+    const regularPolygons = Array.isArray(
+        SVs.draggableRegularPolygonsForControls,
+    )
+        ? SVs.draggableRegularPolygonsForControls
         : [];
-    if (circles.length === 0) {
+    if (regularPolygons.length === 0) {
         return null;
     }
 
-    async function moveCircle({
+    async function moveRegularPolygonCenter({
         componentIdx,
         pointRole,
         x,
@@ -88,32 +92,32 @@ export default React.memo(function CircleControlsFamily({
         transient: boolean;
         skippable: boolean;
     }) {
-        if (pointRole !== "center") {
+        if (pointRole !== "regularPolygon") {
             return;
         }
 
         try {
             await callAction({
                 action: {
-                    actionName: "moveCircle",
+                    actionName: "movePolygonCenter",
                     componentIdx,
                 },
                 args: {
                     center: [x, y],
-                    pointRole: "center",
+                    pointRole: "regularPolygon",
                     transient,
                     skippable,
                 },
             });
         } catch (error) {
             console.error(
-                `[graph-controls] moveCircle failed for component ${componentIdx}`,
+                `[graph-controls] movePolygonCenter failed for component ${componentIdx}`,
                 error,
             );
         }
     }
 
-    async function changeCircleRadius({
+    async function changeRegularPolygonRadius({
         componentIdx,
         scalarRole,
         value,
@@ -158,47 +162,47 @@ export default React.memo(function CircleControlsFamily({
         Math.abs(SVs.yMax - SVs.yMin),
     );
 
-    const cards = circles
-        .map((circle) => {
-            const mode = normalizeCircleControlsMode(circle.addControls);
-            const sections = getCircleSections(mode);
+    const cards = regularPolygons
+        .map((regularPolygon) => {
+            const mode = normalizeRegularPolygonControlsMode(
+                regularPolygon.addControls,
+            );
+            const sections = getRegularPolygonSections(mode);
             if (sections.length === 0) {
                 return null;
             }
 
-            const fallbackLabel = `Circle ${circle.circleNumber}`;
+            const fallbackLabel = `Regular polygon ${regularPolygon.regularPolygonNumber}`;
             const labelForAria = accessibleLabelText({
-                label: circle.label,
-                labelHasLatex: circle.labelHasLatex,
+                label: regularPolygon.label,
+                labelHasLatex: regularPolygon.labelHasLatex,
                 fallback: fallbackLabel,
             });
-            const labelForDisplay = circle.label.trim()
+            const labelForDisplay = regularPolygon.label.trim()
                 ? renderLabelWithLatex({
-                      label: circle.label,
-                      labelHasLatex: circle.labelHasLatex,
+                      label: regularPolygon.label,
+                      labelHasLatex: regularPolygon.labelHasLatex,
                   })
                 : fallbackLabel;
 
-            const radiusMax = Math.max(defaultRadiusMax, circle.radius);
+            const radiusMax = Math.max(defaultRadiusMax, regularPolygon.radius);
             const radiusStep = radiusMax > 0 ? radiusMax / 100 : 1;
-
-            const headingId = `${id}-circle-${circle.componentIdx}-heading`;
 
             return (
                 <ControlCard
-                    key={circle.componentIdx}
-                    id={`${id}-circle-${circle.componentIdx}`}
-                    headingId={headingId}
+                    key={regularPolygon.componentIdx}
+                    id={`${id}-regularPolygon-${regularPolygon.componentIdx}`}
+                    headingId={`${id}-regularPolygon-${regularPolygon.componentIdx}-heading`}
                     heading={labelForDisplay}
                 >
                     {sections.map((section) =>
                         section.kind === "center" ? (
                             <PointControlCoordinator
-                                key={`${circle.componentIdx}-center`}
+                                key={`${regularPolygon.componentIdx}-center`}
                                 id={id}
-                                controlId={`circle-${circle.componentIdx}-center`}
-                                componentIdx={circle.componentIdx}
-                                pointRole="center"
+                                controlId={`regularPolygon-${regularPolygon.componentIdx}-center`}
+                                componentIdx={regularPolygon.componentIdx}
+                                pointRole="regularPolygon"
                                 sectionHeading="Center"
                                 sectionHeadingHasDivider={
                                     section.sectionHeadingHasDivider
@@ -211,23 +215,26 @@ export default React.memo(function CircleControlsFamily({
                                 yInputAriaLabel={`center y input for ${labelForAria}`}
                                 graphControlsMode={graphControlsMode}
                                 pointControlsMode="both"
-                                x={circle.center.x}
-                                y={circle.center.y}
+                                x={regularPolygon.center.x}
+                                y={regularPolygon.center.y}
                                 xMin={SVs.xMin}
                                 xMax={SVs.xMax}
                                 yMin={SVs.yMin}
                                 yMax={SVs.yMax}
                                 formatCoordinate={(value) =>
-                                    formatCoordinateForControls(value, circle)
+                                    formatCoordinateForControls(
+                                        value,
+                                        regularPolygon,
+                                    )
                                 }
-                                onMovePointLike={moveCircle}
+                                onMovePointLike={moveRegularPolygonCenter}
                             />
                         ) : (
                             <ScalarControlCoordinator
-                                key={`${circle.componentIdx}-radius`}
+                                key={`${regularPolygon.componentIdx}-radius`}
                                 id={id}
-                                controlId={`circle-${circle.componentIdx}-radius`}
-                                componentIdx={circle.componentIdx}
+                                controlId={`regularPolygon-${regularPolygon.componentIdx}-radius`}
+                                componentIdx={regularPolygon.componentIdx}
                                 scalarRole="radius"
                                 sectionHeading="Radius"
                                 sectionHeadingHasDivider={
@@ -235,19 +242,22 @@ export default React.memo(function CircleControlsFamily({
                                 }
                                 label="radius"
                                 graphControlsMode={graphControlsMode}
-                                value={circle.radius}
+                                value={regularPolygon.radius}
                                 min={0}
                                 max={radiusMax}
                                 step={radiusStep}
                                 formatValue={(value) =>
-                                    formatCoordinateForControls(value, circle)
+                                    formatCoordinateForControls(
+                                        value,
+                                        regularPolygon,
+                                    )
                                 }
                                 parseValue={parseSingleMathNumber}
-                                controlFamily="circle"
+                                controlFamily="regularPolygon"
                                 sliderAriaLabel={`radius for ${labelForAria}`}
                                 inputAriaLabel={`radius input for ${labelForAria}`}
-                                commitErrorContext={`[graph-controls] failed to commit circle ${circle.componentIdx} radius input`}
-                                onUpdateScalar={changeCircleRadius}
+                                commitErrorContext={`[graph-controls] failed to commit regular polygon ${regularPolygon.componentIdx} radius input`}
+                                onUpdateScalar={changeRegularPolygonRadius}
                             />
                         ),
                     )}
@@ -261,7 +271,10 @@ export default React.memo(function CircleControlsFamily({
     }
 
     return (
-        <ControlsStack id={`${id}-circles`} ariaLabel="Circle controls">
+        <ControlsStack
+            id={`${id}-regularPolygons`}
+            ariaLabel="Regular polygon controls"
+        >
             {cards}
         </ControlsStack>
     );

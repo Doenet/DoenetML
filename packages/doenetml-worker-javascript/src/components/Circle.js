@@ -2947,8 +2947,7 @@ export default class Circle extends Curve {
     }
 
     async moveCircle({
-        x,
-        y,
+        center,
         radius,
         throughAngles,
         transient,
@@ -2968,14 +2967,18 @@ export default class Circle extends Curve {
             return;
         }
 
-        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+        // Center must be 2D for circle
+        if (!Array.isArray(center) || center.length !== 2) {
+            return;
+        }
+
+        if (!Number.isFinite(center[0]) || !Number.isFinite(center[1])) {
             console.warn(
-                `Invalid center coordinates for circle move: x=${x}, y=${y}`,
+                `Invalid center coordinates for circle move: x=${center[0]}, y=${center[1]}`,
             );
             return;
         }
 
-        const center = [x, y];
         let instructions = [];
 
         let numThroughPoints = await this.stateValues.numThroughPoints;

@@ -2279,13 +2279,18 @@ export default class Polyline extends GraphicalComponent {
         center,
         transient,
         skippable,
-        sourceDetails,
         actionId,
+        sourceDetails,
         sourceInformation = {},
         skipRendererUpdate = false,
+        pointRole = "polyline",
     }) {
-        // Polyline must be draggable for center movement to work
-        if (!(await this.stateValues.draggable)) {
+        if (!transient) {
+            skippable = false;
+        }
+
+        if (!["polyline", "polygon", "triangle"].includes(pointRole)) {
+            console.warn(`Invalid pointRole for polyline: ${pointRole}`);
             return;
         }
 
@@ -2293,6 +2298,18 @@ export default class Polyline extends GraphicalComponent {
 
         // Center must match the polyline dimensionality exactly.
         if (!Array.isArray(center) || center.length !== numDimensions) {
+            return;
+        }
+
+        if (!center.every((x) => Number.isFinite(x))) {
+            console.warn(
+                `Invalid center coordinates for ${pointRole} move: ${center.join(", ")}`,
+            );
+            return;
+        }
+
+        // Polyline must be draggable for center movement to work
+        if (!(await this.stateValues.draggable)) {
             return;
         }
 

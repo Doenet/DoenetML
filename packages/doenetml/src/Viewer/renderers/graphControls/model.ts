@@ -5,6 +5,18 @@ export type CircleControlsMode =
     | "radius"
     | "centerandradius"
     | "none";
+export type RegularPolygonControlsMode =
+    | "center"
+    | "radius"
+    | "centerandradius"
+    | "none";
+export type PolygonControlsMode = "center" | "none";
+export type TriangleControlsMode = "center" | "none";
+export type RectangleControlsMode =
+    | "center"
+    | "widthandheight"
+    | "centerwidthandheight"
+    | "none";
 export type LineSegmentControlsMode = "endpoints" | "none";
 export type VectorControlsMode =
     | "displacement"
@@ -17,6 +29,10 @@ export type GraphControlAxis = "x" | "y";
 export type PointMoveRole =
     | "point"
     | "center"
+    | "rectangle"
+    | "polygon"
+    | "triangle"
+    | "regularPolygon"
     | "endpoint1"
     | "endpoint2"
     | "displacement"
@@ -63,6 +79,61 @@ export type GraphControlCircle = {
     circleNumber: number;
     center: { x: number; y: number };
     radius: number;
+    addControls: string;
+    label: string;
+    labelHasLatex: boolean;
+    displayDigits: number;
+    displayDecimals: number;
+    displaySmallAsZero: number;
+    padZeros: boolean;
+};
+
+export type GraphControlRegularPolygon = {
+    componentIdx: number;
+    regularPolygonNumber: number;
+    center: { x: number; y: number };
+    radius: number;
+    addControls: string;
+    label: string;
+    labelHasLatex: boolean;
+    displayDigits: number;
+    displayDecimals: number;
+    displaySmallAsZero: number;
+    padZeros: boolean;
+};
+
+export type GraphControlPolygon = {
+    componentIdx: number;
+    polygonNumber: number;
+    center: { x: number; y: number };
+    addControls: string;
+    label: string;
+    labelHasLatex: boolean;
+    displayDigits: number;
+    displayDecimals: number;
+    displaySmallAsZero: number;
+    padZeros: boolean;
+};
+
+export type GraphControlTriangle = {
+    componentIdx: number;
+    triangleNumber: number;
+    center: { x: number; y: number };
+    addControls: string;
+    label: string;
+    labelHasLatex: boolean;
+    displayDigits: number;
+    displayDecimals: number;
+    displaySmallAsZero: number;
+    padZeros: boolean;
+};
+
+export type GraphControlRectangle = {
+    componentIdx: number;
+    rectangleNumber: number;
+    center: { x: number; y: number };
+    width: number;
+    height: number;
     addControls: string;
     label: string;
     labelHasLatex: boolean;
@@ -167,6 +238,76 @@ export function normalizeCircleControlsMode(
     }
 
     return "centerandradius";
+}
+
+export function normalizeRegularPolygonControlsMode(
+    value: unknown,
+): RegularPolygonControlsMode {
+    if (typeof value !== "string") {
+        return "centerandradius";
+    }
+
+    const normalized = value.toLowerCase();
+    if (
+        normalized === "center" ||
+        normalized === "radius" ||
+        normalized === "centerandradius" ||
+        normalized === "none"
+    ) {
+        return normalized;
+    }
+
+    return "centerandradius";
+}
+
+export function normalizePolygonControlsMode(
+    value: unknown,
+): PolygonControlsMode {
+    if (typeof value !== "string") {
+        return "center";
+    }
+
+    const normalized = value.toLowerCase();
+    if (normalized === "center" || normalized === "none") {
+        return normalized;
+    }
+
+    return "center";
+}
+
+export function normalizeTriangleControlsMode(
+    value: unknown,
+): TriangleControlsMode {
+    if (typeof value !== "string") {
+        return "center";
+    }
+
+    const normalized = value.toLowerCase();
+    if (normalized === "center" || normalized === "none") {
+        return normalized;
+    }
+
+    return "center";
+}
+
+export function normalizeRectangleControlsMode(
+    value: unknown,
+): RectangleControlsMode {
+    if (typeof value !== "string") {
+        return "centerwidthandheight";
+    }
+
+    const normalized = value.toLowerCase();
+    if (
+        normalized === "center" ||
+        normalized === "widthandheight" ||
+        normalized === "centerwidthandheight" ||
+        normalized === "none"
+    ) {
+        return normalized;
+    }
+
+    return "centerwidthandheight";
 }
 
 /**
