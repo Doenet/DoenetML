@@ -98,7 +98,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         function dispatchMoveCircle(
             args: Omit<
                 Record<string, any>,
-                "x" | "y" | "radius" | "throughAngles"
+                "center" | "radius" | "throughAngles"
             > = {},
         ) {
             if (
@@ -112,8 +112,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             callAction({
                 action: actions.moveCircle,
                 args: {
-                    x: centerCoords.current[0],
-                    y: centerCoords.current[1],
+                    center: centerCoords.current,
                     radius: radiusAtDown.current,
                     throughAngles: throughAnglesAtDown.current,
                     ...args,

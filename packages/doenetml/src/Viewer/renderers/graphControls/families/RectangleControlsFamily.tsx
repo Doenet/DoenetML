@@ -125,8 +125,7 @@ export default React.memo(function RectangleControlsFamily({
                     componentIdx,
                 },
                 args: {
-                    x,
-                    y,
+                    center: [x, y],
                     pointRole: "rectangle",
                     transient,
                     skippable,

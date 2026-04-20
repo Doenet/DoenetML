@@ -2029,8 +2029,7 @@ export default class RegularPolygon extends Polygon {
     }
 
     async movePolygonCenter({
-        x,
-        y,
+        center,
         transient,
         skippable,
         actionId,
@@ -2048,9 +2047,14 @@ export default class RegularPolygon extends Polygon {
             return;
         }
 
-        if (!Number.isFinite(x) || !Number.isFinite(y)) {
+        // Center must be 2D for regular polygon
+        if (!Array.isArray(center) || center.length !== 2) {
+            return;
+        }
+
+        if (!center.every((x) => Number.isFinite(x))) {
             console.warn(
-                `Invalid center coordinates for ${pointRole} move: x=${x}, y=${y}`,
+                `Invalid center coordinates for ${pointRole} move: ${center.join(", ")}`,
             );
             return;
         }
@@ -2058,8 +2062,6 @@ export default class RegularPolygon extends Polygon {
         if (!(await this.stateValues.draggable)) {
             return;
         }
-
-        const center = [x, y];
 
         let updateInstructions = [
             {

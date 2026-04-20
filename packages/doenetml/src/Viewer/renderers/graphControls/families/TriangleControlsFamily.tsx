@@ -70,8 +70,7 @@ export default React.memo(function TriangleControlsFamily({
                     componentIdx,
                 },
                 args: {
-                    x,
-                    y,
+                    center: [x, y],
                     pointRole: "triangle",
                     transient,
                     skippable,

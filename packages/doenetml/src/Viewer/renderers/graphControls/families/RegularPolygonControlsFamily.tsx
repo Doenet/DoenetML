@@ -103,8 +103,7 @@ export default React.memo(function RegularPolygonControlsFamily({
                     componentIdx,
                 },
                 args: {
-                    x,
-                    y,
+                    center: [x, y],
                     pointRole: "regularPolygon",
                     transient,
                     skippable,

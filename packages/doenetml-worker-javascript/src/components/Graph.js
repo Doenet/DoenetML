@@ -953,10 +953,10 @@ export default class Graph extends BlockComponent {
                 }
 
                 const draggablePolygonsForControls = [];
+                let polygonNumber = 0;
 
-                for (const [polygonInd, polygonDescendant] of (
-                    dependencyValues.polygonDescendants ?? []
-                ).entries()) {
+                for (const polygonDescendant of dependencyValues.polygonDescendants ??
+                    []) {
                     // Descendants may include components that inherit from polygon
                     // (e.g. triangle/rectangle), but this payload is polygon-only.
                     if (polygonDescendant.componentType !== "polygon") {
@@ -964,7 +964,7 @@ export default class Graph extends BlockComponent {
                     }
 
                     const stateValues = polygonDescendant.stateValues ?? {};
-                    const polygonNumber = polygonInd + 1;
+                    polygonNumber += 1;
                     const componentIdx = polygonDescendant.componentIdx;
                     const numericalVertices = stateValues.numericalVertices;
                     const addControls = stateValues.addControls;

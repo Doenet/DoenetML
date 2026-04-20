@@ -59,7 +59,7 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
             await win.callAction1({
                 actionName: "moveCircle",
                 componentIdx: await win.resolvePath1("circ"),
-                args: { x: -7, y: 2 },
+                args: { center: [-7, 2] },
             });
 
             cy.get(cesc(`#r2`)).should("contain.text", "1");

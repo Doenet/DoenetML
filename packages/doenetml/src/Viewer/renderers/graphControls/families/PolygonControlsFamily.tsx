@@ -70,8 +70,7 @@ export default React.memo(function PolygonControlsFamily({
                     componentIdx,
                 },
                 args: {
-                    x,
-                    y,
+                    center: [x, y],
                     pointRole: "polygon",
                     transient,
                     skippable,

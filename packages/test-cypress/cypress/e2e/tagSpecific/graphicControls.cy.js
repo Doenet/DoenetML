@@ -463,6 +463,33 @@ describe(
             ).should("not.exist");
         });
 
+        it("keeps polygon fallback numbering stable when polygon descendants are interleaved", () => {
+            loadGraphTest(`
+<text name="ready">ready</text>
+<graph name="g" addControls="all" controlsPosition="left">
+  <triangle vertices="(0,3) (2,3) (1,5)" addControls="center" />
+  <rectangle center="(0,0)" width="2" height="1" addControls="center" />
+  <polygon vertices="(3,0) (5,0) (5,2) (3,2)" addControls="center" />
+  <polygon vertices="(9,0) (11,0) (11,2) (9,2)" addControls="none" />
+  <triangle vertices="(6,3) (8,3) (7,5)" addControls="center" />
+  <polygon vertices="(6,0) (8,0) (8,2) (6,2)" addControls="center" />
+</graph>
+`);
+
+            cy.get(
+                '[aria-label="x coordinate for center of Polygon 1"]',
+            ).should("exist");
+            cy.get(
+                '[aria-label="x coordinate for center of Polygon 2"]',
+            ).should("not.exist");
+            cy.get(
+                '[aria-label="x coordinate for center of Polygon 3"]',
+            ).should("exist");
+            cy.get(
+                '[aria-label="x coordinate for center of Polygon 4"]',
+            ).should("not.exist");
+        });
+
         it("renders and updates rectangle center and dimensions controls", () => {
             loadGraphTest(`
 <text name="ready">ready</text>

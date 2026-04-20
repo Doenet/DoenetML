@@ -99,8 +99,7 @@ export default React.memo(function CircleControlsFamily({
                     componentIdx,
                 },
                 args: {
-                    x,
-                    y,
+                    center: [x, y],
                     pointRole: "center",
                     transient,
                     skippable,

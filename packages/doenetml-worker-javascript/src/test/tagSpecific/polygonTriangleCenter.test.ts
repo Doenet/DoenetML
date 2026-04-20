@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import type { Expression } from "math-expressions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -12,7 +13,9 @@ async function getShapeVerticesAndCenter(core: any, componentIdx: number) {
     const vertices = polygonState.vertices.map((vertex: any[]) =>
         vertex.map((x) => x.evaluate_to_constant()),
     );
-    const center = polygonState.center.map((x) => x.evaluate_to_constant());
+    const center = polygonState.center.map((x: Expression) =>
+        x.evaluate_to_constant(),
+    );
 
     return { vertices, center, polygonState };
 }

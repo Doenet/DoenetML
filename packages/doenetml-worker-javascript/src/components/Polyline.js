@@ -2276,8 +2276,7 @@ export default class Polyline extends GraphicalComponent {
     }
 
     async movePolylineCenter({
-        x,
-        y,
+        center,
         transient,
         skippable,
         actionId,
@@ -2295,23 +2294,22 @@ export default class Polyline extends GraphicalComponent {
             return;
         }
 
-        if (!Number.isFinite(x) || !Number.isFinite(y)) {
-            console.warn(
-                `Invalid center coordinates for ${pointRole} move: x=${x}, y=${y}`,
-            );
-            return;
-        }
-
-        const center = [x, y];
-        // Polyline must be draggable for center movement to work
-        if (!(await this.stateValues.draggable)) {
-            return;
-        }
-
         let numDimensions = await this.stateValues.numDimensions;
 
         // Center must match the polyline dimensionality exactly.
         if (!Array.isArray(center) || center.length !== numDimensions) {
+            return;
+        }
+
+        if (!center.every((x) => Number.isFinite(x))) {
+            console.warn(
+                `Invalid center coordinates for ${pointRole} move: ${center.join(", ")}`,
+            );
+            return;
+        }
+
+        // Polyline must be draggable for center movement to work
+        if (!(await this.stateValues.draggable)) {
             return;
         }
 
