@@ -9,7 +9,7 @@ import {
     PointMoveRole,
     normalizeCircleControlsMode,
     normalizeGraphControlsMode,
-    type GraphControlCircle,
+    selectGraphControlsByType,
 } from "../model";
 import {
     formatCoordinateForControls,
@@ -67,11 +67,9 @@ export default React.memo(function CircleControlsFamily({
         return null;
     }
 
-    const circles = (Array.isArray(SVs.graphicalDescendantsForControls)
-        ? SVs.graphicalDescendantsForControls
-        : []
-    ).filter(
-        (item): item is GraphControlCircle => item.controlType === "circle",
+    const circles = selectGraphControlsByType(
+        SVs.graphicalDescendantsForControls,
+        "circle",
     );
     if (circles.length === 0) {
         return null;

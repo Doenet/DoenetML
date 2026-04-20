@@ -4,10 +4,10 @@ import ControlsStack from "../primitives/ControlsStack";
 import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import {
     GraphControlItem,
-    GraphControlPoint,
     PointControlsMode,
     normalizeGraphControlsMode,
     normalizePointControlsMode,
+    selectGraphControlsByType,
 } from "../model";
 import { formatCoordinateForControls } from "../mathFormatParse";
 import {
@@ -46,11 +46,9 @@ export default React.memo(function PointControlsFamily({
     SVs,
     callAction,
 }: PointGraphControlsProps) {
-    const points = (Array.isArray(SVs.graphicalDescendantsForControls)
-        ? SVs.graphicalDescendantsForControls
-        : []
-    ).filter(
-        (item): item is GraphControlPoint => item.controlType === "point",
+    const points = selectGraphControlsByType(
+        SVs.graphicalDescendantsForControls,
+        "point",
     );
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     if (graphControlsMode === "none" || points.length === 0) {

@@ -191,6 +191,27 @@ export type GraphControlItem =
     | GraphControlVector;
 
 /**
+ * Select controls of a single discriminator from the unified controls list.
+ */
+export function selectGraphControlsByType<
+    TControlType extends GraphControlItem["controlType"],
+>(
+    controls: GraphControlItem[] | undefined,
+    controlType: TControlType,
+): Extract<GraphControlItem, { controlType: TControlType }>[] {
+    if (!Array.isArray(controls)) {
+        return [];
+    }
+
+    return controls.filter(
+        (
+            item,
+        ): item is Extract<GraphControlItem, { controlType: TControlType }> =>
+            item.controlType === controlType,
+    );
+}
+
+/**
  * Normalize graph-level controls mode from core SVs.
  *
  * Invalid or missing values are treated as "none" so renderers do not show

@@ -9,6 +9,7 @@ import {
     PointMoveRole,
     normalizeGraphControlsMode,
     normalizeLineSegmentControlsMode,
+    selectGraphControlsByType,
 } from "../model";
 import { formatCoordinateForControls } from "../mathFormatParse";
 import {
@@ -103,12 +104,9 @@ export default React.memo(function LineSegmentControlsFamily({
         return null;
     }
 
-    const lineSegments = (Array.isArray(SVs.graphicalDescendantsForControls)
-        ? SVs.graphicalDescendantsForControls
-        : []
-    ).filter(
-        (item): item is GraphControlLineSegment =>
-            item.controlType === "lineSegment",
+    const lineSegments = selectGraphControlsByType(
+        SVs.graphicalDescendantsForControls,
+        "lineSegment",
     );
     if (lineSegments.length === 0) {
         return null;

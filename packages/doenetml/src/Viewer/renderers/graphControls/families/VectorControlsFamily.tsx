@@ -7,6 +7,7 @@ import {
     GraphControlVector,
     PointMoveRole,
     normalizeGraphControlsMode,
+    selectGraphControlsByType,
     normalizeVectorControlsMode,
 } from "../model";
 import type { VectorControlsMode } from "../model";
@@ -155,11 +156,9 @@ export default React.memo(function VectorControlsFamily({
         return null;
     }
 
-    const vectors = (Array.isArray(SVs.graphicalDescendantsForControls)
-        ? SVs.graphicalDescendantsForControls
-        : []
-    ).filter(
-        (item): item is GraphControlVector => item.controlType === "vector",
+    const vectors = selectGraphControlsByType(
+        SVs.graphicalDescendantsForControls,
+        "vector",
     );
     if (vectors.length === 0) {
         return null;

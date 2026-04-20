@@ -593,6 +593,56 @@ describe("Graph tag tests @group2", async () => {
         expect(noneControls).to.have.length(0);
     });
 
+    it("graphicalDescendantsForControls classifies shapes and normalizes modes", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" addControls>
+  <triangle vertices="(0,0) (3,0) (0,3)" addControls="center" />
+  <polygon vertices="(5,0) (6,0) (6,1)" addControls="center" />
+  <rectangle
+    vertices="(0,0) (4,2)"
+    addControls="centerwidthandheight"
+    draggable="false"
+    verticesDraggable="true"
+  />
+  <vector tail="(0,0)" addControls="headandtail" tailDraggable="false">(2,3)</vector>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const controls: Array<Record<string, any>> =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .graphicalDescendantsForControls;
+
+        expect(controls).to.have.length(4);
+
+        const triangleControls = controls.filter(
+            (item) => item.controlType === "triangle",
+        );
+        const polygonControls = controls.filter(
+            (item) => item.controlType === "polygon",
+        );
+        const rectangleControls = controls.filter(
+            (item) => item.controlType === "rectangle",
+        );
+        const vectorControls = controls.filter(
+            (item) => item.controlType === "vector",
+        );
+
+        expect(triangleControls).to.have.length(1);
+        expect(triangleControls[0].triangleNumber).eq(1);
+
+        expect(polygonControls).to.have.length(1);
+        expect(polygonControls[0].polygonNumber).eq(1);
+
+        expect(rectangleControls).to.have.length(1);
+        expect(rectangleControls[0].addControls).eq("widthandheight");
+
+        expect(vectorControls).to.have.length(1);
+        expect(vectorControls[0].addControls).eq("headonly");
+    });
+
     it("fixed grids", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

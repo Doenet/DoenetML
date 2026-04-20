@@ -611,6 +611,9 @@ export default class Graph extends BlockComponent {
                     []) {
                     const componentType = descendant.componentType;
 
+                    // Config order is semantically significant: first matching
+                    // inherited type wins, so specific types must be listed
+                    // before broader ancestors in GRAPH_CONTROL_DESCENDANT_CONFIGS.
                     for (const config of GRAPH_CONTROL_DESCENDANT_CONFIGS) {
                         if (
                             !componentInfoObjects.isInheritedComponentType({

@@ -4,9 +4,9 @@ import ControlsStack from "../primitives/ControlsStack";
 import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import {
     GraphControlItem,
-    GraphControlTriangle,
     PointMoveRole,
     normalizeGraphControlsMode,
+    selectGraphControlsByType,
     normalizeTriangleControlsMode,
 } from "../model";
 import { formatCoordinateForControls } from "../mathFormatParse";
@@ -38,11 +38,9 @@ export default React.memo(function TriangleControlsFamily({
         return null;
     }
 
-    const triangles = (Array.isArray(SVs.graphicalDescendantsForControls)
-        ? SVs.graphicalDescendantsForControls
-        : []
-    ).filter(
-        (item): item is GraphControlTriangle => item.controlType === "triangle",
+    const triangles = selectGraphControlsByType(
+        SVs.graphicalDescendantsForControls,
+        "triangle",
     );
     if (triangles.length === 0) {
         return null;

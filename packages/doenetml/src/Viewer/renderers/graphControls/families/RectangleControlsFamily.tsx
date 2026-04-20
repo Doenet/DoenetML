@@ -5,11 +5,11 @@ import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import ScalarControlCoordinator from "../primitives/ScalarControlCoordinator";
 import {
     GraphControlItem,
-    GraphControlRectangle,
     PointMoveRole,
     RectangleControlsMode,
     normalizeGraphControlsMode,
     normalizeRectangleControlsMode,
+    selectGraphControlsByType,
 } from "../model";
 import {
     formatCoordinateForControls,
@@ -93,12 +93,9 @@ export default React.memo(function RectangleControlsFamily({
         return null;
     }
 
-    const rectangles = (Array.isArray(SVs.graphicalDescendantsForControls)
-        ? SVs.graphicalDescendantsForControls
-        : []
-    ).filter(
-        (item): item is GraphControlRectangle =>
-            item.controlType === "rectangle",
+    const rectangles = selectGraphControlsByType(
+        SVs.graphicalDescendantsForControls,
+        "rectangle",
     );
     if (rectangles.length === 0) {
         return null;

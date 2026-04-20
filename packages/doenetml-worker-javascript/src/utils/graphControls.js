@@ -109,6 +109,12 @@ export const GRAPH_CONTROL_COMPONENT_TYPES = [
     "vector",
 ];
 
+/**
+ * Shared state variables requested for all control descendants.
+ *
+ * This list is intentionally broad so each control builder can read the fields
+ * it needs without adding per-type dependency boilerplate in Graph.
+ */
 export const GRAPH_CONTROL_VARIABLE_NAMES = [
     "numericalXs",
     "numericalCenter",
@@ -133,6 +139,19 @@ export const GRAPH_CONTROL_VARIABLE_NAMES = [
     "padZeros",
 ];
 
+/**
+ * Build configuration for graph control payloads.
+ *
+ * Precedence contract:
+ * - Graph walks this array in order and uses the first matching config.
+ * - Matching uses inherited-type checks, not only exact type equality.
+ * - Therefore, more specific component types must appear before broader
+ *   ancestor types (for example triangle/rectangle/regularPolygon before
+ *   polygon) so descendants are classified into the intended control family.
+ *
+ * `buildPayload` must return `null` to skip the descendant and an object with
+ * the final renderer payload shape when controls should be shown.
+ */
 export const GRAPH_CONTROL_DESCENDANT_CONFIGS = [
     {
         componentType: "point",

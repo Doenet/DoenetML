@@ -9,7 +9,7 @@ import {
     RegularPolygonControlsMode,
     normalizeGraphControlsMode,
     normalizeRegularPolygonControlsMode,
-    type GraphControlRegularPolygon,
+    selectGraphControlsByType,
 } from "../model";
 import {
     formatCoordinateForControls,
@@ -69,12 +69,9 @@ export default React.memo(function RegularPolygonControlsFamily({
         return null;
     }
 
-    const regularPolygons = (Array.isArray(SVs.graphicalDescendantsForControls)
-        ? SVs.graphicalDescendantsForControls
-        : []
-    ).filter(
-        (item): item is GraphControlRegularPolygon =>
-            item.controlType === "regularPolygon",
+    const regularPolygons = selectGraphControlsByType(
+        SVs.graphicalDescendantsForControls,
+        "regularPolygon",
     );
     if (regularPolygons.length === 0) {
         return null;

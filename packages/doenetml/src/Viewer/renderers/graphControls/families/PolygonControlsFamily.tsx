@@ -4,10 +4,10 @@ import ControlsStack from "../primitives/ControlsStack";
 import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import {
     GraphControlItem,
-    GraphControlPolygon,
     PointMoveRole,
     normalizeGraphControlsMode,
     normalizePolygonControlsMode,
+    selectGraphControlsByType,
 } from "../model";
 import { formatCoordinateForControls } from "../mathFormatParse";
 import {
@@ -38,11 +38,9 @@ export default React.memo(function PolygonControlsFamily({
         return null;
     }
 
-    const polygons = (Array.isArray(SVs.graphicalDescendantsForControls)
-        ? SVs.graphicalDescendantsForControls
-        : []
-    ).filter(
-        (item): item is GraphControlPolygon => item.controlType === "polygon",
+    const polygons = selectGraphControlsByType(
+        SVs.graphicalDescendantsForControls,
+        "polygon",
     );
     if (polygons.length === 0) {
         return null;
