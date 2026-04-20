@@ -8,10 +8,25 @@ import RectangleControlsFamily from "./families/RectangleControlsFamily";
 import LineSegmentControlsFamily from "./families/LineSegmentControlsFamily";
 import VectorControlsFamily from "./families/VectorControlsFamily";
 import {
+    assertKnownGraphControlType,
     type GraphControlItem,
     type GraphControlsFamilyProps,
     sortGraphControlsForDisplay,
 } from "./model";
+
+const CONTROLS_FAMILY_BY_TYPE: Record<
+    GraphControlItem["controlType"],
+    React.ComponentType<GraphControlsFamilyProps>
+> = {
+    point: PointControlsFamily,
+    circle: CircleControlsFamily,
+    polygon: PolygonControlsFamily,
+    triangle: TriangleControlsFamily,
+    regularPolygon: RegularPolygonControlsFamily,
+    rectangle: RectangleControlsFamily,
+    lineSegment: LineSegmentControlsFamily,
+    vector: VectorControlsFamily,
+};
 
 export default React.memo(function GraphControlsRoot(
     props: GraphControlsFamilyProps,
@@ -23,6 +38,11 @@ export default React.memo(function GraphControlsRoot(
     );
 
     function renderControl(control: GraphControlItem, controlIndex: number) {
+        const controlType = assertKnownGraphControlType(control.controlType);
+        const FamilyComponent = CONTROLS_FAMILY_BY_TYPE[controlType];
+
+        // Render exactly one control payload per family invocation so family
+        // components can preserve their internal card/control markup behavior.
         const controlFamilyProps: GraphControlsFamilyProps = {
             ...props,
             id: `${id}_control_${controlIndex}`,
@@ -32,40 +52,9 @@ export default React.memo(function GraphControlsRoot(
             },
         };
 
-        const key = `${control.controlType}_${control.componentIdx}_${controlIndex}`;
+        const key = `${controlType}_${control.componentIdx}_${controlIndex}`;
 
-        if (control.controlType === "point") {
-            return <PointControlsFamily key={key} {...controlFamilyProps} />;
-        }
-        if (control.controlType === "circle") {
-            return <CircleControlsFamily key={key} {...controlFamilyProps} />;
-        }
-        if (control.controlType === "polygon") {
-            return <PolygonControlsFamily key={key} {...controlFamilyProps} />;
-        }
-        if (control.controlType === "triangle") {
-            return <TriangleControlsFamily key={key} {...controlFamilyProps} />;
-        }
-        if (control.controlType === "regularPolygon") {
-            return (
-                <RegularPolygonControlsFamily
-                    key={key}
-                    {...controlFamilyProps}
-                />
-            );
-        }
-        if (control.controlType === "rectangle") {
-            return (
-                <RectangleControlsFamily key={key} {...controlFamilyProps} />
-            );
-        }
-        if (control.controlType === "lineSegment") {
-            return (
-                <LineSegmentControlsFamily key={key} {...controlFamilyProps} />
-            );
-        }
-
-        return <VectorControlsFamily key={key} {...controlFamilyProps} />;
+        return <FamilyComponent key={key} {...controlFamilyProps} />;
     }
 
     return (

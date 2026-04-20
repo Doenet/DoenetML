@@ -198,6 +198,17 @@ export type GraphControlItem =
     | GraphControlLineSegment
     | GraphControlVector;
 
+export const GRAPH_CONTROL_TYPES = [
+    "point",
+    "circle",
+    "regularPolygon",
+    "polygon",
+    "triangle",
+    "rectangle",
+    "lineSegment",
+    "vector",
+] as const;
+
 export type GraphControlsFamilySVs = {
     addControls: string;
     xMin: number;
@@ -231,6 +242,27 @@ export function selectGraphControlsByType<
 }
 
 /**
+ * Runtime guard for control payloads arriving from the worker.
+ *
+ * TypeScript already enforces known discriminators at compile time, but this
+ * guard ensures malformed runtime payloads fail loudly instead of being routed
+ * to an incorrect controls family.
+ */
+export function assertKnownGraphControlType(
+    controlType: string,
+): GraphControlItem["controlType"] {
+    if (
+        (GRAPH_CONTROL_TYPES as readonly string[]).indexOf(controlType) !== -1
+    ) {
+        return controlType as GraphControlItem["controlType"];
+    }
+
+    throw new Error(
+        `[graph-controls] Unsupported controlType "${controlType}" in graphicalDescendantsForControls.`,
+    );
+}
+
+/**
  * Computes final control render order from authored controlOrder priorities.
  *
  * For slot n (1-indexed):
@@ -239,6 +271,11 @@ export function selectGraphControlsByType<
  * 3) Else take the remaining control with the lowest order > n.
  *
  * Relative order within each controlOrder level always follows input order.
+ *
+ * Assumption: controlOrder values are non-negative integers. This constraint is
+ * enforced in worker component attributes via `clamp: [0, Infinity]` and
+ * integer-typed attributes, so an additional lower-bound guard is not needed
+ * here.
  */
 export function sortGraphControlsForDisplay(
     controls: GraphControlItem[],
