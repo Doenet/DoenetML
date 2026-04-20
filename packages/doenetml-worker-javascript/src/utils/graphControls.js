@@ -98,6 +98,14 @@ function resolveCompositeControlsMode({
     return compositeMode;
 }
 
+function extractFiniteControlOrder(stateValues) {
+    const controlOrder = Number(stateValues.controlOrder);
+    if (!Number.isFinite(controlOrder)) {
+        return 0;
+    }
+    return controlOrder;
+}
+
 export const GRAPH_CONTROL_COMPONENT_TYPES = [
     "point",
     "circle",
@@ -137,6 +145,7 @@ export const GRAPH_CONTROL_VARIABLE_NAMES = [
     "displayDecimals",
     "displaySmallAsZero",
     "padZeros",
+    "controlOrder",
 ];
 
 /**
@@ -187,6 +196,7 @@ export const GRAPH_CONTROL_DESCENDANT_CONFIGS = [
                 x,
                 y,
                 addControls,
+                controlOrder: extractFiniteControlOrder(stateValues),
                 ...extractControlDisplaySettings(stateValues),
             };
         },
@@ -228,6 +238,7 @@ export const GRAPH_CONTROL_DESCENDANT_CONFIGS = [
                 },
                 radius,
                 addControls,
+                controlOrder: extractFiniteControlOrder(stateValues),
                 ...extractControlDisplaySettings(stateValues),
             };
         },
@@ -261,6 +272,7 @@ export const GRAPH_CONTROL_DESCENDANT_CONFIGS = [
                 triangleNumber: number,
                 center,
                 addControls,
+                controlOrder: extractFiniteControlOrder(stateValues),
                 ...extractControlDisplaySettings(stateValues),
             };
         },
@@ -322,6 +334,7 @@ export const GRAPH_CONTROL_DESCENDANT_CONFIGS = [
                 width,
                 height,
                 addControls: effectiveAddControls,
+                controlOrder: extractFiniteControlOrder(stateValues),
                 ...extractControlDisplaySettings(stateValues),
             };
         },
@@ -381,6 +394,7 @@ export const GRAPH_CONTROL_DESCENDANT_CONFIGS = [
                 center,
                 radius,
                 addControls: effectiveAddControls,
+                controlOrder: extractFiniteControlOrder(stateValues),
                 ...extractControlDisplaySettings(stateValues),
             };
         },
@@ -414,6 +428,7 @@ export const GRAPH_CONTROL_DESCENDANT_CONFIGS = [
                 polygonNumber: number,
                 center,
                 addControls,
+                controlOrder: extractFiniteControlOrder(stateValues),
                 ...extractControlDisplaySettings(stateValues),
             };
         },
@@ -470,6 +485,7 @@ export const GRAPH_CONTROL_DESCENDANT_CONFIGS = [
                 endpoint1: { x: endpoint1x, y: endpoint1y },
                 endpoint2: { x: endpoint2x, y: endpoint2y },
                 addControls,
+                controlOrder: extractFiniteControlOrder(stateValues),
                 ...extractControlDisplaySettings(stateValues),
             };
         },
@@ -555,6 +571,7 @@ export const GRAPH_CONTROL_DESCENDANT_CONFIGS = [
                     y: headY - tailY,
                 },
                 addControls: effectiveAddControls,
+                controlOrder: extractFiniteControlOrder(stateValues),
                 ...extractControlDisplaySettings(stateValues),
             };
         },

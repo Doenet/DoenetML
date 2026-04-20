@@ -65,6 +65,14 @@ export default class LineSegment extends GraphicalComponent {
         attributes.labelPosition = returnLineFamilyLabelPositionAttribute();
 
         Object.assign(attributes, returnRoundingAttributes());
+        attributes.controlOrder = {
+            createComponentOfType: "integer",
+            createStateVariable: "controlOrder",
+            defaultValue: 0,
+            clamp: [0, Infinity],
+            public: true,
+            forRenderer: true,
+        };
 
         return attributes;
     }

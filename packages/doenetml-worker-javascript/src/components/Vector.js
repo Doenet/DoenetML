@@ -111,6 +111,15 @@ export default class Vector extends GraphicalComponent {
             forRenderer: true,
         };
 
+        attributes.controlOrder = {
+            createComponentOfType: "integer",
+            createStateVariable: "controlOrder",
+            defaultValue: 0,
+            clamp: [0, Infinity],
+            public: true,
+            forRenderer: true,
+        };
+
         return attributes;
     }
 

@@ -64,6 +64,7 @@ export type GraphControlPoint = {
     controlType: "point";
     componentIdx: number;
     pointNumber: number;
+    controlOrder: number;
     x: number;
     y: number;
     addControls: string;
@@ -79,6 +80,7 @@ export type GraphControlCircle = {
     controlType: "circle";
     componentIdx: number;
     circleNumber: number;
+    controlOrder: number;
     center: { x: number; y: number };
     radius: number;
     addControls: string;
@@ -94,6 +96,7 @@ export type GraphControlRegularPolygon = {
     controlType: "regularPolygon";
     componentIdx: number;
     regularPolygonNumber: number;
+    controlOrder: number;
     center: { x: number; y: number };
     radius: number;
     addControls: string;
@@ -109,6 +112,7 @@ export type GraphControlPolygon = {
     controlType: "polygon";
     componentIdx: number;
     polygonNumber: number;
+    controlOrder: number;
     center: { x: number; y: number };
     addControls: string;
     label: string;
@@ -123,6 +127,7 @@ export type GraphControlTriangle = {
     controlType: "triangle";
     componentIdx: number;
     triangleNumber: number;
+    controlOrder: number;
     center: { x: number; y: number };
     addControls: string;
     label: string;
@@ -137,6 +142,7 @@ export type GraphControlRectangle = {
     controlType: "rectangle";
     componentIdx: number;
     rectangleNumber: number;
+    controlOrder: number;
     center: { x: number; y: number };
     width: number;
     height: number;
@@ -153,6 +159,7 @@ export type GraphControlLineSegment = {
     controlType: "lineSegment";
     componentIdx: number;
     lineSegmentNumber: number;
+    controlOrder: number;
     endpoint1: { x: number; y: number };
     endpoint2: { x: number; y: number };
     addControls: string;
@@ -168,6 +175,7 @@ export type GraphControlVector = {
     controlType: "vector";
     componentIdx: number;
     vectorNumber: number;
+    controlOrder: number;
     head: { x: number; y: number };
     tail: { x: number; y: number };
     displacement: { x: number; y: number };
@@ -220,6 +228,93 @@ export function selectGraphControlsByType<
         ): item is Extract<GraphControlItem, { controlType: TControlType }> =>
             item.controlType === controlType,
     );
+}
+
+/**
+ * Computes final control render order from authored controlOrder priorities.
+ *
+ * For slot n (1-indexed):
+ * 1) Prefer remaining controls with order in [1..n], picking lowest order first.
+ * 2) Else take next control with order 0.
+ * 3) Else take the remaining control with the lowest order > n.
+ *
+ * Relative order within each controlOrder level always follows input order.
+ */
+export function sortGraphControlsForDisplay(
+    controls: GraphControlItem[],
+): GraphControlItem[] {
+    if (controls.length <= 1) {
+        return controls;
+    }
+
+    const controlsByOrder = new Map<number, GraphControlItem[]>();
+    for (const control of controls) {
+        const order = control.controlOrder;
+        const group = controlsByOrder.get(order);
+        if (group) {
+            group.push(control);
+        } else {
+            controlsByOrder.set(order, [control]);
+        }
+    }
+
+    const orderKeys = Array.from(controlsByOrder.keys()).sort((a, b) => a - b);
+    const nextIndexByOrder = new Map<number, number>();
+    for (const order of orderKeys) {
+        nextIndexByOrder.set(order, 0);
+    }
+
+    function hasRemaining(order: number) {
+        const group = controlsByOrder.get(order);
+        const index = nextIndexByOrder.get(order) ?? 0;
+        return Array.isArray(group) && index < group.length;
+    }
+
+    function takeNext(order: number) {
+        const group = controlsByOrder.get(order);
+        const index = nextIndexByOrder.get(order) ?? 0;
+        if (!group || index >= group.length) {
+            return null;
+        }
+        nextIndexByOrder.set(order, index + 1);
+        return group[index];
+    }
+
+    const result: GraphControlItem[] = [];
+    for (let slotNumber = 1; result.length < controls.length; slotNumber += 1) {
+        let selectedOrder: number | null = null;
+
+        for (let order = 1; order <= slotNumber; order += 1) {
+            if (hasRemaining(order)) {
+                selectedOrder = order;
+                break;
+            }
+        }
+
+        if (selectedOrder === null && hasRemaining(0)) {
+            selectedOrder = 0;
+        }
+
+        if (selectedOrder === null) {
+            for (const order of orderKeys) {
+                if (order > slotNumber && hasRemaining(order)) {
+                    selectedOrder = order;
+                    break;
+                }
+            }
+        }
+
+        if (selectedOrder === null) {
+            break;
+        }
+
+        const nextControl = takeNext(selectedOrder);
+        if (nextControl) {
+            result.push(nextControl);
+        }
+    }
+
+    return result;
 }
 
 /**

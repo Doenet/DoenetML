@@ -661,6 +661,37 @@ describe("Graph tag tests @group2", async () => {
         expect(vectorControls[0].addControls).eq("headonly");
     });
 
+    it("graphicalDescendantsForControls includes controlOrder with defaults and clamps", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" addControls>
+  <point name="P2" labelIsName controlOrder="2">(1,1)</point>
+  <vector
+    name="V1"
+    labelIsName
+    tail="(0,0)"
+    displacement="(2,3)"
+    addControls="displacement"
+    controlOrder="1"
+  />
+  <point name="P0" labelIsName>(3,3)</point>
+  <point name="PNeg" labelIsName controlOrder="-5">(4,4)</point>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const controls: { controlOrder: number }[] =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .graphicalDescendantsForControls;
+
+        expect(controls).to.have.length(4);
+        expect(controls.map((item) => item.controlOrder)).eqls([2, 1, 0, 0]);
+        expect(
+            controls.every((item) => Number.isInteger(item.controlOrder)),
+        ).eq(true);
+    });
+
     it("fixed grids", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

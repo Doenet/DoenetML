@@ -59,6 +59,15 @@ export default class Circle extends Curve {
             createComponentOfType: "boolean",
         };
 
+        attributes.controlOrder = {
+            createComponentOfType: "integer",
+            createStateVariable: "controlOrder",
+            defaultValue: 0,
+            clamp: [0, Infinity],
+            public: true,
+            forRenderer: true,
+        };
+
         delete attributes.parMin;
         delete attributes.parMax;
         delete attributes.variable;

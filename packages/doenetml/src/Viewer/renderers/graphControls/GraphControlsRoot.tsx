@@ -7,28 +7,72 @@ import RegularPolygonControlsFamily from "./families/RegularPolygonControlsFamil
 import RectangleControlsFamily from "./families/RectangleControlsFamily";
 import LineSegmentControlsFamily from "./families/LineSegmentControlsFamily";
 import VectorControlsFamily from "./families/VectorControlsFamily";
-import type { GraphControlsFamilyProps } from "./model";
+import {
+    type GraphControlItem,
+    type GraphControlsFamilyProps,
+    sortGraphControlsForDisplay,
+} from "./model";
 
 export default React.memo(function GraphControlsRoot(
     props: GraphControlsFamilyProps,
 ) {
-    const { id } = props;
+    const { id, SVs } = props;
+
+    const orderedControls = sortGraphControlsForDisplay(
+        SVs.graphicalDescendantsForControls,
+    );
+
+    function renderControl(control: GraphControlItem, controlIndex: number) {
+        const controlFamilyProps: GraphControlsFamilyProps = {
+            ...props,
+            id: `${id}_control_${controlIndex}`,
+            SVs: {
+                ...SVs,
+                graphicalDescendantsForControls: [control],
+            },
+        };
+
+        const key = `${control.controlType}_${control.componentIdx}_${controlIndex}`;
+
+        if (control.controlType === "point") {
+            return <PointControlsFamily key={key} {...controlFamilyProps} />;
+        }
+        if (control.controlType === "circle") {
+            return <CircleControlsFamily key={key} {...controlFamilyProps} />;
+        }
+        if (control.controlType === "polygon") {
+            return <PolygonControlsFamily key={key} {...controlFamilyProps} />;
+        }
+        if (control.controlType === "triangle") {
+            return <TriangleControlsFamily key={key} {...controlFamilyProps} />;
+        }
+        if (control.controlType === "regularPolygon") {
+            return (
+                <RegularPolygonControlsFamily
+                    key={key}
+                    {...controlFamilyProps}
+                />
+            );
+        }
+        if (control.controlType === "rectangle") {
+            return (
+                <RectangleControlsFamily key={key} {...controlFamilyProps} />
+            );
+        }
+        if (control.controlType === "lineSegment") {
+            return (
+                <LineSegmentControlsFamily key={key} {...controlFamilyProps} />
+            );
+        }
+
+        return <VectorControlsFamily key={key} {...controlFamilyProps} />;
+    }
 
     return (
         <div id={id}>
-            {/*
-             * Temporary renderer ordering: controls are still grouped by family
-             * until a follow-up PR switches to a single interleaved dispatch.
-             * Each family preserves document order within its own control type.
-             */}
-            <PointControlsFamily {...props} />
-            <CircleControlsFamily {...props} />
-            <PolygonControlsFamily {...props} />
-            <TriangleControlsFamily {...props} />
-            <RegularPolygonControlsFamily {...props} />
-            <RectangleControlsFamily {...props} />
-            <LineSegmentControlsFamily {...props} />
-            <VectorControlsFamily {...props} />
+            {orderedControls.map((control, controlIndex) =>
+                renderControl(control, controlIndex),
+            )}
         </div>
     );
 });

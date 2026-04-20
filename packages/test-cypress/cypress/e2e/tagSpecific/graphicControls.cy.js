@@ -69,7 +69,9 @@ describe(
                 cy.get('input[type="range"]').should("have.length", 2);
                 cy.get('input[type="text"]').should("have.length", 2);
             });
-            cy.get("#gAll-controls-points").should("exist");
+            cy.get('[id^="gAll-controls_control_"][id$="-points"]').should(
+                "exist",
+            );
 
             cy.get("#gSliders-controls").within(() => {
                 cy.get('input[type="range"]').should("have.length", 2);
@@ -252,12 +254,24 @@ describe(
             cy.get('[aria-label="displacement y for V"]').should("exist");
 
             cy.get("#g-controls").should("exist");
-            cy.get("#g-controls-circles").should("exist");
-            cy.get("#g-controls-regularPolygons").should("exist");
-            cy.get("#g-controls-rectangles").should("exist");
-            cy.get("#g-controls-lineSegments").should("exist");
-            cy.get("#g-controls-vectors").should("exist");
-            cy.get("#g-controls-points").should("not.exist");
+            cy.get('[id^="g-controls_control_"][id$="-circles"]').should(
+                "exist",
+            );
+            cy.get(
+                '[id^="g-controls_control_"][id$="-regularPolygons"]',
+            ).should("exist");
+            cy.get('[id^="g-controls_control_"][id$="-rectangles"]').should(
+                "exist",
+            );
+            cy.get('[id^="g-controls_control_"][id$="-lineSegments"]').should(
+                "exist",
+            );
+            cy.get('[id^="g-controls_control_"][id$="-vectors"]').should(
+                "exist",
+            );
+            cy.get('[id^="g-controls_control_"][id$="-points"]').should(
+                "not.exist",
+            );
 
             cy.get('[aria-label="radius for C"]').trigger("pointerdown");
             cy.get('[aria-label="radius for C"]')
@@ -482,8 +496,12 @@ describe(
             cy.get('[aria-label="x coordinate for center of TR"]').should(
                 "exist",
             );
-            cy.get("#g-controls-polygons").should("exist");
-            cy.get("#g-controls-triangles").should("exist");
+            cy.get('[id^="g-controls_control_"][id$="-polygons"]').should(
+                "exist",
+            );
+            cy.get('[id^="g-controls_control_"][id$="-triangles"]').should(
+                "exist",
+            );
 
             cy.get('[aria-label="x coordinate for center of PG"]').trigger(
                 "pointerdown",
@@ -1062,6 +1080,131 @@ describe(
             cy.get('input[type="range"]').should("have.length", 2);
         });
 
+        it("renders controls in 1-indexed controlOrder slot order", () => {
+            cy.clearIndexedDB();
+            cy.visit("/");
+
+            postDoenetML(`
+<text name="ready">ready</text>
+<graph name="g" addControls="slidersOnly" controlsPosition="left">
+  <point name="A" labelIsName controlOrder="3">(1,1)</point>
+  <vector
+    name="B"
+    labelIsName
+    tail="(0,0)"
+    displacement="(2,3)"
+    addControls="displacement"
+    controlOrder="1"
+  />
+  <point name="C" labelIsName>(2,2)</point>
+  <point name="D" labelIsName controlOrder="2">(3,3)</point>
+</graph>
+`);
+
+            cy.get("#ready").should("have.text", "ready");
+
+            cy.get("#g-controls h3").then(($headings) => {
+                const headings = [...$headings].map((el) =>
+                    (el.textContent ?? "").trim(),
+                );
+                expect(headings).to.eql(["B", "D", "A", "C"]);
+            });
+        });
+
+        it("falls back to next higher controlOrder when current slot has no candidates", () => {
+            cy.clearIndexedDB();
+            cy.visit("/");
+
+            postDoenetML(`
+<text name="ready">ready</text>
+<graph name="g" addControls="slidersOnly" controlsPosition="left">
+  <point name="A" labelIsName controlOrder="3">(1,1)</point>
+  <point name="B" labelIsName controlOrder="2">(2,2)</point>
+  <point name="C" labelIsName controlOrder="3">(3,3)</point>
+</graph>
+`);
+
+            cy.get("#ready").should("have.text", "ready");
+
+            cy.get("#g-controls h3").then(($headings) => {
+                const headings = [...$headings].map((el) =>
+                    (el.textContent ?? "").trim(),
+                );
+                expect(headings).to.eql(["B", "A", "C"]);
+            });
+        });
+
+        it("uses controlOrder 0 to fill early slot gaps before controlOrder >= 2", () => {
+            cy.clearIndexedDB();
+            cy.visit("/");
+
+            postDoenetML(`
+<text name="ready">ready</text>
+<graph name="g" addControls="slidersOnly" controlsPosition="left">
+  <point name="A" labelIsName controlOrder="3">(1,1)</point>
+  <point name="B" labelIsName controlOrder="2">(2,2)</point>
+  <point name="C" labelIsName>(3,3)</point>
+  <point name="D" labelIsName controlOrder="3">(4,4)</point>
+</graph>
+`);
+
+            cy.get("#ready").should("have.text", "ready");
+
+            cy.get("#g-controls h3").then(($headings) => {
+                const headings = [...$headings].map((el) =>
+                    (el.textContent ?? "").trim(),
+                );
+                expect(headings).to.eql(["C", "B", "A", "D"]);
+            });
+        });
+
+        it("uses descendant order as tie-breaker for controlOrder ties", () => {
+            cy.clearIndexedDB();
+            cy.visit("/");
+
+            postDoenetML(`
+<text name="ready">ready</text>
+<graph name="g" addControls="slidersOnly" controlsPosition="left">
+  <point name="A" labelIsName controlOrder="2">(1,1)</point>
+  <point name="B" labelIsName>(2,2)</point>
+  <point name="C" labelIsName controlOrder="2">(3,3)</point>
+  <point name="D" labelIsName>(4,4)</point>
+</graph>
+`);
+
+            cy.get("#ready").should("have.text", "ready");
+
+            cy.get("#g-controls h3").then(($headings) => {
+                const headings = [...$headings].map((el) =>
+                    (el.textContent ?? "").trim(),
+                );
+                expect(headings).to.eql(["B", "A", "C", "D"]);
+            });
+        });
+
+        it("places controls with very large controlOrder at the end", () => {
+            cy.clearIndexedDB();
+            cy.visit("/");
+
+            postDoenetML(`
+<text name="ready">ready</text>
+<graph name="g" addControls="slidersOnly" controlsPosition="left">
+  <point name="A" labelIsName controlOrder="99">(1,1)</point>
+  <point name="B" labelIsName>(2,2)</point>
+  <point name="C" labelIsName controlOrder="1">(3,3)</point>
+</graph>
+`);
+
+            cy.get("#ready").should("have.text", "ready");
+
+            cy.get("#g-controls h3").then(($headings) => {
+                const headings = [...$headings].map((el) =>
+                    (el.textContent ?? "").trim(),
+                );
+                expect(headings).to.eql(["C", "B", "A"]);
+            });
+        });
+
         it("controls layout restores to side-by-side after narrow viewport widens", () => {
             cy.clearIndexedDB();
             cy.viewport(1400, 900);
@@ -1311,8 +1454,10 @@ describe(
                 force: true,
             });
 
+            cy.get("#Px").should("have.text", "4.2");
+
             cy.get('[aria-label="y coordinate for P"]').trigger("pointerdown", {
-                pointerId: 2,
+                pointerId: 1,
                 pointerType: "mouse",
                 buttons: 1,
                 force: true,
@@ -1322,7 +1467,7 @@ describe(
                 .trigger("input", { force: true });
 
             cy.get('[aria-label="y coordinate for P"]').trigger("pointerup", {
-                pointerId: 2,
+                pointerId: 1,
                 pointerType: "mouse",
                 force: true,
             });

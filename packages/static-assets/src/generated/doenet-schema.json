@@ -39649,6 +39649,9 @@
                     ]
                 },
                 {
+                    "name": "controlOrder"
+                },
+                {
                     "name": "stable",
                     "values": [
                         "true",
@@ -39722,6 +39725,11 @@
                 {
                     "name": "addControls",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "controlOrder",
+                    "type": "integer",
                     "isArray": false
                 },
                 {
@@ -50813,6 +50821,9 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "controlOrder"
                 }
             ],
             "properties": [
@@ -50874,6 +50885,11 @@
                 {
                     "name": "addControls",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "controlOrder",
+                    "type": "integer",
                     "isArray": false
                 },
                 {
@@ -52152,6 +52168,9 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "controlOrder"
                 }
             ],
             "properties": [
@@ -52213,6 +52232,11 @@
                 {
                     "name": "labelPosition",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "controlOrder",
+                    "type": "integer",
                     "isArray": false
                 },
                 {
@@ -53141,11 +53165,27 @@
                     ]
                 },
                 {
+                    "name": "addControls",
+                    "values": [
+                        "center",
+                        "none",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "center",
+                        "none"
+                    ]
+                },
+                {
                     "name": "filled",
                     "values": [
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "controlOrder"
                 }
             ],
             "properties": [
@@ -53220,8 +53260,18 @@
                     "isArray": false
                 },
                 {
+                    "name": "addControls",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "filled",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "controlOrder",
+                    "type": "integer",
                     "isArray": false
                 },
                 {
@@ -53544,11 +53594,27 @@
                     ]
                 },
                 {
+                    "name": "addControls",
+                    "values": [
+                        "center",
+                        "none",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "center",
+                        "none"
+                    ]
+                },
+                {
                     "name": "filled",
                     "values": [
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "controlOrder"
                 }
             ],
             "properties": [
@@ -53623,8 +53689,18 @@
                     "isArray": false
                 },
                 {
+                    "name": "addControls",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "filled",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "controlOrder",
+                    "type": "integer",
                     "isArray": false
                 },
                 {
@@ -53947,11 +54023,31 @@
                     ]
                 },
                 {
+                    "name": "addControls",
+                    "values": [
+                        "center",
+                        "widthAndHeight",
+                        "centerWidthAndHeight",
+                        "none",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "center",
+                        "widthAndHeight",
+                        "centerWidthAndHeight",
+                        "none"
+                    ]
+                },
+                {
                     "name": "filled",
                     "values": [
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "controlOrder"
                 },
                 {
                     "name": "center"
@@ -54035,8 +54131,18 @@
                     "isArray": false
                 },
                 {
+                    "name": "addControls",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "filled",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "controlOrder",
+                    "type": "integer",
                     "isArray": false
                 },
                 {
@@ -54362,11 +54468,31 @@
                     ]
                 },
                 {
+                    "name": "addControls",
+                    "values": [
+                        "center",
+                        "radius",
+                        "centerAndRadius",
+                        "none",
+                        "true",
+                        "false"
+                    ],
+                    "autocompleteValues": [
+                        "center",
+                        "radius",
+                        "centerAndRadius",
+                        "none"
+                    ]
+                },
+                {
                     "name": "filled",
                     "values": [
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "controlOrder"
                 },
                 {
                     "name": "numVertices"
@@ -54471,8 +54597,18 @@
                     "isArray": false
                 },
                 {
+                    "name": "addControls",
+                    "type": "text",
+                    "isArray": false
+                },
+                {
                     "name": "filled",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "controlOrder",
+                    "type": "integer",
                     "isArray": false
                 },
                 {
@@ -54926,6 +55062,9 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "controlOrder"
                 }
             ],
             "properties": [
@@ -55027,6 +55166,11 @@
                 {
                     "name": "filled",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "controlOrder",
+                    "type": "integer",
                     "isArray": false
                 },
                 {
@@ -56928,6 +57072,9 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "controlOrder"
                 }
             ],
             "properties": [
@@ -56994,6 +57141,11 @@
                 {
                     "name": "showCoordsWhenDragging",
                     "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "controlOrder",
+                    "type": "integer",
                     "isArray": false
                 },
                 {
@@ -78975,6 +79127,9 @@
                     ]
                 },
                 {
+                    "name": "controlOrder"
+                },
+                {
                     "name": "open",
                     "values": [
                         "true",
@@ -79048,6 +79203,11 @@
                 {
                     "name": "addControls",
                     "type": "text",
+                    "isArray": false
+                },
+                {
+                    "name": "controlOrder",
+                    "type": "integer",
                     "isArray": false
                 },
                 {

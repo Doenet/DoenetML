@@ -85,6 +85,15 @@ export default class RegularPolygon extends Polygon {
             valueForFalse: "none",
         };
 
+        attributes.controlOrder = {
+            createComponentOfType: "integer",
+            createStateVariable: "controlOrder",
+            defaultValue: 0,
+            clamp: [0, Infinity],
+            public: true,
+            forRenderer: true,
+        };
+
         return attributes;
     }
 

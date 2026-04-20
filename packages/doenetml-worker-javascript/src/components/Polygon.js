@@ -63,6 +63,15 @@ export default class Polygon extends Polyline {
             forRenderer: true,
         };
 
+        attributes.controlOrder = {
+            createComponentOfType: "integer",
+            createStateVariable: "controlOrder",
+            defaultValue: 0,
+            clamp: [0, Infinity],
+            public: true,
+            forRenderer: true,
+        };
+
         return attributes;
     }
 
