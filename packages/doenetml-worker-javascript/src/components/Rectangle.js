@@ -1451,7 +1451,7 @@ export default class Rectangle extends Polygon {
             return;
         }
 
-        // Center must be 2D for regular polygon
+        // Center must be 2D for rectangle
         if (!Array.isArray(center) || center.length !== 2) {
             return;
         }

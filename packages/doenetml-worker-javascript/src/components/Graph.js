@@ -15,6 +15,9 @@ import {
 // see src/utils/prefigure/README.md
 import { returnGraphPrefigureStateVariableDefinitions } from "../utils/prefigure/stateVariable";
 
+/**
+ * Extracts display/rounding metadata shared by all graph control payloads.
+ */
 function extractControlDisplaySettings(stateValues) {
     return {
         label: typeof stateValues.label === "string" ? stateValues.label : "",
@@ -24,6 +27,92 @@ function extractControlDisplaySettings(stateValues) {
         displaySmallAsZero: stateValues.displaySmallAsZero,
         padZeros: stateValues.padZeros,
     };
+}
+
+/**
+ * Returns true when vertices contain at least `minVertexCount` 2D finite points.
+ */
+function hasValid2DNumericalVertices(numericalVertices, minVertexCount) {
+    return (
+        Array.isArray(numericalVertices) &&
+        numericalVertices.length >= minVertexCount &&
+        numericalVertices.every(
+            (vertex) =>
+                Array.isArray(vertex) &&
+                vertex.length >= 2 &&
+                Number.isFinite(Number(vertex[0])) &&
+                Number.isFinite(Number(vertex[1])),
+        )
+    );
+}
+
+/**
+ * Computes the arithmetic center of 2D numerical vertices.
+ * Returns null when the computed center is non-finite.
+ */
+function calculate2DVerticesCenter(numericalVertices) {
+    const center = numericalVertices.reduce(
+        (acc, vertex) => {
+            acc[0] += Number(vertex[0]);
+            acc[1] += Number(vertex[1]);
+            return acc;
+        },
+        [0, 0],
+    );
+
+    center[0] /= numericalVertices.length;
+    center[1] /= numericalVertices.length;
+
+    if (!Number.isFinite(center[0]) || !Number.isFinite(center[1])) {
+        return null;
+    }
+
+    return {
+        x: center[0],
+        y: center[1],
+    };
+}
+
+/**
+ * Resolves effective addControls mode for shapes with independent center and size draggability.
+ *
+ * Returns:
+ * - `centerMode` when only center movement is allowed
+ * - `sizeMode` when only size movement is allowed
+ * - `compositeMode` when both are allowed
+ * - `null` when neither is allowed
+ */
+function resolveCompositeControlsMode({
+    requestedMode,
+    draggable,
+    verticesDraggable,
+    centerMode,
+    sizeMode,
+    compositeMode,
+}) {
+    if (requestedMode === centerMode) {
+        return draggable ? centerMode : null;
+    }
+
+    if (requestedMode === sizeMode) {
+        return verticesDraggable ? sizeMode : null;
+    }
+
+    if (requestedMode !== compositeMode) {
+        return requestedMode;
+    }
+
+    if (draggable && !verticesDraggable) {
+        return centerMode;
+    }
+    if (verticesDraggable && !draggable) {
+        return sizeMode;
+    }
+    if (!draggable && !verticesDraggable) {
+        return null;
+    }
+
+    return compositeMode;
 }
 
 export default class Graph extends BlockComponent {
@@ -827,17 +916,7 @@ export default class Graph extends BlockComponent {
                         continue;
                     }
 
-                    if (
-                        !Array.isArray(numericalVertices) ||
-                        numericalVertices.length < 3 ||
-                        !numericalVertices.every(
-                            (vertex) =>
-                                Array.isArray(vertex) &&
-                                vertex.length >= 2 &&
-                                Number.isFinite(Number(vertex[0])) &&
-                                Number.isFinite(Number(vertex[1])),
-                        )
-                    ) {
+                    if (!hasValid2DNumericalVertices(numericalVertices, 3)) {
                         continue;
                     }
 
@@ -851,59 +930,38 @@ export default class Graph extends BlockComponent {
                         continue;
                     }
 
-                    let effectiveAddControls = addControls;
+                    const effectiveAddControls = resolveCompositeControlsMode({
+                        requestedMode: addControls,
+                        draggable,
+                        verticesDraggable,
+                        centerMode: "center",
+                        sizeMode: "radius",
+                        compositeMode: "centerandradius",
+                    });
 
-                    if (effectiveAddControls === "center") {
-                        if (!draggable) {
-                            continue;
-                        }
-                    } else if (effectiveAddControls === "radius") {
-                        if (!verticesDraggable) {
-                            continue;
-                        }
-                    } else if (effectiveAddControls === "centerandradius") {
-                        if (draggable && !verticesDraggable) {
-                            effectiveAddControls = "center";
-                        } else if (verticesDraggable && !draggable) {
-                            effectiveAddControls = "radius";
-                        } else if (!draggable && !verticesDraggable) {
-                            continue;
-                        }
+                    if (effectiveAddControls === null) {
+                        continue;
                     }
 
-                    const center = numericalVertices.reduce(
-                        (acc, vertex) => {
-                            acc[0] += Number(vertex[0]);
-                            acc[1] += Number(vertex[1]);
-                            return acc;
-                        },
-                        [0, 0],
-                    );
-                    center[0] /= numericalVertices.length;
-                    center[1] /= numericalVertices.length;
+                    const center = calculate2DVerticesCenter(numericalVertices);
+                    if (!center) {
+                        continue;
+                    }
 
                     const firstVertex = numericalVertices[0];
                     const radius = Math.sqrt(
-                        (Number(firstVertex[0]) - center[0]) ** 2 +
-                            (Number(firstVertex[1]) - center[1]) ** 2,
+                        (Number(firstVertex[0]) - center.x) ** 2 +
+                            (Number(firstVertex[1]) - center.y) ** 2,
                     );
 
-                    if (
-                        !Number.isFinite(center[0]) ||
-                        !Number.isFinite(center[1]) ||
-                        !Number.isFinite(radius) ||
-                        radius < 0
-                    ) {
+                    if (!Number.isFinite(radius) || radius < 0) {
                         continue;
                     }
 
                     draggableRegularPolygonsForControls.push({
                         componentIdx,
                         regularPolygonNumber,
-                        center: {
-                            x: center[0],
-                            y: center[1],
-                        },
+                        center,
                         radius,
                         addControls: effectiveAddControls,
                         ...extractControlDisplaySettings(stateValues),
@@ -973,17 +1031,7 @@ export default class Graph extends BlockComponent {
                         continue;
                     }
 
-                    if (
-                        !Array.isArray(numericalVertices) ||
-                        numericalVertices.length < 3 ||
-                        !numericalVertices.every(
-                            (vertex) =>
-                                Array.isArray(vertex) &&
-                                vertex.length >= 2 &&
-                                Number.isFinite(Number(vertex[0])) &&
-                                Number.isFinite(Number(vertex[1])),
-                        )
-                    ) {
+                    if (!hasValid2DNumericalVertices(numericalVertices, 3)) {
                         continue;
                     }
 
@@ -1000,31 +1048,15 @@ export default class Graph extends BlockComponent {
                         continue;
                     }
 
-                    const center = numericalVertices.reduce(
-                        (acc, vertex) => {
-                            acc[0] += Number(vertex[0]);
-                            acc[1] += Number(vertex[1]);
-                            return acc;
-                        },
-                        [0, 0],
-                    );
-                    center[0] /= numericalVertices.length;
-                    center[1] /= numericalVertices.length;
-
-                    if (
-                        !Number.isFinite(center[0]) ||
-                        !Number.isFinite(center[1])
-                    ) {
+                    const center = calculate2DVerticesCenter(numericalVertices);
+                    if (!center) {
                         continue;
                     }
 
                     draggablePolygonsForControls.push({
                         componentIdx,
                         polygonNumber,
-                        center: {
-                            x: center[0],
-                            y: center[1],
-                        },
+                        center,
                         addControls,
                         ...extractControlDisplaySettings(stateValues),
                     });
@@ -1087,17 +1119,7 @@ export default class Graph extends BlockComponent {
                         continue;
                     }
 
-                    if (
-                        !Array.isArray(numericalVertices) ||
-                        numericalVertices.length < 3 ||
-                        !numericalVertices.every(
-                            (vertex) =>
-                                Array.isArray(vertex) &&
-                                vertex.length >= 2 &&
-                                Number.isFinite(Number(vertex[0])) &&
-                                Number.isFinite(Number(vertex[1])),
-                        )
-                    ) {
+                    if (!hasValid2DNumericalVertices(numericalVertices, 3)) {
                         continue;
                     }
 
@@ -1114,31 +1136,15 @@ export default class Graph extends BlockComponent {
                         continue;
                     }
 
-                    const center = numericalVertices.reduce(
-                        (acc, vertex) => {
-                            acc[0] += Number(vertex[0]);
-                            acc[1] += Number(vertex[1]);
-                            return acc;
-                        },
-                        [0, 0],
-                    );
-                    center[0] /= numericalVertices.length;
-                    center[1] /= numericalVertices.length;
-
-                    if (
-                        !Number.isFinite(center[0]) ||
-                        !Number.isFinite(center[1])
-                    ) {
+                    const center = calculate2DVerticesCenter(numericalVertices);
+                    if (!center) {
                         continue;
                     }
 
                     draggableTrianglesForControls.push({
                         componentIdx,
                         triangleNumber,
-                        center: {
-                            x: center[0],
-                            y: center[1],
-                        },
+                        center,
                         addControls,
                         ...extractControlDisplaySettings(stateValues),
                     });
@@ -1206,17 +1212,7 @@ export default class Graph extends BlockComponent {
                         continue;
                     }
 
-                    if (
-                        !Array.isArray(numericalVertices) ||
-                        numericalVertices.length < 4 ||
-                        !numericalVertices.every(
-                            (vertex) =>
-                                Array.isArray(vertex) &&
-                                vertex.length >= 2 &&
-                                Number.isFinite(Number(vertex[0])) &&
-                                Number.isFinite(Number(vertex[1])),
-                        )
-                    ) {
+                    if (!hasValid2DNumericalVertices(numericalVertices, 4)) {
                         continue;
                     }
 
@@ -1239,53 +1235,28 @@ export default class Graph extends BlockComponent {
                         continue;
                     }
 
-                    let effectiveAddControls = addControls;
+                    const effectiveAddControls = resolveCompositeControlsMode({
+                        requestedMode: addControls,
+                        draggable,
+                        verticesDraggable,
+                        centerMode: "center",
+                        sizeMode: "widthandheight",
+                        compositeMode: "centerwidthandheight",
+                    });
 
-                    if (effectiveAddControls === "center") {
-                        if (!draggable) {
-                            continue;
-                        }
-                    } else if (effectiveAddControls === "widthandheight") {
-                        if (!verticesDraggable) {
-                            continue;
-                        }
-                    } else if (
-                        effectiveAddControls === "centerwidthandheight"
-                    ) {
-                        if (draggable && !verticesDraggable) {
-                            effectiveAddControls = "center";
-                        } else if (verticesDraggable && !draggable) {
-                            effectiveAddControls = "widthandheight";
-                        } else if (!draggable && !verticesDraggable) {
-                            continue;
-                        }
+                    if (effectiveAddControls === null) {
+                        continue;
                     }
 
-                    const center = numericalVertices.reduce(
-                        (acc, vertex) => {
-                            acc[0] += Number(vertex[0]);
-                            acc[1] += Number(vertex[1]);
-                            return acc;
-                        },
-                        [0, 0],
-                    );
-                    center[0] /= numericalVertices.length;
-                    center[1] /= numericalVertices.length;
-
-                    if (
-                        !Number.isFinite(center[0]) ||
-                        !Number.isFinite(center[1])
-                    ) {
+                    const center = calculate2DVerticesCenter(numericalVertices);
+                    if (!center) {
                         continue;
                     }
 
                     draggableRectanglesForControls.push({
                         componentIdx,
                         rectangleNumber,
-                        center: {
-                            x: center[0],
-                            y: center[1],
-                        },
+                        center,
                         width,
                         height,
                         addControls: effectiveAddControls,

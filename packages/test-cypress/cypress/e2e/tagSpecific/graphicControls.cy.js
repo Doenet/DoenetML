@@ -377,6 +377,91 @@ describe(
             );
         });
 
+        it("downgrades composite controls when center or size dragging is disabled", () => {
+            loadGraphTest(`
+<text name="ready">ready</text>
+<booleanInput name="allowCenter" prefill="true" />
+<booleanInput name="allowSize" prefill="true" />
+<graph name="g" addControls="all" controlsPosition="left">
+  <regularPolygon
+    center="(1,0)"
+    circumradius="2"
+    numSides="6"
+    addControls="centerAndRadius"
+    draggable="$allowCenter.value"
+    verticesDraggable="$allowSize.value"
+  />
+  <rectangle
+    center="(4,0)"
+    width="3"
+    height="2"
+    addControls="centerWidthAndHeight"
+    draggable="$allowCenter.value"
+    verticesDraggable="$allowSize.value"
+  />
+</graph>
+`);
+
+            // both draggable and verticesDraggable => full composite controls
+            cy.get(
+                '[aria-label="center x coordinate for Regular polygon 1"]',
+            ).should("exist");
+            cy.get('[aria-label="radius for Regular polygon 1"]').should(
+                "exist",
+            );
+            cy.get('[aria-label="center x coordinate for Rectangle 1"]').should(
+                "exist",
+            );
+            cy.get('[aria-label="width for Rectangle 1"]').should("exist");
+            cy.get('[aria-label="height for Rectangle 1"]').should("exist");
+
+            // center dragging disabled => keep only size controls
+            cy.get("#allowCenter").click();
+
+            cy.get(
+                '[aria-label="center x coordinate for Regular polygon 1"]',
+            ).should("not.exist");
+            cy.get('[aria-label="radius for Regular polygon 1"]').should(
+                "exist",
+            );
+            cy.get('[aria-label="center x coordinate for Rectangle 1"]').should(
+                "not.exist",
+            );
+            cy.get('[aria-label="width for Rectangle 1"]').should("exist");
+            cy.get('[aria-label="height for Rectangle 1"]').should("exist");
+
+            // enable center dragging, disable size dragging => keep only center controls
+            cy.get("#allowCenter").click();
+            cy.get("#allowSize").click();
+
+            cy.get(
+                '[aria-label="center x coordinate for Regular polygon 1"]',
+            ).should("exist");
+            cy.get('[aria-label="radius for Regular polygon 1"]').should(
+                "not.exist",
+            );
+            cy.get('[aria-label="center x coordinate for Rectangle 1"]').should(
+                "exist",
+            );
+            cy.get('[aria-label="width for Rectangle 1"]').should("not.exist");
+            cy.get('[aria-label="height for Rectangle 1"]').should("not.exist");
+
+            // both disabled => no controls
+            cy.get("#allowCenter").click();
+
+            cy.get(
+                '[aria-label="center x coordinate for Regular polygon 1"]',
+            ).should("not.exist");
+            cy.get('[aria-label="radius for Regular polygon 1"]').should(
+                "not.exist",
+            );
+            cy.get('[aria-label="center x coordinate for Rectangle 1"]').should(
+                "not.exist",
+            );
+            cy.get('[aria-label="width for Rectangle 1"]').should("not.exist");
+            cy.get('[aria-label="height for Rectangle 1"]').should("not.exist");
+        });
+
         it("renders and updates polygon and triangle center controls", () => {
             loadGraphTest(`
 <text name="ready">ready</text>
