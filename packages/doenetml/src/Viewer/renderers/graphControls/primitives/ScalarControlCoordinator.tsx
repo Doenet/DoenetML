@@ -184,6 +184,7 @@ export default function ScalarControlCoordinator({
             slider={{
                 id: `${id}-${controlId}-slider`,
                 ariaLabel: sliderAriaLabel,
+                ariaValueText: formatValue(rendererSliderValue),
                 min,
                 max,
                 step,

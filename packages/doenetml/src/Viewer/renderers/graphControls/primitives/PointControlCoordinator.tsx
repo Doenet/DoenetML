@@ -377,6 +377,7 @@ export default function PointControlCoordinator({
                     label: xAxisLabel,
                     sliderAriaLabel:
                         xSliderAriaLabel ?? `x coordinate for ${labelForAria}`,
+                    sliderAriaValueText: formattedX,
                     inputOnlyAriaLabel:
                         xInputAriaLabel ?? `x input for ${labelForAria}`,
                     displayValue: formattedX,
@@ -425,6 +426,7 @@ export default function PointControlCoordinator({
                     label: yAxisLabel,
                     sliderAriaLabel:
                         ySliderAriaLabel ?? `y coordinate for ${labelForAria}`,
+                    sliderAriaValueText: formattedY,
                     inputOnlyAriaLabel:
                         yInputAriaLabel ?? `y input for ${labelForAria}`,
                     displayValue: formattedY,

@@ -23,6 +23,7 @@ type TextInputConfig = {
 type AxisControlConfig = {
     label: string;
     sliderAriaLabel: string;
+    sliderAriaValueText: string;
     inputOnlyAriaLabel?: string;
     displayValue: string;
     min: number;
@@ -128,6 +129,7 @@ export default function PointControlView({
                     )
                 }
                 ariaLabel={axisControl.sliderAriaLabel}
+                ariaValueText={axisControl.sliderAriaValueText}
                 min={axisControl.min}
                 max={axisControl.max}
                 step={axisControl.step}

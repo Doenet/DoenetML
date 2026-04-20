@@ -73,6 +73,18 @@ export default class RegularPolygon extends Polygon {
             createComponentOfType: "number",
         };
 
+        attributes.addControls = {
+            createComponentOfType: "text",
+            createStateVariable: "addControls",
+            defaultValue: "centerAndRadius",
+            public: true,
+            forRenderer: true,
+            toLowerCase: true,
+            validValues: ["center", "radius", "centerAndRadius", "none"],
+            valueForTrue: "centerAndRadius",
+            valueForFalse: "none",
+        };
+
         return attributes;
     }
 
@@ -2113,7 +2125,7 @@ export default class RegularPolygon extends Polygon {
                 updateType: "updateValue",
                 componentIdx: this.componentIdx,
                 stateVariable: "circumradius",
-                value: Math.max(0, radius),
+                value: Math.max(1e-15, radius),
                 sourceDetails,
             },
         ];

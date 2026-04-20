@@ -121,6 +121,18 @@ export default React.memo(function Graph(props) {
     const hasControlCircles =
         Array.isArray(SVs.draggableCirclesForControls) &&
         SVs.draggableCirclesForControls.length > 0;
+    const hasControlPolygons =
+        Array.isArray(SVs.draggablePolygonsForControls) &&
+        SVs.draggablePolygonsForControls.length > 0;
+    const hasControlTriangles =
+        Array.isArray(SVs.draggableTrianglesForControls) &&
+        SVs.draggableTrianglesForControls.length > 0;
+    const hasControlRegularPolygons =
+        Array.isArray(SVs.draggableRegularPolygonsForControls) &&
+        SVs.draggableRegularPolygonsForControls.length > 0;
+    const hasControlRectangles =
+        Array.isArray(SVs.draggableRectanglesForControls) &&
+        SVs.draggableRectanglesForControls.length > 0;
     const hasControlLineSegments =
         Array.isArray(SVs.draggableLineSegmentsForControls) &&
         SVs.draggableLineSegmentsForControls.length > 0;
@@ -131,6 +143,10 @@ export default React.memo(function Graph(props) {
         controlsEnabledAtGraphLevel &&
         (hasControlPoints ||
             hasControlCircles ||
+            hasControlPolygons ||
+            hasControlTriangles ||
+            hasControlRegularPolygons ||
+            hasControlRectangles ||
             hasControlLineSegments ||
             hasControlVectors);
 

@@ -23,6 +23,7 @@ type ScalarControlInputConfig = {
 type ScalarControlSliderConfig = {
     id: string;
     ariaLabel: string;
+    ariaValueText: string;
     min: number;
     max: number;
     step: number;
@@ -114,6 +115,7 @@ export default function ScalarControl({
                     )
                 }
                 ariaLabel={slider.ariaLabel}
+                ariaValueText={slider.ariaValueText}
                 min={slider.min}
                 max={slider.max}
                 step={slider.step}

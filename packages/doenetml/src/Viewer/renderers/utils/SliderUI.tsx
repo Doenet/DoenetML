@@ -38,6 +38,7 @@ type SliderUIProps = {
     id: string;
     label: React.ReactNode;
     ariaLabel: string;
+    ariaValueText?: string;
     min: number;
     max: number;
     step: number;
@@ -58,6 +59,7 @@ export default function SliderUI({
     id,
     label,
     ariaLabel,
+    ariaValueText,
     min,
     max,
     step,
@@ -137,6 +139,7 @@ export default function SliderUI({
                 step={step}
                 value={localValue}
                 aria-label={ariaLabel}
+                aria-valuetext={ariaValueText}
                 style={{ width: "100%" }}
                 onKeyDown={(e) => {
                     // Mark keyboard navigation as transient so that each arrow-key

@@ -776,6 +776,531 @@ export default class Graph extends BlockComponent {
             },
         };
 
+        stateVariableDefinitions.draggableRegularPolygonsForControls = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                addControls: {
+                    dependencyType: "stateVariable",
+                    variableName: "addControls",
+                },
+                regularPolygonDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["regularPolygon"],
+                    variableNames: [
+                        "numericalVertices",
+                        "draggable",
+                        "verticesDraggable",
+                        "fixed",
+                        "fixLocation",
+                        "addControls",
+                        "label",
+                        "labelHasLatex",
+                        "displayDigits",
+                        "displayDecimals",
+                        "displaySmallAsZero",
+                        "padZeros",
+                    ],
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (dependencyValues.addControls === "none") {
+                    return {
+                        setValue: {
+                            draggableRegularPolygonsForControls: [],
+                        },
+                    };
+                }
+
+                const draggableRegularPolygonsForControls = [];
+
+                for (const [regularPolygonInd, regularPolygonDescendant] of (
+                    dependencyValues.regularPolygonDescendants ?? []
+                ).entries()) {
+                    const stateValues =
+                        regularPolygonDescendant.stateValues ?? {};
+                    const regularPolygonNumber = regularPolygonInd + 1;
+                    const componentIdx = regularPolygonDescendant.componentIdx;
+                    const numericalVertices = stateValues.numericalVertices;
+                    const addControls = stateValues.addControls;
+
+                    if (!Number.isFinite(componentIdx)) {
+                        continue;
+                    }
+
+                    if (
+                        !Array.isArray(numericalVertices) ||
+                        numericalVertices.length < 3 ||
+                        !numericalVertices.every(
+                            (vertex) =>
+                                Array.isArray(vertex) &&
+                                vertex.length >= 2 &&
+                                Number.isFinite(Number(vertex[0])) &&
+                                Number.isFinite(Number(vertex[1])),
+                        )
+                    ) {
+                        continue;
+                    }
+
+                    const fixed = stateValues.fixed === true;
+                    const fixLocation = stateValues.fixLocation === true;
+                    const draggable = stateValues.draggable !== false;
+                    const verticesDraggable =
+                        stateValues.verticesDraggable !== false;
+
+                    if (fixed || fixLocation || addControls === "none") {
+                        continue;
+                    }
+
+                    let effectiveAddControls = addControls;
+
+                    if (effectiveAddControls === "center") {
+                        if (!draggable) {
+                            continue;
+                        }
+                    } else if (effectiveAddControls === "radius") {
+                        if (!verticesDraggable) {
+                            continue;
+                        }
+                    } else if (effectiveAddControls === "centerandradius") {
+                        if (draggable && !verticesDraggable) {
+                            effectiveAddControls = "center";
+                        } else if (verticesDraggable && !draggable) {
+                            effectiveAddControls = "radius";
+                        } else if (!draggable && !verticesDraggable) {
+                            continue;
+                        }
+                    }
+
+                    const center = numericalVertices.reduce(
+                        (acc, vertex) => {
+                            acc[0] += Number(vertex[0]);
+                            acc[1] += Number(vertex[1]);
+                            return acc;
+                        },
+                        [0, 0],
+                    );
+                    center[0] /= numericalVertices.length;
+                    center[1] /= numericalVertices.length;
+
+                    const firstVertex = numericalVertices[0];
+                    const radius = Math.sqrt(
+                        (Number(firstVertex[0]) - center[0]) ** 2 +
+                            (Number(firstVertex[1]) - center[1]) ** 2,
+                    );
+
+                    if (
+                        !Number.isFinite(center[0]) ||
+                        !Number.isFinite(center[1]) ||
+                        !Number.isFinite(radius) ||
+                        radius < 0
+                    ) {
+                        continue;
+                    }
+
+                    draggableRegularPolygonsForControls.push({
+                        componentIdx,
+                        regularPolygonNumber,
+                        center: {
+                            x: center[0],
+                            y: center[1],
+                        },
+                        radius,
+                        addControls: effectiveAddControls,
+                        ...extractControlDisplaySettings(stateValues),
+                    });
+                }
+
+                return {
+                    setValue: {
+                        draggableRegularPolygonsForControls,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.draggablePolygonsForControls = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                addControls: {
+                    dependencyType: "stateVariable",
+                    variableName: "addControls",
+                },
+                polygonDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["polygon"],
+                    variableNames: [
+                        "numericalVertices",
+                        "draggable",
+                        "fixed",
+                        "fixLocation",
+                        "addControls",
+                        "label",
+                        "labelHasLatex",
+                        "displayDigits",
+                        "displayDecimals",
+                        "displaySmallAsZero",
+                        "padZeros",
+                    ],
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (dependencyValues.addControls === "none") {
+                    return {
+                        setValue: {
+                            draggablePolygonsForControls: [],
+                        },
+                    };
+                }
+
+                const draggablePolygonsForControls = [];
+
+                for (const [polygonInd, polygonDescendant] of (
+                    dependencyValues.polygonDescendants ?? []
+                ).entries()) {
+                    // Descendants may include components that inherit from polygon
+                    // (e.g. triangle/rectangle), but this payload is polygon-only.
+                    if (polygonDescendant.componentType !== "polygon") {
+                        continue;
+                    }
+
+                    const stateValues = polygonDescendant.stateValues ?? {};
+                    const polygonNumber = polygonInd + 1;
+                    const componentIdx = polygonDescendant.componentIdx;
+                    const numericalVertices = stateValues.numericalVertices;
+                    const addControls = stateValues.addControls;
+
+                    if (!Number.isFinite(componentIdx)) {
+                        continue;
+                    }
+
+                    if (
+                        !Array.isArray(numericalVertices) ||
+                        numericalVertices.length < 3 ||
+                        !numericalVertices.every(
+                            (vertex) =>
+                                Array.isArray(vertex) &&
+                                vertex.length >= 2 &&
+                                Number.isFinite(Number(vertex[0])) &&
+                                Number.isFinite(Number(vertex[1])),
+                        )
+                    ) {
+                        continue;
+                    }
+
+                    const fixed = stateValues.fixed === true;
+                    const fixLocation = stateValues.fixLocation === true;
+                    const draggable = stateValues.draggable !== false;
+
+                    if (
+                        fixed ||
+                        fixLocation ||
+                        addControls === "none" ||
+                        !draggable
+                    ) {
+                        continue;
+                    }
+
+                    const center = numericalVertices.reduce(
+                        (acc, vertex) => {
+                            acc[0] += Number(vertex[0]);
+                            acc[1] += Number(vertex[1]);
+                            return acc;
+                        },
+                        [0, 0],
+                    );
+                    center[0] /= numericalVertices.length;
+                    center[1] /= numericalVertices.length;
+
+                    if (
+                        !Number.isFinite(center[0]) ||
+                        !Number.isFinite(center[1])
+                    ) {
+                        continue;
+                    }
+
+                    draggablePolygonsForControls.push({
+                        componentIdx,
+                        polygonNumber,
+                        center: {
+                            x: center[0],
+                            y: center[1],
+                        },
+                        addControls,
+                        ...extractControlDisplaySettings(stateValues),
+                    });
+                }
+
+                return {
+                    setValue: {
+                        draggablePolygonsForControls,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.draggableTrianglesForControls = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                addControls: {
+                    dependencyType: "stateVariable",
+                    variableName: "addControls",
+                },
+                triangleDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["triangle"],
+                    variableNames: [
+                        "numericalVertices",
+                        "draggable",
+                        "fixed",
+                        "fixLocation",
+                        "addControls",
+                        "label",
+                        "labelHasLatex",
+                        "displayDigits",
+                        "displayDecimals",
+                        "displaySmallAsZero",
+                        "padZeros",
+                    ],
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (dependencyValues.addControls === "none") {
+                    return {
+                        setValue: {
+                            draggableTrianglesForControls: [],
+                        },
+                    };
+                }
+
+                const draggableTrianglesForControls = [];
+
+                for (const [triangleInd, triangleDescendant] of (
+                    dependencyValues.triangleDescendants ?? []
+                ).entries()) {
+                    const stateValues = triangleDescendant.stateValues ?? {};
+                    const triangleNumber = triangleInd + 1;
+                    const componentIdx = triangleDescendant.componentIdx;
+                    const numericalVertices = stateValues.numericalVertices;
+                    const addControls = stateValues.addControls;
+
+                    if (!Number.isFinite(componentIdx)) {
+                        continue;
+                    }
+
+                    if (
+                        !Array.isArray(numericalVertices) ||
+                        numericalVertices.length < 3 ||
+                        !numericalVertices.every(
+                            (vertex) =>
+                                Array.isArray(vertex) &&
+                                vertex.length >= 2 &&
+                                Number.isFinite(Number(vertex[0])) &&
+                                Number.isFinite(Number(vertex[1])),
+                        )
+                    ) {
+                        continue;
+                    }
+
+                    const fixed = stateValues.fixed === true;
+                    const fixLocation = stateValues.fixLocation === true;
+                    const draggable = stateValues.draggable !== false;
+
+                    if (
+                        fixed ||
+                        fixLocation ||
+                        addControls === "none" ||
+                        !draggable
+                    ) {
+                        continue;
+                    }
+
+                    const center = numericalVertices.reduce(
+                        (acc, vertex) => {
+                            acc[0] += Number(vertex[0]);
+                            acc[1] += Number(vertex[1]);
+                            return acc;
+                        },
+                        [0, 0],
+                    );
+                    center[0] /= numericalVertices.length;
+                    center[1] /= numericalVertices.length;
+
+                    if (
+                        !Number.isFinite(center[0]) ||
+                        !Number.isFinite(center[1])
+                    ) {
+                        continue;
+                    }
+
+                    draggableTrianglesForControls.push({
+                        componentIdx,
+                        triangleNumber,
+                        center: {
+                            x: center[0],
+                            y: center[1],
+                        },
+                        addControls,
+                        ...extractControlDisplaySettings(stateValues),
+                    });
+                }
+
+                return {
+                    setValue: {
+                        draggableTrianglesForControls,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.draggableRectanglesForControls = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                addControls: {
+                    dependencyType: "stateVariable",
+                    variableName: "addControls",
+                },
+                rectangleDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["rectangle"],
+                    variableNames: [
+                        "numericalVertices",
+                        "width",
+                        "height",
+                        "draggable",
+                        "verticesDraggable",
+                        "fixed",
+                        "fixLocation",
+                        "addControls",
+                        "label",
+                        "labelHasLatex",
+                        "displayDigits",
+                        "displayDecimals",
+                        "displaySmallAsZero",
+                        "padZeros",
+                    ],
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (dependencyValues.addControls === "none") {
+                    return {
+                        setValue: {
+                            draggableRectanglesForControls: [],
+                        },
+                    };
+                }
+
+                const draggableRectanglesForControls = [];
+
+                for (const [rectangleInd, rectangleDescendant] of (
+                    dependencyValues.rectangleDescendants ?? []
+                ).entries()) {
+                    const stateValues = rectangleDescendant.stateValues ?? {};
+                    const rectangleNumber = rectangleInd + 1;
+                    const componentIdx = rectangleDescendant.componentIdx;
+                    const numericalVertices = stateValues.numericalVertices;
+                    const width = Number(stateValues.width);
+                    const height = Number(stateValues.height);
+                    const addControls = stateValues.addControls;
+
+                    if (!Number.isFinite(componentIdx)) {
+                        continue;
+                    }
+
+                    if (
+                        !Array.isArray(numericalVertices) ||
+                        numericalVertices.length < 4 ||
+                        !numericalVertices.every(
+                            (vertex) =>
+                                Array.isArray(vertex) &&
+                                vertex.length >= 2 &&
+                                Number.isFinite(Number(vertex[0])) &&
+                                Number.isFinite(Number(vertex[1])),
+                        )
+                    ) {
+                        continue;
+                    }
+
+                    if (
+                        !Number.isFinite(width) ||
+                        !Number.isFinite(height) ||
+                        width < 0 ||
+                        height < 0
+                    ) {
+                        continue;
+                    }
+
+                    const fixed = stateValues.fixed === true;
+                    const fixLocation = stateValues.fixLocation === true;
+                    const draggable = stateValues.draggable !== false;
+                    const verticesDraggable =
+                        stateValues.verticesDraggable !== false;
+
+                    if (fixed || fixLocation || addControls === "none") {
+                        continue;
+                    }
+
+                    let effectiveAddControls = addControls;
+
+                    if (effectiveAddControls === "center") {
+                        if (!draggable) {
+                            continue;
+                        }
+                    } else if (effectiveAddControls === "widthandheight") {
+                        if (!verticesDraggable) {
+                            continue;
+                        }
+                    } else if (
+                        effectiveAddControls === "centerwidthandheight"
+                    ) {
+                        if (draggable && !verticesDraggable) {
+                            effectiveAddControls = "center";
+                        } else if (verticesDraggable && !draggable) {
+                            effectiveAddControls = "widthandheight";
+                        } else if (!draggable && !verticesDraggable) {
+                            continue;
+                        }
+                    }
+
+                    const center = numericalVertices.reduce(
+                        (acc, vertex) => {
+                            acc[0] += Number(vertex[0]);
+                            acc[1] += Number(vertex[1]);
+                            return acc;
+                        },
+                        [0, 0],
+                    );
+                    center[0] /= numericalVertices.length;
+                    center[1] /= numericalVertices.length;
+
+                    if (
+                        !Number.isFinite(center[0]) ||
+                        !Number.isFinite(center[1])
+                    ) {
+                        continue;
+                    }
+
+                    draggableRectanglesForControls.push({
+                        componentIdx,
+                        rectangleNumber,
+                        center: {
+                            x: center[0],
+                            y: center[1],
+                        },
+                        width,
+                        height,
+                        addControls: effectiveAddControls,
+                        ...extractControlDisplaySettings(stateValues),
+                    });
+                }
+
+                return {
+                    setValue: {
+                        draggableRectanglesForControls,
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.draggableLineSegmentsForControls = {
             forRenderer: true,
             returnDependencies: () => ({

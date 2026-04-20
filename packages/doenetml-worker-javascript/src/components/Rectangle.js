@@ -19,6 +19,23 @@ export default class Rectangle extends Polygon {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
+        attributes.addControls = {
+            createComponentOfType: "text",
+            createStateVariable: "addControls",
+            defaultValue: "centerWidthAndHeight",
+            public: true,
+            forRenderer: true,
+            toLowerCase: true,
+            validValues: [
+                "center",
+                "widthAndHeight",
+                "centerWidthAndHeight",
+                "none",
+            ],
+            valueForTrue: "centerWidthAndHeight",
+            valueForFalse: "none",
+        };
+
         attributes.center = {
             createComponentOfType: "point",
         };

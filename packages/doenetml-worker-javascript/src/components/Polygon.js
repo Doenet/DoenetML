@@ -43,6 +43,18 @@ export default class Polygon extends Polyline {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
+        attributes.addControls = {
+            createComponentOfType: "text",
+            createStateVariable: "addControls",
+            defaultValue: "center",
+            public: true,
+            forRenderer: true,
+            toLowerCase: true,
+            validValues: ["center", "none"],
+            valueForTrue: "center",
+            valueForFalse: "none",
+        };
+
         attributes.filled = {
             createComponentOfType: "boolean",
             createStateVariable: "filled",
