@@ -714,9 +714,13 @@ describe(
                 force: true,
             });
 
-            // TODO: due to rounding error after setting the radius to a tiny number,
-            // the radius doesn't exactly go to 3.
-            cy.get("#RPRadius").should("not.have.text", "0");
+            // Radius should recover close to the target value. Known drift after
+            // collapsing to near-zero is tracked in issue #1019.
+            cy.get("#RPRadius").should(($el) => {
+                const radius = Number($el.text());
+                expect(Number.isFinite(radius)).to.equal(true);
+                expect(radius).to.be.closeTo(3, 0.5);
+            });
             cy.get(radiusInput)
                 .invoke("val")
                 .then((displayedValue) => {
@@ -736,7 +740,7 @@ describe(
                 force: true,
             });
 
-            cy.get("#RPRadius").should("not.have.text", "3");
+            cy.get("#RPRadius").should("have.text", "3");
             cy.get(radiusInput).should("have.attr", "value", "3");
             cy.get(radiusSlider).should("have.attr", "aria-valuetext", "3");
         });
