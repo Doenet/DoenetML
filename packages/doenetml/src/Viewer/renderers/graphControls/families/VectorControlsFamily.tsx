@@ -3,6 +3,7 @@ import ControlCard from "../primitives/ControlCard";
 import ControlsStack from "../primitives/ControlsStack";
 import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import {
+    GraphControlItem,
     GraphControlVector,
     PointMoveRole,
     normalizeGraphControlsMode,
@@ -23,7 +24,7 @@ type VectorControlsFamilyProps = {
         xMax: number;
         yMin: number;
         yMax: number;
-        draggableVectorsForControls: GraphControlVector[];
+        graphicalDescendantsForControls: GraphControlItem[];
     };
     callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };
@@ -154,9 +155,12 @@ export default React.memo(function VectorControlsFamily({
         return null;
     }
 
-    const vectors = Array.isArray(SVs.draggableVectorsForControls)
-        ? SVs.draggableVectorsForControls
-        : [];
+    const vectors = (Array.isArray(SVs.graphicalDescendantsForControls)
+        ? SVs.graphicalDescendantsForControls
+        : []
+    ).filter(
+        (item): item is GraphControlVector => item.controlType === "vector",
+    );
     if (vectors.length === 0) {
         return null;
     }

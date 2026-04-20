@@ -542,7 +542,7 @@ describe("Graph tag tests @group2", async () => {
         ).eq("none");
     });
 
-    it("draggablePointsForControls is renderer-agnostic", async () => {
+    it("graphicalDescendantsForControls is renderer-agnostic", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph name="gDefault" addControls>
@@ -568,24 +568,26 @@ describe("Graph tag tests @group2", async () => {
 
         const defaultControls =
             stateVariables[await resolvePathToNodeIdx("gDefault")].stateValues
-                .draggablePointsForControls;
+                .graphicalDescendantsForControls;
         const prefigureControls =
             stateVariables[await resolvePathToNodeIdx("gPrefigure")].stateValues
-                .draggablePointsForControls;
+                .graphicalDescendantsForControls;
         const filteredControls =
             stateVariables[await resolvePathToNodeIdx("gFiltered")].stateValues
-                .draggablePointsForControls;
+                .graphicalDescendantsForControls;
         const noneControls =
             stateVariables[await resolvePathToNodeIdx("gNone")].stateValues
-                .draggablePointsForControls;
+                .graphicalDescendantsForControls;
 
         expect(defaultControls).to.have.length(1);
         expect(prefigureControls).to.have.length(1);
 
         expect(defaultControls[0].x).eq(3);
         expect(defaultControls[0].y).eq(4);
+        expect(defaultControls[0].controlType).eq("point");
         expect(prefigureControls[0].x).eq(3);
         expect(prefigureControls[0].y).eq(4);
+        expect(prefigureControls[0].controlType).eq("point");
 
         expect(filteredControls).to.have.length(0);
         expect(noneControls).to.have.length(0);

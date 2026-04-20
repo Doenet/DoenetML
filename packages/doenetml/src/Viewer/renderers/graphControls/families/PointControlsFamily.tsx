@@ -3,6 +3,7 @@ import ControlCard from "../primitives/ControlCard";
 import ControlsStack from "../primitives/ControlsStack";
 import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import {
+    GraphControlItem,
     GraphControlPoint,
     PointControlsMode,
     normalizeGraphControlsMode,
@@ -22,7 +23,7 @@ type PointGraphControlsProps = {
         xMax: number;
         yMin: number;
         yMax: number;
-        draggablePointsForControls: GraphControlPoint[];
+        graphicalDescendantsForControls: GraphControlItem[];
     };
     callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };
@@ -45,9 +46,12 @@ export default React.memo(function PointControlsFamily({
     SVs,
     callAction,
 }: PointGraphControlsProps) {
-    const points = Array.isArray(SVs.draggablePointsForControls)
-        ? SVs.draggablePointsForControls
-        : [];
+    const points = (Array.isArray(SVs.graphicalDescendantsForControls)
+        ? SVs.graphicalDescendantsForControls
+        : []
+    ).filter(
+        (item): item is GraphControlPoint => item.controlType === "point",
+    );
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     if (graphControlsMode === "none" || points.length === 0) {
         return null;

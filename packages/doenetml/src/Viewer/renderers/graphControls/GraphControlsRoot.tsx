@@ -7,16 +7,7 @@ import RegularPolygonControlsFamily from "./families/RegularPolygonControlsFamil
 import RectangleControlsFamily from "./families/RectangleControlsFamily";
 import LineSegmentControlsFamily from "./families/LineSegmentControlsFamily";
 import VectorControlsFamily from "./families/VectorControlsFamily";
-import type {
-    GraphControlCircle,
-    GraphControlLineSegment,
-    GraphControlPoint,
-    GraphControlPolygon,
-    GraphControlRectangle,
-    GraphControlRegularPolygon,
-    GraphControlTriangle,
-    GraphControlVector,
-} from "./model";
+import type { GraphControlItem } from "./model";
 
 type GraphControlsRootProps = {
     id: string;
@@ -26,14 +17,7 @@ type GraphControlsRootProps = {
         xMax: number;
         yMin: number;
         yMax: number;
-        draggablePointsForControls: GraphControlPoint[];
-        draggableCirclesForControls: GraphControlCircle[];
-        draggablePolygonsForControls: GraphControlPolygon[];
-        draggableTrianglesForControls: GraphControlTriangle[];
-        draggableRegularPolygonsForControls: GraphControlRegularPolygon[];
-        draggableRectanglesForControls: GraphControlRectangle[];
-        draggableLineSegmentsForControls: GraphControlLineSegment[];
-        draggableVectorsForControls: GraphControlVector[];
+        graphicalDescendantsForControls: GraphControlItem[];
     };
     callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };

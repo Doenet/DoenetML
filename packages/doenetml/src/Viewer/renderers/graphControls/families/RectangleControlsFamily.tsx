@@ -4,6 +4,7 @@ import ControlsStack from "../primitives/ControlsStack";
 import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import ScalarControlCoordinator from "../primitives/ScalarControlCoordinator";
 import {
+    GraphControlItem,
     GraphControlRectangle,
     PointMoveRole,
     RectangleControlsMode,
@@ -27,7 +28,7 @@ type RectangleControlsFamilyProps = {
         xMax: number;
         yMin: number;
         yMax: number;
-        draggableRectanglesForControls: GraphControlRectangle[];
+        graphicalDescendantsForControls: GraphControlItem[];
     };
     callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };
@@ -92,9 +93,13 @@ export default React.memo(function RectangleControlsFamily({
         return null;
     }
 
-    const rectangles = Array.isArray(SVs.draggableRectanglesForControls)
-        ? SVs.draggableRectanglesForControls
-        : [];
+    const rectangles = (Array.isArray(SVs.graphicalDescendantsForControls)
+        ? SVs.graphicalDescendantsForControls
+        : []
+    ).filter(
+        (item): item is GraphControlRectangle =>
+            item.controlType === "rectangle",
+    );
     if (rectangles.length === 0) {
         return null;
     }

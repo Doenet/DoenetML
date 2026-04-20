@@ -4,6 +4,7 @@ import ControlCard from "../primitives/ControlCard";
 import ScalarControlCoordinator from "../primitives/ScalarControlCoordinator";
 import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import {
+    GraphControlItem,
     PointMoveRole,
     RegularPolygonControlsMode,
     normalizeGraphControlsMode,
@@ -27,7 +28,7 @@ type RegularPolygonControlsFamilyProps = {
         xMax: number;
         yMin: number;
         yMax: number;
-        draggableRegularPolygonsForControls: GraphControlRegularPolygon[];
+        graphicalDescendantsForControls: GraphControlItem[];
     };
     callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };
@@ -68,11 +69,13 @@ export default React.memo(function RegularPolygonControlsFamily({
         return null;
     }
 
-    const regularPolygons = Array.isArray(
-        SVs.draggableRegularPolygonsForControls,
-    )
-        ? SVs.draggableRegularPolygonsForControls
-        : [];
+    const regularPolygons = (Array.isArray(SVs.graphicalDescendantsForControls)
+        ? SVs.graphicalDescendantsForControls
+        : []
+    ).filter(
+        (item): item is GraphControlRegularPolygon =>
+            item.controlType === "regularPolygon",
+    );
     if (regularPolygons.length === 0) {
         return null;
     }

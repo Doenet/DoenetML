@@ -5,6 +5,7 @@ import ScalarControlCoordinator from "../primitives/ScalarControlCoordinator";
 import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import {
     CircleControlsMode,
+    GraphControlItem,
     PointMoveRole,
     normalizeCircleControlsMode,
     normalizeGraphControlsMode,
@@ -27,7 +28,7 @@ type CircleControlsFamilyProps = {
         xMax: number;
         yMin: number;
         yMax: number;
-        draggableCirclesForControls: GraphControlCircle[];
+        graphicalDescendantsForControls: GraphControlItem[];
     };
     callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };
@@ -66,9 +67,12 @@ export default React.memo(function CircleControlsFamily({
         return null;
     }
 
-    const circles = Array.isArray(SVs.draggableCirclesForControls)
-        ? SVs.draggableCirclesForControls
-        : [];
+    const circles = (Array.isArray(SVs.graphicalDescendantsForControls)
+        ? SVs.graphicalDescendantsForControls
+        : []
+    ).filter(
+        (item): item is GraphControlCircle => item.controlType === "circle",
+    );
     if (circles.length === 0) {
         return null;
     }

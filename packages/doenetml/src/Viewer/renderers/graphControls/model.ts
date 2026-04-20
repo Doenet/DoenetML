@@ -61,6 +61,7 @@ export type GraphControlDisplaySettings = {
 };
 
 export type GraphControlPoint = {
+    controlType: "point";
     componentIdx: number;
     pointNumber: number;
     x: number;
@@ -75,6 +76,7 @@ export type GraphControlPoint = {
 };
 
 export type GraphControlCircle = {
+    controlType: "circle";
     componentIdx: number;
     circleNumber: number;
     center: { x: number; y: number };
@@ -89,6 +91,7 @@ export type GraphControlCircle = {
 };
 
 export type GraphControlRegularPolygon = {
+    controlType: "regularPolygon";
     componentIdx: number;
     regularPolygonNumber: number;
     center: { x: number; y: number };
@@ -103,6 +106,7 @@ export type GraphControlRegularPolygon = {
 };
 
 export type GraphControlPolygon = {
+    controlType: "polygon";
     componentIdx: number;
     polygonNumber: number;
     center: { x: number; y: number };
@@ -116,6 +120,7 @@ export type GraphControlPolygon = {
 };
 
 export type GraphControlTriangle = {
+    controlType: "triangle";
     componentIdx: number;
     triangleNumber: number;
     center: { x: number; y: number };
@@ -129,6 +134,7 @@ export type GraphControlTriangle = {
 };
 
 export type GraphControlRectangle = {
+    controlType: "rectangle";
     componentIdx: number;
     rectangleNumber: number;
     center: { x: number; y: number };
@@ -144,6 +150,7 @@ export type GraphControlRectangle = {
 };
 
 export type GraphControlLineSegment = {
+    controlType: "lineSegment";
     componentIdx: number;
     lineSegmentNumber: number;
     endpoint1: { x: number; y: number };
@@ -158,6 +165,7 @@ export type GraphControlLineSegment = {
 };
 
 export type GraphControlVector = {
+    controlType: "vector";
     componentIdx: number;
     vectorNumber: number;
     head: { x: number; y: number };
@@ -171,6 +179,16 @@ export type GraphControlVector = {
     displaySmallAsZero: number;
     padZeros: boolean;
 };
+
+export type GraphControlItem =
+    | GraphControlPoint
+    | GraphControlCircle
+    | GraphControlRegularPolygon
+    | GraphControlPolygon
+    | GraphControlTriangle
+    | GraphControlRectangle
+    | GraphControlLineSegment
+    | GraphControlVector;
 
 /**
  * Normalize graph-level controls mode from core SVs.

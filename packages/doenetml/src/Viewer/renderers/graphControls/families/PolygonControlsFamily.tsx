@@ -3,6 +3,7 @@ import ControlCard from "../primitives/ControlCard";
 import ControlsStack from "../primitives/ControlsStack";
 import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import {
+    GraphControlItem,
     GraphControlPolygon,
     PointMoveRole,
     normalizeGraphControlsMode,
@@ -22,7 +23,7 @@ type PolygonControlsFamilyProps = {
         xMax: number;
         yMin: number;
         yMax: number;
-        draggablePolygonsForControls: GraphControlPolygon[];
+        graphicalDescendantsForControls: GraphControlItem[];
     };
     callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };
@@ -37,9 +38,12 @@ export default React.memo(function PolygonControlsFamily({
         return null;
     }
 
-    const polygons = Array.isArray(SVs.draggablePolygonsForControls)
-        ? SVs.draggablePolygonsForControls
-        : [];
+    const polygons = (Array.isArray(SVs.graphicalDescendantsForControls)
+        ? SVs.graphicalDescendantsForControls
+        : []
+    ).filter(
+        (item): item is GraphControlPolygon => item.controlType === "polygon",
+    );
     if (polygons.length === 0) {
         return null;
     }
