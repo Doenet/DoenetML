@@ -4,11 +4,12 @@ import ControlsStack from "../primitives/ControlsStack";
 import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import ScalarControlCoordinator from "../primitives/ScalarControlCoordinator";
 import {
-    GraphControlRectangle,
+    GraphControlsFamilyProps,
     PointMoveRole,
     RectangleControlsMode,
     normalizeGraphControlsMode,
     normalizeRectangleControlsMode,
+    selectGraphControlsByType,
 } from "../model";
 import {
     formatCoordinateForControls,
@@ -18,19 +19,6 @@ import {
     accessibleLabelText,
     renderLabelWithLatex,
 } from "../../utils/labelWithLatex";
-
-type RectangleControlsFamilyProps = {
-    id: string;
-    SVs: {
-        addControls: string;
-        xMin: number;
-        xMax: number;
-        yMin: number;
-        yMax: number;
-        draggableRectanglesForControls: GraphControlRectangle[];
-    };
-    callAction: (argObj: Record<string, any>) => Promise<any> | void;
-};
 
 type RectangleSectionConfig =
     | {
@@ -86,15 +74,16 @@ export default React.memo(function RectangleControlsFamily({
     id,
     SVs,
     callAction,
-}: RectangleControlsFamilyProps) {
+}: GraphControlsFamilyProps) {
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     if (graphControlsMode === "none") {
         return null;
     }
 
-    const rectangles = Array.isArray(SVs.draggableRectanglesForControls)
-        ? SVs.draggableRectanglesForControls
-        : [];
+    const rectangles = selectGraphControlsByType(
+        SVs.graphicalDescendantsForControls,
+        "rectangle",
+    );
     if (rectangles.length === 0) {
         return null;
     }

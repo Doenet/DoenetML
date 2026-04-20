@@ -115,40 +115,11 @@ export default React.memo(function Graph(props) {
 
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     const controlsEnabledAtGraphLevel = graphControlsMode !== "none";
-    const hasControlPoints =
-        Array.isArray(SVs.draggablePointsForControls) &&
-        SVs.draggablePointsForControls.length > 0;
-    const hasControlCircles =
-        Array.isArray(SVs.draggableCirclesForControls) &&
-        SVs.draggableCirclesForControls.length > 0;
-    const hasControlPolygons =
-        Array.isArray(SVs.draggablePolygonsForControls) &&
-        SVs.draggablePolygonsForControls.length > 0;
-    const hasControlTriangles =
-        Array.isArray(SVs.draggableTrianglesForControls) &&
-        SVs.draggableTrianglesForControls.length > 0;
-    const hasControlRegularPolygons =
-        Array.isArray(SVs.draggableRegularPolygonsForControls) &&
-        SVs.draggableRegularPolygonsForControls.length > 0;
-    const hasControlRectangles =
-        Array.isArray(SVs.draggableRectanglesForControls) &&
-        SVs.draggableRectanglesForControls.length > 0;
-    const hasControlLineSegments =
-        Array.isArray(SVs.draggableLineSegmentsForControls) &&
-        SVs.draggableLineSegmentsForControls.length > 0;
-    const hasControlVectors =
-        Array.isArray(SVs.draggableVectorsForControls) &&
-        SVs.draggableVectorsForControls.length > 0;
+    const hasGraphicalDescendantsForControls =
+        Array.isArray(SVs.graphicalDescendantsForControls) &&
+        SVs.graphicalDescendantsForControls.length > 0;
     const shouldRenderControls =
-        controlsEnabledAtGraphLevel &&
-        (hasControlPoints ||
-            hasControlCircles ||
-            hasControlPolygons ||
-            hasControlTriangles ||
-            hasControlRegularPolygons ||
-            hasControlRectangles ||
-            hasControlLineSegments ||
-            hasControlVectors);
+        controlsEnabledAtGraphLevel && hasGraphicalDescendantsForControls;
 
     const requestedControlsPosition = shouldRenderControls
         ? normalizeControlsPosition(SVs.controlsPosition)

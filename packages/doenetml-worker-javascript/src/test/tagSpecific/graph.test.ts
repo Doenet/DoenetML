@@ -16,6 +16,24 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
+type GraphControlsClassificationTestItem =
+    | {
+          controlType: "triangle";
+          triangleNumber: number;
+      }
+    | {
+          controlType: "polygon";
+          polygonNumber: number;
+      }
+    | {
+          controlType: "rectangle";
+          addControls: string;
+      }
+    | {
+          controlType: "vector";
+          addControls: string;
+      };
+
 describe("Graph tag tests @group2", async () => {
     it("functions adapted to curves in graph", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
@@ -542,7 +560,7 @@ describe("Graph tag tests @group2", async () => {
         ).eq("none");
     });
 
-    it("draggablePointsForControls is renderer-agnostic", async () => {
+    it("graphicalDescendantsForControls is renderer-agnostic", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <graph name="gDefault" addControls>
@@ -568,27 +586,79 @@ describe("Graph tag tests @group2", async () => {
 
         const defaultControls =
             stateVariables[await resolvePathToNodeIdx("gDefault")].stateValues
-                .draggablePointsForControls;
+                .graphicalDescendantsForControls;
         const prefigureControls =
             stateVariables[await resolvePathToNodeIdx("gPrefigure")].stateValues
-                .draggablePointsForControls;
+                .graphicalDescendantsForControls;
         const filteredControls =
             stateVariables[await resolvePathToNodeIdx("gFiltered")].stateValues
-                .draggablePointsForControls;
+                .graphicalDescendantsForControls;
         const noneControls =
             stateVariables[await resolvePathToNodeIdx("gNone")].stateValues
-                .draggablePointsForControls;
+                .graphicalDescendantsForControls;
 
         expect(defaultControls).to.have.length(1);
         expect(prefigureControls).to.have.length(1);
 
         expect(defaultControls[0].x).eq(3);
         expect(defaultControls[0].y).eq(4);
+        expect(defaultControls[0].controlType).eq("point");
         expect(prefigureControls[0].x).eq(3);
         expect(prefigureControls[0].y).eq(4);
+        expect(prefigureControls[0].controlType).eq("point");
 
         expect(filteredControls).to.have.length(0);
         expect(noneControls).to.have.length(0);
+    });
+
+    it("graphicalDescendantsForControls classifies shapes and normalizes modes", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" addControls>
+  <triangle vertices="(0,0) (3,0) (0,3)" addControls="center" />
+  <polygon vertices="(5,0) (6,0) (6,1)" addControls="center" />
+  <rectangle
+    vertices="(0,0) (4,2)"
+    addControls="centerwidthandheight"
+    draggable="false"
+    verticesDraggable="true"
+  />
+  <vector tail="(0,0)" addControls="headandtail" tailDraggable="false">(2,3)</vector>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const controls: GraphControlsClassificationTestItem[] =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .graphicalDescendantsForControls;
+
+        expect(controls).to.have.length(4);
+
+        const triangleControls = controls.filter(
+            (item) => item.controlType === "triangle",
+        );
+        const polygonControls = controls.filter(
+            (item) => item.controlType === "polygon",
+        );
+        const rectangleControls = controls.filter(
+            (item) => item.controlType === "rectangle",
+        );
+        const vectorControls = controls.filter(
+            (item) => item.controlType === "vector",
+        );
+
+        expect(triangleControls).to.have.length(1);
+        expect(triangleControls[0].triangleNumber).eq(1);
+
+        expect(polygonControls).to.have.length(1);
+        expect(polygonControls[0].polygonNumber).eq(1);
+
+        expect(rectangleControls).to.have.length(1);
+        expect(rectangleControls[0].addControls).eq("widthandheight");
+
+        expect(vectorControls).to.have.length(1);
+        expect(vectorControls[0].addControls).eq("headonly");
     });
 
     it("fixed grids", async () => {

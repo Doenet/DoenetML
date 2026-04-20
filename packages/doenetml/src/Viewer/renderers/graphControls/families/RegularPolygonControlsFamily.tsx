@@ -4,11 +4,12 @@ import ControlCard from "../primitives/ControlCard";
 import ScalarControlCoordinator from "../primitives/ScalarControlCoordinator";
 import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import {
+    GraphControlsFamilyProps,
     PointMoveRole,
     RegularPolygonControlsMode,
     normalizeGraphControlsMode,
     normalizeRegularPolygonControlsMode,
-    type GraphControlRegularPolygon,
+    selectGraphControlsByType,
 } from "../model";
 import {
     formatCoordinateForControls,
@@ -18,19 +19,6 @@ import {
     accessibleLabelText,
     renderLabelWithLatex,
 } from "../../utils/labelWithLatex";
-
-type RegularPolygonControlsFamilyProps = {
-    id: string;
-    SVs: {
-        addControls: string;
-        xMin: number;
-        xMax: number;
-        yMin: number;
-        yMax: number;
-        draggableRegularPolygonsForControls: GraphControlRegularPolygon[];
-    };
-    callAction: (argObj: Record<string, any>) => Promise<any> | void;
-};
 
 type RegularPolygonSectionConfig = {
     kind: "center" | "radius";
@@ -62,17 +50,16 @@ export default React.memo(function RegularPolygonControlsFamily({
     id,
     SVs,
     callAction,
-}: RegularPolygonControlsFamilyProps) {
+}: GraphControlsFamilyProps) {
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     if (graphControlsMode === "none") {
         return null;
     }
 
-    const regularPolygons = Array.isArray(
-        SVs.draggableRegularPolygonsForControls,
-    )
-        ? SVs.draggableRegularPolygonsForControls
-        : [];
+    const regularPolygons = selectGraphControlsByType(
+        SVs.graphicalDescendantsForControls,
+        "regularPolygon",
+    );
     if (regularPolygons.length === 0) {
         return null;
     }

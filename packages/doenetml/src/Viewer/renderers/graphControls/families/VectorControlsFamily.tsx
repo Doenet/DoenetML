@@ -3,9 +3,11 @@ import ControlCard from "../primitives/ControlCard";
 import ControlsStack from "../primitives/ControlsStack";
 import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import {
+    GraphControlsFamilyProps,
     GraphControlVector,
     PointMoveRole,
     normalizeGraphControlsMode,
+    selectGraphControlsByType,
     normalizeVectorControlsMode,
 } from "../model";
 import type { VectorControlsMode } from "../model";
@@ -14,19 +16,6 @@ import {
     accessibleLabelText,
     renderLabelWithLatex,
 } from "../../utils/labelWithLatex";
-
-type VectorControlsFamilyProps = {
-    id: string;
-    SVs: {
-        addControls: string;
-        xMin: number;
-        xMax: number;
-        yMin: number;
-        yMax: number;
-        draggableVectorsForControls: GraphControlVector[];
-    };
-    callAction: (argObj: Record<string, any>) => Promise<any> | void;
-};
 
 type VectorSectionConfig = {
     controlIdSuffix: string;
@@ -148,15 +137,16 @@ export default React.memo(function VectorControlsFamily({
     id,
     SVs,
     callAction,
-}: VectorControlsFamilyProps) {
+}: GraphControlsFamilyProps) {
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     if (graphControlsMode === "none") {
         return null;
     }
 
-    const vectors = Array.isArray(SVs.draggableVectorsForControls)
-        ? SVs.draggableVectorsForControls
-        : [];
+    const vectors = selectGraphControlsByType(
+        SVs.graphicalDescendantsForControls,
+        "vector",
+    );
     if (vectors.length === 0) {
         return null;
     }

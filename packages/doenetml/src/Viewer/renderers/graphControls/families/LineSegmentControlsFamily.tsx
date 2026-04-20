@@ -3,30 +3,19 @@ import ControlCard from "../primitives/ControlCard";
 import ControlsStack from "../primitives/ControlsStack";
 import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import {
+    GraphControlsFamilyProps,
     GraphControlLineSegment,
     LineSegmentControlsMode,
     PointMoveRole,
     normalizeGraphControlsMode,
     normalizeLineSegmentControlsMode,
+    selectGraphControlsByType,
 } from "../model";
 import { formatCoordinateForControls } from "../mathFormatParse";
 import {
     accessibleLabelText,
     renderLabelWithLatex,
 } from "../../utils/labelWithLatex";
-
-type LineSegmentControlsFamilyProps = {
-    id: string;
-    SVs: {
-        addControls: string;
-        xMin: number;
-        xMax: number;
-        yMin: number;
-        yMax: number;
-        draggableLineSegmentsForControls: GraphControlLineSegment[];
-    };
-    callAction: (argObj: Record<string, any>) => Promise<any> | void;
-};
 
 type LineSegmentSectionConfig = {
     controlIdSuffix: "endpoint1" | "endpoint2";
@@ -96,15 +85,16 @@ export default React.memo(function LineSegmentControlsFamily({
     id,
     SVs,
     callAction,
-}: LineSegmentControlsFamilyProps) {
+}: GraphControlsFamilyProps) {
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     if (graphControlsMode === "none") {
         return null;
     }
 
-    const lineSegments = Array.isArray(SVs.draggableLineSegmentsForControls)
-        ? SVs.draggableLineSegmentsForControls
-        : [];
+    const lineSegments = selectGraphControlsByType(
+        SVs.graphicalDescendantsForControls,
+        "lineSegment",
+    );
     if (lineSegments.length === 0) {
         return null;
     }

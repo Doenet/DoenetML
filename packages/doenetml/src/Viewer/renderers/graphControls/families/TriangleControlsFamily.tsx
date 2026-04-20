@@ -3,9 +3,10 @@ import ControlCard from "../primitives/ControlCard";
 import ControlsStack from "../primitives/ControlsStack";
 import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import {
-    GraphControlTriangle,
+    GraphControlsFamilyProps,
     PointMoveRole,
     normalizeGraphControlsMode,
+    selectGraphControlsByType,
     normalizeTriangleControlsMode,
 } from "../model";
 import { formatCoordinateForControls } from "../mathFormatParse";
@@ -14,32 +15,20 @@ import {
     renderLabelWithLatex,
 } from "../../utils/labelWithLatex";
 
-type TriangleControlsFamilyProps = {
-    id: string;
-    SVs: {
-        addControls: string;
-        xMin: number;
-        xMax: number;
-        yMin: number;
-        yMax: number;
-        draggableTrianglesForControls: GraphControlTriangle[];
-    };
-    callAction: (argObj: Record<string, any>) => Promise<any> | void;
-};
-
 export default React.memo(function TriangleControlsFamily({
     id,
     SVs,
     callAction,
-}: TriangleControlsFamilyProps) {
+}: GraphControlsFamilyProps) {
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     if (graphControlsMode === "none") {
         return null;
     }
 
-    const triangles = Array.isArray(SVs.draggableTrianglesForControls)
-        ? SVs.draggableTrianglesForControls
-        : [];
+    const triangles = selectGraphControlsByType(
+        SVs.graphicalDescendantsForControls,
+        "triangle",
+    );
     if (triangles.length === 0) {
         return null;
     }

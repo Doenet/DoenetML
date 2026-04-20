@@ -3,29 +3,17 @@ import ControlCard from "../primitives/ControlCard";
 import ControlsStack from "../primitives/ControlsStack";
 import PointControlCoordinator from "../primitives/PointControlCoordinator";
 import {
-    GraphControlPoint,
+    GraphControlsFamilyProps,
     PointControlsMode,
     normalizeGraphControlsMode,
     normalizePointControlsMode,
+    selectGraphControlsByType,
 } from "../model";
 import { formatCoordinateForControls } from "../mathFormatParse";
 import {
     accessibleLabelText,
     renderLabelWithLatex,
 } from "../../utils/labelWithLatex";
-
-type PointGraphControlsProps = {
-    id: string;
-    SVs: {
-        addControls: string;
-        xMin: number;
-        xMax: number;
-        yMin: number;
-        yMax: number;
-        draggablePointsForControls: GraphControlPoint[];
-    };
-    callAction: (argObj: Record<string, any>) => Promise<any> | void;
-};
 
 type PointSectionConfig = {
     controlIdSuffix: string;
@@ -44,10 +32,11 @@ export default React.memo(function PointControlsFamily({
     id,
     SVs,
     callAction,
-}: PointGraphControlsProps) {
-    const points = Array.isArray(SVs.draggablePointsForControls)
-        ? SVs.draggablePointsForControls
-        : [];
+}: GraphControlsFamilyProps) {
+    const points = selectGraphControlsByType(
+        SVs.graphicalDescendantsForControls,
+        "point",
+    );
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     if (graphControlsMode === "none" || points.length === 0) {
         return null;
