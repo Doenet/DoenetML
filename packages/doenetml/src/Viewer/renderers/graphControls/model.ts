@@ -211,13 +211,9 @@ export type GraphControlsFamilyProps = {
 export function selectGraphControlsByType<
     TControlType extends GraphControlItem["controlType"],
 >(
-    controls: GraphControlItem[] | undefined,
+    controls: GraphControlItem[],
     controlType: TControlType,
 ): Extract<GraphControlItem, { controlType: TControlType }>[] {
-    if (!Array.isArray(controls)) {
-        return [];
-    }
-
     return controls.filter(
         (
             item,

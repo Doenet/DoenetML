@@ -614,6 +614,7 @@ export default class Graph extends BlockComponent {
                     // Config order is semantically significant: first matching
                     // inherited type wins, so specific types must be listed
                     // before broader ancestors in GRAPH_CONTROL_DESCENDANT_CONFIGS.
+                    // This fallback-to-ancestor behavior is intentional.
                     for (const config of GRAPH_CONTROL_DESCENDANT_CONFIGS) {
                         if (
                             !componentInfoObjects.isInheritedComponentType({
@@ -624,6 +625,9 @@ export default class Graph extends BlockComponent {
                             continue;
                         }
 
+                        // Numbering follows matched descendants of a control
+                        // family, even when a matched descendant is later
+                        // filtered out by payload validation.
                         countersByType[config.controlType] += 1;
                         const componentIdx = descendant.componentIdx;
                         if (!Number.isFinite(componentIdx)) {

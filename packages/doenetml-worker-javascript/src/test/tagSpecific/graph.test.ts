@@ -16,6 +16,24 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
+type GraphControlsClassificationTestItem =
+    | {
+          controlType: "triangle";
+          triangleNumber: number;
+      }
+    | {
+          controlType: "polygon";
+          polygonNumber: number;
+      }
+    | {
+          controlType: "rectangle";
+          addControls: string;
+      }
+    | {
+          controlType: "vector";
+          addControls: string;
+      };
+
 describe("Graph tag tests @group2", async () => {
     it("functions adapted to curves in graph", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
@@ -611,7 +629,7 @@ describe("Graph tag tests @group2", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        const controls: Array<Record<string, any>> =
+        const controls: GraphControlsClassificationTestItem[] =
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .graphicalDescendantsForControls;
 

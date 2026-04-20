@@ -148,6 +148,9 @@ export const GRAPH_CONTROL_VARIABLE_NAMES = [
  * - Therefore, more specific component types must appear before broader
  *   ancestor types (for example triangle/rectangle/regularPolygon before
  *   polygon) so descendants are classified into the intended control family.
+ * - This inherited matching is intentional: component types not listed
+ *   explicitly can still receive controls through an ancestor fallback
+ *   (for example a polygon descendant through the polygon config).
  *
  * `buildPayload` must return `null` to skip the descendant and an object with
  * the final renderer payload shape when controls should be shown.
