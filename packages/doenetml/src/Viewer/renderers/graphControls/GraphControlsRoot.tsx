@@ -7,28 +7,58 @@ import RegularPolygonControlsFamily from "./families/RegularPolygonControlsFamil
 import RectangleControlsFamily from "./families/RectangleControlsFamily";
 import LineSegmentControlsFamily from "./families/LineSegmentControlsFamily";
 import VectorControlsFamily from "./families/VectorControlsFamily";
-import type { GraphControlsFamilyProps } from "./model";
+import {
+    assertKnownGraphControlType,
+    type GraphControlItem,
+    type GraphControlsFamilyProps,
+    sortGraphControlsForDisplay,
+} from "./model";
+
+const CONTROLS_FAMILY_BY_TYPE: Record<
+    GraphControlItem["controlType"],
+    React.ComponentType<GraphControlsFamilyProps>
+> = {
+    point: PointControlsFamily,
+    circle: CircleControlsFamily,
+    polygon: PolygonControlsFamily,
+    triangle: TriangleControlsFamily,
+    regularPolygon: RegularPolygonControlsFamily,
+    rectangle: RectangleControlsFamily,
+    lineSegment: LineSegmentControlsFamily,
+    vector: VectorControlsFamily,
+};
 
 export default React.memo(function GraphControlsRoot(
     props: GraphControlsFamilyProps,
 ) {
-    const { id } = props;
+    const { id, SVs } = props;
 
-    return (
-        <div id={id}>
-            {/*
-             * Temporary renderer ordering: controls are still grouped by family
-             * until a follow-up PR switches to a single interleaved dispatch.
-             * Each family preserves document order within its own control type.
-             */}
-            <PointControlsFamily {...props} />
-            <CircleControlsFamily {...props} />
-            <PolygonControlsFamily {...props} />
-            <TriangleControlsFamily {...props} />
-            <RegularPolygonControlsFamily {...props} />
-            <RectangleControlsFamily {...props} />
-            <LineSegmentControlsFamily {...props} />
-            <VectorControlsFamily {...props} />
-        </div>
+    const orderedControls = React.useMemo(
+        () => sortGraphControlsForDisplay(SVs.graphicalDescendantsForControls),
+        [SVs.graphicalDescendantsForControls],
     );
+
+    function renderControl(control: GraphControlItem) {
+        const controlType = assertKnownGraphControlType(control.controlType);
+        const FamilyComponent = CONTROLS_FAMILY_BY_TYPE[controlType];
+        // componentIdx is globally unique, so controlType + componentIdx uniquely
+        // identifies this control across ordering changes. This ensures React keys
+        // and DOM ids remain stable when controlOrder reorders controls.
+        const instanceId = `${controlType}_${control.componentIdx}`;
+
+        // Render exactly one control payload per family invocation so family
+        // components can preserve their internal card/control markup behavior.
+        const controlFamilyProps: GraphControlsFamilyProps = {
+            ...props,
+            id: `${id}_control_${instanceId}`,
+            SVs: {
+                ...SVs,
+                graphicalDescendantsForControls: [control],
+            },
+        };
+
+        return <FamilyComponent key={instanceId} {...controlFamilyProps} />;
+    }
+
+    return <div id={id}>{orderedControls.map(renderControl)}</div>;
 });

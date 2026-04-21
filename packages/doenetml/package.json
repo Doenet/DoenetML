@@ -27,7 +27,7 @@
         "dev": "vite",
         "build": "wireit",
         "preview": "vite preview",
-        "test": "echo \"No tests \"",
+        "test": "vitest",
         "publish": "npm run build && cd dist && npm publish"
     },
     "wireit": {

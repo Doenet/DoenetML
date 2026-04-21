@@ -17,6 +17,7 @@ import {
     returnConstraintDefinitions,
     returnStickyGroupDefinitions,
 } from "../utils/constraints";
+import { returnGraphControlOrderAttribute } from "../utils/graphical";
 
 export default class Point extends GraphicalComponent {
     constructor(args) {
@@ -119,6 +120,8 @@ export default class Point extends GraphicalComponent {
         attributes.hideOffGraphIndicator = {
             createComponentOfType: "boolean",
         };
+
+        attributes.controlOrder = returnGraphControlOrderAttribute();
 
         return attributes;
     }

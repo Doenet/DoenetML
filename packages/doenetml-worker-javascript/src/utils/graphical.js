@@ -28,6 +28,27 @@ export function returnAnchorAttributes() {
     };
 }
 
+/**
+ * Shared control ordering attribute for graph-control-capable components.
+ *
+ * `controlOrder` uses 1-indexed slot semantics: the renderer fills slots 1, 2, 3, ...
+ * with controls in order preference. A value of `0` (default) means no explicit slot
+ * request: such controls are used to fill gaps between positive-order controls, and
+ * their relative position may change based on what other controls request. Do not rely
+ * on `controlOrder=0` to preserve authored position relative to controls with positive
+ * orders; use matching positive orders to fix relative positions.
+ */
+export function returnGraphControlOrderAttribute() {
+    return {
+        createComponentOfType: "integer",
+        createStateVariable: "controlOrder",
+        defaultValue: 0,
+        clamp: [0, Infinity],
+        public: true,
+        forRenderer: true,
+    };
+}
+
 export function returnAnchorStateVariableDefinition() {
     return {
         anchor: {

@@ -98,6 +98,32 @@ function resolveCompositeControlsMode({
     return compositeMode;
 }
 
+/**
+ * Returns a finite non-negative integer controlOrder for renderer payloads.
+ *
+ * Core enforces non-negative integer via component attributes
+ * (`createComponentOfType: "integer"` with `clamp: [0, Infinity]`).
+ * This helper normalizes any non-finite edge cases (Infinity, NaN) to 0 so
+ * the renderer safely handles unexpected values.
+ */
+function extractFiniteControlOrder(stateValues) {
+    const controlOrder = Number(stateValues.controlOrder);
+    if (!Number.isFinite(controlOrder)) {
+        return 0;
+    }
+    return controlOrder;
+}
+
+/**
+ * Appends shared renderer metadata used by all graph control payloads.
+ */
+function buildControlMetadata(stateValues) {
+    return {
+        controlOrder: extractFiniteControlOrder(stateValues),
+        ...extractControlDisplaySettings(stateValues),
+    };
+}
+
 export const GRAPH_CONTROL_COMPONENT_TYPES = [
     "point",
     "circle",
@@ -137,6 +163,7 @@ export const GRAPH_CONTROL_VARIABLE_NAMES = [
     "displayDecimals",
     "displaySmallAsZero",
     "padZeros",
+    "controlOrder",
 ];
 
 /**
@@ -187,7 +214,7 @@ export const GRAPH_CONTROL_DESCENDANT_CONFIGS = [
                 x,
                 y,
                 addControls,
-                ...extractControlDisplaySettings(stateValues),
+                ...buildControlMetadata(stateValues),
             };
         },
     },
@@ -228,7 +255,7 @@ export const GRAPH_CONTROL_DESCENDANT_CONFIGS = [
                 },
                 radius,
                 addControls,
-                ...extractControlDisplaySettings(stateValues),
+                ...buildControlMetadata(stateValues),
             };
         },
     },
@@ -261,7 +288,7 @@ export const GRAPH_CONTROL_DESCENDANT_CONFIGS = [
                 triangleNumber: number,
                 center,
                 addControls,
-                ...extractControlDisplaySettings(stateValues),
+                ...buildControlMetadata(stateValues),
             };
         },
     },
@@ -322,7 +349,7 @@ export const GRAPH_CONTROL_DESCENDANT_CONFIGS = [
                 width,
                 height,
                 addControls: effectiveAddControls,
-                ...extractControlDisplaySettings(stateValues),
+                ...buildControlMetadata(stateValues),
             };
         },
     },
@@ -381,7 +408,7 @@ export const GRAPH_CONTROL_DESCENDANT_CONFIGS = [
                 center,
                 radius,
                 addControls: effectiveAddControls,
-                ...extractControlDisplaySettings(stateValues),
+                ...buildControlMetadata(stateValues),
             };
         },
     },
@@ -414,7 +441,7 @@ export const GRAPH_CONTROL_DESCENDANT_CONFIGS = [
                 polygonNumber: number,
                 center,
                 addControls,
-                ...extractControlDisplaySettings(stateValues),
+                ...buildControlMetadata(stateValues),
             };
         },
     },
@@ -470,7 +497,7 @@ export const GRAPH_CONTROL_DESCENDANT_CONFIGS = [
                 endpoint1: { x: endpoint1x, y: endpoint1y },
                 endpoint2: { x: endpoint2x, y: endpoint2y },
                 addControls,
-                ...extractControlDisplaySettings(stateValues),
+                ...buildControlMetadata(stateValues),
             };
         },
     },
@@ -555,7 +582,7 @@ export const GRAPH_CONTROL_DESCENDANT_CONFIGS = [
                     y: headY - tailY,
                 },
                 addControls: effectiveAddControls,
-                ...extractControlDisplaySettings(stateValues),
+                ...buildControlMetadata(stateValues),
             };
         },
     },
