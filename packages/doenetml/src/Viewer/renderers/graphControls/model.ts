@@ -209,6 +209,10 @@ export const GRAPH_CONTROL_TYPES = [
     "vector",
 ] as const;
 
+const GRAPH_CONTROL_TYPE_SET: ReadonlySet<string> = new Set(
+    GRAPH_CONTROL_TYPES,
+);
+
 export type GraphControlsFamilySVs = {
     addControls: string;
     xMin: number;
@@ -251,9 +255,7 @@ export function selectGraphControlsByType<
 export function assertKnownGraphControlType(
     controlType: string,
 ): GraphControlItem["controlType"] {
-    if (
-        (GRAPH_CONTROL_TYPES as readonly string[]).indexOf(controlType) !== -1
-    ) {
+    if (GRAPH_CONTROL_TYPE_SET.has(controlType)) {
         return controlType as GraphControlItem["controlType"];
     }
 
@@ -413,6 +415,7 @@ export function normalizePointControlsMode(value: unknown): PointControlsMode {
 export function normalizeCircleControlsMode(
     value: unknown,
 ): CircleControlsMode {
+    // Preserve existing circle behavior when authored mode is missing/invalid.
     if (typeof value !== "string") {
         return "centerandradius";
     }
@@ -433,6 +436,7 @@ export function normalizeCircleControlsMode(
 export function normalizeRegularPolygonControlsMode(
     value: unknown,
 ): RegularPolygonControlsMode {
+    // Preserve existing regular-polygon behavior when authored mode is missing/invalid.
     if (typeof value !== "string") {
         return "centerandradius";
     }
@@ -453,6 +457,7 @@ export function normalizeRegularPolygonControlsMode(
 export function normalizePolygonControlsMode(
     value: unknown,
 ): PolygonControlsMode {
+    // Preserve existing polygon behavior when authored mode is missing/invalid.
     if (typeof value !== "string") {
         return "center";
     }
@@ -468,6 +473,7 @@ export function normalizePolygonControlsMode(
 export function normalizeTriangleControlsMode(
     value: unknown,
 ): TriangleControlsMode {
+    // Preserve existing triangle behavior when authored mode is missing/invalid.
     if (typeof value !== "string") {
         return "center";
     }
@@ -483,6 +489,7 @@ export function normalizeTriangleControlsMode(
 export function normalizeRectangleControlsMode(
     value: unknown,
 ): RectangleControlsMode {
+    // Preserve existing rectangle behavior when authored mode is missing/invalid.
     if (typeof value !== "string") {
         return "centerwidthandheight";
     }

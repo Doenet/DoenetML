@@ -33,14 +33,15 @@ export default React.memo(function GraphControlsRoot(
 ) {
     const { id, SVs } = props;
 
-    const orderedControls = sortGraphControlsForDisplay(
-        SVs.graphicalDescendantsForControls,
+    const orderedControls = React.useMemo(
+        () => sortGraphControlsForDisplay(SVs.graphicalDescendantsForControls),
+        [SVs.graphicalDescendantsForControls],
     );
 
-    function renderControl(control: GraphControlItem, controlIndex: number) {
+    function renderControl(control: GraphControlItem) {
         const controlType = assertKnownGraphControlType(control.controlType);
         const FamilyComponent = CONTROLS_FAMILY_BY_TYPE[controlType];
-        const controlInstanceId = `${controlType}_${control.componentIdx}`;
+        const instanceId = `${controlType}_${control.componentIdx}`;
 
         // Render exactly one control payload per family invocation so family
         // components can preserve their internal card/control markup behavior.
@@ -48,23 +49,19 @@ export default React.memo(function GraphControlsRoot(
             ...props,
             // Keep ids stable so DOM references and focus state don't churn when
             // dynamic controlOrder changes reorder controls.
-            id: `${id}_control_${controlInstanceId}`,
+            id: `${id}_control_${instanceId}`,
             SVs: {
                 ...SVs,
                 graphicalDescendantsForControls: [control],
             },
         };
 
-        return (
-            <FamilyComponent key={controlInstanceId} {...controlFamilyProps} />
-        );
+        return <FamilyComponent key={instanceId} {...controlFamilyProps} />;
     }
 
     return (
         <div id={id}>
-            {orderedControls.map((control, controlIndex) =>
-                renderControl(control, controlIndex),
-            )}
+            {orderedControls.map((control) => renderControl(control))}
         </div>
     );
 });
