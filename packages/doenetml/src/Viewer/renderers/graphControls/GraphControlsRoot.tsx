@@ -60,9 +60,5 @@ export default React.memo(function GraphControlsRoot(
         return <FamilyComponent key={instanceId} {...controlFamilyProps} />;
     }
 
-    return (
-        <div id={id}>
-            {orderedControls.map((control) => renderControl(control))}
-        </div>
-    );
+    return <div id={id}>{orderedControls.map(renderControl)}</div>;
 });
