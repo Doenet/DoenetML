@@ -15,6 +15,7 @@ import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
+import { returnGraphControlOrderAttribute } from "../utils/graphical";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 
 export default class Vector extends GraphicalComponent {
@@ -111,14 +112,7 @@ export default class Vector extends GraphicalComponent {
             forRenderer: true,
         };
 
-        attributes.controlOrder = {
-            createComponentOfType: "integer",
-            createStateVariable: "controlOrder",
-            defaultValue: 0,
-            clamp: [0, Infinity],
-            public: true,
-            forRenderer: true,
-        };
+        attributes.controlOrder = returnGraphControlOrderAttribute();
 
         return attributes;
     }

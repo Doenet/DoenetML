@@ -6,6 +6,7 @@ import {
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
+import { returnGraphControlOrderAttribute } from "../utils/graphical";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { returnStickyGroupDefinitions } from "../utils/constraints";
 
@@ -65,14 +66,7 @@ export default class LineSegment extends GraphicalComponent {
         attributes.labelPosition = returnLineFamilyLabelPositionAttribute();
 
         Object.assign(attributes, returnRoundingAttributes());
-        attributes.controlOrder = {
-            createComponentOfType: "integer",
-            createStateVariable: "controlOrder",
-            defaultValue: 0,
-            clamp: [0, Infinity],
-            public: true,
-            forRenderer: true,
-        };
+        attributes.controlOrder = returnGraphControlOrderAttribute();
 
         return attributes;
     }

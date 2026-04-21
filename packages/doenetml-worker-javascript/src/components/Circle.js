@@ -2,6 +2,7 @@ import {
     returnRoundingAttributeComponentShadowing,
     returnRoundingStateVariableDefinitions,
 } from "../utils/rounding";
+import { returnGraphControlOrderAttribute } from "../utils/graphical";
 import Curve from "./Curve";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 
@@ -59,14 +60,7 @@ export default class Circle extends Curve {
             createComponentOfType: "boolean",
         };
 
-        attributes.controlOrder = {
-            createComponentOfType: "integer",
-            createStateVariable: "controlOrder",
-            defaultValue: 0,
-            clamp: [0, Infinity],
-            public: true,
-            forRenderer: true,
-        };
+        attributes.controlOrder = returnGraphControlOrderAttribute();
 
         delete attributes.parMin;
         delete attributes.parMax;

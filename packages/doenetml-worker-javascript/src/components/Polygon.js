@@ -1,4 +1,5 @@
 import { returnRoundingAttributeComponentShadowing } from "../utils/rounding";
+import { returnGraphControlOrderAttribute } from "../utils/graphical";
 import Polyline from "./Polyline";
 
 export default class Polygon extends Polyline {
@@ -63,14 +64,7 @@ export default class Polygon extends Polyline {
             forRenderer: true,
         };
 
-        attributes.controlOrder = {
-            createComponentOfType: "integer",
-            createStateVariable: "controlOrder",
-            defaultValue: 0,
-            clamp: [0, Infinity],
-            public: true,
-            forRenderer: true,
-        };
+        attributes.controlOrder = returnGraphControlOrderAttribute();
 
         return attributes;
     }

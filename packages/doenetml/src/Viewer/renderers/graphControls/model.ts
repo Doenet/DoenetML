@@ -286,61 +286,69 @@ export function sortGraphControlsForDisplay(
 
     const controlsByOrder = new Map<number, GraphControlItem[]>();
     for (const control of controls) {
-        const order = control.controlOrder;
-        const group = controlsByOrder.get(order);
-        if (group) {
-            group.push(control);
-        } else {
-            controlsByOrder.set(order, [control]);
+        const existingGroup = controlsByOrder.get(control.controlOrder);
+        if (existingGroup) {
+            existingGroup.push(control);
+            continue;
         }
+
+        controlsByOrder.set(control.controlOrder, [control]);
     }
 
-    const orderKeys = Array.from(controlsByOrder.keys()).sort((a, b) => a - b);
+    const positiveOrderKeys = Array.from(controlsByOrder.keys())
+        .filter((order) => order > 0)
+        .sort((a, b) => a - b);
     const nextIndexByOrder = new Map<number, number>();
-    for (const order of orderKeys) {
-        nextIndexByOrder.set(order, 0);
+
+    function hasRemaining(order: number): boolean {
+        const group = controlsByOrder.get(order);
+        if (!group) {
+            return false;
+        }
+        return (nextIndexByOrder.get(order) ?? 0) < group.length;
     }
 
-    function hasRemaining(order: number) {
+    function takeNext(order: number): GraphControlItem | null {
         const group = controlsByOrder.get(order);
-        const index = nextIndexByOrder.get(order) ?? 0;
-        return Array.isArray(group) && index < group.length;
-    }
-
-    function takeNext(order: number) {
-        const group = controlsByOrder.get(order);
-        const index = nextIndexByOrder.get(order) ?? 0;
-        if (!group || index >= group.length) {
+        if (!group) {
             return null;
         }
-        nextIndexByOrder.set(order, index + 1);
-        return group[index];
+
+        const nextIndex = nextIndexByOrder.get(order) ?? 0;
+        if (nextIndex >= group.length) {
+            return null;
+        }
+
+        nextIndexByOrder.set(order, nextIndex + 1);
+        return group[nextIndex];
+    }
+
+    function selectOrderForSlot(slotNumber: number): number | null {
+        for (const order of positiveOrderKeys) {
+            if (order > slotNumber) {
+                break;
+            }
+            if (hasRemaining(order)) {
+                return order;
+            }
+        }
+
+        if (hasRemaining(0)) {
+            return 0;
+        }
+
+        for (const order of positiveOrderKeys) {
+            if (order > slotNumber && hasRemaining(order)) {
+                return order;
+            }
+        }
+
+        return null;
     }
 
     const result: GraphControlItem[] = [];
     for (let slotNumber = 1; result.length < controls.length; slotNumber += 1) {
-        let selectedOrder: number | null = null;
-
-        for (let order = 1; order <= slotNumber; order += 1) {
-            if (hasRemaining(order)) {
-                selectedOrder = order;
-                break;
-            }
-        }
-
-        if (selectedOrder === null && hasRemaining(0)) {
-            selectedOrder = 0;
-        }
-
-        if (selectedOrder === null) {
-            for (const order of orderKeys) {
-                if (order > slotNumber && hasRemaining(order)) {
-                    selectedOrder = order;
-                    break;
-                }
-            }
-        }
-
+        const selectedOrder = selectOrderForSlot(slotNumber);
         if (selectedOrder === null) {
             break;
         }

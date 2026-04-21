@@ -28,6 +28,23 @@ export function returnAnchorAttributes() {
     };
 }
 
+/**
+ * Shared control ordering attribute for graph-control-capable components.
+ *
+ * `controlOrder` is 1-indexed in renderer ordering semantics.
+ * A value of `0` keeps default descendant-order behavior.
+ */
+export function returnGraphControlOrderAttribute() {
+    return {
+        createComponentOfType: "integer",
+        createStateVariable: "controlOrder",
+        defaultValue: 0,
+        clamp: [0, Infinity],
+        public: true,
+        forRenderer: true,
+    };
+}
+
 export function returnAnchorStateVariableDefinition() {
     return {
         anchor: {

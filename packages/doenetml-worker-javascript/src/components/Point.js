@@ -17,6 +17,7 @@ import {
     returnConstraintDefinitions,
     returnStickyGroupDefinitions,
 } from "../utils/constraints";
+import { returnGraphControlOrderAttribute } from "../utils/graphical";
 
 export default class Point extends GraphicalComponent {
     constructor(args) {
@@ -120,14 +121,7 @@ export default class Point extends GraphicalComponent {
             createComponentOfType: "boolean",
         };
 
-        attributes.controlOrder = {
-            createComponentOfType: "integer",
-            createStateVariable: "controlOrder",
-            defaultValue: 0,
-            clamp: [0, Infinity],
-            public: true,
-            forRenderer: true,
-        };
+        attributes.controlOrder = returnGraphControlOrderAttribute();
 
         return attributes;
     }

@@ -40,21 +40,24 @@ export default React.memo(function GraphControlsRoot(
     function renderControl(control: GraphControlItem, controlIndex: number) {
         const controlType = assertKnownGraphControlType(control.controlType);
         const FamilyComponent = CONTROLS_FAMILY_BY_TYPE[controlType];
+        const controlInstanceId = `${controlType}_${control.componentIdx}`;
 
         // Render exactly one control payload per family invocation so family
         // components can preserve their internal card/control markup behavior.
         const controlFamilyProps: GraphControlsFamilyProps = {
             ...props,
-            id: `${id}_control_${controlIndex}`,
+            // Keep ids stable so DOM references and focus state don't churn when
+            // dynamic controlOrder changes reorder controls.
+            id: `${id}_control_${controlInstanceId}`,
             SVs: {
                 ...SVs,
                 graphicalDescendantsForControls: [control],
             },
         };
 
-        const key = `${controlType}_${control.componentIdx}_${controlIndex}`;
-
-        return <FamilyComponent key={key} {...controlFamilyProps} />;
+        return (
+            <FamilyComponent key={controlInstanceId} {...controlFamilyProps} />
+        );
     }
 
     return (

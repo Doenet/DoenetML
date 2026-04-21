@@ -46,15 +46,6 @@ export default class Rectangle extends Polygon {
             createComponentOfType: "number",
         };
 
-        attributes.controlOrder = {
-            createComponentOfType: "integer",
-            createStateVariable: "controlOrder",
-            defaultValue: 0,
-            clamp: [0, Infinity],
-            public: true,
-            forRenderer: true,
-        };
-
         return attributes;
     }
 
