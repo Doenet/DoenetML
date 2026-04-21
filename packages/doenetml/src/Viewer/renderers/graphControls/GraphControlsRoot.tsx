@@ -41,14 +41,15 @@ export default React.memo(function GraphControlsRoot(
     function renderControl(control: GraphControlItem) {
         const controlType = assertKnownGraphControlType(control.controlType);
         const FamilyComponent = CONTROLS_FAMILY_BY_TYPE[controlType];
+        // componentIdx is globally unique, so controlType + componentIdx uniquely
+        // identifies this control across ordering changes. This ensures React keys
+        // and DOM ids remain stable when controlOrder reorders controls.
         const instanceId = `${controlType}_${control.componentIdx}`;
 
         // Render exactly one control payload per family invocation so family
         // components can preserve their internal card/control markup behavior.
         const controlFamilyProps: GraphControlsFamilyProps = {
             ...props,
-            // Keep ids stable so DOM references and focus state don't churn when
-            // dynamic controlOrder changes reorder controls.
             id: `${id}_control_${instanceId}`,
             SVs: {
                 ...SVs,

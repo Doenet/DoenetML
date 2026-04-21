@@ -99,11 +99,12 @@ function resolveCompositeControlsMode({
 }
 
 /**
- * Returns a numeric controlOrder for renderer payloads.
+ * Returns a finite non-negative integer controlOrder for renderer payloads.
  *
- * Non-negative integer constraints are enforced by component attributes
- * (`createComponentOfType: "integer"` with `clamp: [0, Infinity]`), so this
- * helper only needs to defend against missing/non-finite runtime values.
+ * Core enforces non-negative integer via component attributes
+ * (`createComponentOfType: "integer"` with `clamp: [0, Infinity]`).
+ * This helper normalizes any non-finite edge cases (Infinity, NaN) to 0 so
+ * the renderer safely handles unexpected values.
  */
 function extractFiniteControlOrder(stateValues) {
     const controlOrder = Number(stateValues.controlOrder);

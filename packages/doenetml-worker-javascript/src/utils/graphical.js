@@ -32,7 +32,8 @@ export function returnAnchorAttributes() {
  * Shared control ordering attribute for graph-control-capable components.
  *
  * `controlOrder` is 1-indexed in renderer ordering semantics.
- * A value of `0` keeps default descendant-order behavior.
+ * A value of `0` means unordered: controls fill slot gaps (slots 1..n) before
+ * ordered controls with higher priorities, then fall back to descendant order.
  */
 export function returnGraphControlOrderAttribute() {
     return {

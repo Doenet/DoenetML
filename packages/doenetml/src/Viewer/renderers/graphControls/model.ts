@@ -274,10 +274,10 @@ export function assertKnownGraphControlType(
  *
  * Relative order within each controlOrder level always follows input order.
  *
- * Assumption: controlOrder values are non-negative integers. This constraint is
- * enforced in worker component attributes via `clamp: [0, Infinity]` and
- * integer-typed attributes, so an additional lower-bound guard is not needed
- * here.
+ * Contract: All payloads in graphicalDescendantsForControls are guaranteed to
+ * have finite non-negative integer controlOrder values. Non-finite values
+ * (Infinity, NaN) are normalized to 0 by the worker's extractFiniteControlOrder
+ * before payloads are created, so the renderer can assume safe finite values.
  */
 export function sortGraphControlsForDisplay(
     controls: GraphControlItem[],
@@ -326,6 +326,8 @@ export function sortGraphControlsForDisplay(
     }
 
     function selectOrderForSlot(slotNumber: number): number | null {
+        // Fill slots 1,2,3,... in order. For each slot, prefer the lowest available
+        // order in [1..slotNumber], then fallback to zero-order (default), then higher orders.
         for (const order of positiveOrderKeys) {
             if (order > slotNumber) {
                 break;
