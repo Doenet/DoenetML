@@ -22,8 +22,16 @@ export const GRAPH_CONTROL_INPUT_BLOCK_STYLE: React.CSSProperties = {
 };
 
 export const GRAPH_CONTROL_INLINE_INPUT_STACK_STYLE: React.CSSProperties = {
-    display: "inline-flex",
+    display: "flex",
     flexDirection: "column",
+    minWidth: 0,
+    width: "100%",
+};
+
+export const GRAPH_CONTROL_TEXT_INPUT_STYLE: React.CSSProperties = {
+    width: "100%",
+    boxSizing: "border-box",
+    minWidth: 0,
 };
 
 export const GRAPH_CONTROL_ERROR_TEXT_STYLE: React.CSSProperties = {

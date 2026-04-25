@@ -1,4 +1,5 @@
 import React from "react";
+import { GRAPH_CONTROL_TEXT_INPUT_STYLE } from "./styles";
 
 type CommitTextInputProps = {
     id?: string;
@@ -45,6 +46,7 @@ export default function CommitTextInput({
             aria-label={ariaLabel}
             aria-invalid={ariaInvalid ? true : undefined}
             aria-describedby={ariaDescribedBy}
+            style={GRAPH_CONTROL_TEXT_INPUT_STYLE}
             onChange={(event) => {
                 suppressNextBlurCommitRef.current = false;
                 onChange(event.target.value);
