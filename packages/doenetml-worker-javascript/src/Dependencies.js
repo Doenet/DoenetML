@@ -11,6 +11,10 @@ import {
 
 const dependencyTypeArray = [];
 
+function cloneChangeMetadataIfNeeded({ changeMetadata, consumeChanges }) {
+    return consumeChanges ? changeMetadata : deepClone(changeMetadata);
+}
+
 export class DependencyHandler {
     constructor({ _components, componentInfoObjects, core }) {
         this.upstreamDependencies = {};
@@ -3431,7 +3435,10 @@ class Dependency {
                                     }
                                     changes.valuesChanged[componentInd][
                                         nameForOutput
-                                    ] = valueChanged;
+                                    ] = cloneChangeMetadataIfNeeded({
+                                        changeMetadata: valueChanged,
+                                        consumeChanges,
+                                    });
                                 }
                                 if (consumeChanges) {
                                     this.valuesChanged[componentInd][
@@ -4240,7 +4247,10 @@ class StateVariableComponentTypeDependency extends StateVariableDependency {
                                 changes.valuesChanged[0] = {};
                             }
                             changes.valuesChanged[0][nameForOutput] =
-                                valueChanged0;
+                                cloneChangeMetadataIfNeeded({
+                                    changeMetadata: valueChanged0,
+                                    consumeChanges,
+                                });
                         }
                         if (consumeChanges) {
                             this.valuesChanged[0][mappedVarName] = {};
