@@ -1000,7 +1000,11 @@ export class DependencyHandler {
         return variablesChanged;
     }
 
-    async getStateVariableDependencyValues({ component, stateVariable }) {
+    async getStateVariableDependencyValues({
+        component,
+        stateVariable,
+        consumeChanges = true,
+    }) {
         let dependencyValues = {};
         let dependencyChanges = {};
         let dependencyUsedDefault = {};
@@ -1015,7 +1019,9 @@ export class DependencyHandler {
                 continue;
             }
 
-            let { value, changes, usedDefault } = await dep.getValue();
+            let { value, changes, usedDefault } = await dep.getValue({
+                consumeChanges,
+            });
 
             dependencyValues[dependencyName] = value;
             if (Object.keys(changes).length > 0) {
@@ -3314,14 +3320,20 @@ class Dependency {
 
     deleteFromUpdateTriggers() {}
 
-    async getValue({ verbose = false, skipProxy = false } = {}) {
+    async getValue({
+        verbose = false,
+        skipProxy = false,
+        consumeChanges = true,
+    } = {}) {
         let value = [];
         let changes = {};
         let usedDefault = [];
 
         if (this.componentIdentitiesChanged) {
             changes.componentIdentitiesChanged = true;
-            this.componentIdentitiesChanged = false;
+            if (consumeChanges) {
+                this.componentIdentitiesChanged = false;
+            }
         }
 
         for (let [
@@ -3387,11 +3399,11 @@ class Dependency {
                             if (!mappedStateVarObj.deferred) {
                                 componentObj.stateValues[nameForOutput] =
                                     await mappedStateVarObj.value;
-                                if (
+                                let valueChanged =
                                     this.valuesChanged[componentInd][
                                         mappedVarName
-                                    ].changed
-                                ) {
+                                    ];
+                                if (valueChanged.changed) {
                                     if (!changes.valuesChanged) {
                                         changes.valuesChanged = {};
                                     }
@@ -3401,14 +3413,13 @@ class Dependency {
                                     }
                                     changes.valuesChanged[componentInd][
                                         nameForOutput
-                                    ] =
-                                        this.valuesChanged[componentInd][
-                                            mappedVarName
-                                        ];
+                                    ] = valueChanged;
                                 }
-                                this.valuesChanged[componentInd][
-                                    mappedVarName
-                                ] = {};
+                                if (consumeChanges) {
+                                    this.valuesChanged[componentInd][
+                                        mappedVarName
+                                    ] = {};
+                                }
 
                                 if (mappedStateVarObj.usedDefault) {
                                     usedDefaultObj[nameForOutput] = true;
@@ -4139,7 +4150,7 @@ dependencyTypeArray.push(MultipleStateVariablesDependency);
 class StateVariableComponentTypeDependency extends StateVariableDependency {
     static dependencyType = "stateVariableComponentType";
 
-    async getValue({ verbose = false } = {}) {
+    async getValue({ verbose = false, consumeChanges = true } = {}) {
         let value = [];
         let changes = {};
 
@@ -4148,7 +4159,9 @@ class StateVariableComponentTypeDependency extends StateVariableDependency {
         } else {
             if (this.componentIdentitiesChanged) {
                 changes.componentIdentitiesChanged = true;
-                this.componentIdentitiesChanged = false;
+                if (consumeChanges) {
+                    this.componentIdentitiesChanged = false;
+                }
             }
 
             if (this.downstreamComponentIndices.length === 1) {
@@ -4199,7 +4212,9 @@ class StateVariableComponentTypeDependency extends StateVariableDependency {
                             }
                         }
 
-                        if (this.valuesChanged[0][mappedVarName].changed) {
+                        let valueChanged0 =
+                            this.valuesChanged[0][mappedVarName];
+                        if (valueChanged0.changed) {
                             if (!changes.valuesChanged) {
                                 changes.valuesChanged = {};
                             }
@@ -4207,9 +4222,11 @@ class StateVariableComponentTypeDependency extends StateVariableDependency {
                                 changes.valuesChanged[0] = {};
                             }
                             changes.valuesChanged[0][nameForOutput] =
-                                this.valuesChanged[0][mappedVarName];
+                                valueChanged0;
                         }
-                        this.valuesChanged[0][mappedVarName] = {};
+                        if (consumeChanges) {
+                            this.valuesChanged[0][mappedVarName] = {};
+                        }
 
                         let hasVariableComponentType =
                             stateVarObj.shadowingInstructions
@@ -4584,7 +4601,7 @@ class RecursiveDependencyValuesDependency extends Dependency {
         };
     }
 
-    async getValue() {
+    async getValue({ consumeChanges: consumeChanges = true } = {}) {
         this.gettingValue = true;
         this.varsWithUpdatedDeps = {};
 
@@ -4595,48 +4612,55 @@ class RecursiveDependencyValuesDependency extends Dependency {
 
         let changes = {};
 
-        while (foundNewUpdated) {
-            foundNewUpdated = false;
-            result = await super.getValue();
+        try {
+            while (foundNewUpdated) {
+                foundNewUpdated = false;
+                result = await super.getValue({
+                    consumeChanges: consumeChanges,
+                });
 
-            if (result.changes.valuesChanged) {
-                if (!changes.valuesChanged) {
-                    changes.valuesChanged = result.changes.valuesChanged;
-                } else {
-                    for (let ind in result.changes.valuesChanged) {
-                        let changeObj = result.changes.valuesChanged[ind];
-                        if (!changes.valuesChanged[ind]) {
-                            changes.valuesChanged[ind] = changeObj;
-                        } else {
-                            for (let depName in changeObj) {
-                                changes.valuesChanged[ind][depName] =
-                                    changeObj[depName];
+                if (result.changes.valuesChanged) {
+                    if (!changes.valuesChanged) {
+                        changes.valuesChanged = result.changes.valuesChanged;
+                    } else {
+                        for (let ind in result.changes.valuesChanged) {
+                            let changeObj = result.changes.valuesChanged[ind];
+                            if (!changes.valuesChanged[ind]) {
+                                changes.valuesChanged[ind] = changeObj;
+                            } else {
+                                for (let depName in changeObj) {
+                                    changes.valuesChanged[ind][depName] =
+                                        changeObj[depName];
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            for (const cIdxStr in this.varsWithUpdatedDeps) {
-                let compAccumulated = accumulatedVarsWithUpdatedDeps[cIdxStr];
-                if (!compAccumulated) {
-                    compAccumulated = accumulatedVarsWithUpdatedDeps[cIdxStr] =
-                        [];
-                }
-                for (let vName of this.varsWithUpdatedDeps[cIdxStr]) {
-                    if (!compAccumulated.includes(vName)) {
-                        compAccumulated.push(vName);
-                        foundNewUpdated = true;
+                for (const cIdxStr in this.varsWithUpdatedDeps) {
+                    let compAccumulated =
+                        accumulatedVarsWithUpdatedDeps[cIdxStr];
+                    if (!compAccumulated) {
+                        compAccumulated = accumulatedVarsWithUpdatedDeps[
+                            cIdxStr
+                        ] = [];
+                    }
+                    for (let vName of this.varsWithUpdatedDeps[cIdxStr]) {
+                        if (!compAccumulated.includes(vName)) {
+                            compAccumulated.push(vName);
+                            foundNewUpdated = true;
+                        }
                     }
                 }
-            }
 
-            if (foundNewUpdated) {
-                await this.recalculateDownstreamComponents();
+                if (foundNewUpdated) {
+                    this.varsWithUpdatedDeps = {};
+                    await this.recalculateDownstreamComponents();
+                }
             }
+        } finally {
+            this.gettingValue = false;
         }
-
-        this.gettingValue = false;
 
         result.changes = changes;
 
@@ -4945,8 +4969,12 @@ class AttributeComponentDependency extends Dependency {
         };
     }
 
-    async getValue({ verbose } = {}) {
-        let result = await super.getValue({ verbose, skipProxy: true });
+    async getValue({ verbose, consumeChanges = true } = {}) {
+        let result = await super.getValue({
+            verbose,
+            skipProxy: true,
+            consumeChanges,
+        });
 
         // if (!this.doNotProxy) {
         //   result.value = new Proxy(result.value, readOnlyProxyHandler)
@@ -5456,8 +5484,12 @@ class ChildDependency extends Dependency {
         };
     }
 
-    async getValue({ verbose } = {}) {
-        let result = await super.getValue({ verbose, skipProxy: true });
+    async getValue({ verbose, consumeChanges = true } = {}) {
+        let result = await super.getValue({
+            verbose,
+            skipProxy: true,
+            consumeChanges,
+        });
 
         // TODO: do we have to adjust anything else from result
         // if we add primitives to result.value?
@@ -5509,7 +5541,11 @@ class ChildDependency extends Dependency {
             )
         ) {
             result.changes.componentIdentitiesChanged = true;
-            this.previousDownstreamPrimitives = [...this.downstreamPrimitives];
+            if (consumeChanges) {
+                this.previousDownstreamPrimitives = [
+                    ...this.downstreamPrimitives,
+                ];
+            }
         }
 
         // if (!this.doNotProxy) {
@@ -6956,8 +6992,12 @@ class ReplacementDependency extends Dependency {
         };
     }
 
-    async getValue({ verbose } = {}) {
-        let result = await super.getValue({ verbose, skipProxy: true });
+    async getValue({ verbose, consumeChanges = true } = {}) {
+        let result = await super.getValue({
+            verbose,
+            skipProxy: true,
+            consumeChanges,
+        });
 
         // TODO: do we have to adjust anything else from result
         // if we add primitives to result.value?
@@ -6984,9 +7024,11 @@ class ReplacementDependency extends Dependency {
             )
         ) {
             result.changes.componentIdentitiesChanged = true;
-            this.previousReplacementPrimitives = [
-                ...this.replacementPrimitives,
-            ];
+            if (consumeChanges) {
+                this.previousReplacementPrimitives = [
+                    ...this.replacementPrimitives,
+                ];
+            }
         }
 
         // if (!this.doNotProxy) {
@@ -7161,8 +7203,8 @@ class RefResolutionIndexDependencies extends Dependency {
         }
     }
 
-    async getValue() {
-        const result = await super.getValue();
+    async getValue({ consumeChanges = true } = {}) {
+        const result = await super.getValue({ consumeChanges });
 
         result.value = this.componentList;
 
@@ -7644,8 +7686,8 @@ class RefResolutionDependency extends Dependency {
         };
     }
 
-    async getValue() {
-        const result = await super.getValue();
+    async getValue({ consumeChanges = true } = {}) {
+        const result = await super.getValue({ consumeChanges });
 
         result.value = {
             extendIdx: this.extendIdx ?? -1,
@@ -7741,8 +7783,8 @@ class AttributeRefResolutions extends Dependency {
             };
         }
     }
-    async getValue() {
-        const result = await super.getValue();
+    async getValue({ consumeChanges = true } = {}) {
+        const result = await super.getValue({ consumeChanges });
 
         const newValue = [];
 
@@ -9520,13 +9562,15 @@ class DoenetAttributeDependency extends StateVariableDependency {
         }
     }
 
-    async getValue() {
+    async getValue({ consumeChanges = true } = {}) {
         let value = null;
         let changes = {};
 
         if (this.componentIdentitiesChanged) {
             changes.componentIdentitiesChanged = true;
-            this.componentIdentitiesChanged = false;
+            if (consumeChanges) {
+                this.componentIdentitiesChanged = false;
+            }
         }
 
         if (this.downstreamComponentIndices.length === 1) {
@@ -9562,13 +9606,15 @@ class ExtendingDependency extends StateVariableDependency {
         }
     }
 
-    async getValue() {
+    async getValue({ consumeChanges = true } = {}) {
         let value = null;
         let changes = {};
 
         if (this.componentIdentitiesChanged) {
             changes.componentIdentitiesChanged = true;
-            this.componentIdentitiesChanged = false;
+            if (consumeChanges) {
+                this.componentIdentitiesChanged = false;
+            }
         }
 
         if (this.downstreamComponentIndices.length === 1) {
@@ -9600,13 +9646,15 @@ class AttributePrimitiveDependency extends StateVariableDependency {
         }
     }
 
-    async getValue() {
+    async getValue({ consumeChanges = true } = {}) {
         let value = null;
         let changes = {};
 
         if (this.componentIdentitiesChanged) {
             changes.componentIdentitiesChanged = true;
-            this.componentIdentitiesChanged = false;
+            if (consumeChanges) {
+                this.componentIdentitiesChanged = false;
+            }
         }
 
         if (this.downstreamComponentIndices.length === 1) {
