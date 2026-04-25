@@ -668,7 +668,7 @@ export async function movePolygonCenter({
     core,
 }: {
     componentIdx: number;
-    center: number[];
+    center: [number, number];
     core: PublicDoenetMLCore;
 }) {
     await core.requestAction({

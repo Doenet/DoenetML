@@ -1775,6 +1775,15 @@ describe("Graph tag tests @group2", async () => {
     }: {
         includeCenterParagraph: boolean;
     }) {
+        function evaluateCoordinatePair(
+            values: {
+                evaluate_to_constant: () => number;
+            }[],
+        ): [number, number] {
+            const [x, y] = values.map((value) => value.evaluate_to_constant());
+            return [x, y];
+        }
+
         const centerParagraph = includeCenterParagraph
             ? "\n    <p>Center: $rg.center</p>"
             : "";
@@ -1794,9 +1803,7 @@ describe("Graph tag tests @group2", async () => {
         let rgStateVars = stateVariables[rgIdx].stateValues;
 
         // Read initial values once, then perform back-to-back actions.
-        let initialCenter = rgStateVars.center.map((x: any) =>
-            x.evaluate_to_constant(),
-        );
+        let initialCenter = evaluateCoordinatePair(rgStateVars.center);
         let initialCircumradius = rgStateVars.circumradius;
 
         // Move center to (-1, initialCenter[1])
@@ -1806,7 +1813,7 @@ describe("Graph tag tests @group2", async () => {
             core,
         });
 
-        // Now move center to (-2, initialCenter[1]) — this is where the bug appears
+        // Now move center to (-2, initialCenter[1]) -- this is where the bug appeared
         await movePolygonCenter({
             componentIdx: rgIdx,
             center: [-2, initialCenter[1]],
@@ -1816,9 +1823,7 @@ describe("Graph tag tests @group2", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         rgStateVars = stateVariables[rgIdx].stateValues;
 
-        let center2 = rgStateVars.center.map((x: any) =>
-            x.evaluate_to_constant(),
-        );
+        let center2 = evaluateCoordinatePair(rgStateVars.center);
         let circumradius2 = rgStateVars.circumradius;
 
         expect(center2[0]).toBeCloseTo(-2, 5);

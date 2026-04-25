@@ -4,4 +4,4 @@
 "@doenet/doenetml-iframe": patch
 ---
 
-Fix a graph controls regression affecting consecutive regularPolygon center moves. Dependency change flags are now handled so inverse-definition reads can avoid consuming changes during argument construction while still clearing stale flags afterward, preventing stale dependency state from interfering with follow-up center moves and restore-state flows.
+Fix a graph controls regression that affected consecutive regularPolygon center moves. Dependency change flags are now preserved during inverse-definition argument construction and then consumed afterward to prevent stale flags from affecting follow-up center moves and restore-state flows.

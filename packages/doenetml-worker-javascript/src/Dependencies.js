@@ -3325,6 +3325,14 @@ class Dependency {
 
     deleteFromUpdateTriggers() {}
 
+    async getValueNoProxy({ verbose = false, consumeChanges = true } = {}) {
+        return await Dependency.prototype.getValue.call(this, {
+            verbose,
+            skipProxy: true,
+            consumeChanges,
+        });
+    }
+
     /**
      * Return current dependency value, change metadata, and used-default metadata.
      * When consumeChanges is false, this method reports current change flags without
@@ -4980,9 +4988,8 @@ class AttributeComponentDependency extends Dependency {
     }
 
     async getValue({ verbose, consumeChanges = true } = {}) {
-        let result = await super.getValue({
+        let result = await this.getValueNoProxy({
             verbose,
-            skipProxy: true,
             consumeChanges,
         });
 
@@ -5495,9 +5502,8 @@ class ChildDependency extends Dependency {
     }
 
     async getValue({ verbose, consumeChanges = true } = {}) {
-        let result = await super.getValue({
+        let result = await this.getValueNoProxy({
             verbose,
-            skipProxy: true,
             consumeChanges,
         });
 
@@ -7003,9 +7009,8 @@ class ReplacementDependency extends Dependency {
     }
 
     async getValue({ verbose, consumeChanges = true } = {}) {
-        let result = await super.getValue({
+        let result = await this.getValueNoProxy({
             verbose,
-            skipProxy: true,
             consumeChanges,
         });
 
