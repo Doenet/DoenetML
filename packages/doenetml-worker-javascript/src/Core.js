@@ -8078,10 +8078,16 @@ export default class Core {
         return await stateVarObj.value;
     }
 
+    /**
+     * Build definition/inverse-definition args for a state variable.
+     * When consumeChanges is false, dependency change flags are observed but preserved
+     * for a later consuming read.
+     */
     async getStateVariableDefinitionArguments({
         component,
         stateVariable,
         excludeDependencyValues,
+        consumeChanges = true,
     }) {
         // console.log(`get state variable dependencies of ${component.componentIdx}, ${stateVariable}`)
 
@@ -8092,6 +8098,7 @@ export default class Core {
             args = await this.dependencies.getStateVariableDependencyValues({
                 component,
                 stateVariable,
+                consumeChanges,
             });
         }
 
@@ -12478,6 +12485,7 @@ export default class Core {
                 stateVariable,
                 excludeDependencyValues:
                     stateVarObj.excludeDependencyValuesInInverseDefinition,
+                consumeChanges: false,
             });
         inverseDefinitionArgs.componentInfoObjects = this.componentInfoObjects;
         inverseDefinitionArgs.initialChange = initialChange;
@@ -12668,6 +12676,16 @@ export default class Core {
         let inverseResult = await stateVarObj.inverseDefinition(
             inverseDefinitionArgs,
         );
+
+        // Clear any change flags that were set during the inverse definition call
+        // This ensures stale flags don't accumulate, even though we didn't consume during the call
+        if (!stateVarObj.excludeDependencyValuesInInverseDefinition) {
+            await this.dependencies.getStateVariableDependencyValues({
+                component,
+                stateVariable,
+                consumeChanges: true,
+            });
+        }
 
         if (inverseResult.sendDiagnostics) {
             for (const diagnostic of inverseResult.sendDiagnostics) {

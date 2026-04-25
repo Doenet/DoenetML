@@ -661,3 +661,19 @@ export async function focusChanged({
         args: { focused },
     });
 }
+
+export async function movePolygonCenter({
+    componentIdx,
+    center,
+    core,
+}: {
+    componentIdx: number;
+    center: [number, number];
+    core: PublicDoenetMLCore;
+}) {
+    await core.requestAction({
+        componentIdx,
+        actionName: "movePolygonCenter",
+        args: { center },
+    });
+}

@@ -7,6 +7,7 @@ import {
     updateSelectedIndices,
     updateTextInputValue,
     updateValue,
+    movePolygonCenter,
 } from "../utils/actions";
 import { widthsBySize } from "@doenet/utils";
 import { PublicDoenetMLCore } from "../../CoreWorker";
@@ -1767,5 +1768,78 @@ describe("Graph tag tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("graph")]
                 .activeChildren[1].componentType,
         ).eq("description");
+    });
+
+    async function runConsecutiveRegularPolygonCenterMoves({
+        includeCenterParagraph,
+    }: {
+        includeCenterParagraph: boolean;
+    }) {
+        function evaluateCoordinatePair(
+            values: {
+                evaluate_to_constant: () => number;
+            }[],
+        ): [number, number] {
+            const [x, y] = values.map((value) => value.evaluate_to_constant());
+            return [x, y];
+        }
+
+        const centerParagraph = includeCenterParagraph
+            ? "\n    <p>Center: $rg.center</p>"
+            : "";
+
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g" addControls>
+      <regularPolygon name="rg" vertices="(4,5) (-3,2)" numSides="3" />
+    </graph>
+    <p>Vertices: $rg.vertices</p>${centerParagraph}
+    `,
+        });
+
+        const rgIdx = await resolvePathToNodeIdx("rg");
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        let rgStateVars = stateVariables[rgIdx].stateValues;
+
+        // Read initial values once, then perform back-to-back actions.
+        let initialCenter = evaluateCoordinatePair(rgStateVars.center);
+        let initialCircumradius = rgStateVars.circumradius;
+
+        // Move center to (-1, initialCenter[1])
+        await movePolygonCenter({
+            componentIdx: rgIdx,
+            center: [-1, initialCenter[1]],
+            core,
+        });
+
+        // Now move center to (-2, initialCenter[1]) -- this is where the bug appeared
+        await movePolygonCenter({
+            componentIdx: rgIdx,
+            center: [-2, initialCenter[1]],
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        rgStateVars = stateVariables[rgIdx].stateValues;
+
+        let center2 = evaluateCoordinatePair(rgStateVars.center);
+        let circumradius2 = rgStateVars.circumradius;
+
+        expect(center2[0]).toBeCloseTo(-2, 5);
+        expect(center2[1]).toBeCloseTo(initialCenter[1], 5);
+        expect(circumradius2).toBeCloseTo(initialCircumradius, 5);
+    }
+
+    it("regularPolygon center control with consecutive moves and no intermediate state read (with $rg.center)", async () => {
+        await runConsecutiveRegularPolygonCenterMoves({
+            includeCenterParagraph: true,
+        });
+    });
+
+    it("regularPolygon center control with consecutive moves and no intermediate state read (without $rg.center)", async () => {
+        await runConsecutiveRegularPolygonCenterMoves({
+            includeCenterParagraph: false,
+        });
     });
 });
