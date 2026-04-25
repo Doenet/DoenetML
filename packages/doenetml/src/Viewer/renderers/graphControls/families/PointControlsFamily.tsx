@@ -32,6 +32,8 @@ export default React.memo(function PointControlsFamily({
     id,
     SVs,
     callAction,
+    isGraphControlExpanded,
+    toggleGraphControlExpanded,
 }: GraphControlsFamilyProps) {
     const points = selectGraphControlsByType(
         SVs.graphicalDescendantsForControls,
@@ -102,7 +104,13 @@ export default React.memo(function PointControlsFamily({
                     key={point.componentIdx}
                     id={`${id}-point-${point.componentIdx}`}
                     headingId={`${id}-point-${point.componentIdx}-heading`}
+                    contentId={`${id}-point-${point.componentIdx}-content`}
                     heading={pointLabelForDisplay}
+                    disclosureControlLabel={pointLabelForAria}
+                    isExpanded={isGraphControlExpanded(point.componentIdx)}
+                    onToggleExpanded={() =>
+                        toggleGraphControlExpanded(point.componentIdx)
+                    }
                 >
                     {sections.map((section) => (
                         <PointControlCoordinator

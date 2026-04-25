@@ -198,6 +198,8 @@ export type GraphControlItem =
     | GraphControlLineSegment
     | GraphControlVector;
 
+export const DEFAULT_INITIAL_EXPANDED_GRAPH_CONTROL_COUNT = 2;
+
 export const GRAPH_CONTROL_TYPES = [
     "point",
     "circle",
@@ -222,11 +224,40 @@ export type GraphControlsFamilySVs = {
     graphicalDescendantsForControls: GraphControlItem[];
 };
 
-export type GraphControlsFamilyProps = {
+export type GraphControlsRootProps = {
     id: string;
     SVs: GraphControlsFamilySVs;
     callAction: (argObj: Record<string, any>) => Promise<any> | void;
 };
+
+export type GraphControlsFamilyProps = GraphControlsRootProps & {
+    isGraphControlExpanded: (componentIdx: number) => boolean;
+    toggleGraphControlExpanded: (componentIdx: number) => void;
+};
+
+/**
+ * Determine which controls should be initially expanded on first load.
+ * Returns a Set of componentIdx values for the first `count` controls in the ordered list.
+ * This keeps the control list compact for long graphs while allowing users to access
+ * the most relevant controls without scrolling. Subsequent user toggles are tracked separately.
+ *
+ * @param orderedControls - Controls sorted for display
+ * @param count - Number of controls to expand initially (default: 2)
+ * @returns Set of componentIdx values that should be expanded by default
+ */
+export function selectInitialExpandedGraphControlIds(
+    orderedControls: GraphControlItem[],
+    count = DEFAULT_INITIAL_EXPANDED_GRAPH_CONTROL_COUNT,
+): Set<number> {
+    const normalizedCount = Number.isFinite(count)
+        ? Math.max(0, Math.floor(count))
+        : 0;
+    return new Set(
+        orderedControls
+            .slice(0, normalizedCount)
+            .map((control) => control.componentIdx),
+    );
+}
 
 /**
  * Select controls of a single discriminator from the unified controls list.

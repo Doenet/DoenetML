@@ -137,6 +137,8 @@ export default React.memo(function VectorControlsFamily({
     id,
     SVs,
     callAction,
+    isGraphControlExpanded,
+    toggleGraphControlExpanded,
 }: GraphControlsFamilyProps) {
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     if (graphControlsMode === "none") {
@@ -223,7 +225,13 @@ export default React.memo(function VectorControlsFamily({
                     key={`${componentIdx}-${mode}`}
                     id={`${id}-vector-${componentIdx}`}
                     headingId={`${id}-vector-${componentIdx}-heading`}
+                    contentId={`${id}-vector-${componentIdx}-content`}
                     heading={labelForDisplay}
+                    disclosureControlLabel={labelForAria}
+                    isExpanded={isGraphControlExpanded(componentIdx)}
+                    onToggleExpanded={() =>
+                        toggleGraphControlExpanded(componentIdx)
+                    }
                 >
                     {sections.map((section) => {
                         const coordinates = getVectorCoordinatesByRole(

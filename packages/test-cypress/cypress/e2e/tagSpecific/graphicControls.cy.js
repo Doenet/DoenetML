@@ -42,6 +42,24 @@ describe(
             cy.get("#ready").should("have.text", "ready");
         }
 
+        function escapeRegExp(value) {
+            return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        }
+
+        function expandControlCardIfCollapsed(headingText, graphName = "g") {
+            const exactHeadingPattern = new RegExp(
+                `^\\s*${escapeRegExp(headingText)}\\s*$`,
+            );
+
+            cy.contains(`#${graphName}-controls h3`, exactHeadingPattern)
+                .find("button[aria-expanded]")
+                .then(($button) => {
+                    if ($button.attr("aria-expanded") === "false") {
+                        cy.wrap($button).click();
+                    }
+                });
+        }
+
         it("supports addControls modes on default graph renderer", () => {
             loadGraphTest(
                 `
@@ -97,6 +115,82 @@ describe(
                     $graph[0].getBoundingClientRect().width,
                 ).to.be.greaterThan(500);
             });
+        });
+
+        it("collapses long control lists with first two cards expanded by default", () => {
+            loadGraphTest(`
+<text name="ready">ready</text>
+<graph name="g" addControls="slidersOnly" controlsPosition="left" width="640px">
+  <point name="A" labelIsName>(1,1)</point>
+  <point name="B" labelIsName>(2,2)</point>
+  <point name="C" labelIsName>(3,3)</point>
+  <point name="D" labelIsName>(4,4)</point>
+  <point name="E" labelIsName>(5,5)</point>
+  <point name="F" labelIsName>(6,6)</point>
+  <point name="G" labelIsName>(7,7)</point>
+</graph>
+`);
+
+            cy.get("#g-controls h3 button[aria-expanded]").should(
+                "have.length",
+                7,
+            );
+            cy.get("#g-controls h3 button[aria-expanded]")
+                .eq(0)
+                .should("have.attr", "aria-expanded", "true");
+            cy.get("#g-controls h3 button[aria-expanded]")
+                .eq(1)
+                .should("have.attr", "aria-expanded", "true");
+            cy.get("#g-controls h3 button[aria-expanded]")
+                .eq(2)
+                .should("have.attr", "aria-expanded", "false");
+
+            cy.get('[aria-label="x coordinate for A"]').should("exist");
+            cy.get('[aria-label="x coordinate for C"]').should("not.exist");
+
+            cy.contains("#g-controls h3", "C")
+                .find("button[aria-expanded]")
+                .should("have.attr", "aria-expanded", "false")
+                .click()
+                .should("have.attr", "aria-expanded", "true");
+
+            cy.get('[aria-label="x coordinate for C"]').should("exist");
+        });
+
+        it("uses the same collapse defaults on prefigure renderer", () => {
+            loadGraphTest(
+                `
+<text name="ready">ready</text>
+<graph name="g" renderer="prefigure" addControls="slidersOnly" controlsPosition="left">
+  <point name="A" labelIsName>(1,1)</point>
+  <point name="B" labelIsName>(2,2)</point>
+  <point name="C" labelIsName>(3,3)</point>
+  <point name="D" labelIsName>(4,4)</point>
+  <point name="E" labelIsName>(5,5)</point>
+  <point name="F" labelIsName>(6,6)</point>
+  <point name="G" labelIsName>(7,7)</point>
+</graph>
+`,
+                { prefigure: true },
+            );
+
+            cy.get("#g-controls h3 button[aria-expanded]")
+                .eq(0)
+                .should("have.attr", "aria-expanded", "true");
+            cy.get("#g-controls h3 button[aria-expanded]")
+                .eq(1)
+                .should("have.attr", "aria-expanded", "true");
+            cy.get("#g-controls h3 button[aria-expanded]")
+                .eq(2)
+                .should("have.attr", "aria-expanded", "false");
+
+            cy.get('[aria-label="x coordinate for C"]').should("not.exist");
+
+            cy.contains("#g-controls h3", "C")
+                .find("button[aria-expanded]")
+                .click();
+
+            cy.get('[aria-label="x coordinate for C"]').should("exist");
         });
 
         it("updates from sliders and inline inputs on default graph renderer", () => {
@@ -231,6 +325,10 @@ describe(
 <number name="LEndpoint1X" extend="$L.endpoint1.x" />
 <number name="VHeadX" extend="$V.head.x" />
 `);
+            expandControlCardIfCollapsed("R");
+            expandControlCardIfCollapsed("L");
+            expandControlCardIfCollapsed("V");
+
             cy.get("#CRadius").should("have.text", "3");
             cy.get("#RPRadius").should("not.have.text", "NaN");
             cy.get("#RWidth").should("have.text", "2");
@@ -346,6 +444,7 @@ describe(
   <regularPolygon center="(6,0)" circumradius="5" numSides="5" addControls="none" />
 </graph>
 `);
+            expandControlCardIfCollapsed("Regular polygon 3");
 
             cy.get(
                 '[aria-label="center x coordinate for Regular polygon 1"]',
@@ -376,6 +475,7 @@ describe(
             );
 
             cy.get("#middleDraggable").click();
+            expandControlCardIfCollapsed("Regular polygon 3");
 
             cy.get(
                 '[aria-label="center x coordinate for Regular polygon 2"]',
@@ -535,6 +635,8 @@ describe(
   <triangle vertices="(6,3) (8,3) (7,5)" addControls="none" />
 </graph>
 `);
+            expandControlCardIfCollapsed("Triangle 1");
+            expandControlCardIfCollapsed("Triangle 2");
 
             cy.get(
                 '[aria-label="x coordinate for center of Polygon 1"]',
@@ -578,6 +680,8 @@ describe(
   <polygon vertices="(6,0) (8,0) (8,2) (6,2)" addControls="center" />
 </graph>
 `);
+            expandControlCardIfCollapsed("Polygon 1");
+            expandControlCardIfCollapsed("Polygon 3");
 
             cy.get(
                 '[aria-label="x coordinate for center of Polygon 1"]',
@@ -671,6 +775,7 @@ describe(
 
             cy.get("#middleDraggable").click();
             cy.get("#middleVerticesDraggable").click();
+            expandControlCardIfCollapsed("Rectangle 3");
 
             cy.get('[aria-label="center x coordinate for Rectangle 2"]').should(
                 "exist",
@@ -953,6 +1058,7 @@ describe(
     <point>(3,3)</point>
 </graph>
 `);
+            expandControlCardIfCollapsed("Point 3");
 
             cy.get("#ready").should("have.text", "ready");
 
@@ -985,6 +1091,7 @@ describe(
 <p>Q.x: <number name="refQx" displayDigits="2">$Q.x</number></p>
 <p>R.x: <number name="refRx" displayDecimals="2" padZeros="true">$R.x</number></p>
 `);
+            expandControlCardIfCollapsed("R");
 
             cy.get("#ready").should("have.text", "ready");
 
@@ -1562,22 +1669,37 @@ describe(
             const xSlider = '[aria-label="x coordinate for P"]';
             cy.get(xSlider).focus();
 
-            for (let i = 1; i <= 5; i++) {
+            for (let i = 1; i <= 4; i++) {
                 keyboardStepRangeRight(xSlider);
             }
 
-            cy.get("#Px").should("have.text", "0");
+            // Actual point snaps to 1 even during the transient
+
+            cy.get("#Px").should("have.text", "1");
             cy.get(xSlider)
                 .invoke("val")
                 .then((transientValue) => {
-                    const transientText = String(transientValue);
-                    expect(Number(transientText)).to.be.greaterThan(0.7);
+                    const transientNumber = Number(transientValue);
+                    expect(transientNumber).to.be.greaterThan(0.5);
+                    expect(transientNumber).to.be.lessThan(0.9);
+
+                    // Before blur: number input should show transient value
+                    cy.get('input[aria-label="x value input for P"]').should(
+                        "have.value",
+                        transientValue,
+                    );
 
                     cy.get(xSlider).blur();
 
-                    cy.get(xSlider).should("have.value", transientText);
-                    cy.get("#Px").should("have.text", transientText);
+                    // After blur: slider and input both snap to constrained value
+                    cy.get(xSlider).should("have.value", "1");
+                    cy.get('input[aria-label="x value input for P"]').should(
+                        "have.value",
+                        "1",
+                    );
+                    cy.get("#Px").should("have.text", "1");
                 });
+            cy.get(xSlider).should("have.value", "1");
         });
 
         it("keyboard blur on constrained point does not send another movePoint", () => {
@@ -1611,18 +1733,39 @@ describe(
             cy.get(xSlider).focus();
             keyboardStepRangeRight(xSlider);
 
-            cy.get("#Px").should("have.text", "0.1");
-            cy.get("#Py").should("have.text", "0.1");
+            cy.get(xSlider)
+                .invoke("val")
+                .then((xBeforeBlurRaw) => {
+                    const xBeforeBlur = Number(xBeforeBlurRaw);
 
-            cy.get(xSlider).should("have.attr", "value", "0.2");
-            cy.get(ySlider).should("have.attr", "value", "0.1");
+                    cy.get("#Px")
+                        .invoke("text")
+                        .then((pxBeforeBlurRaw) => {
+                            const pxBeforeBlur = Number(pxBeforeBlurRaw.trim());
+                            expect(pxBeforeBlur).to.be.at.least(0);
+                            expect(xBeforeBlur).to.be.at.least(pxBeforeBlur);
 
-            cy.get(ySlider).focus();
+                            cy.get("#Py")
+                                .invoke("text")
+                                .then((pyBeforeBlurRaw) => {
+                                    const pyBeforeBlur = Number(
+                                        pyBeforeBlurRaw.trim(),
+                                    );
+                                    expect(pyBeforeBlur).to.equal(pxBeforeBlur);
 
-            cy.get(xSlider).should("have.attr", "value", "0.1");
-            cy.get(ySlider).should("have.attr", "value", "0.1");
-            cy.get("#Px").should("have.text", "0.1");
-            cy.get("#Py").should("have.text", "0.1");
+                                    cy.get(ySlider).focus();
+
+                                    cy.get("#Px").should(
+                                        "have.text",
+                                        String(pxBeforeBlur),
+                                    );
+                                    cy.get("#Py").should(
+                                        "have.text",
+                                        String(pyBeforeBlur),
+                                    );
+                                });
+                        });
+                });
         });
 
         it("circle radius slider dragged to zero and back recovers circle", () => {

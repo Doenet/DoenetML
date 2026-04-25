@@ -74,6 +74,8 @@ export default React.memo(function RectangleControlsFamily({
     id,
     SVs,
     callAction,
+    isGraphControlExpanded,
+    toggleGraphControlExpanded,
 }: GraphControlsFamilyProps) {
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     if (graphControlsMode === "none") {
@@ -205,7 +207,13 @@ export default React.memo(function RectangleControlsFamily({
                     key={rectangle.componentIdx}
                     id={`${id}-rectangle-${rectangle.componentIdx}`}
                     headingId={`${id}-rectangle-${rectangle.componentIdx}-heading`}
+                    contentId={`${id}-rectangle-${rectangle.componentIdx}-content`}
                     heading={labelForDisplay}
+                    disclosureControlLabel={labelForAria}
+                    isExpanded={isGraphControlExpanded(rectangle.componentIdx)}
+                    onToggleExpanded={() =>
+                        toggleGraphControlExpanded(rectangle.componentIdx)
+                    }
                 >
                     {sections.map((section) => {
                         if (section.kind === "center") {

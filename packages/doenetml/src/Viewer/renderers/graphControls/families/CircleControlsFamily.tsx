@@ -48,6 +48,8 @@ export default React.memo(function CircleControlsFamily({
     id,
     SVs,
     callAction,
+    isGraphControlExpanded,
+    toggleGraphControlExpanded,
 }: GraphControlsFamilyProps) {
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     if (graphControlsMode === "none") {
@@ -178,7 +180,13 @@ export default React.memo(function CircleControlsFamily({
                     key={circle.componentIdx}
                     id={`${id}-circle-${circle.componentIdx}`}
                     headingId={headingId}
+                    contentId={`${id}-circle-${circle.componentIdx}-content`}
                     heading={labelForDisplay}
+                    disclosureControlLabel={labelForAria}
+                    isExpanded={isGraphControlExpanded(circle.componentIdx)}
+                    onToggleExpanded={() =>
+                        toggleGraphControlExpanded(circle.componentIdx)
+                    }
                 >
                     {sections.map((section) =>
                         section.kind === "center" ? (
