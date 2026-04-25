@@ -19,6 +19,8 @@ export default React.memo(function PolygonControlsFamily({
     id,
     SVs,
     callAction,
+    isGraphControlExpanded,
+    toggleGraphControlExpanded,
 }: GraphControlsFamilyProps) {
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     if (graphControlsMode === "none") {
@@ -98,7 +100,12 @@ export default React.memo(function PolygonControlsFamily({
                     key={polygon.componentIdx}
                     id={`${id}-polygon-${polygon.componentIdx}`}
                     headingId={`${id}-polygon-${polygon.componentIdx}-heading`}
+                    contentId={`${id}-polygon-${polygon.componentIdx}-content`}
                     heading={labelForDisplay}
+                    isExpanded={isGraphControlExpanded(polygon.componentIdx)}
+                    onToggleExpanded={() =>
+                        toggleGraphControlExpanded(polygon.componentIdx)
+                    }
                 >
                     <PointControlCoordinator
                         id={id}

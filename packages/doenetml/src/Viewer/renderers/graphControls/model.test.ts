@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
     assertKnownGraphControlType,
+    selectInitialExpandedGraphControlIds,
     sortGraphControlsForDisplay,
     type GraphControlItem,
 } from "./model";
@@ -86,5 +87,44 @@ describe("graph controls model", () => {
         const sorted = sortGraphControlsForDisplay(controls);
 
         expect(sorted.map((x) => x.componentIdx)).toEqual([3, 2, 1, 4]);
+    });
+
+    it("expands all controls when there are two or fewer", () => {
+        const controls: GraphControlItem[] = [
+            mockControl("point", 1, 0),
+            mockControl("point", 2, 0),
+        ];
+
+        const expandedIds = selectInitialExpandedGraphControlIds(controls);
+
+        expect(Array.from(expandedIds)).toEqual([1, 2]);
+    });
+
+    it("expands only first two controls when list has more than two", () => {
+        const controls: GraphControlItem[] = [
+            mockControl("point", 1, 0),
+            mockControl("point", 2, 0),
+            mockControl("point", 3, 0),
+        ];
+
+        const expandedIds = selectInitialExpandedGraphControlIds(controls);
+
+        expect(Array.from(expandedIds)).toEqual([1, 2]);
+    });
+
+    it("expands only first two controls for long lists", () => {
+        const controls: GraphControlItem[] = [
+            mockControl("point", 1, 0),
+            mockControl("point", 2, 0),
+            mockControl("point", 3, 0),
+            mockControl("point", 4, 0),
+            mockControl("point", 5, 0),
+            mockControl("point", 6, 0),
+            mockControl("point", 7, 0),
+        ];
+
+        const expandedIds = selectInitialExpandedGraphControlIds(controls);
+
+        expect(Array.from(expandedIds)).toEqual([1, 2]);
     });
 });

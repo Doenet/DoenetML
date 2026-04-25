@@ -19,6 +19,8 @@ export default React.memo(function TriangleControlsFamily({
     id,
     SVs,
     callAction,
+    isGraphControlExpanded,
+    toggleGraphControlExpanded,
 }: GraphControlsFamilyProps) {
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     if (graphControlsMode === "none") {
@@ -98,7 +100,12 @@ export default React.memo(function TriangleControlsFamily({
                     key={triangle.componentIdx}
                     id={`${id}-triangle-${triangle.componentIdx}`}
                     headingId={`${id}-triangle-${triangle.componentIdx}-heading`}
+                    contentId={`${id}-triangle-${triangle.componentIdx}-content`}
                     heading={labelForDisplay}
+                    isExpanded={isGraphControlExpanded(triangle.componentIdx)}
+                    onToggleExpanded={() =>
+                        toggleGraphControlExpanded(triangle.componentIdx)
+                    }
                 >
                     <PointControlCoordinator
                         id={id}

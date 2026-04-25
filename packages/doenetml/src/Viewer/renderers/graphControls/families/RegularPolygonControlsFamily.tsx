@@ -50,6 +50,8 @@ export default React.memo(function RegularPolygonControlsFamily({
     id,
     SVs,
     callAction,
+    isGraphControlExpanded,
+    toggleGraphControlExpanded,
 }: GraphControlsFamilyProps) {
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     if (graphControlsMode === "none") {
@@ -180,7 +182,14 @@ export default React.memo(function RegularPolygonControlsFamily({
                     key={regularPolygon.componentIdx}
                     id={`${id}-regularPolygon-${regularPolygon.componentIdx}`}
                     headingId={`${id}-regularPolygon-${regularPolygon.componentIdx}-heading`}
+                    contentId={`${id}-regularPolygon-${regularPolygon.componentIdx}-content`}
                     heading={labelForDisplay}
+                    isExpanded={isGraphControlExpanded(
+                        regularPolygon.componentIdx,
+                    )}
+                    onToggleExpanded={() =>
+                        toggleGraphControlExpanded(regularPolygon.componentIdx)
+                    }
                 >
                     {sections.map((section) =>
                         section.kind === "center" ? (

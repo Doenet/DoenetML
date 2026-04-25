@@ -11,6 +11,7 @@ import {
     assertKnownGraphControlType,
     type GraphControlItem,
     type GraphControlsFamilyProps,
+    selectInitialExpandedGraphControlIds,
     sortGraphControlsForDisplay,
 } from "./model";
 
@@ -38,6 +39,93 @@ export default React.memo(function GraphControlsRoot(
         [SVs.graphicalDescendantsForControls],
     );
 
+    const defaultExpandedControlIds = React.useMemo(
+        () => selectInitialExpandedGraphControlIds(orderedControls),
+        [orderedControls],
+    );
+
+    const [expandedByControlId, setExpandedByControlId] = React.useState(() => {
+        const initialMap = new Map<number, boolean>();
+        for (const control of orderedControls) {
+            initialMap.set(
+                control.componentIdx,
+                defaultExpandedControlIds.has(control.componentIdx),
+            );
+        }
+        return initialMap;
+    });
+
+    /**
+     * Sync expansion state map whenever the ordered controls list or defaults change.
+     * Handles four cases:
+     * 1. New controls: inherit the default expanded state
+     * 2. Removed controls: drop their expansion state (unreachable now)
+     * 3. Reordered controls: preserve user's expansion state by componentIdx
+     * 4. Unchanged: return previous state to avoid spurious re-renders
+     */
+    React.useEffect(() => {
+        setExpandedByControlId((previous) => {
+            const next = new Map<number, boolean>();
+            let changed = previous.size !== orderedControls.length;
+
+            for (const control of orderedControls) {
+                const componentIdx = control.componentIdx;
+                const previousValue = previous.get(componentIdx);
+                const nextValue =
+                    previousValue ??
+                    defaultExpandedControlIds.has(componentIdx);
+                next.set(componentIdx, nextValue);
+                if (previousValue === undefined) {
+                    changed = true;
+                }
+            }
+
+            if (!changed) {
+                for (const [componentIdx, value] of previous) {
+                    if (next.get(componentIdx) !== value) {
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+
+            return changed ? next : previous;
+        });
+    }, [orderedControls, defaultExpandedControlIds]);
+
+    /**
+     * Query whether a control card is currently expanded.
+     * Checks the user-controlled state first, falling back to the default initial state.
+     * This allows controls to remain collapsed/expanded as the user set them, even as
+     * the list of controls changes (e.g., due to visibility constraints).
+     */
+    const isGraphControlExpanded = React.useCallback(
+        (componentIdx: number) =>
+            expandedByControlId.get(componentIdx) ??
+            defaultExpandedControlIds.has(componentIdx),
+        [expandedByControlId, defaultExpandedControlIds],
+    );
+
+    /**
+     * Toggle the expansion state of a control card.
+     * Flips the stored expansion state for the given control, allowing users to open/close
+     * cards to manage long control lists. The toggle persists independently of list reordering
+     * or visibility changes.
+     */
+    const toggleGraphControlExpanded = React.useCallback(
+        (componentIdx: number) => {
+            setExpandedByControlId((previous) => {
+                const next = new Map(previous);
+                const currentValue =
+                    next.get(componentIdx) ??
+                    defaultExpandedControlIds.has(componentIdx);
+                next.set(componentIdx, !currentValue);
+                return next;
+            });
+        },
+        [defaultExpandedControlIds],
+    );
+
     function renderControl(control: GraphControlItem) {
         const controlType = assertKnownGraphControlType(control.controlType);
         const FamilyComponent = CONTROLS_FAMILY_BY_TYPE[controlType];
@@ -51,6 +139,8 @@ export default React.memo(function GraphControlsRoot(
         const controlFamilyProps: GraphControlsFamilyProps = {
             ...props,
             id: `${id}_control_${instanceId}`,
+            isGraphControlExpanded,
+            toggleGraphControlExpanded,
             SVs: {
                 ...SVs,
                 graphicalDescendantsForControls: [control],

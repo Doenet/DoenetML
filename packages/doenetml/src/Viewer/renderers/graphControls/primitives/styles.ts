@@ -12,6 +12,69 @@ export const GRAPH_CONTROL_HEADING_STYLE: React.CSSProperties = {
     fontWeight: 600,
     margin: 0,
     fontSize: "1em",
+    display: "flex",
+    alignItems: "flex-start",
+    justifyContent: "space-between",
+    gap: "8px",
+};
+
+export const GRAPH_CONTROL_HEADING_TEXT_STYLE: React.CSSProperties = {
+    minWidth: 0,
+};
+
+export const GRAPH_CONTROL_DISCLOSURE_BUTTON_STYLE: React.CSSProperties = {
+    border: "1px solid var(--canvasText)",
+    borderRadius: "4px",
+    backgroundColor: "transparent",
+    color: "inherit",
+    width: "1.65em",
+    height: "1.65em",
+    minWidth: "1.65em",
+    padding: 0,
+    cursor: "pointer",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+    flexShrink: 0,
+    transition: "background-color 120ms ease, box-shadow 120ms ease",
+};
+
+export const GRAPH_CONTROL_DISCLOSURE_BUTTON_HOVER_STYLE: React.CSSProperties =
+    {
+        backgroundColor: "rgba(127, 127, 127, 0.15)",
+    };
+
+export const GRAPH_CONTROL_DISCLOSURE_BUTTON_PRESSED_STYLE: React.CSSProperties =
+    {
+        backgroundColor: "rgba(127, 127, 127, 0.25)",
+        boxShadow: "inset 0 0 0 1px var(--canvasText)",
+    };
+
+export const GRAPH_CONTROL_DISCLOSURE_BUTTON_FOCUS_STYLE: React.CSSProperties =
+    {
+        boxShadow: "0 0 0 2px var(--mainBlue)",
+    };
+
+export const GRAPH_CONTROL_DISCLOSURE_ICON_STYLE: React.CSSProperties = {
+    width: 0,
+    height: 0,
+    borderStyle: "solid",
+};
+
+export const GRAPH_CONTROL_DISCLOSURE_ICON_EXPANDED_STYLE: React.CSSProperties =
+    {
+        borderWidth: "6px 5px 0 5px",
+        borderColor: "var(--canvasText) transparent transparent transparent",
+    };
+
+export const GRAPH_CONTROL_DISCLOSURE_ICON_COLLAPSED_STYLE: React.CSSProperties =
+    {
+        borderWidth: "5px 0 5px 6px",
+        borderColor: "transparent transparent transparent var(--canvasText)",
+    };
+
+export const GRAPH_CONTROL_CONTENT_STYLE: React.CSSProperties = {
+    marginTop: "6px",
 };
 
 export const GRAPH_CONTROL_INPUT_BLOCK_STYLE: React.CSSProperties = {

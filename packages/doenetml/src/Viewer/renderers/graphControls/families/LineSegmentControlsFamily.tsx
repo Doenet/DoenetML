@@ -85,6 +85,8 @@ export default React.memo(function LineSegmentControlsFamily({
     id,
     SVs,
     callAction,
+    isGraphControlExpanded,
+    toggleGraphControlExpanded,
 }: GraphControlsFamilyProps) {
     const graphControlsMode = normalizeGraphControlsMode(SVs.addControls);
     if (graphControlsMode === "none") {
@@ -164,7 +166,14 @@ export default React.memo(function LineSegmentControlsFamily({
                     key={lineSegment.componentIdx}
                     id={`${id}-lineSegment-${lineSegment.componentIdx}`}
                     headingId={`${id}-lineSegment-${lineSegment.componentIdx}-heading`}
+                    contentId={`${id}-lineSegment-${lineSegment.componentIdx}-content`}
                     heading={labelForDisplay}
+                    isExpanded={isGraphControlExpanded(
+                        lineSegment.componentIdx,
+                    )}
+                    onToggleExpanded={() =>
+                        toggleGraphControlExpanded(lineSegment.componentIdx)
+                    }
                 >
                     {sections.map((section) => {
                         const coordinates = getLineSegmentCoordinatesByRole(
