@@ -106,7 +106,7 @@ export default function ControlCard({
                 <button
                     type="button"
                     aria-expanded={isExpanded}
-                    aria-controls={resolvedContentId}
+                    aria-controls={isExpanded ? resolvedContentId : undefined}
                     aria-label={
                         isExpanded
                             ? `Collapse control details${disclosureControlLabelSuffix}`
@@ -115,7 +115,10 @@ export default function ControlCard({
                     style={disclosureButtonStyle}
                     onClick={onToggleExpanded}
                     onFocus={() => setIsHeadingButtonFocused(true)}
-                    onBlur={() => setIsHeadingButtonFocused(false)}
+                    onBlur={() => {
+                        setIsHeadingButtonFocused(false);
+                        setIsHeadingButtonPressed(false);
+                    }}
                     onMouseEnter={() => setIsHeadingButtonHovered(true)}
                     onMouseLeave={() => {
                         setIsHeadingButtonHovered(false);
@@ -124,13 +127,18 @@ export default function ControlCard({
                     onMouseDown={() => setIsHeadingButtonPressed(true)}
                     onMouseUp={() => setIsHeadingButtonPressed(false)}
                     onKeyDown={(event) => {
-                        if (event.key === " " || event.key === "Enter") {
-                            event.preventDefault();
+                        if (
+                            !event.repeat &&
+                            (event.key === "Enter" || event.key === " ")
+                        ) {
                             setIsHeadingButtonPressed(true);
-                            onToggleExpanded?.();
                         }
                     }}
-                    onKeyUp={() => setIsHeadingButtonPressed(false)}
+                    onKeyUp={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                            setIsHeadingButtonPressed(false);
+                        }
+                    }}
                 >
                     <span aria-hidden="true" style={disclosureIconStyle} />
                 </button>

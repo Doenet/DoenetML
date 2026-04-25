@@ -60,7 +60,7 @@ export default React.memo(function GraphControlsRoot(
      * Sync expansion state map whenever the ordered controls list or defaults change.
      * Handles four cases:
      * 1. New controls: inherit the default expanded state
-     * 2. Removed controls: drop their expansion state (unreachable now)
+     * 2. Removed or hidden controls: drop their expansion state when the list shrinks
      * 3. Reordered controls: preserve user's expansion state by componentIdx
      * 4. Unchanged: return previous state to avoid spurious re-renders
      */

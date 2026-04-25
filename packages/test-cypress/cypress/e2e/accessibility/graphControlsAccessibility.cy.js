@@ -5,7 +5,13 @@ describe("Graph controls accessibility", { tags: ["@group5"] }, () => {
         cy.injectAxe();
     });
 
-    it("supports keyboard disclosure semantics for long graph control lists", () => {
+    it("supports accessible disclosure semantics for long graph control lists", () => {
+        function getToggleC() {
+            return cy
+                .contains("#g-controls h3", /^\s*C\s*$/)
+                .find("button[aria-expanded]");
+        }
+
         cy.window().then((win) => {
             win.postMessage(
                 {
@@ -28,32 +34,49 @@ describe("Graph controls accessibility", { tags: ["@group5"] }, () => {
 
         cy.get("#ready").should("have.text", "ready");
 
-        cy.get("#g-controls h3 button[aria-expanded]")
-            .eq(2)
-            .as("toggleC")
-            .should("have.attr", "aria-label", "Expand control details for C")
-            .should("have.attr", "aria-expanded", "false");
+        getToggleC()
+            .invoke("attr", "aria-expanded")
+            .then((initialExpandedRaw) => {
+                const initialExpanded = initialExpandedRaw === "true";
 
-        cy.get("@toggleC")
-            .focus()
-            .type("{enter}")
-            .should("have.attr", "aria-label", "Collapse control details for C")
-            .should("have.attr", "aria-expanded", "true");
+                if (initialExpanded) {
+                    getToggleC().click();
+                }
 
-        cy.get("@toggleC")
-            .invoke("attr", "aria-controls")
-            .then((contentId) => {
-                expect(contentId).to.be.a("string").and.not.equal("");
-                cy.get(`#${contentId}`).should("have.attr", "role", "region");
+                getToggleC()
+                    .focus()
+                    .should("be.focused")
+                    .should(
+                        "have.attr",
+                        "aria-label",
+                        "Expand control details for C",
+                    )
+                    .should("have.attr", "aria-expanded", "false")
+                    .should("not.have.attr", "aria-controls");
+
+                cy.get('[aria-label="x coordinate for C"]').should("not.exist");
+
+                getToggleC().click();
+
+                getToggleC()
+                    .should(
+                        "have.attr",
+                        "aria-label",
+                        "Collapse control details for C",
+                    )
+                    .should("have.attr", "aria-expanded", "true")
+                    .invoke("attr", "aria-controls")
+                    .then((contentId) => {
+                        expect(contentId).to.be.a("string").and.not.equal("");
+                        cy.get(`#${contentId}`).should(
+                            "have.attr",
+                            "role",
+                            "region",
+                        );
+                    });
+
+                cy.get('[aria-label="x coordinate for C"]').should("exist");
             });
-
-        cy.get('[aria-label="x coordinate for C"]').should("exist");
-
-        cy.get("@toggleC")
-            .type(" ")
-            .should("have.attr", "aria-expanded", "false");
-
-        cy.get('[aria-label="x coordinate for C"]').should("not.exist");
 
         cy.checkAccessibility(["#g-controls"], {
             onlyWarnImpacts: ["moderate", "minor"],

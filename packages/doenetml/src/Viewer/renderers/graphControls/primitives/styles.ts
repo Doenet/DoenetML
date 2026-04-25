@@ -56,6 +56,7 @@ export const GRAPH_CONTROL_DISCLOSURE_BUTTON_FOCUS_STYLE: React.CSSProperties =
     };
 
 export const GRAPH_CONTROL_DISCLOSURE_ICON_STYLE: React.CSSProperties = {
+    display: "inline-block",
     width: 0,
     height: 0,
     borderStyle: "solid",
