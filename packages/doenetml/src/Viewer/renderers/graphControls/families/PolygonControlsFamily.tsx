@@ -102,6 +102,7 @@ export default React.memo(function PolygonControlsFamily({
                     headingId={`${id}-polygon-${polygon.componentIdx}-heading`}
                     contentId={`${id}-polygon-${polygon.componentIdx}-content`}
                     heading={labelForDisplay}
+                    disclosureControlLabel={labelForAria}
                     isExpanded={isGraphControlExpanded(polygon.componentIdx)}
                     onToggleExpanded={() =>
                         toggleGraphControlExpanded(polygon.componentIdx)

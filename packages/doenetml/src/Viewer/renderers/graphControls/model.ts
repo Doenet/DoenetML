@@ -224,10 +224,13 @@ export type GraphControlsFamilySVs = {
     graphicalDescendantsForControls: GraphControlItem[];
 };
 
-export type GraphControlsFamilyProps = {
+export type GraphControlsRootProps = {
     id: string;
     SVs: GraphControlsFamilySVs;
     callAction: (argObj: Record<string, any>) => Promise<any> | void;
+};
+
+export type GraphControlsFamilyProps = GraphControlsRootProps & {
     isGraphControlExpanded: (componentIdx: number) => boolean;
     toggleGraphControlExpanded: (componentIdx: number) => void;
 };

@@ -184,6 +184,7 @@ export default React.memo(function RegularPolygonControlsFamily({
                     headingId={`${id}-regularPolygon-${regularPolygon.componentIdx}-heading`}
                     contentId={`${id}-regularPolygon-${regularPolygon.componentIdx}-content`}
                     heading={labelForDisplay}
+                    disclosureControlLabel={labelForAria}
                     isExpanded={isGraphControlExpanded(
                         regularPolygon.componentIdx,
                     )}

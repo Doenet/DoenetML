@@ -102,6 +102,7 @@ export default React.memo(function TriangleControlsFamily({
                     headingId={`${id}-triangle-${triangle.componentIdx}-heading`}
                     contentId={`${id}-triangle-${triangle.componentIdx}-content`}
                     heading={labelForDisplay}
+                    disclosureControlLabel={labelForAria}
                     isExpanded={isGraphControlExpanded(triangle.componentIdx)}
                     onToggleExpanded={() =>
                         toggleGraphControlExpanded(triangle.componentIdx)

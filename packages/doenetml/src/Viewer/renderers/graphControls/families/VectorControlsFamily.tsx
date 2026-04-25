@@ -227,6 +227,7 @@ export default React.memo(function VectorControlsFamily({
                     headingId={`${id}-vector-${componentIdx}-heading`}
                     contentId={`${id}-vector-${componentIdx}-content`}
                     heading={labelForDisplay}
+                    disclosureControlLabel={labelForAria}
                     isExpanded={isGraphControlExpanded(componentIdx)}
                     onToggleExpanded={() =>
                         toggleGraphControlExpanded(componentIdx)

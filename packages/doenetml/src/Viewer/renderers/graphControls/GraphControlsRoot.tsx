@@ -10,6 +10,7 @@ import VectorControlsFamily from "./families/VectorControlsFamily";
 import {
     assertKnownGraphControlType,
     type GraphControlItem,
+    type GraphControlsRootProps,
     type GraphControlsFamilyProps,
     selectInitialExpandedGraphControlIds,
     sortGraphControlsForDisplay,
@@ -30,7 +31,7 @@ const CONTROLS_FAMILY_BY_TYPE: Record<
 };
 
 export default React.memo(function GraphControlsRoot(
-    props: GraphControlsFamilyProps,
+    props: GraphControlsRootProps,
 ) {
     const { id, SVs } = props;
 

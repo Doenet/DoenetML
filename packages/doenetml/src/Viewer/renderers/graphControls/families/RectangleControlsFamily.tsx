@@ -209,6 +209,7 @@ export default React.memo(function RectangleControlsFamily({
                     headingId={`${id}-rectangle-${rectangle.componentIdx}-heading`}
                     contentId={`${id}-rectangle-${rectangle.componentIdx}-content`}
                     heading={labelForDisplay}
+                    disclosureControlLabel={labelForAria}
                     isExpanded={isGraphControlExpanded(rectangle.componentIdx)}
                     onToggleExpanded={() =>
                         toggleGraphControlExpanded(rectangle.componentIdx)

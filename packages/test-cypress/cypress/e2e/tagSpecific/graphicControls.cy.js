@@ -1733,21 +1733,37 @@ describe(
             cy.get(xSlider).focus();
             keyboardStepRangeRight(xSlider);
 
-            cy.get("#Px")
-                .invoke("text")
-                .then((pxBeforeBlurRaw) => {
-                    const pxBeforeBlur = pxBeforeBlurRaw.trim();
-                    expect(Number(pxBeforeBlur)).to.be.at.least(0);
+            cy.get(xSlider)
+                .invoke("val")
+                .then((xBeforeBlurRaw) => {
+                    const xBeforeBlur = Number(xBeforeBlurRaw);
 
-                    cy.get("#Py")
+                    cy.get("#Px")
                         .invoke("text")
-                        .then((pyBeforeBlurRaw) => {
-                            const pyBeforeBlur = pyBeforeBlurRaw.trim();
+                        .then((pxBeforeBlurRaw) => {
+                            const pxBeforeBlur = Number(pxBeforeBlurRaw.trim());
+                            expect(pxBeforeBlur).to.be.at.least(0);
+                            expect(xBeforeBlur).to.be.at.least(pxBeforeBlur);
 
-                            cy.get(ySlider).focus();
+                            cy.get("#Py")
+                                .invoke("text")
+                                .then((pyBeforeBlurRaw) => {
+                                    const pyBeforeBlur = Number(
+                                        pyBeforeBlurRaw.trim(),
+                                    );
+                                    expect(pyBeforeBlur).to.equal(pxBeforeBlur);
 
-                            cy.get("#Px").should("have.text", pxBeforeBlur);
-                            cy.get("#Py").should("have.text", pyBeforeBlur);
+                                    cy.get(ySlider).focus();
+
+                                    cy.get("#Px").should(
+                                        "have.text",
+                                        String(pxBeforeBlur),
+                                    );
+                                    cy.get("#Py").should(
+                                        "have.text",
+                                        String(pyBeforeBlur),
+                                    );
+                                });
                         });
                 });
         });

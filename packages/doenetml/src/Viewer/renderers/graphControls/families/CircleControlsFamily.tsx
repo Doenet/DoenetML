@@ -182,6 +182,7 @@ export default React.memo(function CircleControlsFamily({
                     headingId={headingId}
                     contentId={`${id}-circle-${circle.componentIdx}-content`}
                     heading={labelForDisplay}
+                    disclosureControlLabel={labelForAria}
                     isExpanded={isGraphControlExpanded(circle.componentIdx)}
                     onToggleExpanded={() =>
                         toggleGraphControlExpanded(circle.componentIdx)

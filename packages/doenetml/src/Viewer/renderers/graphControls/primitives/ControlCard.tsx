@@ -23,6 +23,7 @@ import {
  * @property contentId - HTML id for the content region; auto-generated if not provided
  * @property isExpanded - Whether the card is currently open (default: true)
  * @property onToggleExpanded - Callback when user clicks the disclosure button or presses Enter/Space
+ * @property disclosureControlLabel - Plain-text control label appended to disclosure aria-label
  */
 type ControlCardProps = {
     id?: string;
@@ -32,6 +33,7 @@ type ControlCardProps = {
     contentId?: string;
     isExpanded?: boolean;
     onToggleExpanded?: () => void;
+    disclosureControlLabel?: string;
 };
 
 /**
@@ -55,6 +57,7 @@ export default function ControlCard({
     contentId,
     isExpanded = true,
     onToggleExpanded,
+    disclosureControlLabel,
 }: ControlCardProps) {
     const resolvedContentId = contentId ?? (id ? `${id}-content` : undefined);
     const [isHeadingButtonFocused, setIsHeadingButtonFocused] =
@@ -87,6 +90,10 @@ export default function ControlCard({
               ...GRAPH_CONTROL_DISCLOSURE_ICON_COLLAPSED_STYLE,
           };
 
+    const disclosureControlLabelSuffix = disclosureControlLabel
+        ? ` for ${disclosureControlLabel}`
+        : "";
+
     return (
         <div
             id={id}
@@ -102,8 +109,8 @@ export default function ControlCard({
                     aria-controls={resolvedContentId}
                     aria-label={
                         isExpanded
-                            ? "Collapse control details"
-                            : "Expand control details"
+                            ? `Collapse control details${disclosureControlLabelSuffix}`
+                            : `Expand control details${disclosureControlLabelSuffix}`
                     }
                     style={disclosureButtonStyle}
                     onClick={onToggleExpanded}

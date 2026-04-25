@@ -106,6 +106,7 @@ export default React.memo(function PointControlsFamily({
                     headingId={`${id}-point-${point.componentIdx}-heading`}
                     contentId={`${id}-point-${point.componentIdx}-content`}
                     heading={pointLabelForDisplay}
+                    disclosureControlLabel={pointLabelForAria}
                     isExpanded={isGraphControlExpanded(point.componentIdx)}
                     onToggleExpanded={() =>
                         toggleGraphControlExpanded(point.componentIdx)

@@ -168,6 +168,7 @@ export default React.memo(function LineSegmentControlsFamily({
                     headingId={`${id}-lineSegment-${lineSegment.componentIdx}-heading`}
                     contentId={`${id}-lineSegment-${lineSegment.componentIdx}-content`}
                     heading={labelForDisplay}
+                    disclosureControlLabel={labelForAria}
                     isExpanded={isGraphControlExpanded(
                         lineSegment.componentIdx,
                     )}

@@ -31,11 +31,13 @@ describe("Graph controls accessibility", { tags: ["@group5"] }, () => {
         cy.get("#g-controls h3 button[aria-expanded]")
             .eq(2)
             .as("toggleC")
+            .should("have.attr", "aria-label", "Expand control details for C")
             .should("have.attr", "aria-expanded", "false");
 
         cy.get("@toggleC")
             .focus()
             .type("{enter}")
+            .should("have.attr", "aria-label", "Collapse control details for C")
             .should("have.attr", "aria-expanded", "true");
 
         cy.get("@toggleC")
