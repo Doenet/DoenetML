@@ -8078,6 +8078,11 @@ export default class Core {
         return await stateVarObj.value;
     }
 
+    /**
+     * Build definition/inverse-definition args for a state variable.
+     * When consumeChanges is false, dependency change flags are observed but preserved
+     * for a later consuming read.
+     */
     async getStateVariableDefinitionArguments({
         component,
         stateVariable,

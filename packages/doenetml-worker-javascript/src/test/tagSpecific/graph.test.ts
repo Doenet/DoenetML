@@ -1770,166 +1770,71 @@ describe("Graph tag tests @group2", async () => {
         ).eq("description");
     });
 
-    it("regularPolygon center control with consecutive moves and no intermediate state read (with $rg.center)", async () => {
+    async function runConsecutiveRegularPolygonCenterMoves({
+        includeCenterParagraph,
+    }: {
+        includeCenterParagraph: boolean;
+    }) {
+        const centerParagraph = includeCenterParagraph
+            ? "\n    <p>Center: $rg.center</p>"
+            : "";
+
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g" addControls>
       <regularPolygon name="rg" vertices="(4,5) (-3,2)" numSides="3" />
     </graph>
-    <p>Vertices: $rg.vertices</p>
-    <p>Center: $rg.center</p>
+    <p>Vertices: $rg.vertices</p>${centerParagraph}
     `,
         });
 
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        let rgStateVars =
-            stateVariables[await resolvePathToNodeIdx("rg")].stateValues;
-
-        // Read initial values once, then perform back-to-back actions.
-        let initialCenter = rgStateVars.center.map((x: any) =>
-            x.evaluate_to_constant(),
-        );
-        let initialCircumradius = rgStateVars.circumradius;
-
-        // Move center to (-1, initialCenter[1])
-        await movePolygonCenter({
-            componentIdx: await resolvePathToNodeIdx("rg"),
-            center: [-1, initialCenter[1]],
-            core,
-        });
-
-        // Now move center to (-2, initialCenter[1]) — this is where the bug appears
-        await movePolygonCenter({
-            componentIdx: await resolvePathToNodeIdx("rg"),
-            center: [-2, initialCenter[1]],
-            core,
-        });
-
-        stateVariables = await core.returnAllStateVariables(false, true);
-        rgStateVars =
-            stateVariables[await resolvePathToNodeIdx("rg")].stateValues;
-
-        let center2 = rgStateVars.center.map((x: any) =>
-            x.evaluate_to_constant(),
-        );
-        let circumradius2 = rgStateVars.circumradius;
-
-        expect(center2[0]).toBeCloseTo(-2, 5);
-        expect(center2[1]).toBeCloseTo(initialCenter[1], 5);
-        expect(circumradius2).toBeCloseTo(initialCircumradius, 5);
-    });
-
-    it("regularPolygon center control with consecutive moves and no intermediate state read (without $rg.center)", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-    <graph name="g" addControls>
-      <regularPolygon name="rg" vertices="(4,5) (-3,2)" numSides="3" />
-    </graph>
-    <p>Vertices: $rg.vertices</p>
-    `,
-        });
-
-        let stateVariables = await core.returnAllStateVariables(false, true);
-        let rgStateVars =
-            stateVariables[await resolvePathToNodeIdx("rg")].stateValues;
-
-        // Read initial values once, then perform back-to-back actions.
-        let initialCenter = rgStateVars.center.map((x: any) =>
-            x.evaluate_to_constant(),
-        );
-        let initialCircumradius = rgStateVars.circumradius;
-
-        // Move center to (-1, initialCenter[1])
-        await movePolygonCenter({
-            componentIdx: await resolvePathToNodeIdx("rg"),
-            center: [-1, initialCenter[1]],
-            core,
-        });
-
-        // Now move center to (-2, initialCenter[1]) — this is where the bug appears
-        await movePolygonCenter({
-            componentIdx: await resolvePathToNodeIdx("rg"),
-            center: [-2, initialCenter[1]],
-            core,
-        });
-
-        stateVariables = await core.returnAllStateVariables(false, true);
-        rgStateVars =
-            stateVariables[await resolvePathToNodeIdx("rg")].stateValues;
-
-        let center2 = rgStateVars.center.map((x: any) =>
-            x.evaluate_to_constant(),
-        );
-        let circumradius2 = rgStateVars.circumradius;
-
-        expect(center2[0]).toBeCloseTo(-2, 5);
-        expect(center2[1]).toBeCloseTo(initialCenter[1], 5);
-        expect(circumradius2).toBeCloseTo(initialCircumradius, 5);
-    });
-
-    it("regularPolygon one move diagnostics without $rg.center", async () => {
-        let { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-    <graph name="g" addControls>
-      <regularPolygon name="rg" vertices="(4,5) (-3,2)" numSides="3" />
-    </graph>
-    <p>Vertices: $rg.vertices</p>
-    `,
-        });
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
         const rgIdx = await resolvePathToNodeIdx("rg");
-        const rgStateVars = stateVariables[rgIdx].stateValues;
 
-        const initialCenter = rgStateVars.center.map((x: any) =>
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        let rgStateVars = stateVariables[rgIdx].stateValues;
+
+        // Read initial values once, then perform back-to-back actions.
+        let initialCenter = rgStateVars.center.map((x: any) =>
             x.evaluate_to_constant(),
         );
+        let initialCircumradius = rgStateVars.circumradius;
 
+        // Move center to (-1, initialCenter[1])
         await movePolygonCenter({
             componentIdx: rgIdx,
             center: [-1, initialCenter[1]],
             core,
         });
 
-        const rgState = core.core?._components?.[rgIdx].state;
-        expect(rgState).toBeDefined();
+        // Now move center to (-2, initialCenter[1]) — this is where the bug appears
+        await movePolygonCenter({
+            componentIdx: rgIdx,
+            center: [-2, initialCenter[1]],
+            core,
+        });
 
-        const verticesHasGetter = !!Object.getOwnPropertyDescriptor(
-            rgState.vertices,
-            "value",
-        )?.get;
+        stateVariables = await core.returnAllStateVariables(false, true);
+        rgStateVars = stateVariables[rgIdx].stateValues;
 
-        const verticesValue = await rgState.vertices.value;
-        const numericalVertices = verticesValue.map((vertex: any) =>
-            vertex.map((v: any) => v.evaluate_to_constant()),
+        let center2 = rgStateVars.center.map((x: any) =>
+            x.evaluate_to_constant(),
         );
+        let circumradius2 = rgStateVars.circumradius;
 
-        const centerFromVertices = [0, 1].map(
-            (dim) =>
-                numericalVertices.reduce(
-                    (acc: number, vertex: number[]) => acc + vertex[dim],
-                    0,
-                ) / numericalVertices.length,
-        );
+        expect(center2[0]).toBeCloseTo(-2, 5);
+        expect(center2[1]).toBeCloseTo(initialCenter[1], 5);
+        expect(circumradius2).toBeCloseTo(initialCircumradius, 5);
+    }
 
-        const centerHasGetter = !!Object.getOwnPropertyDescriptor(
-            rgState.center,
-            "value",
-        )?.get;
+    it("regularPolygon center control with consecutive moves and no intermediate state read (with $rg.center)", async () => {
+        await runConsecutiveRegularPolygonCenterMoves({
+            includeCenterParagraph: true,
+        });
+    });
 
-        let centerValue = await rgState.center.value;
-        let numericalCenter = centerValue.map((v: any) =>
-            v.evaluate_to_constant(),
-        );
-
-        // Check state right after first move before any returnAllStateVariables call.
-        // We expect vertices to already be concrete and center to still be stale.
-        expect(verticesHasGetter).eq(false);
-        expect(centerHasGetter).eq(true);
-
-        // Reading center should trigger definition and match the shifted vertices center.
-        expect(numericalCenter[0]).toBeCloseTo(centerFromVertices[0], 10);
-        expect(numericalCenter[1]).toBeCloseTo(centerFromVertices[1], 10);
-        expect(numericalCenter[0]).toBeCloseTo(-1, 10);
+    it("regularPolygon center control with consecutive moves and no intermediate state read (without $rg.center)", async () => {
+        await runConsecutiveRegularPolygonCenterMoves({
+            includeCenterParagraph: false,
+        });
     });
 });

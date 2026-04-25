@@ -1000,6 +1000,11 @@ export class DependencyHandler {
         return variablesChanged;
     }
 
+    /**
+     * Get dependency values for a state variable.
+     * By default this consumes dependency change flags; set consumeChanges to false
+     * to inspect dependencies without clearing pending change markers.
+     */
     async getStateVariableDependencyValues({
         component,
         stateVariable,
@@ -3320,6 +3325,11 @@ class Dependency {
 
     deleteFromUpdateTriggers() {}
 
+    /**
+     * Return current dependency value, change metadata, and used-default metadata.
+     * When consumeChanges is false, this method reports current change flags without
+     * clearing them from dependency state.
+     */
     async getValue({
         verbose = false,
         skipProxy = false,
