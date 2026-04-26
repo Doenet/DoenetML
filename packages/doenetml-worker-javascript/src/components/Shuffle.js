@@ -65,7 +65,7 @@ export default class Shuffle extends CompositeComponent {
                 console.warn(`Invalid type ${type}`);
                 diagnostics.push({
                     type: "warning",
-                    message: `Invalid type ${type} for sort component. Must be one of math, text, number, or boolean. Defaulting to math.`,
+                    message: `Invalid type ${type} for shuffle component. Must be one of math, text, number, or boolean. Defaulting to math.`,
                 });
                 type = "math";
             }

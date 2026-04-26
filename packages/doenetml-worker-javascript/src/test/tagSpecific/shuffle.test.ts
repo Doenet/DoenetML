@@ -607,10 +607,6 @@ describe("Shuffle tag tests @group1", async () => {
     });
 
     it("sugar with invalid type specified defaults to math type with warning", async () => {
-        const consoleWarnSpy = vi
-            .spyOn(console, "warn")
-            .mockImplementation(() => {});
-
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pList"><shuffle name="sh" type="bad">d a b</shuffle></p>
@@ -627,9 +623,14 @@ describe("Shuffle tag tests @group1", async () => {
             replacements_all_of_type: "math",
         });
 
-        // Invalid sugar type currently warns via console.warn
-        expect(consoleWarnSpy).toHaveBeenCalledWith("Invalid type bad");
-        consoleWarnSpy.mockRestore();
+        let diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.warnings[0].message).contain(
+            "Invalid type bad for shuffle component",
+        );
+        expect(diagnosticsByType.warnings[0].message).contain(
+            "Defaulting to math",
+        );
     });
 
     it("string children ignored when mixed with non-string children with warning", async () => {
