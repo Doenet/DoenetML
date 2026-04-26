@@ -58,7 +58,15 @@ export default class Shuffle extends CompositeComponent {
             if (componentAttributes.type?.value) {
                 type = componentAttributes.type.value;
             } else {
-                type = "math";
+                if (
+                    matchedChildren.some((child) => typeof child === "string")
+                ) {
+                    diagnostics.push({
+                        type: "warning",
+                        message: `For \`<shuffle>\` to work with string children, a \`type\` attribute must be specified.`,
+                    });
+                }
+                return { success: false, diagnostics };
             }
 
             if (!["math", "text", "number", "boolean"].includes(type)) {

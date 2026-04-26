@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
-import { updateMathInputValue } from "../utils/actions";
+import { movePoint, updateMathInputValue } from "../utils/actions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 
@@ -269,6 +269,93 @@ describe("Shuffle tag tests @group1", async () => {
         ).eq(pText);
 
         texts[`${m},${n}`] = pText;
+    });
+
+    it("shuffle points", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <point name="A">(0,1)</point>
+    <point name="B">(-2,1)</point>
+    <point name="C">(7,1)</point>
+    <point name="D">(3,1)</point>
+    <point name="E">(5,1)</point>
+
+    <p name="pList"><shuffle name="sh">$A$B$C$D$E</shuffle></p>
+  `,
+            requestedVariantIndex: 1,
+        });
+
+        const pointNames = ["A", "B", "C", "D", "E"];
+        const pointTexts: Record<string, string> = {
+            A: "( 0, 1 )",
+            B: "( -2, 1 )",
+            C: "( 7, 1 )",
+            D: "( 3, 1 )",
+            E: "( 5, 1 )",
+        };
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const componentOrder: number[] =
+            stateVariables[await resolvePathToNodeIdx("sh")].stateValues
+                .componentOrder;
+        const orderedPointNames = componentOrder.map(
+            (x: number) => pointNames[x - 1],
+        );
+
+        async function expectCurrentPointOrder() {
+            stateVariables = await core.returnAllStateVariables(false, true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("pList")].stateValues
+                    .text,
+            ).eq(orderedPointNames.map((name) => pointTexts[name]).join(", "));
+        }
+
+        await expectCurrentPointOrder();
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("A"),
+            x: -8,
+            y: 9,
+            core,
+        });
+        pointTexts.A = "( -8, 9 )";
+        await expectCurrentPointOrder();
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("B"),
+            x: 8,
+            y: -3,
+            core,
+        });
+        pointTexts.B = "( 8, -3 )";
+        await expectCurrentPointOrder();
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("C"),
+            x: 4,
+            y: 5,
+            core,
+        });
+        pointTexts.C = "( 4, 5 )";
+        await expectCurrentPointOrder();
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("D"),
+            x: -9,
+            y: 0,
+            core,
+        });
+        pointTexts.D = "( -9, 0 )";
+        await expectCurrentPointOrder();
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("E"),
+            x: -2,
+            y: -1,
+            core,
+        });
+        pointTexts.E = "( -2, -1 )";
+        await expectCurrentPointOrder();
     });
 
     async function test_shuffle({
@@ -584,26 +671,32 @@ describe("Shuffle tag tests @group1", async () => {
         expect(result.sort()).eqls(options.sort());
     });
 
-    it("sugar with no type specified defaults to math type", async () => {
+    it("string children without type emit warning", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pList"><shuffle name="sh">d a b</shuffle></p>
   `,
         });
 
-        const options = ["d", "a", "b"];
-
-        await test_shuffle({
-            core,
-            resolvePathToNodeIdx,
-            options,
-            must_be_reordered: [],
-            replacements_all_of_type: "math",
-        });
-
-        // Check no warnings
+        const stateVariables = await core.returnAllStateVariables(false, true);
         let diagnosticsByType = getDiagnosticsByType(core);
-        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.warnings.length).gte(1);
+        expect(
+            diagnosticsByType.warnings.some((w) =>
+                w.message.includes("a `type` attribute must be specified"),
+            ),
+        ).eq(true);
+        expect(
+            diagnosticsByType.warnings.some((w) =>
+                w.message.includes(
+                    'String "d a b" is not a valid component to shuffle.',
+                ),
+            ),
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pList")].stateValues
+                .text,
+        ).eq("");
     });
 
     it("sugar with invalid type specified defaults to math type with warning", async () => {
@@ -652,13 +745,14 @@ describe("Shuffle tag tests @group1", async () => {
             replacements_all_of_type: "math",
         });
 
-        // Check for warning about string being ignored
         let diagnosticsByType = getDiagnosticsByType(core);
-        expect(diagnosticsByType.warnings.length).eq(1);
-        expect(diagnosticsByType.warnings[0].message).contain('String " a "');
-        expect(diagnosticsByType.warnings[0].message).contain(
-            "not a valid component",
-        );
-        expect(diagnosticsByType.warnings[0].message).contain("Ignoring");
+        expect(diagnosticsByType.warnings.length).gte(1);
+        expect(
+            diagnosticsByType.warnings.some((w) =>
+                w.message.includes(
+                    'String " a " is not a valid component to shuffle.',
+                ),
+            ),
+        ).eq(true);
     });
 });

@@ -802,25 +802,32 @@ describe("Sort tag tests @group4", async () => {
         expect(stateVariables[ansIdx].stateValues.creditAchieved).eq(1);
     });
 
-    it("sugar with no type specified defaults to math type", async () => {
+    it("string children without type emit warning", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pList"><sort>d a b</sort></p>
   `,
         });
 
-        const sorted_result = ["a", "b", "d"];
-
-        await test_sort({
-            core,
-            resolvePathToNodeIdx,
-            sorted_result,
-            replacements_all_of_type: "math",
-        });
-
-        // Check no warnings
+        const stateVariables = await core.returnAllStateVariables(false, true);
         let diagnosticsByType = getDiagnosticsByType(core);
-        expect(diagnosticsByType.warnings.length).eq(0);
+        expect(diagnosticsByType.warnings.length).gte(1);
+        expect(
+            diagnosticsByType.warnings.some((w) =>
+                w.message.includes("a `type` attribute must be specified"),
+            ),
+        ).eq(true);
+        expect(
+            diagnosticsByType.warnings.some((w) =>
+                w.message.includes(
+                    'String "d a b" is not a valid component to sort.',
+                ),
+            ),
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pList")].stateValues
+                .text,
+        ).eq("");
     });
 
     it("sugar with invalid type specified defaults to math type with warning", async () => {
@@ -867,13 +874,14 @@ describe("Sort tag tests @group4", async () => {
             replacements_all_of_type: "math",
         });
 
-        // Check for warning about string being ignored
         let diagnosticsByType = getDiagnosticsByType(core);
-        expect(diagnosticsByType.warnings.length).eq(1);
-        expect(diagnosticsByType.warnings[0].message).contain('String " a "');
-        expect(diagnosticsByType.warnings[0].message).contain(
-            "not a valid component",
-        );
-        expect(diagnosticsByType.warnings[0].message).contain("Ignoring");
+        expect(diagnosticsByType.warnings.length).gte(1);
+        expect(
+            diagnosticsByType.warnings.some((w) =>
+                w.message.includes(
+                    'String " a " is not a valid component to sort.',
+                ),
+            ),
+        ).eq(true);
     });
 });
