@@ -58,6 +58,7 @@ export default class Sort extends CompositeComponent {
             componentInfoObjects,
             nComponents,
         }) {
+            const diagnostics = [];
             // only if all children are strings or macros
             if (
                 !matchedChildren.every(
@@ -73,12 +74,24 @@ export default class Sort extends CompositeComponent {
             if (componentAttributes.type?.value) {
                 type = componentAttributes.type.value;
             } else {
-                return { success: false };
+                if (
+                    matchedChildren.some((child) => typeof child === "string")
+                ) {
+                    diagnostics.push({
+                        type: "warning",
+                        message: `For \`<sort>\` to work with string children, a \`type\` attribute must be specified.`,
+                    });
+                }
+                return { success: false, diagnostics };
             }
 
             if (!["math", "text", "number", "boolean"].includes(type)) {
                 console.warn(`Invalid type ${type}`);
-                return { success: false };
+                diagnostics.push({
+                    type: "warning",
+                    message: `Invalid type ${type} for sort component. Must be one of math, text, number, or boolean. Defaulting to math.`,
+                });
+                type = "math";
             }
 
             // break any string by white space and wrap pieces with type
@@ -100,6 +113,7 @@ export default class Sort extends CompositeComponent {
                     success: true,
                     newChildren,
                     nComponents: result.nComponents,
+                    diagnostics,
                 };
             } else {
                 return { success: false };
@@ -148,7 +162,15 @@ export default class Sort extends CompositeComponent {
             }),
             definition({ dependencyValues }) {
                 let componentIndicesForValues = [];
+                const diagnostics = [];
                 for (let child of dependencyValues.children) {
+                    if (typeof child === "string") {
+                        diagnostics.push({
+                            type: "warning",
+                            message: `String "${child}" is not a valid component to sort. Ignoring.`,
+                        });
+                        continue;
+                    }
                     if (child.stateValues.componentIndicesInList) {
                         componentIndicesForValues.push(
                             ...child.stateValues.componentIndicesInList,
@@ -158,7 +180,10 @@ export default class Sort extends CompositeComponent {
                     }
                 }
 
-                return { setValue: { componentIndicesForValues } };
+                return {
+                    setValue: { componentIndicesForValues },
+                    sendDiagnostics: diagnostics,
+                };
             },
         };
 

@@ -6,6 +6,7 @@ import {
     updateMathInputValue,
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -799,5 +800,88 @@ describe("Sort tag tests @group4", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(stateVariables[ansIdx].stateValues.creditAchieved).eq(1);
+    });
+
+    it("string children without type emit warning", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="pList"><sort>d a b</sort></p>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        let diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings.length).gte(1);
+        expect(
+            diagnosticsByType.warnings.some((w) =>
+                w.message.includes("a `type` attribute must be specified"),
+            ),
+        ).eq(true);
+        expect(
+            diagnosticsByType.warnings.some((w) =>
+                w.message.includes(
+                    'String "d a b" is not a valid component to sort.',
+                ),
+            ),
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pList")].stateValues
+                .text,
+        ).eq("");
+    });
+
+    it("sugar with invalid type specified defaults to math type with warning", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="pList"><sort type="bad">d a b</sort></p>
+  `,
+        });
+
+        const sorted_result = ["a", "b", "d"];
+
+        await test_sort({
+            core,
+            resolvePathToNodeIdx,
+            sorted_result,
+            replacements_all_of_type: "math",
+        });
+
+        let diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.warnings[0].message).contain(
+            "Invalid type bad for sort component",
+        );
+        expect(diagnosticsByType.warnings[0].message).contain(
+            "Defaulting to math",
+        );
+    });
+
+    it("string children ignored when mixed with non-string children with warning", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="pList"><sort>
+        <math>d</math> a <math>b</math>
+    </sort></p>
+  `,
+        });
+
+        const sorted_result = ["b", "d"];
+
+        await test_sort({
+            core,
+            resolvePathToNodeIdx,
+            sorted_result,
+            replacements_all_of_type: "math",
+        });
+
+        let diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings.length).gte(1);
+        expect(
+            diagnosticsByType.warnings.some((w) =>
+                w.message.includes(
+                    'String " a " is not a valid component to sort.',
+                ),
+            ),
+        ).eq(true);
     });
 });

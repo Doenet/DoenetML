@@ -42,6 +42,7 @@ export default class Shuffle extends CompositeComponent {
             componentInfoObjects,
             nComponents,
         }) {
+            const diagnostics = [];
             // only if all children are strings or macros
             if (
                 !matchedChildren.every(
@@ -57,12 +58,24 @@ export default class Shuffle extends CompositeComponent {
             if (componentAttributes.type?.value) {
                 type = componentAttributes.type.value;
             } else {
-                return { success: false };
+                if (
+                    matchedChildren.some((child) => typeof child === "string")
+                ) {
+                    diagnostics.push({
+                        type: "warning",
+                        message: `For \`<shuffle>\` to work with string children, a \`type\` attribute must be specified.`,
+                    });
+                }
+                return { success: false, diagnostics };
             }
 
             if (!["math", "text", "number", "boolean"].includes(type)) {
                 console.warn(`Invalid type ${type}`);
-                return { success: false };
+                diagnostics.push({
+                    type: "warning",
+                    message: `Invalid type ${type} for shuffle component. Must be one of math, text, number, or boolean. Defaulting to math.`,
+                });
+                type = "math";
             }
 
             // break any string by white space and wrap pieces with type
@@ -84,6 +97,7 @@ export default class Shuffle extends CompositeComponent {
                     success: true,
                     newChildren,
                     nComponents: result.nComponents,
+                    diagnostics,
                 };
             } else {
                 return { success: false };
@@ -121,7 +135,14 @@ export default class Shuffle extends CompositeComponent {
             }),
             definition({ dependencyValues }) {
                 let originalComponentIndices = [];
+                const diagnostics = [];
                 for (let child of dependencyValues.children) {
+                    if (typeof child === "string") {
+                        diagnostics.push({
+                            type: "warning",
+                            message: `String "${child}" is not a valid component to shuffle. Ignoring.`,
+                        });
+                    }
                     if (child.stateValues?.componentIndicesInList) {
                         originalComponentIndices.push(
                             ...child.stateValues.componentIndicesInList,
@@ -136,6 +157,7 @@ export default class Shuffle extends CompositeComponent {
                         originalComponentIndices,
                         numComponents: originalComponentIndices.length,
                     },
+                    sendDiagnostics: diagnostics,
                 };
             },
         };
@@ -167,7 +189,7 @@ export default class Shuffle extends CompositeComponent {
 
                 let numComponents = dependencyValues.numComponents;
 
-                // if desiredIndices is specfied, use those
+                // if desiredIndices is specified, use those
                 let desiredComponentOrder =
                     dependencyValues.variants?.desiredVariant?.indices;
                 if (desiredComponentOrder !== undefined) {
@@ -198,7 +220,10 @@ export default class Shuffle extends CompositeComponent {
                         } else {
                             return {
                                 setValue: {
-                                    componentOrder: desiredComponentOrder,
+                                    componentOrder:
+                                        desiredComponentOrder.filter(
+                                            (x) => x !== undefined,
+                                        ),
                                 },
                             };
                         }
