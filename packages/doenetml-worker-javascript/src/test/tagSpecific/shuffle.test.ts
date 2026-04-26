@@ -1,12 +1,16 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { updateMathInputValue } from "../utils/actions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
+import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
 describe("Shuffle tag tests @group1", async () => {
+    type VariantKey = `${number},${number}`;
+
     it("consistent order for n elements for given variant", async () => {
         const doenetML = `
   <p>m: <mathInput prefill="1" name="m" /></p>
@@ -22,14 +26,14 @@ describe("Shuffle tag tests @group1", async () => {
             requestedVariantIndex: 1,
         });
 
-        let texts = {};
-        let orders = {};
+        let texts: Record<VariantKey, string> = {};
+        let orders: Record<VariantKey, number[]> = {};
 
         let m = 1,
             n = 6;
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let componentOrder =
+        let componentOrder: number[] =
             stateVariables[await resolvePathToNodeIdx("sh")].stateValues
                 .componentOrder;
 
@@ -39,7 +43,7 @@ describe("Shuffle tag tests @group1", async () => {
 
         orders[`${m},${n}`] = componentOrder;
 
-        let pText = componentOrder.map((x) => x + m - 1).join(", ");
+        let pText = componentOrder.map((x: number) => x + m - 1).join(", ");
         expect(
             stateVariables[await resolvePathToNodeIdx("pList")].stateValues
                 .text,
@@ -70,7 +74,7 @@ describe("Shuffle tag tests @group1", async () => {
 
         orders[`${m},${n}`] = componentOrder;
 
-        pText = componentOrder.map((x) => x + m - 1).join(", ");
+        pText = componentOrder.map((x: number) => x + m - 1).join(", ");
         expect(
             stateVariables[await resolvePathToNodeIdx("pList")].stateValues
                 .text,
@@ -99,7 +103,7 @@ describe("Shuffle tag tests @group1", async () => {
 
         orders[`${m},${n}`] = componentOrder;
 
-        pText = componentOrder.map((x) => x + m - 1).join(", ");
+        pText = componentOrder.map((x: number) => x + m - 1).join(", ");
         expect(
             stateVariables[await resolvePathToNodeIdx("pList")].stateValues
                 .text,
@@ -128,7 +132,7 @@ describe("Shuffle tag tests @group1", async () => {
 
         orders[`${m},${n}`] = componentOrder;
 
-        pText = componentOrder.map((x) => x + m - 1).join(", ");
+        pText = componentOrder.map((x: number) => x + m - 1).join(", ");
         expect(
             stateVariables[await resolvePathToNodeIdx("pList")].stateValues
                 .text,
@@ -163,7 +167,7 @@ describe("Shuffle tag tests @group1", async () => {
 
         orders[`${m},${n}`] = componentOrder;
 
-        pText = componentOrder.map((x) => x + m - 1).join(", ");
+        pText = componentOrder.map((x: number) => x + m - 1).join(", ");
         expect(
             stateVariables[await resolvePathToNodeIdx("pList")].stateValues
                 .text,
@@ -196,7 +200,7 @@ describe("Shuffle tag tests @group1", async () => {
 
         orders[`${m},${n}`] = componentOrder;
 
-        pText = componentOrder.map((x) => x + m - 1).join(", ");
+        pText = componentOrder.map((x: number) => x + m - 1).join(", ");
         expect(
             stateVariables[await resolvePathToNodeIdx("pList")].stateValues
                 .text,
@@ -225,7 +229,7 @@ describe("Shuffle tag tests @group1", async () => {
 
         orders[`${m},${n}`] = componentOrder;
 
-        pText = componentOrder.map((x) => x + m - 1).join(", ");
+        pText = componentOrder.map((x: number) => x + m - 1).join(", ");
         expect(
             stateVariables[await resolvePathToNodeIdx("pList")].stateValues
                 .text,
@@ -254,7 +258,7 @@ describe("Shuffle tag tests @group1", async () => {
 
         orders[`${m},${n}`] = componentOrder;
 
-        pText = componentOrder.map((x) => x + m - 1).join(", ");
+        pText = componentOrder.map((x: number) => x + m - 1).join(", ");
         expect(
             stateVariables[await resolvePathToNodeIdx("pList")].stateValues
                 .text,
@@ -274,9 +278,9 @@ describe("Shuffle tag tests @group1", async () => {
         must_be_reordered,
         replacements_all_of_type,
     }: {
-        core;
+        core: PublicDoenetMLCore;
         resolvePathToNodeIdx: ResolvePathToNodeIdx;
-        options: string[];
+        options: (string | undefined)[];
         must_be_reordered: string[][];
         replacements_all_of_type?: string;
     }) {
@@ -289,7 +293,9 @@ describe("Shuffle tag tests @group1", async () => {
             [...Array(options.length).keys()].map((x) => x + 1),
         );
 
-        const orderedOptions = componentOrder.map((x) => options[x - 1]);
+        const orderedOptions = componentOrder
+            .map((x) => options[x - 1])
+            .filter((x) => x !== undefined);
 
         for (let reorder_list of must_be_reordered) {
             let indices = reorder_list.map((item) =>
@@ -313,11 +319,12 @@ describe("Shuffle tag tests @group1", async () => {
             let replacementTypes = stateVariables[
                 await resolvePathToNodeIdx("pList")
             ].activeChildren.map(
-                (child) => stateVariables[child.componentIdx].componentType,
+                (child: { componentIdx: number }) =>
+                    stateVariables[child.componentIdx].componentType,
             );
 
             expect(replacementTypes).eqls(
-                Array(options.length).fill(replacements_all_of_type),
+                Array(orderedOptions.length).fill(replacements_all_of_type),
             );
         }
 
@@ -575,5 +582,82 @@ describe("Shuffle tag tests @group1", async () => {
         }
 
         expect(result.sort()).eqls(options.sort());
+    });
+
+    it("sugar with no type specified defaults to math type", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="pList"><shuffle name="sh">d a b</shuffle></p>
+  `,
+        });
+
+        const options = ["d", "a", "b"];
+
+        await test_shuffle({
+            core,
+            resolvePathToNodeIdx,
+            options,
+            must_be_reordered: [],
+            replacements_all_of_type: "math",
+        });
+
+        // Check no warnings
+        let diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings.length).eq(0);
+    });
+
+    it("sugar with invalid type specified defaults to math type with warning", async () => {
+        const consoleWarnSpy = vi
+            .spyOn(console, "warn")
+            .mockImplementation(() => {});
+
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="pList"><shuffle name="sh" type="bad">d a b</shuffle></p>
+  `,
+        });
+
+        const options = ["d", "a", "b"];
+
+        await test_shuffle({
+            core,
+            resolvePathToNodeIdx,
+            options,
+            must_be_reordered: [],
+            replacements_all_of_type: "math",
+        });
+
+        // Invalid sugar type currently warns via console.warn
+        expect(consoleWarnSpy).toHaveBeenCalledWith("Invalid type bad");
+        consoleWarnSpy.mockRestore();
+    });
+
+    it("string children ignored when mixed with non-string children with warning", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="pList"><shuffle name="sh">
+        <math>d</math> a <math>b</math>
+    </shuffle></p>
+  `,
+        });
+
+        const options = ["d", undefined, "b"];
+
+        await test_shuffle({
+            core,
+            resolvePathToNodeIdx,
+            options,
+            must_be_reordered: [],
+            replacements_all_of_type: "math",
+        });
+
+        // Check for warning about string being ignored
+        let diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.warnings.length).eq(1);
+        expect(diagnosticsByType.warnings[0].message).contain('String " a "');
+        expect(diagnosticsByType.warnings[0].message).contain(
+            "not a valid component",
+        );
+        expect(diagnosticsByType.warnings[0].message).contain("Ignoring");
     });
 });
