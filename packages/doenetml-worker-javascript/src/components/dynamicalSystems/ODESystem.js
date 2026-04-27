@@ -457,6 +457,10 @@ export default class ODESystem extends InlineComponent {
                         dependencyType: "stateVariable",
                         variableName: "padZeros",
                     },
+                    displayBlanks: {
+                        dependencyType: "stateVariable",
+                        variableName: "displayBlanks",
+                    },
                     avoidScientificNotation: {
                         dependencyType: "stateVariable",
                         variableName: "avoidScientificNotation",
@@ -488,6 +492,7 @@ export default class ODESystem extends InlineComponent {
                     padZeros: dependencyValues.padZeros,
                     displayDigits: dependencyValues.displayDigits,
                     displayDecimals: dependencyValues.displayDecimals,
+                    displayBlanks: dependencyValues.displayBlanks,
                     avoidScientificNotation:
                         dependencyValues.avoidScientificNotation,
                 });

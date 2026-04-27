@@ -101,6 +101,24 @@ export function returnRoundingStateVariableDefinitions({
         }),
     };
 
+    stateVariableDefinitions.displayBlanks = {
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "boolean",
+        },
+        hasEssential: true,
+        defaultValue: true,
+        returnDependencies: roundingDependencies({
+            stateVariable: "displayBlanks",
+            childGroupsIfSingleMatch,
+            childGroupsToStopSingleMatch,
+            additionalAttributeComponent,
+        }),
+        definition: roundingDefinition({
+            stateVariable: "displayBlanks",
+        }),
+    };
+
     return stateVariableDefinitions;
 }
 
@@ -255,6 +273,9 @@ export function returnRoundingAttributes() {
             createComponentOfType: "boolean",
         },
         avoidScientificNotation: {
+            createComponentOfType: "boolean",
+        },
+        displayBlanks: {
             createComponentOfType: "boolean",
         },
     };

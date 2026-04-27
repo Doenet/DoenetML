@@ -154,13 +154,6 @@ export default class MathComponent extends InlineComponent {
             fallBackToParentStateVariable: "parseScientificNotation",
         };
 
-        attributes.displayBlanks = {
-            createComponentOfType: "boolean",
-            createStateVariable: "displayBlanks",
-            defaultValue: true,
-            public: true,
-        };
-
         attributes.assumptions = {
             createComponentOfType: "math",
             createStateVariable: "assumptions",
