@@ -2,6 +2,7 @@ import Input from "./abstract/Input";
 import me from "math-expressions";
 import { deepCompare, convertValueToMathExpression } from "@doenet/utils";
 import {
+    buildNumberDisplayParameters,
     returnNumberDisplayAttributeComponentShadowing,
     returnNumberDisplayAttributes,
     returnNumberDisplayStateVariableDefinitions,
@@ -529,7 +530,6 @@ export default class MathInput extends Input {
         };
 
         stateVariableDefinitions.valueForDisplay = {
-            forRenderer: true,
             returnDependencies: () => ({
                 value: {
                     dependencyType: "stateVariable",
@@ -552,6 +552,10 @@ export default class MathInput extends Input {
             definition: function ({ dependencyValues }) {
                 // round any decimal numbers to the significant digits
                 // determined by displaydigits or displaydecimals
+                // NOTE: this rounded value is used for semantic references
+                // (e.g. $mi.value and $mi.immediateValue). The live input
+                // display continues to come from rawRendererValue so we preserve
+                // what the user typed while editing.
                 let rounded = roundForDisplay({
                     value: dependencyValues.value,
                     dependencyValues,
@@ -573,11 +577,36 @@ export default class MathInput extends Input {
                     dependencyType: "stateVariable",
                     variableName: "valueForDisplay",
                 },
+                padZeros: {
+                    dependencyType: "stateVariable",
+                    variableName: "padZeros",
+                },
+                displayDigits: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayDigits",
+                },
+                displayDecimals: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayDecimals",
+                },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
             }),
             definition: function ({ dependencyValues }) {
+                // `.text` reflects number-display formatting, while the live
+                // editor content is still preserved in rawRendererValue.
+                let params = buildNumberDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
                 return {
                     setValue: {
-                        text: dependencyValues.valueForDisplay.toString(),
+                        text: dependencyValues.valueForDisplay.toString(params),
                     },
                 };
             },

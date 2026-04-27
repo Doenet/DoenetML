@@ -9,6 +9,7 @@ import {
 import CompositeComponent from "./abstract/CompositeComponent";
 import BaseComponent from "./abstract/BaseComponent";
 import {
+    buildNumberDisplayParameters,
     returnNumberDisplayAttributeComponentShadowing,
     returnNumberDisplayAttributes,
     returnNumberDisplayStateVariableDefinitions,
@@ -2451,7 +2452,6 @@ export class MatrixInput extends Input {
         };
 
         stateVariableDefinitions.valueForDisplay = {
-            forRenderer: true,
             returnDependencies: () => ({
                 value: {
                     dependencyType: "stateVariable",
@@ -2473,6 +2473,10 @@ export class MatrixInput extends Input {
             definition: function ({ dependencyValues }) {
                 // round any decimal numbers to the significant digits
                 // determined by displaydigits or displaydecimals
+                // NOTE: this rounded value is for semantic references
+                // (e.g. $mi.value and $mi.immediateValue). The matrix input's
+                // live editor text remains driven by rawRendererValue so we keep
+                // authored/typed cell text stable while editing.
                 let rounded = roundForDisplay({
                     value: dependencyValues.value,
                     dependencyValues,
@@ -2494,11 +2498,36 @@ export class MatrixInput extends Input {
                     dependencyType: "stateVariable",
                     variableName: "valueForDisplay",
                 },
+                padZeros: {
+                    dependencyType: "stateVariable",
+                    variableName: "padZeros",
+                },
+                displayDigits: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayDigits",
+                },
+                displayDecimals: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayDecimals",
+                },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
             }),
             definition: function ({ dependencyValues }) {
+                // `.text` reflects number-display formatting, while the live
+                // editor content is still preserved in rawRendererValue.
+                let params = buildNumberDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
                 return {
                     setValue: {
-                        text: dependencyValues.valueForDisplay.toString(),
+                        text: dependencyValues.valueForDisplay.toString(params),
                     },
                 };
             },
@@ -3560,6 +3589,41 @@ export default class MatrixComponentInput extends BaseComponent {
             },
         };
 
+        stateVariableDefinitions.padZeros = {
+            returnDependencies: () => ({
+                parentPadZeros: {
+                    dependencyType: "parentStateVariable",
+                    parentComponentType: "matrixInput",
+                    variableName: "padZeros",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        padZeros: dependencyValues.parentPadZeros,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.avoidScientificNotation = {
+            returnDependencies: () => ({
+                parentAvoidScientificNotation: {
+                    dependencyType: "parentStateVariable",
+                    parentComponentType: "matrixInput",
+                    variableName: "avoidScientificNotation",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        avoidScientificNotation:
+                            dependencyValues.parentAvoidScientificNotation,
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.unionFromU = {
             returnDependencies: () => ({
                 parentUnionFromU: {
@@ -3677,7 +3741,6 @@ export default class MatrixComponentInput extends BaseComponent {
         };
 
         stateVariableDefinitions.valueForDisplay = {
-            forRenderer: true,
             returnDependencies: () => ({
                 value: {
                     dependencyType: "stateVariable",
@@ -3720,11 +3783,34 @@ export default class MatrixComponentInput extends BaseComponent {
                     dependencyType: "stateVariable",
                     variableName: "valueForDisplay",
                 },
+                padZeros: {
+                    dependencyType: "stateVariable",
+                    variableName: "padZeros",
+                },
+                displayDigits: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayDigits",
+                },
+                displayDecimals: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayDecimals",
+                },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
             }),
             definition: function ({ dependencyValues }) {
+                let params = buildNumberDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
                 return {
                     setValue: {
-                        text: dependencyValues.valueForDisplay.toString(),
+                        text: dependencyValues.valueForDisplay.toString(params),
                     },
                 };
             },
