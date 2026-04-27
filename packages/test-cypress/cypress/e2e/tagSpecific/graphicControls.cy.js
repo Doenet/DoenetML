@@ -267,6 +267,24 @@ describe(
             cy.get("#Qy").should("have.text", "2");
         });
 
+        it("propagates avoidScientificNotation to controls input formatting", () => {
+            loadGraphTest(`
+<text name="ready">ready</text>
+<graph name="g" addControls="inputsOnly">
+  <point name="A" labelIsName addControls="xOnly">(0.000000000007, 1)</point>
+  <point name="B" labelIsName addControls="xOnly" avoidScientificNotation>(0.000000000007, 1)</point>
+</graph>
+`);
+
+            cy.get('[aria-label="x input for A"]')
+                .invoke("val")
+                .should("match", /10\^\(-12\)/);
+            cy.get('[aria-label="x input for B"]').should(
+                "have.value",
+                "0.000000000007",
+            );
+        });
+
         it("applies controlsPosition fallback on default graph renderer", () => {
             loadGraphTest(
                 `

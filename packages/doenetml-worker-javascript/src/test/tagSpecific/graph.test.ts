@@ -693,6 +693,33 @@ describe("Graph tag tests @group2", async () => {
         ).eq(true);
     });
 
+    it("graphicalDescendantsForControls includes avoidScientificNotation from descendants", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<graph name="g" addControls="inputsOnly">
+  <point name="A" addControls="xOnly">(0.000000000007, 1)</point>
+  <point name="B" addControls="xOnly" avoidScientificNotation>(0.000000000007, 1)</point>
+</graph>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const controls: {
+            controlType: string;
+            avoidScientificNotation: boolean;
+        }[] =
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .graphicalDescendantsForControls;
+
+        const pointControls = controls.filter(
+            (item) => item.controlType === "point",
+        );
+
+        expect(pointControls).to.have.length(2);
+        expect(pointControls[0].avoidScientificNotation).eq(false);
+        expect(pointControls[1].avoidScientificNotation).eq(true);
+    });
+
     it("fixed grids", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
