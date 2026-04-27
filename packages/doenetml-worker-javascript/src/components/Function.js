@@ -2756,6 +2756,10 @@ export default class Function extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
                 },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 if (
@@ -2780,6 +2784,9 @@ export default class Function extends InlineComponent {
                     if (dependencyValues.displayDigits >= 1) {
                         params.padToDigits = dependencyValues.displayDigits;
                     }
+                }
+                if (dependencyValues.avoidScientificNotation) {
+                    params.avoidScientificNotation = true;
                 }
                 let latex = roundForDisplay({
                     value: dependencyValues.formula,
@@ -2820,6 +2827,10 @@ export default class Function extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
                 },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 if (
@@ -2844,6 +2855,9 @@ export default class Function extends InlineComponent {
                     if (dependencyValues.displayDigits >= 1) {
                         params.padToDigits = dependencyValues.displayDigits;
                     }
+                }
+                if (dependencyValues.avoidScientificNotation) {
+                    params.avoidScientificNotation = true;
                 }
                 let text = roundForDisplay({
                     value: dependencyValues.formula,

@@ -676,6 +676,10 @@ export default class Angle extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
                 },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 let params = {};
@@ -686,6 +690,9 @@ export default class Angle extends GraphicalComponent {
                     if (dependencyValues.displayDigits >= 1) {
                         params.padToDigits = dependencyValues.displayDigits;
                     }
+                }
+                if (dependencyValues.avoidScientificNotation) {
+                    params.avoidScientificNotation = true;
                 }
 
                 let value = dependencyValues.inDegrees

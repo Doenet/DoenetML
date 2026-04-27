@@ -559,6 +559,10 @@ export default class PiecewiseFunction extends Function {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
                 },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 let functionVariable = dependencyValues.variable;
@@ -573,6 +577,9 @@ export default class PiecewiseFunction extends Function {
                         toLatexParams.padToDigits =
                             dependencyValues.displayDigits;
                     }
+                }
+                if (dependencyValues.avoidScientificNotation) {
+                    toLatexParams.avoidScientificNotation = true;
                 }
 
                 // Latex display ignores domain of the function itself

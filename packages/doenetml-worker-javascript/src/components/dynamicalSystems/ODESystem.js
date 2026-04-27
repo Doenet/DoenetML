@@ -456,6 +456,10 @@ export default class ODESystem extends InlineComponent {
                         dependencyType: "stateVariable",
                         variableName: "padZeros",
                     },
+                    avoidScientificNotation: {
+                        dependencyType: "stateVariable",
+                        variableName: "avoidScientificNotation",
+                    },
                     independentVariable: {
                         dependencyType: "stateVariable",
                         variableName: "independentVariable",
@@ -487,6 +491,9 @@ export default class ODESystem extends InlineComponent {
                     if (dependencyValues.displayDigits >= 1) {
                         params.padToDigits = dependencyValues.displayDigits;
                     }
+                }
+                if (dependencyValues.avoidScientificNotation) {
+                    params.avoidScientificNotation = true;
                 }
 
                 let systemDisplay = [];

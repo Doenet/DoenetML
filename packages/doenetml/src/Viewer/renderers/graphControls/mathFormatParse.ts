@@ -80,6 +80,9 @@ export function formatCoordinateForControls(
             params.padToDigits = displaySettings.displayDigits;
         }
     }
+    if (displaySettings.avoidScientificNotation) {
+        params.avoidScientificNotation = true;
+    }
 
     return rounded.toString(params);
 }

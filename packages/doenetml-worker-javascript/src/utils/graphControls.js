@@ -9,6 +9,7 @@ function extractControlDisplaySettings(stateValues) {
         displayDecimals: stateValues.displayDecimals,
         displaySmallAsZero: stateValues.displaySmallAsZero,
         padZeros: stateValues.padZeros,
+        avoidScientificNotation: stateValues.avoidScientificNotation,
     };
 }
 
@@ -163,6 +164,7 @@ export const GRAPH_CONTROL_VARIABLE_NAMES = [
     "displayDecimals",
     "displaySmallAsZero",
     "padZeros",
+    "avoidScientificNotation",
     "controlOrder",
 ];
 

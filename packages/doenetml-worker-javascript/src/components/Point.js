@@ -1174,6 +1174,10 @@ export default class Point extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
                 },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 let params = {};
@@ -1184,6 +1188,9 @@ export default class Point extends GraphicalComponent {
                     if (dependencyValues.displayDigits >= 1) {
                         params.padToDigits = dependencyValues.displayDigits;
                     }
+                }
+                if (dependencyValues.avoidScientificNotation) {
+                    params.avoidScientificNotation = true;
                 }
                 let latex = roundForDisplay({
                     value: dependencyValues.coords,
