@@ -4,9 +4,12 @@
 "@doenet/doenetml-iframe": patch
 ---
 
-Introduce the `avoidScientificNotation` display attribute and support it consistently across math/number rendering paths.
+Introduce a new `avoidScientificNotation` number-display attribute and ensure
+number-display settings are applied consistently across worker and viewer
+rendering.
 
 - Add `avoidScientificNotation` support to core number/math formatting behavior in the worker.
-- Propagate `avoidScientificNotation` through related formatted component outputs (including line/function/point/vector/angle/piecewise/ode displays).
-- Wire `avoidScientificNotation` through graph controls worker payloads and viewer parsing/model logic so formatting is respected end-to-end.
-- Add worker and viewer test coverage for the new attribute behavior.
+- Apply number-display parameters consistently through related formatted outputs (including line/function/point/vector/angle/piecewise/ODE displays), including `displayBlanks` handling where applicable.
+- Wire number-display formatting through graph controls worker payloads and viewer parsing/model logic so display settings are respected end-to-end.
+- Update generated schema output so inherited number-display attributes are available consistently.
+- Add worker and viewer test coverage for the new/updated display behavior.
