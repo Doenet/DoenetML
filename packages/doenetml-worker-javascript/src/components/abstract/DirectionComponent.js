@@ -9,6 +9,7 @@ import me from "math-expressions";
 import { convertValueToMathExpression, vectorOperators } from "@doenet/utils";
 import {
     returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
     returnNumberDisplayStateVariableDefinitions,
 } from "../../utils/numberDisplay";
 import BaseComponent from "./BaseComponent";
@@ -24,10 +25,7 @@ export default class DirectionComponent extends BaseComponent {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
-        Object.assign(
-            attributes,
-            returnNumberDisplayAttributeComponentShadowing(),
-        );
+        Object.assign(attributes, returnNumberDisplayAttributes());
         return attributes;
     }
 
