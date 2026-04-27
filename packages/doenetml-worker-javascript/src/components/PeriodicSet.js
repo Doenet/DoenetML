@@ -2,9 +2,9 @@ import MathComponent from "./Math";
 import me from "math-expressions";
 import { deepClone } from "@doenet/utils";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 
 export default class PeriodicSet extends MathComponent {
     static componentType = "periodicSet";
@@ -72,7 +72,7 @@ export default class PeriodicSet extends MathComponent {
         delete stateVariableDefinitions.mathChildrenWithCanBeModified;
         delete stateVariableDefinitions.unordered;
 
-        let roundingDefinitions = returnRoundingStateVariableDefinitions({
+        let roundingDefinitions = returnNumberDisplayStateVariableDefinitions({
             mathChildGroups: [],
             otherChildGroups: [],
         });
@@ -225,7 +225,7 @@ export default class PeriodicSet extends MathComponent {
             shadowingInstructions: {
                 createComponentOfType: "mathList",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 uniqueOffsets: {

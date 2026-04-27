@@ -1,4 +1,4 @@
-import { returnRoundingStateVariableDefinitions } from "../utils/rounding";
+import { returnNumberDisplayStateVariableDefinitions } from "../utils/numberDisplay";
 import MathComponent from "./Math";
 import me from "math-expressions";
 
@@ -152,7 +152,7 @@ export default class Matrix extends MathComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.unordered = {

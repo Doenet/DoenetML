@@ -8,10 +8,11 @@ import {
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    buildNumberDisplayParameters,
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 import { roundForDisplay } from "../utils/math";
 import {
     returnConstraintDefinitions,
@@ -72,7 +73,7 @@ export default class Point extends GraphicalComponent {
             createComponentOfType: "coords",
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.labelPosition = {
             createComponentOfType: "text",
@@ -345,7 +346,7 @@ export default class Point extends GraphicalComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         Object.assign(
@@ -929,7 +930,7 @@ export default class Point extends GraphicalComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             isArray: true,
             entryPrefixes: ["x"],
@@ -1068,7 +1069,7 @@ export default class Point extends GraphicalComponent {
             shadowingInstructions: {
                 createComponentOfType: "coords",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 xs: {
@@ -1174,17 +1175,19 @@ export default class Point extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
                 },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
             }),
             definition: function ({ dependencyValues }) {
-                let params = {};
-                if (dependencyValues.padZeros) {
-                    if (Number.isFinite(dependencyValues.displayDecimals)) {
-                        params.padToDecimals = dependencyValues.displayDecimals;
-                    }
-                    if (dependencyValues.displayDigits >= 1) {
-                        params.padToDigits = dependencyValues.displayDigits;
-                    }
-                }
+                let params = buildNumberDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
                 let latex = roundForDisplay({
                     value: dependencyValues.coords,
                     dependencyValues,
@@ -1321,7 +1324,7 @@ export default class Point extends GraphicalComponent {
         {
             stateVariable: "coords",
             stateVariablesToShadow: [
-                ...Object.keys(returnRoundingStateVariableDefinitions()),
+                ...Object.keys(returnNumberDisplayStateVariableDefinitions()),
                 "inUnorderedList",
             ],
         },

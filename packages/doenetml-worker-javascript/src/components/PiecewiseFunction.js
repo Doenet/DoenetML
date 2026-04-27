@@ -6,7 +6,10 @@ import {
     find_effective_domains_piecewise_children,
 } from "@doenet/utils";
 import me from "math-expressions";
-import { returnRoundingAttributeComponentShadowing } from "../utils/rounding";
+import {
+    buildNumberDisplayParameters,
+    returnNumberDisplayAttributeComponentShadowing,
+} from "../utils/numberDisplay";
 import {
     find_maxima_of_piecewise,
     find_minima_of_piecewise,
@@ -268,7 +271,7 @@ export default class PiecewiseFunction extends Function {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({}),
             definition: () => ({ setValue: { formula: me.fromAst("\uff3f") } }),
@@ -559,21 +562,21 @@ export default class PiecewiseFunction extends Function {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
                 },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 let functionVariable = dependencyValues.variable;
 
-                let toLatexParams = {};
-                if (dependencyValues.padZeros) {
-                    if (Number.isFinite(dependencyValues.displayDecimals)) {
-                        toLatexParams.padToDecimals =
-                            dependencyValues.displayDecimals;
-                    }
-                    if (dependencyValues.displayDigits >= 1) {
-                        toLatexParams.padToDigits =
-                            dependencyValues.displayDigits;
-                    }
-                }
+                let toLatexParams = buildNumberDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
 
                 // Latex display ignores domain of the function itself
                 // (to be consistent with other cases of displaying latex of a function)

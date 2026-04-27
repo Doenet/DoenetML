@@ -5,7 +5,7 @@ import {
     returnStandardSequenceAttributes,
     returnStandardSequenceStateVariableDefinitions,
 } from "../utils/sequence";
-import { returnRoundingAttributes } from "../utils/rounding";
+import { returnNumberDisplayAttributes } from "../utils/numberDisplay";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 
 export default class Sequence extends CompositeComponent {
@@ -25,7 +25,7 @@ export default class Sequence extends CompositeComponent {
             leaveRaw: true,
         };
 
-        for (let attrName in returnRoundingAttributes()) {
+        for (let attrName in returnNumberDisplayAttributes()) {
             attributes[attrName] = {
                 leaveRaw: true,
             };
@@ -154,7 +154,7 @@ export default class Sequence extends CompositeComponent {
         let attributesToConvert = {};
         for (let attr of [
             "fixed",
-            ...Object.keys(returnRoundingAttributes()),
+            ...Object.keys(returnNumberDisplayAttributes()),
         ]) {
             if (attr in component.attributes) {
                 attributesToConvert[attr] = component.attributes[attr];
@@ -386,7 +386,7 @@ export default class Sequence extends CompositeComponent {
                 let attributesToConvert = {};
                 for (let attr of [
                     "fixed",
-                    ...Object.keys(returnRoundingAttributes()),
+                    ...Object.keys(returnNumberDisplayAttributes()),
                 ]) {
                     if (attr in component.attributes) {
                         attributesToConvert[attr] = component.attributes[attr];

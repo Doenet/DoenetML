@@ -6840,4 +6840,29 @@ describe("Point tag tests @group4", async () => {
                 .labelPosition,
         ).eq(`upperleft`);
     });
+
+    it("avoidScientificNotation in point latex", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <point name="p1" x="0.000000000007" y="2000000000000000000000" />
+  <point
+    name="p2"
+    x="0.000000000007"
+    y="2000000000000000000000"
+    avoidScientificNotation
+  />
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        const p1Latex =
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.latex;
+        const p2Latex =
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.latex;
+
+        expect(p1Latex).match(/10\^{-12}|10\^\{21\}|10\^21/);
+        expect(p2Latex).contain("0.000000000007");
+        expect(p2Latex).contain("2000000000000000000000");
+    });
 });

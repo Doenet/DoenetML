@@ -2,10 +2,11 @@ import Input from "./abstract/Input";
 import me from "math-expressions";
 import { deepCompare, convertValueToMathExpression } from "@doenet/utils";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    buildNumberDisplayParameters,
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 import {
     latexToMathFactory,
@@ -98,7 +99,7 @@ export default class MathInput extends Input {
             fallBackToParentStateVariable: "parseScientificNotation",
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.bindValueTo = {
             createComponentOfType: "math",
@@ -180,7 +181,7 @@ export default class MathInput extends Input {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions({
+            returnNumberDisplayStateVariableDefinitions({
                 displayDigitsDefault: 10,
                 displaySmallAsZeroDefault: 0,
             }),
@@ -247,7 +248,7 @@ export default class MathInput extends Input {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             hasEssential: true,
             shadowVariable: true,
@@ -419,7 +420,7 @@ export default class MathInput extends Input {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             hasEssential: true,
             shadowVariable: true,
@@ -529,7 +530,6 @@ export default class MathInput extends Input {
         };
 
         stateVariableDefinitions.valueForDisplay = {
-            forRenderer: true,
             returnDependencies: () => ({
                 value: {
                     dependencyType: "stateVariable",
@@ -552,6 +552,10 @@ export default class MathInput extends Input {
             definition: function ({ dependencyValues }) {
                 // round any decimal numbers to the significant digits
                 // determined by displaydigits or displaydecimals
+                // NOTE: this rounded value is used for semantic references
+                // (e.g. $mi.value and $mi.immediateValue). The live input
+                // display continues to come from rawRendererValue so we preserve
+                // what the user typed while editing.
                 let rounded = roundForDisplay({
                     value: dependencyValues.value,
                     dependencyValues,
@@ -573,11 +577,36 @@ export default class MathInput extends Input {
                     dependencyType: "stateVariable",
                     variableName: "valueForDisplay",
                 },
+                padZeros: {
+                    dependencyType: "stateVariable",
+                    variableName: "padZeros",
+                },
+                displayDigits: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayDigits",
+                },
+                displayDecimals: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayDecimals",
+                },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
             }),
             definition: function ({ dependencyValues }) {
+                // `.text` reflects number-display formatting, while the live
+                // editor content is still preserved in rawRendererValue.
+                let params = buildNumberDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
                 return {
                     setValue: {
-                        text: dependencyValues.valueForDisplay.toString(),
+                        text: dependencyValues.valueForDisplay.toString(params),
                     },
                 };
             },
@@ -1073,7 +1102,7 @@ export default class MathInput extends Input {
         {
             stateVariable: "value",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
+                returnNumberDisplayStateVariableDefinitions(),
             ),
         },
     ];

@@ -1,9 +1,9 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { normalizeMathExpression } from "@doenet/utils";
 import {
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 
 export default class Substitute extends CompositeComponent {
     static componentType = "substitute";
@@ -58,7 +58,7 @@ export default class Substitute extends CompositeComponent {
             ],
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         // attributes for text
         attributes.matchWholeWord = {
@@ -138,7 +138,7 @@ export default class Substitute extends CompositeComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        let roundingDefinitions = returnRoundingStateVariableDefinitions({
+        let roundingDefinitions = returnNumberDisplayStateVariableDefinitions({
             childGroupsIfSingleMatch: ["anything"],
         });
         Object.assign(stateVariableDefinitions, roundingDefinitions);
@@ -502,7 +502,7 @@ export default class Substitute extends CompositeComponent {
 
             let attributesComponentTypes = {};
 
-            let roundingSVs = returnRoundingStateVariableDefinitions();
+            let roundingSVs = returnNumberDisplayStateVariableDefinitions();
             for (let attrName in roundingSVs) {
                 attributesComponentTypes[attrName] =
                     roundingSVs[

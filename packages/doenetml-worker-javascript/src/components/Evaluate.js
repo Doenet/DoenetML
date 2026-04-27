@@ -5,9 +5,9 @@ import {
     returnSymbolicFunctionForEvaluate,
 } from "@doenet/utils";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 
 export default class Evaluate extends MathComponent {
     static componentType = "evaluate";
@@ -70,7 +70,7 @@ export default class Evaluate extends MathComponent {
             definition: () => ({ setValue: { canBeModified: false } }),
         };
 
-        let roundingDefinitions = returnRoundingStateVariableDefinitions({
+        let roundingDefinitions = returnNumberDisplayStateVariableDefinitions({
             additionalAttributeComponent: "function",
         });
         Object.assign(stateVariableDefinitions, roundingDefinitions);
@@ -168,7 +168,7 @@ export default class Evaluate extends MathComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies() {
                 return {

@@ -58,6 +58,7 @@ export type GraphControlDisplaySettings = {
     displayDecimals: number;
     displaySmallAsZero: number;
     padZeros: boolean;
+    avoidScientificNotation: boolean;
 };
 
 export type GraphControlPoint = {
@@ -74,6 +75,7 @@ export type GraphControlPoint = {
     displayDecimals: number;
     displaySmallAsZero: number;
     padZeros: boolean;
+    avoidScientificNotation: boolean;
 };
 
 export type GraphControlCircle = {
@@ -90,6 +92,7 @@ export type GraphControlCircle = {
     displayDecimals: number;
     displaySmallAsZero: number;
     padZeros: boolean;
+    avoidScientificNotation: boolean;
 };
 
 export type GraphControlRegularPolygon = {
@@ -106,6 +109,7 @@ export type GraphControlRegularPolygon = {
     displayDecimals: number;
     displaySmallAsZero: number;
     padZeros: boolean;
+    avoidScientificNotation: boolean;
 };
 
 export type GraphControlPolygon = {
@@ -121,6 +125,7 @@ export type GraphControlPolygon = {
     displayDecimals: number;
     displaySmallAsZero: number;
     padZeros: boolean;
+    avoidScientificNotation: boolean;
 };
 
 export type GraphControlTriangle = {
@@ -136,6 +141,7 @@ export type GraphControlTriangle = {
     displayDecimals: number;
     displaySmallAsZero: number;
     padZeros: boolean;
+    avoidScientificNotation: boolean;
 };
 
 export type GraphControlRectangle = {
@@ -153,6 +159,7 @@ export type GraphControlRectangle = {
     displayDecimals: number;
     displaySmallAsZero: number;
     padZeros: boolean;
+    avoidScientificNotation: boolean;
 };
 
 export type GraphControlLineSegment = {
@@ -169,6 +176,7 @@ export type GraphControlLineSegment = {
     displayDecimals: number;
     displaySmallAsZero: number;
     padZeros: boolean;
+    avoidScientificNotation: boolean;
 };
 
 export type GraphControlVector = {
@@ -186,6 +194,7 @@ export type GraphControlVector = {
     displayDecimals: number;
     displaySmallAsZero: number;
     padZeros: boolean;
+    avoidScientificNotation: boolean;
 };
 
 export type GraphControlItem =

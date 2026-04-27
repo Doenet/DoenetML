@@ -1,4 +1,4 @@
-import { returnRoundingStateVariableDefinitions } from "../utils/rounding";
+import { returnNumberDisplayStateVariableDefinitions } from "../utils/numberDisplay";
 import MathBaseOperator from "./abstract/MathBaseOperator";
 import MathBaseOperatorOneInput from "./abstract/MathBaseOperatorOneInput";
 import me from "math-expressions";
@@ -288,7 +288,7 @@ export class Round extends MathBaseOperatorOneInput {
         // so that actual rounding result can be seen.
         // Don't include maths for childGroupsIfSingleMatch
         // so that this overrides display rounding from children
-        let roundingDefinitions = returnRoundingStateVariableDefinitions({
+        let roundingDefinitions = returnNumberDisplayStateVariableDefinitions({
             displayDigitsDefault: 14,
         });
         Object.assign(stateVariableDefinitions, roundingDefinitions);

@@ -1,7 +1,7 @@
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 import Curve from "./Curve";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
@@ -39,7 +39,7 @@ export default class Parabola extends Curve {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         let curveStateVariableDefinitions =
@@ -82,7 +82,7 @@ export default class Parabola extends Curve {
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             forRenderer: true,
             returnDependencies: () => ({}),
@@ -94,7 +94,7 @@ export default class Parabola extends Curve {
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             forRenderer: true,
             returnDependencies: () => ({}),
@@ -159,7 +159,7 @@ export default class Parabola extends Curve {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "throughPointX") {
                         return [];
@@ -535,7 +535,7 @@ export default class Parabola extends Curve {
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             additionalStateVariablesDefined: [
                 {
@@ -544,7 +544,7 @@ export default class Parabola extends Curve {
                     shadowingInstructions: {
                         createComponentOfType: "number",
                         addAttributeComponentsShadowingStateVariables:
-                            returnRoundingAttributeComponentShadowing(),
+                            returnNumberDisplayAttributeComponentShadowing(),
                     },
                     hasEssential: true,
                     defaultValue: 0,
@@ -555,7 +555,7 @@ export default class Parabola extends Curve {
                     shadowingInstructions: {
                         createComponentOfType: "number",
                         addAttributeComponentsShadowingStateVariables:
-                            returnRoundingAttributeComponentShadowing(),
+                            returnNumberDisplayAttributeComponentShadowing(),
                     },
                     hasEssential: true,
                     defaultValue: 0,
@@ -1315,7 +1315,7 @@ export default class Parabola extends Curve {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "vertexX") {
                         return [];
@@ -1447,7 +1447,7 @@ export default class Parabola extends Curve {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             // TODO: implement additional properties
             additionalProperties: {

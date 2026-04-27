@@ -971,4 +971,31 @@ describe("odeSystem Tag Tests @group4", async () => {
         expect(diagnosticsByType.warnings[3].position.end.line).eq(17);
         expect(diagnosticsByType.warnings[3].position.end.column).eq(13);
     });
+
+    it("avoidScientificNotation in odeSystem latex", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<odeSystem name="ode1" initialconditions="0.000000000007">
+  <rightHandSide>2000000000000000000000x</rightHandSide>
+</odeSystem>
+
+<odeSystem name="ode2" initialconditions="0.000000000007" avoidScientificNotation>
+  <rightHandSide>2000000000000000000000x</rightHandSide>
+</odeSystem>
+`,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        let ode1Latex =
+            stateVariables[await resolvePathToNodeIdx("ode1")].stateValues
+                .latex;
+        let ode2Latex =
+            stateVariables[await resolvePathToNodeIdx("ode2")].stateValues
+                .latex;
+
+        expect(ode1Latex).match(/10\^{-12}|10\^{21}/);
+        expect(ode2Latex).contain("0.000000000007");
+        expect(ode2Latex).contain("2000000000000000000000");
+    });
 });

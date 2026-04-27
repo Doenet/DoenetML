@@ -11,6 +11,7 @@ import {
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { cleanLatex } from "../utils/math";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -303,6 +304,95 @@ describe("MathInput tag tests @group3", async () => {
             ["tuple", ["tuple", "g", "h"], ["tuple", "i", "j"]],
         ];
         await check_items(matrixValue);
+    });
+
+    it("matrixInput text and references use number-display formatting; rawRendererValue preserves typed text", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <matrixInput name="mi1" />
+    <matrixInput name="mi2" avoidScientificNotation padZeros />
+
+    <math name="mi1v">$mi1.value</math>
+    <math name="mi1iv">$mi1.immediateValue</math>
+    <math name="mi2v">$mi2.value</math>
+    <math name="mi2iv">$mi2.immediateValue</math>
+    `,
+        });
+
+        await updateMatrixInputImmediateValue({
+            latex: "0.0000000007",
+            rowInd: 0,
+            colInd: 0,
+            componentIdx: await resolvePathToNodeIdx("mi1"),
+            core,
+        });
+        await updateMatrixInputImmediateValue({
+            latex: "0.0000000007",
+            rowInd: 0,
+            colInd: 0,
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+
+        // Commit so value references and immediateValue references coincide.
+        await updateMatrixInputValueToImmediateValue({
+            rowInd: 0,
+            colInd: 0,
+            componentIdx: await resolvePathToNodeIdx("mi1"),
+            core,
+        });
+        await updateMatrixInputValueToImmediateValue({
+            rowInd: 0,
+            colInd: 0,
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // Input cell values are the same in both components; differences below
+        // come only from number-display formatting when values are referenced.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                .immediateValue.tree,
+        ).eqls(["matrix", ["tuple", 1, 1], ["tuple", ["tuple", 7e-10]]]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                .immediateValue.tree,
+        ).eqls(["matrix", ["tuple", 1, 1], ["tuple", ["tuple", 7e-10]]]);
+
+        let mi1vLatex =
+            stateVariables[await resolvePathToNodeIdx("mi1v")].stateValues
+                .latex;
+        let mi1ivLatex =
+            stateVariables[await resolvePathToNodeIdx("mi1iv")].stateValues
+                .latex;
+        let mi2vLatex =
+            stateVariables[await resolvePathToNodeIdx("mi2v")].stateValues
+                .latex;
+        let mi2ivLatex =
+            stateVariables[await resolvePathToNodeIdx("mi2iv")].stateValues
+                .latex;
+        expect(mi1vLatex).toBeDefined();
+        expect(mi1ivLatex).toBeDefined();
+        expect(mi2vLatex).toBeDefined();
+        expect(mi2ivLatex).toBeDefined();
+
+        // References for mi1 use default number-display behavior.
+        expect(cleanLatex(mi1vLatex)).match(/10\^{-10}|10\^\{-10\}/);
+        expect(cleanLatex(mi1ivLatex)).match(/10\^{-10}|10\^\{-10\}/);
+
+        // References for mi2 honor avoidScientificNotation + padZeros.
+        expect(cleanLatex(mi2vLatex)).contain("0.0000000007000000000");
+        expect(cleanLatex(mi2ivLatex)).contain("0.0000000007000000000");
+
+        // `.text` follows number-display formatting as well.
+        let mi1Text =
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.text;
+        let mi2Text =
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.text;
+        expect(mi1Text).match(/10\^\(-10\)/);
+        expect(mi2Text).contain("0.0000000007000000000");
     });
 
     async function test_matrix_input({

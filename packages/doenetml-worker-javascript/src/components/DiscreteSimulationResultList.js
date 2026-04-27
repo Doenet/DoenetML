@@ -1,8 +1,8 @@
 import { vectorOperators } from "@doenet/utils";
 import {
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 import { roundForDisplay } from "../utils/math";
 import BlockComponent from "./abstract/BlockComponent";
 
@@ -102,7 +102,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
             defaultValue: null,
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         return attributes;
     }
@@ -112,7 +112,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.cells = {

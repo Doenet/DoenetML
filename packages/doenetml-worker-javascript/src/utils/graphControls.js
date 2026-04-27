@@ -1,5 +1,5 @@
 /**
- * Extracts display/rounding metadata shared by all graph control payloads.
+ * Extracts number-display settings shared by all graph control payloads.
  */
 function extractControlDisplaySettings(stateValues) {
     return {
@@ -9,6 +9,7 @@ function extractControlDisplaySettings(stateValues) {
         displayDecimals: stateValues.displayDecimals,
         displaySmallAsZero: stateValues.displaySmallAsZero,
         padZeros: stateValues.padZeros,
+        avoidScientificNotation: stateValues.avoidScientificNotation,
     };
 }
 
@@ -163,6 +164,7 @@ export const GRAPH_CONTROL_VARIABLE_NAMES = [
     "displayDecimals",
     "displaySmallAsZero",
     "padZeros",
+    "avoidScientificNotation",
     "controlOrder",
 ];
 

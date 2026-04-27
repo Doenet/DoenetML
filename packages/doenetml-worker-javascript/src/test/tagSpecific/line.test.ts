@@ -6194,4 +6194,40 @@ describe("Line tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq("slope: 2/π");
     });
+
+    it("avoidScientificNotation in line text and latex", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <line
+    name="l1"
+    equation="y = 0.000000000007 x + 2000000000000000000000"
+  />
+  <line
+    name="l2"
+    equation="y = 0.000000000007 x + 2000000000000000000000"
+    avoidScientificNotation
+  />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        let l1Text =
+            stateVariables[await resolvePathToNodeIdx("l1")].stateValues.text;
+        let l2Text =
+            stateVariables[await resolvePathToNodeIdx("l2")].stateValues.text;
+
+        expect(l1Text).match(/10\^\(-12\)|10\^21/);
+        expect(l2Text).contain("0.000000000007");
+        expect(l2Text).contain("2000000000000000000000");
+
+        let l1Latex =
+            stateVariables[await resolvePathToNodeIdx("l1")].stateValues.latex;
+        let l2Latex =
+            stateVariables[await resolvePathToNodeIdx("l2")].stateValues.latex;
+
+        expect(l1Latex).match(/10\^{-12}|10\^{21}/);
+        expect(l2Latex).contain("0.000000000007");
+        expect(l2Latex).contain("2000000000000000000000");
+    });
 });

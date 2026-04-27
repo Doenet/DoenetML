@@ -1,4 +1,4 @@
-import { returnRoundingStateVariableDefinitions } from "../../utils/rounding";
+import { returnNumberDisplayStateVariableDefinitions } from "../../utils/numberDisplay";
 import MathComponent from "../Math";
 import me from "math-expressions";
 
@@ -98,7 +98,7 @@ export default class MathOperator extends MathComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        let roundingDefinitions = returnRoundingStateVariableDefinitions({
+        let roundingDefinitions = returnNumberDisplayStateVariableDefinitions({
             childGroupsIfSingleMatch: ["maths", "numbers"],
         });
         Object.assign(stateVariableDefinitions, roundingDefinitions);

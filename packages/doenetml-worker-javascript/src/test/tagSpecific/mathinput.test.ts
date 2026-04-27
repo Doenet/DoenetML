@@ -3338,6 +3338,94 @@ describe("MathInput tag tests @group2", async () => {
         ).eqls(["apply", "q", "z"]);
     });
 
+    it("mathInput text and references use number-display formatting; rawRendererValue preserves typed text", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi1" />
+    <mathInput name="mi2" avoidScientificNotation padZeros />
+
+    <math name="mi1v">$mi1.value</math>
+    <math name="mi1iv">$mi1.immediateValue</math>
+    <math name="mi2v">$mi2.value</math>
+    <math name="mi2iv">$mi2.immediateValue</math>
+    `,
+        });
+
+        await updateMathInputImmediateValue({
+            latex: "0.0000000007",
+            componentIdx: await resolvePathToNodeIdx("mi1"),
+            core,
+        });
+        await updateMathInputImmediateValue({
+            latex: "0.0000000007",
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+
+        // Commit so value references and immediateValue references coincide.
+        await updateMathInputValueToImmediateValue({
+            componentIdx: await resolvePathToNodeIdx("mi1"),
+            core,
+        });
+        await updateMathInputValueToImmediateValue({
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // Editor text preserves what the user typed for both inputs.
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("mi1")].stateValues
+                    .rawRendererValue,
+            ),
+        ).eq("0.0000000007");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("mi2")].stateValues
+                    .rawRendererValue,
+            ),
+        ).eq("0.0000000007");
+
+        // References for mi1 use default number-display behavior
+        // (scientific notation for small numbers, no zero padding).
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("mi1v")].stateValues
+                    .latex,
+            ),
+        ).match(/10\^{-10}|10\^\{-10\}/);
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("mi1iv")].stateValues
+                    .latex,
+            ),
+        ).match(/10\^{-10}|10\^\{-10\}/);
+
+        // References for mi2 honor avoidScientificNotation + padZeros.
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("mi2v")].stateValues
+                    .latex,
+            ),
+        ).eq("0.0000000007000000000");
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("mi2iv")].stateValues
+                    .latex,
+            ),
+        ).eq("0.0000000007000000000");
+
+        // `.text` follows number-display formatting as well.
+        let mi1Text =
+            stateVariables[await resolvePathToNodeIdx("mi1")].stateValues.text;
+        let mi2Text =
+            stateVariables[await resolvePathToNodeIdx("mi2")].stateValues.text;
+        expect(mi1Text).match(/10\^\(-10\)/);
+        expect(mi2Text).eq("0.0000000007000000000");
+    });
+
     it("display digits", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
