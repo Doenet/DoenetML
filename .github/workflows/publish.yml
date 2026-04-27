@@ -179,7 +179,7 @@ jobs:
             - name: Build workspaces
               run: |
                   export NODE_OPTIONS="--max_old_space_size=6114"
-                  npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07
+                  npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07 -w packages/vscode-extension
               env:
                   WIREIT_CACHE: "local"
 
@@ -188,6 +188,12 @@ jobs:
               run: npm run publish
               env:
                   WIREIT_CACHE: "local"
+
+            - name: Publish VS Code extension
+              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+              run: npm run publish -w packages/vscode-extension
+              env:
+                  VSCE_PAT: ${{ secrets.VSCE_PAT }}
 
             - name: Purge jsDelivr cache
               if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}

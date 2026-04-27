@@ -29,6 +29,7 @@
         "./packages/doenetml",
         "./packages/doenetml-prototype",
         "./packages/docs-nextra",
+        "./packages/vscode-extension/extension",
         "./packages/*"
     ],
     "scripts": {
@@ -54,7 +55,7 @@
         "test:e2e-mistagged": "npm run test:mistagged -w packages/test-cypress",
         "test:codemirror-cypress": "npm run test-cypress-all -w packages/codemirror",
         "version:changesets": "changeset version",
-        "version": "npm version -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07"
+        "version": "npm version -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07 -w packages/vscode-extension -w packages/vscode-extension/extension"
     },
     "prettier": {
         "tabWidth": 4
