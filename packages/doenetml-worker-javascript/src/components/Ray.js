@@ -2,10 +2,10 @@ import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
 import { convertValueToMathExpression, vectorOperators } from "@doenet/utils";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 
 export default class Ray extends GraphicalComponent {
@@ -43,7 +43,7 @@ export default class Ray extends GraphicalComponent {
 
         attributes.labelPosition = returnLineFamilyLabelPositionAttribute();
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         return attributes;
     }
@@ -53,7 +53,7 @@ export default class Ray extends GraphicalComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.styleDescription = {
@@ -727,7 +727,7 @@ export default class Ray extends GraphicalComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "directionX") {
                         return [];
@@ -986,7 +986,7 @@ export default class Ray extends GraphicalComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "throughX") {
                         return [];
@@ -1208,7 +1208,7 @@ export default class Ray extends GraphicalComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "endpointX") {
                         return [];
@@ -1665,7 +1665,7 @@ export default class Ray extends GraphicalComponent {
             stateVariable: "directionCoords",
             componentType: "_directionComponent",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
+                returnNumberDisplayStateVariableDefinitions(),
             ),
         },
     ];

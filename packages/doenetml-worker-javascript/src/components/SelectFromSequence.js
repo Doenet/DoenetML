@@ -7,7 +7,7 @@ import {
 import { lettersToNumber, enumerateSelectionCombinations } from "@doenet/utils";
 
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
-import { returnRoundingAttributes } from "../utils/rounding";
+import { returnNumberDisplayAttributes } from "../utils/numberDisplay";
 import { textToMathFactory } from "../utils/math";
 import { extractConstantSortAttribute } from "../utils/variants";
 import {
@@ -314,7 +314,7 @@ export default class SelectFromSequence extends Sequence {
         let attributesToConvert = {};
         for (let attr of [
             "fixed",
-            ...Object.keys(returnRoundingAttributes()),
+            ...Object.keys(returnNumberDisplayAttributes()),
         ]) {
             if (attr in component.attributes) {
                 attributesToConvert[attr] = component.attributes[attr];

@@ -9,10 +9,10 @@ import {
 import CompositeComponent from "./abstract/CompositeComponent";
 import BaseComponent from "./abstract/BaseComponent";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 import {
     latexToMathFactory,
     normalizeLatexString,
@@ -127,7 +127,7 @@ export class MatrixInput extends Input {
             public: true,
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.bindValueTo = {
             createComponentOfType: "math",
@@ -216,7 +216,7 @@ export class MatrixInput extends Input {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions({
+            returnNumberDisplayStateVariableDefinitions({
                 displayDigitsDefault: 10,
                 displaySmallAsZeroDefault: 0,
             }),
@@ -2165,7 +2165,7 @@ export class MatrixInput extends Input {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 componentValues: {
@@ -2308,7 +2308,7 @@ export class MatrixInput extends Input {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 componentImmediateValues: {
@@ -2509,7 +2509,7 @@ export class MatrixInput extends Input {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "matrixEntry") {
                         return [];
@@ -2966,7 +2966,7 @@ export class MatrixInput extends Input {
         {
             stateVariable: "value",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
+                returnNumberDisplayStateVariableDefinitions(),
             ),
         },
     ];

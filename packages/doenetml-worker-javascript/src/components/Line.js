@@ -5,11 +5,11 @@ import {
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
 import {
-    buildRoundingDisplayParameters,
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    buildNumberDisplayParameters,
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 import { returnNVariables, roundForDisplay } from "../utils/math";
@@ -59,7 +59,7 @@ export default class Line extends GraphicalComponent {
             createComponentOfType: "_variableNameList",
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.labelPosition = returnLineFamilyLabelPositionAttribute();
 
@@ -86,7 +86,7 @@ export default class Line extends GraphicalComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         let styleDescriptionDefinitions =
@@ -571,7 +571,7 @@ export default class Line extends GraphicalComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "pointX") {
                         return [];
@@ -1345,7 +1345,7 @@ export default class Line extends GraphicalComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             stateVariablesDeterminingDependencies: ["equationIdentity"],
             additionalStateVariablesDefined: [
@@ -1355,7 +1355,7 @@ export default class Line extends GraphicalComponent {
                     shadowingInstructions: {
                         createComponentOfType: "math",
                         addAttributeComponentsShadowingStateVariables:
-                            returnRoundingAttributeComponentShadowing(),
+                            returnNumberDisplayAttributeComponentShadowing(),
                     },
                 },
                 {
@@ -1364,7 +1364,7 @@ export default class Line extends GraphicalComponent {
                     shadowingInstructions: {
                         createComponentOfType: "math",
                         addAttributeComponentsShadowingStateVariables:
-                            returnRoundingAttributeComponentShadowing(),
+                            returnNumberDisplayAttributeComponentShadowing(),
                     },
                 },
                 {
@@ -1373,7 +1373,7 @@ export default class Line extends GraphicalComponent {
                     shadowingInstructions: {
                         createComponentOfType: "math",
                         addAttributeComponentsShadowingStateVariables:
-                            returnRoundingAttributeComponentShadowing(),
+                            returnNumberDisplayAttributeComponentShadowing(),
                     },
                 },
             ],
@@ -1816,7 +1816,7 @@ export default class Line extends GraphicalComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 coeffvar1: {
@@ -1847,7 +1847,7 @@ export default class Line extends GraphicalComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 coeff0: {
@@ -1878,7 +1878,7 @@ export default class Line extends GraphicalComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 coeff0: {
@@ -1960,7 +1960,7 @@ export default class Line extends GraphicalComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let params = buildRoundingDisplayParameters({
+                let params = buildNumberDisplayParameters({
                     padZeros: dependencyValues.padZeros,
                     displayDigits: dependencyValues.displayDigits,
                     displayDecimals: dependencyValues.displayDecimals,
@@ -2013,7 +2013,7 @@ export default class Line extends GraphicalComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let params = buildRoundingDisplayParameters({
+                let params = buildNumberDisplayParameters({
                     padZeros: dependencyValues.padZeros,
                     displayDigits: dependencyValues.displayDigits,
                     displayDecimals: dependencyValues.displayDecimals,
@@ -2125,14 +2125,14 @@ export default class Line extends GraphicalComponent {
         {
             stateVariable: "equation",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
+                returnNumberDisplayStateVariableDefinitions(),
             ),
         },
         {
             stateVariable: "parallelCoords",
             componentType: "_directionComponent",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
+                returnNumberDisplayStateVariableDefinitions(),
             ),
         },
     ];

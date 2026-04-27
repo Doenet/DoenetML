@@ -11,11 +11,11 @@ import {
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
 import {
-    buildRoundingDisplayParameters,
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    buildNumberDisplayParameters,
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 import { returnGraphControlOrderAttribute } from "../utils/graphical";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 
@@ -96,7 +96,7 @@ export default class Vector extends GraphicalComponent {
 
         attributes.labelPosition = returnLineFamilyLabelPositionAttribute();
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.displayWithAngleBrackets = {
             createComponentOfType: "boolean",
@@ -303,7 +303,7 @@ export default class Vector extends GraphicalComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         let styleDescriptionDefinitions =
@@ -1206,7 +1206,7 @@ export default class Vector extends GraphicalComponent {
                 createComponentOfType: "math",
                 attributesToShadow: ["displayWithAngleBrackets"],
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "x") {
                         return [];
@@ -1655,7 +1655,7 @@ export default class Vector extends GraphicalComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "headX") {
                         return [];
@@ -1862,7 +1862,7 @@ export default class Vector extends GraphicalComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "tailX") {
                         return [];
@@ -2118,7 +2118,7 @@ export default class Vector extends GraphicalComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 numDimensions: {
@@ -2375,7 +2375,7 @@ export default class Vector extends GraphicalComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let params = buildRoundingDisplayParameters({
+                let params = buildNumberDisplayParameters({
                     padZeros: dependencyValues.padZeros,
                     displayDigits: dependencyValues.displayDigits,
                     displayDecimals: dependencyValues.displayDecimals,
@@ -2481,14 +2481,14 @@ export default class Vector extends GraphicalComponent {
             stateVariable: "displacementCoords",
             componentType: "_directionComponent",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
+                returnNumberDisplayStateVariableDefinitions(),
             ),
         },
         {
             stateVariable: "displacementCoords",
             componentType: "coords",
             stateVariablesToShadow: [
-                ...Object.keys(returnRoundingStateVariableDefinitions()),
+                ...Object.keys(returnNumberDisplayStateVariableDefinitions()),
                 "inUnorderedList",
             ],
         },
@@ -2496,7 +2496,7 @@ export default class Vector extends GraphicalComponent {
             stateVariable: "displacementCoords",
             componentType: "point",
             stateVariablesToShadow: [
-                ...Object.keys(returnRoundingStateVariableDefinitions()),
+                ...Object.keys(returnNumberDisplayStateVariableDefinitions()),
                 "inUnorderedList",
             ],
         },

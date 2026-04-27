@@ -1,8 +1,8 @@
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../../utils/rounding";
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../../utils/numberDisplay";
 import BaseComponent from "../abstract/BaseComponent";
 import me from "math-expressions";
 
@@ -13,7 +13,7 @@ export default class EigenDecomposition extends BaseComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         return attributes;
     }
@@ -32,7 +32,7 @@ export default class EigenDecomposition extends BaseComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.decomposition = {
@@ -152,7 +152,7 @@ export default class EigenDecomposition extends BaseComponent {
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             entryPrefixes: ["eigenvalue"],
             returnArraySizeDependencies: () => ({
@@ -200,7 +200,7 @@ export default class EigenDecomposition extends BaseComponent {
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "eigenvectorX") {
                         return [];

@@ -2,10 +2,10 @@ import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
 import { convertValueToMathExpression } from "@doenet/utils";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 import { returnGraphControlOrderAttribute } from "../utils/graphical";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { returnStickyGroupDefinitions } from "../utils/constraints";
@@ -65,7 +65,7 @@ export default class LineSegment extends GraphicalComponent {
 
         attributes.labelPosition = returnLineFamilyLabelPositionAttribute();
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
         attributes.controlOrder = returnGraphControlOrderAttribute();
 
         return attributes;
@@ -76,7 +76,7 @@ export default class LineSegment extends GraphicalComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         Object.assign(stateVariableDefinitions, returnStickyGroupDefinitions());
@@ -442,7 +442,7 @@ export default class LineSegment extends GraphicalComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "endpointX") {
                         return [];
@@ -798,7 +798,7 @@ export default class LineSegment extends GraphicalComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 numDimensions: {
@@ -1132,7 +1132,7 @@ export default class LineSegment extends GraphicalComponent {
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 numericalEndpoints: {
@@ -1164,7 +1164,7 @@ export default class LineSegment extends GraphicalComponent {
             stateVariable: "parallelCoords",
             componentType: "_directionComponent",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
+                returnNumberDisplayStateVariableDefinitions(),
             ),
         },
     ];

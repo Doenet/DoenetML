@@ -2,10 +2,10 @@ import Input from "./abstract/Input";
 import me from "math-expressions";
 import { deepCompare, convertValueToMathExpression } from "@doenet/utils";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 import {
     latexToMathFactory,
@@ -98,7 +98,7 @@ export default class MathInput extends Input {
             fallBackToParentStateVariable: "parseScientificNotation",
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.bindValueTo = {
             createComponentOfType: "math",
@@ -180,7 +180,7 @@ export default class MathInput extends Input {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions({
+            returnNumberDisplayStateVariableDefinitions({
                 displayDigitsDefault: 10,
                 displaySmallAsZeroDefault: 0,
             }),
@@ -247,7 +247,7 @@ export default class MathInput extends Input {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             hasEssential: true,
             shadowVariable: true,
@@ -419,7 +419,7 @@ export default class MathInput extends Input {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             hasEssential: true,
             shadowVariable: true,
@@ -1073,7 +1073,7 @@ export default class MathInput extends Input {
         {
             stateVariable: "value",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
+                returnNumberDisplayStateVariableDefinitions(),
             ),
         },
     ];

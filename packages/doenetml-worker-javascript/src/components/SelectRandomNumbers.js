@@ -1,5 +1,5 @@
 import { sampleFromRandomNumbers } from "../utils/randomNumbers";
-import { returnRoundingAttributes } from "../utils/rounding";
+import { returnNumberDisplayAttributes } from "../utils/numberDisplay";
 import SampleRandomNumbers from "./SampleRandomNumbers";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 export default class SelectRandomNumbers extends SampleRandomNumbers {
@@ -200,7 +200,7 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         let diagnostics = [];
 
         let attributesToConvert = {};
-        for (let attr of Object.keys(returnRoundingAttributes())) {
+        for (let attr of Object.keys(returnNumberDisplayAttributes())) {
             if (attr in component.attributes) {
                 attributesToConvert[attr] = component.attributes[attr];
             }

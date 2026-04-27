@@ -2,10 +2,10 @@ import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 import { vectorOperators } from "@doenet/utils";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 
 export default class FunctionIterates extends InlineComponent {
     static componentType = "functionIterates";
@@ -42,7 +42,7 @@ export default class FunctionIterates extends InlineComponent {
             createComponentOfType: "function",
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         return attributes;
     }
@@ -52,7 +52,7 @@ export default class FunctionIterates extends InlineComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.numDimensions = {
@@ -113,7 +113,7 @@ export default class FunctionIterates extends InlineComponent {
             shadowingInstructions: {
                 createComponentOfType: "mathList",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 functionAttr: {
@@ -241,7 +241,7 @@ export default class FunctionIterates extends InlineComponent {
             shadowingInstructions: {
                 createComponentOfType: "mathList",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 initialValue: {
@@ -271,7 +271,7 @@ export default class FunctionIterates extends InlineComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             entryPrefixes: ["iterate"],
             returnArraySizeDependencies: () => ({
@@ -309,7 +309,7 @@ export default class FunctionIterates extends InlineComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             stateVariablesDeterminingDependencies: ["numIterates"],
             returnDependencies({ stateValues }) {

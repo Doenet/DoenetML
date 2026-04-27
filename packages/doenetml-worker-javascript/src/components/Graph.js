@@ -7,10 +7,10 @@ import {
     sizePossibilities,
 } from "@doenet/utils";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 import {
     GRAPH_CONTROL_COMPONENT_TYPES,
     GRAPH_CONTROL_DESCENDANT_CONFIGS,
@@ -212,7 +212,7 @@ export default class Graph extends BlockComponent {
             valueForTrue: "medium",
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.showBorder = {
             createComponentOfType: "boolean",
@@ -302,7 +302,7 @@ export default class Graph extends BlockComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.shortDescription = {
@@ -1039,7 +1039,7 @@ export default class Graph extends BlockComponent {
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             forRenderer: true,
             returnDependencies({ stateValues }) {
@@ -1184,7 +1184,7 @@ export default class Graph extends BlockComponent {
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             forRenderer: true,
             returnDependencies({ stateValues }) {
@@ -1335,7 +1335,7 @@ export default class Graph extends BlockComponent {
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             forRenderer: true,
             returnDependencies({ stateValues }) {
@@ -1482,7 +1482,7 @@ export default class Graph extends BlockComponent {
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             forRenderer: true,
             returnDependencies({ stateValues }) {
@@ -1664,7 +1664,7 @@ export default class Graph extends BlockComponent {
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 xMin: {
@@ -1690,7 +1690,7 @@ export default class Graph extends BlockComponent {
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 yMin: {
@@ -1767,7 +1767,7 @@ export default class Graph extends BlockComponent {
             shadowingInstructions: {
                 hasVariableComponentType: true,
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             forRenderer: true,
             stateVariablesDeterminingDependencies: ["gridAttrCompChildren"],

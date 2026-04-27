@@ -1,4 +1,4 @@
-import { returnRoundingAttributeComponentShadowing } from "../utils/rounding";
+import { returnNumberDisplayAttributeComponentShadowing } from "../utils/numberDisplay";
 import Polygon from "./Polygon";
 import me from "math-expressions";
 
@@ -393,7 +393,7 @@ export default class Rectangle extends Polygon {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "centerX") {
                         return [];
@@ -501,7 +501,7 @@ export default class Rectangle extends Polygon {
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
 
             returnDependencies() {
@@ -564,7 +564,7 @@ export default class Rectangle extends Polygon {
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
 
             returnDependencies() {
@@ -628,7 +628,7 @@ export default class Rectangle extends Polygon {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "vertexX") {
                         return [];

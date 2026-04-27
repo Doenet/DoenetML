@@ -12,11 +12,11 @@ import {
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
 import {
-    buildRoundingDisplayParameters,
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    buildNumberDisplayParameters,
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 import {
     returnLabelAttributes,
     returnWrapNonLabelsDescriptionsSugarFunction,
@@ -152,7 +152,7 @@ export default class Function extends InlineComponent {
             createComponentOfType: "boolean",
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.nearestPointAsCurve = {
             createComponentOfType: "boolean",
@@ -265,7 +265,7 @@ export default class Function extends InlineComponent {
             },
         };
 
-        let roundingDefinitions = returnRoundingStateVariableDefinitions({
+        let roundingDefinitions = returnNumberDisplayStateVariableDefinitions({
             childGroupsIfSingleMatch: ["functions"],
         });
         Object.assign(stateVariableDefinitions, roundingDefinitions);
@@ -1089,7 +1089,7 @@ export default class Function extends InlineComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             defaultValue: me.fromAst(0),
             hasEssential: true,
@@ -2781,7 +2781,7 @@ export default class Function extends InlineComponent {
                         },
                     };
                 }
-                let params = buildRoundingDisplayParameters({
+                let params = buildNumberDisplayParameters({
                     padZeros: dependencyValues.padZeros,
                     displayDigits: dependencyValues.displayDigits,
                     displayDecimals: dependencyValues.displayDecimals,
@@ -2852,7 +2852,7 @@ export default class Function extends InlineComponent {
                         },
                     };
                 }
-                let params = buildRoundingDisplayParameters({
+                let params = buildNumberDisplayParameters({
                     padZeros: dependencyValues.padZeros,
                     displayDigits: dependencyValues.displayDigits,
                     displayDecimals: dependencyValues.displayDecimals,
@@ -3027,7 +3027,7 @@ export default class Function extends InlineComponent {
                 createComponentOfType: "number",
                 attributesToShadow: ["styleNumber"],
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "minimum" || prefix === undefined) {
                         // minimum or entire array
@@ -3225,7 +3225,7 @@ export default class Function extends InlineComponent {
                 createComponentOfType: "number",
                 attributesToShadow: ["styleNumber"],
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === undefined) {
                         // Whole array is point,
@@ -3316,7 +3316,7 @@ export default class Function extends InlineComponent {
                 createComponentOfType: "number",
                 attributesToShadow: ["styleNumber"],
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === undefined) {
                         // Whole array is point,
@@ -3527,7 +3527,7 @@ export default class Function extends InlineComponent {
                 createComponentOfType: "number",
                 attributesToShadow: ["styleNumber"],
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "maximum" || prefix === undefined) {
                         // maximum or entire array
@@ -3725,7 +3725,7 @@ export default class Function extends InlineComponent {
                 createComponentOfType: "number",
                 attributesToShadow: ["styleNumber"],
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === undefined) {
                         // Whole array is point,
@@ -3816,7 +3816,7 @@ export default class Function extends InlineComponent {
                 createComponentOfType: "number",
                 attributesToShadow: ["styleNumber"],
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === undefined) {
                         // Whole array is point,
@@ -3957,7 +3957,7 @@ export default class Function extends InlineComponent {
                 createComponentOfType: "number",
                 attributesToShadow: ["styleNumber"],
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "extremum" || prefix === undefined) {
                         // extremum or entire array
@@ -4428,7 +4428,7 @@ export default class Function extends InlineComponent {
             stateVariable: "formula",
             componentType: "math",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
+                returnNumberDisplayStateVariableDefinitions(),
             ),
         },
     ];

@@ -5,11 +5,11 @@ import {
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
 import {
-    buildRoundingDisplayParameters,
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../../utils/rounding";
+    buildNumberDisplayParameters,
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../../utils/numberDisplay";
 import { returnNVariables, roundForDisplay } from "../../utils/math";
 
 export default class ODESystem extends InlineComponent {
@@ -33,7 +33,7 @@ export default class ODESystem extends InlineComponent {
             public: true,
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.renderMode = {
             createComponentOfType: "text",
@@ -103,7 +103,7 @@ export default class ODESystem extends InlineComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         let selectedStyleDefinition =
@@ -249,7 +249,7 @@ export default class ODESystem extends InlineComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             entryPrefixes: ["rhs", "righthandside"],
             returnArraySizeDependencies: () => ({
@@ -313,7 +313,7 @@ export default class ODESystem extends InlineComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             entryPrefixes: ["initialCondition"],
             defaultValueByArrayKey: () => me.fromAst(0),
@@ -488,7 +488,7 @@ export default class ODESystem extends InlineComponent {
                 };
             },
             definition({ dependencyValues }) {
-                let params = buildRoundingDisplayParameters({
+                let params = buildNumberDisplayParameters({
                     padZeros: dependencyValues.padZeros,
                     displayDigits: dependencyValues.displayDigits,
                     displayDecimals: dependencyValues.displayDecimals,
@@ -696,7 +696,7 @@ export default class ODESystem extends InlineComponent {
                     },
                 },
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             createWorkspace: true,
             returnArraySizeDependencies: () => ({

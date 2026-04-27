@@ -8,9 +8,9 @@
 import me from "math-expressions";
 import { convertValueToMathExpression, vectorOperators } from "@doenet/utils";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingStateVariableDefinitions,
-} from "../../utils/rounding";
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../../utils/numberDisplay";
 import BaseComponent from "./BaseComponent";
 
 export default class DirectionComponent extends BaseComponent {
@@ -24,7 +24,10 @@ export default class DirectionComponent extends BaseComponent {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
-        Object.assign(attributes, returnRoundingAttributeComponentShadowing());
+        Object.assign(
+            attributes,
+            returnNumberDisplayAttributeComponentShadowing(),
+        );
         return attributes;
     }
 
@@ -94,7 +97,7 @@ export default class DirectionComponent extends BaseComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.directionShadow = {
@@ -206,7 +209,7 @@ export default class DirectionComponent extends BaseComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
                 returnWrappingComponents(prefix) {
                     if (prefix === "x") {
                         return [];

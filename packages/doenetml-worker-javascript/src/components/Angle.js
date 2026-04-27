@@ -2,11 +2,11 @@ import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
 import { roundForDisplay } from "../utils/math";
 import {
-    buildRoundingDisplayParameters,
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    buildNumberDisplayParameters,
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 
 export default class Angle extends GraphicalComponent {
@@ -57,7 +57,7 @@ export default class Angle extends GraphicalComponent {
             createComponentOfType: "_lineListComponent",
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.emphasizeRightAngle = {
             createComponentOfType: "boolean",
@@ -88,7 +88,7 @@ export default class Angle extends GraphicalComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         // set filled to true so a legend shows a filled swath when displayClosedSwatches is set
@@ -500,7 +500,7 @@ export default class Angle extends GraphicalComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             additionalStateVariablesDefined: [
                 {
@@ -615,7 +615,7 @@ export default class Angle extends GraphicalComponent {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 radians: {
@@ -687,7 +687,7 @@ export default class Angle extends GraphicalComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let params = buildRoundingDisplayParameters({
+                let params = buildNumberDisplayParameters({
                     padZeros: dependencyValues.padZeros,
                     displayDigits: dependencyValues.displayDigits,
                     displayDecimals: dependencyValues.displayDecimals,
@@ -772,7 +772,7 @@ export default class Angle extends GraphicalComponent {
         {
             stateVariable: "radians",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
+                returnNumberDisplayStateVariableDefinitions(),
             ),
         },
     ];

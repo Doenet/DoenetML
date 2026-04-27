@@ -15,11 +15,11 @@ import {
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
 import {
-    buildRoundingDisplayParameters,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-    returnRoundingAttributeComponentShadowing,
-} from "../utils/rounding";
+    buildNumberDisplayParameters,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+    returnNumberDisplayAttributeComponentShadowing,
+} from "../utils/numberDisplay";
 import {
     textToMathFactory,
     latexToMathFactory,
@@ -94,7 +94,7 @@ export default class MathComponent extends InlineComponent {
             public: true,
         };
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.renderMode = {
             createComponentOfType: "text",
@@ -209,7 +209,7 @@ export default class MathComponent extends InlineComponent {
         let anchorDefinition = returnAnchorStateVariableDefinition();
         Object.assign(stateVariableDefinitions, anchorDefinition);
 
-        let roundingDefinitions = returnRoundingStateVariableDefinitions({
+        let roundingDefinitions = returnNumberDisplayStateVariableDefinitions({
             childGroupsIfSingleMatch: ["maths"],
             childGroupsToStopSingleMatch: ["strings"],
         });
@@ -596,7 +596,7 @@ export default class MathComponent extends InlineComponent {
                     fixed: {
                         stateVariableToShadow: "fixed",
                     },
-                    ...returnRoundingAttributeComponentShadowing(),
+                    ...returnNumberDisplayAttributeComponentShadowing(),
                 },
             },
             returnDependencies: () => ({
@@ -665,7 +665,7 @@ export default class MathComponent extends InlineComponent {
             shadowingInstructions: {
                 createComponentOfType: "number",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 value: {
@@ -831,7 +831,7 @@ export default class MathComponent extends InlineComponent {
             }),
             definition: function ({ dependencyValues }) {
                 let latex;
-                let params = buildRoundingDisplayParameters({
+                let params = buildNumberDisplayParameters({
                     padZeros: dependencyValues.padZeros,
                     displayDigits: dependencyValues.displayDigits,
                     displayDecimals: dependencyValues.displayDecimals,
@@ -907,7 +907,7 @@ export default class MathComponent extends InlineComponent {
             }),
             definition: function ({ dependencyValues }) {
                 let text;
-                let params = buildRoundingDisplayParameters({
+                let params = buildNumberDisplayParameters({
                     padZeros: dependencyValues.padZeros,
                     displayDigits: dependencyValues.displayDigits,
                     displayDecimals: dependencyValues.displayDecimals,
@@ -1100,7 +1100,7 @@ export default class MathComponent extends InlineComponent {
         {
             stateVariable: "number",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
+                returnNumberDisplayStateVariableDefinitions(),
             ),
         },
         "text",
@@ -1115,7 +1115,7 @@ export default class MathComponent extends InlineComponent {
             stateVariable: "value",
             componentType: "_directionComponent",
             stateVariablesToShadow: Object.keys(
-                returnRoundingStateVariableDefinitions(),
+                returnNumberDisplayStateVariableDefinitions(),
             ),
         },
     ];

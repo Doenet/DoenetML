@@ -3,7 +3,7 @@ import {
     deepClone,
     vectorOperators,
 } from "@doenet/utils";
-import { returnRoundingAttributeComponentShadowing } from "./rounding";
+import { returnNumberDisplayAttributeComponentShadowing } from "./numberDisplay";
 import me, { Tree, Expression } from "math-expressions";
 
 const vectorAndListOperators = ["list", ...vectorOperators];
@@ -64,7 +64,7 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
         shadowingInstructions: {
             createComponentOfType: "math",
             addAttributeComponentsShadowingStateVariables:
-                returnRoundingAttributeComponentShadowing(),
+                returnNumberDisplayAttributeComponentShadowing(),
             returnWrappingComponents(prefix: string | undefined) {
                 if (prefix === "x") {
                     return [];
@@ -285,7 +285,7 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
         shadowingInstructions: {
             createComponentOfType: "math",
             addAttributeComponentsShadowingStateVariables:
-                returnRoundingAttributeComponentShadowing(),
+                returnNumberDisplayAttributeComponentShadowing(),
         },
         isArray: true,
         entryPrefixes: ["listItem"],
@@ -421,7 +421,7 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
         shadowingInstructions: {
             createComponentOfType: "math",
             addAttributeComponentsShadowingStateVariables:
-                returnRoundingAttributeComponentShadowing(),
+                returnNumberDisplayAttributeComponentShadowing(),
             returnWrappingComponents(prefix: string | undefined) {
                 if (prefix === "matrixEntry") {
                     return [];

@@ -7,9 +7,9 @@ import {
 } from "@doenet/utils";
 import me from "math-expressions";
 import {
-    buildRoundingDisplayParameters,
-    returnRoundingAttributeComponentShadowing,
-} from "../utils/rounding";
+    buildNumberDisplayParameters,
+    returnNumberDisplayAttributeComponentShadowing,
+} from "../utils/numberDisplay";
 import {
     find_maxima_of_piecewise,
     find_minima_of_piecewise,
@@ -271,7 +271,7 @@ export default class PiecewiseFunction extends Function {
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({}),
             definition: () => ({ setValue: { formula: me.fromAst("\uff3f") } }),
@@ -574,7 +574,7 @@ export default class PiecewiseFunction extends Function {
             definition: function ({ dependencyValues }) {
                 let functionVariable = dependencyValues.variable;
 
-                let toLatexParams = buildRoundingDisplayParameters({
+                let toLatexParams = buildNumberDisplayParameters({
                     padZeros: dependencyValues.padZeros,
                     displayDigits: dependencyValues.displayDigits,
                     displayDecimals: dependencyValues.displayDecimals,

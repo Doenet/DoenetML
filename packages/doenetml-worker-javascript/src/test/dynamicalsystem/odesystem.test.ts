@@ -1015,10 +1015,12 @@ describe("odeSystem Tag Tests @group4", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("ode1")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("ode1")].stateValues
+                .latex,
         ).contain("\\frac{＿}{2}");
         expect(
-            stateVariables[await resolvePathToNodeIdx("ode2")].stateValues.latex,
+            stateVariables[await resolvePathToNodeIdx("ode2")].stateValues
+                .latex,
         ).contain("\\frac{}{2}");
     });
 });

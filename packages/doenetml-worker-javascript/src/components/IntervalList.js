@@ -2,8 +2,8 @@ import CompositeComponent from "./abstract/CompositeComponent";
 import {
     addShadowRoundingAttributes,
     gatherRawRoundingFixedResponseAttributes,
-    returnRoundingAttributes,
-} from "../utils/rounding";
+    returnNumberDisplayAttributes,
+} from "../utils/numberDisplay";
 import { postProcessCopy } from "../utils/copy";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { returnUnorderedListStateVariableDefinitions } from "../utils/unorderedLists";
@@ -63,7 +63,7 @@ export default class IntervalList extends CompositeComponent {
             defaultValue: true,
         };
 
-        for (let attrName in returnRoundingAttributes()) {
+        for (let attrName in returnNumberDisplayAttributes()) {
             attributes[attrName] = {
                 leaveRaw: true,
             };

@@ -1,17 +1,7 @@
-<booleanInput name="bi" />
+<number name="n1">0.000000000007</number>
 
-<conditionalContent>
-     <case condition="$bi">A</case>
+<number name="n2" avoidScientificNotation>0.000000000007</number>
 
-    <else>
-        <p>
-            <updateValue
-                name="addPoint1"
-                target="$bi"
-                newValue="true"
-                type="boolean"
-            />
-        </p>
-    </else>
+<math name="m1">0.000000000007x^2</math>
 
-</conditionalContent>
+<math name="m2" avoidScientificNotation> 0.000000000007x^2 </math>

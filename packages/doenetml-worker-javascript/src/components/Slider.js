@@ -6,10 +6,10 @@ import {
     returnLabelStateVariableDefinitions,
 } from "../utils/label";
 import {
-    returnRoundingAttributeComponentShadowing,
-    returnRoundingAttributes,
-    returnRoundingStateVariableDefinitions,
-} from "../utils/rounding";
+    returnNumberDisplayAttributeComponentShadowing,
+    returnNumberDisplayAttributes,
+    returnNumberDisplayStateVariableDefinitions,
+} from "../utils/numberDisplay";
 
 export default class Slider extends BaseComponent {
     constructor(args) {
@@ -104,7 +104,7 @@ export default class Slider extends BaseComponent {
 
         Object.assign(attributes, returnLabelAttributes());
 
-        Object.assign(attributes, returnRoundingAttributes());
+        Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.bindValueTo = {
             createComponentOfType: "_componentWithSelectableType",
@@ -139,7 +139,7 @@ export default class Slider extends BaseComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnRoundingStateVariableDefinitions(),
+            returnNumberDisplayStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.items = {
@@ -518,7 +518,7 @@ export default class Slider extends BaseComponent {
             shadowingInstructions: {
                 hasVariableComponentType: true,
                 addAttributeComponentsShadowingStateVariables:
-                    returnRoundingAttributeComponentShadowing(),
+                    returnNumberDisplayAttributeComponentShadowing(),
             },
             returnDependencies: () => ({
                 type: {
