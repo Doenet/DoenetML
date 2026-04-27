@@ -818,6 +818,10 @@ export default class MathComponent extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
                 },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
                 displayDigits: {
                     dependencyType: "stateVariable",
                     variableName: "displayDigits",
@@ -844,6 +848,9 @@ export default class MathComponent extends InlineComponent {
                 }
                 if (!dependencyValues.displayBlanks) {
                     params.showBlanks = false;
+                }
+                if (dependencyValues.avoidScientificNotation) {
+                    params.avoidScientificNotation = true;
                 }
                 try {
                     latex = dependencyValues.valueForDisplay.toLatex(params);
@@ -889,6 +896,10 @@ export default class MathComponent extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
                 },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
                 displayDigits: {
                     dependencyType: "stateVariable",
                     variableName: "displayDigits",
@@ -921,6 +932,9 @@ export default class MathComponent extends InlineComponent {
                 if (!dependencyValues.displayBlanks) {
                     params.showBlanks = false;
                 }
+                if (dependencyValues.avoidScientificNotation) {
+                    params.avoidScientificNotation = true;
+                }
                 try {
                     text = dependencyValues.valueForDisplay.toString(params);
                 } catch (e) {
@@ -932,7 +946,7 @@ export default class MathComponent extends InlineComponent {
                 }
                 return {
                     setValue: {
-                        text: superSubscriptsToUnicode(text.toString()),
+                        text: superSubscriptsToUnicode(text),
                     },
                 };
             },

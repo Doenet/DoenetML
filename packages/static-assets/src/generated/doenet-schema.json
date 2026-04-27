@@ -444,6 +444,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -683,6 +690,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -8609,6 +8621,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -8872,6 +8891,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -9210,6 +9234,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -9473,6 +9504,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -9811,6 +9847,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -10066,6 +10109,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -10404,6 +10452,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -10659,6 +10714,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -10997,6 +11057,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -11252,6 +11319,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -11590,6 +11662,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -11837,6 +11916,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -12175,6 +12259,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -12407,6 +12498,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -12740,6 +12836,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -12979,6 +13082,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -13317,6 +13425,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -13556,6 +13671,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -13894,6 +14014,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -14133,6 +14260,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -14471,6 +14603,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -14710,6 +14849,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -15048,6 +15192,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -15311,6 +15462,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -15649,6 +15805,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -15912,6 +16075,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -16250,6 +16418,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -16525,6 +16700,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -16863,6 +17043,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -17138,6 +17325,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -17476,6 +17668,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -17739,6 +17938,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -18077,6 +18281,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -18340,6 +18551,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -18678,6 +18894,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -18941,6 +19164,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -19279,6 +19507,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -19542,6 +19777,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -19880,6 +20120,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -20143,6 +20390,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -20481,6 +20733,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -20744,6 +21003,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -21082,6 +21346,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -21347,6 +21618,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -21754,6 +22030,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "nearestPointAsCurve",
                     "values": [
                         "true",
@@ -21910,6 +22193,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -22432,6 +22720,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "nearestPointAsCurve",
                     "values": [
                         "true",
@@ -22588,6 +22883,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -23110,6 +23410,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "nearestPointAsCurve",
                     "values": [
                         "true",
@@ -23256,6 +23563,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -38661,6 +38973,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -38801,6 +39120,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -39095,6 +39419,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "attractThreshold"
                 },
                 {
@@ -39261,6 +39592,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -39605,6 +39941,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "labelPosition",
                     "values": [
                         "upperRight",
@@ -39789,6 +40132,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -40084,6 +40432,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "labelPosition",
                     "values": [
                         "upperRight",
@@ -40220,6 +40575,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -40590,6 +40950,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "stable",
                     "values": [
                         "true",
@@ -40752,6 +41119,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -41038,6 +41410,13 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 }
             ],
             "properties": [
@@ -41108,6 +41487,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -41759,6 +42143,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -41998,6 +42389,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -46261,6 +46657,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "bindValueTo"
                 },
                 {
@@ -46407,6 +46810,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -49046,6 +49454,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -49285,6 +49700,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -49602,6 +50022,9 @@
                     "name": "padZeros"
                 },
                 {
+                    "name": "avoidScientificNotation"
+                },
+                {
                     "name": "functionSymbols"
                 },
                 {
@@ -49854,6 +50277,9 @@
                     "name": "padZeros"
                 },
                 {
+                    "name": "avoidScientificNotation"
+                },
+                {
                     "name": "functionSymbols"
                 },
                 {
@@ -50097,6 +50523,9 @@
                 },
                 {
                     "name": "padZeros"
+                },
+                {
+                    "name": "avoidScientificNotation"
                 }
             ],
             "properties": [
@@ -50779,6 +51208,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "labelPosition",
                     "values": [
                         "upperRight",
@@ -50939,6 +51375,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -51222,6 +51663,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -51449,6 +51897,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -51804,6 +52257,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "labelPosition",
                     "values": [
                         "upperRight",
@@ -51916,6 +52376,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -52170,6 +52635,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "controlOrder"
                 }
             ],
@@ -52286,6 +52758,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -52459,6 +52936,13 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 }
             ],
             "properties": [
@@ -52559,6 +53043,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -52792,6 +53281,13 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 }
             ],
             "properties": [
@@ -52912,6 +53408,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -53165,6 +53666,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "addControls",
                     "values": [
                         "center",
@@ -53321,6 +53829,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -53594,6 +54107,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "addControls",
                     "values": [
                         "center",
@@ -53750,6 +54270,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -54023,6 +54548,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "addControls",
                     "values": [
                         "center",
@@ -54192,6 +54724,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -54468,6 +55005,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "addControls",
                     "values": [
                         "center",
@@ -54658,6 +55202,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -55027,6 +55576,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "center"
                 },
                 {
@@ -55220,6 +55776,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -55559,6 +56120,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "vertex"
                 }
             ],
@@ -55700,6 +56268,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -56032,6 +56605,13 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 }
             ],
             "properties": [
@@ -56172,6 +56752,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -56742,6 +57327,9 @@
                     "name": "padZeros"
                 },
                 {
+                    "name": "avoidScientificNotation"
+                },
+                {
                     "name": "direction",
                     "values": [
                         "symmetric",
@@ -57060,6 +57648,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "displayWithAngleBrackets",
                     "values": [
                         "true",
@@ -57195,6 +57790,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -57503,6 +58103,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "emphasizeRightAngle",
                     "values": [
                         "true",
@@ -57618,6 +58225,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -59427,6 +60039,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "bindValueTo"
                 },
                 {
@@ -59600,6 +60219,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -61392,6 +62016,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderAsMath",
                     "values": [
                         "true",
@@ -61544,6 +62175,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -61736,6 +62372,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderAsMath",
                     "values": [
                         "true",
@@ -61888,6 +62531,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -62287,6 +62935,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "showBorder",
                     "values": [
                         "true",
@@ -62478,6 +63133,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -63096,6 +63756,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "nearestPointAsCurve",
                     "values": [
                         "true",
@@ -63236,6 +63903,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -63666,6 +64338,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "nearestPointAsCurve",
                     "values": [
                         "true",
@@ -63806,6 +64485,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -64246,6 +64930,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -64473,6 +65164,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -65049,6 +65745,9 @@
                     "name": "padZeros"
                 },
                 {
+                    "name": "avoidScientificNotation"
+                },
+                {
                     "name": "type",
                     "values": [
                         "number",
@@ -65321,6 +66020,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "bindValueTo"
                 }
             ],
@@ -65447,6 +66153,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -70844,6 +71555,9 @@
                     "name": "padZeros"
                 },
                 {
+                    "name": "avoidScientificNotation"
+                },
+                {
                     "name": "type",
                     "values": [
                         "number",
@@ -71717,6 +72431,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -71995,6 +72716,11 @@
                     "isArray": false
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
                     "name": "value",
                     "type": "evaluate",
                     "isArray": false
@@ -72240,6 +72966,9 @@
                     "name": "padZeros"
                 },
                 {
+                    "name": "avoidScientificNotation"
+                },
+                {
                     "name": "asList",
                     "values": [
                         "true",
@@ -72420,6 +73149,9 @@
                 },
                 {
                     "name": "padZeros"
+                },
+                {
+                    "name": "avoidScientificNotation"
                 },
                 {
                     "name": "variantDeterminesSeed",
@@ -73149,6 +73881,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "matchWholeWord",
                     "values": [
                         "true",
@@ -73243,6 +73982,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 }
@@ -73346,6 +74090,13 @@
                 },
                 {
                     "name": "padZeros",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "values": [
                         "true",
                         "false"
@@ -73639,6 +74390,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -77218,6 +77974,13 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 }
             ],
             "properties": [
@@ -77303,6 +78066,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -79083,6 +79851,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "labelPosition",
                     "values": [
                         "upperRight",
@@ -79267,6 +80042,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -80717,6 +81497,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -80971,6 +81758,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -81618,6 +82410,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "labelPosition",
                     "values": [
                         "upperRight",
@@ -81728,6 +82527,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -83459,6 +84263,13 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 }
             ],
             "properties": [
@@ -83534,6 +84345,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -84665,6 +85481,13 @@
                     ]
                 },
                 {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
                     "name": "renderMode"
                 },
                 {
@@ -84913,6 +85736,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -85216,6 +86044,13 @@
                         "true",
                         "false"
                     ]
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
                 }
             ],
             "properties": [
@@ -85286,6 +86121,11 @@
                 },
                 {
                     "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false
+                },
+                {
+                    "name": "avoidScientificNotation",
                     "type": "boolean",
                     "isArray": false
                 },
@@ -87689,6 +88529,9 @@
                 },
                 {
                     "name": "padZeros"
+                },
+                {
+                    "name": "avoidScientificNotation"
                 }
             ],
             "properties": [
@@ -87894,6 +88737,9 @@
                 },
                 {
                     "name": "padZeros"
+                },
+                {
+                    "name": "avoidScientificNotation"
                 }
             ],
             "properties": [
@@ -88099,6 +88945,9 @@
                 },
                 {
                     "name": "padZeros"
+                },
+                {
+                    "name": "avoidScientificNotation"
                 }
             ],
             "properties": [

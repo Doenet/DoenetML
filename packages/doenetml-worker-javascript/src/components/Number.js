@@ -879,6 +879,10 @@ export default class NumberComponent extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
                 },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
                 displayDigits: {
                     dependencyType: "stateVariable",
                     variableName: "displayDigits",
@@ -902,6 +906,9 @@ export default class NumberComponent extends InlineComponent {
                     if (dependencyValues.displayDigits >= 1) {
                         params.padToDigits = dependencyValues.displayDigits;
                     }
+                }
+                if (dependencyValues.avoidScientificNotation) {
+                    params.avoidScientificNotation = true;
                 }
                 return {
                     setValue: {
@@ -981,6 +988,10 @@ export default class NumberComponent extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
                 },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
                 displayDigits: {
                     dependencyType: "stateVariable",
                     variableName: "displayDigits",
@@ -999,6 +1010,9 @@ export default class NumberComponent extends InlineComponent {
                     if (dependencyValues.displayDigits >= 1) {
                         params.padToDigits = dependencyValues.displayDigits;
                     }
+                }
+                if (dependencyValues.avoidScientificNotation) {
+                    params.avoidScientificNotation = true;
                 }
                 return {
                     setValue: {

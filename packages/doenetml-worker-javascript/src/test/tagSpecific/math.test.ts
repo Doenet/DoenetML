@@ -13403,4 +13403,61 @@ describe("Math tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("p2c")].stateValues.text,
         ).eq("-3/4");
     });
+
+    it("avoidScientificNotation", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+      <math name="m1">0.000000000007 x^2</math>
+      <math name="m2" avoidScientificNotation>0.000000000007 x^2</math>
+      <math name="m3">2000000000000000000000 x^2</math>
+      <math name="m4" avoidScientificNotation>2000000000000000000000 x^2</math>
+      <math name="m5" avoidScientificNotation>0.000000000007 x^2</math>
+      <math extend="$m5" avoidScientificNotation="false" name="m5b" />
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m1")].stateValues
+                    .latex,
+            ),
+        ).eq("7\\cdot10^{-12}x^{2}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m2")].stateValues
+                    .latex,
+            ),
+        ).eq("0.000000000007x^{2}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m3")].stateValues
+                    .latex,
+            ),
+        ).eq("2\\cdot10^{21}x^{2}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m4")].stateValues
+                    .latex,
+            ),
+        ).eq("2000000000000000000000x^{2}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m5")].stateValues
+                    .latex,
+            ),
+        ).eq("0.000000000007x^{2}");
+
+        expect(
+            cleanLatex(
+                stateVariables[await resolvePathToNodeIdx("m5b")].stateValues
+                    .latex,
+            ),
+        ).eq("7\\cdot10^{-12}x^{2}");
+    });
 });

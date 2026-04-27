@@ -83,6 +83,24 @@ export function returnRoundingStateVariableDefinitions({
         }),
     };
 
+    stateVariableDefinitions.avoidScientificNotation = {
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "boolean",
+        },
+        hasEssential: true,
+        defaultValue: false,
+        returnDependencies: roundingDependencies({
+            stateVariable: "avoidScientificNotation",
+            childGroupsIfSingleMatch,
+            childGroupsToStopSingleMatch,
+            additionalAttributeComponent,
+        }),
+        definition: roundingDefinition({
+            stateVariable: "avoidScientificNotation",
+        }),
+    };
+
     return stateVariableDefinitions;
 }
 
@@ -234,6 +252,9 @@ export function returnRoundingAttributes() {
             valueForFalse: 0,
         },
         padZeros: {
+            createComponentOfType: "boolean",
+        },
+        avoidScientificNotation: {
             createComponentOfType: "boolean",
         },
     };
