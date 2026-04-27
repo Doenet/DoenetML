@@ -3,8 +3,8 @@ import me from "math-expressions";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
 import { convertValueToMathExpression } from "@doenet/utils";
 import {
-    addShadowRoundingAttributes,
-    gatherRawRoundingFixedResponseAttributes,
+    addShadowNumberDisplayAttributes,
+    gatherRawNumberDisplayFixedResponseAttributes,
     returnNumberDisplayAttributes,
 } from "../utils/numberDisplay";
 import { postProcessCopy } from "../utils/copy";
@@ -596,7 +596,7 @@ export default class NumberList extends CompositeComponent {
         let componentsCopied = [];
 
         // For attributes that were left raw, we convert them and add them to the replacements
-        let attributesToConvert = gatherRawRoundingFixedResponseAttributes(
+        let attributesToConvert = gatherRawNumberDisplayFixedResponseAttributes(
             component,
             components,
         );
@@ -641,7 +641,7 @@ export default class NumberList extends CompositeComponent {
             }
 
             if (copyChildSource) {
-                nComponents = addShadowRoundingAttributes({
+                nComponents = addShadowNumberDisplayAttributes({
                     nComponents,
                     stateIdInfo,
                     source: copyChildSource,

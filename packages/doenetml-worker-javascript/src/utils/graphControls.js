@@ -1,5 +1,5 @@
 /**
- * Extracts display/rounding metadata shared by all graph control payloads.
+ * Extracts number-display settings shared by all graph control payloads.
  */
 function extractControlDisplaySettings(stateValues) {
     return {
