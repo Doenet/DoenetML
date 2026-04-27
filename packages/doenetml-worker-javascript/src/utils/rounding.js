@@ -278,6 +278,35 @@ export function returnRoundingAttributeComponentShadowing() {
     return shadowing;
 }
 
+export function buildRoundingDisplayParameters({
+    padZeros,
+    displayDigits,
+    displayDecimals,
+    displayBlanks,
+    avoidScientificNotation,
+} = {}) {
+    let params = {};
+
+    if (padZeros) {
+        if (Number.isFinite(displayDecimals)) {
+            params.padToDecimals = displayDecimals;
+        }
+        if (displayDigits >= 1) {
+            params.padToDigits = displayDigits;
+        }
+    }
+
+    if (displayBlanks === false) {
+        params.showBlanks = false;
+    }
+
+    if (avoidScientificNotation) {
+        params.avoidScientificNotation = true;
+    }
+
+    return params;
+}
+
 /**
  * Gather the raw attributes (i.e., of type `unresolved`) in `component`
  * that are rounding attribute, with the addition of `fixed` and `isResponse`.

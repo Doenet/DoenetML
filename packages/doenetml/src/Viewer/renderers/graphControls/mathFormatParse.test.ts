@@ -28,6 +28,15 @@ describe("graph controls math format parse", () => {
         expect(formatted).eq("0.000000000007");
     });
 
+    it("formats large numbers without scientific notation when avoidScientificNotation is true", () => {
+        const formatted = formatCoordinateForControls(2e21, {
+            ...baseDisplaySettings,
+            avoidScientificNotation: true,
+        });
+
+        expect(formatted).eq("2000000000000000000000");
+    });
+
     it("still honors padZeros with avoidScientificNotation", () => {
         const formatted = formatCoordinateForControls(7e-12, {
             ...baseDisplaySettings,

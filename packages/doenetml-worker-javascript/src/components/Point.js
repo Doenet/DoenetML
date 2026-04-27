@@ -8,6 +8,7 @@ import {
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
 import {
+    buildRoundingDisplayParameters,
     returnRoundingAttributeComponentShadowing,
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
@@ -1180,18 +1181,13 @@ export default class Point extends GraphicalComponent {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                let params = {};
-                if (dependencyValues.padZeros) {
-                    if (Number.isFinite(dependencyValues.displayDecimals)) {
-                        params.padToDecimals = dependencyValues.displayDecimals;
-                    }
-                    if (dependencyValues.displayDigits >= 1) {
-                        params.padToDigits = dependencyValues.displayDigits;
-                    }
-                }
-                if (dependencyValues.avoidScientificNotation) {
-                    params.avoidScientificNotation = true;
-                }
+                let params = buildRoundingDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
                 let latex = roundForDisplay({
                     value: dependencyValues.coords,
                     dependencyValues,

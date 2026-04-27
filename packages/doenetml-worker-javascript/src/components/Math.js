@@ -15,6 +15,7 @@ import {
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
 import {
+    buildRoundingDisplayParameters,
     returnRoundingAttributes,
     returnRoundingStateVariableDefinitions,
     returnRoundingAttributeComponentShadowing,
@@ -837,21 +838,14 @@ export default class MathComponent extends InlineComponent {
             }),
             definition: function ({ dependencyValues }) {
                 let latex;
-                let params = {};
-                if (dependencyValues.padZeros) {
-                    if (Number.isFinite(dependencyValues.displayDecimals)) {
-                        params.padToDecimals = dependencyValues.displayDecimals;
-                    }
-                    if (dependencyValues.displayDigits >= 1) {
-                        params.padToDigits = dependencyValues.displayDigits;
-                    }
-                }
-                if (!dependencyValues.displayBlanks) {
-                    params.showBlanks = false;
-                }
-                if (dependencyValues.avoidScientificNotation) {
-                    params.avoidScientificNotation = true;
-                }
+                let params = buildRoundingDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    displayBlanks: dependencyValues.displayBlanks,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
                 try {
                     latex = dependencyValues.valueForDisplay.toLatex(params);
                 } catch (e) {
@@ -920,21 +914,14 @@ export default class MathComponent extends InlineComponent {
             }),
             definition: function ({ dependencyValues }) {
                 let text;
-                let params = {};
-                if (dependencyValues.padZeros) {
-                    if (Number.isFinite(dependencyValues.displayDecimals)) {
-                        params.padToDecimals = dependencyValues.displayDecimals;
-                    }
-                    if (dependencyValues.displayDigits >= 1) {
-                        params.padToDigits = dependencyValues.displayDigits;
-                    }
-                }
-                if (!dependencyValues.displayBlanks) {
-                    params.showBlanks = false;
-                }
-                if (dependencyValues.avoidScientificNotation) {
-                    params.avoidScientificNotation = true;
-                }
+                let params = buildRoundingDisplayParameters({
+                    padZeros: dependencyValues.padZeros,
+                    displayDigits: dependencyValues.displayDigits,
+                    displayDecimals: dependencyValues.displayDecimals,
+                    displayBlanks: dependencyValues.displayBlanks,
+                    avoidScientificNotation:
+                        dependencyValues.avoidScientificNotation,
+                });
                 try {
                     text = dependencyValues.valueForDisplay.toString(params);
                 } catch (e) {
