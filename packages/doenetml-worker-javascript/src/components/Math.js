@@ -154,6 +154,13 @@ export default class MathComponent extends InlineComponent {
             fallBackToParentStateVariable: "parseScientificNotation",
         };
 
+        attributes.displayBlanks = {
+            createComponentOfType: "boolean",
+            createStateVariable: "displayBlanks",
+            defaultValue: true,
+            public: true,
+        };
+
         attributes.assumptions = {
             createComponentOfType: "math",
             createStateVariable: "assumptions",
@@ -835,10 +842,12 @@ export default class MathComponent extends InlineComponent {
                     padZeros: dependencyValues.padZeros,
                     displayDigits: dependencyValues.displayDigits,
                     displayDecimals: dependencyValues.displayDecimals,
-                    displayBlanks: dependencyValues.displayBlanks,
                     avoidScientificNotation:
                         dependencyValues.avoidScientificNotation,
                 });
+                if (!dependencyValues.displayBlanks) {
+                    params.showBlanks = false;
+                }
                 try {
                     latex = dependencyValues.valueForDisplay.toLatex(params);
                 } catch (e) {
@@ -911,10 +920,12 @@ export default class MathComponent extends InlineComponent {
                     padZeros: dependencyValues.padZeros,
                     displayDigits: dependencyValues.displayDigits,
                     displayDecimals: dependencyValues.displayDecimals,
-                    displayBlanks: dependencyValues.displayBlanks,
                     avoidScientificNotation:
                         dependencyValues.avoidScientificNotation,
                 });
+                if (!dependencyValues.displayBlanks) {
+                    params.showBlanks = false;
+                }
                 try {
                     text = dependencyValues.valueForDisplay.toString(params);
                 } catch (e) {

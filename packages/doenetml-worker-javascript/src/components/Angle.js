@@ -677,10 +677,6 @@ export default class Angle extends GraphicalComponent {
                     dependencyType: "stateVariable",
                     variableName: "padZeros",
                 },
-                displayBlanks: {
-                    dependencyType: "stateVariable",
-                    variableName: "displayBlanks",
-                },
                 avoidScientificNotation: {
                     dependencyType: "stateVariable",
                     variableName: "avoidScientificNotation",
@@ -691,7 +687,6 @@ export default class Angle extends GraphicalComponent {
                     padZeros: dependencyValues.padZeros,
                     displayDigits: dependencyValues.displayDigits,
                     displayDecimals: dependencyValues.displayDecimals,
-                    displayBlanks: dependencyValues.displayBlanks,
                     avoidScientificNotation:
                         dependencyValues.avoidScientificNotation,
                 });

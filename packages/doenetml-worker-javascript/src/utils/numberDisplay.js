@@ -1,7 +1,7 @@
 /**
  * Returns DoenetML state variable definitions for all number-display attributes
  * (`displayDigits`, `displayDecimals`, `displaySmallAsZero`, `padZeros`,
- * `avoidScientificNotation`, `displayBlanks`).
+ * `avoidScientificNotation`).
  *
  * Each state variable inherits its value through the following priority chain,
  * from highest to lowest:
@@ -127,24 +127,6 @@ export function returnNumberDisplayStateVariableDefinitions({
         }),
         definition: numberDisplayDefinition({
             stateVariable: "avoidScientificNotation",
-        }),
-    };
-
-    stateVariableDefinitions.displayBlanks = {
-        public: true,
-        shadowingInstructions: {
-            createComponentOfType: "boolean",
-        },
-        hasEssential: true,
-        defaultValue: true,
-        returnDependencies: numberDisplayDependencies({
-            stateVariable: "displayBlanks",
-            childGroupsIfSingleMatch,
-            childGroupsToStopSingleMatch,
-            additionalAttributeComponent,
-        }),
-        definition: numberDisplayDefinition({
-            stateVariable: "displayBlanks",
         }),
     };
 
@@ -342,8 +324,6 @@ function numberDisplayDefinition({ stateVariable, valueIfIgnore = null }) {
  *                              `displayDecimals` (boolean)
  * - `avoidScientificNotation`— render large/small numbers in full decimal form
  *                              instead of scientific notation (boolean)
- * - `displayBlanks`          — show a placeholder glyph (＿) for missing
- *                              sub-expressions; default `true` (boolean)
  *
  * @returns {object} Attribute descriptor map.
  */
@@ -364,9 +344,6 @@ export function returnNumberDisplayAttributes() {
             createComponentOfType: "boolean",
         },
         avoidScientificNotation: {
-            createComponentOfType: "boolean",
-        },
-        displayBlanks: {
             createComponentOfType: "boolean",
         },
     };
@@ -424,20 +401,17 @@ export function returnNumberDisplayAttributeComponentShadowing() {
  *   digits (used only when `padZeros` is true).
  * @param {number}  [options.displayDecimals]         Number of decimal places
  *   (used only when `padZeros` is true).
- * @param {boolean} [options.displayBlanks]           When explicitly `false`,
- *   missing sub-expressions are hidden rather than shown as a placeholder.
  * @param {boolean} [options.avoidScientificNotation] When `true`, numbers that
  *   would normally render in scientific notation are written in full decimal
  *   form instead.
  * @returns {{ padToDecimals?: number, padToDigits?: number,
- *             showBlanks?: false, avoidScientificNotation?: true }} Formatter
+ *             avoidScientificNotation?: true }} Formatter
  *   parameter object.
  */
 export function buildNumberDisplayParameters({
     padZeros,
     displayDigits,
     displayDecimals,
-    displayBlanks,
     avoidScientificNotation,
 } = {}) {
     let params = {};
@@ -449,10 +423,6 @@ export function buildNumberDisplayParameters({
         if (displayDigits >= 1) {
             params.padToDigits = displayDigits;
         }
-    }
-
-    if (displayBlanks === false) {
-        params.showBlanks = false;
     }
 
     if (avoidScientificNotation) {
