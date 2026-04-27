@@ -7404,4 +7404,28 @@ describe("Function tag tests @group4", async () => {
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("36, 36, 0");
     });
+
+    it("avoidScientificNotation in function latex", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="f1">0.000000000007x + 2000000000000000000000</function>
+  <function name="f2" avoidScientificNotation
+    >0.000000000007x + 2000000000000000000000</function
+  >
+            `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        const f1Latex = cleanLatex(
+            stateVariables[await resolvePathToNodeIdx("f1")].stateValues.latex,
+        );
+        const f2Latex = cleanLatex(
+            stateVariables[await resolvePathToNodeIdx("f2")].stateValues.latex,
+        );
+
+        expect(f1Latex).match(/10\^{-12}|10\^{21}|10\^21/);
+        expect(f2Latex).contain("0.000000000007");
+        expect(f2Latex).contain("2000000000000000000000");
+    });
 });

@@ -6390,4 +6390,28 @@ describe("Vector Tag Tests @group4", function () {
         await test_items("light");
         await test_items("dark");
     });
+
+    it("avoidScientificNotation in vector latex", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <vector name="v1" displacement="(0.000000000007,2000000000000000000000)" />
+  <vector
+    name="v2"
+    displacement="(0.000000000007,2000000000000000000000)"
+    avoidScientificNotation
+  />
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        const v1Latex =
+            stateVariables[await resolvePathToNodeIdx("v1")].stateValues.latex;
+        const v2Latex =
+            stateVariables[await resolvePathToNodeIdx("v2")].stateValues.latex;
+
+        expect(v1Latex).match(/10\^{-12}|10\^\{21\}|10\^21/);
+        expect(v2Latex).contain("0.000000000007");
+        expect(v2Latex).contain("2000000000000000000000");
+    });
 });
