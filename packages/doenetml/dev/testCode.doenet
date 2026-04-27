@@ -1,17 +1,17 @@
 <booleanInput name="bi" />
 
 <conditionalContent>
-	 <case condition="$bi">A</case>
+     <case condition="$bi">A</case>
 
-	<else>
-		<p>
-			<updateValue
-				name="addPoint1"
-				target="$bi"
-				newValue="true"
-				type="boolean"
-			/>
-		</p>
-	</else>
+    <else>
+        <p>
+            <updateValue
+                name="addPoint1"
+                target="$bi"
+                newValue="true"
+                type="boolean"
+            />
+        </p>
+    </else>
 
 </conditionalContent>
