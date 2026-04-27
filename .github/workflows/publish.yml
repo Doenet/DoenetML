@@ -191,6 +191,7 @@ jobs:
 
             - name: Publish VS Code extension
               if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
+              continue-on-error: true
               run: npm run publish -w packages/vscode-extension
               env:
                   VSCE_PAT: ${{ secrets.VSCE_PAT }}
