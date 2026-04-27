@@ -6230,4 +6230,29 @@ describe("Line tag tests @group3", async () => {
         expect(l2Latex).contain("0.000000000007");
         expect(l2Latex).contain("2000000000000000000000");
     });
+
+    it("displayBlanks in line text and latex", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <line name="l1" equation="/2" />
+  <line name="l2" equation="/2" displayBlanks="false" />
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("l1")].stateValues.text,
+        ).eq("＿/2");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("l2")].stateValues.text,
+        ).eq("/2");
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("l1")].stateValues.latex,
+        ).eq("\\frac{＿}{2}");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("l2")].stateValues.latex,
+        ).eq("\\frac{}{2}");
+    });
 });

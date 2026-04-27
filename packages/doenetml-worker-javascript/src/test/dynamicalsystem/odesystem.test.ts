@@ -998,4 +998,27 @@ describe("odeSystem Tag Tests @group4", async () => {
         expect(ode2Latex).contain("0.000000000007");
         expect(ode2Latex).contain("2000000000000000000000");
     });
+
+    it("displayBlanks in odeSystem latex", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<odeSystem name="ode1" initialconditions="/2">
+  <rightHandSide>x</rightHandSide>
+</odeSystem>
+
+<odeSystem name="ode2" initialconditions="/2" displayBlanks="false">
+  <rightHandSide>x</rightHandSide>
+</odeSystem>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ode1")].stateValues.latex,
+        ).contain("\\frac{＿}{2}");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ode2")].stateValues.latex,
+        ).contain("\\frac{}{2}");
+    });
 });
