@@ -1,5 +1,24 @@
 # @doenet/doenetml
 
+## 0.7.16
+
+### Patch Changes
+
+- bbd2c4f: Fix `sort` and `shuffle` sugar handling when type information is missing or invalid, and improve diagnostics for mixed string/component children.
+    - Fall back to `math` (with warning diagnostics) when `type` is invalid.
+    - When `type` is omitted, do not apply sugar; instead, if a string child exists, emit warnings telling authors to specify a `type` attribute.
+    - Ignore string children in mixed-content cases with explicit warning diagnostics.
+    - Add test coverage for the fallback and diagnostics behavior.
+
+- 84e3472: Introduce a new `avoidScientificNotation` number-display attribute and ensure
+  number-display settings are applied consistently across worker and viewer
+  rendering.
+    - Add `avoidScientificNotation` support to core number/math formatting behavior in the worker.
+    - Apply number-display parameters consistently through related formatted outputs (including line/function/point/vector/angle/piecewise/ODE displays).
+    - Wire number-display formatting through graph controls worker payloads and viewer parsing/model logic so display settings are respected end-to-end.
+    - Update generated schema output so inherited number-display attributes are available consistently.
+    - Add worker and viewer test coverage for the new/updated display behavior.
+
 ## 0.7.15
 
 ### Patch Changes
