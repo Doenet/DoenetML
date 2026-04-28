@@ -32,6 +32,7 @@
         "watch": "npm run build && vite -c vite.language-server.config.mts build --watch",
         "test": "vitest",
         "package": "cd ./extension && vsce package --no-dependencies --out ../",
+        "publish": "cd ./extension && vsce publish --no-dependencies",
         "run-in-browser:firefox": "vscode-test-web --browserType=firefox --extensionDevelopmentPath=./extension .",
         "run-in-browser:chrome": "vscode-test-web --browserType=chromium --extensionDevelopmentPath=./extension .",
         "run-in-browser": "npm run run-in-browser:firefox"
@@ -79,6 +80,7 @@
         }
     },
     "devDependencies": {
+        "@vscode/vsce": "^3.9.1",
         "@types/vscode": "^1.99.0",
         "@types/vscode-webview": "^1.57.5",
         "@vscode/webview-ui-toolkit": "^1.4.0",

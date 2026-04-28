@@ -29,11 +29,12 @@
         "./packages/doenetml",
         "./packages/doenetml-prototype",
         "./packages/docs-nextra",
+        "./packages/vscode-extension/extension",
         "./packages/*"
     ],
     "scripts": {
         "build": "npm run build --workspace packages/doenetml",
-        "build:all-no-docs": "npm run build -w packages/doenetml -w packages/doenetml-prototype -w packages/standalone -w packages/prefigure -w packages/doenetml-iframe -w packages/v06-to-v07 -w packages/vscode-extension -w packages/test-viewer -w packages/test-cypress",
+        "build:all-no-docs": "npm run build -w packages/doenetml -w packages/doenetml-prototype -w packages/standalone -w packages/prefigure -w packages/doenetml-iframe -w packages/v06-to-v07 -w @doenet/vscode-extension -w packages/test-viewer -w packages/test-cypress",
         "build:docs-prereqs": "npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe",
         "build:docs": "npm run build --workspace packages/docs-nextra",
         "build:all": "npm run build -ws --if-present",
@@ -45,7 +46,7 @@
         "prettier:format": "prettier --write .",
         "publish": "npm run publish -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07",
         "test": "npm run test -ws --if-present -- run",
-        "test:all-no-worker-js": "echo \"NOTE: 'test:all-no-worker-js' uses a hard-coded workspace list; update this list when adding or removing workspaces.\" && npm --if-present run test -w packages/codemirror -w packages/debug-hooks -w packages/docs-nextra -w packages/doenetml -w packages/doenetml-iframe -w packages/doenetml-prototype -w packages/doenetml-to-pretext -w packages/doenetml-worker -w packages/doenetml-worker-rust -w packages/lsp -w packages/lsp-tools -w packages/parser -w packages/prefigure -w packages/standalone -w packages/static-assets -w packages/test-cypress -w packages/test-viewer -w packages/ui-components -w packages/utils -w packages/v06-to-v07 -w packages/virtual-keyboard -w packages/webwork-to-doenetml -w packages/vscode-extension -- run",
+        "test:all-no-worker-js": "echo \"NOTE: 'test:all-no-worker-js' uses a hard-coded workspace list; update this list when adding or removing workspaces.\" && npm --if-present run test -w packages/codemirror -w packages/debug-hooks -w packages/docs-nextra -w packages/doenetml -w packages/doenetml-iframe -w packages/doenetml-prototype -w packages/doenetml-to-pretext -w packages/doenetml-worker -w packages/doenetml-worker-rust -w packages/lsp -w packages/lsp-tools -w packages/parser -w packages/prefigure -w packages/standalone -w packages/static-assets -w packages/test-cypress -w packages/test-viewer -w packages/ui-components -w packages/utils -w packages/v06-to-v07 -w packages/virtual-keyboard -w packages/webwork-to-doenetml -w @doenet/vscode-extension -- run",
         "test:e2e-group1": "npm run test:group1 -w packages/test-cypress",
         "test:e2e-group2": "npm run test:group2 -w packages/test-cypress",
         "test:e2e-group3": "npm run test:group3 -w packages/test-cypress",
@@ -54,7 +55,7 @@
         "test:e2e-mistagged": "npm run test:mistagged -w packages/test-cypress",
         "test:codemirror-cypress": "npm run test-cypress-all -w packages/codemirror",
         "version:changesets": "changeset version",
-        "version": "npm version -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07"
+        "version": "npm version -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07 -w @doenet/vscode-extension -w doenet-vscode-extension"
     },
     "prettier": {
         "tabWidth": 4
