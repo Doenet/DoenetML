@@ -51,7 +51,7 @@ The production release workflow automatically publishes to the VS Code Marketpla
 
 If the extension publish step fails (e.g., token expiration, transient network issues):
 
-1. The npm packages will still be published (the extension step uses `continue-on-error`).
+1. The npm packages will still be published, but the workflow will fail.
 2. Once the issue is resolved (e.g., PAT refreshed, network restored), manually republish:
    ```bash
    npm run publish -w packages/vscode-extension
@@ -60,7 +60,7 @@ If the extension publish step fails (e.g., token expiration, transient network i
 
 For permanent PAT rotation:
 
-1. Extension owner generates a new token via [dev.azure.com](https://dev.azure.com) (see `vscode-extension-publish-setup.md`)
+1. Extension owner generates a new token via [dev.azure.com](https://dev.azure.com)
 2. Org admin updates the `VSCE_PAT` GitHub Actions secret
 3. Next production release will use the new token
 
