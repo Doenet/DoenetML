@@ -6,12 +6,14 @@ import useDoenetRenderer, {
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
 
+function isWhitespaceTextChild(child: unknown): child is string {
+    return typeof child === "string" && child.trim() === "";
+}
+
 function isRenderablePanelChild(child: unknown): child is React.ReactElement {
     if (!child) {
         return false;
     }
-    // Renderer output can include whitespace text nodes; panel layout should
-    // only count actual panel elements.
     if (typeof child === "string") {
         return false;
     }
@@ -36,11 +38,30 @@ export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
             ? null
             : SVs.listItemInlineAlignment;
 
-    const panelChildren = children.filter(isRenderablePanelChild);
-    const numColumns = SVs.numPanels ?? panelChildren.length;
+    // Preserve panel-slot indices from worker order. Null placeholders can appear
+    // while lazy-loaded children are resolving; they should still consume a slot.
+    let panelSlotCount = 0;
+    for (const child of children) {
+        if (!isWhitespaceTextChild(child)) {
+            panelSlotCount += 1;
+        }
+    }
+    const numColumns = SVs.numPanels ?? panelSlotCount;
 
-    for (let [i, child] of panelChildren.entries()) {
-        let width = SVs.widths[i];
+    let panelIndex = 0;
+    for (const child of children) {
+        if (isWhitespaceTextChild(child)) {
+            continue;
+        }
+
+        const currentPanelIndex = panelIndex;
+        panelIndex += 1;
+
+        if (!isRenderablePanelChild(child)) {
+            continue;
+        }
+
+        let width = SVs.widths[currentPanelIndex];
         // console.log(">>>marginLeft",marginLeft)
         // console.log(">>>width",width)
         // console.log(">>>marginRight",marginRight)
@@ -49,10 +70,10 @@ export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
         let thisMarginLeft = marginLeft;
         let thisMarginRight = marginRight;
 
-        if (i > 0) {
+        if (currentPanelIndex > 0) {
             thisMarginLeft += SVs.gapWidth / 2;
         }
-        if (i < numColumns - 1) {
+        if (currentPanelIndex < numColumns - 1) {
             thisMarginRight += SVs.gapWidth / 2;
         }
 

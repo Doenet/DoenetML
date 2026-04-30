@@ -6,8 +6,9 @@ import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
 /**
  * Shared frame for graph-style renderers.
  *
- * suppressTopMargin removes only the outer top margin so list-item numbering can
- * align with the top of a block graph while preserving bottom spacing.
+ * suppressTopMargin removes the graph's top vertical offset so list-item
+ * numbering can align with the top edge of the graph while preserving
+ * bottom spacing.
  */
 export default function GraphFrame({
     id,
@@ -48,7 +49,7 @@ export default function GraphFrame({
         contentStyle.border = "none";
     }
     contentStyle.marginBottom = "12px";
-    contentStyle.marginTop = "12px";
+    contentStyle.marginTop = suppressTopMargin ? "0px" : "12px";
     contentStyle.backgroundColor = "var(--canvas)";
     contentStyle.color = "var(--canvasText)";
 
@@ -83,13 +84,7 @@ export default function GraphFrame({
         typeof children === "function" ? children(contentStyle) : children;
 
     return (
-        <div
-            style={
-                suppressTopMargin ? { ...outerStyle, marginTop: 0 } : outerStyle
-            }
-            ref={containerRef}
-            id={`${id}-container`}
-        >
+        <div style={outerStyle} ref={containerRef} id={`${id}-container`}>
             <div style={innerStyle}>
                 <div
                     id={`${id}-description`}
