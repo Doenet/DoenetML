@@ -54,42 +54,13 @@ export class SideBySide extends BlockComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        stateVariableDefinitions.childrenToRenderInlineForListItem = {
-            returnDependencies: () => ({
-                parentChildrenToRenderInlineForListItem: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "childrenToRenderInlineForListItem",
-                },
-                blockChildren: {
-                    dependencyType: "child",
-                    childGroups: ["blocks"],
-                },
-            }),
-            definition({ dependencyValues, componentIdx }) {
-                let childrenToRenderInlineForListItem = [];
-
-                // If component is in the list of children to render inline,
-                // then set its childrenToRenderInlineForListItem to all its block children
-
-                if (
-                    dependencyValues.parentChildrenToRenderInlineForListItem
-                        ?.map((c) => c.componentIdx)
-                        .includes(componentIdx)
-                ) {
-                    childrenToRenderInlineForListItem =
-                        dependencyValues.blockChildren;
-                }
-
-                return {
-                    setValue: {
-                        childrenToRenderInlineForListItem,
-                    },
-                };
-            },
-        };
-
+        // listItemInlineAlignment and childrenToRenderInlineForListItem share the same
+        // parent-list membership check, so they are computed together.
         stateVariableDefinitions.listItemInlineAlignment = {
             forRenderer: true,
+            additionalStateVariablesDefined: [
+                { variableName: "childrenToRenderInlineForListItem" },
+            ],
             returnDependencies: () => ({
                 parentChildrenToRenderInlineForListItem: {
                     dependencyType: "parentStateVariable",
@@ -106,18 +77,28 @@ export class SideBySide extends BlockComponent {
                         ?.map((c) => c.componentIdx)
                         .includes(componentIdx);
 
-                let listItemInlineAlignment = "none";
-                if (shouldRenderInline) {
-                    const firstPanel = dependencyValues.blockChildren?.[0];
-                    listItemInlineAlignment =
-                        firstPanel?.componentType === "p"
-                            ? "baseline"
-                            : "flex-start";
+                if (!shouldRenderInline) {
+                    return {
+                        setValue: {
+                            listItemInlineAlignment: "none",
+                            childrenToRenderInlineForListItem: [],
+                        },
+                    };
                 }
 
+                // Use baseline alignment when the first panel is a plain paragraph
+                // so the list-item number aligns with its text; use flex-start for
+                // block-level content (graphs, choiceInputs, etc.) so the number
+                // aligns with the top of the content instead.
+                const firstPanel = dependencyValues.blockChildren?.[0];
                 return {
                     setValue: {
-                        listItemInlineAlignment,
+                        listItemInlineAlignment:
+                            firstPanel?.componentType === "p"
+                                ? "baseline"
+                                : "flex-start",
+                        childrenToRenderInlineForListItem:
+                            dependencyValues.blockChildren,
                     },
                 };
             },

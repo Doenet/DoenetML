@@ -407,13 +407,14 @@ export default React.memo(function Section(props) {
     }
 
     let childrenForContentWrapper = children;
-    if (
+    const needsContentWrapper =
         SVs.isListItem &&
         !SVs.collapsible &&
         !SVs.boxed &&
         !heading &&
-        hasAdjustedFirstChildForListItem
-    ) {
+        hasAdjustedFirstChildForListItem;
+
+    if (needsContentWrapper) {
         let startInd = 0;
         while (
             startInd < children.length &&
@@ -424,13 +425,6 @@ export default React.memo(function Section(props) {
         }
         childrenForContentWrapper = children.slice(startInd);
     }
-
-    const needsContentWrapperForUntitledListItem =
-        SVs.isListItem &&
-        !SVs.collapsible &&
-        !SVs.boxed &&
-        !heading &&
-        hasAdjustedFirstChildForListItem;
 
     let content = (
         <>
@@ -451,7 +445,7 @@ export default React.memo(function Section(props) {
             ) : (
                 heading
             )}
-            {needsContentWrapperForUntitledListItem ? (
+            {needsContentWrapper ? (
                 <div id={`${id}-content-wrapper`}>
                     {childrenForContentWrapper}
                     {checkWorkComponent}

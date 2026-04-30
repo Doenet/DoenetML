@@ -487,7 +487,6 @@ export class SectioningComponent extends BlockComponent {
         };
 
         stateVariableDefinitions.nonBoxedListItemWithoutTitle = {
-            forRenderer: true,
             returnDependencies: () => ({
                 isListItem: {
                     dependencyType: "stateVariable",
@@ -521,7 +520,6 @@ export class SectioningComponent extends BlockComponent {
         };
 
         stateVariableDefinitions.childrenToRenderInlineForListItem = {
-            forRenderer: true,
             returnDependencies: () => ({
                 firstVisibleChild: {
                     dependencyType: "stateVariable",

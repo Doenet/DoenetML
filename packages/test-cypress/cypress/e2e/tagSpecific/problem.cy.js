@@ -1176,29 +1176,15 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         });
     }
 
-    function verifySectionNumberRendered(itemId, expectedNumber) {
+    function verifySectionNumberRenderedOnRoot(itemId, expectedNumber) {
         const escapedItemId = cesc(itemId);
-        const escapedHeadingWrapperId = cesc(`${itemId}-heading-wrapper`);
 
         cy.get(`#${escapedItemId}`).then(($el) => {
             const win = $el[0].ownerDocument.defaultView;
             const rootBefore = win.getComputedStyle($el[0], "::before");
-            const rootContent = rootBefore.getPropertyValue("content");
-
-            if (rootContent === `"${expectedNumber}."`) {
-                expect(rootContent).to.equal(`"${expectedNumber}."`);
-                return;
-            }
-
-            cy.get(`#${escapedHeadingWrapperId}`).then(($headingEl) => {
-                const headingBefore = win.getComputedStyle(
-                    $headingEl[0],
-                    "::before",
-                );
-                expect(headingBefore.getPropertyValue("content")).to.equal(
-                    `"${expectedNumber}."`,
-                );
-            });
+            expect(rootBefore.getPropertyValue("content")).to.equal(
+                `"${expectedNumber}."`,
+            );
         });
     }
 
@@ -1223,10 +1209,10 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        verifySectionNumberRendered("s1.t1", 1);
-        verifySectionNumberRendered("s1.t2", 2);
-        verifySectionNumberRendered("s2.t1", 1);
-        verifySectionNumberRendered("s2.t2", 2);
+        verifySectionNumberRenderedOnRoot("s1.t1", 1);
+        verifySectionNumberRenderedOnRoot("s1.t2", 2);
+        verifySectionNumberRenderedOnRoot("s2.t1", 1);
+        verifySectionNumberRenderedOnRoot("s2.t2", 2);
     });
 
     it("boxed tasks with dotted ids still render section numbers", () => {

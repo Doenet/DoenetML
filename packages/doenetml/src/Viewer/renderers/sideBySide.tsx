@@ -10,6 +10,8 @@ function isRenderablePanelChild(child: unknown): child is React.ReactElement {
     if (!child) {
         return false;
     }
+    // Renderer output can include whitespace text nodes; panel layout should
+    // only count actual panel elements.
     if (typeof child === "string") {
         return false;
     }

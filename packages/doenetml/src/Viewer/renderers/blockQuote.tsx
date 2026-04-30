@@ -30,6 +30,8 @@ export default React.memo(function Container(props: UseDoenetRendererProps) {
         <blockquote
             id={id}
             ref={ref}
+            // Only suppress top margin so list-item numbering top-aligns; keep
+            // native blockquote side/bottom spacing from stylesheet defaults.
             style={SVs.renderInlineForListItem ? { marginTop: 0 } : undefined}
         >
             {children}

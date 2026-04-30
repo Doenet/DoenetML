@@ -58,6 +58,8 @@ export default React.memo(function P(props: UseDoenetRendererProps) {
             id={id}
             ref={ref}
             className="para"
+            // Keep paragraph spacing contract intact and only collapse the top
+            // margin when this paragraph is first in a list-item container.
             style={SVs.renderInlineForListItem ? { marginTop: 0 } : undefined}
         >
             {children}

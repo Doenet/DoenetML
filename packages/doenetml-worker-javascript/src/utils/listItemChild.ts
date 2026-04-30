@@ -57,8 +57,9 @@ export function returnListItemChildStateVariableDefinitions({
 /**
  * Adds pass-through list-item state variables for wrapper components.
  *
- * Wrappers forward list-item inline rendering to their first meaningful child
- * so nested block components can adjust spacing and alignment.
+ * Wrappers forward list-item inline rendering to the first non-blank,
+ * non-label child component so nested block components can adjust spacing
+ * and alignment.
  */
 export function returnPassThroughListItemChildStateVariableDefinitions() {
     const stateVariableDefinitions: Record<string, any> = {};
@@ -91,7 +92,6 @@ export function returnPassThroughListItemChildStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.childrenToRenderInlineForListItem = {
-        forRenderer: true,
         returnDependencies: () => ({
             parentChildrenToRenderInlineForListItem: {
                 dependencyType: "parentStateVariable",
@@ -148,88 +148,75 @@ export function returnPassThroughListItemChildStateVariableDefinitions() {
         },
     };
 
-    Object.assign(
-        stateVariableDefinitions,
-        returnPassThroughListItemAlignmentStateVariableDefinitions(),
-    );
+    stateVariableDefinitions.listItemInlineAlignment = {
+        forRenderer: true,
+        stateVariablesDeterminingDependencies: [
+            "childrenToRenderInlineForListItem",
+        ],
+        returnDependencies: ({
+            stateValues,
+        }: {
+            stateValues: Record<string, any>;
+        }) => {
+            const dependencies: Record<string, any> = {
+                parentChildrenToRenderInlineForListItem: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "childrenToRenderInlineForListItem",
+                },
+            };
 
-    return stateVariableDefinitions;
-}
-
-/**
- * Computes list-item inline alignment by forwarding alignment from the selected child.
- */
-function returnPassThroughListItemAlignmentStateVariableDefinitions() {
-    return {
-        listItemInlineAlignment: {
-            forRenderer: true,
-            stateVariablesDeterminingDependencies: [
-                "childrenToRenderInlineForListItem",
-            ],
-            returnDependencies: ({
-                stateValues,
-            }: {
-                stateValues: Record<string, any>;
-            }) => {
-                const dependencies: Record<string, any> = {
-                    parentChildrenToRenderInlineForListItem: {
-                        dependencyType: "parentStateVariable",
-                        variableName: "childrenToRenderInlineForListItem",
-                    },
+            const child = stateValues.childrenToRenderInlineForListItem?.[0];
+            if (child && typeof child === "object") {
+                dependencies[`childListItemInlineAlignment`] = {
+                    dependencyType: "stateVariable",
+                    componentIdx: child.componentIdx,
+                    variableName: "listItemInlineAlignment",
+                    variablesOptional: true,
                 };
+            }
 
-                const child =
-                    stateValues.childrenToRenderInlineForListItem?.[0];
-                if (child && typeof child === "object") {
-                    dependencies[`childListItemInlineAlignment`] = {
-                        dependencyType: "stateVariable",
-                        componentIdx: child.componentIdx,
-                        variableName: "listItemInlineAlignment",
-                        variablesOptional: true,
-                    };
-                }
-
-                return dependencies;
-            },
-            definition({
+            return dependencies;
+        },
+        definition({
+            dependencyValues,
+            componentIdx,
+        }: {
+            dependencyValues: Record<string, any>;
+            componentIdx: number;
+        }) {
+            const shouldRenderInline = returnShouldRenderInline({
                 dependencyValues,
                 componentIdx,
-            }: {
-                dependencyValues: Record<string, any>;
-                componentIdx: number;
-            }) {
-                const shouldRenderInline = returnShouldRenderInline({
-                    dependencyValues,
-                    componentIdx,
-                });
+            });
 
-                if (!shouldRenderInline) {
-                    return {
-                        setValue: { listItemInlineAlignment: "none" },
-                    };
-                }
+            if (!shouldRenderInline) {
+                return {
+                    setValue: { listItemInlineAlignment: "none" },
+                };
+            }
 
-                const childAlignment =
-                    dependencyValues[`childListItemInlineAlignment`];
-                if (
-                    childAlignment === "baseline" ||
-                    childAlignment === "flex-start"
-                ) {
-                    return {
-                        setValue: {
-                            listItemInlineAlignment: childAlignment,
-                        },
-                    };
-                }
-
+            const childAlignment =
+                dependencyValues[`childListItemInlineAlignment`];
+            if (
+                childAlignment === "baseline" ||
+                childAlignment === "flex-start"
+            ) {
                 return {
                     setValue: {
-                        listItemInlineAlignment: "none",
+                        listItemInlineAlignment: childAlignment,
                     },
                 };
-            },
+            }
+
+            return {
+                setValue: {
+                    listItemInlineAlignment: "none",
+                },
+            };
         },
     };
+
+    return stateVariableDefinitions;
 }
 
 /**
