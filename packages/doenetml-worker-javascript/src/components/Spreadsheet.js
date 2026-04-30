@@ -123,7 +123,9 @@ export default class Spreadsheet extends BlockComponent {
 
         Object.assign(
             stateVariableDefinitions,
-            returnListItemChildStateVariableDefinitions(),
+            returnListItemChildStateVariableDefinitions({
+                listItemInlineAlignment: "flex-start",
+            }),
         );
 
         stateVariableDefinitions.cellIdxToRowCol = {

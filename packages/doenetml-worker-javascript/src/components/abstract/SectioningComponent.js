@@ -533,7 +533,11 @@ export class SectioningComponent extends BlockComponent {
             definition({ dependencyValues }) {
                 // Delegate list-item inline rendering to the first visible child only.
                 let childrenToRenderInlineForListItem = [];
-                if (dependencyValues.nonBoxedListItemWithoutTitle) {
+                if (
+                    dependencyValues.nonBoxedListItemWithoutTitle &&
+                    dependencyValues.firstVisibleChild &&
+                    typeof dependencyValues.firstVisibleChild === "object"
+                ) {
                     childrenToRenderInlineForListItem = [
                         dependencyValues.firstVisibleChild,
                     ];
