@@ -27,3 +27,20 @@ export function getNonInlineMediaLayoutStyles({
         },
     };
 }
+
+/**
+ * Returns a block margin shorthand while optionally collapsing only the top margin.
+ *
+ * This is used by block renderers that own their full vertical spacing contract.
+ */
+export function getBlockMarginWithOptionalTopSuppression({
+    suppressTopMargin,
+    top = 12,
+    bottom = 12,
+}: {
+    suppressTopMargin: boolean;
+    top?: number;
+    bottom?: number;
+}) {
+    return suppressTopMargin ? `0 0 ${bottom}px 0` : `${top}px 0 ${bottom}px 0`;
+}

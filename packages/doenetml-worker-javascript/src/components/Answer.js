@@ -785,6 +785,72 @@ export default class Answer extends InlineComponent {
             returnSimplifyExpandOnCompareWarning(),
         );
 
+        /**
+         * <answer> participates in list-item alignment only when its first input child
+         * is a non-inline <choiceInput>. In that case, <answer> forwards alignment so
+         * the choiceInput can suppress top margin and section numbering top-aligns.
+         *
+         * For other input configurations (for example inline choiceInput or mathInput),
+         * <answer> returns "none" and the section keeps baseline alignment.
+         */
+        stateVariableDefinitions.renderInlineForListItem = {
+            forRenderer: true,
+            additionalStateVariablesDefined: [
+                { variableName: "listItemInlineAlignment", forRenderer: true },
+                { variableName: "childrenToRenderInlineForListItem" },
+            ],
+            returnDependencies: () => ({
+                parentChildrenToRenderInlineForListItem: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "childrenToRenderInlineForListItem",
+                },
+                inputChildren: {
+                    dependencyType: "child",
+                    childGroups: ["inputs"],
+                    variableNames: ["inline"],
+                    variablesOptional: true,
+                },
+            }),
+            definition({ dependencyValues, componentIdx }) {
+                const isInParentList = Boolean(
+                    dependencyValues.parentChildrenToRenderInlineForListItem
+                        ?.map((c) => c.componentIdx)
+                        .includes(componentIdx),
+                );
+
+                if (!isInParentList) {
+                    return {
+                        setValue: {
+                            renderInlineForListItem: false,
+                            listItemInlineAlignment: "none",
+                            childrenToRenderInlineForListItem: [],
+                        },
+                    };
+                }
+
+                // Propagate only to the first non-inline choiceInput input child.
+                // <answer> itself has no top margin to suppress.
+                const firstBlockChoiceInput =
+                    dependencyValues.inputChildren?.find(
+                        (child) =>
+                            child.componentType === "choiceInput" &&
+                            child.stateValues.inline === false,
+                    );
+
+                return {
+                    setValue: {
+                        renderInlineForListItem: false,
+                        listItemInlineAlignment: firstBlockChoiceInput
+                            ? "flex-start"
+                            : "none",
+                        childrenToRenderInlineForListItem: firstBlockChoiceInput
+                            ? [firstBlockChoiceInput]
+                            : [],
+                    },
+                };
+            },
+        };
+
         const labelDefinitions = returnLabelStateVariableDefinitions();
         Object.assign(stateVariableDefinitions, labelDefinitions);
 

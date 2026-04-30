@@ -1,4 +1,5 @@
 import { cesc } from "@doenet/utils";
+import { verifySideBySideColumnTopAlignment } from "./utils/listItemAlignment";
 
 describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
     beforeEach(() => {
@@ -1092,10 +1093,9 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             expect(before.getPropertyValue("position")).to.not.equal(
                 "absolute",
             );
-            expect(before.getPropertyValue("display")).to.equal("inline-block");
-            expect(before.getPropertyValue("vertical-align")).to.equal(
-                "baseline",
-            );
+            // Do not assert display/vertical-align details here.
+            // Those are implementation choices that can vary between heading
+            // and non-heading list-item paths while preserving numbering behavior.
         });
     }
 
@@ -1142,6 +1142,52 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         );
     }
 
+    /**
+     * Verifies untitled, unboxed list items use the flex-row layout that keeps
+     * the section number and first child on the same line, even when first child
+     * is a block-level renderer.
+     */
+    function verifyUntitledUnboxedListItemUsesFlexLayout(
+        itemId,
+        expectedNumber,
+    ) {
+        const escapedItemId = cesc(itemId);
+        const escapedContentWrapperId = cesc(`${itemId}-content-wrapper`);
+
+        cy.get(`#${escapedItemId}`).then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const style = win.getComputedStyle($el[0]);
+            expect(style.getPropertyValue("display")).to.equal("flex");
+
+            const before = win.getComputedStyle($el[0], "::before");
+            expect(before.getPropertyValue("content")).to.equal(
+                `"${expectedNumber}."`,
+            );
+            expect(before.getPropertyValue("position")).to.not.equal(
+                "absolute",
+            );
+        });
+
+        cy.get(`#${escapedContentWrapperId}`).then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const style = win.getComputedStyle($el[0]);
+            expect(style.getPropertyValue("flex-grow")).to.equal("1");
+            expect(style.getPropertyValue("min-width")).to.equal("0px");
+        });
+    }
+
+    function verifySectionNumberRenderedOnRoot(itemId, expectedNumber) {
+        const escapedItemId = cesc(itemId);
+
+        cy.get(`#${escapedItemId}`).then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const rootBefore = win.getComputedStyle($el[0], "::before");
+            expect(rootBefore.getPropertyValue("content")).to.equal(
+                `"${expectedNumber}."`,
+            );
+        });
+    }
+
     it("tasks with dotted ids still render section numbers", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -1163,29 +1209,10 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             );
         });
 
-        cy.get(`#${cesc("s1.t1")}`).then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
-            expect(before.getPropertyValue("content")).to.equal('"1."');
-        });
-
-        cy.get(`#${cesc("s1.t2")}`).then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
-            expect(before.getPropertyValue("content")).to.equal('"2."');
-        });
-
-        cy.get(`#${cesc("s2.t1")}`).then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
-            expect(before.getPropertyValue("content")).to.equal('"1."');
-        });
-
-        cy.get(`#${cesc("s2.t2")}`).then(($el) => {
-            const win = $el[0].ownerDocument.defaultView;
-            const before = win.getComputedStyle($el[0], "::before");
-            expect(before.getPropertyValue("content")).to.equal('"2."');
-        });
+        verifySectionNumberRenderedOnRoot("s1.t1", 1);
+        verifySectionNumberRenderedOnRoot("s1.t2", 2);
+        verifySectionNumberRenderedOnRoot("s2.t1", 1);
+        verifySectionNumberRenderedOnRoot("s2.t2", 2);
     });
 
     it("boxed tasks with dotted ids still render section numbers", () => {
@@ -1269,6 +1296,8 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
                 <title>boxed task with title</title>
                 boxed content
             </task>
+            <task name="task6"><choiceInput inline><label>Pick one</label><choice>a</choice></choiceInput></task>
+            <task name="task7"><answer inline><label>Pick one</label><choice>a</choice></answer></task>
             <conclusion name="conclusion">Finished</conclusion>
         </problem>
     `,
@@ -1282,6 +1311,114 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         verifyNonBoxedListItemUsesInlineBefore("task3", 3);
         verifyBoxedListItemNumberInHeadingBox("task4", 4);
         verifyBoxedListItemNumberInHeadingBox("task5", 5);
+        verifyNonBoxedListItemUsesInlineBefore("task6", 6);
+        verifyNonBoxedListItemUsesInlineBefore("task7", 7);
+    });
+
+    it("untitled unboxed list items align numbering with block first children", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problem name="problem">
+            <task name="task1"><p>Paragraph first child</p></task>
+            <task name="task2"><sideBySide name="sbs"><p name="left">Left</p><pre name="mid">Middle</pre><p name="right">Right</p></sideBySide></task>
+            <task name="task3"><blockQuote name="quote"><p name="quotedP">Quoted</p></blockQuote></task>
+            <task name="task4"><div name="divBlock"><p name="divP">Div content</p></div></task>
+            <task name="task5"><pre name="directPre">x+y</pre></task>
+
+            <task name="task6"><title>Has title</title><p>Title case</p></task>
+            <task name="task7" boxed><p>Boxed case</p></task>
+            <task name="task8"><sideBySide name="sbsMixed"><blockQuote name="q8"><p>Blockquote</p></blockQuote><pre name="pre8">Pre</pre><div name="div8"><p>Div</p></div><stack name="stack8"><div><p>Div</p></div><p>Stacked</p></stack></sideBySide></task>
+            <task name="task9"><choiceInput name="ci"><label>Pick one</label><choice>Choice 1</choice><choice>Choice 2</choice><choice>Choice 3</choice></choiceInput></task>
+            <task name="task10"><answer name="ans"><label>Pick one</label><choice>Choice 1</choice><choice>Choice 2</choice><choice>Choice 3</choice></answer></task>
+        </problem>
+    `,
+                },
+                "*",
+            );
+        });
+
+        verifyUntitledUnboxedListItemUsesFlexLayout("task1", 1);
+        verifyUntitledUnboxedListItemUsesFlexLayout("task2", 2);
+        verifyUntitledUnboxedListItemUsesFlexLayout("task3", 3);
+        verifyUntitledUnboxedListItemUsesFlexLayout("task4", 4);
+        verifyUntitledUnboxedListItemUsesFlexLayout("task5", 5);
+        verifyUntitledUnboxedListItemUsesFlexLayout("task8", 8);
+        verifyUntitledUnboxedListItemUsesFlexLayout("task9", 9);
+        verifyUntitledUnboxedListItemUsesFlexLayout("task10", 10);
+        verifySideBySideColumnTopAlignment({
+            sideBySideId: "sbs",
+            expectedAlignment: "baseline",
+        });
+        verifySideBySideColumnTopAlignment({
+            sideBySideId: "sbsMixed",
+            expectedAlignment: "flex-start",
+        });
+
+        cy.get(`#${cesc("directPre")}`).should("have.css", "margin-top", "0px");
+        cy.get(`#${cesc("q8")}`).should("have.css", "margin-top", "0px");
+        cy.get(`#${cesc("pre8")}`).should("have.css", "margin-top", "0px");
+        cy.get(`#${cesc("div8")}`).should("have.css", "margin-top", "0px");
+        cy.get(`#${cesc("stack8")}`).should("have.css", "margin-top", "0px");
+        cy.get(`#${cesc("ci")}`).should("have.css", "margin-top", "0px");
+        cy.get(`#${cesc("ans")} fieldset`).should(
+            "have.css",
+            "margin-top",
+            "0px",
+        );
+
+        cy.get(`#${cesc("task6")}`).then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const style = win.getComputedStyle($el[0]);
+            expect(style.getPropertyValue("display")).to.not.equal("flex");
+        });
+
+        verifyBoxedListItemNumberInHeadingBox("task7", 7);
+    });
+
+    it("answer list-item alignment only triggers flex-start for block choiceInput child", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <problem name="problem">
+        <task name="task1"><answer name="a1"><mathInput name="mi1"/><award>x</award></answer></task>
+        <task name="task2"><answer name="a2"><choiceInput inline name="ci2"><label>Pick one</label><choice>a</choice></choiceInput></answer></task>
+        <task name="task3"><answer name="a3"><choiceInput name="ci3"><label>Pick one</label><choice>Choice 1</choice><choice>Choice 2</choice></choiceInput></answer></task>
+    </problem>
+`,
+                },
+                "*",
+            );
+        });
+
+        // task1: answer with mathInput — section uses baseline alignment, not flex-start
+        cy.get(`#${cesc("task1")}`).then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const style = win.getComputedStyle($el[0]);
+            expect(style.getPropertyValue("display")).to.equal("flex");
+            expect(style.getPropertyValue("align-items")).to.equal("baseline");
+        });
+
+        // task2: answer with inline choiceInput — section uses baseline alignment, not flex-start
+        cy.get(`#${cesc("task2")}`).then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const style = win.getComputedStyle($el[0]);
+            expect(style.getPropertyValue("display")).to.equal("flex");
+            expect(style.getPropertyValue("align-items")).to.equal("baseline");
+        });
+
+        // task3: answer with block choiceInput — section uses flex-start, choiceInput margin is suppressed
+        cy.get(`#${cesc("task3")}`).then(($el) => {
+            const win = $el[0].ownerDocument.defaultView;
+            const style = win.getComputedStyle($el[0]);
+            expect(style.getPropertyValue("display")).to.equal("flex");
+            expect(style.getPropertyValue("align-items")).to.equal(
+                "flex-start",
+            );
+        });
+        cy.get(`#${cesc("ci3")}`).should("have.css", "margin-top", "0px");
     });
 
     it("problems render children as list", () => {

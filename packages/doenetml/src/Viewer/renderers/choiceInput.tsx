@@ -11,6 +11,7 @@ import {
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
 import { addValidationStateToShortDescription } from "./utils/description";
+import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
 // type guard
@@ -584,7 +585,12 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             <fieldset
                 id={inputKey}
                 style={{
-                    margin: "16px 0",
+                    margin: getBlockMarginWithOptionalTopSuppression({
+                        suppressTopMargin:
+                            SVs.renderInlineForListItem && !SVs.inline,
+                        top: 16,
+                        bottom: 16,
+                    }),
                     padding: 0,
                     border: "none",
                     minInlineSize: 0,

@@ -4,6 +4,7 @@ import {
 } from "@doenet/utils";
 import BlockComponent from "./abstract/BlockComponent";
 import InlineComponent from "./abstract/InlineComponent";
+import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 
 export class Pre extends BlockComponent {
     constructor(args) {
@@ -29,6 +30,11 @@ export class Pre extends BlockComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnPassThroughListItemChildStateVariableDefinitions(),
+        );
 
         stateVariableDefinitions.displayDoenetMLIndices = {
             forRenderer: true,

@@ -43,6 +43,11 @@ export default React.memo(function Section(props) {
     // Declare heading variable early (assigned later in the component)
     let heading = null;
 
+    const hasAdjustedFirstChildForListItem =
+        SVs.firstVisibleChildAdjustedForListItem;
+    const shouldBaselineAlignFirstChild =
+        SVs.firstChildListItemAlignment === "baseline";
+
     // Helper function to generate CSS for section number ::before pseudo-element
     // Used for list-item sections to display hanging section numbers
     const getSectionNumberStyles = (hasHeading: boolean) => {
@@ -151,6 +156,7 @@ export default React.memo(function Section(props) {
         const cssRules = [];
         const escapedId = cesc(id);
         const escapedHeadingWrapperId = cesc(`${id}-heading-wrapper`);
+        const escapedContentWrapperId = cesc(`${id}-content-wrapper`);
 
         // For non-boxed sections with heading wrapper
         if (!SVs.collapsible && !SVs.boxed && hasTitle) {
@@ -180,6 +186,28 @@ export default React.memo(function Section(props) {
                     vertical-align: baseline;
                 }
             `);
+
+            if (hasAdjustedFirstChildForListItem) {
+                cssRules.push(`
+                    #${escapedId} {
+                        display: flex;
+                        align-items: ${
+                            shouldBaselineAlignFirstChild
+                                ? "baseline"
+                                : "flex-start"
+                        };
+                    }
+
+                    #${escapedContentWrapperId} {
+                        flex: 1 1 auto;
+                        min-width: 0;
+                    }
+
+                    #${escapedContentWrapperId} > :first-child {
+                        margin-block-start: 0;
+                    }
+                `);
+            }
         }
 
         // For collapsible boxed sections
@@ -227,6 +255,8 @@ export default React.memo(function Section(props) {
         SVs.collapsible,
         SVs.boxed,
         hasTitle,
+        hasAdjustedFirstChildForListItem,
+        shouldBaselineAlignFirstChild,
         id,
     ]);
 
@@ -376,6 +406,26 @@ export default React.memo(function Section(props) {
         });
     }
 
+    let childrenForContentWrapper = children;
+    const needsContentWrapper =
+        SVs.isListItem &&
+        !SVs.collapsible &&
+        !SVs.boxed &&
+        !heading &&
+        hasAdjustedFirstChildForListItem;
+
+    if (needsContentWrapper) {
+        let startInd = 0;
+        while (
+            startInd < children.length &&
+            typeof children[startInd] === "string" &&
+            children[startInd].trim() === ""
+        ) {
+            startInd++;
+        }
+        childrenForContentWrapper = children.slice(startInd);
+    }
+
     let content = (
         <>
             {/* For non-boxed list items with a heading, wrap the heading in a flex container
@@ -395,8 +445,17 @@ export default React.memo(function Section(props) {
             ) : (
                 heading
             )}
-            {children}
-            {checkWorkComponent}
+            {needsContentWrapper ? (
+                <div id={`${id}-content-wrapper`}>
+                    {childrenForContentWrapper}
+                    {checkWorkComponent}
+                </div>
+            ) : (
+                <>
+                    {children}
+                    {checkWorkComponent}
+                </>
+            )}
         </>
     );
 

@@ -531,7 +531,11 @@ export default React.memo(function Video(props) {
     return (
         <div
             tabIndex="0"
-            style={outerStyle}
+            style={
+                SVs.renderInlineForListItem
+                    ? { ...outerStyle, marginTop: 0 }
+                    : outerStyle
+            }
             id={`${id}-container`}
             ref={ref}
             className="video"

@@ -4,6 +4,21 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
+import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
+
+function isWhitespaceTextChild(child: unknown): child is string {
+    return typeof child === "string" && child.trim() === "";
+}
+
+function isRenderablePanelChild(child: unknown): child is React.ReactElement {
+    if (!child) {
+        return false;
+    }
+    if (typeof child === "string") {
+        return false;
+    }
+    return typeof child === "object" && "key" in child;
+}
 
 export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
@@ -18,19 +33,35 @@ export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
     let styledChildren = [];
     const marginLeft = SVs.margins[0];
     const marginRight = SVs.margins[1];
+    const listItemInlineAlignment =
+        SVs.listItemInlineAlignment === "none"
+            ? null
+            : SVs.listItemInlineAlignment;
 
-    const numColumns = children.length;
+    // Preserve panel-slot indices from worker order. Null placeholders can appear
+    // while lazy-loaded children are resolving; they should still consume a slot.
+    let panelSlotCount = 0;
+    for (const child of children) {
+        if (!isWhitespaceTextChild(child)) {
+            panelSlotCount += 1;
+        }
+    }
+    const numColumns = SVs.numPanels ?? panelSlotCount;
 
-    for (let [i, child] of children.entries()) {
-        if (!child) {
+    let panelIndex = 0;
+    for (const child of children) {
+        if (isWhitespaceTextChild(child)) {
             continue;
         }
-        if (typeof child !== "object" || !("key" in child)) {
-            // We are not a React element, so we do no modification (e.g., we might be a string)
-            styledChildren.push(child);
+
+        const currentPanelIndex = panelIndex;
+        panelIndex += 1;
+
+        if (!isRenderablePanelChild(child)) {
             continue;
         }
-        let width = SVs.widths[i];
+
+        let width = SVs.widths[currentPanelIndex];
         // console.log(">>>marginLeft",marginLeft)
         // console.log(">>>width",width)
         // console.log(">>>marginRight",marginRight)
@@ -39,16 +70,20 @@ export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
         let thisMarginLeft = marginLeft;
         let thisMarginRight = marginRight;
 
-        if (i > 0) {
+        if (currentPanelIndex > 0) {
             thisMarginLeft += SVs.gapWidth / 2;
         }
-        if (i < numColumns - 1) {
+        if (currentPanelIndex < numColumns - 1) {
             thisMarginRight += SVs.gapWidth / 2;
         }
 
         styledChildren.push(
             <span
                 style={{
+                    ...(listItemInlineAlignment && {
+                        display: "flex",
+                        alignItems: "flex-start",
+                    }),
                     marginLeft: `${thisMarginLeft}%`,
                     marginRight: `${thisMarginRight}%`,
                     width: `${width}%`,
@@ -63,7 +98,16 @@ export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
     return (
         <div
             id={id}
-            style={{ display: "flex", maxWidth: "850px", margin: "12px 0" }}
+            style={{
+                display: "flex",
+                ...(listItemInlineAlignment && {
+                    alignItems: listItemInlineAlignment,
+                }),
+                maxWidth: "850px",
+                margin: getBlockMarginWithOptionalTopSuppression({
+                    suppressTopMargin: Boolean(listItemInlineAlignment),
+                }),
+            }}
             ref={ref}
         >
             {styledChildren}

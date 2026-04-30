@@ -57,7 +57,13 @@ export default React.memo(function Container(props: UseDoenetRendererProps) {
     }
 
     return (
-        <div id={id} ref={ref}>
+        <div
+            id={id}
+            ref={ref}
+            // Suppress only top margin for list-item alignment while preserving
+            // any existing bottom/other spacing styles on container blocks.
+            style={SVs.renderInlineForListItem ? { marginTop: 0 } : undefined}
+        >
             {children}
             {checkWorkComponent}
         </div>

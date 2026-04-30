@@ -1,3 +1,4 @@
+import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
 
@@ -52,6 +53,56 @@ export class SideBySide extends BlockComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // listItemInlineAlignment and childrenToRenderInlineForListItem share the same
+        // parent-list membership check, so they are computed together.
+        stateVariableDefinitions.listItemInlineAlignment = {
+            forRenderer: true,
+            additionalStateVariablesDefined: [
+                { variableName: "childrenToRenderInlineForListItem" },
+            ],
+            returnDependencies: () => ({
+                parentChildrenToRenderInlineForListItem: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "childrenToRenderInlineForListItem",
+                },
+                blockChildren: {
+                    dependencyType: "child",
+                    childGroups: ["blocks"],
+                },
+            }),
+            definition({ dependencyValues, componentIdx }) {
+                const shouldRenderInline =
+                    dependencyValues.parentChildrenToRenderInlineForListItem
+                        ?.map((c) => c.componentIdx)
+                        .includes(componentIdx);
+
+                if (!shouldRenderInline) {
+                    return {
+                        setValue: {
+                            listItemInlineAlignment: "none",
+                            childrenToRenderInlineForListItem: [],
+                        },
+                    };
+                }
+
+                // Use baseline alignment when the first panel is a plain paragraph
+                // so the list-item number aligns with its text; use flex-start for
+                // block-level content (graphs, choiceInputs, etc.) so the number
+                // aligns with the top of the content instead.
+                const firstPanel = dependencyValues.blockChildren?.[0];
+                return {
+                    setValue: {
+                        listItemInlineAlignment:
+                            firstPanel?.componentType === "p"
+                                ? "baseline"
+                                : "flex-start",
+                        childrenToRenderInlineForListItem:
+                            dependencyValues.blockChildren,
+                    },
+                };
+            },
+        };
 
         stateVariableDefinitions.numPanels = {
             forRenderer: true,
@@ -1229,6 +1280,11 @@ export class SbsGroup extends BlockComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        Object.assign(
+            stateVariableDefinitions,
+            returnPassThroughListItemChildStateVariableDefinitions(),
+        );
+
         stateVariableDefinitions.maxNPanelsPerRow = {
             // forRenderer: true,
             returnDependencies: () => ({
@@ -2280,6 +2336,17 @@ export class Stack extends BlockComponent {
                 componentTypes: ["_base"],
             },
         ];
+    }
+
+    static returnStateVariableDefinitions() {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnPassThroughListItemChildStateVariableDefinitions(),
+        );
+
+        return stateVariableDefinitions;
     }
 
     recordVisibilityChange({ isVisible }) {

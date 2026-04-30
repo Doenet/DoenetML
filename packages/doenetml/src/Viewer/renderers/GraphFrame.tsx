@@ -3,6 +3,13 @@ import React from "react";
 import { sizeToCSS } from "./utils/css";
 import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
 
+/**
+ * Shared frame for graph-style renderers.
+ *
+ * suppressTopMargin removes the graph's top vertical offset so list-item
+ * numbering can align with the top edge of the graph while preserving
+ * bottom spacing.
+ */
 export default function GraphFrame({
     id,
     SVs,
@@ -10,6 +17,7 @@ export default function GraphFrame({
     containerRef,
     descriptionChild,
     hasInteractiveControls,
+    suppressTopMargin = false,
     children,
 }) {
     const contentStyle: React.CSSProperties = {
@@ -41,7 +49,7 @@ export default function GraphFrame({
         contentStyle.border = "none";
     }
     contentStyle.marginBottom = "12px";
-    contentStyle.marginTop = "12px";
+    contentStyle.marginTop = suppressTopMargin ? "0px" : "12px";
     contentStyle.backgroundColor = "var(--canvas)";
     contentStyle.color = "var(--canvasText)";
 

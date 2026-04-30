@@ -1,4 +1,5 @@
 import BaseComponent from "./abstract/BaseComponent";
+import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 
 export default class Column extends BaseComponent {
     static componentType = "column";
@@ -45,6 +46,11 @@ export default class Column extends BaseComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnPassThroughListItemChildStateVariableDefinitions(),
+        );
 
         stateVariableDefinitions.prescribedCellsWithRowNum = {
             returnDependencies: () => ({

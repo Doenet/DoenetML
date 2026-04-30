@@ -3,6 +3,7 @@ import {
     returnScoredSectionStateVariableDefinition,
     submitAllAnswers,
 } from "../utils/scoredSection";
+import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 import BlockComponent from "./abstract/BlockComponent";
 import InlineComponent from "./abstract/InlineComponent";
 
@@ -46,6 +47,11 @@ export class Div extends BlockComponent {
         Object.assign(
             stateVariableDefinitions,
             returnScoredSectionStateVariableDefinition(),
+        );
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnPassThroughListItemChildStateVariableDefinitions(),
         );
 
         return stateVariableDefinitions;
