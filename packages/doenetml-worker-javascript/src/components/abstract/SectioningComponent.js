@@ -338,6 +338,7 @@ export class SectioningComponent extends BlockComponent {
         };
 
         stateVariableDefinitions.childIndicesToRender = {
+            additionalStateVariablesDefined: ["firstVisibleChild"],
             returnDependencies: () => ({
                 titleChildren: {
                     dependencyType: "child",
@@ -368,6 +369,7 @@ export class SectioningComponent extends BlockComponent {
             }),
             definition({ dependencyValues, componentInfoObjects }) {
                 const childIndicesToRender = [];
+                let firstVisibleChild = null;
 
                 let allTitleChildNames = dependencyValues.titleChildren.map(
                     (x) => x.componentIdx,
@@ -402,6 +404,12 @@ export class SectioningComponent extends BlockComponent {
                             )
                         ) {
                             childIndicesToRender.push(ind);
+                            if (
+                                firstVisibleChild === null &&
+                                !dependencyValues.hideChildren
+                            ) {
+                                firstVisibleChild = child;
+                            }
                         }
                     } else if (
                         typeof child !== "object" ||
@@ -409,10 +417,19 @@ export class SectioningComponent extends BlockComponent {
                         child.componentIdx === dependencyValues.titleChildName
                     ) {
                         childIndicesToRender.push(ind);
+                        if (
+                            firstVisibleChild === null &&
+                            !dependencyValues.hideChildren &&
+                            (typeof child === "object" || child.trim() !== "")
+                        ) {
+                            firstVisibleChild = child;
+                        }
                     }
                 }
 
-                return { setValue: { childIndicesToRender } };
+                return {
+                    setValue: { childIndicesToRender, firstVisibleChild },
+                };
             },
             markStale: () => ({ updateRenderedChildren: true }),
         };
@@ -465,6 +482,131 @@ export class SectioningComponent extends BlockComponent {
                 return { setValue: { childrenToHide } };
             },
             markStale: () => ({ updateRenderedChildren: true }),
+        };
+
+        stateVariableDefinitions.nonBoxedListItemWithoutTitle = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                isListItem: {
+                    dependencyType: "stateVariable",
+                    variableName: "isListItem",
+                },
+                boxed: {
+                    dependencyType: "stateVariable",
+                    variableName: "boxed",
+                },
+                titleChildName: {
+                    dependencyType: "stateVariable",
+                    variableName: "titleChildName",
+                },
+                collapsible: {
+                    dependencyType: "stateVariable",
+                    variableName: "collapsible",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const nonBoxedListItemWithoutTitle = Boolean(
+                    dependencyValues.isListItem &&
+                    !dependencyValues.boxed &&
+                    !dependencyValues.collapsible &&
+                    dependencyValues.titleChildName === null,
+                );
+
+                return { setValue: { nonBoxedListItemWithoutTitle } };
+            },
+        };
+
+        stateVariableDefinitions.childrenToRenderInlineForListItem = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                firstVisibleChild: {
+                    dependencyType: "stateVariable",
+                    variableName: "firstVisibleChild",
+                },
+                nonBoxedListItemWithoutTitle: {
+                    dependencyType: "stateVariable",
+                    variableName: "nonBoxedListItemWithoutTitle",
+                },
+            }),
+            definition({ dependencyValues }) {
+                let childrenToRenderInlineForListItem = [];
+                if (dependencyValues.nonBoxedListItemWithoutTitle) {
+                    childrenToRenderInlineForListItem = [
+                        dependencyValues.firstVisibleChild,
+                    ];
+                }
+                return { setValue: { childrenToRenderInlineForListItem } };
+            },
+        };
+
+        stateVariableDefinitions.firstVisibleChildAdjustedForListItem = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                nonBoxedListItemWithoutTitle: {
+                    dependencyType: "stateVariable",
+                    variableName: "nonBoxedListItemWithoutTitle",
+                },
+                firstVisibleChild: {
+                    dependencyType: "stateVariable",
+                    variableName: "firstVisibleChild",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const firstVisibleChildAdjustedForListItem = Boolean(
+                    dependencyValues.nonBoxedListItemWithoutTitle &&
+                    typeof dependencyValues.firstVisibleChild === "object",
+                );
+
+                return {
+                    setValue: {
+                        firstVisibleChildAdjustedForListItem,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.firstChildListItemAlignment = {
+            stateVariablesDeterminingDependencies: ["firstVisibleChild"],
+            forRenderer: true,
+            returnDependencies: ({ stateValues }) => {
+                const dependencies = {
+                    firstVisibleChildAdjustedForListItem: {
+                        dependencyType: "stateVariable",
+                        variableName: "firstVisibleChildAdjustedForListItem",
+                    },
+                };
+
+                if (stateValues.firstVisibleChild?.componentIdx !== undefined) {
+                    dependencies.firstVisibleChildListItemInlineAlignment = {
+                        dependencyType: "stateVariable",
+                        componentIdx:
+                            stateValues.firstVisibleChild.componentIdx,
+                        variableName: "listItemInlineAlignment",
+                        variablesOptional: true,
+                    };
+                }
+
+                return dependencies;
+            },
+            definition({ dependencyValues }) {
+                let firstChildListItemAlignment = "none";
+
+                if (dependencyValues.firstVisibleChildAdjustedForListItem) {
+                    const alignmentFromFirstChild =
+                        dependencyValues.firstVisibleChildListItemInlineAlignment;
+
+                    if (
+                        alignmentFromFirstChild === "baseline" ||
+                        alignmentFromFirstChild === "flex-start"
+                    ) {
+                        firstChildListItemAlignment = alignmentFromFirstChild;
+                    } else {
+                        firstChildListItemAlignment = "baseline";
+                    }
+                }
+
+                return { setValue: { firstChildListItemAlignment } };
+            },
         };
 
         // Determine if the rendered children start with an `<introduction>`

@@ -178,6 +178,7 @@ export default React.memo(function Graph(props) {
             containerRef={containerRef}
             descriptionChild={descriptionChild}
             hasInteractiveControls={shouldRenderControls}
+            suppressTopMargin={SVs.renderInlineForListItem}
         >
             {(surfaceStyle) => {
                 const graphContent = isPrefigureRenderer ? (

@@ -43,7 +43,15 @@ export default React.memo(function Pre(props: UseDoenetRendererProps) {
     }
 
     return (
-        <pre id={id} style={{ margin: "12px 0" }} ref={ref}>
+        <pre
+            id={id}
+            style={
+                SVs.renderInlineForListItem
+                    ? { margin: "0 0 12px 0" }
+                    : { margin: "12px 0" }
+            }
+            ref={ref}
+        >
             {children}
         </pre>
     );

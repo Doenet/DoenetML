@@ -16,6 +16,7 @@ import {
     GRAPH_CONTROL_DESCENDANT_CONFIGS,
     GRAPH_CONTROL_VARIABLE_NAMES,
 } from "../utils/graphControls";
+import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 // PreFigure conversion architecture and extension guide:
 // see src/utils/prefigure/README.md
 import { returnGraphPrefigureStateVariableDefinitions } from "../utils/prefigure/stateVariable";
@@ -299,6 +300,13 @@ export default class Graph extends BlockComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnListItemChildStateVariableDefinitions({
+                listItemInlineAlignment: "flex-start",
+            }),
+        );
 
         Object.assign(
             stateVariableDefinitions,

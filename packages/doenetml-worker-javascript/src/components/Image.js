@@ -12,6 +12,7 @@ import {
     returnAnchorAttributes,
     returnAnchorStateVariableDefinition,
 } from "../utils/graphical";
+import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 
 export default class Image extends BlockComponent {
     constructor(args) {
@@ -139,6 +140,13 @@ export default class Image extends BlockComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnListItemChildStateVariableDefinitions({
+                listItemInlineAlignment: "flex-start",
+            }),
+        );
 
         let selectedStyleDefinition =
             returnSelectedStyleStateVariableDefinition();

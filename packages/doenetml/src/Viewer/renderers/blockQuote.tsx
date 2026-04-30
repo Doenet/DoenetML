@@ -27,7 +27,11 @@ export default React.memo(function Container(props: UseDoenetRendererProps) {
     }
 
     return (
-        <blockquote id={id} ref={ref}>
+        <blockquote
+            id={id}
+            ref={ref}
+            style={SVs.renderInlineForListItem ? { marginTop: 0 } : undefined}
+        >
             {children}
         </blockquote>
     );

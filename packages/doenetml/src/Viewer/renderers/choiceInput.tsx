@@ -584,7 +584,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             <fieldset
                 id={inputKey}
                 style={{
-                    margin: "16px 0",
+                    margin:
+                        SVs.renderInlineForListItem && !SVs.inline
+                            ? "0 0 16px 0"
+                            : "16px 0",
                     padding: 0,
                     border: "none",
                     minInlineSize: 0,

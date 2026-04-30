@@ -22,7 +22,11 @@ export default React.memo(function SpreadsheetRenderer(props) {
     }
 
     return (
-        <div id={id} style={{ margin: "12px 0" }} ref={ref}>
+        <div
+            id={id}
+            style={{ margin: SVs.renderInlineForListItem ? "0 0 12px 0" : "12px 0" }}
+            ref={ref}
+        >
             <HotTable
                 // style={{ borderRadius:"var(--mainBorderRadius)", border:"var(--mainBorder)" }}
                 licenseKey="non-commercial-and-evaluation"

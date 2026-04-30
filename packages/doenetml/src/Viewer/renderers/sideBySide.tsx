@@ -18,18 +18,30 @@ export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
     let styledChildren = [];
     const marginLeft = SVs.margins[0];
     const marginRight = SVs.margins[1];
+    const listItemInlineAlignment =
+        SVs.listItemInlineAlignment === "none"
+            ? null
+            : SVs.listItemInlineAlignment;
 
-    const numColumns = children.length;
+    const numColumns = SVs.numPanels ?? children.length;
+    let panelIndex = 0;
 
-    for (let [i, child] of children.entries()) {
+    for (let child of children) {
         if (!child) {
             continue;
         }
-        if (typeof child !== "object" || !("key" in child)) {
-            // We are not a React element, so we do no modification (e.g., we might be a string)
-            styledChildren.push(child);
+
+        if (typeof child === "string" && child.trim() === "") {
             continue;
         }
+
+        if (typeof child !== "object" || !("key" in child)) {
+            continue;
+        }
+
+        const i = panelIndex;
+        panelIndex += 1;
+
         let width = SVs.widths[i];
         // console.log(">>>marginLeft",marginLeft)
         // console.log(">>>width",width)
@@ -49,6 +61,10 @@ export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
         styledChildren.push(
             <span
                 style={{
+                    ...(listItemInlineAlignment && {
+                        display: "flex",
+                        alignItems: "flex-start",
+                    }),
                     marginLeft: `${thisMarginLeft}%`,
                     marginRight: `${thisMarginRight}%`,
                     width: `${width}%`,
@@ -63,7 +79,14 @@ export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
     return (
         <div
             id={id}
-            style={{ display: "flex", maxWidth: "850px", margin: "12px 0" }}
+            style={{
+                display: "flex",
+                ...(listItemInlineAlignment && {
+                    alignItems: listItemInlineAlignment,
+                }),
+                maxWidth: "850px",
+                margin: listItemInlineAlignment ? "0 0 12px 0" : "12px 0",
+            }}
             ref={ref}
         >
             {styledChildren}

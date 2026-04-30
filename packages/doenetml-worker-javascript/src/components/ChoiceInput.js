@@ -2,6 +2,7 @@ import Input from "./abstract/Input";
 import me from "math-expressions";
 import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
 import { setUpVariantSeedAndRng } from "../utils/variants";
+import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 
 export default class Choiceinput extends Input {
     constructor(args) {
@@ -115,6 +116,14 @@ export default class Choiceinput extends Input {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnListItemChildStateVariableDefinitions({
+                checkInlineVariable: true,
+                listItemInlineAlignment: "flex-start",
+            }),
+        );
 
         stateVariableDefinitions.inline = {
             public: true,

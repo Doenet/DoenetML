@@ -1,4 +1,5 @@
 import BlockComponent from "./abstract/BlockComponent";
+import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 
 export default class Tabular extends BlockComponent {
     constructor(args) {
@@ -105,6 +106,13 @@ export default class Tabular extends BlockComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnListItemChildStateVariableDefinitions({
+                listItemInlineAlignment: "flex-start",
+            }),
+        );
 
         // stateVariableDefinitions.numRows = {
         //   public: true,

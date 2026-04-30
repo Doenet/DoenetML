@@ -4,6 +4,7 @@ import BlockComponent from "./abstract/BlockComponent";
 import { vectorOperators } from "@doenet/utils";
 import me from "math-expressions";
 import { HyperFormula } from "hyperformula";
+import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 
 export default class Spreadsheet extends BlockComponent {
     constructor(args) {
@@ -119,6 +120,11 @@ export default class Spreadsheet extends BlockComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnListItemChildStateVariableDefinitions(),
+        );
 
         stateVariableDefinitions.cellIdxToRowCol = {
             additionalStateVariablesDefined: ["cellIndicesByRowCol"],

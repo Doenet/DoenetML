@@ -5,6 +5,7 @@ import {
     widthsBySize,
     sizePossibilities,
 } from "@doenet/utils";
+import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 
 export default class Video extends BlockComponent {
     constructor(args) {
@@ -97,6 +98,13 @@ export default class Video extends BlockComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnListItemChildStateVariableDefinitions({
+                listItemInlineAlignment: "flex-start",
+            }),
+        );
 
         stateVariableDefinitions.shortDescription = {
             forRenderer: true,

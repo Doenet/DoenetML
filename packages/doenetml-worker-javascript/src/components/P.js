@@ -1,3 +1,4 @@
+import { returnListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 import {
     returnScoredSectionAttributes,
     returnScoredSectionStateVariableDefinition,
@@ -49,6 +50,11 @@ export default class P extends BlockComponent {
         Object.assign(
             stateVariableDefinitions,
             returnScoredSectionStateVariableDefinition(),
+        );
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnListItemChildStateVariableDefinitions(),
         );
 
         stateVariableDefinitions.text = {

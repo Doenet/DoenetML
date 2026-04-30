@@ -10,6 +10,7 @@ export default function GraphFrame({
     containerRef,
     descriptionChild,
     hasInteractiveControls,
+    suppressTopMargin = false,
     children,
 }) {
     const contentStyle: React.CSSProperties = {
@@ -76,7 +77,11 @@ export default function GraphFrame({
         typeof children === "function" ? children(contentStyle) : children;
 
     return (
-        <div style={outerStyle} ref={containerRef} id={`${id}-container`}>
+        <div
+            style={suppressTopMargin ? { ...outerStyle, marginTop: 0 } : outerStyle}
+            ref={containerRef}
+            id={`${id}-container`}
+        >
             <div style={innerStyle}>
                 <div
                     id={`${id}-description`}

@@ -1,3 +1,6 @@
+import {
+    returnPassThroughListItemChildStateVariableDefinitions,
+} from "../utils/listItemChild";
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
 
@@ -52,6 +55,75 @@ export class SideBySide extends BlockComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        stateVariableDefinitions.childrenToRenderInlineForListItem = {
+            returnDependencies: () => ({
+                parentChildrenToRenderInlineForListItem: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "childrenToRenderInlineForListItem",
+                },
+                blockChildren: {
+                    dependencyType: "child",
+                    childGroups: ["blocks"],
+                },
+            }),
+            definition({ dependencyValues, componentIdx }) {
+                let childrenToRenderInlineForListItem = [];
+
+                // If component is in the list of children to render inline,
+                // then set its childrenToRenderInlineForListItem to all its block children
+
+                if (
+                    dependencyValues.parentChildrenToRenderInlineForListItem
+                        ?.map((c) => c.componentIdx)
+                        .includes(componentIdx)
+                ) {
+                    childrenToRenderInlineForListItem =
+                        dependencyValues.blockChildren;
+                }
+
+                return {
+                    setValue: {
+                        childrenToRenderInlineForListItem,
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.listItemInlineAlignment = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                parentChildrenToRenderInlineForListItem: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "childrenToRenderInlineForListItem",
+                },
+                blockChildren: {
+                    dependencyType: "child",
+                    childGroups: ["blocks"],
+                },
+            }),
+            definition({ dependencyValues, componentIdx }) {
+                const shouldRenderInline =
+                    dependencyValues.parentChildrenToRenderInlineForListItem
+                        ?.map((c) => c.componentIdx)
+                        .includes(componentIdx);
+
+                let listItemInlineAlignment = "none";
+                if (shouldRenderInline) {
+                    const firstPanel = dependencyValues.blockChildren?.[0];
+                    listItemInlineAlignment =
+                        firstPanel?.componentType === "p"
+                            ? "baseline"
+                            : "flex-start";
+                }
+
+                return {
+                    setValue: {
+                        listItemInlineAlignment,
+                    },
+                };
+            },
+        };
 
         stateVariableDefinitions.numPanels = {
             forRenderer: true,
@@ -1229,6 +1301,11 @@ export class SbsGroup extends BlockComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        Object.assign(
+            stateVariableDefinitions,
+            returnPassThroughListItemChildStateVariableDefinitions(),
+        );
+
         stateVariableDefinitions.maxNPanelsPerRow = {
             // forRenderer: true,
             returnDependencies: () => ({
@@ -2280,6 +2357,17 @@ export class Stack extends BlockComponent {
                 componentTypes: ["_base"],
             },
         ];
+    }
+
+    static returnStateVariableDefinitions() {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnPassThroughListItemChildStateVariableDefinitions(),
+        );
+
+        return stateVariableDefinitions;
     }
 
     recordVisibilityChange({ isVisible }) {

@@ -54,7 +54,12 @@ export default React.memo(function P(props: UseDoenetRendererProps) {
     }
 
     return (
-        <div id={id} ref={ref} className="para">
+        <div
+            id={id}
+            ref={ref}
+            className="para"
+            style={SVs.renderInlineForListItem ? { marginTop: 0 } : undefined}
+        >
             {children}
             {checkWorkComponent}
         </div>
