@@ -1,6 +1,4 @@
-import {
-    returnPassThroughListItemChildStateVariableDefinitions,
-} from "../utils/listItemChild";
+import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils/listItemChild";
 import BlockComponent from "./abstract/BlockComponent";
 import me from "math-expressions";
 

@@ -602,7 +602,11 @@ export default React.memo(function Image(props) {
 
     return (
         <div
-            style={SVs.renderInlineForListItem ? { ...outerStyle, marginTop: 0 } : outerStyle}
+            style={
+                SVs.renderInlineForListItem
+                    ? { ...outerStyle, marginTop: 0 }
+                    : outerStyle
+            }
             ref={ref}
             id={`${id}-container`}
         >

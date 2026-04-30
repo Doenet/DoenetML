@@ -369,6 +369,8 @@ export class SectioningComponent extends BlockComponent {
             }),
             definition({ dependencyValues, componentInfoObjects }) {
                 const childIndicesToRender = [];
+                // Tracks first non-hidden rendered child (including non-blank strings)
+                // so list-item sections can delegate alignment behavior to that child.
                 let firstVisibleChild = null;
 
                 let allTitleChildNames = dependencyValues.titleChildren.map(
@@ -505,6 +507,8 @@ export class SectioningComponent extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
+                // This is the only section mode that performs first-child list-item
+                // alignment delegation on the root section container.
                 const nonBoxedListItemWithoutTitle = Boolean(
                     dependencyValues.isListItem &&
                     !dependencyValues.boxed &&
@@ -529,6 +533,7 @@ export class SectioningComponent extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
+                // Delegate list-item inline rendering to the first visible child only.
                 let childrenToRenderInlineForListItem = [];
                 if (dependencyValues.nonBoxedListItemWithoutTitle) {
                     childrenToRenderInlineForListItem = [
@@ -552,6 +557,8 @@ export class SectioningComponent extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
+                // Alignment adjustments only apply when the first visible child
+                // is a component object (not plain text).
                 const firstVisibleChildAdjustedForListItem = Boolean(
                     dependencyValues.nonBoxedListItemWithoutTitle &&
                     typeof dependencyValues.firstVisibleChild === "object",
@@ -589,6 +596,8 @@ export class SectioningComponent extends BlockComponent {
                 return dependencies;
             },
             definition({ dependencyValues }) {
+                // Baseline is a safe fallback if the first child does not expose
+                // an explicit list-item alignment signal.
                 let firstChildListItemAlignment = "none";
 
                 if (dependencyValues.firstVisibleChildAdjustedForListItem) {

@@ -785,13 +785,14 @@ export default class Answer extends InlineComponent {
             returnSimplifyExpandOnCompareWarning(),
         );
 
-        // <answer> participates in list-item alignment only for the specific case where
-        // its first input child is a non-inline <choiceInput>. In that case the signal is
-        // forwarded so the choiceInput can suppress its own top margin and the surrounding
-        // section number top-aligns with the control. For every other configuration
-        // (inline choiceInput, mathInput, etc.) <answer> returns "none" so the section
-        // falls back to its standard baseline flex layout without any block-control
-        // adjustment.
+        /**
+         * <answer> participates in list-item alignment only when its first input child
+         * is a non-inline <choiceInput>. In that case, <answer> forwards alignment so
+         * the choiceInput can suppress top margin and section numbering top-aligns.
+         *
+         * For other input configurations (for example inline choiceInput or mathInput),
+         * <answer> returns "none" and the section keeps baseline alignment.
+         */
         stateVariableDefinitions.renderInlineForListItem = {
             forRenderer: true,
             additionalStateVariablesDefined: [

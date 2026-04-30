@@ -3,6 +3,7 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
+import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 
 export default React.memo(function Tabular(props: UseDoenetRendererProps) {
@@ -42,7 +43,11 @@ export default React.memo(function Tabular(props: UseDoenetRendererProps) {
 
     return (
         <div
-            style={{ margin: SVs.renderInlineForListItem ? "0 0 12px 0" : "12px 0" }}
+            style={{
+                margin: getBlockMarginWithOptionalTopSuppression({
+                    suppressTopMargin: SVs.renderInlineForListItem,
+                }),
+            }}
             ref={ref}
         >
             <table id={id} style={tableStyle}>

@@ -4,6 +4,7 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { addCommasForCompositeRanges } from "./utils/composites";
+import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
 
 export default React.memo(function Pre(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
@@ -45,11 +46,11 @@ export default React.memo(function Pre(props: UseDoenetRendererProps) {
     return (
         <pre
             id={id}
-            style={
-                SVs.renderInlineForListItem
-                    ? { margin: "0 0 12px 0" }
-                    : { margin: "12px 0" }
-            }
+            style={{
+                margin: getBlockMarginWithOptionalTopSuppression({
+                    suppressTopMargin: SVs.renderInlineForListItem,
+                }),
+            }}
             ref={ref}
         >
             {children}

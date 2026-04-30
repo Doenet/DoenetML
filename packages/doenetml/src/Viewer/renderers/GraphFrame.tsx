@@ -3,6 +3,12 @@ import React from "react";
 import { sizeToCSS } from "./utils/css";
 import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
 
+/**
+ * Shared frame for graph-style renderers.
+ *
+ * suppressTopMargin removes only the outer top margin so list-item numbering can
+ * align with the top of a block graph while preserving bottom spacing.
+ */
 export default function GraphFrame({
     id,
     SVs,
@@ -78,7 +84,9 @@ export default function GraphFrame({
 
     return (
         <div
-            style={suppressTopMargin ? { ...outerStyle, marginTop: 0 } : outerStyle}
+            style={
+                suppressTopMargin ? { ...outerStyle, marginTop: 0 } : outerStyle
+            }
             ref={containerRef}
             id={`${id}-container`}
         >

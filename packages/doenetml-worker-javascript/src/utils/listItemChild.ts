@@ -1,3 +1,7 @@
+/**
+ * Adds list-item inline-rendering state variables for components that may suppress
+ * their top margin when they are the first visible child in a list item.
+ */
 export function returnListItemChildStateVariableDefinitions({
     checkInlineVariable = false,
     listItemInlineAlignment = "baseline",
@@ -50,6 +54,12 @@ export function returnListItemChildStateVariableDefinitions({
     };
 }
 
+/**
+ * Adds pass-through list-item state variables for wrapper components.
+ *
+ * Wrappers forward list-item inline rendering to their first meaningful child
+ * so nested block components can adjust spacing and alignment.
+ */
 export function returnPassThroughListItemChildStateVariableDefinitions() {
     const stateVariableDefinitions: Record<string, any> = {};
     stateVariableDefinitions.renderInlineForListItem = {
@@ -146,9 +156,10 @@ export function returnPassThroughListItemChildStateVariableDefinitions() {
     return stateVariableDefinitions;
 }
 
-function returnPassThroughListItemAlignmentStateVariableDefinitions(
-    defaultAlignment = "none",
-) {
+/**
+ * Computes list-item inline alignment by forwarding alignment from the selected child.
+ */
+function returnPassThroughListItemAlignmentStateVariableDefinitions() {
     return {
         listItemInlineAlignment: {
             forRenderer: true,
@@ -213,7 +224,7 @@ function returnPassThroughListItemAlignmentStateVariableDefinitions(
 
                 return {
                     setValue: {
-                        listItemInlineAlignment: defaultAlignment,
+                        listItemInlineAlignment: "none",
                     },
                 };
             },
@@ -221,6 +232,9 @@ function returnPassThroughListItemAlignmentStateVariableDefinitions(
     };
 }
 
+/**
+ * Determines if this component is selected by its parent to render inline for list-item layout.
+ */
 function returnShouldRenderInline({
     dependencyValues,
     componentIdx,

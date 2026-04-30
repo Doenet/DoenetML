@@ -4,6 +4,17 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
+import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
+
+function isRenderablePanelChild(child: unknown): child is React.ReactElement {
+    if (!child) {
+        return false;
+    }
+    if (typeof child === "string") {
+        return false;
+    }
+    return typeof child === "object" && "key" in child;
+}
 
 export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
@@ -23,25 +34,10 @@ export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
             ? null
             : SVs.listItemInlineAlignment;
 
-    const numColumns = SVs.numPanels ?? children.length;
-    let panelIndex = 0;
+    const panelChildren = children.filter(isRenderablePanelChild);
+    const numColumns = SVs.numPanels ?? panelChildren.length;
 
-    for (let child of children) {
-        if (!child) {
-            continue;
-        }
-
-        if (typeof child === "string" && child.trim() === "") {
-            continue;
-        }
-
-        if (typeof child !== "object" || !("key" in child)) {
-            continue;
-        }
-
-        const i = panelIndex;
-        panelIndex += 1;
-
+    for (let [i, child] of panelChildren.entries()) {
         let width = SVs.widths[i];
         // console.log(">>>marginLeft",marginLeft)
         // console.log(">>>width",width)
@@ -85,7 +81,9 @@ export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
                     alignItems: listItemInlineAlignment,
                 }),
                 maxWidth: "850px",
-                margin: listItemInlineAlignment ? "0 0 12px 0" : "12px 0",
+                margin: getBlockMarginWithOptionalTopSuppression({
+                    suppressTopMargin: Boolean(listItemInlineAlignment),
+                }),
             }}
             ref={ref}
         >

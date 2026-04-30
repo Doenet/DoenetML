@@ -1093,6 +1093,9 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
             expect(before.getPropertyValue("position")).to.not.equal(
                 "absolute",
             );
+            // Do not assert display/vertical-align details here.
+            // Those are implementation choices that can vary between heading
+            // and non-heading list-item paths while preserving numbering behavior.
         });
     }
 

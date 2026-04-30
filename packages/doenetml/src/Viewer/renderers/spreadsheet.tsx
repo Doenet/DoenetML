@@ -7,6 +7,7 @@ import "handsontable/dist/handsontable.full.css";
 import { sizeToCSS } from "./utils/css";
 import { registerAllModules } from "handsontable/registry";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
+import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
 
 registerAllModules();
 
@@ -24,7 +25,11 @@ export default React.memo(function SpreadsheetRenderer(props) {
     return (
         <div
             id={id}
-            style={{ margin: SVs.renderInlineForListItem ? "0 0 12px 0" : "12px 0" }}
+            style={{
+                margin: getBlockMarginWithOptionalTopSuppression({
+                    suppressTopMargin: SVs.renderInlineForListItem,
+                }),
+            }}
             ref={ref}
         >
             <HotTable
