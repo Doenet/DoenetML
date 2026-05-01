@@ -1,11 +1,11 @@
-import {
+import type {
     AccessibilityRecord,
     DiagnosticRecord,
     ErrorRecord,
     InfoRecord,
     WarningRecord,
-    isAccessibilityRecord,
 } from "@doenet/utils";
+import { isAccessibilityRecord } from "@doenet/utils";
 import {
     Diagnostic,
     DiagnosticSeverity,
