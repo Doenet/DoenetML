@@ -1,0 +1,16 @@
+{
+    "hooks": {
+        "PostToolUse": [
+            {
+                "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "jq -r '.tool_response.filePath // .tool_input.file_path' | { read -r f; case \"$f\" in \"$PWD\"/*) npx --no-install prettier --write --ignore-unknown \"$f\" ;; esac; } 2>/dev/null || true",
+                        "timeout": 30
+                    }
+                ]
+            }
+        ]
+    }
+}
