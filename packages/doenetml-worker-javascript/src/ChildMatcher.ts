@@ -32,9 +32,7 @@ export class ChildMatcher {
         expandComposites?: boolean;
         forceExpandComposites?: boolean;
     }): Promise<any> {
-        if (
-            this.derivingChildResultsInProgress.includes(parent.componentIdx)
-        ) {
+        if (this.derivingChildResultsInProgress.includes(parent.componentIdx)) {
             return { success: false, skipping: true };
         }
         this.derivingChildResultsInProgress.push(parent.componentIdx);
@@ -185,9 +183,9 @@ export class ChildMatcher {
 
         let unmatchedChildren: any[] = [];
 
-        for (let [ind, child] of (
-            parent.activeChildren.entries() as Iterable<[number, any]>
-        )) {
+        for (let [ind, child] of parent.activeChildren.entries() as Iterable<
+            [number, any]
+        >) {
             let childType =
                 typeof child !== "object" ? typeof child : child.componentType;
 
@@ -313,7 +311,9 @@ export class ChildMatcher {
         return { success: false };
     }
 
-    async returnActiveChildrenIndicesToRender(component: any): Promise<number[]> {
+    async returnActiveChildrenIndicesToRender(
+        component: any,
+    ): Promise<number[]> {
         let indicesToRender: number[] = [];
         let numChildrenToRender = Infinity;
         if ("numChildrenToRender" in component.state) {
@@ -326,9 +326,9 @@ export class ChildMatcher {
                 await component.stateValues.childIndicesToRender;
         }
 
-        for (let [ind, child] of (
-            component.activeChildren.entries() as Iterable<[number, any]>
-        )) {
+        for (let [ind, child] of component.activeChildren.entries() as Iterable<
+            [number, any]
+        >) {
             if (ind >= numChildrenToRender) {
                 break;
             }

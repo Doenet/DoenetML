@@ -1657,7 +1657,11 @@ export default class Core {
         return this.childMatcher.findChildGroup(childType, parentClass);
     }
 
-    findChildGroupNoAdapters(componentType, parentClass, afterAdapters = false) {
+    findChildGroupNoAdapters(
+        componentType,
+        parentClass,
+        afterAdapters = false,
+    ) {
         return this.childMatcher.findChildGroupNoAdapters(
             componentType,
             parentClass,
@@ -7951,7 +7955,6 @@ export default class Core {
     async deleteComponents(args) {
         return this.deletionEngine.deleteComponents(args);
     }
-
 
     removeComponentsFromResolver(componentsToRemove) {
         return this.resolverAdapter.removeComponentsFromResolver(

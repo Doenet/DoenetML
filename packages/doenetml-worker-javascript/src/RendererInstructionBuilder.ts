@@ -130,7 +130,10 @@ export class RendererInstructionBuilder {
                     this.componentsToRender[componentIdx].children;
 
                 let previousChildIdentifiers: string[] = [];
-                for (let [ind, child] of previousChildRenderers.entries() as Iterable<
+                for (let [
+                    ind,
+                    child,
+                ] of previousChildRenderers.entries() as Iterable<
                     [number, any]
                 >) {
                     if (child === null) {
@@ -158,13 +161,12 @@ export class RendererInstructionBuilder {
                     // delete old renderers
                     for (let child of previousChildRenderers) {
                         if (child?.componentIdx != undefined) {
-                            let deletedNames = this.deleteFromComponentsToRender(
-                                {
+                            let deletedNames =
+                                this.deleteFromComponentsToRender({
                                     componentIdx: child.componentIdx,
                                     recurseToChildren: true,
                                     componentsWithChangedChildrenToRenderInProgress,
-                                },
-                            );
+                                });
                             deletedRenderers.push(...deletedNames);
                         }
                     }
@@ -332,7 +334,10 @@ export class RendererInstructionBuilder {
         if (component.constructor.renderChildren) {
             let indicesToRender =
                 await this.core.returnActiveChildrenIndicesToRender(component);
-            for (let [ind, child] of component.activeChildren.entries() as Iterable<
+            for (let [
+                ind,
+                child,
+            ] of component.activeChildren.entries() as Iterable<
                 [number, any]
             >) {
                 if (indicesToRender.includes(ind)) {

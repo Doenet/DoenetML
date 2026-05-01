@@ -58,10 +58,7 @@ export class ProcessQueue {
             let result;
             try {
                 if (nextUpdateInfo.type === "update") {
-                    if (
-                        !nextUpdateInfo.skippable ||
-                        this.queue.length < 2
-                    ) {
+                    if (!nextUpdateInfo.skippable || this.queue.length < 2) {
                         result = await this.core.performUpdate(nextUpdateInfo);
                     }
 
@@ -70,10 +67,7 @@ export class ProcessQueue {
                     // } else if (nextUpdateInfo.type === "getStateVariableValues") {
                     //   result = await this.core.performGetStateVariableValues(nextUpdateInfo);
                 } else if (nextUpdateInfo.type === "action") {
-                    if (
-                        !nextUpdateInfo.skippable ||
-                        this.queue.length < 2
-                    ) {
+                    if (!nextUpdateInfo.skippable || this.queue.length < 2) {
                         result = await this.core.performAction(nextUpdateInfo);
                     }
 
