@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { DocViewer } from "./Viewer/DocViewer";
 import { MathJaxContext } from "better-react-mathjax";
 import { mathjaxConfig, isErrorRecord, isWarningRecord } from "@doenet/utils";
+import type { DiagnosticsSummary } from "./EditorViewer/diagnostics";
 import type {
     DiagnosticRecord,
     ErrorRecord,
@@ -354,7 +355,7 @@ export function DoenetEditor({
     immediateDoenetmlChangeCallback?: Function;
     documentStructureCallback?: Function;
     diagnosticsSummaryCallback?: (
-        diagnosticsSummary: Record<string, number>,
+        diagnosticsSummary: DiagnosticsSummary,
     ) => void;
     id?: string;
     readOnly?: boolean;

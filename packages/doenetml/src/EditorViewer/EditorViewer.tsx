@@ -24,6 +24,7 @@ import { ViewerControlsBar } from "./ViewerControlsBar";
 import "./editor-viewer.css";
 import { useTabStore } from "@ariakit/react";
 import { setVariantsFromCallback } from "../utils/variants";
+import type { DiagnosticsSummary } from "./diagnostics";
 import {
     mergeDiagnosticsByType,
     toAdditionalDiagnosticsForLsp,
@@ -72,7 +73,7 @@ export function EditorViewer({
     immediateDoenetmlChangeCallback?: Function;
     documentStructureCallback?: Function;
     diagnosticsSummaryCallback?: (
-        diagnosticsSummary: Record<string, number>,
+        diagnosticsSummary: DiagnosticsSummary,
     ) => void;
     id?: string;
     readOnly?: boolean;

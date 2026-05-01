@@ -100,7 +100,7 @@ describe(
             cy.window().should((win) => {
                 expect(
                     win.returnDiagnosticsSummaryCallbackValue()
-                        .accessibilityLevel1Count,
+                        ?.accessibilityLevel1Count,
                 ).eq(1);
             });
         });
@@ -116,7 +116,7 @@ describe(
             cy.window().should((win) => {
                 expect(
                     win.returnDiagnosticsSummaryCallbackValue()
-                        .accessibilityLevel1Count,
+                        ?.accessibilityLevel1Count,
                 ).eq(0);
             });
         });
@@ -130,15 +130,11 @@ describe(
             cy.get("#t").should("contain.text", "hello");
 
             cy.window().should((win) => {
-                expect(
-                    win.returnDiagnosticsSummaryCallbackValue().warningsCount,
-                ).eq(1);
-                expect(
-                    win.returnDiagnosticsSummaryCallbackValue().errorsCount,
-                ).eq(0);
-                expect(
-                    win.returnDiagnosticsSummaryCallbackValue().infosCount,
-                ).eq(0);
+                const diagnosticsSummary =
+                    win.returnDiagnosticsSummaryCallbackValue();
+                expect(diagnosticsSummary?.warningsCount).eq(1);
+                expect(diagnosticsSummary?.errorsCount).eq(0);
+                expect(diagnosticsSummary?.infosCount).eq(0);
             });
         });
 
@@ -151,15 +147,11 @@ describe(
             cy.get("#t").should("contain.text", "hello");
 
             cy.window().should((win) => {
-                expect(
-                    win.returnDiagnosticsSummaryCallbackValue().warningsCount,
-                ).eq(0);
-                expect(
-                    win.returnDiagnosticsSummaryCallbackValue().errorsCount,
-                ).eq(1);
-                expect(
-                    win.returnDiagnosticsSummaryCallbackValue().infosCount,
-                ).eq(0);
+                const diagnosticsSummary =
+                    win.returnDiagnosticsSummaryCallbackValue();
+                expect(diagnosticsSummary?.warningsCount).eq(0);
+                expect(diagnosticsSummary?.errorsCount).eq(1);
+                expect(diagnosticsSummary?.infosCount).eq(0);
             });
         });
 

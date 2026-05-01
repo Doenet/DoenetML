@@ -1,4 +1,5 @@
 import {
+    AccessibilityRecord,
     DiagnosticRecord,
     ErrorRecord,
     InfoRecord,
@@ -12,6 +13,15 @@ import {
 
 /** CodeMirror/LSP diagnostic with optional editor mark class metadata. */
 export type EditorLspDiagnostic = Diagnostic & { markClass?: string };
+
+/** Aggregated counts emitted for editor diagnostics callbacks. */
+export type DiagnosticsSummary = {
+    warningsCount: number;
+    errorsCount: number;
+    infosCount: number;
+    accessibilityLevel1Count: number;
+    accessibilityLevel2Count: number;
+};
 
 /**
  * Converts a single editor diagnostic into an LSP-compatible diagnostic.
@@ -101,7 +111,12 @@ export function mergeDiagnosticsByType({
 }: {
     initialDiagnostics: DiagnosticRecord[];
     diagnostics: DiagnosticRecord[];
-}) {
+}): {
+    warnings: WarningRecord[];
+    errors: ErrorRecord[];
+    infos: InfoRecord[];
+    accessibility: AccessibilityRecord[];
+} & DiagnosticsSummary {
     const warnings = [
         ...initialDiagnostics.filter(
             (diagnostic): diagnostic is WarningRecord =>
