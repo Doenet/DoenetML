@@ -110,20 +110,24 @@ export function CypressTest() {
     const [includeVariantSelector, setIncludeVariantSelector] = useState(
         testSettings.includeVariantSelector,
     );
-    const [isAccessible, setIsAccessible] = useState<boolean | null>(null);
-    const isAccessibleRef = useRef<boolean | null>(null);
-    isAccessibleRef.current = isAccessible;
+    const diagnosticsSummaryRef = useRef<Record<string, number> | null>(null);
 
     useEffect(() => {
-        (window as any).returnIsAccessibleCallbackValue = ():
-            | boolean
-            | null => {
-            return isAccessibleRef.current;
+        (window as any).returnDiagnosticsSummaryCallbackValue = (): Record<
+            string,
+            number
+        > | null => {
+            return diagnosticsSummaryRef.current;
         };
         return () => {
-            delete (window as any).returnIsAccessibleCallbackValue;
+            delete (window as any).returnDiagnosticsSummaryCallbackValue;
         };
     }, []);
+
+    // Reset diagnosticsSummaryRef when new DoenetML is posted to avoid stale values
+    useEffect(() => {
+        diagnosticsSummaryRef.current = null;
+    }, [doenetMLstring]);
 
     const solutionDisplayMode = "button";
 
@@ -590,8 +594,10 @@ export function CypressTest() {
                 showAnswerResponseButton={answerResponseCounts !== undefined}
                 answerResponseCounts={answerResponseCounts}
                 readOnly={readOnly}
-                isAccessibleCallback={(nextIsAccessible: boolean) => {
-                    setIsAccessible(nextIsAccessible);
+                diagnosticsSummaryCallback={(
+                    nextDiagnosticsSummary: Record<string, number>,
+                ) => {
+                    diagnosticsSummaryRef.current = nextDiagnosticsSummary;
                 }}
             />
         );
