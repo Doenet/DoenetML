@@ -54,15 +54,14 @@ export class CompositeExpander {
                         foundReady = true;
                         break;
                     } else {
-                        let resolveResult = await this.core.dependencies.resolveItem(
-                            {
+                        let resolveResult =
+                            await this.core.dependencies.resolveItem({
                                 componentIdx: composite.componentIdx,
                                 type: "stateVariable",
                                 stateVariable: "readyToExpandWhenResolved",
                                 force,
                                 recurseUpstream: true,
-                            },
-                        );
+                            });
 
                         if (resolveResult.success) {
                             foundReady = true;
@@ -197,8 +196,10 @@ export class CompositeExpander {
                 // then don't replace it with its replacements
                 // but leave the composite as an activeChild
                 if (
-                    this.core.findChildGroup(child.componentType, parent.constructor)
-                        .success
+                    this.core.findChildGroup(
+                        child.componentType,
+                        parent.constructor,
+                    ).success
                 ) {
                     continue;
                 }
@@ -287,7 +288,9 @@ export class CompositeExpander {
 
         // console.log(`expanding composite ${component.componentIdx}`);
 
-        this.core.updateInfo.compositesBeingExpanded.push(component.componentIdx);
+        this.core.updateInfo.compositesBeingExpanded.push(
+            component.componentIdx,
+        );
 
         if (component.parent) {
             if (component.parent.unexpandedCompositesReady) {
@@ -358,7 +361,9 @@ export class CompositeExpander {
                     this.core.dependencies,
                 ),
                 publicCaseInsensitiveAliasSubstitutions:
-                    this.core.publicCaseInsensitiveAliasSubstitutions.bind(this.core),
+                    this.core.publicCaseInsensitiveAliasSubstitutions.bind(
+                        this.core,
+                    ),
             });
 
             // If `this.core.components` changed in length while `createSerializedReplacements` was executing,
@@ -462,7 +467,9 @@ export class CompositeExpander {
             // find non-shadow for error message, as that would be a component from document
             while (compositeInvolved.shadows) {
                 compositeInvolved =
-                    this.core._components[compositeInvolved.shadows.componentIdx];
+                    this.core._components[
+                        compositeInvolved.shadows.componentIdx
+                    ];
             }
             throw Error(
                 `Circular dependency involving ${compositeInvolved.componentIdx}.`,
@@ -726,7 +733,9 @@ export class CompositeExpander {
                     nComponents: newNComponents,
                     stateIdInfo,
                     publicCaseInsensitiveAliasSubstitutions:
-                        this.core.publicCaseInsensitiveAliasSubstitutions.bind(this.core),
+                        this.core.publicCaseInsensitiveAliasSubstitutions.bind(
+                            this.core,
+                        ),
                 },
             );
 
@@ -851,7 +860,9 @@ export class CompositeExpander {
         }
         this.core.parameterStack.pop();
 
-        await this.core.dependencies.addBlockersFromChangedReplacements(component);
+        await this.core.dependencies.addBlockersFromChangedReplacements(
+            component,
+        );
 
         component.isExpanded = true;
     }
@@ -886,8 +897,10 @@ export class CompositeExpander {
                 // then don't replace it with its replacements
                 // but leave the composite as an activeChild
                 if (
-                    this.core.findChildGroup(child.componentType, parent.constructor)
-                        .success
+                    this.core.findChildGroup(
+                        child.componentType,
+                        parent.constructor,
+                    ).success
                 ) {
                     continue;
                 }
@@ -918,7 +931,8 @@ export class CompositeExpander {
                     }
 
                     let componentType =
-                        this.core.componentInfoObjects.componentTypeLowerCaseMapping[
+                        this.core.componentInfoObjects
+                            .componentTypeLowerCaseMapping[
                             child.attributes.createComponentOfType.primitive.value.toLowerCase()
                         ];
                     replacements = [];
@@ -986,10 +1000,12 @@ export class CompositeExpander {
                 let replacementsCanBeInList = replacements.map((repl) =>
                     Boolean(
                         typeof repl !== "object" ||
-                        (this.core.componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: repl.componentType,
-                            baseComponentType: "_inline",
-                        }) &&
+                        (this.core.componentInfoObjects.isInheritedComponentType(
+                            {
+                                inheritedComponentType: repl.componentType,
+                                baseComponentType: "_inline",
+                            },
+                        ) &&
                             repl.constructor.canBeInList !== false) ||
                         repl.constructor.canBeInList,
                     ),
@@ -1177,7 +1193,9 @@ export class CompositeExpander {
         if (!(await composite.stateValues.isInactiveCompositeReplacement)) {
             let cIdx = composite.componentIdx;
             if (
-                this.core.updateInfo.inactiveCompositesToUpdateReplacements.has(cIdx)
+                this.core.updateInfo.inactiveCompositesToUpdateReplacements.has(
+                    cIdx,
+                )
             ) {
                 this.core.updateInfo.inactiveCompositesToUpdateReplacements.delete(
                     cIdx,
@@ -1227,5 +1245,4 @@ export class CompositeExpander {
             }
         }
     }
-
 }

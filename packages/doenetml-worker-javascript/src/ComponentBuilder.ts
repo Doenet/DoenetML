@@ -122,9 +122,10 @@ export class ComponentBuilder {
             // calculate any replacement changes on composites touched
             await this.core.replacementChangesFromCompositesToUpdate();
 
-            let results = await this.core.initializeRenderedComponentInstruction(
-                this.core.document,
-            );
+            let results =
+                await this.core.initializeRenderedComponentInstruction(
+                    this.core.document,
+                );
 
             if (this.core.errorComponentsToAdd.length > 0) {
                 await this.addQueuedErrorComponentsFromStateVariables();
@@ -133,9 +134,10 @@ export class ComponentBuilder {
                 // what needs to be rendered from the document root.
                 await this.core.replacementChangesFromCompositesToUpdate();
 
-                results = await this.core.initializeRenderedComponentInstruction(
-                    this.core.document,
-                );
+                results =
+                    await this.core.initializeRenderedComponentInstruction(
+                        this.core.document,
+                    );
             }
 
             this.core.documentRendererInstructions = results.componentToRender;
@@ -361,7 +363,10 @@ export class ComponentBuilder {
         }
 
         if (this.core._components[componentIdx] !== undefined) {
-            console.log(this.core._components[componentIdx], serializedComponent);
+            console.log(
+                this.core._components[componentIdx],
+                serializedComponent,
+            );
             throw Error(`Found a duplicate componentIdx: ${componentIdx}`);
         }
 
@@ -510,9 +515,9 @@ export class ComponentBuilder {
                         console.error(e);
                         if (e.message.includes("Circular dependency")) {
                             throw Error(
-                                this.core.dependencies.getCircularDependencyMessage([
-                                    serializedComponent,
-                                ]),
+                                this.core.dependencies.getCircularDependencyMessage(
+                                    [serializedComponent],
+                                ),
                             );
                         } else {
                             throw e;
@@ -740,8 +745,10 @@ export class ComponentBuilder {
                             this.core.dependencies.updateTriggers
                                 .primaryShadowDependencies[idx]
                         ) {
-                            for (const dep of this.core.dependencies.updateTriggers
-                                .primaryShadowDependencies[idx]) {
+                            for (const dep of this.core.dependencies
+                                .updateTriggers.primaryShadowDependencies[
+                                idx
+                            ]) {
                                 await dep.recalculateDownstreamComponents();
                             }
                         }
@@ -802,7 +809,8 @@ export class ComponentBuilder {
         let comp = this.core._components[componentIdx];
         const stateId = comp.stateId;
         if (
-            stateId in this.core.updateInfo.stateVariableUpdatesForMissingComponents
+            stateId in
+            this.core.updateInfo.stateVariableUpdatesForMissingComponents
         ) {
             let result = await this.core.processNewStateVariableValues(
                 {
@@ -849,9 +857,8 @@ export class ComponentBuilder {
                 }
             }
 
-            delete this.core.updateInfo.stateVariableUpdatesForMissingComponents[
-                stateId
-            ];
+            delete this.core.updateInfo
+                .stateVariableUpdatesForMissingComponents[stateId];
         }
     }
 
@@ -990,5 +997,4 @@ export class ComponentBuilder {
             }
         }
     }
-
 }

@@ -639,7 +639,8 @@ export class StateVariableDefinitionFactory {
         stateVariableDefinitions,
         componentClass,
     }) {
-        let targetComponent = this.core._components[redefineDependencies.targetIdx];
+        let targetComponent =
+            this.core._components[redefineDependencies.targetIdx];
 
         if (redefineDependencies.propVariable) {
             // if we have an array entry state variable that hasn't been created yet

@@ -216,9 +216,10 @@ export default class Core {
         this.actionTriggerScheduler = new ActionTriggerScheduler({
             core: this,
         });
-        this.stateVariableDefinitionFactory = new StateVariableDefinitionFactory({
-            core: this,
-        });
+        this.stateVariableDefinitionFactory =
+            new StateVariableDefinitionFactory({
+                core: this,
+            });
         this.stateVariableInitializer = new StateVariableInitializer({
             core: this,
         });
@@ -836,7 +837,6 @@ export default class Core {
     async checkForActionChaining(args) {
         return this.actionTriggerScheduler.checkForActionChaining(args);
     }
-
 
     async getStateVariableValue({ component, stateVariable }) {
         // console.log(`getting value of state variable ${stateVariable} of ${component.componentIdx}`)
