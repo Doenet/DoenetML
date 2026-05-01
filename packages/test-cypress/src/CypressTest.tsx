@@ -124,6 +124,11 @@ export function CypressTest() {
         };
     }, []);
 
+    // Reset diagnosticsSummaryRef when new DoenetML is posted to avoid stale values
+    useEffect(() => {
+        diagnosticsSummaryRef.current = null;
+    }, [doenetMLstring]);
+
     const solutionDisplayMode = "button";
 
     // requestedVariantIndex is undefined by default so that viewer

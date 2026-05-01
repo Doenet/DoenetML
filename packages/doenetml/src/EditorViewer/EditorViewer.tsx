@@ -175,24 +175,37 @@ export function EditorViewer({
         [initialDiagnostics, diagnostics],
     );
 
-    useEffect(() => {
-        if (!receivedDiagnosticsFromViewer) {
-            return;
-        }
-
-        diagnosticsSummaryCallback?.({
+    /**
+     * Memoize the diagnosticsSummary object so its reference is stable when
+     * diagnostic counts don't change. This prevents unnecessary re-invocations
+     * of the effect callback and avoids potential render loops if a consumer
+     * stores this object in React state and passes an inline callback.
+     */
+    const diagnosticsSummary = useMemo(
+        () => ({
             warningsCount,
             errorsCount,
             infosCount,
             accessibilityLevel1Count,
             accessibilityLevel2Count,
-        });
+        }),
+        [
+            warningsCount,
+            errorsCount,
+            infosCount,
+            accessibilityLevel1Count,
+            accessibilityLevel2Count,
+        ],
+    );
+
+    useEffect(() => {
+        if (!receivedDiagnosticsFromViewer) {
+            return;
+        }
+
+        diagnosticsSummaryCallback?.(diagnosticsSummary);
     }, [
-        warningsCount,
-        errorsCount,
-        infosCount,
-        accessibilityLevel1Count,
-        accessibilityLevel2Count,
+        diagnosticsSummary,
         receivedDiagnosticsFromViewer,
         diagnosticsSummaryCallback,
     ]);
