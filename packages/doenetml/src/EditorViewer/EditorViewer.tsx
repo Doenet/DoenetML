@@ -47,7 +47,7 @@ export function EditorViewer({
     doenetmlChangeCallback,
     immediateDoenetmlChangeCallback,
     documentStructureCallback,
-    isAccessibleCallback,
+    diagnosticsSummaryCallback,
     id: specifiedId,
     readOnly = false,
     showFormatter = true,
@@ -71,7 +71,9 @@ export function EditorViewer({
     doenetmlChangeCallback?: Function;
     immediateDoenetmlChangeCallback?: Function;
     documentStructureCallback?: Function;
-    isAccessibleCallback?: (isAccessible: boolean) => void;
+    diagnosticsSummaryCallback?: (
+        diagnosticsSummary: Record<string, number>,
+    ) => void;
     id?: string;
     readOnly?: boolean;
     showFormatter?: boolean;
@@ -131,11 +133,14 @@ export function EditorViewer({
     const [infoPanelIsOpen, setInfoPanelIsOpen] = useState(false);
 
     const [diagnostics, setDiagnostics] = useState<DiagnosticRecord[]>([]);
+    const [receivedDiagnosticsFromViewer, setReceivedDiagnosticsFromViewer] =
+        useState(false);
     const [showInfoAnnotations, setShowInfoAnnotations] = useState(false);
 
     /** Receives diagnostics from DocViewer and stores them for panel/LSP sync. */
     function setDiagnosticsCallback(newDiagnostics: DiagnosticRecord[]) {
         setDiagnostics(newDiagnostics);
+        setReceivedDiagnosticsFromViewer(true);
     }
 
     useEffect(() => {
@@ -155,6 +160,9 @@ export function EditorViewer({
         errors: errorsObjs,
         infos: infoObjs,
         accessibility: accessibilityObjs,
+        warningsCount,
+        errorsCount,
+        infosCount,
         accessibilityLevel1Count,
         accessibilityLevel2Count,
     } = useMemo(
@@ -167,8 +175,26 @@ export function EditorViewer({
     );
 
     useEffect(() => {
-        isAccessibleCallback?.(accessibilityLevel1Count === 0);
-    }, [accessibilityLevel1Count, isAccessibleCallback]);
+        if (!receivedDiagnosticsFromViewer) {
+            return;
+        }
+
+        diagnosticsSummaryCallback?.({
+            warningsCount,
+            errorsCount,
+            infosCount,
+            accessibilityLevel1Count,
+            accessibilityLevel2Count,
+        });
+    }, [
+        warningsCount,
+        errorsCount,
+        infosCount,
+        accessibilityLevel1Count,
+        accessibilityLevel2Count,
+        receivedDiagnosticsFromViewer,
+        diagnosticsSummaryCallback,
+    ]);
 
     const [responses, setResponses] = useState<
         {

@@ -145,6 +145,9 @@ export function mergeDiagnosticsByType({
         errors,
         infos,
         accessibility,
+        warningsCount: warnings.length,
+        errorsCount: errors.length,
+        infosCount: infos.length,
         accessibilityLevel1Count: accessibility.filter(
             (diagnostic) => diagnostic.level === 1,
         ).length,
