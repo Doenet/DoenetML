@@ -1296,7 +1296,7 @@ export class StateVariableDefinitionFactory {
                                 componentIdx: targetComponent.componentIdx,
                                 variableName:
                                     overrideVarNameWith ||
-                                    this.core.arrayVarNameFromArrayKey(key),
+                                    this.arrayVarNameFromArrayKey(key),
                             },
                         };
                     }

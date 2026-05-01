@@ -422,7 +422,7 @@ export class StateVariableInitializer {
         //   that contains a given array key (if there are many, just return one)
         //   This variable may not yet be created.
 
-        let core = this;
+        let core = this.core;
 
         stateVarObj.arrayValues = [];
 
