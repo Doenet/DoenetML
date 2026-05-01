@@ -1,4 +1,7 @@
-import { serializedComponentsReplacer, data_format_version } from "@doenet/utils";
+import {
+    serializedComponentsReplacer,
+    data_format_version,
+} from "@doenet/utils";
 import { set as idb_set } from "idb-keyval";
 
 /**

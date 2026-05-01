@@ -159,10 +159,9 @@ export class ResolverAdapter {
         ) {
             // We are replacing a range of replacement, but these include blank strings.
             // Adjust the range to ignore blank strings
-            for (const [
-                i,
-                isBlankString,
-            ] of (blankStringReplacements ?? []).entries()) {
+            for (const [i, isBlankString] of (
+                blankStringReplacements ?? []
+            ).entries()) {
                 if (i >= updateOldReplacementsEnd) {
                     break;
                 }
