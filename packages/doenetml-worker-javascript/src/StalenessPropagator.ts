@@ -102,12 +102,14 @@ export class StalenessPropagator {
                         }
                     }
 
-                    await this.core.dependencies.setUpStateVariableDependencies({
-                        component,
-                        stateVariable,
-                        allStateVariablesAffected,
-                        core: this,
-                    });
+                    await this.core.dependencies.setUpStateVariableDependencies(
+                        {
+                            component,
+                            stateVariable,
+                            allStateVariablesAffected,
+                            core: this,
+                        },
+                    );
 
                     let newStateVariablesToResolve = [];
 
@@ -293,9 +295,10 @@ export class StalenessPropagator {
                         component.componentIdx
                     ];
                 if (!chainObj) {
-                    chainObj = this.core.updateInfo.componentsToUpdateActionChaining[
-                        component.componentIdx
-                    ] = [];
+                    chainObj =
+                        this.core.updateInfo.componentsToUpdateActionChaining[
+                            component.componentIdx
+                        ] = [];
                 }
                 for (let vName in allStateVariablesAffectedObj) {
                     if (!chainObj.includes(vName)) {
@@ -470,9 +473,9 @@ export class StalenessPropagator {
 
         let changes = {};
         let downDeps =
-            this.core.dependencies.downstreamDependencies[component.componentIdx][
-                varName
-            ];
+            this.core.dependencies.downstreamDependencies[
+                component.componentIdx
+            ][varName];
 
         for (let dependencyName in downDeps) {
             let dep = downDeps[dependencyName];
@@ -934,5 +937,4 @@ export class StalenessPropagator {
     // splicing, propagation to shadows) lives in `this.core.componentLifecycle`
     // (see ComponentLifecycle.ts). The methods below preserve the public
     // surface by delegating through.
-
 }

@@ -107,12 +107,11 @@ export class EssentialValueWriter {
                                 cIdx,
                             );
                         } else {
-                            let result = await this.core.updateCompositeReplacements(
-                                {
+                            let result =
+                                await this.core.updateCompositeReplacements({
                                     component: composite,
                                     componentChanges,
-                                },
-                            );
+                                });
 
                             if (
                                 Object.keys(result.addedComponents).length > 0
@@ -152,7 +151,8 @@ export class EssentialValueWriter {
             }
         }
 
-        this.core.updateInfo.compositesToUpdateReplacements = compositesNotReady;
+        this.core.updateInfo.compositesToUpdateReplacements =
+            compositesNotReady;
 
         // return { componentChanges };
         return { updatedComposites };
@@ -178,9 +178,8 @@ export class EssentialValueWriter {
                 // nFailures += 1;
 
                 let updatesForComp =
-                    this.core.updateInfo.stateVariableUpdatesForMissingComponents[
-                        cIdx
-                    ];
+                    this.core.updateInfo
+                        .stateVariableUpdatesForMissingComponents[cIdx];
                 if (updatesForComp === undefined) {
                     updatesForComp =
                         this.core.updateInfo.stateVariableUpdatesForMissingComponents[
@@ -262,7 +261,9 @@ export class EssentialValueWriter {
 
                 if (
                     vName in
-                    this.core.rendererVariablesByComponentType[comp.componentType]
+                    this.core.rendererVariablesByComponentType[
+                        comp.componentType
+                    ]
                 ) {
                     this.core.updateInfo.componentsToUpdateRenderers.add(
                         comp.componentIdx,
@@ -430,7 +431,8 @@ export class EssentialValueWriter {
                     stateVarObj.excludeDependencyValuesInInverseDefinition,
                 consumeChanges: false,
             });
-        inverseDefinitionArgs.componentInfoObjects = this.core.componentInfoObjects;
+        inverseDefinitionArgs.componentInfoObjects =
+            this.core.componentInfoObjects;
         inverseDefinitionArgs.initialChange = initialChange;
         inverseDefinitionArgs.stateValues = component.stateValues;
         inverseDefinitionArgs.overrideFixed = instruction.overrideFixed;
@@ -737,9 +739,8 @@ export class EssentialValueWriter {
                                     // Unless allowExtraArrayKeysInInverse is set, any extra keys will be
                                     // filtered out, so add them only in this case.
                                     let depArrayStateVarObj =
-                                        this.core._components[dComponentIdx].state[
-                                            arrayStateVariable
-                                        ];
+                                        this.core._components[dComponentIdx]
+                                            .state[arrayStateVariable];
                                     if (
                                         depArrayStateVarObj.allowExtraArrayKeysInInverse
                                     ) {
@@ -1198,7 +1199,8 @@ export class EssentialValueWriter {
                                     type: "info",
                                     message: `Can't simultaneously set additional dependency value ${dependencyName2} if it isn't a state variable`,
                                     position:
-                                        this.core.components[dComponentIdx].position,
+                                        this.core.components[dComponentIdx]
+                                            .position,
                                     sourceDoc:
                                         this.core.components[dComponentIdx]
                                             .sourceDoc,
@@ -1220,7 +1222,8 @@ export class EssentialValueWriter {
                                     type: "info",
                                     message: `Can't simultaneously set additional dependency value ${dependencyName2} if it doesn't correspond to additional state variable defined of ${dependencyName}'s state variable`,
                                     position:
-                                        this.core.components[dComponentIdx].position,
+                                        this.core.components[dComponentIdx]
+                                            .position,
                                     sourceDoc:
                                         this.core.components[dComponentIdx]
                                             .sourceDoc,
@@ -1362,5 +1365,4 @@ export class EssentialValueWriter {
     // `this.core.statePersistence` (see StatePersistence.ts). The methods below
     // preserve the public surface (`core.saveImmediately`, `core.saveState`,
     // `core.saveChangesToDatabase`) by delegating through.
-
 }

@@ -1022,7 +1022,9 @@ export default class Core {
     }
 
     async createShadowedReplacements(args) {
-        return this.compositeReplacementUpdater.createShadowedReplacements(args);
+        return this.compositeReplacementUpdater.createShadowedReplacements(
+            args,
+        );
     }
 
     async adjustReplacementsToWithhold(args) {

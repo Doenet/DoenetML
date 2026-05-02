@@ -230,7 +230,9 @@ export class UpdateExecutor {
                 // state variables updated,
                 // i.e., the subsequent inverse definitions use stateValues
                 // in their calculations that need to be updated
-                await this.core.executeUpdateStateVariables(newStateVariableValues);
+                await this.core.executeUpdateStateVariables(
+                    newStateVariableValues,
+                );
 
                 newStateVariableValuesProcessed.push(newStateVariableValues);
                 newStateVariableValues = {};
@@ -269,7 +271,10 @@ export class UpdateExecutor {
         await this.core.processStateVariableTriggers();
 
         if (!skipRendererUpdate || recordComponentSubmissions.length > 0) {
-            await this.core.updateAllChangedRenderers(sourceInformation, actionId);
+            await this.core.updateAllChangedRenderers(
+                sourceInformation,
+                actionId,
+            );
         }
 
         if (recordComponentSubmissions.length > 0) {
@@ -305,7 +310,9 @@ export class UpdateExecutor {
         }
 
         // start with any essential values saved when calculating definitions
-        if (Object.keys(this.core.essentialValuesSavedInDefinition).length > 0) {
+        if (
+            Object.keys(this.core.essentialValuesSavedInDefinition).length > 0
+        ) {
             for (const stateId in this.core.essentialValuesSavedInDefinition) {
                 const componentIdx = this.core.componentIdxByStateId[stateId];
                 let essentialState =
@@ -314,14 +321,13 @@ export class UpdateExecutor {
                     if (!this.core.cumulativeStateVariableChanges[stateId]) {
                         this.core.cumulativeStateVariableChanges[stateId] = {};
                     }
-                    for (let varName in this.core.essentialValuesSavedInDefinition[
-                        stateId
-                    ]) {
+                    for (let varName in this.core
+                        .essentialValuesSavedInDefinition[stateId]) {
                         if (essentialState[varName] !== undefined) {
                             let cumValues =
-                                this.core.cumulativeStateVariableChanges[stateId][
-                                    varName
-                                ];
+                                this.core.cumulativeStateVariableChanges[
+                                    stateId
+                                ][varName];
                             // if cumValues is an object with mergeObject = true,
                             // then merge attributes from essentialState into cumValues
                             if (
@@ -336,9 +342,9 @@ export class UpdateExecutor {
                                     ),
                                 );
                             } else {
-                                this.core.cumulativeStateVariableChanges[stateId][
-                                    varName
-                                ] = removeFunctionsMathExpressionClass(
+                                this.core.cumulativeStateVariableChanges[
+                                    stateId
+                                ][varName] = removeFunctionsMathExpressionClass(
                                     essentialState[varName],
                                 );
                             }
@@ -406,5 +412,4 @@ export class UpdateExecutor {
             this.core.requestRecordEvent(event);
         }
     }
-
 }

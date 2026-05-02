@@ -84,8 +84,9 @@ export class StateVariableEvaluator {
             }
 
             if (component.state[varName].justUpdatedForNewComponent) {
-                delete this.core._components[component.componentIdx].state[varName]
-                    .justUpdatedForNewComponent;
+                delete this.core._components[component.componentIdx].state[
+                    varName
+                ].justUpdatedForNewComponent;
                 justUpdatedForNewComponent = true;
             }
         }
@@ -635,8 +636,11 @@ export class StateVariableEvaluator {
                 );
             }
 
-            if (!this.core.essentialValuesSavedInDefinition[component.stateId]) {
-                this.core.essentialValuesSavedInDefinition[component.stateId] = {};
+            if (
+                !this.core.essentialValuesSavedInDefinition[component.stateId]
+            ) {
+                this.core.essentialValuesSavedInDefinition[component.stateId] =
+                    {};
             }
 
             let essentialVarName = varName;
@@ -658,16 +662,16 @@ export class StateVariableEvaluator {
                 // so that it will be saved to the database during the next update
 
                 if (
-                    !this.core.essentialValuesSavedInDefinition[component.stateId][
-                        varName
-                    ]
+                    !this.core.essentialValuesSavedInDefinition[
+                        component.stateId
+                    ][varName]
                 ) {
                     // include key mergeObject to let external functions
                     // know that new attributes of the object
                     // should be merged into the old object
-                    this.core.essentialValuesSavedInDefinition[component.stateId][
-                        varName
-                    ] = {
+                    this.core.essentialValuesSavedInDefinition[
+                        component.stateId
+                    ][varName] = {
                         mergeObject: true,
                     };
                 }
@@ -679,9 +683,10 @@ export class StateVariableEvaluator {
                         arrayValues: essentialArray,
                     });
 
-                    this.core.essentialValuesSavedInDefinition[component.stateId][
-                        varName
-                    ][arrayKey] = result.setEssentialValue[varName][arrayKey];
+                    this.core.essentialValuesSavedInDefinition[
+                        component.stateId
+                    ][varName][arrayKey] =
+                        result.setEssentialValue[varName][arrayKey];
                 }
             } else {
                 component.essentialState[essentialVarName] =
@@ -888,10 +893,12 @@ export class StateVariableEvaluator {
                 arrayVarNamesChanged = [...new Set(arrayVarNamesChanged)];
 
                 for (let arrayVarName of arrayVarNamesChanged) {
-                    this.core.dependencies.recordActualChangeInUpstreamDependencies({
-                        component,
-                        varName: arrayVarName,
-                    });
+                    this.core.dependencies.recordActualChangeInUpstreamDependencies(
+                        {
+                            component,
+                            varName: arrayVarName,
+                        },
+                    );
                 }
             }
         }
@@ -916,11 +923,12 @@ export class StateVariableEvaluator {
         if (excludeDependencyValues) {
             args = {};
         } else {
-            args = await this.core.dependencies.getStateVariableDependencyValues({
-                component,
-                stateVariable,
-                consumeChanges,
-            });
+            args =
+                await this.core.dependencies.getStateVariableDependencyValues({
+                    component,
+                    stateVariable,
+                    consumeChanges,
+                });
         }
 
         args.componentIdx = component.componentIdx;
@@ -1012,5 +1020,4 @@ export class StateVariableEvaluator {
     // public surface (`core.findCaseInsensitiveMatches`, etc., plus the
     // by-reference passes used in composite sugar functions) by injecting
     // `componentInfoObjects` and delegating.
-
 }

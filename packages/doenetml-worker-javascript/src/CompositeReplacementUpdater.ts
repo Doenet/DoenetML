@@ -107,7 +107,9 @@ export class CompositeReplacementUpdater {
                         this.core.dependencies,
                     ),
                     publicCaseInsensitiveAliasSubstitutions:
-                        this.core.publicCaseInsensitiveAliasSubstitutions.bind(this.core),
+                        this.core.publicCaseInsensitiveAliasSubstitutions.bind(
+                            this.core,
+                        ),
                 });
 
             replacementResults = {
@@ -142,7 +144,8 @@ export class CompositeReplacementUpdater {
         // let changedReplacementIdentitiesOfComposites = [];
 
         if (replacementResults.nComponents > this.core.components.length) {
-            this.core._components[replacementResults.nComponents - 1] = undefined;
+            this.core._components[replacementResults.nComponents - 1] =
+                undefined;
         }
 
         if (replacementResults.diagnostics.length > 0) {
@@ -257,11 +260,12 @@ export class CompositeReplacementUpdater {
                 }
 
                 try {
-                    const createResult = await this.core.createIsolatedComponents({
-                        serializedComponents: serializedReplacements,
-                        ancestors: component.ancestors,
-                        componentsReplacementOf: component,
-                    });
+                    const createResult =
+                        await this.core.createIsolatedComponents({
+                            serializedComponents: serializedReplacements,
+                            ancestors: component.ancestors,
+                            componentsReplacementOf: component,
+                        });
 
                     newComponents = createResult.components;
                 } catch (e) {
@@ -348,7 +352,8 @@ export class CompositeReplacementUpdater {
                     }
 
                     if (change.changeTopLevelReplacements === true) {
-                        const parent = this.core._components[composite.parentIdx];
+                        const parent =
+                            this.core._components[composite.parentIdx];
 
                         // splice in new replacements
                         composite.replacements.splice(
@@ -377,7 +382,9 @@ export class CompositeReplacementUpdater {
                         });
 
                         const componentsAffected =
-                            await this.core.componentAndRenderedDescendants(parent);
+                            await this.core.componentAndRenderedDescendants(
+                                parent,
+                            );
                         componentsAffected.forEach((cIdx) =>
                             this.core.updateInfo.componentsToUpdateRenderers.add(
                                 cIdx,
@@ -409,7 +416,9 @@ export class CompositeReplacementUpdater {
                         }
 
                         const componentsAffected =
-                            await this.core.componentAndRenderedDescendants(parent);
+                            await this.core.componentAndRenderedDescendants(
+                                parent,
+                            );
                         componentsAffected.forEach((cIdx) =>
                             this.core.updateInfo.componentsToUpdateRenderers.add(
                                 cIdx,
@@ -913,7 +922,8 @@ export class CompositeReplacementUpdater {
                                             .isResponse,
                                 },
                                 componentType: repl.componentType,
-                                componentInfoObjects: this.core.componentInfoObjects,
+                                componentInfoObjects:
+                                    this.core.componentInfoObjects,
                                 compositeAttributesObj,
                                 nComponents,
                             },
@@ -944,11 +954,13 @@ export class CompositeReplacementUpdater {
                 );
 
                 try {
-                    let createResult = await this.core.createIsolatedComponents({
-                        serializedComponents: newSerializedReplacements,
-                        ancestors: shadowingComponent.ancestors,
-                        componentsReplacementOf: shadowingComponent,
-                    });
+                    let createResult = await this.core.createIsolatedComponents(
+                        {
+                            serializedComponents: newSerializedReplacements,
+                            ancestors: shadowingComponent.ancestors,
+                            componentsReplacementOf: shadowingComponent,
+                        },
+                    );
                     newComponents = createResult.components;
                 } catch (e) {
                     console.error(e);
@@ -1159,7 +1171,9 @@ export class CompositeReplacementUpdater {
         }
 
         component.replacementsToWithhold = replacementsToWithhold;
-        await this.core.dependencies.addBlockersFromChangedReplacements(component);
+        await this.core.dependencies.addBlockersFromChangedReplacements(
+            component,
+        );
 
         if (component.shadowedBy) {
             for (let shadowingComponent of component.shadowedBy) {
@@ -1184,7 +1198,6 @@ export class CompositeReplacementUpdater {
 
         return compositesWithAdjustedReplacements;
     }
-
 }
 
 function calculateAllComponentsShadowing(component: any): number[] {
