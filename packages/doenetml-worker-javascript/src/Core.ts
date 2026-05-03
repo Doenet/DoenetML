@@ -14,6 +14,7 @@ import { getNumVariants } from "./utils/variants";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
 import { getSourceLocationForComponent } from "./utils/sourceLocation";
+import type { ComponentInstance } from "./types/componentInstance";
 import { DependencyHandler } from "./Dependencies";
 import { ActionTriggerScheduler } from "./ActionTriggerScheduler";
 import { AutoSubmitManager } from "./AutoSubmitManager";
@@ -38,23 +39,6 @@ import { UpdateExecutor } from "./UpdateExecutor";
 import { VisibilityTracker } from "./VisibilityTracker";
 import * as nameResolver from "./StateVariableNameResolver";
 import { numberAnswers } from "./utils/answer";
-
-// String → componentClass: `this.componentInfoObjects.allComponentClasses["string"]`.
-// componentClass → string: `componentClass.componentType`.
-//
-// Nearly all of Core's prior responsibilities have been extracted into their
-// own modules (DiagnosticsManager, VisibilityTracker, StatePersistence,
-// AutoSubmitManager, NavigationHandler, ResolverAdapter,
-// RendererInstructionBuilder, ProcessQueue, ComponentLifecycle, ChildMatcher,
-// DeletionEngine, ActionTriggerScheduler, StateVariableDefinitionFactory,
-// StateVariableInitializer, ComponentBuilder, CompositeExpander,
-// StateVariableEvaluator, StalenessPropagator, EssentialValueWriter,
-// CompositeReplacementUpdater, UpdateExecutor, and the `nameResolver`
-// namespace). Core retains thin wrapper methods so the public surface — used
-// by CoreWorker, `coreFunctions`-bound references, components, and tests —
-// keeps working. Each delegating block is grouped near its original location
-// and tagged with a `// → managerName` marker; see the corresponding module
-// for details.
 
 /**
  * Constructor arguments passed in from `CoreWorker`. The resolver callbacks
@@ -119,6 +103,25 @@ export interface CoreInfo {
     documentToRender: any;
 }
 
+/**
+ * Component lookup conventions:
+ * - String → componentClass: `this.componentInfoObjects.allComponentClasses["string"]`.
+ * - componentClass → string: `componentClass.componentType`.
+ *
+ * Nearly all of Core's prior responsibilities have been extracted into their
+ * own modules (DiagnosticsManager, VisibilityTracker, StatePersistence,
+ * AutoSubmitManager, NavigationHandler, ResolverAdapter,
+ * RendererInstructionBuilder, ProcessQueue, ComponentLifecycle, ChildMatcher,
+ * DeletionEngine, ActionTriggerScheduler, StateVariableDefinitionFactory,
+ * StateVariableInitializer, ComponentBuilder, CompositeExpander,
+ * StateVariableEvaluator, StalenessPropagator, EssentialValueWriter,
+ * CompositeReplacementUpdater, UpdateExecutor, and the `nameResolver`
+ * namespace). Core retains thin wrapper methods so the public surface — used
+ * by CoreWorker, `coreFunctions`-bound references, components, and tests —
+ * keeps working. Each delegating block is grouped near its original location
+ * and tagged with a `// → managerName` marker; see the corresponding module
+ * for details.
+ */
 export default class Core {
     // ─── Identity / configuration ─────────────────────────────────────────
     coreId: string;
@@ -167,8 +170,15 @@ export default class Core {
 
     // ─── Component graph ──────────────────────────────────────────────────
     componentInfoObjects: any;
+    /** Sparse array of components keyed by `componentIdx`. May contain
+     * undefined slots from sparse-array bookkeeping (`_components[i] =
+     * undefined` is used to extend the array; reads on those slots return
+     * undefined). Typed as `any[]` because the strict
+     * `(ComponentInstance | undefined)[]` shape would force null-checking
+     * at hundreds of read sites — that wider tightening waits until the
+     * component-class refactor lands. */
     _components!: any[];
-    document!: any;
+    document!: ComponentInstance;
     documentIdx!: ComponentIdx;
     componentIdxByStateId!: Record<string, ComponentIdx>;
     createComponentIdxMapping: Record<number, number>;
@@ -550,7 +560,7 @@ export default class Core {
         this.coreInfo = {
             generatedVariantString: this.canonicalGeneratedVariantString!,
             allPossibleVariants: deepClone(
-                await this.document.sharedParameters.allPossibleVariants,
+                await this.document.sharedParameters!.allPossibleVariants,
             ),
             rendererTypesInDocument: deepClone(this.rendererTypesInDocument),
             documentToRender: this.documentRendererInstructions,
@@ -664,7 +674,7 @@ export default class Core {
         return this.diagnosticsManager.addDiagnostic(diagnostic);
     }
 
-    getSourceLocationForComponent(component: any): {
+    getSourceLocationForComponent(component: ComponentInstance): {
         position: any;
         sourceDoc: number | undefined;
     } {
@@ -710,7 +720,7 @@ export default class Core {
         );
     }
 
-    getRendererId(component: any): any {
+    getRendererId(component: ComponentInstance): any {
         return this.rendererInstructionBuilder.getRendererId(component);
     }
 
@@ -769,7 +779,9 @@ export default class Core {
         );
     }
 
-    async componentAndRenderedDescendants(component: any): Promise<any> {
+    async componentAndRenderedDescendants(
+        component: ComponentInstance,
+    ): Promise<any> {
         return this.compositeExpander.componentAndRenderedDescendants(
             component,
         );
@@ -789,7 +801,7 @@ export default class Core {
         );
     }
 
-    async expandCompositeComponent(component: any): Promise<any> {
+    async expandCompositeComponent(component: ComponentInstance): Promise<any> {
         return this.compositeExpander.expandCompositeComponent(component);
     }
 
@@ -834,7 +846,9 @@ export default class Core {
         return this.childMatcher.findChildGroup(childType, parentClass);
     }
 
-    async returnActiveChildrenIndicesToRender(component: any): Promise<any> {
+    async returnActiveChildrenIndicesToRender(
+        component: ComponentInstance,
+    ): Promise<any> {
         return this.childMatcher.returnActiveChildrenIndicesToRender(component);
     }
 
@@ -895,7 +909,9 @@ export default class Core {
     }
 
     // → stateVariableInitializer
-    async initializeComponentStateVariables(component: any): Promise<any> {
+    async initializeComponentStateVariables(
+        component: ComponentInstance,
+    ): Promise<any> {
         return this.stateVariableInitializer.initializeComponentStateVariables(
             component,
         );
@@ -1017,7 +1033,9 @@ export default class Core {
         return this.stalenessPropagator.createFromArrayEntry(args);
     }
 
-    async markDescendantsToUpdateRenderers(component: any): Promise<any> {
+    async markDescendantsToUpdateRenderers(
+        component: ComponentInstance,
+    ): Promise<any> {
         return this.stalenessPropagator.markDescendantsToUpdateRenderers(
             component,
         );
@@ -1042,11 +1060,14 @@ export default class Core {
     }
 
     // → componentLifecycle
-    registerComponent(component: any): any {
+    registerComponent(component: ComponentInstance): any {
         return this.componentLifecycle.registerComponent(component);
     }
 
-    deregisterComponent(component: any, recursive: boolean = true): any {
+    deregisterComponent(
+        component: ComponentInstance,
+        recursive: boolean = true,
+    ): any {
         return this.componentLifecycle.deregisterComponent(
             component,
             recursive,

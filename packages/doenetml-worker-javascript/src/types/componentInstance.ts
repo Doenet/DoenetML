@@ -84,6 +84,12 @@ export interface ComponentInstance {
     actions?: Record<string, any>;
     externalActions?: Record<string, any>;
 
+    /** Set on the prototype by the component class; component classes attach
+     * arbitrary static metadata (`canDisplayChildErrors`,
+     * `useSerializedChildrenComponentIndices`, etc.) used by Core. Looser
+     * than the built-in `Function` type so those reads typecheck. */
+    constructor: any;
+
     /** Component classes attach arbitrary fields; allow them through. */
     [k: string]: any;
 }
