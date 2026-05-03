@@ -3,6 +3,7 @@ import {
     data_format_version,
 } from "@doenet/utils";
 import { set as idb_set } from "idb-keyval";
+import { reportTimerError } from "./utils/timerErrors";
 
 /**
  * Owns the save-to-localStorage and save-to-database pipeline for a Core
@@ -15,7 +16,7 @@ import { set as idb_set } from "idb-keyval";
  *
  * This is purely the persistence I/O — the essential-value write engine
  * that produces `cumulativeStateVariableChanges` is a separate concern
- * (see `processNewStateVariableValues` in Core, slated for Phase 4).
+ * (see `processNewStateVariableValues` in Core).
  */
 export class StatePersistence {
     core: any;
@@ -41,16 +42,17 @@ export class StatePersistence {
             clearTimeout(this.saveDocStateTimeoutID);
         }
         this.saveDocStateTimeoutID = setTimeout(() => {
-            this.saveState();
+            this.saveState().catch(reportTimerError("scheduled saveState"));
         }, delayMs);
     }
 
     async saveImmediately(): Promise<void> {
-        if (this.saveDocStateTimeoutID) {
+        if (this.saveDocStateTimeoutID !== null) {
             // if in debounce to save doc to local storage
             // then immediate save to local storage
             // and override timeout to save to database
             clearTimeout(this.saveDocStateTimeoutID);
+            this.saveDocStateTimeoutID = null;
             await this.saveState(true);
         } else {
             // else override timeout to save any pending changes to database
@@ -139,7 +141,9 @@ export class StatePersistence {
         // check for changes again after 60 seconds
         this.saveStateToDBTimerId = setTimeout(() => {
             this.saveStateToDBTimerId = null;
-            this.saveChangesToDatabase();
+            this.saveChangesToDatabase().catch(
+                reportTimerError("throttled saveChangesToDatabase"),
+            );
         }, 60000);
 
         this.core.reportScoreAndStateCallback({

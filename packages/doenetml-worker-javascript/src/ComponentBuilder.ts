@@ -92,7 +92,6 @@ export class ComponentBuilder {
                     "Initial components need to be an array of just one component.",
                 );
             }
-            // this.core.setAncestors(newComponents[0]);
             this.core.document = newComponents[0];
 
             await this.core.expandAllComposites(this.core.document);
@@ -119,7 +118,6 @@ export class ComponentBuilder {
 
             await this.addQueuedErrorComponentsFromStateVariables();
 
-            // calculate any replacement changes on composites touched
             await this.core.replacementChangesFromCompositesToUpdate();
 
             let results =
@@ -224,7 +222,6 @@ export class ComponentBuilder {
                     }
                 }
             }
-            // calculate any replacement changes on composites touched
             await this.core.replacementChangesFromCompositesToUpdate();
 
             await this.core.updateRendererInstructions({
@@ -274,8 +271,6 @@ export class ComponentBuilder {
         );
 
         for (let serializedComponent of serializedComponents) {
-            // console.timeLog('core','<-Top serializedComponents ',serializedComponent.componentIdx);
-
             if (typeof serializedComponent !== "object") {
                 newComponents.push(serializedComponent);
                 continue;
@@ -292,7 +287,7 @@ export class ComponentBuilder {
                 // create a serialized component that doesn't exist.
                 const message = `Invalid component type: \`<${serializedComponent.componentType}>\`.`;
 
-                this.core.hasPendingDiagnostics = true;
+                this.core.diagnosticsManager.markPending();
 
                 const convertResult = convertToErrorComponent(
                     serializedComponent,
@@ -335,8 +330,6 @@ export class ComponentBuilder {
             if (createResult.lastErrorMessage) {
                 lastErrorMessage = createResult.lastErrorMessage;
             }
-
-            // console.timeLog('core','<-Bottom serializedComponents ',serializedComponent.componentIdx);
         }
 
         let results = {
@@ -370,7 +363,6 @@ export class ComponentBuilder {
             throw Error(`Found a duplicate componentIdx: ${componentIdx}`);
         }
 
-        // first recursively create children and attribute components
         const serializedChildren = serializedComponent.children;
         let definingChildren = [];
         const childrenToRemainSerialized = [];
@@ -380,7 +372,6 @@ export class ComponentBuilder {
             ...ancestors,
         ];
 
-        // add a new level to parameter stack;
         const parentSharedParameters = this.core.parameterStack.parameters;
         this.core.parameterStack.push();
         const sharedParameters = this.core.parameterStack.parameters;
@@ -442,7 +433,6 @@ export class ComponentBuilder {
                     childrenToRemainSerialized.push(serializedChildren[ind]);
                 }
 
-                // create any remaining children
                 const childrenToCreate = [];
                 for (const [ind, child] of serializedChildren.entries()) {
                     if (!childrenAddressed.has(ind)) {
@@ -464,8 +454,6 @@ export class ComponentBuilder {
                     }
                 }
             } else {
-                //create all children
-
                 const childrenResult = await this.createIsolatedComponents({
                     serializedComponents: serializedChildren,
                     ancestors: ancestorsForChildren,
@@ -553,8 +541,6 @@ export class ComponentBuilder {
             }
         }
 
-        // If `serializedComponent` has a `extending`
-        // then create components for all the indices of the original path.
         let refResolution = null;
         if (serializedComponent.extending) {
             refResolution = unwrapSource(serializedComponent.extending);
@@ -640,7 +626,7 @@ export class ComponentBuilder {
                         ]),
                     );
                 }
-                if (this.core.components[idx]) {
+                if (this.core._components[idx]) {
                     prescribedDependencies[idx] =
                         serializedComponent.downstreamDependencies[idx];
                 } else {
@@ -660,14 +646,15 @@ export class ComponentBuilder {
                 componentIdx,
             });
 
-        // in case component with same name was deleted before, delete from deleteComponents and deletedStateVariable
+        // In case a component with the same idx was deleted before, clear it
+        // from the deleted-tracking maps so the new component isn't shadowed
+        // by the prior tombstone.
         delete this.core.updateInfo.deletedComponents[componentIdx];
         delete this.core.updateInfo.deletedStateVariables[componentIdx];
 
         const stateId = serializedComponent.stateId ?? componentIdx.toString();
         this.core.componentIdxByStateId[stateId] = componentIdx;
 
-        // create component itself
         const newComponent = new componentClass({
             componentIdx,
             stateId,
@@ -713,7 +700,6 @@ export class ComponentBuilder {
                     };
                     Object.assign(shadowInfo, dep);
                     delete shadowInfo.dependencyType;
-                    // newComponent.shadows = new Proxy(shadowInfo, readOnlyProxyHandler);
                     newComponent.shadows = shadowInfo;
 
                     if (dep.firstLevelReplacement) {
@@ -795,9 +781,6 @@ export class ComponentBuilder {
 
         await this.core.checkForActionChaining({ component: newComponent });
 
-        // this.core.dependencies.collateCountersAndPropagateToAncestors(newComponent);
-
-        // remove a level from parameter stack;
         this.core.parameterStack.pop();
 
         const results = { newComponent: newComponent, lastErrorMessage };
@@ -883,10 +866,6 @@ export class ComponentBuilder {
 
         return;
     }
-
-    // State-variable definition (shape) building lives in
-    // `this.core.stateVariableDefinitionFactory` (see StateVariableDefinitionFactory.ts).
-    // The methods below preserve the public surface by delegating through.
 
     async addQueuedErrorComponentsFromStateVariables() {
         if (!this.core.errorComponentsToAdd?.length) {

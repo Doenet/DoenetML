@@ -8,20 +8,21 @@ import {
  * Initializes state variables on a freshly-created component: walks the
  * component's `state` map (definitions produced by
  * `StateVariableDefinitionFactory`) and wires up each variable's runtime
- * representation — getters that resolve the value lazily, dependency
- * registration via `core.dependencies`, array entry materialization,
- * size-tracking variables for arrays, and prop-index-to-array-key
- * resolution.
+ * representation — getters that resolve the value lazily, array entry
+ * materialization, size-tracking variables for arrays, and prop-index-to-
+ * array-key resolution.
  *
- * Critically, the per-state-variable getter must reach back through
- * `core.getStateVariableValue` rather than capturing a bound copy at
- * extraction time, so that when `getStateVariableValue` itself moves into
- * `StateVariableEvaluator` in Phase 4 the binding stays live.
+ * The per-state-variable getter captures `core.getStateVariableValue` once
+ * inside `initializeStateVariable` (~line 59). This works today because
+ * Core's constructor eagerly binds that method (`Core.js:148`), so the
+ * captured reference stays valid for the lifetime of the manager. If a
+ * future phase moves `getStateVariableValue` onto a separate manager, this
+ * capture must become a lazy lookup so the binding source stays live.
  *
  * Holds a back-reference to Core to read `_components`,
- * `componentInfoObjects`, and to invoke `getStateVariableValue`,
- * `checkIfArrayEntry`, `matchPublicStateVariables`, `addDiagnostic`,
- * `createFromArrayEntry`, and `actionTriggerScheduler`.
+ * `componentInfoObjects`, and `stateVariableChangeTriggers`, and to invoke
+ * `getStateVariableValue`, `checkIfArrayEntry`, `matchPublicStateVariables`,
+ * `addDiagnostic`, and `createFromArrayEntry`.
  */
 export class StateVariableInitializer {
     core: any;
@@ -66,20 +67,6 @@ export class StateVariableInitializer {
             get: () => getStateVar({ component, stateVariable }),
             configurable: true,
         });
-        // Object.defineProperty(stateVarObj, 'value', {
-        //   get:
-        //     async function () {
-        //       try {
-        //         return getStateVar({ component, stateVariable });
-        //       } catch (e) {
-        //         console.log(`got an error in getter`, e);
-        //         throw e;
-        //       }
-        //     },
-        //   configurable: true
-        // });
-
-        // Object.defineProperty(stateVarObj, 'value', { get: () => Promise.resolve(getStateVar({ component, stateVariable })), configurable: true });
 
         if (arrayEntryPrefix !== undefined) {
             await this.initializeArrayEntryStateVariable({
@@ -110,6 +97,7 @@ export class StateVariableInitializer {
             };
         }
     }
+
     async initializeArrayEntryStateVariable({
         stateVarObj,
         arrayStateVariable,

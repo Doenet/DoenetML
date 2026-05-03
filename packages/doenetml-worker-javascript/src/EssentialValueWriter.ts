@@ -1180,7 +1180,9 @@ export class EssentialValueWriter {
                         // i.e. are in additionalStateVariablesDefined
 
                         let stateVarObj =
-                            this.core.components[dComponentIdx].state[dVarName];
+                            this.core._components[dComponentIdx].state[
+                                dVarName
+                            ];
                         for (let dependencyName2 in newInstruction.additionalDependencyValues) {
                             let dep2 =
                                 this.core.dependencies.downstreamDependencies[
@@ -1199,10 +1201,10 @@ export class EssentialValueWriter {
                                     type: "info",
                                     message: `Can't simultaneously set additional dependency value ${dependencyName2} if it isn't a state variable`,
                                     position:
-                                        this.core.components[dComponentIdx]
+                                        this.core._components[dComponentIdx]
                                             .position,
                                     sourceDoc:
-                                        this.core.components[dComponentIdx]
+                                        this.core._components[dComponentIdx]
                                             .sourceDoc,
                                 });
                                 continue;
@@ -1222,10 +1224,10 @@ export class EssentialValueWriter {
                                     type: "info",
                                     message: `Can't simultaneously set additional dependency value ${dependencyName2} if it doesn't correspond to additional state variable defined of ${dependencyName}'s state variable`,
                                     position:
-                                        this.core.components[dComponentIdx]
+                                        this.core._components[dComponentIdx]
                                             .position,
                                     sourceDoc:
-                                        this.core.components[dComponentIdx]
+                                        this.core._components[dComponentIdx]
                                             .sourceDoc,
                                 });
                                 continue;

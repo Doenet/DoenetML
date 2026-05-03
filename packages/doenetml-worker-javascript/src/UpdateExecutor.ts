@@ -1,4 +1,5 @@
 import { removeFunctionsMathExpressionClass } from "./utils/math";
+import { createNewComponentIndices } from "./utils/componentIndices";
 
 /**
  * The orchestrators dequeued by `ProcessQueue`:
@@ -54,7 +55,7 @@ export class UpdateExecutor {
             return { actionId: args.actionId };
         }
 
-        let component = this.core.components[componentIdx];
+        let component = this.core._components[componentIdx];
         if (component && component.actions) {
             let action = component.actions[actionName];
             if (!action && caseInsensitiveMatch) {

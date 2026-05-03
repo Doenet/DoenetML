@@ -16,13 +16,27 @@ import { assignDoenetMLRange } from "@doenet/utils";
  */
 export class ChildMatcher {
     core: any;
-    derivingChildResultsInProgress: number[];
+    /**
+     * Re-entrancy guard: parents currently inside
+     * `deriveChildResultsFromDefiningChildren`. Composite expansion can
+     * call back into the same parent indirectly; on re-entry we return
+     * `{ success: false, skipping: true }` so the outer call finishes first.
+     */
+    derivingChildResultsInProgress: Set<number>;
 
     constructor({ core }: { core: any }) {
         this.core = core;
-        this.derivingChildResultsInProgress = [];
+        this.derivingChildResultsInProgress = new Set();
     }
 
+    /**
+     * Build `parent.activeChildren`, `parent.allChildren`, and
+     * `parent.allChildrenOrdered` from `parent.definingChildren`:
+     * expand any composites that aren't directly matchable, substitute
+     * adapters for unmatched children, and run child-group matching.
+     * On a successful pass, appends blockers to dependency tracking and
+     * marks the parent for re-render if its rendered child set changed.
+     */
     async deriveChildResultsFromDefiningChildren({
         parent,
         expandComposites = true,
@@ -32,10 +46,10 @@ export class ChildMatcher {
         expandComposites?: boolean;
         forceExpandComposites?: boolean;
     }): Promise<any> {
-        if (this.derivingChildResultsInProgress.includes(parent.componentIdx)) {
+        if (this.derivingChildResultsInProgress.has(parent.componentIdx)) {
             return { success: false, skipping: true };
         }
-        this.derivingChildResultsInProgress.push(parent.componentIdx);
+        this.derivingChildResultsInProgress.add(parent.componentIdx);
 
         // create allChildren and activeChildren from defining children
         // apply child logic and substitute adapters to modify activeChildren
@@ -147,11 +161,7 @@ export class ChildMatcher {
             parent,
         });
 
-        let ind = this.derivingChildResultsInProgress.indexOf(
-            parent.componentIdx,
-        );
-
-        this.derivingChildResultsInProgress.splice(ind, 1);
+        this.derivingChildResultsInProgress.delete(parent.componentIdx);
 
         if (parent.constructor.renderChildren) {
             let childrenUnchanged =
@@ -172,6 +182,13 @@ export class ChildMatcher {
         return childGroupResults;
     }
 
+    /**
+     * For each `activeChild` of `parent`, find the parent class's child
+     * group that accepts the child's component type, substituting an
+     * adapter if a direct match isn't available. Populates
+     * `parent.childMatchesByGroup`. Returns `{ success, unmatchedChildren }`
+     * where `success` is false iff any child could not be matched.
+     */
     async matchChildrenToChildGroups(parent: any): Promise<any> {
         parent.childMatchesByGroup = {};
 
@@ -216,6 +233,13 @@ export class ChildMatcher {
         return { success, unmatchedChildren };
     }
 
+    /**
+     * Try to match `childType` directly against `parentClass`'s child
+     * groups; if no match, walk the child class's adapter list and try
+     * each adapter component type in turn; finally retry with
+     * `afterAdapters: true` for groups that opt into late matching.
+     * Returns the matching `group` and (if applicable) `adapterIndUsed`.
+     */
     findChildGroup(
         childType: string,
         parentClass: any,
@@ -311,6 +335,12 @@ export class ChildMatcher {
         return { success: false };
     }
 
+    /**
+     * Compute which entries of `component.activeChildren` should actually
+     * be passed to the renderer. Honors `numChildrenToRender`,
+     * `childIndicesToRender`, per-child `hidden`, and propagates
+     * `hidden` from any composite that produced a primitive child.
+     */
     async returnActiveChildrenIndicesToRender(
         component: any,
     ): Promise<number[]> {
@@ -372,6 +402,14 @@ export class ChildMatcher {
         return indicesToRender;
     }
 
+    /**
+     * Replace `parent.activeChildren[childInd]` with the adapter selected
+     * by `adapterIndUsed`, creating the adapter component if it doesn't
+     * already exist or doesn't match the desired component type.
+     * Updates `allChildren` and `allChildrenOrdered` to reflect the swap
+     * (the adapter is placed immediately after the original child in the
+     * order so counters stay stable).
+     */
     async substituteAdapter({
         parent,
         childInd,
@@ -381,8 +419,6 @@ export class ChildMatcher {
         childInd: number;
         adapterIndUsed: number;
     }): Promise<void> {
-        // replace activeChildren with their adapters
-
         let originalChild = parent.activeChildren[childInd];
 
         let newSerializedChild: any;

@@ -59,7 +59,7 @@ export class CompositeReplacementUpdater {
             return results;
         }
 
-        let proxiedComponent = this.core.components[component.componentIdx];
+        let proxiedComponent = this.core._components[component.componentIdx];
 
         if (!component.replacements) {
             component.replacements = [];
@@ -92,14 +92,14 @@ export class CompositeReplacementUpdater {
         const originalWorkspace = { ...component.replacementsWorkspace };
 
         do {
-            initialNComponents = this.core.components.length;
+            initialNComponents = this.core._components.length;
             component.replacementsWorkspace = { ...originalWorkspace };
             const rawReplacementResults =
                 await component.constructor.calculateReplacementChanges({
                     component: proxiedComponent,
                     componentChanges,
-                    components: this.core.components,
-                    nComponents: this.core.components.length,
+                    components: this.core._components,
+                    nComponents: this.core._components.length,
                     workspace: component.replacementsWorkspace,
                     componentInfoObjects: this.core.componentInfoObjects,
                     flags: this.core.flags,
@@ -118,15 +118,15 @@ export class CompositeReplacementUpdater {
                 diagnostics: rawReplacementResults?.diagnostics ?? [],
                 nComponents:
                     rawReplacementResults?.nComponents ??
-                    this.core.components.length,
+                    this.core._components.length,
             };
 
-            // If `this.core.components` changed in length while `calculateReplacementChanges` was executing,
+            // If `this.core._components` changed in length while `calculateReplacementChanges` was executing,
             // it means that some other action (like calling another `calculateReplacementChanges`)
             // occurred while resolving state variables.
             // Since this would lead to collisions in assigned component indices, we rerun `calculateReplacementChanges`.
             // TODO: are there any scenarios where this will lead to an infinite loop?
-        } while (this.core.components.length !== initialNComponents);
+        } while (this.core._components.length !== initialNComponents);
 
         if (component.constructor.stateVariableToEvaluateAfterReplacements) {
             await component.stateValues[
@@ -143,13 +143,13 @@ export class CompositeReplacementUpdater {
 
         // let changedReplacementIdentitiesOfComposites = [];
 
-        if (replacementResults.nComponents > this.core.components.length) {
+        if (replacementResults.nComponents > this.core._components.length) {
             this.core._components[replacementResults.nComponents - 1] =
                 undefined;
         }
 
         if (replacementResults.diagnostics.length > 0) {
-            const parent = this.core.components[component.componentIdx];
+            const parent = this.core._components[component.componentIdx];
             this.core.gatherDiagnosticsAndAssignDoenetMLRange({
                 components: [],
                 diagnostics: replacementResults.diagnostics,
@@ -230,9 +230,9 @@ export class CompositeReplacementUpdater {
                 const serializedReplacements = change.serializedReplacements;
 
                 const position =
-                    this.core.components[component.componentIdx].position;
+                    this.core._components[component.componentIdx].position;
                 const sourceDoc =
-                    this.core.components[component.componentIdx].sourceDoc;
+                    this.core._components[component.componentIdx].sourceDoc;
                 const overwriteDoenetMLRange =
                     component.componentType === "_copy";
 
@@ -931,7 +931,7 @@ export class CompositeReplacementUpdater {
 
                         const attributesFromComposite = res.attributes;
                         nComponents = res.nComponents;
-                        if (nComponents > this.core.components.length) {
+                        if (nComponents > this.core._components.length) {
                             this.core._components[nComponents - 1] = undefined;
                         }
 

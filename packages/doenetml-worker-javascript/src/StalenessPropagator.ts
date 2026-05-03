@@ -688,8 +688,9 @@ export class StalenessPropagator {
                         if (
                             varName in
                             this.core.rendererVariablesByComponentType[
-                                this.core.components[upDep.upstreamComponentIdx]
-                                    .componentType
+                                this.core._components[
+                                    upDep.upstreamComponentIdx
+                                ].componentType
                             ]
                         ) {
                             this.core.updateInfo.componentsToUpdateRenderers.add(
