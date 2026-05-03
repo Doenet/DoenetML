@@ -1256,9 +1256,8 @@ export class EssentialValueWriter {
                     newStateVariableValues,
                 });
             } else {
-                console.log(newInstruction);
                 throw Error(
-                    `Unrecognized instruction in inverse definition of ${stateVariable} of ${component.componentIdx}`,
+                    `Unrecognized instruction in inverse definition of ${stateVariable} of ${component.componentIdx}: keys [${Object.keys(newInstruction).join(", ")}]`,
                 );
             }
         }

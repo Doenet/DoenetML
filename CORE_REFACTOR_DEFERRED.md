@@ -118,6 +118,12 @@ Two cleanups to consider together:
 
 Pick one; the current shape inherits the asymmetry from a half-finished rename.
 
+### `statePersistence` instantiation position in the Core constructor
+
+Phase 4 moved `new StatePersistence({ core: this })` from `generateDast` into the constructor (commit `73a2337ec`), which is correct — `terminate()` awaits `saveImmediately()`, so calling `terminate` before the first `generateDast` would have thrown without it. But the new instantiation sits at the tail of the constructor (`Core.js:251`), after `updateExecutor`, rather than grouped with the other persistence/lifecycle managers earlier in the block.
+
+Functionally fine (every back-reference is resolved at call time, not constructor time), but visually the manager-instantiation block has a clear top-to-bottom grouping that this entry breaks. One-line move into the natural position once someone is touching this file.
+
 ### Standardize `core._components` vs `core.components` access in extracted managers
 
 `Core` exposes `_components` as the canonical array and `get components()` as a read-only accessor returning the same array. Phase 2's and Phase 3's modules now consistently use `core._components` (Phase 1 mostly does too). If future managers are added, keep this convention so reviewers don't have to remember the array and getter are the same thing. The deferred `CoreBackref` interface above is the natural place to enforce it (expose only `_components`).
