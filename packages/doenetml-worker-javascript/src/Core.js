@@ -9,7 +9,6 @@ import {
     assignDoenetMLRange,
     findAllNewlines,
     flattenDeep,
-    data_format_version,
 } from "@doenet/utils";
 import { convertToErrorComponent } from "./utils/dast/errors";
 import { gatherVariantComponents, getNumVariants } from "./utils/variants";
@@ -28,23 +27,32 @@ import {
     unwrapSource,
 } from "./utils/dast/convertNormalizedDast";
 import { DependencyHandler } from "./Dependencies";
+import { AutoSubmitManager } from "./AutoSubmitManager";
+import { DiagnosticsManager } from "./DiagnosticsManager";
+import { NavigationHandler } from "./NavigationHandler";
+import { ResolverAdapter } from "./ResolverAdapter";
+import { StatePersistence } from "./StatePersistence";
+import { VisibilityTracker } from "./VisibilityTracker";
+import * as nameResolver from "./StateVariableNameResolver";
 import {
     returnDefaultArrayVarNameFromPropIndex,
     returnDefaultGetArrayKeysFromVarName,
 } from "./utils/stateVariables";
-import { set as idb_set } from "idb-keyval";
 import {
     createComponentIndicesFromSerializedChildren,
     createNewComponentIndices,
     extractCreateComponentIdxMapping,
 } from "./utils/componentIndices";
-import {
-    addNodesToFlatFragment,
-    getEffectiveComponentIdx,
-} from "./utils/resolver";
-
 // string to componentClass: this.componentInfoObjects.allComponentClasses["string"]
 // componentClass to string: componentClass.componentType
+
+// Several feature areas have been extracted into their own modules
+// (DiagnosticsManager, VisibilityTracker, StatePersistence, AutoSubmitManager,
+// NavigationHandler, ResolverAdapter, and the `nameResolver` namespace). Core
+// retains thin wrapper methods so the public surface — used by CoreWorker,
+// `coreFunctions`-bound references, components, and tests — keeps working.
+// Each delegating block is grouped near its original location and tagged with
+// a `// → managerName` marker; see the corresponding module for details.
 
 export default class Core {
     constructor({
@@ -112,23 +120,10 @@ export default class Core {
 
         this.cid = cid;
 
-        /** @type {({ type: "error"|"warning"|"info", message: string, position?: any, sourceDoc?: number } | { type: "accessibility", level: 1|2, message: string, position?: any, sourceDoc?: number })[]} */
-        this.diagnostics = preliminaryDiagnostics
-            // Note: we ignore preliminary errors, as we'll gather those from the dast when processing it.
-            .filter((diagnostic) => diagnostic.type !== "error")
-            .map((diagnostic) => {
-                this.assertDiagnosticIsValid(diagnostic);
-
-                return {
-                    type: diagnostic.type,
-                    ...(diagnostic.type === "accessibility"
-                        ? { level: diagnostic.level }
-                        : {}),
-                    message: diagnostic.message,
-                    position: diagnostic.position,
-                    sourceDoc: diagnostic.sourceDoc,
-                };
-            });
+        this.diagnosticsManager = new DiagnosticsManager({
+            core: this,
+            preliminaryDiagnostics,
+        });
 
         this.numerics = new Numerics();
         // this.flags = new Proxy(flags, readOnlyProxyHandler); //components shouldn't modify flags
@@ -191,8 +186,6 @@ export default class Core {
             stateVariablesToEvaluate: [],
         };
 
-        this.hasPendingDiagnostics = true;
-
         this.cumulativeStateVariableChanges = JSON.parse(
             JSON.stringify(stateVariableChanges, serializedComponentsReplacer),
             serializedComponentsReviver,
@@ -201,17 +194,10 @@ export default class Core {
         this.requestedVariantIndex = requestedVariantIndex;
         this.requestedVariant = requestedVariant;
 
-        this.visibilityInfo = {
-            componentsCurrentlyVisible: {},
-            infoToSend: {},
-            timeLastSent: new Date(),
-            saveDelay: 60000,
-            saveTimerId: null,
-            suspendDelay: 3 * 60000,
-            suspendTimerId: null,
-            suspended: false,
-            documentHasBeenVisible: false,
-        };
+        this.visibilityTracker = new VisibilityTracker({ core: this });
+        this.autoSubmitManager = new AutoSubmitManager({ core: this });
+        this.navigationHandler = new NavigationHandler({ core: this });
+        this.resolverAdapter = new ResolverAdapter({ core: this });
 
         // console.time('serialize doenetML');
 
@@ -262,7 +248,7 @@ export default class Core {
 
         this.essentialValuesSavedInDefinition = {};
 
-        this.saveStateToDBTimerId = null;
+        this.statePersistence = new StatePersistence({ core: this });
 
         // rendererState the current state of each renderer, keyed by componentIdx
         this.rendererState = {};
@@ -475,112 +461,29 @@ export default class Core {
         this.updateRenderersCallback({ ...args, init, diagnostics });
     }
 
-    /**
-     * Get pending diagnostics and reset the pending flag.
-     * Automatically trims the diagnostics array to prevent unbounded memory growth.
-     *
-     * @returns {Object} Object containing the current diagnostics array
-     * @note Diagnostics older than the 1000 most recent are discarded to manage memory
-     */
+    // → diagnosticsManager
+    get diagnostics() {
+        return this.diagnosticsManager.diagnostics;
+    }
+
+    get hasPendingDiagnostics() {
+        return this.diagnosticsManager.hasPendingDiagnostics;
+    }
+
     getDiagnostics() {
-        // Keep only the last 1000 diagnostics to avoid unbounded memory growth.
-        // Once the limit is exceeded, older diagnostics are discarded.
-        // This ensures the codebase doesn't accumulate large numbers of stale messages.
-        const MAX_DIAGNOSTICS = 1000;
-        this.diagnostics = this.diagnostics.slice(-MAX_DIAGNOSTICS);
-
-        this.hasPendingDiagnostics = false;
-
-        return { diagnostics: this.diagnostics };
+        return this.diagnosticsManager.getDiagnostics();
     }
 
-    /**
-     * Add a diagnostic record to `this.diagnostics`, deduplicating by
-     * type + message + source location.
-     *
-     * @returns {boolean} `true` if a new entry was added, `false` if deduped.
-     */
-    assertDiagnosticIsValid({ type, level }) {
-        if (!["error", "warning", "info", "accessibility"].includes(type)) {
-            throw Error("Invalid diagnostic type");
-        }
-
-        if (type === "accessibility") {
-            if (level === undefined) {
-                throw Error("Missing accessibility diagnostic level");
-            }
-
-            if (![1, 2].includes(level)) {
-                throw Error("Invalid accessibility diagnostic level");
-            }
-        }
+    assertDiagnosticIsValid(diagnostic) {
+        this.diagnosticsManager.assertDiagnosticIsValid(diagnostic);
     }
 
-    addDiagnostic({ type, level, message, position, sourceDoc }) {
-        const sameLocation = (pointA, pointB) =>
-            (pointA?.offset ?? undefined) === (pointB?.offset ?? undefined) &&
-            (pointA?.line ?? undefined) === (pointB?.line ?? undefined) &&
-            (pointA?.column ?? undefined) === (pointB?.column ?? undefined);
-
-        const haveSamePosition = (warningPosition, newPosition) => {
-            if (warningPosition === undefined || newPosition === undefined) {
-                return warningPosition === newPosition;
-            }
-
-            return (
-                sameLocation(warningPosition.start, newPosition.start) &&
-                sameLocation(warningPosition.end, newPosition.end)
-            );
-        };
-
-        this.assertDiagnosticIsValid({ type, level });
-
-        const alreadyHaveDiagnostic = this.diagnostics.some(
-            (diagnostic) =>
-                diagnostic.type === type &&
-                (type === "accessibility"
-                    ? diagnostic.level === level
-                    : true) &&
-                diagnostic.message === message &&
-                diagnostic.sourceDoc === sourceDoc &&
-                haveSamePosition(diagnostic.position, position),
-        );
-
-        if (alreadyHaveDiagnostic) {
-            return false;
-        }
-
-        this.diagnostics.push({
-            type,
-            ...(type === "accessibility" ? { level } : {}),
-            message,
-            position,
-            sourceDoc,
-        });
-
-        this.hasPendingDiagnostics = true;
-        return true;
+    addDiagnostic(diagnostic) {
+        return this.diagnosticsManager.addDiagnostic(diagnostic);
     }
 
-    /**
-     * Find the nearest available source position/sourceDoc for a component,
-     * walking up ancestors when the component itself has no position.
-     */
     getSourceLocationForComponent(component) {
-        let position = component.position;
-        let sourceDoc = component.sourceDoc;
-        let comp = component;
-
-        while (position === undefined) {
-            if (!(comp.parentIdx > 0)) {
-                break;
-            }
-            comp = this._components[comp.parentIdx];
-            position = comp.position;
-            sourceDoc = comp.sourceDoc;
-        }
-
-        return { position, sourceDoc };
+        return this.diagnosticsManager.getSourceLocationForComponent(component);
     }
 
     async addComponents({
@@ -1440,7 +1343,7 @@ export default class Core {
                 // create a serialized component that doesn't exist.
                 const message = `Invalid component type: \`<${serializedComponent.componentType}>\`.`;
 
-                this.hasPendingDiagnostics = true;
+                this.diagnosticsManager.markPending();
 
                 const convertResult = convertToErrorComponent(
                     serializedComponent,
@@ -2726,384 +2629,28 @@ export default class Core {
         return { success: true, compositesExpanded: [component.componentIdx] };
     }
 
-    async addReplacementsToResolver({
-        serializedReplacements,
-        component,
-        updateOldReplacementsStart,
-        updateOldReplacementsEnd,
-        blankStringReplacements,
-    }) {
-        if (component.constructor.replacementsAlreadyInResolver) {
-            return;
-        }
-
-        const { parentIdx, indexResolution } =
-            await this.determineParentAndIndexResolutionForResolver({
-                component,
-                updateOldReplacementsStart,
-                updateOldReplacementsEnd,
-                blankStringReplacements,
-            });
-
-        // If `createComponentIdx` was specified, the one replacement is already in the resolver,
-        // so we just add its children and attribute components/references.
-        // Otherwise add all replacements.
-        const fragmentChildren = [];
-        let parentSourceSequence = null;
-        if (component.attributes.createComponentIdx != null) {
-            if (serializedReplacements[0]?.children) {
-                fragmentChildren.push(...serializedReplacements[0].children);
-            }
-            for (const attrName in serializedReplacements[0]?.attributes) {
-                const attribute =
-                    serializedReplacements[0].attributes[attrName];
-                if (attribute.type === "component") {
-                    fragmentChildren.push(attribute.component);
-                } else if (attribute.type === "references") {
-                    fragmentChildren.push(...attribute.references);
-                }
-            }
-
-            // if the replacement that is the fragment parent has a source sequence,
-            // then add that as the `parentSourceSequence` of the flat fragment
-            let sourceSequence =
-                serializedReplacements[0]?.attributes["source:sequence"];
-            if (sourceSequence) {
-                parentSourceSequence = {
-                    type: "attribute",
-                    name: "source:sequence",
-                    parent: component.attributes.createComponentIdx.primitive
-                        .number,
-                    children: sourceSequence.children.filter(
-                        (child) => typeof child === "string",
-                    ),
-                    sourceDoc: sourceSequence.sourceDoc,
-                };
-            }
-        } else {
-            fragmentChildren.push(...serializedReplacements);
-        }
-
-        // We add all the parent's descendants to the resolver
-        const flatFragment = {
-            children: fragmentChildren.map((child) =>
-                typeof child === "string"
-                    ? child
-                    : getEffectiveComponentIdx(child),
-            ),
-            nodes: [],
-            parentIdx,
-            parentSourceSequence,
-            idxMap: {},
-        };
-
-        addNodesToFlatFragment({
-            flatFragment,
-            serializedComponents: fragmentChildren,
-            parentIdx,
-        });
-
-        if (
-            (flatFragment.nodes.length > 0 || indexResolution !== "None") &&
-            this.addNodesToResolver
-        ) {
-            // console.log("add nodes to resolver", {
-            //     flatFragment,
-            //     indexResolution,
-            // });
-            this.addNodesToResolver(flatFragment, indexResolution);
-
-            this.rootNames = this.calculateRootNames?.().names;
-
-            let indexParent =
-                indexResolution.ReplaceAll?.parent ??
-                indexResolution.ReplaceRange?.parent ??
-                null;
-
-            if (
-                indexParent !== null &&
-                indexParent !== component.componentIdx
-            ) {
-                const indexParentComposite = this._components[indexParent];
-
-                if (indexParentComposite) {
-                    await this.dependencies.addBlockersFromChangedReplacements(
-                        indexParentComposite,
-                    );
-                }
-            }
-        }
+    // → resolverAdapter
+    async addReplacementsToResolver(args) {
+        return this.resolverAdapter.addReplacementsToResolver(args);
     }
 
-    async determineParentAndIndexResolutionForResolver({
-        component,
-        updateOldReplacementsStart,
-        updateOldReplacementsEnd,
-        blankStringReplacements,
-    }) {
-        // If the composite was created as a child for a list,
-        // then the parent for resolving names is that list (the parent of the resolver).
-        // If `createComponentIdx` was specified, then that should be the parent for resolving names.
-        // Else, the composite should be the parent for resolving names.
-
-        let update_start = updateOldReplacementsStart;
-        let update_end = updateOldReplacementsEnd;
-
-        if (
-            updateOldReplacementsStart !== undefined &&
-            updateOldReplacementsEnd !== undefined
-        ) {
-            // We are replacing a range of replacement, but these include blank strings.
-            // Adjust the range to ignore blank strings
-            for (const [
-                i,
-                isBlankString,
-            ] of blankStringReplacements.entries()) {
-                if (i >= updateOldReplacementsEnd) {
-                    break;
-                }
-                if (isBlankString) {
-                    update_end--;
-                    if (i < updateOldReplacementsStart) {
-                        update_start--;
-                    }
-                }
-            }
-        }
-
-        let parentIdx;
-
-        let indexResolution = "None";
-
-        if (component.doenetAttributes.forList) {
-            // Don't add index resolutions in this case,
-            // we're just adding to the children of the list, not the replacements of the list
-            parentIdx = component.parentIdx;
-        } else if (component.attributes.createComponentIdx?.primitive) {
-            // If `createComponentIdx` is set, then we have a copy component created from an `extend` attribute.
-            // That component is already in the resolver so will be the parent of the fragment added to the browser.
-            parentIdx =
-                component.attributes.createComponentIdx?.primitive.value;
-
-            // If the component type of that parent, specified by `createComponentOfType`, is a composite,
-            // then it could have an index specified, so we add an index resolution
-            if (
-                component.attributes.createComponentOfType?.primitive &&
-                this.componentInfoObjects.isCompositeComponent({
-                    componentType:
-                        component.attributes.createComponentOfType.primitive
-                            .value,
-                    includeNonStandard: true,
-                })
-            ) {
-                indexResolution = { ReplaceAll: { parent: parentIdx } };
-
-                if (update_start !== undefined && update_end !== undefined) {
-                    const parent = this._components[parentIdx];
-
-                    indexResolution = {
-                        ReplaceRange: {
-                            parent: parentIdx,
-                            range: { start: update_start, end: update_end },
-                        },
-                    };
-                }
-            }
-        } else if (component.componentType === "_copy") {
-            // If we have a copy that wasn't from an extend, then it was from a reference.
-            // Although references don't have names that can be
-            // Copy components are typically not part of the resolver structure and generally skipped.
-            // Since we don't allow direct authoring of copy components,
-            // they should occur only from references
-
-            // determine if is a replacement of another type of composite
-            let copyComponent = component;
-            parentIdx = component.componentIdx;
-
-            while (copyComponent.replacementOf) {
-                if (copyComponent.replacementOf.componentType === "_copy") {
-                    copyComponent = copyComponent.replacementOf;
-                    continue;
-                } else {
-                    break;
-                }
-            }
-
-            // now we have a copyComponent that is not a replacement of a copy
-            if (copyComponent.replacementOf) {
-                const indexParent = copyComponent.replacementOf;
-
-                // determine where the replacement will end up being spliced in
-
-                let start_idx, end_idx;
-
-                async function calcStartEndIdx(replacements) {
-                    let nonWithheldReplacements = [];
-                    for (const repl of replacements) {
-                        if (
-                            typeof repl === "string" ||
-                            !(await repl.stateValues
-                                .isInactiveCompositeReplacement)
-                        ) {
-                            nonWithheldReplacements.push(repl);
-                        }
-                    }
-
-                    const nonBlankStringReplacements =
-                        nonWithheldReplacements.filter(
-                            (x) => typeof x !== "string" || x.trim() !== "",
-                        );
-                    const replacementsWithoutExpandedCopies = [];
-
-                    let i = 0;
-
-                    for (const repl of nonBlankStringReplacements) {
-                        if (repl.componentType == "_copy") {
-                            if (!repl.isExpanded) {
-                                if (
-                                    repl.componentIdx ===
-                                    copyComponent.componentIdx
-                                ) {
-                                    start_idx = i;
-                                    end_idx = i + 1;
-                                }
-                                replacementsWithoutExpandedCopies.push(repl);
-                                i++;
-                            } else {
-                                let replReplacements = repl.replacements;
-                                if (repl.replacementsToWithhold) {
-                                    replReplacements = replReplacements.slice(
-                                        0,
-                                        replReplacements.length -
-                                            repl.replacementsToWithhold,
-                                    );
-                                }
-
-                                const newReplacements =
-                                    await calcStartEndIdx(replReplacements);
-                                const n = newReplacements.length;
-
-                                if (
-                                    repl.componentIdx ===
-                                    copyComponent.componentIdx
-                                ) {
-                                    if (
-                                        update_start !== undefined &&
-                                        update_end !== undefined
-                                    ) {
-                                        start_idx = i + update_start;
-                                        end_idx = i + update_end;
-                                    } else {
-                                        start_idx = i;
-                                        end_idx = i + n;
-                                    }
-                                }
-
-                                replacementsWithoutExpandedCopies.push(
-                                    ...newReplacements,
-                                );
-                                i += n;
-                            }
-                        } else {
-                            replacementsWithoutExpandedCopies.push(repl);
-                            i++;
-                        }
-                    }
-
-                    return replacementsWithoutExpandedCopies;
-                }
-
-                await calcStartEndIdx(indexParent.replacements);
-
-                if (start_idx !== undefined && end_idx !== undefined) {
-                    indexResolution = {
-                        ReplaceRange: {
-                            parent: indexParent.componentIdx,
-                            range: { start: start_idx, end: end_idx },
-                        },
-                    };
-                } else {
-                    // if the copy was not found as a replacement of the composite,
-                    // then it wasn't a top-level replacement and it doesn't affect the composite's index resolution
-                    indexResolution = "None";
-                }
-            } else {
-                parentIdx = copyComponent.componentIdx;
-                indexResolution = { ReplaceAll: { parent: parentIdx } };
-            }
-        } else {
-            parentIdx = component.componentIdx;
-
-            if (
-                this.componentInfoObjects.isCompositeComponent({
-                    componentType: component.componentType,
-                    includeNonStandard: true,
-                })
-            ) {
-                if (update_start !== undefined && update_end !== undefined) {
-                    indexResolution = {
-                        ReplaceRange: {
-                            parent: parentIdx,
-                            range: { start: update_start, end: update_end },
-                        },
-                    };
-                } else {
-                    indexResolution = { ReplaceAll: { parent: parentIdx } };
-                }
-            }
-        }
-
-        return { parentIdx, indexResolution };
+    async determineParentAndIndexResolutionForResolver(args) {
+        return this.resolverAdapter.determineParentAndIndexResolutionForResolver(
+            args,
+        );
     }
 
     addComponentsToResolver(components, parentIdx) {
-        const flatFragment = {
-            children: components.map((child) =>
-                typeof child === "string"
-                    ? child
-                    : getEffectiveComponentIdx(child),
-            ),
-            nodes: [],
+        return this.resolverAdapter.addComponentsToResolver(
+            components,
             parentIdx,
-            idxMap: {},
-        };
-
-        addNodesToFlatFragment({
-            flatFragment,
-            serializedComponents: components,
-            parentIdx,
-        });
-
-        // console.log("add nodes from components to resolver", {
-        //     flatFragment,
-        // });
-
-        if (this.addNodesToResolver) {
-            this.addNodesToResolver(flatFragment, "None");
-
-            this.rootNames = this.calculateRootNames?.().names;
-        }
+        );
     }
 
-    gatherDiagnosticsAndAssignDoenetMLRange({
-        components,
-        diagnostics,
-        position,
-        sourceDoc,
-        overwriteDoenetMLRange = false,
-    }) {
-        assignDoenetMLRange(
-            components,
-            position,
-            sourceDoc,
-            overwriteDoenetMLRange,
+    gatherDiagnosticsAndAssignDoenetMLRange(args) {
+        return this.resolverAdapter.gatherDiagnosticsAndAssignDoenetMLRange(
+            args,
         );
-        assignDoenetMLRange(diagnostics, position, sourceDoc);
-
-        // Add all diagnostics, preserving their existing type field
-        for (const diagnostic of diagnostics) {
-            this.addDiagnostic(diagnostic);
-        }
     }
 
     async expandShadowingComposite(component) {
@@ -8186,241 +7733,46 @@ export default class Core {
         }
     }
 
+    // → nameResolver (state-variable name-resolution wrappers inject
+    //   `componentInfoObjects` so external callers don't have to.)
+
     findCaseInsensitiveMatches({ stateVariables, componentClass }) {
-        let stateVarInfo =
-            this.componentInfoObjects.stateVariableInfo[
-                componentClass.componentType
-            ];
-
-        let newVariables = [];
-
-        for (let stateVariable of stateVariables) {
-            let foundMatch = false;
-
-            let lowerCaseVarName = stateVariable.toLowerCase();
-
-            for (let varName in stateVarInfo.stateVariableDescriptions) {
-                if (lowerCaseVarName === varName.toLowerCase()) {
-                    foundMatch = true;
-                    newVariables.push(varName);
-                    break;
-                }
-            }
-
-            if (foundMatch) {
-                continue;
-            }
-
-            let isArraySize = false;
-            let lowerCaseNameMinusSize = lowerCaseVarName;
-            if (lowerCaseVarName.substring(0, 13) === "__array_size_") {
-                isArraySize = true;
-                lowerCaseNameMinusSize = lowerCaseVarName.substring(13);
-            }
-
-            for (let aliasName in stateVarInfo.aliases) {
-                if (lowerCaseNameMinusSize === aliasName.toLowerCase()) {
-                    // don't substitute alias here, just fix case
-                    if (isArraySize) {
-                        aliasName = "__array_size_" + aliasName;
-                    }
-                    newVariables.push(aliasName);
-                    foundMatch = true;
-                    break;
-                }
-            }
-            if (foundMatch) {
-                continue;
-            }
-
-            let arrayEntryPrefixesLongestToShortest = Object.keys(
-                stateVarInfo.arrayEntryPrefixes,
-            ).sort((a, b) => b.length - a.length);
-            for (let prefix of arrayEntryPrefixesLongestToShortest) {
-                if (
-                    lowerCaseVarName.substring(0, prefix.length) ===
-                    prefix.toLowerCase()
-                ) {
-                    // TODO: the varEnding is still a case-senstitive match
-                    // Should we require that getArrayKeysFromVarName have
-                    // a case-insensitive mode?
-                    let arrayVariableName =
-                        stateVarInfo.arrayEntryPrefixes[prefix]
-                            .arrayVariableName;
-                    let arrayStateVarDescription =
-                        stateVarInfo.stateVariableDescriptions[
-                            arrayVariableName
-                        ];
-                    let arrayKeys =
-                        arrayStateVarDescription.getArrayKeysFromVarName({
-                            arrayEntryPrefix: prefix,
-                            varEnding: stateVariable.substring(prefix.length),
-                            numDimensions:
-                                arrayStateVarDescription.numDimensions,
-                        });
-                    if (arrayKeys.length > 0) {
-                        let newVarName =
-                            prefix + lowerCaseVarName.substring(prefix.length);
-                        foundMatch = true;
-                        newVariables.push(newVarName);
-                        break;
-                    }
-                }
-            }
-
-            if (foundMatch) {
-                continue;
-            }
-
-            // no match, so don't alter
-            newVariables.push(stateVariable);
-        }
-
-        return newVariables;
+        return nameResolver.findCaseInsensitiveMatches({
+            stateVariables,
+            componentClass,
+            componentInfoObjects: this.componentInfoObjects,
+        });
     }
 
     matchPublicStateVariables({ stateVariables, componentClass }) {
-        let stateVarInfo =
-            this.componentInfoObjects.publicStateVariableInfo[
-                componentClass.componentType
-            ];
-
-        let newVariables = [];
-
-        for (let stateVariable of stateVariables) {
-            if (stateVariable in stateVarInfo.stateVariableDescriptions) {
-                // found public
-                newVariables.push(stateVariable);
-                continue;
-            }
-
-            let varName = stateVariable;
-
-            if (varName in stateVarInfo.aliases) {
-                varName = stateVarInfo.aliases[varName];
-
-                // check again to see if alias is public
-                if (varName in stateVarInfo.stateVariableDescriptions) {
-                    // found public
-                    newVariables.push(varName);
-                    continue;
-                }
-            }
-
-            let foundMatch = false;
-
-            let arrayEntryPrefixesLongestToShortest = Object.keys(
-                stateVarInfo.arrayEntryPrefixes,
-            ).sort((a, b) => b.length - a.length);
-            for (let prefix of arrayEntryPrefixesLongestToShortest) {
-                if (varName.substring(0, prefix.length) === prefix) {
-                    let arrayVariableName =
-                        stateVarInfo.arrayEntryPrefixes[prefix]
-                            .arrayVariableName;
-                    let arrayStateVarDescription =
-                        stateVarInfo.stateVariableDescriptions[
-                            arrayVariableName
-                        ];
-                    let arrayKeys =
-                        arrayStateVarDescription.getArrayKeysFromVarName({
-                            arrayEntryPrefix: prefix,
-                            varEnding: varName.substring(prefix.length),
-                            numDimensions:
-                                arrayStateVarDescription.numDimensions,
-                        });
-                    if (arrayKeys.length > 0) {
-                        foundMatch = true;
-                        break;
-                    }
-                }
-            }
-
-            if (foundMatch) {
-                newVariables.push(stateVariable);
-            } else {
-                // no match, so make it a name that won't match
-                newVariables.push("__not_public_" + stateVariable);
-            }
-        }
-
-        return newVariables;
+        return nameResolver.matchPublicStateVariables({
+            stateVariables,
+            componentClass,
+            componentInfoObjects: this.componentInfoObjects,
+        });
     }
 
     substituteAliases({ stateVariables, componentClass }) {
-        let newVariables = [];
-
-        let stateVarInfo =
-            this.componentInfoObjects.stateVariableInfo[
-                componentClass.componentType
-            ];
-
-        for (let stateVariable of stateVariables) {
-            let isArraySize = false;
-            if (stateVariable.substring(0, 13) === "__array_size_") {
-                isArraySize = true;
-                stateVariable = stateVariable.substring(13);
-            }
-            stateVariable =
-                stateVariable in stateVarInfo.aliases
-                    ? stateVarInfo.aliases[stateVariable]
-                    : stateVariable;
-            if (isArraySize) {
-                stateVariable = "__array_size_" + stateVariable;
-            }
-            newVariables.push(stateVariable);
-        }
-
-        return newVariables;
+        return nameResolver.substituteAliases({
+            stateVariables,
+            componentClass,
+            componentInfoObjects: this.componentInfoObjects,
+        });
     }
 
     publicCaseInsensitiveAliasSubstitutions({
         stateVariables,
         componentClass,
     }) {
-        let mappedVarNames = this.findCaseInsensitiveMatches({
+        return nameResolver.publicCaseInsensitiveAliasSubstitutions({
             stateVariables,
             componentClass,
+            componentInfoObjects: this.componentInfoObjects,
         });
-
-        mappedVarNames = this.matchPublicStateVariables({
-            stateVariables: mappedVarNames,
-            componentClass,
-        });
-
-        mappedVarNames = this.substituteAliases({
-            stateVariables: mappedVarNames,
-            componentClass,
-        });
-
-        return mappedVarNames;
     }
 
     checkIfArrayEntry({ stateVariable, component }) {
-        // check if stateVariable begins when an arrayEntry
-        for (let arrayEntryPrefix in component.arrayEntryPrefixes) {
-            if (
-                stateVariable.substring(0, arrayEntryPrefix.length) ===
-                arrayEntryPrefix
-            ) {
-                let arrayVariableName =
-                    component.arrayEntryPrefixes[arrayEntryPrefix];
-                let arrayStateVarObj = component.state[arrayVariableName];
-                let arrayKeys = arrayStateVarObj.getArrayKeysFromVarName({
-                    arrayEntryPrefix,
-                    varEnding: stateVariable.substring(arrayEntryPrefix.length),
-                    numDimensions: arrayStateVarObj.numDimensions,
-                });
-                if (arrayKeys.length > 0) {
-                    return {
-                        isArrayEntry: true,
-                        arrayVariableName,
-                        arrayEntryPrefix,
-                    };
-                }
-            }
-        }
-
-        return { isArrayEntry: false };
+        return nameResolver.checkIfArrayEntry({ stateVariable, component });
     }
 
     async createFromArrayEntry({
@@ -9955,47 +9307,9 @@ export default class Core {
     }
 
     removeComponentsFromResolver(componentsToRemove) {
-        if (componentsToRemove.length === 0) {
-            return;
-        }
-
-        const flatElements = componentsToRemove.map((comp) => {
-            let flatElement = {
-                type: "element",
-                name: comp.componentType,
-                parent: comp.parentIdx,
-                children: [],
-                attributes: [],
-                idx: comp.componentIdx,
-            };
-
-            if (comp.attributes.createComponentName && !comp.isExpanded) {
-                flatElement.attributes.push({
-                    type: "attribute",
-                    name: "name",
-                    parent: comp.parentIdx,
-                    children: [
-                        comp.attributes.createComponentName.primitive.value,
-                    ],
-                });
-            } else if (comp.attributes.name) {
-                flatElement.attributes.push({
-                    type: "attribute",
-                    name: "name",
-                    parent: comp.parentIdx,
-                    children: [comp.attributes.name.primitive.value],
-                });
-            }
-            return flatElement;
-        });
-
-        if (this.deleteNodesFromResolver) {
-            this.deleteNodesFromResolver({
-                nodes: flatElements,
-            });
-
-            this.rootNames = this.calculateRootNames?.().names;
-        }
+        return this.resolverAdapter.removeComponentsFromResolver(
+            componentsToRemove,
+        );
     }
 
     determineComponentsToDelete({
@@ -11847,12 +11161,8 @@ export default class Core {
             alreadySaved = true;
         }
         if (!alreadySaved && !doNotSave) {
-            clearTimeout(this.saveDocStateTimeoutID);
-
             //Debounce the save to localstorage and then to DB with a throttle
-            this.saveDocStateTimeoutID = setTimeout(() => {
-                this.saveState();
-            }, 1000);
+            this.statePersistence.scheduleSave(1000);
         }
 
         // evaluate componentCreditAchieved so that will be fresh
@@ -11954,140 +11264,25 @@ export default class Core {
         this.sendEvent(payload);
     }
 
+    // → visibilityTracker
+    get visibilityInfo() {
+        return this.visibilityTracker.info;
+    }
+
     processVisibilityChangedEvent(event) {
-        let componentIdx = event.object.componentIdx;
-        let isVisible = event.result.isVisible;
-
-        if (isVisible) {
-            if (!this.visibilityInfo.componentsCurrentlyVisible[componentIdx]) {
-                this.visibilityInfo.componentsCurrentlyVisible[componentIdx] =
-                    new Date();
-            }
-            if (componentIdx === this.documentIdx) {
-                if (!this.visibilityInfo.documentHasBeenVisible) {
-                    this.visibilityInfo.documentHasBeenVisible = true;
-                    this.onDocumentFirstVisible();
-                }
-            }
-        } else {
-            let begin =
-                this.visibilityInfo.componentsCurrentlyVisible[componentIdx];
-            if (begin) {
-                delete this.visibilityInfo.componentsCurrentlyVisible[
-                    componentIdx
-                ];
-
-                let timeInSeconds =
-                    (new Date() -
-                        Math.max(begin, this.visibilityInfo.timeLastSent)) /
-                    1000;
-
-                if (this.visibilityInfo.infoToSend[componentIdx]) {
-                    this.visibilityInfo.infoToSend[componentIdx] +=
-                        timeInSeconds;
-                } else {
-                    this.visibilityInfo.infoToSend[componentIdx] =
-                        timeInSeconds;
-                }
-            }
-        }
+        return this.visibilityTracker.processVisibilityChangedEvent(event);
     }
 
     sendVisibilityChangedEvents() {
-        let infoToSend = { ...this.visibilityInfo.infoToSend };
-        this.visibilityInfo.infoToSend = {};
-        let timeLastSent = this.visibilityInfo.timeLastSent;
-        this.visibilityInfo.timeLastSent = new Date();
-        let currentVisible = {
-            ...this.visibilityInfo.componentsCurrentlyVisible,
-        };
-
-        for (const componentIdxStr in currentVisible) {
-            let timeInSeconds =
-                (this.visibilityInfo.timeLastSent -
-                    Math.max(timeLastSent, currentVisible[componentIdxStr])) /
-                1000;
-            if (infoToSend[componentIdxStr]) {
-                infoToSend[componentIdxStr] += timeInSeconds;
-            } else {
-                infoToSend[componentIdxStr] = timeInSeconds;
-            }
-        }
-
-        for (const componentIdxStr in infoToSend) {
-            infoToSend[componentIdxStr] = Math.round(
-                infoToSend[componentIdxStr],
-            );
-            if (!infoToSend[componentIdxStr]) {
-                // delete if rounded down to zero
-                delete infoToSend[componentIdxStr];
-            }
-        }
-
-        let promise;
-
-        if (Object.keys(infoToSend).length > 0) {
-            let event = {
-                object: {
-                    componentIdx: this.documentIdx,
-                    componentType: "document",
-                },
-                verb: "isVisible",
-                result: infoToSend,
-            };
-
-            promise = new Promise((resolve, reject) => {
-                this.processQueue.push({
-                    type: "recordEvent",
-                    event,
-                    resolve,
-                    reject,
-                });
-
-                if (!this.processing) {
-                    this.processing = true;
-                    this.executeProcesses();
-                }
-            });
-        }
-
-        if (!this.visibilityInfo.suspended) {
-            clearTimeout(this.visibilityInfo.saveTimerId);
-            this.visibilityInfo.saveTimerId = setTimeout(
-                this.sendVisibilityChangedEvents.bind(this),
-                this.visibilityInfo.saveDelay,
-            );
-        }
-
-        return promise;
+        return this.visibilityTracker.sendVisibilityChangedEvents();
     }
 
     async suspendVisibilityMeasuring() {
-        clearTimeout(this.visibilityInfo.saveTimerId);
-        clearTimeout(this.visibilityInfo.suspendTimerId);
-        if (!this.visibilityInfo.suspended) {
-            this.visibilityInfo.suspended = true;
-            await this.sendVisibilityChangedEvents();
-        }
+        return this.visibilityTracker.suspendVisibilityMeasuring();
     }
 
     resumeVisibilityMeasuring() {
-        if (this.visibilityInfo.suspended) {
-            // restart visibility measuring
-            this.visibilityInfo.suspended = false;
-            this.visibilityInfo.timeLastSent = new Date();
-            clearTimeout(this.visibilityInfo.saveTimerId);
-            this.visibilityInfo.saveTimerId = setTimeout(
-                this.sendVisibilityChangedEvents.bind(this),
-                this.visibilityInfo.saveDelay,
-            );
-        }
-
-        clearTimeout(this.visibilityInfo.suspendTimerId);
-        this.visibilityInfo.suspendTimerId = setTimeout(
-            this.suspendVisibilityMeasuring.bind(this),
-            this.visibilityInfo.suspendDelay,
-        );
+        return this.visibilityTracker.resumeVisibilityMeasuring();
     }
 
     async executeUpdateStateVariables(newStateVariableValues) {
@@ -13415,104 +12610,17 @@ export default class Core {
         }
     }
 
+    // → statePersistence
     async saveImmediately() {
-        if (this.saveDocStateTimeoutID) {
-            // if in debounce to save doc to local storage
-            // then immediate save to local storage
-            // and override timeout to save to database
-            clearTimeout(this.saveDocStateTimeoutID);
-            await this.saveState(true);
-        } else {
-            // else override timeout to save any pending changes to database
-            await this.saveChangesToDatabase(true);
-        }
+        return this.statePersistence.saveImmediately();
     }
 
     async saveState(overrideThrottle = false, onSubmission = false) {
-        this.saveDocStateTimeoutID = null;
-
-        if (!this.flags.allowSaveState && !this.flags.allowLocalState) {
-            return;
-        }
-
-        let coreStateString = JSON.stringify(
-            this.cumulativeStateVariableChanges,
-            serializedComponentsReplacer,
-        );
-        let rendererStateString = null;
-
-        if (this.flags.saveRendererState) {
-            rendererStateString = JSON.stringify(
-                this.rendererState,
-                serializedComponentsReplacer,
-            );
-        }
-
-        if (this.flags.allowLocalState) {
-            await idb_set(
-                `${this.activityId}|${this.docId}|${this.attemptNumber}|${this.cid}`,
-                {
-                    data_format_version,
-                    coreState: coreStateString,
-                    rendererState: rendererStateString,
-                    coreInfo: this.coreInfoString,
-                },
-            );
-        }
-
-        if (!this.flags.allowSaveState) {
-            return;
-        }
-
-        this.docStateToBeSavedToDatabase = {
-            cid: this.cid,
-            coreInfo: this.coreInfoString,
-            coreState: coreStateString,
-            rendererState: rendererStateString,
-            initializeCounters: this.initializeCounters,
-            docId: this.docId,
-            attemptNumber: this.attemptNumber,
-            activityId: this.activityId,
-            onSubmission,
-        };
-
-        // mark presence of changes
-        // so that next call to saveChangesToDatabase will save changes
-        this.changesToBeSaved = true;
-
-        // if not currently in throttle, save changes to database
-        await this.saveChangesToDatabase(overrideThrottle);
+        return this.statePersistence.saveState(overrideThrottle, onSubmission);
     }
 
     async saveChangesToDatabase(overrideThrottle) {
-        // throttle save to database at 60 seconds
-
-        if (!this.changesToBeSaved) {
-            return;
-        }
-
-        if (this.saveStateToDBTimerId !== null) {
-            if (overrideThrottle) {
-                clearTimeout(this.saveStateToDBTimerId);
-            } else {
-                return;
-            }
-        }
-
-        this.changesToBeSaved = false;
-
-        // check for changes again after 60 seconds
-        this.saveStateToDBTimerId = setTimeout(() => {
-            this.saveStateToDBTimerId = null;
-            this.saveChangesToDatabase();
-        }, 60000);
-
-        this.reportScoreAndStateCallback({
-            state: { ...this.docStateToBeSavedToDatabase },
-            score: await this.document.stateValues.creditAchieved,
-        });
-
-        return;
+        return this.statePersistence.saveChangesToDatabase(overrideThrottle);
     }
 
     /**
@@ -13546,40 +12654,9 @@ export default class Core {
         }
     }
 
-    async handleNavigatingToComponent({ componentIdx, hash }) {
-        let component = this._components[componentIdx];
-        if (component) {
-            let componentAndAncestors = [
-                componentIdx,
-                ...component.ancestors.map((x) => x.componentIdx),
-            ];
-            let openedParent = false;
-            for (let cIdx of componentAndAncestors) {
-                let comp = this._components[cIdx];
-                if (comp.actions?.revealSection) {
-                    let isOpen = await comp.stateValues.open;
-
-                    if (isOpen === false) {
-                        await this.performAction({
-                            componentIdx: cIdx,
-                            actionName: "revealSection",
-                        });
-                        if (cIdx !== componentIdx) {
-                            openedParent = true;
-                        }
-                    }
-                }
-            }
-            if (openedParent) {
-                // If just opened parent, then we couldn't have navigated to target yet
-                // as the target didn't exist in the DOM when the parent was closed.
-                // Navigate to the specified hash now.
-                postMessage({
-                    messageType: "navigateToHash",
-                    args: { hash },
-                });
-            }
-        }
+    // → navigationHandler
+    async handleNavigatingToComponent(args) {
+        return this.navigationHandler.handleNavigatingToComponent(args);
     }
 
     async terminate() {
@@ -13592,10 +12669,7 @@ export default class Core {
         // suspend visibility measuring so that remaining times collected are saved
         await this.suspendVisibilityMeasuring();
 
-        if (this.submitAnswersTimeout) {
-            clearTimeout(this.submitAnswersTimeout);
-            await this.autoSubmitAnswers();
-        }
+        await this.autoSubmitManager.flush();
 
         this.stopProcessingRequests = true;
 
@@ -13611,36 +12685,13 @@ export default class Core {
         await this.saveImmediately();
     }
 
+    // → autoSubmitManager
     recordAnswerToAutoSubmit(componentIdx) {
-        if (!this.answersToSubmit) {
-            this.answersToSubmit = [];
-        }
-
-        if (!this.answersToSubmit.includes(componentIdx)) {
-            this.answersToSubmit.push(componentIdx);
-        }
-
-        clearTimeout(this.submitAnswersTimeout);
-
-        //Debounce the submit answers
-        this.submitAnswersTimeout = setTimeout(() => {
-            this.autoSubmitAnswers();
-        }, 1000);
+        this.autoSubmitManager.recordAnswer(componentIdx);
     }
 
     async autoSubmitAnswers() {
-        let toSubmit = this.answersToSubmit;
-        this.answersToSubmit = [];
-        for (let componentIdx of toSubmit) {
-            let component = this._components[componentIdx];
-
-            if (component.actions.submitAnswer) {
-                await this.requestAction({
-                    componentIdx,
-                    actionName: "submitAnswer",
-                });
-            }
-        }
+        return this.autoSubmitManager.submitNow();
     }
 
     requestComponentDoenetML(componentIdx, displayOnlyChildren) {
@@ -13719,11 +12770,7 @@ export default class Core {
     }
 
     navigateToTarget(args) {
-        postMessage({
-            messageType: "navigateToTarget",
-            coreId: this.coreId,
-            args,
-        });
+        return this.navigationHandler.navigateToTarget(args);
     }
 }
 
