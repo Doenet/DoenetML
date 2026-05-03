@@ -2,7 +2,7 @@
 
 These items came out of the PR review for `core-refactor-1` (Phase 1: extracting helpers from `packages/doenetml-worker-javascript/src/Core.js`). They were intentionally out of scope for that PR but are good candidates for the next refactor pass.
 
-The applied PR review is at `pr-review.md`. The implementation in this branch covers the in-scope items (#1, #2, #3a, #4, #8, #9, #12, #13).
+The implementation in this branch covers the in-scope items from the PR review.
 
 ## Deferred items
 
@@ -53,6 +53,12 @@ export const TimerLabels = {
 ```
 
 Skip if the next phase introduces a broader logging/instrumentation layer that supersedes this helper.
+
+### Refactor `calcStartEndIdx` out of `determineParentAndIndexResolutionForResolver`
+
+`ResolverAdapter.determineParentAndIndexResolutionForResolver` contains a nested `async function calcStartEndIdx(replacements)` that mutates three variables from the outer scope (`start_idx`, `end_idx`, and reads `update_start`, `update_end`, `copyComponent`) as side effects. The function is recursive and returns a value, but callers discard the return and rely entirely on the side-effect mutations. This was carried over verbatim from Core.js.
+
+A cleaner shape: make `calcStartEndIdx` a standalone helper (or a private method on `ResolverAdapter`) that returns `{ start_idx, end_idx }` directly, eliminating the closure mutation. This untangles the logic and makes the function independently testable.
 
 ### Regression test for the `.primitive.number` → `.primitive.value` fix
 
