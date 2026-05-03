@@ -633,3 +633,38 @@ export function returnSimplifyExpandOnCompareWarning() {
 
     return stateVariableDefinitions;
 }
+
+/**
+ * Walk a serialized-component tree and stamp each answer (and any
+ * `_blockScoredComponent` descendant) with a sequential `answerNumber`
+ * starting from `numSoFar + 1`. Answers and block-scored components
+ * are leaves for the purpose of numbering: their children are not
+ * descended into.
+ *
+ * Returns the running count so recursive calls can resume.
+ */
+export function numberAnswers(components, componentInfoObjects, numSoFar = 0) {
+    let count = numSoFar;
+
+    for (let comp of components) {
+        if (
+            comp.componentType === "answer" ||
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: comp.componentType,
+                baseComponentType: "_blockScoredComponent",
+            })
+        ) {
+            count++;
+            comp.answerNumber = count;
+        } else if (comp.children) {
+            const result = numberAnswers(
+                comp.children,
+                componentInfoObjects,
+                count,
+            );
+            count = result.count;
+        }
+    }
+
+    return { count };
+}

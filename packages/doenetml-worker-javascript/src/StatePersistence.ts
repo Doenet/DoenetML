@@ -34,6 +34,24 @@ export class StatePersistence {
     }
 
     /**
+     * Cancel any pending saves and clear the buffered payload. Called from
+     * `Core.generateDast` so timers and state from a previous run do not
+     * leak into the new document.
+     */
+    reset(): void {
+        if (this.saveStateToDBTimerId !== null) {
+            clearTimeout(this.saveStateToDBTimerId);
+            this.saveStateToDBTimerId = null;
+        }
+        if (this.saveDocStateTimeoutID !== null) {
+            clearTimeout(this.saveDocStateTimeoutID);
+            this.saveDocStateTimeoutID = null;
+        }
+        this.docStateToBeSavedToDatabase = null;
+        this.changesToBeSaved = false;
+    }
+
+    /**
      * Schedule a debounced `saveState` after `delayMs` milliseconds, replacing
      * any previously scheduled save.
      */
