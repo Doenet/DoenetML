@@ -1,4 +1,4 @@
-import type { CoreBackref } from "./types/coreBackref";
+import type Core from "./Core";
 import { deepClone } from "@doenet/utils";
 import {
     addAttributesToSingleReplacement,
@@ -29,9 +29,9 @@ import {
  * `updateInfo`, `rootNames`, and to invoke the other extracted managers.
  */
 export class CompositeExpander {
-    core: CoreBackref;
+    core: Core;
 
-    constructor({ core }: { core: CoreBackref }) {
+    constructor({ core }: { core: Core }) {
         this.core = core;
     }
 

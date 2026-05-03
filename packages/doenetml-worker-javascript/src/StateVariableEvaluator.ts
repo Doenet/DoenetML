@@ -1,4 +1,4 @@
-import type { CoreBackref } from "./types/coreBackref";
+import type Core from "./Core";
 /**
  * Resolves a state variable's value: walks the dependency graph to gather
  * fresh inputs, invokes the variable's `definition` function (or
@@ -16,9 +16,9 @@ import type { CoreBackref } from "./types/coreBackref";
  * `processNewStateVariableValues`.
  */
 export class StateVariableEvaluator {
-    core: CoreBackref;
+    core: Core;
 
-    constructor({ core }: { core: CoreBackref }) {
+    constructor({ core }: { core: Core }) {
         this.core = core;
     }
 

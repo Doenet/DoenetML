@@ -1,4 +1,4 @@
-import type { CoreBackref } from "./types/coreBackref";
+import type Core from "./Core";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
 
 type VisibilityInfo = {
@@ -23,10 +23,10 @@ type VisibilityInfo = {
  * first time the document becomes visible.
  */
 export class VisibilityTracker {
-    core: CoreBackref;
+    core: Core;
     info: VisibilityInfo;
 
-    constructor({ core }: { core: CoreBackref }) {
+    constructor({ core }: { core: Core }) {
         this.core = core;
         this.info = {
             componentsCurrentlyVisible: {},

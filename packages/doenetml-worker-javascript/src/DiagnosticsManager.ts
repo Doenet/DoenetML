@@ -1,4 +1,4 @@
-import type { CoreBackref } from "./types/coreBackref";
+import type Core from "./Core";
 import {
     AccessibilityRecord,
     DiagnosticRecord,
@@ -20,7 +20,7 @@ type NonErrorDiagnosticRecord =
  * the parent chain via `core._components`.
  */
 export class DiagnosticsManager {
-    core: CoreBackref;
+    core: Core;
     diagnostics: DiagnosticRecord[];
     hasPendingDiagnostics: boolean;
 
@@ -28,7 +28,7 @@ export class DiagnosticsManager {
         core,
         preliminaryDiagnostics,
     }: {
-        core: CoreBackref;
+        core: Core;
         preliminaryDiagnostics: DiagnosticRecord[];
     }) {
         this.core = core;

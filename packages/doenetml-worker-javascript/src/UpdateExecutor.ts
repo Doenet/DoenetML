@@ -1,4 +1,4 @@
-import type { CoreBackref } from "./types/coreBackref";
+import type Core from "./Core";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { createNewComponentIndices } from "./utils/componentIndices";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
@@ -19,9 +19,9 @@ import { reportTimerError, TimerLabels } from "./utils/timerErrors";
  * hot state and the other extracted managers.
  */
 export class UpdateExecutor {
-    core: CoreBackref;
+    core: Core;
 
-    constructor({ core }: { core: CoreBackref }) {
+    constructor({ core }: { core: Core }) {
         this.core = core;
     }
 

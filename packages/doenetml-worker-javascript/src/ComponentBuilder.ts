@@ -1,4 +1,4 @@
-import type { CoreBackref } from "./types/coreBackref";
+import type Core from "./Core";
 import { convertToErrorComponent } from "./utils/dast/errors";
 import { gatherVariantComponents } from "./utils/variants";
 import { unwrapSource } from "./utils/dast/convertNormalizedDast";
@@ -24,9 +24,9 @@ import { extractCreateComponentIdxMapping } from "./utils/componentIndices";
  * and to dispatch through the other extracted managers.
  */
 export class ComponentBuilder {
-    core: CoreBackref;
+    core: Core;
 
-    constructor({ core }: { core: CoreBackref }) {
+    constructor({ core }: { core: Core }) {
         this.core = core;
     }
 

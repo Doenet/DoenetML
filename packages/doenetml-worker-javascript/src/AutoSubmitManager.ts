@@ -1,5 +1,5 @@
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
-import type { CoreBackref } from "./types/coreBackref";
+import type Core from "./Core";
 
 /**
  * Owns the debounced auto-submit-answer queue. When state changes record an
@@ -9,11 +9,11 @@ import type { CoreBackref } from "./types/coreBackref";
  * Holds a back-reference to Core to look up components and dispatch actions.
  */
 export class AutoSubmitManager {
-    core: CoreBackref;
+    core: Core;
     answersToSubmit: number[];
     submitAnswersTimeout: ReturnType<typeof setTimeout> | null;
 
-    constructor({ core }: { core: CoreBackref }) {
+    constructor({ core }: { core: Core }) {
         this.core = core;
         this.answersToSubmit = [];
         this.submitAnswersTimeout = null;

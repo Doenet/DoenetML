@@ -1,4 +1,4 @@
-import type { CoreBackref } from "./types/coreBackref";
+import type Core from "./Core";
 import { deepClone, flattenDeep } from "@doenet/utils";
 import {
     returnDefaultArrayVarNameFromPropIndex,
@@ -26,9 +26,9 @@ import {
  * `addDiagnostic`, and `createFromArrayEntry`.
  */
 export class StateVariableInitializer {
-    core: CoreBackref;
+    core: Core;
 
-    constructor({ core }: { core: CoreBackref }) {
+    constructor({ core }: { core: Core }) {
         this.core = core;
     }
 

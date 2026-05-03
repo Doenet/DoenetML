@@ -1,4 +1,4 @@
-import type { CoreBackref } from "./types/coreBackref";
+import type Core from "./Core";
 import me from "math-expressions";
 import { preprocessMathInverseDefinition } from "./utils/math";
 
@@ -31,9 +31,9 @@ import { preprocessMathInverseDefinition } from "./utils/math";
  * separately on Core.
  */
 export class EssentialValueWriter {
-    core: CoreBackref;
+    core: Core;
 
-    constructor({ core }: { core: CoreBackref }) {
+    constructor({ core }: { core: Core }) {
         this.core = core;
     }
 

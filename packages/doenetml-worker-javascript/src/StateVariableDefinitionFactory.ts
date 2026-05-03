@@ -1,4 +1,4 @@
-import type { CoreBackref } from "./types/coreBackref";
+import type Core from "./Core";
 import { preprocessAttributesObject } from "./utils/attributes";
 
 /**
@@ -21,9 +21,9 @@ import { preprocessAttributesObject } from "./utils/attributes";
  * on Core.)
  */
 export class StateVariableDefinitionFactory {
-    core: CoreBackref;
+    core: Core;
 
-    constructor({ core }: { core: CoreBackref }) {
+    constructor({ core }: { core: Core }) {
         this.core = core;
     }
 

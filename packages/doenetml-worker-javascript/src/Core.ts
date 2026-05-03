@@ -85,7 +85,7 @@ export interface CoreOptions {
     replaceIndexResolutionsInResolver?: (...args: any[]) => any;
     deleteNodesFromResolver?: (...args: any[]) => any;
     resolvePath?: (...args: any[]) => any;
-    calculateRootNames?: () => { names: any };
+    calculateRootNames?: () => { names: Record<ComponentIdx, any> };
     updateRenderersCallback: (...args: any[]) => any;
     reportScoreAndStateCallback: (...args: any[]) => any;
     requestAnimationFrame: (...args: any[]) => any;
@@ -138,8 +138,8 @@ export default class Core {
     replaceIndexResolutionsInResolver?: (...args: any[]) => any;
     deleteNodesFromResolver?: (...args: any[]) => any;
     resolvePath?: (...args: any[]) => any;
-    calculateRootNames?: () => { names: any };
-    rootNames: any;
+    calculateRootNames?: () => { names: Record<ComponentIdx, any> };
+    rootNames: Record<ComponentIdx, any> | undefined;
 
     // ─── Host callbacks ───────────────────────────────────────────────────
     updateRenderersCallback: (...args: any[]) => any;
@@ -701,7 +701,7 @@ export default class Core {
 
     async initializeRenderedComponentInstruction(
         component: any,
-        componentsWithChangedChildrenToRenderInProgress: any,
+        componentsWithChangedChildrenToRenderInProgress?: Set<number>,
     ): Promise<any> {
         return this.rendererInstructionBuilder.initializeRenderedComponentInstruction(
             component,

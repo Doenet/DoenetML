@@ -1,4 +1,4 @@
-import type { CoreBackref } from "./types/coreBackref";
+import type Core from "./Core";
 import { postProcessCopy } from "./utils/copy";
 import { createNewComponentIndices } from "./utils/componentIndices";
 
@@ -19,9 +19,9 @@ import { createNewComponentIndices } from "./utils/componentIndices";
  * and `createIsolatedComponents` (the latter still on Core through Phase 3).
  */
 export class ComponentLifecycle {
-    core: CoreBackref;
+    core: Core;
 
-    constructor({ core }: { core: CoreBackref }) {
+    constructor({ core }: { core: Core }) {
         this.core = core;
     }
 

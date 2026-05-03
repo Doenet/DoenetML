@@ -4,6 +4,7 @@ import {
 } from "@doenet/utils";
 import { set as idb_set } from "idb-keyval";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
+import type Core from "./Core";
 
 /**
  * Owns the save-to-localStorage and save-to-database pipeline for a Core
@@ -19,13 +20,13 @@ import { reportTimerError, TimerLabels } from "./utils/timerErrors";
  * (see `processNewStateVariableValues` in Core).
  */
 export class StatePersistence {
-    core: any;
+    core: Core;
     saveStateToDBTimerId: ReturnType<typeof setTimeout> | null;
     saveDocStateTimeoutID: ReturnType<typeof setTimeout> | null;
     docStateToBeSavedToDatabase: any;
     changesToBeSaved: boolean;
 
-    constructor({ core }: { core: any }) {
+    constructor({ core }: { core: Core }) {
         this.core = core;
         this.saveStateToDBTimerId = null;
         this.saveDocStateTimeoutID = null;
