@@ -11,8 +11,8 @@ The **parser** (`packages/parser`) converts DoenetML XML into a **DAST** (Docume
 
 ### Layer 2: Computation (Worker)
 The **worker** (`packages/doenetml-worker`) runs in a Web Worker and manages document state and computation. It combines:
-- **JavaScript logic** (`packages/doenetml-worker-javascript`) for state updates and interactions
-- **Rust/WASM logic** (`packages/doenetml-worker-rust/lib-js-wasm-binding`). The worker is slowly being transitioned to Rust. For the main `packages/doenetml` component, just small pieces of Rust (e.g., reference resolution) are currently invoked.
+- **JavaScript logic** (`packages/doenetml-worker-javascript`) for component evaluation, dependency tracking, and state updates
+- **Rust/WASM logic** (`packages/doenetml-worker-rust/lib-js-wasm-binding`). Reference-resolution paths run in Rust today; the rest of the worker is slowly being transitioned over.
 
 Communication between main thread and worker uses structured messages. The worker is responsible for evaluating components, tracking dependencies (DAG), and managing variants.
 
@@ -166,9 +166,9 @@ The worker receives serialized updates and returns rendered component states. Re
 ## Common Tasks
 
 ### Add a new component type
-1. Implement the **worker logic** in `packages/doenetml-worker-javascript`
+1. Implement the **worker logic** in `packages/doenetml-worker-javascript` (component class, attributes, state variables, actions)
 2. Implement the **UI renderer** in `packages/doenetml/src/Viewer/renderers` or similar
-3. Build the schema
+3. Register the component in `componentInfoObjects` so the worker knows about it; if the component appears in the DAST/normalized-DAST schema, update the relevant schema definitions too
 4. Add **tests** in both Vitest and Cypress
 5. Add a **changeset** if user-facing
 

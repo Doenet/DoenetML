@@ -16,7 +16,7 @@ import { reportTimerError } from "./utils/timerErrors";
  *
  * This is purely the persistence I/O — the essential-value write engine
  * that produces `cumulativeStateVariableChanges` is a separate concern
- * (see `processNewStateVariableValues` in Core, slated for Phase 4).
+ * (see `processNewStateVariableValues` in Core).
  */
 export class StatePersistence {
     core: any;
