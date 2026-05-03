@@ -303,9 +303,7 @@ export default class Core {
         // Reset the process queue managed by `this.processQueueManager`
         // (see ProcessQueue.ts) so a previous run does not leak into this
         // document.
-        this.processQueueManager.queue = [];
-        this.processQueueManager.processing = false;
-        this.processQueueManager.stopProcessingRequests = false;
+        this.processQueueManager.reset();
 
         this.dependencies = new DependencyHandler({
             _components: this._components,

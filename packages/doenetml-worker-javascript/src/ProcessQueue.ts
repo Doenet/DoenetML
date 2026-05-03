@@ -48,6 +48,16 @@ export class ProcessQueue {
         this.stopProcessingRequests = false;
     }
 
+    /**
+     * Clear the queue and processing flags. Called from `Core.generateDast`
+     * so state from any previous run does not leak in.
+     */
+    reset(): void {
+        this.queue = [];
+        this.processing = false;
+        this.stopProcessingRequests = false;
+    }
+
     async executeProcesses(): Promise<void> {
         if (this.stopProcessingRequests) {
             return;

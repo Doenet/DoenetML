@@ -1,14 +1,12 @@
 # Core.js refactor — deferred findings
 
-These items came out of the PR review for `core-refactor-1` (Phase 1: extracting helpers from `packages/doenetml-worker-javascript/src/Core.js`). They were intentionally out of scope for that PR but are good candidates for the next refactor pass.
-
-The implementation in this branch covers the in-scope items from the PR review.
+These items came out of the PR reviews for the multi-phase refactor (`core-refactor-1`, `core-refactor-2`, …) extracting helpers from `packages/doenetml-worker-javascript/src/Core.js`. They were intentionally out of scope for those PRs but are good candidates for a follow-up pass.
 
 ## Deferred items
 
 ### Type the `core: any` back-reference in extracted managers
 
-Every new manager (`DiagnosticsManager`, `VisibilityTracker`, `StatePersistence`, `AutoSubmitManager`, `NavigationHandler`, `ResolverAdapter`) declares `core: any;`. That defeats the point of converting to TypeScript — typos and accidental property reads through `core` go unchecked.
+Every new manager declares `core: any;` — Phase 1 (`DiagnosticsManager`, `VisibilityTracker`, `StatePersistence`, `AutoSubmitManager`, `NavigationHandler`, `ResolverAdapter`) and Phase 2 (`RendererInstructionBuilder`, `ProcessQueue`, `ComponentLifecycle`, `ChildMatcher`, `DeletionEngine`, `ActionTriggerScheduler`). That defeats the point of converting to TypeScript — typos and accidental property reads through `core` go unchecked.
 
 Since `Core.js` is still JavaScript, defining a real `Core` interface is awkward. Two practical paths:
 
@@ -19,7 +17,12 @@ Since `Core.js` is still JavaScript, defining a real `Core` interface is awkward
 
 ### Reduce stateless managers to plain functions
 
-`NavigationHandler` and `ResolverAdapter` hold no state of their own — only a `core` back-reference. The pure-function shape used in `StateVariableNameResolver.ts` is more honest for these:
+Several managers hold no state of their own — only a `core` back-reference:
+
+- Phase 1: `NavigationHandler`, `ResolverAdapter`
+- Phase 2: `ComponentLifecycle`, `DeletionEngine` (and `ChildMatcher`, modulo its single recursion-guard array)
+
+The pure-function shape used in `StateVariableNameResolver.ts` is more honest for these:
 
 ```ts
 // NavigationHandler.ts
@@ -30,7 +33,7 @@ export async function handleNavigatingToComponent({
 export function navigateToTarget({ core, args }: { core: CoreBackref; args: any }) { ... }
 ```
 
-Core's wrappers shrink by one line each. If we keep the class form for symmetry with the other (genuinely stateful) managers, that's defensible — but the current PR has both shapes coexisting, so the inconsistency is real.
+Core's wrappers shrink by one line each. If we keep the class form for symmetry with the other (genuinely stateful) managers, that's defensible — but the current shape has both forms coexisting, so the inconsistency is real. `ChildMatcher`'s `derivingChildResultsInProgress` array is a small enough piece of state that it could be lifted into a module-level closure or threaded through the call, allowing it to also become a plain-function module.
 
 ### Move `getSourceLocationForComponent` out of `DiagnosticsManager`
 
