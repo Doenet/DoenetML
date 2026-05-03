@@ -248,6 +248,7 @@ export default class Core {
             core: this,
         });
         this.updateExecutor = new UpdateExecutor({ core: this });
+        this.statePersistence = new StatePersistence({ core: this });
 
         // console.time('serialize doenetML');
 
@@ -296,7 +297,10 @@ export default class Core {
 
         this.essentialValuesSavedInDefinition = {};
 
-        this.statePersistence = new StatePersistence({ core: this });
+        // Cancel any pending saves and clear the buffered payload managed
+        // by `this.statePersistence` (see StatePersistence.ts) so a
+        // previous run does not leak into this document.
+        this.statePersistence.reset();
 
         // Reset renderer state managed by `this.rendererInstructionBuilder`
         // (see RendererInstructionBuilder.ts) so a previous run does not leak
