@@ -8,9 +8,11 @@ import { removeFunctionsMathExpressionClass } from "./utils/math";
  *
  * Holds a back-reference to Core to read the live component tree,
  * the `updateInfo.componentsToUpdateRenderers` queue, root names,
- * and to invoke `updateRenderersCallback`. Calls into Core's
- * `deriveChildResultsFromDefiningChildren`, `returnActiveChildrenIndicesToRender`,
- * and `replacementChangesFromCompositesToUpdate` (slated for later phases).
+ * and to invoke `updateRenderersCallback`. Calls into ChildMatcher's
+ * `deriveChildResultsFromDefiningChildren` and
+ * `returnActiveChildrenIndicesToRender` (via Core's wrappers), and into
+ * Core's `replacementChangesFromCompositesToUpdate` (slated for a later
+ * phase).
  */
 export class RendererInstructionBuilder {
     core: any;
@@ -35,6 +37,12 @@ export class RendererInstructionBuilder {
         this.rendererState = {};
     }
 
+    /**
+     * Forward an update batch to the renderer, attaching the current
+     * diagnostics queue (which both passes the data and clears the
+     * pending flag). `init: true` is used only for the very first
+     * document render.
+     */
     callUpdateRenderers(args: any, init = false): void {
         let diagnostics: any = undefined;
         if (this.core.hasPendingDiagnostics) {
@@ -44,6 +52,21 @@ export class RendererInstructionBuilder {
         this.core.updateRenderersCallback({ ...args, init, diagnostics });
     }
 
+    /**
+     * Build and send the next renderer-update batch.
+     *
+     * Two passes:
+     *  1. For every parent in `componentsWithChangedChildrenToRender`,
+     *     compare the rendered-child identifier list against the previous
+     *     one and, if it changed, tear down the old child renderers and
+     *     re-create the new ones (which can recurse).
+     *  2. For every component in `componentNamesToUpdate`, capture the
+     *     current `forRenderer` state values into a `rendererStatesToUpdate`
+     *     entry and append cached `childrenInstructions` if pass 1
+     *     produced new ones.
+     *
+     * The combined batch is delivered via `callUpdateRenderers`.
+     */
     async updateRendererInstructions({
         componentNamesToUpdate,
         sourceOfUpdate = {},
@@ -286,6 +309,18 @@ export class RendererInstructionBuilder {
         this.callUpdateRenderers({ updateInstructions, actionId });
     }
 
+    /**
+     * Construct the initial renderer instructions for `component` and
+     * its rendered descendants: collect `forRenderer` state values, build
+     * the children-to-render list (recursing on rendered children), and
+     * register the component in `componentsToRender`. Returns
+     * `{ componentToRender, rendererStatesToUpdate, rendererStatesToForceUpdate }`
+     * — the third bucket holds states marked `alwaysUpdateRenderer`,
+     * which are flushed in a second pass without `init: true`.
+     *
+     * Returns `undefined` if `component.rendererType` is unset (callers
+     * only invoke this for components that render).
+     */
     async initializeRenderedComponentInstruction(
         component: any,
         componentsWithChangedChildrenToRenderInProgress: Set<number> = new Set(),
@@ -447,6 +482,12 @@ export class RendererInstructionBuilder {
         );
     }
 
+    /**
+     * Drop `componentIdx` (and, by default, every nested rendered child)
+     * from `componentsToRender`, and clear it from the in-progress
+     * change set. Returns the flat list of component indices that were
+     * removed so the caller can include them in the renderer update.
+     */
     deleteFromComponentsToRender({
         componentIdx,
         recurseToChildren = true,
@@ -479,6 +520,13 @@ export class RendererInstructionBuilder {
         return deletedComponentNames;
     }
 
+    /**
+     * Drain `updateInfo.componentsToUpdateRenderers` into a renderer
+     * update batch. If the first pass produced new composite replacement
+     * work (which can happen when child results get derived during the
+     * pass), apply those replacement changes and run a second drain so
+     * the renderer sees a fully consistent tree.
+     */
     async updateAllChangedRenderers(
         sourceInformation: any = {},
         actionId?: string,
@@ -494,9 +542,6 @@ export class RendererInstructionBuilder {
             actionId,
         });
 
-        // updating renderer instructions could trigger more composite updates
-        // (presumably from deriving child results)
-        // if so, make replacement changes and update renderer instructions again
         // TODO: should we check for child results earlier so we don't have to check them
         // when updating renderer instructions?
         if (this.core.updateInfo.compositesToUpdateReplacements.size > 0) {

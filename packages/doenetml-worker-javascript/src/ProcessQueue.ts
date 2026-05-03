@@ -58,6 +58,28 @@ export class ProcessQueue {
         this.stopProcessingRequests = false;
     }
 
+    /**
+     * Start `executeProcesses` if it's not already draining the queue.
+     * Called from each request entry point after the new entry is pushed.
+     */
+    _kickoff(): void {
+        if (!this.processing) {
+            this.processing = true;
+            this.executeProcesses().catch((e) => console.error(e));
+        }
+    }
+
+    /**
+     * Drain `this.queue` serially, dispatching each entry to Core's
+     * `performUpdate`/`performAction`/`performRecordEvent`. `skippable`
+     * update/action entries are dropped (without resolving) when more work
+     * is already queued behind them, so a flood of intermediate values
+     * collapses to the latest.
+     *
+     * Errors from per-entry dispatch are caught and routed to the entry's
+     * `reject`; throws outside that path bubble up via the `_kickoff`
+     * `.catch(console.error)` so we don't drop them silently.
+     */
     async executeProcesses(): Promise<void> {
         if (this.stopProcessingRequests) {
             return;
@@ -107,6 +129,12 @@ export class ProcessQueue {
         this.processing = false;
     }
 
+    /**
+     * Enqueue a component action (e.g. button click, input commit) and
+     * return a Promise that resolves with the action's result once the
+     * queue drains to it. `args.skippable === true` lets the queue drop
+     * intermediate entries when newer work is queued behind them.
+     */
     requestAction({
         componentIdx,
         actionName,
@@ -129,13 +157,16 @@ export class ProcessQueue {
                 reject,
             });
 
-            if (!this.processing) {
-                this.processing = true;
-                this.executeProcesses();
-            }
+            this._kickoff();
         });
     }
 
+    /**
+     * Enqueue a state-variable update batch and return a Promise that
+     * resolves once the queue drains to it. In read-only mode the update
+     * is short-circuited to a renderer-only refresh (so the renderer can
+     * revert any optimistic UI it showed) and the queue is skipped.
+     */
     async requestUpdate({
         updateInstructions,
         transient = false,
@@ -193,13 +224,17 @@ export class ProcessQueue {
                 reject,
             });
 
-            if (!this.processing) {
-                this.processing = true;
-                this.executeProcesses();
-            }
+            this._kickoff();
         });
     }
 
+    /**
+     * Enqueue an event for `performRecordEvent`, or for visibility-changed
+     * events bypass the queue and route directly to the visibility tracker
+     * (which manages its own debounced send). Resuming visibility measuring
+     * here piggybacks on every recorded event so suspended documents wake
+     * back up on the next interaction.
+     */
     requestRecordEvent(event: any): Promise<any> | undefined {
         this.core.resumeVisibilityMeasuring();
 
@@ -215,10 +250,7 @@ export class ProcessQueue {
                 reject,
             });
 
-            if (!this.processing) {
-                this.processing = true;
-                this.executeProcesses();
-            }
+            this._kickoff();
         });
     }
 }

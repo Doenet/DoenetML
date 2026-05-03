@@ -41,13 +41,21 @@ export class ActionTriggerScheduler {
         this.originsOfActionsChangedToActions = {};
     }
 
+    /**
+     * Poll every registered trigger variable for a value change since the
+     * last poll, and dispatch the trigger's action if so. Renderer state
+     * is normally updated by the caller; pass
+     * `updateRenderersIfTriggered: true` to push a renderer update inline
+     * after any action fires.
+     *
+     * TODO: this scans every registered trigger each tick. We could
+     * narrow to components that actually changed by intersecting with
+     * `componentsToUpdateRenderers`, but that set excludes non-rendered
+     * components that may still carry triggers.
+     */
     async processStateVariableTriggers(
         updateRenderersIfTriggered: boolean = false,
     ): Promise<void> {
-        // TODO: can we make this more efficient by only checking components that changed?
-        // componentsToUpdateRenderers is close, but it includes only rendered components
-        // and we could have components with triggers that are not rendered
-
         let triggeredAction = false;
 
         for (const componentIdxStr in this.stateVariableChangeTriggers) {
@@ -90,6 +98,11 @@ export class ActionTriggerScheduler {
         }
     }
 
+    /**
+     * Queue every `mustEvaluate` state variable on `componentIdx` into
+     * `updateInfo.stateVariablesToEvaluate`, so that a later flush forces
+     * them to compute even if nothing read them.
+     */
     recordStateVariablesMustEvaluate(componentIdx: number): void {
         let comp = this.core._components[componentIdx];
 
@@ -103,6 +116,15 @@ export class ActionTriggerScheduler {
         }
     }
 
+    /**
+     * Re-sync the chained-action graph for `component` after the value of
+     * one of its `chainActionOnActionOfStateVariableTargets` state
+     * variables changed. Computes the diff between the previously
+     * registered targets and the new ones: register newly added targets
+     * in `actionsChangedToActions`, drop targets that are no longer
+     * present, and update the per-component bookkeeping in
+     * `originsOfActionsChangedToActions`.
+     */
     async checkForActionChaining({
         component,
         stateVariables,
@@ -214,6 +236,14 @@ export class ActionTriggerScheduler {
         }
     }
 
+    /**
+     * After an action runs on `componentIdx`, fire any actions chained to
+     * it (and to any composite that this component shadows via a bare
+     * reference like `$P` — but not via `extend`/`copy`, since those
+     * don't propagate authored intent). Re-syncs the chain graph first
+     * so `componentsToUpdateActionChaining` doesn't miss any pending
+     * registration changes.
+     */
     async triggerChainedActions({
         componentIdx,
         triggeringAction,
@@ -230,7 +260,7 @@ export class ActionTriggerScheduler {
         for (const cIdxStr in this.core.updateInfo
             .componentsToUpdateActionChaining) {
             await this.checkForActionChaining({
-                component: this.core.components[cIdxStr],
+                component: this.core._components[cIdxStr],
                 stateVariables:
                     this.core.updateInfo.componentsToUpdateActionChaining[
                         cIdxStr

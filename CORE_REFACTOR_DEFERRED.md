@@ -73,6 +73,34 @@ Three intentionally unawaited Promise calls remain in `Core.js`. They pre-date t
 
 Suggested fix in each case: wrap with `.catch(reportTimerError("<label>"))` using the helper added in this PR (`src/utils/timerErrors.ts`). For the setTimeout case, use a thin arrow wrapper: `setTimeout(() => { this.sendVisibilityChangedEvents()?.catch(reportTimerError("first-visible visibility send")); }, ...)`.
 
+Phase 2's `ProcessQueue._kickoff` already attaches a `.catch(console.error)` to its `executeProcesses()` call, but the rest of the codebase still needs a sweep for bare `executeProcesses()` invocations and other unawaited Promises.
+
+### Carried-over `TODO` comments in the new managers
+
+When the Phase 2 modules were extracted, several `TODO` / `XXX` markers were lifted verbatim from `Core.js`. They aren't blockers but represent unanswered design questions that have been deferred for years; tackling them is independent of the refactor itself.
+
+- `ProcessQueue.ts:97, 106` — `// TODO: if skip an update, presumably we should call reject???` Unresolved: skipped queue entries currently never resolve or reject, so callers awaiting them hang.
+- `ProcessQueue.ts` (between the `update` and `action` branches in `executeProcesses`) — commented-out `getStateVariableValues` queue branch. Either revive or delete.
+- `RendererInstructionBuilder.ts:91` — `//TODO: Figure out what we need from here` above the change-detection pass.
+- `RendererInstructionBuilder.ts:253` — `// && !deletedRenderers.includes(componentIdx)  TODO: what if recreate with same name?` — guards re-render of a name that has been deleted and re-created.
+- `RendererInstructionBuilder.ts:275` — `// TODO: need this to ignore baseVariables change: is this right place?` on `rendererType` capture.
+- `ChildMatcher.ts:430, 468` — two `// XXX: how does this work with the new componentIdx approach?` comments on the placeholder-adapter branch.
+
+### `processQueue` field naming inside Core
+
+`Core` stores the `ProcessQueue` instance as `this.processQueueManager` while every other manager is named after its class (`this.componentLifecycle`, `this.childMatcher`, `this.deletionEngine`, `this.actionTriggerScheduler`, `this.rendererInstructionBuilder`, `this.diagnosticsManager`, `this.statePersistence`, etc.). The `Manager` suffix is here because `Core` already exposes `get processQueue() { return this.processQueueManager.queue; }` for the underlying array — and JS doesn't let an instance field shadow an inherited accessor of the same name.
+
+Two cleanups to consider together:
+
+1. Drop the `get/set processQueue` wrappers on `Core` (no current consumers need the array directly — components and CoreWorker only see the four request entry points and the `processing`/`stopProcessingRequests` flags), then rename `processQueueManager` → `processQueue`.
+2. Or leave as-is for the explicit symmetry between "manager class instance" and "the array it owns".
+
+Pick one; the current shape inherits the asymmetry from a half-finished rename.
+
+### Standardize `core._components` vs `core.components` access in extracted managers
+
+`Core` exposes `_components` as the canonical array and `get components()` as a read-only accessor returning the same array. Phase 2's modules now consistently use `core._components` (Phase 1 mostly does too). If future managers are added, keep this convention so reviewers don't have to remember the array and getter are the same thing. The deferred `CoreBackref` interface above is the natural place to enforce it (expose only `_components`).
+
 ### Regression test for the `.primitive.number` → `.primitive.value` fix
 
 Commit `aed7910c` fixed a latent bug at `ResolverAdapter.ts:84` (was reading `component.attributes.createComponentIdx.primitive.number`, should be `.value` after a `primitive.type === "number"` guard). The fix matches the pattern at `utils/resolver.ts:220-224` and `utils/componentIndices.ts:725`.

@@ -24,6 +24,11 @@ export class ComponentLifecycle {
         this.core = core;
     }
 
+    /**
+     * Add `component` to the canonical `_components` registry. Throws if
+     * the index is already taken — duplicate indices indicate a bug in the
+     * caller, so we fail loudly rather than silently overwriting.
+     */
     registerComponent(component: any): void {
         if (this.core._components[component.componentIdx] !== undefined) {
             throw Error(`Duplicate component index: ${component.componentIdx}`);
@@ -31,8 +36,14 @@ export class ComponentLifecycle {
         this.core._components[component.componentIdx] = component;
     }
 
+    /**
+     * Remove `component` (and, by default, all its `allChildren`) from
+     * the registry. Pass `recursive: false` when the caller has already
+     * walked the subtree and is deregistering each entry itself, e.g.
+     * the `DeletionEngine` two-phase delete.
+     */
     deregisterComponent(component: any, recursive: boolean = true): void {
-        if (recursive === true) {
+        if (recursive) {
             for (let childIdxStr in component.allChildren) {
                 this.deregisterComponent(
                     component.allChildren[childIdxStr].component,
@@ -83,6 +94,13 @@ export class ComponentLifecycle {
         }
     }
 
+    /**
+     * Splice `newChildren` into `parent.definingChildren` at the given
+     * index, derive child results, and propagate the same insertion to
+     * every composite that shadows `parent` (recursively). Returns the
+     * cumulative `addedComponents` / `deletedComponents` from `parent`
+     * and all shadowing parents.
+     */
     async addChildrenAndRecurseToShadows({
         parent,
         indexOfDefiningChildren,
@@ -96,7 +114,6 @@ export class ComponentLifecycle {
 
         let newChildrenResult = await this.processNewDefiningChildren({
             parent,
-            expandComposites: true,
         });
 
         let addedComponents: Record<number, any> = {};
@@ -106,7 +123,6 @@ export class ComponentLifecycle {
             // try again, this time force expanding composites before giving up
             newChildrenResult = await this.processNewDefiningChildren({
                 parent,
-                expandComposites: true,
                 forceExpandComposites: true,
             });
 
@@ -149,7 +165,7 @@ export class ComponentLifecycle {
                     }
                 }
 
-                if (nComponents > this.core.components.length) {
+                if (nComponents > this.core._components.length) {
                     this.core._components[nComponents - 1] = undefined;
                 }
 
@@ -195,6 +211,12 @@ export class ComponentLifecycle {
         };
     }
 
+    /**
+     * Run child-group matching for `parent` after its `definingChildren`
+     * have been mutated. Pushes/pops `sharedParameters` around the call
+     * and re-syncs `ancestors` for every entry in `allChildren` (the
+     * matched/adapted set may differ from `definingChildren`).
+     */
     async processNewDefiningChildren({
         parent,
         expandComposites = true,
