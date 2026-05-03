@@ -694,17 +694,8 @@ export class CompositeExpander {
                 },
             );
 
-            for (const error of verificationResult.diagnostics) {
-                this.core.addDiagnostic({
-                    ...error,
-                    type: "error",
-                });
-            }
-            for (const warning of verificationResult.diagnostics) {
-                this.core.addDiagnostic({
-                    ...warning,
-                    type: "warning",
-                });
+            for (const diagnostic of verificationResult.diagnostics) {
+                this.core.addDiagnostic(diagnostic);
             }
 
             newNComponents = verificationResult.nComponents;
