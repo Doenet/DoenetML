@@ -152,7 +152,6 @@ export default class Core {
     requestSolutionViewCallback: (componentIdx: ComponentIdx) => Promise<any>;
 
     // ─── Bound entry points ───────────────────────────────────────────────
-    getDast: (...args: any[]) => Promise<any>;
     coreFunctions: Record<string, (...args: any[]) => any>;
 
     // ─── Variant / state ──────────────────────────────────────────────────
@@ -286,7 +285,6 @@ export default class Core {
         this.flags = flags;
         this.theme = theme;
 
-        this.getDast = this.generateDast.bind(this);
         this.getStateVariableValue = this.getStateVariableValue.bind(this);
 
         this.componentInfoObjects = componentInfoObjects;
@@ -1134,10 +1132,6 @@ export default class Core {
 
     get components(): any[] {
         return this._components;
-    }
-
-    set components(_value: any[]) {
-        // Read-only — `_components` is the canonical owner.
     }
 
     // → processQueueManager
