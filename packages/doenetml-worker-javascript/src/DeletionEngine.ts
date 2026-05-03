@@ -1,3 +1,4 @@
+import type { CoreBackref } from "./types/coreBackref";
 /**
  * Deletes components from the live tree. The bulk of the work is the
  * two-phase walk:
@@ -18,9 +19,9 @@
  * `deleteFromComponentsToRender`.
  */
 export class DeletionEngine {
-    core: any;
+    core: CoreBackref;
 
-    constructor({ core }: { core: any }) {
+    constructor({ core }: { core: CoreBackref }) {
         this.core = core;
     }
 

@@ -1,3 +1,4 @@
+import type { CoreBackref } from "./types/coreBackref";
 /**
  * Tracks state-variable-driven action triggers and the chained-action
  * graph. Each cycle, `processStateVariableTriggers` polls registered
@@ -16,7 +17,7 @@
  * and to dispatch via `performAction` and `updateAllChangedRenderers`.
  */
 export class ActionTriggerScheduler {
-    core: any;
+    core: CoreBackref;
     stateVariableChangeTriggers: Record<
         number,
         Record<string, { action: string; previousValue?: any }>
@@ -24,7 +25,7 @@ export class ActionTriggerScheduler {
     actionsChangedToActions: Record<string, any[]>;
     originsOfActionsChangedToActions: Record<number, Record<string, any[]>>;
 
-    constructor({ core }: { core: any }) {
+    constructor({ core }: { core: CoreBackref }) {
         this.core = core;
         this.stateVariableChangeTriggers = {};
         this.actionsChangedToActions = {};
@@ -260,7 +261,7 @@ export class ActionTriggerScheduler {
         for (const cIdxStr in this.core.updateInfo
             .componentsToUpdateActionChaining) {
             await this.checkForActionChaining({
-                component: this.core._components[cIdxStr],
+                component: this.core._components[Number(cIdxStr)],
                 stateVariables:
                     this.core.updateInfo.componentsToUpdateActionChaining[
                         cIdxStr

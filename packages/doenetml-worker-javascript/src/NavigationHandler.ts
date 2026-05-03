@@ -1,3 +1,5 @@
+import type { CoreBackref } from "./types/coreBackref";
+
 /**
  * Handles navigation actions: revealing closed sections in the ancestor chain
  * before navigating to a target component, and posting `navigateToTarget`
@@ -7,9 +9,9 @@
  * dispatch `performAction`, and read `coreId`.
  */
 export class NavigationHandler {
-    core: any;
+    core: CoreBackref;
 
-    constructor({ core }: { core: any }) {
+    constructor({ core }: { core: CoreBackref }) {
         this.core = core;
     }
 

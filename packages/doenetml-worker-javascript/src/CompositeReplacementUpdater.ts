@@ -1,3 +1,4 @@
+import type { CoreBackref } from "./types/coreBackref";
 import { postProcessCopy } from "./utils/copy";
 import { preprocessAttributesObject } from "./utils/attributes";
 import { convertUnresolvedAttributesForComponentType } from "./utils/dast/convertNormalizedDast";
@@ -22,9 +23,9 @@ import {
  * `resolverAdapter`, `componentLifecycle`).
  */
 export class CompositeReplacementUpdater {
-    core: any;
+    core: CoreBackref;
 
-    constructor({ core }: { core: any }) {
+    constructor({ core }: { core: CoreBackref }) {
         this.core = core;
     }
 

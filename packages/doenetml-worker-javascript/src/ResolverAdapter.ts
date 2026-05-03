@@ -1,3 +1,4 @@
+import type { CoreBackref } from "./types/coreBackref";
 import { assignDoenetMLRange } from "@doenet/utils";
 import { FlatFragment } from "@doenet/doenetml-worker";
 import {
@@ -18,9 +19,9 @@ import {
  * `dependencies.addBlockersFromChangedReplacements`.
  */
 export class ResolverAdapter {
-    core: any;
+    core: CoreBackref;
 
-    constructor({ core }: { core: any }) {
+    constructor({ core }: { core: CoreBackref }) {
         this.core = core;
     }
 

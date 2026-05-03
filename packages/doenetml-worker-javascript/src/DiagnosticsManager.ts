@@ -1,9 +1,11 @@
+import type { CoreBackref } from "./types/coreBackref";
 import {
     AccessibilityRecord,
     DiagnosticRecord,
     InfoRecord,
     WarningRecord,
 } from "@doenet/utils";
+import { getSourceLocationForComponent } from "./utils/sourceLocation";
 
 type NonErrorDiagnosticRecord =
     | WarningRecord
@@ -18,7 +20,7 @@ type NonErrorDiagnosticRecord =
  * the parent chain via `core._components`.
  */
 export class DiagnosticsManager {
-    core: any;
+    core: CoreBackref;
     diagnostics: DiagnosticRecord[];
     hasPendingDiagnostics: boolean;
 
@@ -26,7 +28,7 @@ export class DiagnosticsManager {
         core,
         preliminaryDiagnostics,
     }: {
-        core: any;
+        core: CoreBackref;
         preliminaryDiagnostics: DiagnosticRecord[];
     }) {
         this.core = core;
@@ -151,26 +153,14 @@ export class DiagnosticsManager {
     }
 
     /**
-     * Find the nearest available source position/sourceDoc for a component,
-     * walking up ancestors when the component itself has no position.
+     * @deprecated Use the standalone `getSourceLocationForComponent` from
+     * `./utils/sourceLocation`. Kept for the existing call sites that go
+     * through Core; will be removed once those switch to the helper.
      */
     getSourceLocationForComponent(component: any): {
         position: any;
         sourceDoc: number | undefined;
     } {
-        let position = component.position;
-        let sourceDoc = component.sourceDoc;
-        let comp = component;
-
-        while (position === undefined) {
-            if (!(comp.parentIdx > 0)) {
-                break;
-            }
-            comp = this.core._components[comp.parentIdx];
-            position = comp.position;
-            sourceDoc = comp.sourceDoc;
-        }
-
-        return { position, sourceDoc };
+        return getSourceLocationForComponent(component, this.core._components);
     }
 }

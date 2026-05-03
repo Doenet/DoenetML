@@ -1,3 +1,4 @@
+import type { CoreBackref } from "./types/coreBackref";
 /**
  * Walks the dependency graph to invalidate state-variable values and
  * propagate freshness changes:
@@ -22,9 +23,9 @@
  * builder, auto-submit, evaluator).
  */
 export class StalenessPropagator {
-    core: any;
+    core: CoreBackref;
 
-    constructor({ core }: { core: any }) {
+    constructor({ core }: { core: CoreBackref }) {
         this.core = core;
     }
 

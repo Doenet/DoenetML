@@ -1,4 +1,5 @@
-import { reportTimerError } from "./utils/timerErrors";
+import type { CoreBackref } from "./types/coreBackref";
+import { reportTimerError, TimerLabels } from "./utils/timerErrors";
 
 type VisibilityInfo = {
     componentsCurrentlyVisible: Record<string, Date>;
@@ -22,10 +23,10 @@ type VisibilityInfo = {
  * first time the document becomes visible.
  */
 export class VisibilityTracker {
-    core: any;
+    core: CoreBackref;
     info: VisibilityInfo;
 
-    constructor({ core }: { core: any }) {
+    constructor({ core }: { core: CoreBackref }) {
         this.core = core;
         this.info = {
             componentsCurrentlyVisible: {},
@@ -143,7 +144,7 @@ export class VisibilityTracker {
             }
             this.info.saveTimerId = setTimeout(() => {
                 this.sendVisibilityChangedEvents()?.catch(
-                    reportTimerError("visibility periodic send"),
+                    reportTimerError(TimerLabels.visibilityPeriodicSend),
                 );
             }, this.info.saveDelay);
         }
@@ -174,7 +175,7 @@ export class VisibilityTracker {
             }
             this.info.saveTimerId = setTimeout(() => {
                 this.sendVisibilityChangedEvents()?.catch(
-                    reportTimerError("visibility resume send"),
+                    reportTimerError(TimerLabels.visibilityResumeSend),
                 );
             }, this.info.saveDelay);
         }
@@ -184,7 +185,7 @@ export class VisibilityTracker {
         }
         this.info.suspendTimerId = setTimeout(() => {
             this.suspendVisibilityMeasuring().catch(
-                reportTimerError("visibility auto-suspend"),
+                reportTimerError(TimerLabels.visibilityAutoSuspend),
             );
         }, this.info.suspendDelay);
     }

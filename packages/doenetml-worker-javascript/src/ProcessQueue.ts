@@ -1,3 +1,4 @@
+import type { CoreBackref } from "./types/coreBackref";
 type QueueEntry =
     | {
           type: "update";
@@ -36,12 +37,12 @@ type QueueEntry =
  * visibility measuring on event recording, and route visibility events.
  */
 export class ProcessQueue {
-    core: any;
+    core: CoreBackref;
     queue: QueueEntry[];
     processing: boolean;
     stopProcessingRequests: boolean;
 
-    constructor({ core }: { core: any }) {
+    constructor({ core }: { core: CoreBackref }) {
         this.core = core;
         this.queue = [];
         this.processing = false;

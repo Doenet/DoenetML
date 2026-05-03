@@ -1,3 +1,4 @@
+import type { CoreBackref } from "./types/coreBackref";
 import { assignDoenetMLRange } from "@doenet/utils";
 
 /**
@@ -15,7 +16,7 @@ import { assignDoenetMLRange } from "@doenet/utils";
  * `createIsolatedComponents`) and append to `unmatchedChildren`.
  */
 export class ChildMatcher {
-    core: any;
+    core: CoreBackref;
     /**
      * Re-entrancy guard: parents currently inside
      * `deriveChildResultsFromDefiningChildren`. Composite expansion can
@@ -24,7 +25,7 @@ export class ChildMatcher {
      */
     derivingChildResultsInProgress: Set<number>;
 
-    constructor({ core }: { core: any }) {
+    constructor({ core }: { core: CoreBackref }) {
         this.core = core;
         this.derivingChildResultsInProgress = new Set();
     }

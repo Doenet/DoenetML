@@ -230,7 +230,6 @@ export class PublicDoenetMLCore {
         };
 
         if (this.initialized) {
-            //@ts-ignore
             this.core = new Core(coreArgs);
             try {
                 const result = await this.core.generateDast();

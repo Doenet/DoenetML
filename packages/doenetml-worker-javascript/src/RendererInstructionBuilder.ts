@@ -1,3 +1,4 @@
+import type { CoreBackref } from "./types/coreBackref";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 
 /**
@@ -15,12 +16,12 @@ import { removeFunctionsMathExpressionClass } from "./utils/math";
  * phase).
  */
 export class RendererInstructionBuilder {
-    core: any;
+    core: CoreBackref;
     componentsToRender: Record<number, { children: any[] }>;
     componentsWithChangedChildrenToRender: Set<number>;
     rendererState: Record<number, any>;
 
-    constructor({ core }: { core: any }) {
+    constructor({ core }: { core: CoreBackref }) {
         this.core = core;
         this.componentsToRender = {};
         this.componentsWithChangedChildrenToRender = new Set();

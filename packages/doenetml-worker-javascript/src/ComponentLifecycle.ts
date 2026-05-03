@@ -1,3 +1,4 @@
+import type { CoreBackref } from "./types/coreBackref";
 import { postProcessCopy } from "./utils/copy";
 import { createNewComponentIndices } from "./utils/componentIndices";
 
@@ -18,9 +19,9 @@ import { createNewComponentIndices } from "./utils/componentIndices";
  * and `createIsolatedComponents` (the latter still on Core through Phase 3).
  */
 export class ComponentLifecycle {
-    core: any;
+    core: CoreBackref;
 
-    constructor({ core }: { core: any }) {
+    constructor({ core }: { core: CoreBackref }) {
         this.core = core;
     }
 
@@ -70,7 +71,7 @@ export class ComponentLifecycle {
         ];
 
         for (const childIdxStr in component.allChildren) {
-            let unproxiedChild = this.core._components[childIdxStr];
+            let unproxiedChild = this.core._components[Number(childIdxStr)];
             // Note: when add and deleting replacements of shadowed composites,
             // it is possible that we end up processing the defining children of ancestors of the composite
             // while we were delaying processing the defining children of the composite's parent,
@@ -246,7 +247,7 @@ export class ComponentLifecycle {
         // set ancestors for allChildren of parent
         // since could replace newChildren by adapters or via composites
         for (const childIdxStr in parent.allChildren) {
-            let unproxiedChild = this.core._components[childIdxStr];
+            let unproxiedChild = this.core._components[Number(childIdxStr)];
             this.setAncestors(unproxiedChild, ancestorsForChildren);
         }
 
