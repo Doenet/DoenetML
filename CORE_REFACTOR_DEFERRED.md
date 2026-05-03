@@ -121,6 +121,67 @@ Commit `aed7910c` fixed a latent bug at `ResolverAdapter.ts:84` (was reading `co
 
 This codepath fires when a copy component (created via `extend`) has a `source:sequence` attribute and a numeric `createComponentIdx`. A targeted Vitest case constructing that specific shape and asserting the resolver receives a `parentSourceSequence` with the correct `parent: <number>` field would lock the fix in. Without it, regressions could re-introduce the silent `undefined`-parent bug.
 
+### De-duplicate attribute-derived state variable construction in `StateVariableDefinitionFactory`
+
+The factory builds attribute-derived state variables in three almost-identical sites: `createAttributeStateVariableDefinitions` (around lines 130, 170, 232-402, 405-419), `createReferenceShadowStateVariableDefinitions` (around lines 678, 721-743, 782-952, 955-968), and the adapter-shadow path (around line 448, 554-567). Four families of duplication are visible:
+
+1. **`shadowingInstructions` block.** Three near-identical 30-line blocks that map `attributeSpecification.createPrimitiveOfType` (string/stringArray/numberArray) to the corresponding component type (text/textList/numberList) and assign it to `stateVarDef.shadowingInstructions.createComponentOfType`. Extract a `_setShadowingInstructionsFromAttribute(stateVarDef, attributeSpecification)` helper.
+2. **`stateVariableForAttributeValue` resolution.** Two identical lookups of `componentStateVariableForAttributeValue → attributeClass.stateVariableToBeShadowed → "value"`, both with the same "Component type … does not exist" throw. Extract `_resolveAttributeValueVariable(attributeSpecification, attrName, componentClass)`.
+3. **`definition` / `inverseDefinition` callback pair on attribute-derived state vars.** ~170 lines duplicated almost verbatim between `createAttributeStateVariableDefinitions` and `createReferenceShadowStateVariableDefinitions`. A shared closure-builder returning `{ definition, inverseDefinition }` would absorb the duplication.
+4. **`attributesToCopy` loop.** Three copies of the array + copy loop. The first intentionally adds `"triggerActionOnChange"`; the other two omit it. Today this divergence relies on visual diff; a helper like `_copyPassthroughAttributes(stateVarDef, attributeSpecification, { includeTriggerActionOnChange })` would make it explicit.
+
+### Collapse the two branches of `ComponentBuilder.addComponents`
+
+The initial-add branch (`addComponents` body when `initialAdd === true`, around lines 89-185) and the incremental-add branch (around lines 186-254) share three drains verbatim:
+
+- Two `expandAllComposites(document)` calls (force=false then force=true).
+- The `stateVariablesToEvaluate` drain loop (~16 lines apiece).
+- The trailing `if (compositesToUpdateReplacements.size > 0)` "drain + re-render" tail (~12 lines apiece).
+
+Extracting `_drainStateVariablesToEvaluate()`, `_expandAllCompositesBothPasses(component)`, and `_drainCompositesToUpdateReplacements()` would shrink `addComponents` by roughly 40 lines and make the initial-add vs incremental-add asymmetry obvious.
+
+### Extract `_finishExpanding` and unexpanded-composite helpers in `CompositeExpander`
+
+Two patterns duplicate verbatim across `expandCompositeComponent` and `expandShadowingComposite`:
+
+1. **"Finished expanding" cleanup** (lines 411-420 and 741-750). Identical 9-line `compositesBeingExpanded.indexOf(componentIdx)` + `throw if -1` + `splice` block. Extract `_finishExpanding(componentIdx)`.
+2. **Unexpanded-composite list cleanup** in `expandCompositeComponent` (lines 277-294 of the current file). The `unexpandedCompositesReady` and `unexpandedCompositesNotReady` lists each get the same `indexOf` + `splice` treatment; can collapse to `for (const arr of [parent.unexpandedCompositesReady, parent.unexpandedCompositesNotReady])`.
+
+### Drop dead `replacementsCreated` guard in `CompositeExpander.expandShadowingComposite`
+
+Around line 674 (the second `if (component.replacementsWorkspace.replacementsCreated === undefined) { ... = 0 }` inside the `!foundCircular` branch). `replacementsCreated` is already initialized to `0` ~200 lines earlier in the same function (around line 467) and is never re-set to undefined between the two checks. The second guard is dead.
+
+### Pre-existing `verifyReplacementsMatchSpecifiedType` warnings loop bug
+
+`CompositeExpander.expandShadowingComposite`, around lines 695-704. Both loops iterate `verificationResult.diagnostics` and add the items as both `"error"` and `"warning"` diagnostics, so every diagnostic is double-reported and there is no path for a true warning to come through. The second loop almost certainly should iterate `verificationResult.warnings` (or equivalent), or be deleted. Carried over verbatim from `Core.js`; not introduced by the refactor. Confirm against the verifier's actual output shape and fix in a separate PR.
+
+### Pre-existing unreachable diagnostic in `StateVariableInitializer.initializeArrayStateVariable`
+
+Around line 453 of the current file:
+
+```ts
+if (!numDimensionsInArrayKey > stateVarObj.numDimensions) {
+    core.addDiagnostic({ ... "Number of dimensions specified in array key ..." ... });
+    ...
+}
+```
+
+`!numDimensionsInArrayKey` is `false` for any positive integer, and `false > number` is always `false`, so the diagnostic is unreachable. Almost certainly intended `numDimensionsInArrayKey > stateVarObj.numDimensions`. Pre-dates the refactor (present in `Core.js` since the 2021 rename); flag for a separate fix once the intended check has been confirmed against test expectations.
+
+### Re-home `recursivelyReplaceCompositesWithReplacements`
+
+Currently at `StateVariableInitializer.ts:1609` and exposed via the wrapper `Core.js:recursivelyReplaceCompositesWithReplacements`. Conceptually it walks composites and substitutes their replacements — nothing to do with state-variable initialization. Better home: `CompositeExpander` (or a new `CompositeReplacementWalker` if `CompositeExpander` shouldn't grow further). While moving it, drop the unread `forceExpandComposites` parameter — declared at line 1612, never read in the body, only forwarded recursively (line 1673). Pre-existing dead parameter, lifted from `Core.js`.
+
+### Minor cleanups in `ComponentBuilder`
+
+- **`componentIdx == undefined` (line 311)** uses loose equality where the rest of the file uses strict (`=== undefined`). Tighten for consistency.
+- **`if (!this.core.nTimesAddedComponents) { ... = 1 } else { ...++ }` (lines 67-71)** is a verbose increment-or-init. `this.core.nTimesAddedComponents = (this.core.nTimesAddedComponents ?? 0) + 1;` is one line.
+- **Bare `catch (e) { console.error(e); throw e; }` (around line 534)** in the `attribute.references` branch of `createChildrenThenComponent`. The catch adds nothing the caller can't see; consider dropping it. The sibling catch at line 503 has real logic (rewrites circular-dependency messages) and should stay.
+
+### Move `findShadowedChildInSerializedComponents` to `utils/`
+
+`ComponentBuilder.findShadowedChildInSerializedComponents` (around lines 850-869 of the current file) reads/writes nothing on `this.core` and is a pure recursion over a serialized component tree. A natural fit for `utils/` next to the other serialized-tree walkers. This overlaps with the broader "stateless managers → plain functions" deferred item but is a particularly clean lift.
+
 ## Notes for the next agent
 
 - The applied items in this PR are self-contained — see the diff against the previous commit. The structural deferrals above don't depend on each other except that #1 (typing) makes #2 (stateless→plain) cleaner since the back-reference type would already exist.
