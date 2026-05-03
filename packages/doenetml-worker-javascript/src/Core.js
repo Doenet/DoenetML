@@ -607,6 +607,10 @@ export default class Core {
         );
     }
 
+    async checkForActionChaining(args) {
+        return this.actionTriggerScheduler.checkForActionChaining(args);
+    }
+
     // → compositeExpander
     async expandAllComposites(component, force = false) {
         return this.compositeExpander.expandAllComposites(component, force);
@@ -662,9 +666,13 @@ export default class Core {
         return this.compositeExpander.replaceCompositeChildren(parent);
     }
 
-    async addUndisplayableErrorChildrenToAncestor(args) {
+    async addUndisplayableErrorChildrenToAncestor(
+        parent,
+        undisplayableErrorChildren,
+    ) {
         return this.compositeExpander.addUndisplayableErrorChildrenToAncestor(
-            args,
+            parent,
+            undisplayableErrorChildren,
         );
     }
 
@@ -811,10 +819,6 @@ export default class Core {
         return this.stateVariableInitializer.recursivelyReplaceCompositesWithReplacements(
             args,
         );
-    }
-
-    async checkForActionChaining(args) {
-        return this.actionTriggerScheduler.checkForActionChaining(args);
     }
 
     async getStateVariableValue({ component, stateVariable }) {

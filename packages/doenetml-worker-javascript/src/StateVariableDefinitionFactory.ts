@@ -15,8 +15,9 @@ import { preprocessAttributesObject } from "./utils/attributes";
  * dependencies, materializing array entries — is in `StateVariableInitializer`.
  *
  * Holds a back-reference to Core to read `_components`, `componentInfoObjects`,
- * `numerics`, and to invoke `arrayVarNameFromArrayKey`, `checkIfArrayEntry`,
- * `createFromArrayEntry`.
+ * and `numerics`, and to invoke `checkIfArrayEntry` and `createFromArrayEntry`.
+ * (`arrayVarNameFromArrayKey` is invoked on the per-variable `stateDef`, not
+ * on Core.)
  */
 export class StateVariableDefinitionFactory {
     core: any;
