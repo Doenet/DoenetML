@@ -1,5 +1,3 @@
-import { deepClone } from "@doenet/utils";
-
 /**
  * Walks the dependency graph to invalidate state-variable values and
  * propagate freshness changes:
@@ -64,14 +62,10 @@ export class StalenessPropagator {
                 if (arrayKeys.length > 0) {
                     // found a reference to an arrayEntry that hasn't been created yet
                     // create this arrayEntry
-
-                    let arrayStateVariable =
-                        component.arrayEntryPrefixes[arrayEntryPrefix];
-
                     await this.core.initializeStateVariable({
                         component,
                         stateVariable,
-                        arrayStateVariable,
+                        arrayStateVariable: arrayVariableName,
                         arrayEntryPrefix,
                     });
 
@@ -407,7 +401,7 @@ export class StalenessPropagator {
         });
 
         if (result.partiallyFresh) {
-            // if have array entry, then intrepret partiallyfresh as indicating
+            // if have array entry, then interpret partiallyfresh as indicating
             // freshness of array entry, not whole array
             for (let vName in allStateVariablesAffectedObj) {
                 if (allStateVariablesAffectedObj[vName].isArrayEntry) {
@@ -421,7 +415,7 @@ export class StalenessPropagator {
         }
 
         if (result.fresh) {
-            // if have array entry, then intrepret fresh as indicating
+            // if have array entry, then interpret fresh as indicating
             // freshness of array entry, not whole array
             for (let vName in allStateVariablesAffectedObj) {
                 if (allStateVariablesAffectedObj[vName].isArrayEntry) {
@@ -541,7 +535,7 @@ export class StalenessPropagator {
         // console.log(`result of mark stale`, deepClone(result))
 
         if (result.partiallyFresh) {
-            // if have array entry, then intrepret partiallyfresh as indicating
+            // if have array entry, then interpret partiallyfresh as indicating
             // freshness of array entry, not whole array
             for (let vName in allStateVariablesAffectedObj) {
                 if (allStateVariablesAffectedObj[vName].isArrayEntry) {
@@ -555,7 +549,7 @@ export class StalenessPropagator {
         }
 
         if (result.fresh) {
-            // if have array entry, then intrepret fresh as indicating
+            // if have array entry, then interpret fresh as indicating
             // freshness of array entry, not whole array
             for (let vName in allStateVariablesAffectedObj) {
                 if (allStateVariablesAffectedObj[vName].isArrayEntry) {

@@ -40,8 +40,7 @@ export class StateVariableEvaluator {
             // the strings don't show any changes and we'll use the essential value
             // of expressionWithCodes
             let reprocessAfterEvaluate = component.reprocessAfterEvaluate;
-            delete this.core._components[component.componentIdx]
-                .reprocessAfterEvaluate;
+            delete component.reprocessAfterEvaluate;
 
             for (let vName in reprocessAfterEvaluate) {
                 if (component.state[vName]) {
@@ -84,9 +83,7 @@ export class StateVariableEvaluator {
             }
 
             if (component.state[varName].justUpdatedForNewComponent) {
-                delete this.core._components[component.componentIdx].state[
-                    varName
-                ].justUpdatedForNewComponent;
+                delete component.state[varName].justUpdatedForNewComponent;
                 justUpdatedForNewComponent = true;
             }
         }

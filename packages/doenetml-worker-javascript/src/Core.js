@@ -58,6 +58,7 @@ import {
     createNewComponentIndices,
     extractCreateComponentIdxMapping,
 } from "./utils/componentIndices";
+import { numberAnswers } from "./utils/answer";
 // string to componentClass: this.componentInfoObjects.allComponentClasses["string"]
 // componentClass to string: componentClass.componentType
 
@@ -533,10 +534,6 @@ export default class Core {
         return this.diagnosticsManager.getDiagnostics();
     }
 
-    assertDiagnosticIsValid(diagnostic) {
-        this.diagnosticsManager.assertDiagnosticIsValid(diagnostic);
-    }
-
     addDiagnostic(diagnostic) {
         return this.diagnosticsManager.addDiagnostic(diagnostic);
     }
@@ -561,12 +558,6 @@ export default class Core {
     async checkForStateVariablesUpdatesForNewComponent(componentIdx) {
         return this.componentBuilder.checkForStateVariablesUpdatesForNewComponent(
             componentIdx,
-        );
-    }
-
-    findShadowedChildInSerializedComponents(args) {
-        return this.componentBuilder.findShadowedChildInSerializedComponents(
-            args,
         );
     }
 
@@ -663,10 +654,6 @@ export default class Core {
         return this.compositeExpander.expandCompositeComponent(component);
     }
 
-    async expandShadowingComposite(component) {
-        return this.compositeExpander.expandShadowingComposite(component);
-    }
-
     adjustForCreateComponentIdxName(serializedReplacements, composite) {
         return this.compositeExpander.adjustForCreateComponentIdxName(
             serializedReplacements,
@@ -680,22 +667,6 @@ export default class Core {
 
     async replaceCompositeChildren(parent) {
         return this.compositeExpander.replaceCompositeChildren(parent);
-    }
-
-    async addUndisplayableErrorChildrenToAncestor(
-        parent,
-        undisplayableErrorChildren,
-    ) {
-        return this.compositeExpander.addUndisplayableErrorChildrenToAncestor(
-            parent,
-            undisplayableErrorChildren,
-        );
-    }
-
-    async markWithheldReplacementsInactive(composite) {
-        return this.compositeExpander.markWithheldReplacementsInactive(
-            composite,
-        );
     }
 
     async changeInactiveComponentAndDescendants(component, inactive) {
@@ -716,18 +687,6 @@ export default class Core {
 
     findChildGroup(childType, parentClass) {
         return this.childMatcher.findChildGroup(childType, parentClass);
-    }
-
-    findChildGroupNoAdapters(
-        componentType,
-        parentClass,
-        afterAdapters = false,
-    ) {
-        return this.childMatcher.findChildGroupNoAdapters(
-            componentType,
-            parentClass,
-            afterAdapters,
-        );
     }
 
     async returnActiveChildrenIndicesToRender(component) {
@@ -781,18 +740,6 @@ export default class Core {
 
     async createReferenceShadowStateVariableDefinitions(args) {
         return this.stateVariableDefinitionFactory.createReferenceShadowStateVariableDefinitions(
-            args,
-        );
-    }
-
-    modifyStateDefsToBeShadows(args) {
-        return this.stateVariableDefinitionFactory.modifyStateDefsToBeShadows(
-            args,
-        );
-    }
-
-    modifyStateDefToDeleteVariableReferences(args) {
-        return this.stateVariableDefinitionFactory.modifyStateDefToDeleteVariableReferences(
             args,
         );
     }
@@ -982,12 +929,6 @@ export default class Core {
     async deleteReplacementsFromShadowsThenComposite(args) {
         return this.compositeReplacementUpdater.deleteReplacementsFromShadowsThenComposite(
             args,
-        );
-    }
-
-    async processChildChangesAndRecurseToShadows(component) {
-        return this.compositeReplacementUpdater.processChildChangesAndRecurseToShadows(
-            component,
         );
     }
 
@@ -1188,16 +1129,6 @@ export default class Core {
         return this.essentialValueWriter.requestComponentChanges(args);
     }
 
-    calculateEssentialVariableChanges(args) {
-        return this.essentialValueWriter.calculateEssentialVariableChanges(
-            args,
-        );
-    }
-
-    calculatePrimitiveChildChanges(args) {
-        return this.essentialValueWriter.calculatePrimitiveChildChanges(args);
-    }
-
     /**
      * Poll `requestSolutionViewCallback` to determine whether or not
      * the user is allowed to view the solution.
@@ -1347,30 +1278,4 @@ export default class Core {
     navigateToTarget(args) {
         return this.navigationHandler.navigateToTarget(args);
     }
-}
-
-function numberAnswers(components, componentInfoObjects, numSoFar = 0) {
-    let count = numSoFar;
-
-    for (let comp of components) {
-        if (
-            comp.componentType === "answer" ||
-            componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType: comp.componentType,
-                baseComponentType: "_blockScoredComponent",
-            })
-        ) {
-            count++;
-            comp.answerNumber = count;
-        } else if (comp.children) {
-            const result = numberAnswers(
-                comp.children,
-                componentInfoObjects,
-                count,
-            );
-            count = result.count;
-        }
-    }
-
-    return { count };
 }

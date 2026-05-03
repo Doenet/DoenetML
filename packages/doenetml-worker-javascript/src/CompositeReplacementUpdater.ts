@@ -1,4 +1,3 @@
-import { deepClone } from "@doenet/utils";
 import { postProcessCopy } from "./utils/copy";
 import { preprocessAttributesObject } from "./utils/attributes";
 import { convertUnresolvedAttributesForComponentType } from "./utils/dast/convertNormalizedDast";
@@ -1183,7 +1182,7 @@ export class CompositeReplacementUpdater {
                 ) {
                     continue;
                 }
-                let additionalcompositesWithAdjustedReplacements =
+                let additionalCompositesWithAdjustedReplacements =
                     await this.adjustReplacementsToWithhold({
                         component: shadowingComponent,
                         change,
@@ -1191,7 +1190,7 @@ export class CompositeReplacementUpdater {
                         adjustResolver,
                     });
                 compositesWithAdjustedReplacements.push(
-                    ...additionalcompositesWithAdjustedReplacements,
+                    ...additionalCompositesWithAdjustedReplacements,
                 );
             }
         }
