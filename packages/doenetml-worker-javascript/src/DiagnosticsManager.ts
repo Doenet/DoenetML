@@ -1,11 +1,9 @@
-import type Core from "./Core";
 import {
     AccessibilityRecord,
     DiagnosticRecord,
     InfoRecord,
     WarningRecord,
 } from "@doenet/utils";
-import { getSourceLocationForComponent } from "./utils/sourceLocation";
 
 type NonErrorDiagnosticRecord =
     | WarningRecord
@@ -15,24 +13,16 @@ type NonErrorDiagnosticRecord =
 /**
  * Owns the diagnostics queue (errors, warnings, info, accessibility) for a Core
  * instance. Core delegates to this manager for adding and reading diagnostics.
- *
- * Holds a back-reference to Core so `getSourceLocationForComponent` can walk
- * the parent chain via `core._components`.
  */
 export class DiagnosticsManager {
-    core: Core;
     diagnostics: DiagnosticRecord[];
     hasPendingDiagnostics: boolean;
 
     constructor({
-        core,
         preliminaryDiagnostics,
     }: {
-        core: Core;
         preliminaryDiagnostics: DiagnosticRecord[];
     }) {
-        this.core = core;
-
         // Preliminary diagnostics seed the queue at construction. We skip the
         // dedup pass here — it would be O(n²) and these come from a single
         // upstream pass that has already produced unique entries. Errors are
@@ -150,17 +140,5 @@ export class DiagnosticsManager {
 
         this.hasPendingDiagnostics = true;
         return true;
-    }
-
-    /**
-     * @deprecated Use the standalone `getSourceLocationForComponent` from
-     * `./utils/sourceLocation`. Kept for the existing call sites that go
-     * through Core; will be removed once those switch to the helper.
-     */
-    getSourceLocationForComponent(component: any): {
-        position: any;
-        sourceDoc: number | undefined;
-    } {
-        return getSourceLocationForComponent(component, this.core._components);
     }
 }

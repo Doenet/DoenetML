@@ -13,6 +13,7 @@ import {
 import { getNumVariants } from "./utils/variants";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
+import { getSourceLocationForComponent } from "./utils/sourceLocation";
 import { DependencyHandler } from "./Dependencies";
 import { ActionTriggerScheduler } from "./ActionTriggerScheduler";
 import { AutoSubmitManager } from "./AutoSubmitManager";
@@ -278,7 +279,6 @@ export default class Core {
         this.cid = cid;
 
         this.diagnosticsManager = new DiagnosticsManager({
-            core: this,
             preliminaryDiagnostics,
         });
 
@@ -666,8 +666,11 @@ export default class Core {
         return this.diagnosticsManager.addDiagnostic(diagnostic);
     }
 
-    getSourceLocationForComponent(component: any): any {
-        return this.diagnosticsManager.getSourceLocationForComponent(component);
+    getSourceLocationForComponent(component: any): {
+        position: any;
+        sourceDoc: number | undefined;
+    } {
+        return getSourceLocationForComponent(component, this._components);
     }
 
     // → componentBuilder

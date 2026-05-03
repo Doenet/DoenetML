@@ -1,6 +1,7 @@
 import {
     serializedComponentsReplacer,
     data_format_version,
+    type TimerHandle,
 } from "@doenet/utils";
 import { set as idb_set } from "idb-keyval";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
@@ -21,8 +22,8 @@ import type Core from "./Core";
  */
 export class StatePersistence {
     core: Core;
-    saveStateToDBTimerId: ReturnType<typeof setTimeout> | null;
-    saveDocStateTimeoutID: ReturnType<typeof setTimeout> | null;
+    saveStateToDBTimerId: TimerHandle;
+    saveDocStateTimeoutID: TimerHandle;
     docStateToBeSavedToDatabase: any;
     changesToBeSaved: boolean;
 

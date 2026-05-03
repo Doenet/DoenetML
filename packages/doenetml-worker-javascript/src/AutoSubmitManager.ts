@@ -1,5 +1,6 @@
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
 import type Core from "./Core";
+import type { TimerHandle } from "@doenet/utils";
 
 /**
  * Owns the debounced auto-submit-answer queue. When state changes record an
@@ -11,7 +12,7 @@ import type Core from "./Core";
 export class AutoSubmitManager {
     core: Core;
     answersToSubmit: number[];
-    submitAnswersTimeout: ReturnType<typeof setTimeout> | null;
+    submitAnswersTimeout: TimerHandle;
 
     constructor({ core }: { core: Core }) {
         this.core = core;

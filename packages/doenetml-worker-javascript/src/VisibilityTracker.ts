@@ -1,4 +1,5 @@
 import type Core from "./Core";
+import type { TimerHandle } from "@doenet/utils";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
 
 type VisibilityInfo = {
@@ -6,9 +7,9 @@ type VisibilityInfo = {
     infoToSend: Record<string, number>;
     timeLastSent: Date;
     saveDelay: number;
-    saveTimerId: ReturnType<typeof setTimeout> | null;
+    saveTimerId: TimerHandle;
     suspendDelay: number;
-    suspendTimerId: ReturnType<typeof setTimeout> | null;
+    suspendTimerId: TimerHandle;
     suspended: boolean;
     documentHasBeenVisible: boolean;
 };
