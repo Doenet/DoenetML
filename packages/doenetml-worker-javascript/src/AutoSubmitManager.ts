@@ -1,3 +1,5 @@
+import { reportTimerError } from "./utils/timerErrors";
+
 /**
  * Owns the debounced auto-submit-answer queue. When state changes record an
  * answer that should be submitted, the manager batches them and dispatches
@@ -27,7 +29,8 @@ export class AutoSubmitManager {
 
         //Debounce the submit answers
         this.submitAnswersTimeout = setTimeout(() => {
-            this.submitNow();
+            this.submitAnswersTimeout = null;
+            this.submitNow().catch(reportTimerError("auto-submit answers"));
         }, 1000);
     }
 

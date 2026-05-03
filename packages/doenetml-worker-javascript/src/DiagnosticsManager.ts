@@ -1,26 +1,14 @@
-type DiagnosticType = "error" | "warning" | "info" | "accessibility";
-type DiagnosticLevel = 1 | 2;
+import {
+    AccessibilityRecord,
+    DiagnosticRecord,
+    InfoRecord,
+    WarningRecord,
+} from "@doenet/utils";
 
-type DiagnosticInput = {
-    type: DiagnosticType;
-    level?: DiagnosticLevel;
-    message: string;
-    position?: any;
-    sourceDoc?: number;
-};
-
-type DiagnosticRecord = {
-    type: DiagnosticType;
-    level?: DiagnosticLevel;
-    message: string;
-    position?: any;
-    sourceDoc?: number;
-};
-
-type AssertableDiagnostic = {
-    type: DiagnosticType;
-    level?: DiagnosticLevel;
-};
+type NonErrorDiagnosticRecord =
+    | WarningRecord
+    | InfoRecord
+    | AccessibilityRecord;
 
 /**
  * Owns the diagnostics queue (errors, warnings, info, accessibility) for a Core
@@ -39,41 +27,43 @@ export class DiagnosticsManager {
         preliminaryDiagnostics,
     }: {
         core: any;
-        preliminaryDiagnostics: DiagnosticInput[];
+        preliminaryDiagnostics: DiagnosticRecord[];
     }) {
         this.core = core;
 
-        this.diagnostics = preliminaryDiagnostics
-            // Note: we ignore preliminary errors, as we'll gather those from the dast when processing it.
-            .filter((diagnostic) => diagnostic.type !== "error")
-            .map((diagnostic) => {
+        // Preliminary diagnostics seed the queue at construction. We skip the
+        // dedup pass here — it would be O(n²) and these come from a single
+        // upstream pass that has already produced unique entries. Errors are
+        // ignored here; we'll gather those from the dast when processing it.
+        this.diagnostics = preliminaryDiagnostics.filter(
+            (diagnostic): diagnostic is NonErrorDiagnosticRecord => {
+                if (diagnostic.type === "error") {
+                    return false;
+                }
                 this.assertDiagnosticIsValid(diagnostic);
-
-                return {
-                    type: diagnostic.type,
-                    ...(diagnostic.type === "accessibility"
-                        ? { level: diagnostic.level }
-                        : {}),
-                    message: diagnostic.message,
-                    position: diagnostic.position,
-                    sourceDoc: diagnostic.sourceDoc,
-                };
-            });
+                return true;
+            },
+        );
 
         this.hasPendingDiagnostics = true;
     }
 
     /**
+     * Mark the queue as having pending diagnostics without adding a record.
+     * Used by Core's error-component path, where the diagnostic itself is
+     * synthesized later by `convertToErrorComponent`.
+     */
+    markPending(): void {
+        this.hasPendingDiagnostics = true;
+    }
+
+    /**
      * Get pending diagnostics and reset the pending flag.
-     * Automatically trims the diagnostics array to prevent unbounded memory growth.
      *
-     * @returns Object containing the current diagnostics array
-     * @note Diagnostics older than the 1000 most recent are discarded to manage memory
+     * Caps the diagnostics array at the most recent {@link MAX_DIAGNOSTICS}
+     * entries so a long session with many warnings can't grow it unboundedly.
      */
     getDiagnostics(): { diagnostics: DiagnosticRecord[] } {
-        // Keep only the last 1000 diagnostics to avoid unbounded memory growth.
-        // Once the limit is exceeded, older diagnostics are discarded.
-        // This ensures the codebase doesn't accumulate large numbers of stale messages.
         const MAX_DIAGNOSTICS = 1000;
         this.diagnostics = this.diagnostics.slice(-MAX_DIAGNOSTICS);
 
@@ -82,7 +72,13 @@ export class DiagnosticsManager {
         return { diagnostics: this.diagnostics };
     }
 
-    assertDiagnosticIsValid({ type, level }: AssertableDiagnostic): void {
+    assertDiagnosticIsValid({
+        type,
+        level,
+    }: {
+        type: DiagnosticRecord["type"];
+        level?: number;
+    }): void {
         if (!["error", "warning", "info", "accessibility"].includes(type)) {
             throw Error("Invalid diagnostic type");
         }
@@ -102,15 +98,12 @@ export class DiagnosticsManager {
      * Add a diagnostic record to `this.diagnostics`, deduplicating by
      * type + message + source location.
      *
-     * @returns `true` if a new entry was added, `false` if deduped.
+     * Returns `true` if a new entry was added, `false` if it was deduped.
+     * Core's initial-add phase inspects this so it can re-throw deduped errors
+     * via the existing rethrow path (see `Core.js` near the
+     * `result.sendDiagnostics` loop).
      */
-    addDiagnostic({
-        type,
-        level,
-        message,
-        position,
-        sourceDoc,
-    }: DiagnosticInput): boolean {
+    addDiagnostic(diagnostic: DiagnosticRecord): boolean {
         const sameLocation = (pointA: any, pointB: any) =>
             (pointA?.offset ?? undefined) === (pointB?.offset ?? undefined) &&
             (pointA?.line ?? undefined) === (pointB?.line ?? undefined) &&
@@ -127,30 +120,31 @@ export class DiagnosticsManager {
             );
         };
 
-        this.assertDiagnosticIsValid({ type, level });
+        this.assertDiagnosticIsValid(diagnostic);
 
-        const alreadyHaveDiagnostic = this.diagnostics.some(
-            (diagnostic) =>
-                diagnostic.type === type &&
-                (type === "accessibility"
-                    ? diagnostic.level === level
-                    : true) &&
-                diagnostic.message === message &&
-                diagnostic.sourceDoc === sourceDoc &&
-                haveSamePosition(diagnostic.position, position),
-        );
+        const alreadyHaveDiagnostic = this.diagnostics.some((existing) => {
+            if (existing.type !== diagnostic.type) {
+                return false;
+            }
+            if (
+                diagnostic.type === "accessibility" &&
+                existing.type === "accessibility" &&
+                existing.level !== diagnostic.level
+            ) {
+                return false;
+            }
+            return (
+                existing.message === diagnostic.message &&
+                existing.sourceDoc === diagnostic.sourceDoc &&
+                haveSamePosition(existing.position, diagnostic.position)
+            );
+        });
 
         if (alreadyHaveDiagnostic) {
             return false;
         }
 
-        this.diagnostics.push({
-            type,
-            ...(type === "accessibility" ? { level } : {}),
-            message,
-            position,
-            sourceDoc,
-        });
+        this.diagnostics.push(diagnostic);
 
         this.hasPendingDiagnostics = true;
         return true;

@@ -1,4 +1,5 @@
 import { assignDoenetMLRange } from "@doenet/utils";
+import { FlatFragment } from "@doenet/doenetml-worker";
 import {
     addNodesToFlatFragment,
     getEffectiveComponentIdx,
@@ -71,12 +72,16 @@ export class ResolverAdapter {
             // then add that as the `parentSourceSequence` of the flat fragment
             let sourceSequence =
                 serializedReplacements[0]?.attributes["source:sequence"];
-            if (sourceSequence) {
+            const createComponentIdxPrimitive =
+                component.attributes.createComponentIdx?.primitive;
+            if (
+                sourceSequence &&
+                createComponentIdxPrimitive?.type === "number"
+            ) {
                 parentSourceSequence = {
                     type: "attribute",
                     name: "source:sequence",
-                    parent: component.attributes.createComponentIdx.primitive
-                        .number,
+                    parent: createComponentIdxPrimitive.value,
                     children: sourceSequence.children.filter(
                         (child: any) => typeof child === "string",
                     ),
@@ -88,7 +93,8 @@ export class ResolverAdapter {
         }
 
         // We add all the parent's descendants to the resolver
-        const flatFragment = {
+        const flatFragment: FlatFragment = {
+            type: "flatFragment",
             children: fragmentChildren.map((child) =>
                 typeof child === "string"
                     ? child
@@ -361,7 +367,8 @@ export class ResolverAdapter {
     }
 
     addComponentsToResolver(components: any[], parentIdx: number): void {
-        const flatFragment = {
+        const flatFragment: FlatFragment = {
+            type: "flatFragment",
             children: components.map((child) =>
                 typeof child === "string"
                     ? child
@@ -369,6 +376,7 @@ export class ResolverAdapter {
             ),
             nodes: [],
             parentIdx,
+            parentSourceSequence: null,
             idxMap: {},
         };
 
@@ -394,8 +402,8 @@ export class ResolverAdapter {
     }: {
         components: any;
         diagnostics: any[];
-        position?: any;
-        sourceDoc?: number;
+        position: any;
+        sourceDoc: number;
         overwriteDoenetMLRange?: boolean;
     }): void {
         assignDoenetMLRange(

@@ -1,3 +1,5 @@
+import { reportTimerError } from "./utils/timerErrors";
+
 type VisibilityInfo = {
     componentsCurrentlyVisible: Record<string, Date>;
     infoToSend: Record<string, number>;
@@ -139,10 +141,11 @@ export class VisibilityTracker {
             if (this.info.saveTimerId !== null) {
                 clearTimeout(this.info.saveTimerId);
             }
-            this.info.saveTimerId = setTimeout(
-                () => this.sendVisibilityChangedEvents(),
-                this.info.saveDelay,
-            );
+            this.info.saveTimerId = setTimeout(() => {
+                this.sendVisibilityChangedEvents()?.catch(
+                    reportTimerError("visibility periodic send"),
+                );
+            }, this.info.saveDelay);
         }
 
         return promise;
@@ -169,18 +172,20 @@ export class VisibilityTracker {
             if (this.info.saveTimerId !== null) {
                 clearTimeout(this.info.saveTimerId);
             }
-            this.info.saveTimerId = setTimeout(
-                () => this.sendVisibilityChangedEvents(),
-                this.info.saveDelay,
-            );
+            this.info.saveTimerId = setTimeout(() => {
+                this.sendVisibilityChangedEvents()?.catch(
+                    reportTimerError("visibility resume send"),
+                );
+            }, this.info.saveDelay);
         }
 
         if (this.info.suspendTimerId !== null) {
             clearTimeout(this.info.suspendTimerId);
         }
-        this.info.suspendTimerId = setTimeout(
-            () => this.suspendVisibilityMeasuring(),
-            this.info.suspendDelay,
-        );
+        this.info.suspendTimerId = setTimeout(() => {
+            this.suspendVisibilityMeasuring().catch(
+                reportTimerError("visibility auto-suspend"),
+            );
+        }, this.info.suspendDelay);
     }
 }

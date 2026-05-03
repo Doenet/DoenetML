@@ -66,7 +66,7 @@ export function findCaseInsensitiveMatches({
                 lowerCaseVarName.substring(0, prefix.length) ===
                 prefix.toLowerCase()
             ) {
-                // TODO: the varEnding is still a case-senstitive match
+                // TODO: the varEnding is still a case-sensitive match
                 // Should we require that getArrayKeysFromVarName have
                 // a case-insensitive mode?
                 let arrayVariableName =
@@ -247,7 +247,7 @@ export function checkIfArrayEntry({
           arrayEntryPrefix: string;
       }
     | { isArrayEntry: false } {
-    // check if stateVariable begins when an arrayEntry
+    // check if stateVariable begins with an array entry
     for (let arrayEntryPrefix in component.arrayEntryPrefixes) {
         if (
             stateVariable.substring(0, arrayEntryPrefix.length) ===
