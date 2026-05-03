@@ -132,11 +132,11 @@ export class StateVariableEvaluator {
             result = stateVarObj.definition(definitionArgs);
         }
 
-        let receivedValue = {
+        let receivedValue: Record<string, boolean> = {
             [stateVariable]: false,
         };
 
-        let valuesChanged = {};
+        let valuesChanged: Record<string, any> = {};
 
         if (additionalStateVariablesDefined) {
             for (let otherVar of additionalStateVariablesDefined) {
@@ -204,7 +204,7 @@ export class StateVariableEvaluator {
                     valuesChanged[varName] = { arrayKeysChanged: {} };
                 }
 
-                let checkForActualChange = {};
+                let checkForActualChange: Record<string, any> = {};
                 if (
                     result.checkForActualChange &&
                     result.checkForActualChange[varName]
@@ -351,7 +351,7 @@ export class StateVariableEvaluator {
                     valuesChanged[varName] = { arrayKeysChanged: {} };
                 }
 
-                let checkForActualChange = {};
+                let checkForActualChange: Record<string, any> = {};
                 if (
                     result.checkForActualChange &&
                     result.checkForActualChange[varName]
@@ -523,7 +523,7 @@ export class StateVariableEvaluator {
                 }
             }
 
-            if (Array.isArray()) {
+            if (Array.isArray(result.markAsUsedDefault[varName])) {
                 for (let arrayKey in result.markAsUsedDefault[varName]) {
                     component.state[varName].usedDefaultByArrayKey[arrayKey] =
                         Boolean(result.markAsUsedDefault[varName][arrayKey]);
@@ -571,7 +571,7 @@ export class StateVariableEvaluator {
                     Object.getOwnPropertyDescriptor(
                         component.state[varName],
                         "value",
-                    ).get ||
+                    )?.get ||
                     component.state[varName].immutable
                 ) {
                     // have getter, so state variable was marked as stale
@@ -868,7 +868,7 @@ export class StateVariableEvaluator {
                 if (
                     valuesChanged[varName] === true ||
                     valuesChanged[varName].allArrayKeysChanged ||
-                    valuesChanged.arraySizeChanged
+                    valuesChanged[varName].arraySizeChanged
                 ) {
                     if (component.state[varName].arrayEntryNames) {
                         arrayVarNamesChanged =
@@ -956,7 +956,7 @@ export class StateVariableEvaluator {
                 );
             }
             if (stateVarObj.providePreviousValuesInDefinition) {
-                let previousValues = {};
+                let previousValues: Record<string, any> = {};
                 for (let varName of allStateVariablesDefined) {
                     if (component.state[varName].isArrayEntry) {
                         varName = component.state[varName].arrayStateVariable;
@@ -968,7 +968,7 @@ export class StateVariableEvaluator {
                 args.previousValues = previousValues;
             }
             if (stateVarObj.provideEssentialValuesInDefinition) {
-                let essentialValues = {};
+                let essentialValues: Record<string, any> = {};
                 for (let varName of allStateVariablesDefined) {
                     if (component.state[varName].isArrayEntry) {
                         varName = component.state[varName].arrayStateVariable;

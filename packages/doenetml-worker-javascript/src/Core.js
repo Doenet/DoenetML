@@ -1060,9 +1060,24 @@ export default class Core {
         return this.updateExecutor.performUpdate(args);
     }
 
+    // → actionTriggerScheduler (cont.)
+
     async triggerChainedActions(args) {
         return this.actionTriggerScheduler.triggerChainedActions(args);
     }
+
+    // → processQueueManager (cont.)
+
+    async requestUpdate(args) {
+        return this.processQueueManager.requestUpdate(args);
+    }
+
+    requestRecordEvent(event) {
+        return this.processQueueManager.requestRecordEvent(event);
+    }
+
+    // → rendererInstructionBuilder (cont.) — `updateRenderers` is the
+    // public entry point that wraps `updateAllChangedRenderers`.
 
     async updateRenderers({
         actionId,
@@ -1074,10 +1089,6 @@ export default class Core {
         }
     }
 
-    async requestUpdate(args) {
-        return this.processQueueManager.requestUpdate(args);
-    }
-
     async updateAllChangedRenderers(sourceInformation = {}, actionId) {
         return this.rendererInstructionBuilder.updateAllChangedRenderers(
             sourceInformation,
@@ -1085,9 +1096,8 @@ export default class Core {
         );
     }
 
-    requestRecordEvent(event) {
-        return this.processQueueManager.requestRecordEvent(event);
-    }
+    // event emission — assembles the event payload and dispatches it
+    // through the host-provided `sendEvent`.
 
     async performRecordEvent({ event }) {
         if (!this.flags.allowSaveEvents) {

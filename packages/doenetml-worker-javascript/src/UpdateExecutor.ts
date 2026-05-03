@@ -1,5 +1,6 @@
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { createNewComponentIndices } from "./utils/componentIndices";
+import { reportTimerError } from "./utils/timerErrors";
 
 /**
  * The orchestrators dequeued by `ProcessQueue`:
@@ -164,10 +165,16 @@ export class UpdateExecutor {
             return;
         }
 
-        let newStateVariableValues = {};
-        let newStateVariableValuesProcessed = [];
+        // Keyed by component-index string (the form `for...in` yields); the
+        // inner record is keyed by state-variable name. Indices are coerced
+        // to `Number` only when looking up the components array.
+        let newStateVariableValues: Record<string, Record<string, any>> = {};
+        let newStateVariableValuesProcessed: Record<
+            string,
+            Record<string, any>
+        >[] = [];
         let workspace = {};
-        let recordComponentSubmissions = [];
+        let recordComponentSubmissions: any[] = [];
 
         for (let instruction of updateInstructions) {
             if (instruction.componentIdx != undefined) {
@@ -360,12 +367,12 @@ export class UpdateExecutor {
             // merge in new state variables set in update
             for (let newValuesProcessed of newStateVariableValuesProcessed) {
                 for (const componentIdxStr in newValuesProcessed) {
-                    const componentIdx = Number(componentIdxStr);
-                    const stateId = this.core._components[componentIdx].stateId;
+                    const stateId =
+                        this.core._components[Number(componentIdxStr)].stateId;
                     if (!this.core.cumulativeStateVariableChanges[stateId]) {
                         this.core.cumulativeStateVariableChanges[stateId] = {};
                     }
-                    for (let varName in newValuesProcessed[componentIdx]) {
+                    for (let varName in newValuesProcessed[componentIdxStr]) {
                         let cumValues =
                             this.core.cumulativeStateVariableChanges[stateId][
                                 varName
@@ -380,14 +387,16 @@ export class UpdateExecutor {
                             Object.assign(
                                 cumValues,
                                 removeFunctionsMathExpressionClass(
-                                    newValuesProcessed[componentIdx][varName],
+                                    newValuesProcessed[componentIdxStr][
+                                        varName
+                                    ],
                                 ),
                             );
                         } else {
                             this.core.cumulativeStateVariableChanges[stateId][
                                 varName
                             ] = removeFunctionsMathExpressionClass(
-                                newValuesProcessed[componentIdx][varName],
+                                newValuesProcessed[componentIdxStr][varName],
                             );
                         }
                     }
@@ -395,12 +404,14 @@ export class UpdateExecutor {
             }
         }
 
-        let alreadySaved = false;
         if (recordComponentSubmissions.length > 0) {
-            this.core.saveState(true, true);
-            alreadySaved = true;
-        }
-        if (!alreadySaved && !doNotSave) {
+            // Fire-and-forget: a submission save runs in parallel with the
+            // rest of `performUpdate`; failures are logged but must not
+            // block the caller.
+            this.core
+                .saveState(true, true)
+                .catch(reportTimerError("submission saveState"));
+        } else if (!doNotSave) {
             //Debounce the save to localstorage and then to DB with a throttle
             this.core.statePersistence.scheduleSave(1000);
         }

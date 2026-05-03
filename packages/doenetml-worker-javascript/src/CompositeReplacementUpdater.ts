@@ -36,8 +36,8 @@ export class CompositeReplacementUpdater {
     }) {
         // console.log("updateCompositeReplacements " + component.componentIdx);
 
-        let deletedComponents = {};
-        let addedComponents = {};
+        let deletedComponents: Record<string, any> = {};
+        let addedComponents: Record<string, any> = {};
         let parentsOfDeleted = new Set();
 
         if (
@@ -268,7 +268,7 @@ export class CompositeReplacementUpdater {
                         });
 
                     newComponents = createResult.components;
-                } catch (e) {
+                } catch (e: any) {
                     console.error(e);
                     // throw e;
                     newComponents = await this.setErrorReplacements({
@@ -550,7 +550,7 @@ export class CompositeReplacementUpdater {
         addedComponents,
         processNewChildren = true,
     }) {
-        let compositesDeletedFrom = [];
+        let compositesDeletedFrom: any[] = [];
 
         if (!composite.isExpanded) {
             return compositesDeletedFrom;
@@ -661,7 +661,7 @@ export class CompositeReplacementUpdater {
                     this.core.updateInfo.componentsToUpdateRenderers.add(cIdx),
                 );
             }
-            let deletedNamesByParent = {};
+            let deletedNamesByParent: Record<string, any[]> = {};
             for (let compName in deleteResults.deletedComponents) {
                 let comp = deleteResults.deletedComponents[compName];
                 let par = comp.parentIdx;
@@ -710,7 +710,7 @@ export class CompositeReplacementUpdater {
                     this.core.updateInfo.componentsToUpdateRenderers.add(cIdx),
                 );
             }
-            let deletedNamesByParent = {};
+            let deletedNamesByParent: Record<string, any[]> = {};
             for (let compName in deleteResults.deletedComponents) {
                 let comp = deleteResults.deletedComponents[compName];
                 let par = comp.parentIdx;
@@ -796,7 +796,7 @@ export class CompositeReplacementUpdater {
             componentToShadow.componentIdx,
         );
 
-        let newComponentsForShadows = {};
+        let newComponentsForShadows: Record<string, any> = {};
 
         for (let shadowingComponent of componentToShadow.shadowedBy) {
             if (
@@ -962,7 +962,7 @@ export class CompositeReplacementUpdater {
                         },
                     );
                     newComponents = createResult.components;
-                } catch (e) {
+                } catch (e: any) {
                     console.error(e);
                     // throw e;
                     newComponents = await this.setErrorReplacements({
@@ -1049,7 +1049,7 @@ export class CompositeReplacementUpdater {
         componentChanges,
         adjustResolver = false,
     }) {
-        let compositesWithAdjustedReplacements = [];
+        let compositesWithAdjustedReplacements: any[] = [];
 
         let replacementsToWithhold = change.replacementsToWithhold;
 
@@ -1093,7 +1093,7 @@ export class CompositeReplacementUpdater {
                 firstIndToStartWithholding,
                 lastIndToStartWithholding,
             );
-            let withheldNamesByParent = {};
+            let withheldNamesByParent: Record<string, any[]> = {};
             for (let comp of withheldReplacements) {
                 let par = comp.parentIdx;
                 if (withheldNamesByParent[par] === undefined) {
@@ -1205,7 +1205,7 @@ function calculateAllComponentsShadowing(component: any): number[] {
     if (component.shadowedBy) {
         for (let comp2 of component.shadowedBy) {
             if (
-                !comp2.shadows.propVariable &
+                !comp2.shadows.propVariable &&
                 !comp2.constructor.doNotExpandAsShadowed
             ) {
                 allShadowing.push(comp2.componentIdx);

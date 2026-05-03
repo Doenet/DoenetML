@@ -107,7 +107,6 @@ export class StalenessPropagator {
                             component,
                             stateVariable,
                             allStateVariablesAffected,
-                            core: this,
                         },
                     );
 
@@ -187,8 +186,8 @@ export class StalenessPropagator {
             // a state variable was fresh.
             if (
                 !(
-                    Object.getOwnPropertyDescriptor(stateVarObj, "value").get ||
-                    stateVarObj.immutable
+                    Object.getOwnPropertyDescriptor(stateVarObj, "value")
+                        ?.get || stateVarObj.immutable
                 )
             ) {
                 previouslyFreshVars.push(vName);
@@ -214,7 +213,7 @@ export class StalenessPropagator {
             previouslyEffectivelyFresh.length > 0 ||
             sumPreviouslyPartiallyFresh > 0;
 
-        let varsChanged = {};
+        let varsChanged: Record<string, boolean> = {};
         for (let vName in allStateVariablesAffectedObj) {
             varsChanged[vName] = true;
         }
@@ -388,7 +387,7 @@ export class StalenessPropagator {
             arraySize = arraySizeStateVar._previousValue;
             let varWasFresh = !(
                 Object.getOwnPropertyDescriptor(arraySizeStateVar, "value")
-                    .get || arraySizeStateVar.immutable
+                    ?.get || arraySizeStateVar.immutable
             );
             if (varWasFresh) {
                 arraySize = await arraySizeStateVar.value;
@@ -464,14 +463,14 @@ export class StalenessPropagator {
         let stateVarObj = component.state[varName];
 
         if (!stateVarObj.markStale || !stateVarObj.initiallyResolved) {
-            let fresh = {};
+            let fresh: Record<string, boolean> = {};
             Object.keys(allStateVariablesAffectedObj).forEach(
                 (x) => (fresh[x] = false),
             );
             return { fresh };
         }
 
-        let changes = {};
+        let changes: Record<string, any> = {};
         let downDeps =
             this.core.dependencies.downstreamDependencies[
                 component.componentIdx
@@ -479,7 +478,7 @@ export class StalenessPropagator {
 
         for (let dependencyName in downDeps) {
             let dep = downDeps[dependencyName];
-            let depChanges = {};
+            let depChanges: Record<string, any> = {};
             let foundDepChange = false;
             if (dep.componentIdentityChanged) {
                 depChanges.componentIdentityChanged = true;
@@ -519,7 +518,7 @@ export class StalenessPropagator {
             arraySize = arraySizeStateVar._previousValue;
             let varWasFresh = !(
                 Object.getOwnPropertyDescriptor(arraySizeStateVar, "value")
-                    .get || arraySizeStateVar.immutable
+                    ?.get || arraySizeStateVar.immutable
             );
             if (varWasFresh) {
                 arraySize = await arraySizeStateVar.value;
@@ -705,7 +704,7 @@ export class StalenessPropagator {
                         this.core._components[upDep.upstreamComponentIdx];
                     // let upVar = upDepComponent.state[upVarName];
 
-                    let allStateVariablesAffectedObj = {};
+                    let allStateVariablesAffectedObj: Record<string, any> = {};
                     upDep.upstreamVariableNames.forEach(
                         (x) =>
                             (allStateVariablesAffectedObj[x] =
@@ -731,7 +730,7 @@ export class StalenessPropagator {
                                 Object.getOwnPropertyDescriptor(
                                     stateVarObj,
                                     "value",
-                                ).get || stateVarObj.immutable
+                                )?.get || stateVarObj.immutable
                             )
                         ) {
                             previouslyFreshVars.push(vName);
@@ -757,7 +756,7 @@ export class StalenessPropagator {
                         previouslyEffectivelyFresh.length > 0 ||
                         sumPreviouslyPartiallyFresh > 0;
 
-                    let varsChanged = {};
+                    let varsChanged: Record<string, boolean> = {};
                     for (let vName in allStateVariablesAffectedObj) {
                         varsChanged[vName] = true;
                     }
@@ -933,9 +932,4 @@ export class StalenessPropagator {
     //     }
     //   }
     // }
-
-    // Component-tree bookkeeping (registration, ancestors, defining-child
-    // splicing, propagation to shadows) lives in `this.core.componentLifecycle`
-    // (see ComponentLifecycle.ts). The methods below preserve the public
-    // surface by delegating through.
 }

@@ -17,10 +17,13 @@ import { preprocessMathInverseDefinition } from "./utils/math";
  *  - `replacementChangesFromCompositesToUpdate` is the queued flush of
  *    composites whose replacements need recomputing after a value moved
  *
- * Owns the primary writes to `cumulativeStateVariableChanges`,
- * `essentialValuesSavedInDefinition`, and
- * `updateInfo.deletedStateVariables`. Holds a back-reference to Core for
- * the rest of the hot state and the other extracted managers.
+ * Writes directly to `comp.essentialState[*]`, `compStateObj.usedDefault`
+ * / `usedDefaultByArrayKey`, `parent.definingChildren[*]`, and
+ * `updateInfo.stateVariableUpdatesForMissingComponents`. Reads (but does
+ * not own) `cumulativeStateVariableChanges` (written by `UpdateExecutor`
+ * and `DeletionEngine`) and `essentialValuesSavedInDefinition` (written
+ * by `StateVariableEvaluator`). Holds a back-reference to Core for the
+ * rest of the hot state and the other extracted managers.
  *
  * Note: this is the essential-write engine. The save-to-localStorage /
  * database I/O it triggers lives in `StatePersistence`, instantiated
@@ -84,7 +87,7 @@ export class EssentialValueWriter {
 
         let updatedComposites = false;
 
-        let componentChanges = []; // TODO: what to do with componentChanges?
+        let componentChanges: any[] = []; // TODO: what to do with componentChanges?
         while (compositesToUpdateReplacements.length > 0) {
             for (let cIdx of compositesToUpdateReplacements) {
                 let composite = this.core._components[cIdx];
@@ -449,7 +452,7 @@ export class EssentialValueWriter {
             let arrayStateVariable = stateVarObj.arrayStateVariable;
             stateVariableForWorkspace = arrayStateVariable;
 
-            let desiredValuesForArray = {};
+            let desiredValuesForArray: Record<string, any> = {};
             if (inverseDefinitionArgs.arrayKeys.length === 1) {
                 if ("value" in instruction) {
                     desiredValuesForArray[inverseDefinitionArgs.arrayKeys[0]] =
@@ -650,9 +653,9 @@ export class EssentialValueWriter {
         // console.log("inverseResult");
         // console.log(inverseResult);
 
-        let combinedInstructions = [];
+        let combinedInstructions: any[] = [];
 
-        let arrayInstructionInProgress;
+        let arrayInstructionInProgress: any;
 
         for (let newInstruction of inverseResult.instructions) {
             let foundArrayInstruction = false;
@@ -807,11 +810,15 @@ export class EssentialValueWriter {
                                     // to an object with multidimesional arrayKeys
                                     // where each array key is a concatenation of the array indices, joined by commas
 
-                                    let convert_md_array = (array, n_dim) => {
+                                    let convert_md_array = (
+                                        array: any,
+                                        n_dim: number,
+                                    ): Record<string, any> => {
                                         if (n_dim === 1) {
                                             return Object.assign({}, array);
                                         } else {
-                                            let new_obj = {};
+                                            let new_obj: Record<string, any> =
+                                                {};
                                             for (let ind in array) {
                                                 let sub_obj = convert_md_array(
                                                     array[ind],
@@ -1029,15 +1036,8 @@ export class EssentialValueWriter {
                                             activeChildInd &&
                                         compositeObj.lastInd >= activeChildInd
                                     ) {
-                                        console.log(
-                                            `parent: ${parent.componentIdx}, activeChildInd: ${activeChildInd}`,
-                                        );
-                                        console.log(
-                                            parent.compositeReplacementActiveRange,
-                                        );
-                                        console.log(newInstruction);
                                         throw Error(
-                                            "Need to implement changing primitive replacements from composite",
+                                            `Need to implement changing primitive replacements from composite (parent ${parent.componentIdx}, activeChildInd ${activeChildInd})`,
                                         );
                                     }
                                 }
@@ -1167,7 +1167,7 @@ export class EssentialValueWriter {
                     let dVarName =
                         dep.mappedDownstreamVariableNamesByComponent[0][0];
 
-                    let inst = {
+                    let inst: any = {
                         componentIdx: dComponentIdx,
                         stateVariable: dVarName,
                         value: newInstruction.desiredValue,
@@ -1362,9 +1362,4 @@ export class EssentialValueWriter {
             }
         }
     }
-
-    // State persistence (save to localStorage / database) lives in
-    // `this.core.statePersistence` (see StatePersistence.ts). The methods below
-    // preserve the public surface (`core.saveImmediately`, `core.saveState`,
-    // `core.saveChangesToDatabase`) by delegating through.
 }
