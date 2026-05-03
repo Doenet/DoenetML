@@ -1,14 +1,12 @@
 # Core.js refactor — deferred findings
 
-These items came out of the PR review for `core-refactor-1` (Phase 1: extracting helpers from `packages/doenetml-worker-javascript/src/Core.js`). They were intentionally out of scope for that PR but are good candidates for the next refactor pass.
-
-The implementation in this branch covers the in-scope items from the PR review.
+These items came out of the PR reviews for the multi-phase refactor (`core-refactor-1`, `core-refactor-2`, …) extracting helpers from `packages/doenetml-worker-javascript/src/Core.js`. They were intentionally out of scope for those PRs but are good candidates for a follow-up pass.
 
 ## Deferred items
 
 ### Type the `core: any` back-reference in extracted managers
 
-Every new manager (`DiagnosticsManager`, `VisibilityTracker`, `StatePersistence`, `AutoSubmitManager`, `NavigationHandler`, `ResolverAdapter`) declares `core: any;`. That defeats the point of converting to TypeScript — typos and accidental property reads through `core` go unchecked.
+Every new manager declares `core: any;` — Phase 1 (`DiagnosticsManager`, `VisibilityTracker`, `StatePersistence`, `AutoSubmitManager`, `NavigationHandler`, `ResolverAdapter`) and Phase 2 (`RendererInstructionBuilder`, `ProcessQueue`, `ComponentLifecycle`, `ChildMatcher`, `DeletionEngine`, `ActionTriggerScheduler`). That defeats the point of converting to TypeScript — typos and accidental property reads through `core` go unchecked.
 
 Since `Core.js` is still JavaScript, defining a real `Core` interface is awkward. Two practical paths:
 
@@ -19,7 +17,12 @@ Since `Core.js` is still JavaScript, defining a real `Core` interface is awkward
 
 ### Reduce stateless managers to plain functions
 
-`NavigationHandler` and `ResolverAdapter` hold no state of their own — only a `core` back-reference. The pure-function shape used in `StateVariableNameResolver.ts` is more honest for these:
+Several managers hold no state of their own — only a `core` back-reference:
+
+- Phase 1: `NavigationHandler`, `ResolverAdapter`
+- Phase 2: `ComponentLifecycle`, `DeletionEngine` (and `ChildMatcher`, modulo its single recursion-guard array)
+
+The pure-function shape used in `StateVariableNameResolver.ts` is more honest for these:
 
 ```ts
 // NavigationHandler.ts
@@ -30,7 +33,7 @@ export async function handleNavigatingToComponent({
 export function navigateToTarget({ core, args }: { core: CoreBackref; args: any }) { ... }
 ```
 
-Core's wrappers shrink by one line each. If we keep the class form for symmetry with the other (genuinely stateful) managers, that's defensible — but the current PR has both shapes coexisting, so the inconsistency is real.
+Core's wrappers shrink by one line each. If we keep the class form for symmetry with the other (genuinely stateful) managers, that's defensible — but the current shape has both forms coexisting, so the inconsistency is real. `ChildMatcher`'s `derivingChildResultsInProgress` array is a small enough piece of state that it could be lifted into a module-level closure or threaded through the call, allowing it to also become a plain-function module.
 
 ### Move `getSourceLocationForComponent` out of `DiagnosticsManager`
 
@@ -69,6 +72,34 @@ Three intentionally unawaited Promise calls remain in `Core.js`. They pre-date t
 - **`Core.js:449-452`** — `setTimeout(this.sendVisibilityChangedEvents.bind(this), this.visibilityInfo.saveDelay)` inside `onDocumentFirstVisible()`. The bound function returns `Promise<void> | undefined`; setTimeout discards the return, so any rejection is unhandled.
 
 Suggested fix in each case: wrap with `.catch(reportTimerError("<label>"))` using the helper added in this PR (`src/utils/timerErrors.ts`). For the setTimeout case, use a thin arrow wrapper: `setTimeout(() => { this.sendVisibilityChangedEvents()?.catch(reportTimerError("first-visible visibility send")); }, ...)`.
+
+Phase 2's `ProcessQueue._kickoff` already attaches a `.catch(console.error)` to its `executeProcesses()` call, but the rest of the codebase still needs a sweep for bare `executeProcesses()` invocations and other unawaited Promises.
+
+### Carried-over `TODO` comments in the new managers
+
+When the Phase 2 modules were extracted, several `TODO` / `XXX` markers were lifted verbatim from `Core.js`. They aren't blockers but represent unanswered design questions that have been deferred for years; tackling them is independent of the refactor itself.
+
+- `ProcessQueue.ts:97, 106` — `// TODO: if skip an update, presumably we should call reject???` Unresolved: skipped queue entries currently never resolve or reject, so callers awaiting them hang.
+- `ProcessQueue.ts` (between the `update` and `action` branches in `executeProcesses`) — commented-out `getStateVariableValues` queue branch. Either revive or delete.
+- `RendererInstructionBuilder.ts:91` — `//TODO: Figure out what we need from here` above the change-detection pass.
+- `RendererInstructionBuilder.ts:253` — `// && !deletedRenderers.includes(componentIdx)  TODO: what if recreate with same name?` — guards re-render of a name that has been deleted and re-created.
+- `RendererInstructionBuilder.ts:275` — `// TODO: need this to ignore baseVariables change: is this right place?` on `rendererType` capture.
+- `ChildMatcher.ts:430, 468` — two `// XXX: how does this work with the new componentIdx approach?` comments on the placeholder-adapter branch.
+
+### `processQueue` field naming inside Core
+
+`Core` stores the `ProcessQueue` instance as `this.processQueueManager` while every other manager is named after its class (`this.componentLifecycle`, `this.childMatcher`, `this.deletionEngine`, `this.actionTriggerScheduler`, `this.rendererInstructionBuilder`, `this.diagnosticsManager`, `this.statePersistence`, etc.). The `Manager` suffix is here because `Core` already exposes `get processQueue() { return this.processQueueManager.queue; }` for the underlying array — and JS doesn't let an instance field shadow an inherited accessor of the same name.
+
+Two cleanups to consider together:
+
+1. Drop the `get/set processQueue` wrappers on `Core` (no current consumers need the array directly — components and CoreWorker only see the four request entry points and the `processing`/`stopProcessingRequests` flags), then rename `processQueueManager` → `processQueue`.
+2. Or leave as-is for the explicit symmetry between "manager class instance" and "the array it owns".
+
+Pick one; the current shape inherits the asymmetry from a half-finished rename.
+
+### Standardize `core._components` vs `core.components` access in extracted managers
+
+`Core` exposes `_components` as the canonical array and `get components()` as a read-only accessor returning the same array. Phase 2's modules now consistently use `core._components` (Phase 1 mostly does too). If future managers are added, keep this convention so reviewers don't have to remember the array and getter are the same thing. The deferred `CoreBackref` interface above is the natural place to enforce it (expose only `_components`).
 
 ### Regression test for the `.primitive.number` → `.primitive.value` fix
 

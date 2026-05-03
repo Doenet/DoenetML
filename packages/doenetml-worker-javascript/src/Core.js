@@ -27,9 +27,15 @@ import {
     unwrapSource,
 } from "./utils/dast/convertNormalizedDast";
 import { DependencyHandler } from "./Dependencies";
+import { ActionTriggerScheduler } from "./ActionTriggerScheduler";
 import { AutoSubmitManager } from "./AutoSubmitManager";
+import { ChildMatcher } from "./ChildMatcher";
+import { ComponentLifecycle } from "./ComponentLifecycle";
+import { DeletionEngine } from "./DeletionEngine";
 import { DiagnosticsManager } from "./DiagnosticsManager";
 import { NavigationHandler } from "./NavigationHandler";
+import { ProcessQueue } from "./ProcessQueue";
+import { RendererInstructionBuilder } from "./RendererInstructionBuilder";
 import { ResolverAdapter } from "./ResolverAdapter";
 import { StatePersistence } from "./StatePersistence";
 import { VisibilityTracker } from "./VisibilityTracker";
@@ -48,8 +54,10 @@ import {
 
 // Several feature areas have been extracted into their own modules
 // (DiagnosticsManager, VisibilityTracker, StatePersistence, AutoSubmitManager,
-// NavigationHandler, ResolverAdapter, and the `nameResolver` namespace). Core
-// retains thin wrapper methods so the public surface — used by CoreWorker,
+// NavigationHandler, ResolverAdapter, RendererInstructionBuilder,
+// ProcessQueue, ComponentLifecycle, ChildMatcher, DeletionEngine,
+// ActionTriggerScheduler, and the `nameResolver` namespace). Core retains
+// thin wrapper methods so the public surface — used by CoreWorker,
 // `coreFunctions`-bound references, components, and tests — keeps working.
 // Each delegating block is grouped near its original location and tagged with
 // a `// → managerName` marker; see the corresponding module for details.
@@ -198,6 +206,16 @@ export default class Core {
         this.autoSubmitManager = new AutoSubmitManager({ core: this });
         this.navigationHandler = new NavigationHandler({ core: this });
         this.resolverAdapter = new ResolverAdapter({ core: this });
+        this.rendererInstructionBuilder = new RendererInstructionBuilder({
+            core: this,
+        });
+        this.processQueueManager = new ProcessQueue({ core: this });
+        this.componentLifecycle = new ComponentLifecycle({ core: this });
+        this.childMatcher = new ChildMatcher({ core: this });
+        this.deletionEngine = new DeletionEngine({ core: this });
+        this.actionTriggerScheduler = new ActionTriggerScheduler({
+            core: this,
+        });
 
         // console.time('serialize doenetML');
 
@@ -238,20 +256,20 @@ export default class Core {
         this._components = [];
         this.componentIdxByStateId = {};
         this._components[this.nComponentsInit - 1] = undefined;
-        this.componentsToRender = {};
-        this.componentsWithChangedChildrenToRender = new Set([]);
         this.errorComponentsToAdd = [];
 
-        this.stateVariableChangeTriggers = {};
-        this.actionsChangedToActions = {};
-        this.originsOfActionsChangedToActions = {};
+        // Reset action-trigger registries managed by `this.actionTriggerScheduler`
+        // (see ActionTriggerScheduler.ts) so a previous run does not leak in.
+        this.actionTriggerScheduler.reset();
 
         this.essentialValuesSavedInDefinition = {};
 
         this.statePersistence = new StatePersistence({ core: this });
 
-        // rendererState the current state of each renderer, keyed by componentIdx
-        this.rendererState = {};
+        // Reset renderer state managed by `this.rendererInstructionBuilder`
+        // (see RendererInstructionBuilder.ts) so a previous run does not leak
+        // into this document.
+        this.rendererInstructionBuilder.reset();
 
         // rendererVariablesByComponentType is a description
         // of the which variables are sent to the renderers,
@@ -282,9 +300,10 @@ export default class Core {
             );
         }
 
-        this.processQueue = [];
-
-        this.stopProcessingRequests = false;
+        // Reset the process queue managed by `this.processQueueManager`
+        // (see ProcessQueue.ts) so a previous run does not leak into this
+        // document.
+        this.processQueueManager.reset();
 
         this.dependencies = new DependencyHandler({
             _components: this._components,
@@ -452,13 +471,22 @@ export default class Core {
         );
     }
 
-    callUpdateRenderers(args, init = false) {
-        let diagnostics = undefined;
-        if (this.hasPendingDiagnostics) {
-            diagnostics = this.getDiagnostics().diagnostics;
-        }
+    // → rendererInstructionBuilder
+    get componentsToRender() {
+        return this.rendererInstructionBuilder.componentsToRender;
+    }
 
-        this.updateRenderersCallback({ ...args, init, diagnostics });
+    get componentsWithChangedChildrenToRender() {
+        return this.rendererInstructionBuilder
+            .componentsWithChangedChildrenToRender;
+    }
+
+    get rendererState() {
+        return this.rendererInstructionBuilder.rendererState;
+    }
+
+    callUpdateRenderers(args, init = false) {
+        return this.rendererInstructionBuilder.callUpdateRenderers(args, init);
     }
 
     // → diagnosticsManager
@@ -712,463 +740,47 @@ export default class Core {
         return newComponents;
     }
 
-    async updateRendererInstructions({
-        componentNamesToUpdate,
-        sourceOfUpdate = {},
-        actionId,
-    }) {
-        let deletedRenderers = [];
-
-        let updateInstructions = [];
-        let rendererStatesToUpdate = [];
-
-        let newChildrenInstructions = {};
-
-        // copy components with changed children and reset for next time
-        let componentsWithChangedChildrenToRenderInProgress =
-            this.componentsWithChangedChildrenToRender;
-        this.componentsWithChangedChildrenToRender = new Set([]);
-
-        //TODO: Figure out what we need from here
-        for (let componentIdx of componentsWithChangedChildrenToRenderInProgress) {
-            if (componentIdx in this.componentsToRender) {
-                // check to see if current children who render are
-                // different from last time rendered
-
-                let currentChildIdentifiers = [];
-                let unproxiedComponent = this._components[componentIdx];
-                let indicesToRender = [];
-
-                if (
-                    unproxiedComponent &&
-                    unproxiedComponent.constructor.renderChildren
-                ) {
-                    if (!unproxiedComponent.matchedCompositeChildren) {
-                        await this.deriveChildResultsFromDefiningChildren({
-                            parent: unproxiedComponent,
-                            expandComposites: true,
-                            forceExpandComposites: true,
-                        });
-                    }
-
-                    indicesToRender =
-                        await this.returnActiveChildrenIndicesToRender(
-                            unproxiedComponent,
-                        );
-
-                    let renderedInd = 0;
-                    for (let [
-                        ind,
-                        child,
-                    ] of unproxiedComponent.activeChildren.entries()) {
-                        if (indicesToRender.includes(ind)) {
-                            if (child.rendererType) {
-                                currentChildIdentifiers.push(
-                                    `nameType:${child.componentIdx};${child.componentType}`,
-                                );
-                                renderedInd++;
-                            } else if (typeof child === "string") {
-                                currentChildIdentifiers.push(
-                                    `string${renderedInd}:${child}`,
-                                );
-                                renderedInd++;
-                            } else if (typeof child === "number") {
-                                currentChildIdentifiers.push(
-                                    `number${renderedInd}:${child.toString()}`,
-                                );
-                                renderedInd++;
-                            } else {
-                                currentChildIdentifiers.push("");
-                            }
-                        } else {
-                            currentChildIdentifiers.push("");
-                        }
-                    }
-                }
-
-                let previousChildRenderers =
-                    this.componentsToRender[componentIdx].children;
-
-                let previousChildIdentifiers = [];
-                for (let [ind, child] of previousChildRenderers.entries()) {
-                    if (child === null) {
-                        previousChildIdentifiers.push("");
-                    } else if (child.componentIdx != undefined) {
-                        previousChildIdentifiers.push(
-                            `nameType:${child.componentIdx};${child.componentType}`,
-                        );
-                    } else if (typeof child === "string") {
-                        previousChildIdentifiers.push(`string${ind}:${child}`);
-                    } else if (typeof child === "number") {
-                        previousChildIdentifiers.push(
-                            `number${ind}:${child.toString()}`,
-                        );
-                    }
-                }
-
-                if (
-                    currentChildIdentifiers.length !==
-                        previousChildIdentifiers.length ||
-                    currentChildIdentifiers.some(
-                        (v, i) => v !== previousChildIdentifiers[i],
-                    )
-                ) {
-                    // delete old renderers
-                    for (let child of previousChildRenderers) {
-                        if (child?.componentIdx != undefined) {
-                            let deletedNames =
-                                this.deleteFromComponentsToRender({
-                                    componentIdx: child.componentIdx,
-                                    recurseToChildren: true,
-                                    componentsWithChangedChildrenToRenderInProgress,
-                                });
-                            deletedRenderers.push(...deletedNames);
-                        }
-                    }
-
-                    // create new renderers
-                    let childrenToRender = [];
-                    if (indicesToRender.length > 0) {
-                        for (let [
-                            ind,
-                            child,
-                        ] of unproxiedComponent.activeChildren.entries()) {
-                            if (indicesToRender.includes(ind)) {
-                                if (child.rendererType) {
-                                    let results =
-                                        await this.initializeRenderedComponentInstruction(
-                                            child,
-                                            componentsWithChangedChildrenToRenderInProgress,
-                                        );
-                                    childrenToRender.push(
-                                        results.componentToRender,
-                                    );
-                                    rendererStatesToUpdate.push(
-                                        ...results.rendererStatesToUpdate,
-                                    );
-                                } else if (typeof child === "string") {
-                                    childrenToRender.push(child);
-                                } else if (typeof child === "number") {
-                                    childrenToRender.push(child.toString());
-                                } else {
-                                    childrenToRender.push(null);
-                                }
-                            } else {
-                                childrenToRender.push(null);
-                            }
-                        }
-                    }
-
-                    this.componentsToRender[componentIdx].children =
-                        childrenToRender;
-
-                    newChildrenInstructions[componentIdx] = childrenToRender;
-
-                    componentsWithChangedChildrenToRenderInProgress.delete(
-                        componentIdx,
-                    );
-
-                    if (!componentNamesToUpdate.includes(componentIdx)) {
-                        componentNamesToUpdate.push(componentIdx);
-                    }
-                }
-            }
-        }
-
-        for (let componentIdx of componentNamesToUpdate) {
-            if (
-                componentIdx in this.componentsToRender
-                // && !deletedRenderers.includes(componentIdx)  TODO: what if recreate with same name?
-            ) {
-                let component = this._components[componentIdx];
-                if (component) {
-                    let stateValuesForRenderer = {};
-                    for (let stateVariable in component.state) {
-                        if (component.state[stateVariable].forRenderer) {
-                            let value = removeFunctionsMathExpressionClass(
-                                await component.state[stateVariable].value,
-                            );
-                            // if (value !== null && typeof value === 'object') {
-                            //   value = new Proxy(value, readOnlyProxyHandler)
-                            // }
-                            stateValuesForRenderer[stateVariable] = value;
-                        }
-                    }
-
-                    if (component.compositeReplacementActiveRange) {
-                        stateValuesForRenderer._compositeReplacementActiveRange =
-                            component.compositeReplacementActiveRange;
-                    }
-
-                    let newRendererState = {
-                        componentIdx,
-                        stateValues: stateValuesForRenderer,
-                        rendererType: component.rendererType, // TODO: need this to ignore baseVariables change: is this right place?
-                    };
-
-                    // this.renderState is used to save the renderer state to the database
-                    if (!this.rendererState[componentIdx]) {
-                        this.rendererState[componentIdx] = {};
-                    }
-
-                    this.rendererState[componentIdx].stateValues =
-                        stateValuesForRenderer;
-
-                    // only add childrenInstructions if they changed
-                    if (newChildrenInstructions[componentIdx]) {
-                        newRendererState.childrenInstructions =
-                            newChildrenInstructions[componentIdx];
-                        this.rendererState[componentIdx].childrenInstructions =
-                            newChildrenInstructions[componentIdx];
-                    }
-
-                    rendererStatesToUpdate.push(newRendererState);
-                }
-            }
-        }
-
-        // rendererStatesToUpdate = rendererStatesToUpdate.filter(x => !deletedRenderers.includes(x))
-        if (rendererStatesToUpdate.length > 0) {
-            let instruction = {
-                instructionType: "updateRendererStates",
-                rendererStatesToUpdate,
-                sourceOfUpdate,
-            };
-            updateInstructions.splice(0, 0, instruction);
-        }
-
-        this.callUpdateRenderers({ updateInstructions, actionId });
+    async updateRendererInstructions(args) {
+        return this.rendererInstructionBuilder.updateRendererInstructions(args);
     }
 
     async initializeRenderedComponentInstruction(
         component,
-        componentsWithChangedChildrenToRenderInProgress = new Set([]),
+        componentsWithChangedChildrenToRenderInProgress,
     ) {
-        if (component.rendererType === undefined) {
-            return;
-        }
-
-        if (!component.matchedCompositeChildren) {
-            await this.deriveChildResultsFromDefiningChildren({
-                parent: component,
-                expandComposites: true, //forceExpandComposites: true,
-            });
-        }
-
-        let rendererStatesToUpdate = [];
-        let rendererStatesToForceUpdate = [];
-
-        let stateValuesForRenderer = {};
-        let stateValuesForRendererAlwaysUpdate = {};
-        let alwaysUpdate = false;
-        for (let stateVariable in component.state) {
-            if (component.state[stateVariable].forRenderer) {
-                stateValuesForRenderer[stateVariable] =
-                    removeFunctionsMathExpressionClass(
-                        await component.state[stateVariable].value,
-                    );
-                if (component.state[stateVariable].alwaysUpdateRenderer) {
-                    alwaysUpdate = true;
-                }
-            }
-        }
-
-        if (component.compositeReplacementActiveRange) {
-            stateValuesForRenderer._compositeReplacementActiveRange =
-                component.compositeReplacementActiveRange;
-        }
-
-        if (alwaysUpdate) {
-            stateValuesForRendererAlwaysUpdate = stateValuesForRenderer;
-        }
-
-        let componentIdx = component.componentIdx;
-
-        let childrenToRender = [];
-        if (component.constructor.renderChildren) {
-            let indicesToRender =
-                await this.returnActiveChildrenIndicesToRender(component);
-            for (let [ind, child] of component.activeChildren.entries()) {
-                if (indicesToRender.includes(ind)) {
-                    if (child.rendererType) {
-                        let results =
-                            await this.initializeRenderedComponentInstruction(
-                                child,
-                                componentsWithChangedChildrenToRenderInProgress,
-                            );
-                        childrenToRender.push(results.componentToRender);
-                        rendererStatesToUpdate.push(
-                            ...results.rendererStatesToUpdate,
-                        );
-                        rendererStatesToForceUpdate.push(
-                            ...results.rendererStatesToForceUpdate,
-                        );
-                    } else if (typeof child === "string") {
-                        childrenToRender.push(child);
-                    } else if (typeof child === "number") {
-                        childrenToRender.push(child.toString());
-                    } else {
-                        childrenToRender.push(null);
-                    }
-                } else {
-                    childrenToRender.push(null);
-                }
-            }
-        }
-
-        rendererStatesToUpdate.push({
-            componentIdx,
-            stateValues: stateValuesForRenderer,
-            childrenInstructions: childrenToRender,
-        });
-        if (Object.keys(stateValuesForRendererAlwaysUpdate).length > 0) {
-            rendererStatesToForceUpdate.push({
-                componentIdx,
-                stateValues: stateValuesForRendererAlwaysUpdate,
-            });
-        }
-
-        // this.renderState is used to save the renderer state to the database
-        this.rendererState[componentIdx] = {
-            stateValues: stateValuesForRenderer,
-            childrenInstructions: childrenToRender,
-        };
-
-        componentsWithChangedChildrenToRenderInProgress.delete(componentIdx);
-
-        let requestActions = {};
-        for (let actionName in component.actions) {
-            requestActions[actionName] = {
-                actionName,
-                componentIdx: component.componentIdx,
-            };
-        }
-
-        for (let actionName in component.externalActions) {
-            let action = await component.externalActions[actionName];
-            if (action) {
-                requestActions[actionName] = {
-                    actionName,
-                    componentIdx: action.componentIdx,
-                };
-            }
-        }
-
-        let rendererInstructions = {
-            componentIdx: componentIdx,
-            effectiveIdx: component.componentOrAdaptedIdx,
-            id: this.getRendererId(component),
-            componentType: component.componentType,
-            rendererType: component.rendererType,
-            actions: requestActions,
-        };
-
-        this.componentsToRender[componentIdx] = {
-            children: childrenToRender,
-        };
-
-        return {
-            componentToRender: rendererInstructions,
-            rendererStatesToUpdate,
-            rendererStatesToForceUpdate,
-        };
-    }
-
-    /**
-     * Get the `rendererId` of `component`,
-     * where `rendererId` is the `rootName` of the component, if it exists,
-     * else the `componentIdx` as a string.
-     *
-     * The `rootName` is the simplest unique reference to the component
-     * when the document root is the origin. As `rootName` is designed to be
-     * a HTML id, indices are represented with `:`. For example,
-     * if `$a.b[2][3].c` is the simplest reference to a component from the root,
-     * then its root name will be `a.b:2:3.c`.
-     *
-     * If a component was adapted from another component,
-     * then the `renderedId` of the original component is used instead,
-     * as that corresponds to the component that was authored.
-     */
-    getRendererId(component) {
-        return (
-            this.rootNames?.[component.componentOrAdaptedIdx] ??
-            `_id_${component.componentOrAdaptedIdx.toString()}`
+        return this.rendererInstructionBuilder.initializeRenderedComponentInstruction(
+            component,
+            componentsWithChangedChildrenToRenderInProgress,
         );
     }
 
-    deleteFromComponentsToRender({
-        componentIdx,
-        recurseToChildren = true,
-        componentsWithChangedChildrenToRenderInProgress,
-    }) {
-        let deletedComponentNames = [componentIdx];
-        if (recurseToChildren) {
-            let componentInstruction = this.componentsToRender[componentIdx];
-            if (componentInstruction) {
-                for (let child of componentInstruction.children) {
-                    if (child) {
-                        let additionalDeleted =
-                            this.deleteFromComponentsToRender({
-                                componentIdx: child.componentIdx,
-                                recurseToChildren,
-                                componentsWithChangedChildrenToRenderInProgress,
-                            });
-                        deletedComponentNames.push(...additionalDeleted);
-                    }
-                }
-            }
-        }
-        delete this.componentsToRender[componentIdx];
-        componentsWithChangedChildrenToRenderInProgress.delete(componentIdx);
+    getRendererId(component) {
+        return this.rendererInstructionBuilder.getRendererId(component);
+    }
 
-        return deletedComponentNames;
+    deleteFromComponentsToRender(args) {
+        return this.rendererInstructionBuilder.deleteFromComponentsToRender(
+            args,
+        );
+    }
+
+    // → actionTriggerScheduler
+    get stateVariableChangeTriggers() {
+        return this.actionTriggerScheduler.stateVariableChangeTriggers;
+    }
+
+    get actionsChangedToActions() {
+        return this.actionTriggerScheduler.actionsChangedToActions;
+    }
+
+    get originsOfActionsChangedToActions() {
+        return this.actionTriggerScheduler.originsOfActionsChangedToActions;
     }
 
     async processStateVariableTriggers(updateRenderersIfTriggered = false) {
-        // TODO: can we make this more efficient by only checking components that changed?
-        // componentsToUpdateRenderers is close, but it includes only rendered components
-        // and we could have components with triggers that are not rendered
-
-        let triggeredAction = false;
-
-        for (const componentIdxStr in this.stateVariableChangeTriggers) {
-            const componentIdx = Number(componentIdxStr);
-            let component = this._components[componentIdx];
-            for (let stateVariable in this.stateVariableChangeTriggers[
-                componentIdx
-            ]) {
-                let triggerInstructions =
-                    this.stateVariableChangeTriggers[componentIdx][
-                        stateVariable
-                    ];
-
-                let value = await component.state[stateVariable].value;
-
-                if (value !== triggerInstructions.previousValue) {
-                    let previousValue = triggerInstructions.previousValue;
-                    triggerInstructions.previousValue = value;
-                    let action = component.actions[triggerInstructions.action];
-                    if (action) {
-                        await this.performAction({
-                            componentIdx,
-                            actionName: triggerInstructions.action,
-                            args: {
-                                stateValues: { [stateVariable]: value },
-                                previousValues: {
-                                    [stateVariable]: previousValue,
-                                },
-                                skipRendererUpdate: true,
-                            },
-                        });
-                        triggeredAction = true;
-                    }
-                }
-            }
-        }
-
-        if (triggeredAction && updateRenderersIfTriggered) {
-            await this.updateAllChangedRenderers();
-        }
+        return this.actionTriggerScheduler.processStateVariableTriggers(
+            updateRenderersIfTriggered,
+        );
     }
 
     async expandAllComposites(component, force = false) {
@@ -1909,169 +1521,14 @@ export default class Core {
     }
 
     recordStateVariablesMustEvaluate(componentIdx) {
-        let comp = this._components[componentIdx];
-
-        for (let vName in comp.state) {
-            if (comp.state[vName].mustEvaluate) {
-                this.updateInfo.stateVariablesToEvaluate.push({
-                    componentIdx,
-                    stateVariable: vName,
-                });
-            }
-        }
+        return this.actionTriggerScheduler.recordStateVariablesMustEvaluate(
+            componentIdx,
+        );
     }
 
-    async deriveChildResultsFromDefiningChildren({
-        parent,
-        expandComposites = true,
-        forceExpandComposites = false,
-    }) {
-        // console.log(`derive child results for ${parent.componentIdx}, ${expandComposites}, ${forceExpandComposites}`)
-
-        if (!this.derivingChildResults) {
-            this.derivingChildResults = [];
-        }
-        if (this.derivingChildResults.includes(parent.componentIdx)) {
-            // console.log(`not deriving child results of ${parent.componentIdx} while in the middle of deriving them already`)
-            return { success: false, skipping: true };
-        }
-        this.derivingChildResults.push(parent.componentIdx);
-
-        // create allChildren and activeChildren from defining children
-        // apply child logic and substitute adapters to modify activeChildren
-
-        // if (parent.activeChildren) {
-        //   // if there are any deferred child state variables
-        //   // evaluate them before changing the active children
-        //   this.evaluatedDeferredChildStateVariables(parent);
-        // }
-
-        // attempt to expand composites before modifying active children
-        let result = await this.expandCompositeOfDefiningChildren(
-            parent,
-            parent.definingChildren,
-            expandComposites,
-            forceExpandComposites,
-        );
-        parent.unexpandedCompositesReady = result.unexpandedCompositesReady;
-        parent.unexpandedCompositesNotReady =
-            result.unexpandedCompositesNotReady;
-
-        let previousActiveChildren;
-
-        if (parent.activeChildren) {
-            previousActiveChildren = parent.activeChildren.map((child) =>
-                child.componentIdx ? child.componentIdx : child,
-            );
-        }
-
-        parent.activeChildren = parent.definingChildren.slice(); // shallow copy
-
-        // allChildren include activeChildren, definingChildren,
-        // and possibly some children that are neither
-        // (which could occur when a composite is expanded and the result is adapted)
-        // ignores string and number primitive children
-        parent.allChildren = {};
-
-        // allChildrenOrdered contains same children as allChildren,
-        // but retaining an order that we can use for counters.
-        // If defining children are replaced my composite replacements or adapters,
-        // those children will come immediately after the corresponding defining child
-        parent.allChildrenOrdered = [];
-
-        for (let ind = 0; ind < parent.activeChildren.length; ind++) {
-            let child = parent.activeChildren[ind];
-            let childIdx;
-            if (typeof child !== "object") {
-                continue;
-            }
-
-            childIdx = child.componentIdx;
-
-            parent.allChildren[childIdx] = {
-                activeChildrenIndex: ind,
-                definingChildrenIndex: ind,
-                component: child,
-            };
-
-            parent.allChildrenOrdered.push(childIdx);
-        }
-
-        // if any of activeChildren are expanded compositeComponents
-        // replace with new components given by the composite component
-        await this.replaceCompositeChildren(parent);
-
-        let childGroupResults = await this.matchChildrenToChildGroups(parent);
-
-        if (childGroupResults.success) {
-            delete this.unmatchedChildren[parent.componentIdx];
-            parent.childrenMatchedWithPlaceholders = true;
-            parent.matchedCompositeChildrenWithPlaceholders = true;
-        } else {
-            parent.childrenMatchedWithPlaceholders = false;
-            parent.matchedCompositeChildrenWithPlaceholders = true;
-
-            let unmatchedChildrenTypes = [];
-            for (let child of childGroupResults.unmatchedChildren) {
-                if (typeof child === "string") {
-                    unmatchedChildrenTypes.push("string");
-                } else {
-                    unmatchedChildrenTypes.push(
-                        "`<" + child.componentType + ">`",
-                    );
-                    if (
-                        this.componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: child.componentType,
-                            baseComponentType: "_composite",
-                        })
-                    ) {
-                        parent.matchedCompositeChildrenWithPlaceholders = false;
-                    }
-                }
-            }
-
-            if (parent.doenetAttributes.isAttributeChildFor) {
-                let attributeForComponentType =
-                    parent.ancestors[0].componentClass.componentType;
-                this.unmatchedChildren[parent.componentIdx] = {
-                    message: `Invalid format for attribute ${parent.doenetAttributes.isAttributeChildFor} of \`<${attributeForComponentType}>\`.`,
-                };
-            } else {
-                this.unmatchedChildren[parent.componentIdx] = {
-                    message: `Invalid children for \`<${
-                        parent.componentType
-                    }>\`: Found invalid children: ${unmatchedChildrenTypes.join(
-                        ", ",
-                    )}`,
-                };
-            }
-        }
-
-        await this.dependencies.addBlockersFromChangedActiveChildren({
-            parent,
-        });
-
-        let ind = this.derivingChildResults.indexOf(parent.componentIdx);
-
-        this.derivingChildResults.splice(ind, 1);
-
-        if (parent.constructor.renderChildren) {
-            let childrenUnchanged =
-                previousActiveChildren &&
-                previousActiveChildren.length == parent.activeChildren.length &&
-                parent.activeChildren.every((child, ind) =>
-                    child.componentIdx
-                        ? child.componentIdx === previousActiveChildren[ind]
-                        : child === previousActiveChildren[ind],
-                );
-            if (!childrenUnchanged) {
-                this.componentsWithChangedChildrenToRender.add(
-                    parent.componentIdx,
-                );
-            }
-        }
-
-        return childGroupResults;
+    // → childMatcher
+    async deriveChildResultsFromDefiningChildren(args) {
+        return this.childMatcher.deriveChildResultsFromDefiningChildren(args);
     }
 
     async expandCompositeOfDefiningChildren(
@@ -2175,82 +1632,11 @@ export default class Core {
     }
 
     async matchChildrenToChildGroups(parent) {
-        parent.childMatchesByGroup = {};
-
-        for (let groupName in parent.constructor.childGroupIndsByName) {
-            parent.childMatchesByGroup[groupName] = [];
-        }
-
-        let success = true;
-
-        let unmatchedChildren = [];
-
-        for (let [ind, child] of parent.activeChildren.entries()) {
-            let childType =
-                typeof child !== "object" ? typeof child : child.componentType;
-
-            if (childType === undefined) {
-                success = false;
-                unmatchedChildren.push(child);
-                continue;
-            }
-
-            let result = this.findChildGroup(childType, parent.constructor);
-
-            if (result.success) {
-                parent.childMatchesByGroup[result.group].push(ind);
-
-                if (result.adapterIndUsed !== undefined) {
-                    await this.substituteAdapter({
-                        parent,
-                        childInd: ind,
-                        adapterIndUsed: result.adapterIndUsed,
-                    });
-                }
-            } else {
-                success = false;
-                unmatchedChildren.push(child);
-            }
-        }
-
-        return { success, unmatchedChildren };
+        return this.childMatcher.matchChildrenToChildGroups(parent);
     }
 
     findChildGroup(childType, parentClass) {
-        let result = this.findChildGroupNoAdapters(childType, parentClass);
-
-        if (result.success) {
-            return result;
-        } else if (childType === "string") {
-            return { success: false };
-        }
-
-        // check if can match with adapters
-        let childClass =
-            this.componentInfoObjects.allComponentClasses[childType];
-
-        // if didn't match child, attempt to match with child's adapters
-        let numAdapters = childClass.numAdapters;
-
-        for (let n = 0; n < numAdapters; n++) {
-            let adapterComponentType = childClass.getAdapterComponentType(
-                n,
-                this.componentInfoObjects.publicStateVariableInfo,
-            );
-
-            result = this.findChildGroupNoAdapters(
-                adapterComponentType,
-                parentClass,
-            );
-
-            if (result.success) {
-                result.adapterIndUsed = n;
-                return result;
-            }
-        }
-
-        // lastly try to match with afterAdapters set to true
-        return this.findChildGroupNoAdapters(childType, parentClass, true);
+        return this.childMatcher.findChildGroup(childType, parentClass);
     }
 
     findChildGroupNoAdapters(
@@ -2258,204 +1644,19 @@ export default class Core {
         parentClass,
         afterAdapters = false,
     ) {
-        if (parentClass.childGroupOfComponentType[componentType]) {
-            return {
-                success: true,
-                group: parentClass.childGroupOfComponentType[componentType],
-            };
-        }
-
-        for (let group of parentClass.childGroups) {
-            for (let typeFromGroup of group.componentTypes) {
-                if (
-                    this.componentInfoObjects.isInheritedComponentType({
-                        inheritedComponentType: componentType,
-                        baseComponentType: typeFromGroup,
-                    })
-                ) {
-                    if (group.matchAfterAdapters && !afterAdapters) {
-                        continue;
-                    }
-                    // don't match composites to the base component
-                    // so that they will expand
-                    if (
-                        !(
-                            typeFromGroup === "_base" &&
-                            this.componentInfoObjects.isInheritedComponentType({
-                                inheritedComponentType: componentType,
-                                baseComponentType: "_composite",
-                            })
-                        )
-                    ) {
-                        parentClass.childGroupOfComponentType[componentType] =
-                            group.group;
-
-                        return {
-                            success: true,
-                            group: group.group,
-                        };
-                    }
-                }
-            }
-        }
-
-        return { success: false };
+        return this.childMatcher.findChildGroupNoAdapters(
+            componentType,
+            parentClass,
+            afterAdapters,
+        );
     }
 
     async returnActiveChildrenIndicesToRender(component) {
-        let indicesToRender = [];
-        let numChildrenToRender = Infinity;
-        if ("numChildrenToRender" in component.state) {
-            numChildrenToRender =
-                await component.stateValues.numChildrenToRender;
-        }
-        let childIndicesToRender = null;
-        if ("childIndicesToRender" in component.state) {
-            childIndicesToRender =
-                await component.stateValues.childIndicesToRender;
-        }
-
-        for (let [ind, child] of component.activeChildren.entries()) {
-            if (ind >= numChildrenToRender) {
-                break;
-            }
-
-            if (childIndicesToRender && !childIndicesToRender.includes(ind)) {
-                continue;
-            }
-
-            if (typeof child === "object") {
-                if (
-                    child.constructor.sendToRendererEvenIfHidden ||
-                    !(await child.stateValues.hidden)
-                ) {
-                    indicesToRender.push(ind);
-                }
-            } else {
-                // if have a primitive,
-                // will be hidden if a composite source is hidden
-                let hidden = false;
-                if (component.compositeReplacementActiveRange) {
-                    for (let compositeInfo of component.compositeReplacementActiveRange) {
-                        let composite =
-                            this._components[compositeInfo.compositeIdx];
-                        if (await composite.stateValues.hidden) {
-                            if (
-                                compositeInfo.firstInd <= ind &&
-                                compositeInfo.lastInd >= ind
-                            ) {
-                                hidden = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-                if (!hidden) {
-                    indicesToRender.push(ind);
-                }
-            }
-        }
-
-        return indicesToRender;
+        return this.childMatcher.returnActiveChildrenIndicesToRender(component);
     }
 
-    async substituteAdapter({ parent, childInd, adapterIndUsed }) {
-        // replace activeChildren with their adapters
-
-        let originalChild = parent.activeChildren[childInd];
-
-        let newSerializedChild;
-        if (originalChild.componentIdx != undefined) {
-            newSerializedChild = originalChild.getAdapter(adapterIndUsed);
-            newSerializedChild.componentIdx = this._components.length;
-            this._components[this._components.length] = undefined;
-        } else {
-            // XXX: how does this work with the new componentIdx approach?
-
-            // child isn't a component, just an object with a componentType
-            // Create an object that is just the componentType of the adapter
-            newSerializedChild = {
-                componentType: this.componentInfoObjects.allComponentClasses[
-                    originalChild.componentType
-                ].getAdapterComponentType(
-                    adapterIndUsed,
-                    this.componentInfoObjects.publicStateVariableInfo,
-                ),
-                placeholderInd: originalChild.placeholderInd + "adapt",
-            };
-        }
-
-        let adapter = originalChild.adapterUsed;
-
-        if (
-            adapter === undefined ||
-            adapter.componentType !== newSerializedChild.componentType
-        ) {
-            if (originalChild.componentIdx != undefined) {
-                newSerializedChild.adaptedFrom = originalChild.componentIdx;
-                assignDoenetMLRange(
-                    [newSerializedChild],
-                    originalChild.position,
-                    originalChild.sourceDoc,
-                );
-                let newChildrenResult = await this.createIsolatedComponents({
-                    serializedComponents: [newSerializedChild],
-                    shadow: true,
-                    ancestors: originalChild.ancestors,
-                });
-
-                adapter = newChildrenResult.components[0];
-            } else {
-                // XXX: how does this work with the new componentIdx approach?
-
-                // didn't have a component for the original child, just a componentType
-                // Adapter will also just be the componentType returned from childmatches
-                newSerializedChild.adaptedFrom = originalChild;
-                adapter = newSerializedChild;
-            }
-        }
-
-        // Replace originalChild with its adapter in activeChildren
-        parent.activeChildren.splice(childInd, 1, adapter);
-
-        // TODO: if originalChild is a placeholder, we lose track of it
-        // (other than through adaptedFrom of adapted)
-        // once we splice it out of activeChildren.  Is that a problem?
-
-        // Update allChildren to show that originalChild is no longer active
-        // and that adapter is now an active child
-        if (originalChild.componentIdx != undefined) {
-            // ignore placeholder active children
-            delete parent.allChildren[originalChild.componentIdx]
-                .activeChildrenIndex;
-            parent.allChildren[adapter.componentIdx] = {
-                activeChildrenIndex: childInd,
-                component: adapter,
-            };
-        }
-
-        // find index of originalChild in allChildrenOrdered
-        // and place adapter immediately afterward
-        if (originalChild.componentIdx != undefined) {
-            let originalInd = parent.allChildrenOrdered.indexOf(
-                originalChild.componentIdx,
-            );
-            parent.allChildrenOrdered.splice(
-                originalInd + 1,
-                0,
-                adapter.componentIdx,
-            );
-        } else {
-            // adapter of placeholder
-            let originalInd = parent.allChildrenOrdered.indexOf(
-                originalChild.placeholderInd,
-            );
-            parent.allChildrenOrdered.splice(
-                originalInd + 1,
-                0,
-                adapter.placeholderInd,
-            );
-        }
+    async substituteAdapter(args) {
+        return this.childMatcher.substituteAdapter(args);
     }
 
     async expandCompositeComponent(component) {
@@ -5042,109 +4243,8 @@ export default class Core {
         }
     }
 
-    async checkForActionChaining({ component, stateVariables }) {
-        if (!component) {
-            return;
-        }
-
-        if (!stateVariables) {
-            stateVariables = Object.keys(component.state);
-        }
-
-        for (let varName of stateVariables) {
-            let stateVarObj = component.state[varName];
-
-            if (stateVarObj.chainActionOnActionOfStateVariableTargets) {
-                let chainInfo =
-                    stateVarObj.chainActionOnActionOfStateVariableTargets;
-                let targetIds = await stateVarObj.value;
-
-                let originObj =
-                    this.originsOfActionsChangedToActions[
-                        component.componentIdx
-                    ];
-
-                let previousIds;
-                if (originObj) {
-                    previousIds = originObj[varName];
-                }
-
-                if (!previousIds) {
-                    previousIds = [];
-                }
-
-                let newTargets = [];
-
-                if (Array.isArray(targetIds)) {
-                    newTargets = [...targetIds];
-                    for (let id of newTargets) {
-                        let indPrev = previousIds.indexOf(id);
-
-                        if (indPrev === -1) {
-                            // found a component/action that wasn't previously chained
-                            let componentActionsChained =
-                                this.actionsChangedToActions[id];
-                            if (!componentActionsChained) {
-                                componentActionsChained =
-                                    this.actionsChangedToActions[id] = [];
-                            }
-
-                            componentActionsChained.push({
-                                componentIdx: component.componentIdx,
-                                actionName: chainInfo.triggeredAction,
-                                stateVariableDefiningChain: varName,
-                                args: {},
-                            });
-                        } else {
-                            // target was already chained
-                            // remove from previous names to indicate it should still be chained
-                            previousIds.splice(indPrev, 1);
-                        }
-                    }
-                }
-
-                // if any ids are left in previousIds,
-                // then they should no longer be chained
-                for (let idToNoLongerChain of previousIds) {
-                    let componentActionsChained =
-                        this.actionsChangedToActions[idToNoLongerChain];
-                    if (componentActionsChained) {
-                        let newComponentActionsChained = [];
-
-                        for (let chainedInfo of componentActionsChained) {
-                            if (
-                                chainedInfo.componentIdx !==
-                                    component.componentIdx ||
-                                chainedInfo.stateVariableDefiningChain !==
-                                    varName
-                            ) {
-                                newComponentActionsChained.push(chainedInfo);
-                            }
-                        }
-
-                        this.actionsChangedToActions[idToNoLongerChain] =
-                            newComponentActionsChained;
-                    }
-                }
-
-                if (newTargets.length > 0) {
-                    if (!originObj) {
-                        originObj = this.originsOfActionsChangedToActions[
-                            component.componentIdx
-                        ] = {};
-                    }
-                    originObj[varName] = newTargets;
-                } else if (originObj) {
-                    delete originObj[varName];
-
-                    if (Object.keys(originObj).length === 0) {
-                        delete this.originsOfActionsChangedToActions[
-                            component.componentIdx
-                        ];
-                    }
-                }
-            }
-        }
+    async checkForActionChaining(args) {
+        return this.actionTriggerScheduler.checkForActionChaining(args);
     }
 
     async initializeArrayEntryStateVariable({
@@ -8675,174 +7775,24 @@ export default class Core {
     //   }
     // }
 
+    // → componentLifecycle
     registerComponent(component) {
-        if (this._components[component.componentIdx] !== undefined) {
-            throw Error(`Duplicate component index: ${component.componentIdx}`);
-        }
-        this._components[component.componentIdx] = component;
+        return this.componentLifecycle.registerComponent(component);
     }
 
     deregisterComponent(component, recursive = true) {
-        if (recursive === true) {
-            for (let childIdxStr in component.allChildren) {
-                this.deregisterComponent(
-                    component.allChildren[childIdxStr].component,
-                );
-            }
-        }
-
-        delete this._components[component.componentIdx];
+        return this.componentLifecycle.deregisterComponent(
+            component,
+            recursive,
+        );
     }
 
     setAncestors(component, ancestors = []) {
-        // set ancestors based on allChildren and attribute components
-        // so that all components get ancestors
-        // even if not activeChildren or definingChildren
-
-        component.ancestors = ancestors;
-
-        let ancestorsForChildren = [
-            {
-                componentIdx: component.componentIdx,
-                componentClass: component.constructor,
-            },
-            ...component.ancestors,
-        ];
-
-        for (const childIdxStr in component.allChildren) {
-            let unproxiedChild = this._components[childIdxStr];
-            // Note: when add and deleting replacements of shadowed composites,
-            // it is possible that we end up processing the defining children of ancestors of the composite
-            // while we were delaying processing the defining children of the composite's parent,
-            // which could lead to an attempt to set the ancestors of that composite's parent's children
-            // while the booking variable allChildren is in an inconsistent state.
-            // To avoid an error, we don't set ancestors in the case
-            // (See test "references to internal and external components, inconsistent new namespaces"
-            // from conditionalcontent.cy.js for an example that triggered the need for this check.)
-            // TODO: can we avoid the need for this check by preventing the algorithm from
-            // attempting to set ancestors in this case?
-            if (unproxiedChild) {
-                this.setAncestors(unproxiedChild, ancestorsForChildren);
-            }
-        }
-
-        for (let attrName in component.attributes) {
-            let comp = component.attributes[attrName].component;
-            if (comp) {
-                this.setAncestors(comp, ancestorsForChildren);
-            }
-        }
+        return this.componentLifecycle.setAncestors(component, ancestors);
     }
 
-    async addChildrenAndRecurseToShadows({
-        parent,
-        indexOfDefiningChildren,
-        newChildren,
-    }) {
-        this.spliceChildren(parent, indexOfDefiningChildren, newChildren);
-
-        let newChildrenResult = await this.processNewDefiningChildren({
-            parent,
-            expandComposites: true,
-        });
-
-        let addedComponents = {};
-        let deletedComponents = {};
-
-        if (!newChildrenResult.success) {
-            // try again, this time force expanding composites before giving up
-            newChildrenResult = await this.processNewDefiningChildren({
-                parent,
-                expandComposites: true,
-                forceExpandComposites: true,
-            });
-
-            if (!newChildrenResult.success) {
-                return newChildrenResult;
-            }
-        }
-
-        for (let child of newChildren) {
-            if (typeof child === "object") {
-                addedComponents[child.componentIdx] = child;
-            }
-        }
-
-        if (parent.shadowedBy) {
-            for (let shadowingParent of parent.shadowedBy) {
-                if (
-                    shadowingParent.shadows.propVariable ||
-                    shadowingParent.constructor.doNotExpandAsShadowed
-                ) {
-                    continue;
-                }
-
-                let composite =
-                    this._components[shadowingParent.shadows.compositeIdx];
-
-                let shadowingSerializeChildren = [];
-                let nComponents = this._components.length;
-
-                for (let child of newChildren) {
-                    if (typeof child === "object") {
-                        const serializedComponent = await child.serialize();
-
-                        const res = createNewComponentIndices(
-                            [serializedComponent],
-                            nComponents,
-                        );
-                        nComponents = res.nComponents;
-
-                        shadowingSerializeChildren.push(...res.components);
-                    } else {
-                        shadowingSerializeChildren.push(child);
-                    }
-                }
-
-                if (nComponents > this.components.length) {
-                    this._components[nComponents - 1] = undefined;
-                }
-
-                shadowingSerializeChildren = postProcessCopy({
-                    serializedComponents: shadowingSerializeChildren,
-                    componentIdx: shadowingParent.shadows.compositeIdx,
-                });
-
-                let unproxiedShadowingParent =
-                    this._components[shadowingParent.componentIdx];
-                this.parameterStack.push(
-                    unproxiedShadowingParent.sharedParameters,
-                    false,
-                );
-
-                let createResult = await this.createIsolatedComponents({
-                    serializedComponents: shadowingSerializeChildren,
-                    ancestors: shadowingParent.ancestors,
-                });
-
-                this.parameterStack.pop();
-
-                let shadowResult = await this.addChildrenAndRecurseToShadows({
-                    parent: unproxiedShadowingParent,
-                    indexOfDefiningChildren,
-                    newChildren: createResult.components,
-                });
-
-                if (!shadowResult.success) {
-                    throw Error(
-                        `was able to add components to parent but not shadows!`,
-                    );
-                }
-
-                Object.assign(addedComponents, shadowResult.addedComponents);
-            }
-        }
-
-        return {
-            success: true,
-            deletedComponents,
-            addedComponents,
-        };
+    async addChildrenAndRecurseToShadows(args) {
+        return this.componentLifecycle.addChildrenAndRecurseToShadows(args);
     }
 
     /**
@@ -8959,351 +7909,21 @@ export default class Core {
         }
     }
 
-    async processNewDefiningChildren({
-        parent,
-        expandComposites = true,
-        forceExpandComposites = false,
-    }) {
-        this.parameterStack.push(parent.sharedParameters, false);
-        let childResult = await this.deriveChildResultsFromDefiningChildren({
-            parent,
-            expandComposites,
-            forceExpandComposites,
-        });
-        this.parameterStack.pop();
-
-        let ancestorsForChildren = [
-            {
-                componentIdx: parent.componentIdx,
-                componentClass: parent.constructor,
-            },
-            ...parent.ancestors,
-        ];
-
-        // set ancestors for allChildren of parent
-        // since could replace newChildren by adapters or via composites
-        for (const childIdxStr in parent.allChildren) {
-            let unproxiedChild = this._components[childIdxStr];
-            this.setAncestors(unproxiedChild, ancestorsForChildren);
-        }
-
-        return childResult;
+    async processNewDefiningChildren(args) {
+        return this.componentLifecycle.processNewDefiningChildren(args);
     }
 
     spliceChildren(parent, indexOfDefiningChildren, newChildren) {
-        // splice newChildren into parent.definingChildren
-        // definingChildrenNumber is the index of parent.definingChildren
-        // before which to splice the newChildren (set to array length to add at end)
-
-        let numDefiningChildren = parent.definingChildren.length;
-
-        if (
-            !Number.isInteger(indexOfDefiningChildren) ||
-            indexOfDefiningChildren > numDefiningChildren ||
-            indexOfDefiningChildren < 0
-        ) {
-            throw Error(
-                "Can't add children at index " +
-                    indexOfDefiningChildren +
-                    ". Invalid index.",
-            );
-        }
-
-        // perform the actual splicing into children
-        parent.definingChildren.splice(
+        return this.componentLifecycle.spliceChildren(
+            parent,
             indexOfDefiningChildren,
-            0,
-            ...newChildren,
+            newChildren,
         );
     }
 
-    async deleteComponents({
-        components,
-        deleteUpstreamDependencies = true,
-        skipProcessingChildrenOfParents = [],
-    }) {
-        // to delete a component, one must
-        // 1. recursively delete all children and attribute components
-        // 3. should we delete or mark components who are upstream dependencies?
-        // 4. for all other downstream dependencies,
-        //    delete upstream link back to component
-
-        if (!Array.isArray(components)) {
-            components = [components];
-        }
-
-        // TODO: if delete a shadow directly it should be an error
-        // (though it will be OK to delete them through other side effects)
-
-        // step 1. Determine which components to delete
-        const componentsToDelete = {};
-        this.determineComponentsToDelete({
-            components,
-            deleteUpstreamDependencies,
-            componentsToDelete,
-        });
-
-        //Calculate parent set
-        const parentsOfPotentiallyDeleted = {};
-        for (const componentIdxStr in componentsToDelete) {
-            const componentIdx = Number(componentIdxStr);
-            let component = componentsToDelete[componentIdx];
-            let parent = this.components[component.parentIdx];
-
-            // only add parent if it is not in componentsToDelete itself
-            if (
-                parent === undefined ||
-                parent.componentIdx in componentsToDelete
-            ) {
-                continue;
-            }
-            let parentObj = parentsOfPotentiallyDeleted[component.parentIdx];
-            if (parentObj === undefined) {
-                parentObj = {
-                    parent: this._components[component.parentIdx],
-                    childNamesToBeDeleted: new Set(),
-                };
-                parentsOfPotentiallyDeleted[component.parentIdx] = parentObj;
-            }
-            parentObj.childNamesToBeDeleted.add(componentIdx);
-        }
-
-        // if component is a replacement of another component,
-        // need to delete component from the replacement
-        // so that it isn't added back as a child of its parent
-        // Also keep track of which ones deleted so can add back to replacements
-        // if the deletion is unsuccessful
-        let replacementsDeletedFromComposites = [];
-
-        for (const componentIdxStr in componentsToDelete) {
-            const componentIdx = Number(componentIdxStr);
-            let component = this._components[componentIdx];
-            if (component.replacementOf) {
-                let composite = component.replacementOf;
-
-                let replacementNames = composite.replacements.map(
-                    (x) => x.componentIdx,
-                );
-
-                let replacementInd = replacementNames.indexOf(componentIdx);
-                if (replacementInd !== -1) {
-                    composite.replacements.splice(replacementInd, 1);
-                    if (
-                        !replacementsDeletedFromComposites.includes(
-                            composite.componentIdx,
-                        )
-                    ) {
-                        replacementsDeletedFromComposites.push(
-                            composite.componentIdx,
-                        );
-                    }
-                }
-            }
-        }
-
-        for (const compositeIdxStr of replacementsDeletedFromComposites) {
-            if (!(compositeIdxStr in componentsToDelete)) {
-                await this.dependencies.addBlockersFromChangedReplacements(
-                    this._components[compositeIdxStr],
-                );
-            }
-        }
-
-        // delete component from parent's defining children
-        // and record parents
-        const allParents = [];
-        for (const parentIdxStr in parentsOfPotentiallyDeleted) {
-            const parentObj = parentsOfPotentiallyDeleted[parentIdxStr];
-            const parent = parentObj.parent;
-            allParents.push(parent);
-
-            // if (parent.activeChildren) {
-            //   this.evaluatedDeferredChildStateVariables(parent);
-            // }
-
-            for (
-                let ind = parent.definingChildren.length - 1;
-                ind >= 0;
-                ind--
-            ) {
-                const child = parent.definingChildren[ind];
-                if (parentObj.childNamesToBeDeleted.has(child.componentIdx)) {
-                    parent.definingChildren.splice(ind, 1); // delete from array
-                }
-            }
-
-            if (
-                !skipProcessingChildrenOfParents.includes(parent.componentIdx)
-            ) {
-                await this.processNewDefiningChildren({
-                    parent,
-                    expandComposites: false,
-                });
-            }
-        }
-
-        for (const componentIdxStr in componentsToDelete) {
-            const componentIdx = Number(componentIdxStr);
-            const component = this._components[componentIdx];
-
-            if (component.shadows) {
-                const shadowedComponent =
-                    this._components[component.shadows.componentIdx];
-                if (shadowedComponent.shadowedBy.length === 1) {
-                    delete shadowedComponent.shadowedBy;
-                } else {
-                    shadowedComponent.shadowedBy.splice(
-                        shadowedComponent.shadowedBy.indexOf(component),
-                        1,
-                    );
-                }
-            }
-
-            this.dependencies.deleteAllDownstreamDependencies({ component });
-
-            // record any upstream dependencies that depend directly on componentIdx
-            // (componentIdentity, componentStateVariable*)
-
-            for (let varName in this.dependencies.upstreamDependencies[
-                component.componentIdx
-            ]) {
-                let upDeps =
-                    this.dependencies.upstreamDependencies[
-                        component.componentIdx
-                    ][varName];
-                for (let upDep of upDeps) {
-                    if (
-                        upDep.specifiedComponentName &&
-                        upDep.specifiedComponentName in componentsToDelete
-                    ) {
-                        let dependenciesMissingComponent =
-                            this.dependencies.updateTriggers
-                                .dependenciesMissingComponentBySpecifiedName[
-                                upDep.specifiedComponentName
-                            ];
-                        if (!dependenciesMissingComponent) {
-                            dependenciesMissingComponent =
-                                this.dependencies.updateTriggers.dependenciesMissingComponentBySpecifiedName[
-                                    upDep.specifiedComponentName
-                                ] = [];
-                        }
-                        if (!dependenciesMissingComponent.includes(upDep)) {
-                            dependenciesMissingComponent.push(upDep);
-                        }
-                    }
-                }
-            }
-
-            await this.dependencies.deleteAllUpstreamDependencies({
-                component,
-            });
-
-            if (
-                !this.updateInfo.deletedStateVariables[component.componentIdx]
-            ) {
-                this.updateInfo.deletedStateVariables[component.componentIdx] =
-                    [];
-            }
-            this.updateInfo.deletedStateVariables[component.componentIdx].push(
-                ...Object.keys(component.state),
-            );
-
-            this.updateInfo.deletedComponents[component.componentIdx] = true;
-            delete this.unmatchedChildren[component.componentIdx];
-
-            delete this.stateVariableChangeTriggers[component.componentIdx];
-        }
-
-        const componentsToRemoveFromResolver = [];
-
-        for (const componentIdxStr in componentsToDelete) {
-            const componentIdx = Number(componentIdxStr);
-            let component = this._components[componentIdx];
-
-            if (component.replacementOf) {
-                const compositeSource = component.replacementOf;
-
-                if (
-                    compositeSource.attributes.createComponentIdx?.primitive
-                        ?.value == component.componentIdx
-                ) {
-                    // If the component's index is being created from a composite,
-                    // check if there is a source of that composite index that is not being deleted.
-                    // In that case, we should not remove the component from the resolver.
-                    let compositeCreatingComponentIdx = compositeSource;
-
-                    let foundUndeletedSourceOfComponentIdx = false;
-                    while (true) {
-                        if (
-                            !(
-                                compositeCreatingComponentIdx.componentIdx in
-                                componentsToDelete
-                            )
-                        ) {
-                            foundUndeletedSourceOfComponentIdx = true;
-                            break;
-                        }
-
-                        if (
-                            compositeCreatingComponentIdx.replacementOf
-                                ?.attributes.createComponentIdx?.primitive
-                                ?.value === component.componentIdx
-                        ) {
-                            compositeCreatingComponentIdx =
-                                compositeCreatingComponentIdx.replacementOf;
-                        } else {
-                            break;
-                        }
-                    }
-
-                    if (foundUndeletedSourceOfComponentIdx) {
-                        // We determined that the source of the component's component index
-                        // is not being deleted, so don't remove the component from the resolver
-                        continue;
-                    }
-                }
-
-                if (
-                    !(compositeSource.componentIdx in componentsToDelete) &&
-                    compositeSource.constructor.replacementsAlreadyInResolver
-                ) {
-                    // don't remove from resolver, as non-deleted composite source
-                    // already has replacements in the resolver,
-                    // so the component was not added to the resolver when it was created
-                    continue;
-                }
-            }
-
-            componentsToRemoveFromResolver.push(component);
-        }
-
-        this.removeComponentsFromResolver(componentsToRemoveFromResolver);
-
-        for (const componentIdxStr in componentsToDelete) {
-            const componentIdx = Number(componentIdxStr);
-            let component = this._components[componentIdx];
-
-            // delete from cumulativeStateVariableChanges
-            delete this.cumulativeStateVariableChanges[component.stateId];
-
-            // console.log(`deregistering ${componentIdx}`)
-
-            // don't use recursive form since all children should already be included
-            this.deregisterComponent(component, false);
-
-            // remove deleted components from this.updateInfo sets
-            this.updateInfo.componentsToUpdateRenderers.delete(componentIdx);
-            this.updateInfo.compositesToUpdateReplacements.delete(componentIdx);
-            this.updateInfo.inactiveCompositesToUpdateReplacements.delete(
-                componentIdx,
-            );
-        }
-
-        return {
-            success: true,
-            deletedComponents: componentsToDelete,
-            parentsOfDeleted: allParents,
-        };
+    // → deletionEngine
+    async deleteComponents(args) {
+        return this.deletionEngine.deleteComponents(args);
     }
 
     removeComponentsFromResolver(componentsToRemove) {
@@ -9312,69 +7932,8 @@ export default class Core {
         );
     }
 
-    determineComponentsToDelete({
-        components,
-        deleteUpstreamDependencies,
-        componentsToDelete,
-    }) {
-        for (let component of components) {
-            if (typeof component !== "object") {
-                continue;
-            }
-
-            if (component.componentIdx in componentsToDelete) {
-                continue;
-            }
-
-            // add unproxied component
-            componentsToDelete[component.componentIdx] =
-                this._components[component.componentIdx];
-
-            // recurse on allChildren and attributes
-            let componentsToRecurse = Object.values(component.allChildren).map(
-                (x) => x.component,
-            );
-
-            for (let attrName in component.attributes) {
-                let comp = component.attributes[attrName].component;
-                if (comp) {
-                    componentsToRecurse.push(comp);
-                } else {
-                    let references = component.attributes[attrName].references;
-                    if (references) {
-                        componentsToRecurse.push(...references);
-                    }
-                }
-            }
-
-            // if delete an adapter, also delete component it is adapting
-            if (component.adaptedFrom !== undefined) {
-                componentsToRecurse.push(component.adaptedFrom);
-            }
-
-            if (deleteUpstreamDependencies === true) {
-                // TODO: recurse on copy of the component (other composites?)
-
-                // recurse on components that shadow
-                if (component.shadowedBy) {
-                    componentsToRecurse.push(...component.shadowedBy);
-                }
-
-                // recurse on replacements and adapters
-                if (component.adapterUsed) {
-                    componentsToRecurse.push(component.adapterUsed);
-                }
-                if (component.replacements) {
-                    componentsToRecurse.push(...component.replacements);
-                }
-            }
-
-            this.determineComponentsToDelete({
-                components: componentsToRecurse,
-                deleteUpstreamDependencies,
-                componentsToDelete,
-            });
-        }
+    determineComponentsToDelete(args) {
+        return this.deletionEngine.determineComponentsToDelete(args);
     }
 
     async updateCompositeReplacements({
@@ -10546,80 +9105,37 @@ export default class Core {
         return null;
     }
 
-    async executeProcesses() {
-        if (this.stopProcessingRequests) {
-            return;
-        }
-
-        while (this.processQueue.length > 0) {
-            let nextUpdateInfo = this.processQueue.splice(0, 1)[0];
-            let result;
-            try {
-                if (nextUpdateInfo.type === "update") {
-                    if (
-                        !nextUpdateInfo.skippable ||
-                        this.processQueue.length < 2
-                    ) {
-                        result = await this.performUpdate(nextUpdateInfo);
-                    }
-
-                    // TODO: if skip an update, presumably we should call reject???
-
-                    // } else if (nextUpdateInfo.type === "getStateVariableValues") {
-                    //   result = await this.performGetStateVariableValues(nextUpdateInfo);
-                } else if (nextUpdateInfo.type === "action") {
-                    if (
-                        !nextUpdateInfo.skippable ||
-                        this.processQueue.length < 2
-                    ) {
-                        result = await this.performAction(nextUpdateInfo);
-                    }
-
-                    // TODO: if skip an update, presumably we should call reject???
-                } else if (nextUpdateInfo.type === "recordEvent") {
-                    result = await this.performRecordEvent(nextUpdateInfo);
-                } else {
-                    throw Error(
-                        `Unrecognized process type: ${nextUpdateInfo.type}`,
-                    );
-                }
-
-                nextUpdateInfo.resolve(result);
-            } catch (e) {
-                console.error(e);
-                nextUpdateInfo.reject(
-                    typeof e === "object" &&
-                        e &&
-                        "message" in e &&
-                        typeof e.message === "string"
-                        ? e.message
-                        : "Error in core",
-                );
-            }
-        }
-
-        this.processing = false;
+    // → processQueueManager
+    get processQueue() {
+        return this.processQueueManager.queue;
     }
 
-    requestAction({ componentIdx, actionName, args }) {
-        return new Promise((resolve, reject) => {
-            let skippable = args?.skippable;
+    set processQueue(value) {
+        this.processQueueManager.queue = value;
+    }
 
-            this.processQueue.push({
-                type: "action",
-                componentIdx,
-                actionName,
-                args,
-                skippable,
-                resolve,
-                reject,
-            });
+    get processing() {
+        return this.processQueueManager.processing;
+    }
 
-            if (!this.processing) {
-                this.processing = true;
-                this.executeProcesses();
-            }
-        });
+    set processing(value) {
+        this.processQueueManager.processing = value;
+    }
+
+    get stopProcessingRequests() {
+        return this.processQueueManager.stopProcessingRequests;
+    }
+
+    set stopProcessingRequests(value) {
+        this.processQueueManager.stopProcessingRequests = value;
+    }
+
+    async executeProcesses() {
+        return this.processQueueManager.executeProcesses();
+    }
+
+    requestAction(args) {
+        return this.processQueueManager.requestAction(args);
     }
 
     async performAction({
@@ -10715,79 +9231,8 @@ export default class Core {
         return {};
     }
 
-    async triggerChainedActions({
-        componentIdx,
-        triggeringAction,
-        actionId,
-        sourceInformation = {},
-        skipRendererUpdate = false,
-    }) {
-        for (const cIdxStr in this.updateInfo
-            .componentsToUpdateActionChaining) {
-            await this.checkForActionChaining({
-                component: this.components[cIdxStr],
-                stateVariables:
-                    this.updateInfo.componentsToUpdateActionChaining[cIdxStr],
-            });
-        }
-
-        this.updateInfo.componentsToUpdateActionChaining = {};
-
-        let actionsToChain = [];
-
-        let cIdx = componentIdx;
-
-        while (true) {
-            let comp = this._components[cIdx];
-            let id = cIdx;
-
-            if (triggeringAction) {
-                id += "|" + triggeringAction;
-            }
-
-            if (this.actionsChangedToActions[id]) {
-                actionsToChain.push(...this.actionsChangedToActions[id]);
-            }
-
-            if (comp?.shadows) {
-                let composite = this._components[comp.shadows.compositeIdx];
-                if (composite.attributes.createComponentOfType != null) {
-                    break;
-                }
-
-                // We propagate to shadows if the component was copied with a bare references such as `$P`
-                // but not if was copied via extend/copy attribute, such as `<point extend="$P" />
-                // Rationale:
-                // If we include $P in a graph,
-                // then triggerWhenObjectsClicked="$P" and triggerWhenObjectsFocused="$P"
-                // will be triggered by that reference, which is what authors would expect.
-                // Another use case is defining an <updateValue name="uv">,
-                // along with other triggered actions using triggerWith="$uv",
-                // inside a <setup> and then including a $uv
-                // where we want the button to be.
-
-                cIdx = comp.shadows.componentIdx;
-            } else {
-                break;
-            }
-        }
-
-        for (let chainedActionInstructions of actionsToChain) {
-            chainedActionInstructions = { ...chainedActionInstructions };
-            if (chainedActionInstructions.args) {
-                chainedActionInstructions.args = {
-                    ...chainedActionInstructions.args,
-                };
-            } else {
-                chainedActionInstructions.args = {};
-            }
-            chainedActionInstructions.args.skipRendererUpdate = true;
-            await this.performAction(chainedActionInstructions);
-        }
-
-        if (!skipRendererUpdate) {
-            await this.updateAllChangedRenderers(sourceInformation, actionId);
-        }
+    async triggerChainedActions(args) {
+        return this.actionTriggerScheduler.triggerChainedActions(args);
     }
 
     async updateRenderers({
@@ -10800,86 +9245,8 @@ export default class Core {
         }
     }
 
-    async requestUpdate({
-        updateInstructions,
-        transient = false,
-        event,
-        skippable = false,
-        overrideReadOnly = false,
-    }) {
-        // Note: the transient flag is now ignored
-        // as the debounce is preventing too many updates from occurring
-
-        if (this.flags.readOnly && !overrideReadOnly) {
-            let sourceInformation = {};
-
-            for (let instruction of updateInstructions) {
-                let componentSourceInformation =
-                    sourceInformation[instruction.componentIdx];
-                if (!componentSourceInformation) {
-                    componentSourceInformation = sourceInformation[
-                        instruction.componentIdx
-                    ] = {};
-                }
-
-                if (instruction.sourceDetails) {
-                    Object.assign(
-                        componentSourceInformation,
-                        instruction.sourceDetails,
-                    );
-                }
-            }
-
-            await this.updateRendererInstructions({
-                componentNamesToUpdate: updateInstructions.map(
-                    (x) => x.componentIdx,
-                ),
-                sourceOfUpdate: { sourceInformation },
-            });
-
-            return;
-        }
-
-        return new Promise((resolve, reject) => {
-            this.processQueue.push({
-                type: "update",
-                updateInstructions,
-                transient,
-                event,
-                skippable,
-                resolve,
-                reject,
-            });
-
-            if (!this.processing) {
-                this.processing = true;
-                this.executeProcesses();
-            }
-
-            // if (this.processing) {
-
-            // } else {
-            //   this.processing = true;
-
-            //   // Note: execute this process synchronously
-            //   // so that UI doesn't update until after finished.
-            //   // It is a tradeoff, as the UI has to wait,
-            //   // but it allows constraints to be applied before renderering.
-
-            //   this.performUpdate({ updateInstructions, transient, event }).then(() => {
-            //     // execute asynchronously any remaining processes
-            //     // (that got added while performUpdate was running)
-
-            //     // if (this.processQueue.length > 0) {
-            //       setTimeout(this.executeProcesses, 0);
-            //     // } else {
-            //     //   this.processing = false;
-            //     // }
-            //     resolve();
-            //   });
-
-            // }
-        });
+    async requestUpdate(args) {
+        return this.processQueueManager.requestUpdate(args);
     }
 
     async performUpdate({
@@ -11175,58 +9542,14 @@ export default class Core {
     }
 
     async updateAllChangedRenderers(sourceInformation = {}, actionId) {
-        let componentNamesToUpdate = [
-            ...this.updateInfo.componentsToUpdateRenderers,
-        ];
-        this.updateInfo.componentsToUpdateRenderers.clear();
-
-        await this.updateRendererInstructions({
-            componentNamesToUpdate,
-            sourceOfUpdate: { sourceInformation, local: true },
+        return this.rendererInstructionBuilder.updateAllChangedRenderers(
+            sourceInformation,
             actionId,
-        });
-
-        // updating renderer instructions could trigger more composite updates
-        // (presumably from deriving child results)
-        // if so, make replacement changes and update renderer instructions again
-        // TODO: should we check for child results earlier so we don't have to check them
-        // when updating renderer instructions?
-        if (this.updateInfo.compositesToUpdateReplacements.size > 0) {
-            await this.replacementChangesFromCompositesToUpdate();
-
-            let componentNamesToUpdate = [
-                ...this.updateInfo.componentsToUpdateRenderers,
-            ];
-            this.updateInfo.componentsToUpdateRenderers.clear();
-
-            await this.updateRendererInstructions({
-                componentNamesToUpdate,
-                sourceOfUpdate: { sourceInformation, local: true },
-                actionId,
-            });
-        }
+        );
     }
 
     requestRecordEvent(event) {
-        this.resumeVisibilityMeasuring();
-
-        if (event.verb === "visibilityChanged") {
-            return this.processVisibilityChangedEvent(event);
-        }
-
-        return new Promise((resolve, reject) => {
-            this.processQueue.push({
-                type: "recordEvent",
-                event,
-                resolve,
-                reject,
-            });
-
-            if (!this.processing) {
-                this.processing = true;
-                this.executeProcesses();
-            }
-        });
+        return this.processQueueManager.requestRecordEvent(event);
     }
 
     async performRecordEvent({ event }) {
