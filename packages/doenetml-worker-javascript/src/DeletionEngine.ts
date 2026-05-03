@@ -24,6 +24,22 @@ export class DeletionEngine {
         this.core = core;
     }
 
+    /**
+     * Delete `components` (and, when `deleteUpstreamDependencies`,
+     * everything that shadows or depends on them) from the live tree.
+     *
+     * Two-phase walk:
+     *  1. `determineComponentsToDelete` collects the full transitive set
+     *     (children, attribute components, adapters, shadows, replacements).
+     *  2. The body below removes them: detach from composite replacements,
+     *     splice out of parent `definingChildren` and re-derive child
+     *     results, tear down dependency edges (downstream and upstream),
+     *     remove from the resolver, and deregister from `_components`.
+     *
+     * Pass `skipProcessingChildrenOfParents` for parents whose child
+     * results are about to be re-derived by a different code path, so we
+     * don't pay for two redundant passes.
+     */
     async deleteComponents({
         components,
         deleteUpstreamDependencies = true,
@@ -33,12 +49,6 @@ export class DeletionEngine {
         deleteUpstreamDependencies?: boolean;
         skipProcessingChildrenOfParents?: number[];
     }): Promise<any> {
-        // to delete a component, one must
-        // 1. recursively delete all children and attribute components
-        // 3. should we delete or mark components who are upstream dependencies?
-        // 4. for all other downstream dependencies,
-        //    delete upstream link back to component
-
         if (!Array.isArray(components)) {
             components = [components];
         }
@@ -62,7 +72,7 @@ export class DeletionEngine {
         for (const componentIdxStr in componentsToDelete) {
             const componentIdx = Number(componentIdxStr);
             let component = componentsToDelete[componentIdx];
-            let parent = this.core.components[component.parentIdx];
+            let parent = this.core._components[component.parentIdx];
 
             // only add parent if it is not in componentsToDelete itself
             if (
@@ -115,10 +125,10 @@ export class DeletionEngine {
             }
         }
 
-        for (const compositeIdxStr of replacementsDeletedFromComposites) {
-            if (!(compositeIdxStr in componentsToDelete)) {
+        for (const compositeIdx of replacementsDeletedFromComposites) {
+            if (!(compositeIdx in componentsToDelete)) {
                 await this.core.dependencies.addBlockersFromChangedReplacements(
-                    this.core._components[compositeIdxStr],
+                    this.core._components[compositeIdx],
                 );
             }
         }
@@ -326,6 +336,13 @@ export class DeletionEngine {
         };
     }
 
+    /**
+     * Recursively populate `componentsToDelete` with the transitive
+     * deletion set rooted at `components`: each component's
+     * `allChildren`, attribute components/references, the source of any
+     * adapter, and (when `deleteUpstreamDependencies`) shadows, the
+     * adapter the component itself produced, and any replacements.
+     */
     determineComponentsToDelete({
         components,
         deleteUpstreamDependencies,

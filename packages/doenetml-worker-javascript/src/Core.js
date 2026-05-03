@@ -43,13 +43,7 @@ import { StatePersistence } from "./StatePersistence";
 import { StateVariableDefinitionFactory } from "./StateVariableDefinitionFactory";
 import { StateVariableInitializer } from "./StateVariableInitializer";
 import { VisibilityTracker } from "./VisibilityTracker";
-import {
-    findCaseInsensitiveMatches as resolveCaseInsensitiveMatches,
-    matchPublicStateVariables as resolveMatchPublicStateVariables,
-    substituteAliases as resolveSubstituteAliases,
-    publicCaseInsensitiveAliasSubstitutions as resolvePublicCaseInsensitiveAliasSubstitutions,
-    checkIfArrayEntry as resolveCheckIfArrayEntry,
-} from "./StateVariableNameResolver";
+import * as nameResolver from "./StateVariableNameResolver";
 import {
     returnDefaultArrayVarNameFromPropIndex,
     returnDefaultGetArrayKeysFromVarName,
@@ -61,6 +55,18 @@ import {
 } from "./utils/componentIndices";
 // string to componentClass: this.componentInfoObjects.allComponentClasses["string"]
 // componentClass to string: componentClass.componentType
+
+// Several feature areas have been extracted into their own modules
+// (DiagnosticsManager, VisibilityTracker, StatePersistence, AutoSubmitManager,
+// NavigationHandler, ResolverAdapter, RendererInstructionBuilder,
+// ProcessQueue, ComponentLifecycle, ChildMatcher, DeletionEngine,
+// ActionTriggerScheduler, StateVariableDefinitionFactory,
+// StateVariableInitializer, ComponentBuilder, CompositeExpander, and the
+// `nameResolver` namespace). Core retains thin wrapper methods so the public
+// surface — used by CoreWorker, `coreFunctions`-bound references, components,
+// and tests — keeps working. Each delegating block is grouped near its
+// original location and tagged with a `// → managerName` marker; see the
+// corresponding module for details.
 
 export default class Core {
     constructor({
@@ -312,9 +318,7 @@ export default class Core {
         // Reset the process queue managed by `this.processQueueManager`
         // (see ProcessQueue.ts) so a previous run does not leak into this
         // document.
-        this.processQueueManager.queue = [];
-        this.processQueueManager.processing = false;
-        this.processQueueManager.stopProcessingRequests = false;
+        this.processQueueManager.reset();
 
         this.dependencies = new DependencyHandler({
             _components: this._components,
@@ -482,11 +486,7 @@ export default class Core {
         );
     }
 
-    // Renderer instruction building lives in `this.rendererInstructionBuilder`
-    // (see RendererInstructionBuilder.ts). The accessors and methods below
-    // preserve the public surface (`core.componentsToRender`,
-    // `core.rendererState`, `core.callUpdateRenderers`, etc.) by delegating.
-
+    // → rendererInstructionBuilder
     get componentsToRender() {
         return this.rendererInstructionBuilder.componentsToRender;
     }
@@ -504,21 +504,13 @@ export default class Core {
         return this.rendererInstructionBuilder.callUpdateRenderers(args, init);
     }
 
-    // Diagnostic state and helpers live in `this.diagnosticsManager`
-    // (see DiagnosticsManager.ts). The accessors and methods below preserve
-    // the public surface (`core.diagnostics`, `core.hasPendingDiagnostics`,
-    // `core.addDiagnostic`, etc.) by delegating through.
-
+    // → diagnosticsManager
     get diagnostics() {
         return this.diagnosticsManager.diagnostics;
     }
 
     get hasPendingDiagnostics() {
         return this.diagnosticsManager.hasPendingDiagnostics;
-    }
-
-    set hasPendingDiagnostics(value) {
-        this.diagnosticsManager.hasPendingDiagnostics = value;
     }
 
     getDiagnostics() {
@@ -537,10 +529,7 @@ export default class Core {
         return this.diagnosticsManager.getSourceLocationForComponent(component);
     }
 
-    // Component instantiation lives in `this.componentBuilder`
-    // (see ComponentBuilder.ts). The methods below preserve the public
-    // surface by delegating through.
-
+    // → componentBuilder
     async addComponents(args) {
         return this.componentBuilder.addComponents(args);
     }
@@ -593,12 +582,7 @@ export default class Core {
         );
     }
 
-    // Action-trigger scheduling lives in `this.actionTriggerScheduler`
-    // (see ActionTriggerScheduler.ts). The accessors and methods below
-    // preserve the public surface (`core.stateVariableChangeTriggers`,
-    // `core.actionsChangedToActions`, `core.originsOfActionsChangedToActions`,
-    // and the four scheduling methods) by delegating through.
-
+    // → actionTriggerScheduler
     get stateVariableChangeTriggers() {
         return this.actionTriggerScheduler.stateVariableChangeTriggers;
     }
@@ -623,10 +607,7 @@ export default class Core {
         );
     }
 
-    // Composite expansion lives in `this.compositeExpander`
-    // (see CompositeExpander.ts). The methods below preserve the public
-    // surface by delegating through.
-
+    // → compositeExpander
     async expandAllComposites(component, force = false) {
         return this.compositeExpander.expandAllComposites(component, force);
     }
@@ -736,6 +717,7 @@ export default class Core {
         return this.childMatcher.substituteAdapter(args);
     }
 
+    // → resolverAdapter
     async addReplacementsToResolver(args) {
         return this.resolverAdapter.addReplacementsToResolver(args);
     }
@@ -759,6 +741,7 @@ export default class Core {
         );
     }
 
+    // → stateVariableDefinitionFactory
     async createStateVariableDefinitions(args) {
         return this.stateVariableDefinitionFactory.createStateVariableDefinitions(
             args,
@@ -795,11 +778,7 @@ export default class Core {
         );
     }
 
-    // State-variable runtime initialization (lazy-resolving getters,
-    // dependency wiring, array entry materialization) lives in
-    // `this.stateVariableInitializer` (see StateVariableInitializer.ts).
-    // The methods below preserve the public surface by delegating through.
-
+    // → stateVariableInitializer
     async initializeComponentStateVariables(component) {
         return this.stateVariableInitializer.initializeComponentStateVariables(
             component,
@@ -1824,14 +1803,11 @@ export default class Core {
         }
     }
 
-    // The five state-variable name-resolution helpers below live as pure
-    // functions in StateVariableNameResolver.ts. The wrappers preserve the
-    // public surface (`core.findCaseInsensitiveMatches`, etc., plus the
-    // by-reference passes used in composite sugar functions) by injecting
-    // `componentInfoObjects` and delegating.
+    // → nameResolver (state-variable name-resolution wrappers inject
+    //   `componentInfoObjects` so external callers don't have to.)
 
     findCaseInsensitiveMatches({ stateVariables, componentClass }) {
-        return resolveCaseInsensitiveMatches({
+        return nameResolver.findCaseInsensitiveMatches({
             stateVariables,
             componentClass,
             componentInfoObjects: this.componentInfoObjects,
@@ -1839,7 +1815,7 @@ export default class Core {
     }
 
     matchPublicStateVariables({ stateVariables, componentClass }) {
-        return resolveMatchPublicStateVariables({
+        return nameResolver.matchPublicStateVariables({
             stateVariables,
             componentClass,
             componentInfoObjects: this.componentInfoObjects,
@@ -1847,7 +1823,7 @@ export default class Core {
     }
 
     substituteAliases({ stateVariables, componentClass }) {
-        return resolveSubstituteAliases({
+        return nameResolver.substituteAliases({
             stateVariables,
             componentClass,
             componentInfoObjects: this.componentInfoObjects,
@@ -1858,7 +1834,7 @@ export default class Core {
         stateVariables,
         componentClass,
     }) {
-        return resolvePublicCaseInsensitiveAliasSubstitutions({
+        return nameResolver.publicCaseInsensitiveAliasSubstitutions({
             stateVariables,
             componentClass,
             componentInfoObjects: this.componentInfoObjects,
@@ -1866,7 +1842,7 @@ export default class Core {
     }
 
     checkIfArrayEntry({ stateVariable, component }) {
-        return resolveCheckIfArrayEntry({ stateVariable, component });
+        return nameResolver.checkIfArrayEntry({ stateVariable, component });
     }
 
     async createFromArrayEntry({
@@ -2769,11 +2745,7 @@ export default class Core {
     //   }
     // }
 
-    // Component-tree bookkeeping (registration, ancestors, defining-child
-    // splicing, propagation to shadows) lives in `this.componentLifecycle`
-    // (see ComponentLifecycle.ts). The methods below preserve the public
-    // surface by delegating through.
-
+    // → componentLifecycle
     registerComponent(component) {
         return this.componentLifecycle.registerComponent(component);
     }
@@ -2809,9 +2781,7 @@ export default class Core {
         );
     }
 
-    // Component deletion lives in `this.deletionEngine` (see DeletionEngine.ts).
-    // The methods below preserve the public surface by delegating through.
-
+    // → deletionEngine
     async deleteComponents(args) {
         return this.deletionEngine.deleteComponents(args);
     }
@@ -3995,13 +3965,7 @@ export default class Core {
         return null;
     }
 
-    // The async request queue lives in `this.processQueueManager`
-    // (see ProcessQueue.ts). The accessors and methods below preserve the
-    // public surface (`core.processQueue`, `core.processing`,
-    // `core.stopProcessingRequests`, `core.executeProcesses`,
-    // `core.requestAction`, `core.requestUpdate`, `core.requestRecordEvent`)
-    // by delegating through.
-
+    // → processQueueManager
     get processQueue() {
         return this.processQueueManager.queue;
     }
@@ -4483,11 +4447,7 @@ export default class Core {
         this.sendEvent(payload);
     }
 
-    // Visibility tracking lives in `this.visibilityTracker`
-    // (see VisibilityTracker.ts). The accessor and methods below preserve
-    // the public surface (`core.visibilityInfo`, `core.processVisibilityChangedEvent`,
-    // etc.) by delegating through.
-
+    // → visibilityTracker
     get visibilityInfo() {
         return this.visibilityTracker.info;
     }
@@ -5833,11 +5793,7 @@ export default class Core {
         }
     }
 
-    // State persistence (save to localStorage / database) lives in
-    // `this.statePersistence` (see StatePersistence.ts). The methods below
-    // preserve the public surface (`core.saveImmediately`, `core.saveState`,
-    // `core.saveChangesToDatabase`) by delegating through.
-
+    // → statePersistence
     async saveImmediately() {
         return this.statePersistence.saveImmediately();
     }
@@ -5881,9 +5837,7 @@ export default class Core {
         }
     }
 
-    // Navigation methods delegate to `this.navigationHandler`
-    // (see NavigationHandler.ts).
-
+    // → navigationHandler
     async handleNavigatingToComponent(args) {
         return this.navigationHandler.handleNavigatingToComponent(args);
     }
@@ -5914,10 +5868,7 @@ export default class Core {
         await this.saveImmediately();
     }
 
-    // Auto-submit-answer queue lives in `this.autoSubmitManager`
-    // (see AutoSubmitManager.ts). The methods below preserve the public surface
-    // (`core.recordAnswerToAutoSubmit`, `core.autoSubmitAnswers`) by delegating.
-
+    // → autoSubmitManager
     recordAnswerToAutoSubmit(componentIdx) {
         this.autoSubmitManager.recordAnswer(componentIdx);
     }

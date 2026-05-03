@@ -292,7 +292,7 @@ export class ComponentBuilder {
                 // create a serialized component that doesn't exist.
                 const message = `Invalid component type: \`<${serializedComponent.componentType}>\`.`;
 
-                this.core.hasPendingDiagnostics = true;
+                this.core.diagnosticsManager.markPending();
 
                 const convertResult = convertToErrorComponent(
                     serializedComponent,
@@ -640,7 +640,7 @@ export class ComponentBuilder {
                         ]),
                     );
                 }
-                if (this.core.components[idx]) {
+                if (this.core._components[idx]) {
                     prescribedDependencies[idx] =
                         serializedComponent.downstreamDependencies[idx];
                 } else {

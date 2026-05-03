@@ -347,12 +347,12 @@ export class CompositeExpander {
         const originalWorkspace = { ...component.replacementsWorkspace };
 
         do {
-            initialNComponents = this.core.components.length;
+            initialNComponents = this.core._components.length;
             component.replacementsWorkspace = { ...originalWorkspace };
             result = await component.constructor.createSerializedReplacements({
-                component: this.core.components[component.componentIdx], // to create proxy
-                components: this.core.components,
-                nComponents: this.core.components.length,
+                component: this.core._components[component.componentIdx], // to create proxy
+                components: this.core._components,
+                nComponents: this.core._components.length,
                 workspace: component.replacementsWorkspace,
                 componentInfoObjects: this.core.componentInfoObjects,
                 allDoenetMLs: this.core.allDoenetMLs,
@@ -366,12 +366,12 @@ export class CompositeExpander {
                     ),
             });
 
-            // If `this.core.components` changed in length while `createSerializedReplacements` was executing,
+            // If `this.core._components` changed in length while `createSerializedReplacements` was executing,
             // it means that some other action (like calling another `createSerializedReplacements`)
             // occurred while resolving state variables.
             // Since this would lead to collisions in assigned component indices, we rerun `createSerializedReplacements`.
             // TODO: are there any scenarios where this will lead to an infinite loop?
-        } while (this.core.components.length !== initialNComponents);
+        } while (this.core._components.length !== initialNComponents);
 
         const newNComponents = result.nComponents;
 
@@ -387,8 +387,8 @@ export class CompositeExpander {
             );
         }
 
-        let position = this.core.components[component.componentIdx].position;
-        let sourceDoc = this.core.components[component.componentIdx].sourceDoc;
+        let position = this.core._components[component.componentIdx].position;
+        let sourceDoc = this.core._components[component.componentIdx].sourceDoc;
         let overwriteDoenetMLRange = component.componentType === "_copy";
 
         this.core.gatherDiagnosticsAndAssignDoenetMLRange({
@@ -607,7 +607,7 @@ export class CompositeExpander {
 
         let nameOfCompositeMediatingTheShadow = component.shadows.compositeIdx;
         let compositeMediatingTheShadow =
-            this.core.components[nameOfCompositeMediatingTheShadow];
+            this.core._components[nameOfCompositeMediatingTheShadow];
         serializedReplacements = postProcessCopy({
             serializedComponents: serializedReplacements,
             componentIdx: nameOfCompositeMediatingTheShadow,
@@ -671,7 +671,7 @@ export class CompositeExpander {
             // recurse to check if one the shadowed components mediates
             // the shadow of compositeMediatingTheShadow
             shadowedByShadowed = shadowedByShadowed.reduce((acc, cIdx) => {
-                let comp = this.core.components[cIdx];
+                let comp = this.core._components[cIdx];
                 if (comp?.mediatesShadows) {
                     return [
                         ...acc,
