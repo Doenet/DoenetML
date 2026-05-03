@@ -549,10 +549,8 @@ export class CompositeReplacementUpdater {
         addedComponents,
         processNewChildren = true,
     }) {
-        let compositesDeletedFrom: any[] = [];
-
         if (!composite.isExpanded) {
-            return compositesDeletedFrom;
+            return;
         }
 
         if (composite.shadowedBy) {
@@ -599,20 +597,17 @@ export class CompositeReplacementUpdater {
                     }
                 }
 
-                let additionalCompositesDeletedFrom =
-                    await this.deleteReplacementsFromShadowsThenComposite({
-                        change,
-                        composite: shadowingComposite,
-                        componentsToDelete: shadowingComponentsToDelete,
-                        componentChanges,
-                        sourceOfUpdate,
-                        parentsOfDeleted,
-                        deletedComponents,
-                        addedComponents,
-                        processNewChildren,
-                    });
-
-                compositesDeletedFrom.push(...additionalCompositesDeletedFrom);
+                await this.deleteReplacementsFromShadowsThenComposite({
+                    change,
+                    composite: shadowingComposite,
+                    componentsToDelete: shadowingComponentsToDelete,
+                    componentChanges,
+                    sourceOfUpdate,
+                    parentsOfDeleted,
+                    deletedComponents,
+                    addedComponents,
+                    processNewChildren,
+                });
             }
         }
 
@@ -729,8 +724,6 @@ export class CompositeReplacementUpdater {
             Object.assign(deletedComponents, deleteResults.deletedComponents);
             Object.assign(addedComponents, deleteResults.addedComponents);
         }
-
-        return compositesDeletedFrom;
     }
 
     async processChildChangesAndRecurseToShadows(component) {
@@ -1048,8 +1041,6 @@ export class CompositeReplacementUpdater {
         componentChanges,
         adjustResolver = false,
     }) {
-        let compositesWithAdjustedReplacements: any[] = [];
-
         let replacementsToWithhold = change.replacementsToWithhold;
 
         let changeInReplacementsToWithhold;
@@ -1060,7 +1051,6 @@ export class CompositeReplacementUpdater {
             changeInReplacementsToWithhold = replacementsToWithhold;
         }
         if (changeInReplacementsToWithhold < 0) {
-            compositesWithAdjustedReplacements.push(component.componentIdx);
             // Note: don't subtract one of this last ind, as slice doesn't include last ind
             let lastIndToStopWithholding =
                 component.replacements.length - replacementsToWithhold;
@@ -1083,7 +1073,6 @@ export class CompositeReplacementUpdater {
 
             componentChanges.push(newChange);
         } else if (changeInReplacementsToWithhold > 0) {
-            compositesWithAdjustedReplacements.push(component.componentIdx);
             let firstIndToStartWithholding =
                 component.replacements.length - replacementsToWithhold;
             let lastIndToStartWithholding =
@@ -1182,20 +1171,14 @@ export class CompositeReplacementUpdater {
                 ) {
                     continue;
                 }
-                let additionalCompositesWithAdjustedReplacements =
-                    await this.adjustReplacementsToWithhold({
-                        component: shadowingComponent,
-                        change,
-                        componentChanges,
-                        adjustResolver,
-                    });
-                compositesWithAdjustedReplacements.push(
-                    ...additionalCompositesWithAdjustedReplacements,
-                );
+                await this.adjustReplacementsToWithhold({
+                    component: shadowingComponent,
+                    change,
+                    componentChanges,
+                    adjustResolver,
+                });
             }
         }
-
-        return compositesWithAdjustedReplacements;
     }
 }
 
