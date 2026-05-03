@@ -60,6 +60,16 @@ Skip if the next phase introduces a broader logging/instrumentation layer that s
 
 A cleaner shape: make `calcStartEndIdx` a standalone helper (or a private method on `ResolverAdapter`) that returns `{ start_idx, end_idx }` directly, eliminating the closure mutation. This untangles the logic and makes the function independently testable.
 
+### Pre-existing fire-and-forget calls still in `Core.js`
+
+Three intentionally unawaited Promise calls remain in `Core.js`. They pre-date this PR (this refactor did not introduce them, and adding `.catch` handlers was out of scope for a behavior-preserving extraction), but they violate the AGENTS.md convention that fire-and-forget Promises must attach an explicit `.catch(...)` handler. They should be picked up in the next phase that touches Core directly.
+
+- **`Core.js:410`** — `this.saveState();` inside the `generateDast` epilogue (`if (!this.receivedStateVariableChanges) { this.saveState(); }`). Returns a Promise; rejection is unhandled.
+- **`Core.js:11160`** — `this.saveState(true, true);` inside `processNewStateVariableValues` after recording component submissions. Same shape as above.
+- **`Core.js:449-452`** — `setTimeout(this.sendVisibilityChangedEvents.bind(this), this.visibilityInfo.saveDelay)` inside `onDocumentFirstVisible()`. The bound function returns `Promise<void> | undefined`; setTimeout discards the return, so any rejection is unhandled.
+
+Suggested fix in each case: wrap with `.catch(reportTimerError("<label>"))` using the helper added in this PR (`src/utils/timerErrors.ts`). For the setTimeout case, use a thin arrow wrapper: `setTimeout(() => { this.sendVisibilityChangedEvents()?.catch(reportTimerError("first-visible visibility send")); }, ...)`.
+
 ### Regression test for the `.primitive.number` → `.primitive.value` fix
 
 Commit `aed7910c` fixed a latent bug at `ResolverAdapter.ts:84` (was reading `component.attributes.createComponentIdx.primitive.number`, should be `.value` after a `primitive.type === "number"` guard). The fix matches the pattern at `utils/resolver.ts:220-224` and `utils/componentIndices.ts:725`.
