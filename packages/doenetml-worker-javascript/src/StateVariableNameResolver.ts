@@ -66,7 +66,7 @@ export function findCaseInsensitiveMatches({
                 lowerCaseVarName.substring(0, prefix.length) ===
                 prefix.toLowerCase()
             ) {
-                // TODO: the varEnding is still a case-senstitive match
+                // TODO: the varEnding is still a case-sensitive match
                 // Should we require that getArrayKeysFromVarName have
                 // a case-insensitive mode?
                 let arrayVariableName =

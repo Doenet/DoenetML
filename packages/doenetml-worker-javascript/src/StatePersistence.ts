@@ -3,6 +3,7 @@ import {
     data_format_version,
 } from "@doenet/utils";
 import { set as idb_set } from "idb-keyval";
+import { reportTimerError } from "./utils/timerErrors";
 
 /**
  * Owns the save-to-localStorage and save-to-database pipeline for a Core
@@ -41,7 +42,7 @@ export class StatePersistence {
             clearTimeout(this.saveDocStateTimeoutID);
         }
         this.saveDocStateTimeoutID = setTimeout(() => {
-            this.saveState();
+            this.saveState().catch(reportTimerError("scheduled saveState"));
         }, delayMs);
     }
 
@@ -139,7 +140,9 @@ export class StatePersistence {
         // check for changes again after 60 seconds
         this.saveStateToDBTimerId = setTimeout(() => {
             this.saveStateToDBTimerId = null;
-            this.saveChangesToDatabase();
+            this.saveChangesToDatabase().catch(
+                reportTimerError("throttled saveChangesToDatabase"),
+            );
         }, 60000);
 
         this.core.reportScoreAndStateCallback({
