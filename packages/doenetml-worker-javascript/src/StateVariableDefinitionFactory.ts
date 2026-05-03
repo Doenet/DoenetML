@@ -127,7 +127,7 @@ export class StateVariableDefinitionFactory {
             let varName = attributeSpecification.createStateVariable;
 
             let stateVarDef = (stateVariableDefinitions[varName] = {
-                isAttribute: true, // Note: isAttribute is not accessed anywhere
+                isAttribute: true,
                 hasEssential: true,
                 provideEssentialValuesInDefinition: true,
             });
@@ -445,7 +445,7 @@ export class StateVariableDefinitionFactory {
             let varName = attributeSpecification.createStateVariable;
 
             let stateVarDef = (stateVariableDefinitions[varName] = {
-                isAttribute: true, // Note: isAttribute is not accessed anywhere
+                isAttribute: true,
                 hasEssential: true,
             });
 
@@ -676,7 +676,7 @@ export class StateVariableDefinitionFactory {
             }
 
             let stateVarDef = (stateVariableDefinitions[varName] = {
-                isAttribute: true, // Note: isAttribute is not accessed anywhere
+                isAttribute: true,
                 hasEssential: true,
                 provideEssentialValuesInDefinition: true,
             });
@@ -1328,11 +1328,6 @@ export class StateVariableDefinitionFactory {
                     dependencyValuesByKey,
                     arrayKeys,
                 }) {
-                    // console.log(`shadow array definition by key for ${varName}`)
-                    // console.log(JSON.parse(JSON.stringify(globalDependencyValues)))
-                    // console.log(JSON.parse(JSON.stringify(dependencyValuesByKey)))
-                    // console.log(JSON.parse(JSON.stringify(arrayKeys)))
-
                     let newEntries = {};
 
                     for (let arrayKey of arrayKeys) {

@@ -35,8 +35,6 @@ export class CompositeExpander {
     }
 
     async expandAllComposites(component, force = false) {
-        // console.log(`*****expand all composites force=${force} *****`);
-
         let parentsWithCompositesNotReady =
             await this.expandCompositesOfDescendants(component, force);
 
@@ -81,19 +79,14 @@ export class CompositeExpander {
                 }
             }
         }
-
-        // console.log(`*********finished expanding all composites*****`)
     }
 
     async expandCompositesOfDescendants(
         component,
         forceExpandComposites = false,
     ) {
-        // console.log(`expand composites of descendants of ${component.componentIdx}, forceExpandComposites = ${forceExpandComposites}`)
-
-        // attempt to expand the composites of all descendants
-        // include attributes with children
-
+        // Attempt to expand the composites of all descendants, including
+        // attribute components.
         let parentsWithCompositesNotReady = [];
 
         if (!component.matchedCompositeChildren) {
@@ -105,12 +98,10 @@ export class CompositeExpander {
             if (component.unexpandedCompositesNotReady.length > 0) {
                 parentsWithCompositesNotReady.push(component.componentIdx);
             } else {
-                // console.log(`resolving blockers from changed active children of ${component.componentIdx}`)
                 await this.core.dependencies.resolveBlockersFromChangedActiveChildren(
                     component,
                     forceExpandComposites,
                 );
-                // console.log(`done resolving blockers from changed active children of ${component.componentIdx}`)
             }
         }
 
@@ -143,7 +134,6 @@ export class CompositeExpander {
                 ...additionalParentsWithNotReady,
             );
         }
-        // console.log(`done expanding composites of descendants of ${component.componentIdx}`)
 
         return parentsWithCompositesNotReady;
     }
@@ -176,12 +166,9 @@ export class CompositeExpander {
         expandComposites,
         forceExpandComposites,
     ) {
-        // if composite is not directly matched by any childGroup
-        // then replace the composite with its replacements,
-        // expanding it if not already expanded
-
-        // console.log(`expanding defining children of of ${parent.componentIdx}`)
-
+        // If a composite is not directly matched by any childGroup, replace
+        // the composite with its replacements, expanding it if not already
+        // expanded.
         let unexpandedCompositesReady = [];
         let unexpandedCompositesNotReady = [];
 
@@ -206,9 +193,6 @@ export class CompositeExpander {
 
                 // expand composite if it isn't already
                 if (!child.isExpanded) {
-                    // console.log(`child ${child.componentIdx} is not expanded`)
-                    // console.log(child.state.readyToExpandWhenResolved.isResolved)
-
                     if (!child.state.readyToExpandWhenResolved.isResolved) {
                         if (expandComposites) {
                             let resolveResult =
@@ -267,8 +251,6 @@ export class CompositeExpander {
             }
         }
 
-        // console.log(`done expanding defining children of of ${parent.componentIdx}`)
-
         return { unexpandedCompositesReady, unexpandedCompositesNotReady };
     }
 
@@ -285,8 +267,6 @@ export class CompositeExpander {
         }
 
         this.core.updateInfo.compositesToExpand.delete(component.componentIdx);
-
-        // console.log(`expanding composite ${component.componentIdx}`);
 
         this.core.updateInfo.compositesBeingExpanded.push(
             component.componentIdx,
@@ -399,15 +379,10 @@ export class CompositeExpander {
             overwriteDoenetMLRange,
         });
 
-        // console.log(`expand result for ${component.componentIdx}`);
-        // console.log(JSON.parse(JSON.stringify(result)));
-
         if (component.constructor.stateVariableToEvaluateAfterReplacements) {
-            // console.log(`evaluating ${component.constructor.stateVariableToEvaluateAfterReplacements} of ${component.componentIdx}`)
             await component.stateValues[
                 component.constructor.stateVariableToEvaluateAfterReplacements
             ];
-            // console.log(`done evaluating ${component.constructor.stateVariableToEvaluateAfterReplacements} of ${composite.componentIdx}`)
         }
 
         if (result.replacements) {
@@ -447,13 +422,7 @@ export class CompositeExpander {
         return { success: true, compositesExpanded: [component.componentIdx] };
     }
 
-    // Resolver adapter methods live in `this.core.resolverAdapter`
-    // (see ResolverAdapter.ts). The methods below preserve the public surface
-    // (`core.addReplacementsToResolver`, etc.) by delegating through.
-
     async expandShadowingComposite(component) {
-        // console.log(`expand shadowing composite, ${component.componentIdx}`);
-
         if (
             this.core.updateInfo.compositesBeingExpanded.includes(
                 component.shadows.componentIdx,
@@ -480,8 +449,6 @@ export class CompositeExpander {
             this.core._components[component.shadows.componentIdx];
         let compositesExpanded = [];
 
-        // console.log(`shadowedComposite: ${shadowedComposite.componentIdx}`);
-        // console.log(shadowedComposite.isExpanded);
         if (!shadowedComposite.isExpanded) {
             let result = await this.expandCompositeComponent(shadowedComposite);
 
@@ -594,11 +561,6 @@ export class CompositeExpander {
 
         this.adjustForCreateComponentIdxName(serializedReplacements, component);
 
-        // console.log(
-        //     `serialized replacements of ${shadowedComposite.componentIdx}`,
-        // );
-        // console.log(JSON.parse(JSON.stringify(serializedReplacements)));
-
         // Have three composites involved:
         // 1. the shadowing composite (component, the one we're trying to expand)
         // 2. the shadowed composite
@@ -612,15 +574,6 @@ export class CompositeExpander {
             serializedComponents: serializedReplacements,
             componentIdx: nameOfCompositeMediatingTheShadow,
         });
-
-        // console.log("--------------");
-        // console.log(
-        //   `name of composite mediating shadow: ${nameOfCompositeMediatingTheShadow}`,
-        // );
-        // console.log(`name of composite shadowing: ${component.componentIdx}`);
-        // console.log(
-        //   `name of shadowed composite: ${shadowedComposite.componentIdx}`,
-        // );
 
         // If shadowed composite mediates the shadow of compositeMediatingTheShadow,
         // then we have a circular reference.
@@ -763,11 +716,6 @@ export class CompositeExpander {
             );
         }
 
-        // console.log(
-        //     `serialized replacements for ${component.componentIdx} who is shadowing ${shadowedComposite.componentIdx}`,
-        // );
-        // console.log(deepClone(serializedReplacements));
-
         component.replacementsWorkspace.replacementsCreated = stateIdInfo.num;
 
         await this.core.addReplacementsToResolver({
@@ -810,7 +758,7 @@ export class CompositeExpander {
      * If `composite` has `createComponentIdx` specified,
      * then its one replacement should have the componentIdx.
      * Similarly, if it has `createComponentName` specified,
-     * then its one replacement receive that name.
+     * then its one replacement should receive that name.
      */
     adjustForCreateComponentIdxName(serializedReplacements, composite) {
         if (serializedReplacements.length === 1) {
@@ -868,12 +816,9 @@ export class CompositeExpander {
     }
 
     async replaceCompositeChildren(parent) {
-        // if composite is not directly matched by any childGroup
-        // then replace the composite with its replacements,
-        // expanding it if not already expanded
-
-        // console.log(`replace composite children of ${parent.componentIdx}`)
-
+        // If a composite is not directly matched by any childGroup, replace
+        // the composite with its replacements, expanding it if not already
+        // expanded.
         delete parent.placeholderActiveChildrenIndices;
         delete parent.placeholderActiveChildrenIndicesByComposite;
         delete parent.compositeReplacementActiveRange;

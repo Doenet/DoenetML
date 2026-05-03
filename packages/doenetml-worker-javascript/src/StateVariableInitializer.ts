@@ -67,20 +67,6 @@ export class StateVariableInitializer {
             get: () => getStateVar({ component, stateVariable }),
             configurable: true,
         });
-        // Object.defineProperty(stateVarObj, 'value', {
-        //   get:
-        //     async function () {
-        //       try {
-        //         return getStateVar({ component, stateVariable });
-        //       } catch (e) {
-        //         console.log(`got an error in getter`, e);
-        //         throw e;
-        //       }
-        //     },
-        //   configurable: true
-        // });
-
-        // Object.defineProperty(stateVarObj, 'value', { get: () => Promise.resolve(getStateVar({ component, stateVariable })), configurable: true });
 
         if (arrayEntryPrefix !== undefined) {
             await this.initializeArrayEntryStateVariable({
@@ -111,6 +97,7 @@ export class StateVariableInitializer {
             };
         }
     }
+
     async initializeArrayEntryStateVariable({
         stateVarObj,
         arrayStateVariable,
