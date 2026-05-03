@@ -47,11 +47,12 @@ export class StatePersistence {
     }
 
     async saveImmediately(): Promise<void> {
-        if (this.saveDocStateTimeoutID) {
+        if (this.saveDocStateTimeoutID !== null) {
             // if in debounce to save doc to local storage
             // then immediate save to local storage
             // and override timeout to save to database
             clearTimeout(this.saveDocStateTimeoutID);
+            this.saveDocStateTimeoutID = null;
             await this.saveState(true);
         } else {
             // else override timeout to save any pending changes to database

@@ -247,7 +247,7 @@ export function checkIfArrayEntry({
           arrayEntryPrefix: string;
       }
     | { isArrayEntry: false } {
-    // check if stateVariable begins when an arrayEntry
+    // check if stateVariable begins with an array entry
     for (let arrayEntryPrefix in component.arrayEntryPrefixes) {
         if (
             stateVariable.substring(0, arrayEntryPrefix.length) ===

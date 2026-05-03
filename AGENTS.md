@@ -86,8 +86,8 @@ Read [TEST_RUN_INSTRUCTIONS_FOR_AGENTS.md](TEST_RUN_INSTRUCTIONS_FOR_AGENTS.md) 
 # Run all tests (Vitest only, very slow)
 npm run test
 
-# Run Vitest only (all packages except worker)
-npm run test:all-no-worker-js -- run
+# Run Vitest only (all packages except `doenetml-worker-javascript`)
+npm run test:all-no-worker-js
 
 # Run targeted Vitest (e.g., prefigure package)
 npm run test -w @doenet/prefigure -- --run test/index-api.test.ts
