@@ -264,9 +264,9 @@ export class UpdateExecutor {
                 }
 
                 await this.core.updateRendererInstructions({
-                    componentNamesToUpdate: updateInstructions.map(
-                        (x: UpdateInstruction) => x.componentIdx,
-                    ),
+                    componentNamesToUpdate: updateInstructions
+                        .map((x: UpdateInstruction) => x.componentIdx)
+                        .filter((idx): idx is ComponentIdx => idx != undefined),
                     sourceOfUpdate: { sourceInformation },
                     actionId,
                 });
@@ -287,9 +287,7 @@ export class UpdateExecutor {
         let recordComponentSubmissions: any[] = [];
 
         for (let instruction of updateInstructions) {
-            if (instruction.componentIdx != undefined) {
-                this._recordSourceDetails(instruction, sourceInformation);
-            }
+            this._recordSourceDetails(instruction, sourceInformation);
 
             if (instruction.updateType === "updateValue") {
                 await this.core.requestComponentChanges({
@@ -478,15 +476,21 @@ export class UpdateExecutor {
 
     /**
      * Merge `instruction.sourceDetails` into the per-component bag inside
-     * `sourceInformation`. No-op when `sourceDetails` is absent. Used to
-     * forward upstream-action provenance ("which input triggered this
-     * change?") through the update pipeline.
+     * `sourceInformation`. No-op when `sourceDetails` is absent or when the
+     * instruction has no `componentIdx` (e.g. `recordItemSubmission`
+     * entries from `Answer.js`/`Pretzel.js`, which would otherwise create
+     * a `sourceInformation["undefined"]` sentinel bucket). Used to forward
+     * upstream-action provenance ("which input triggered this change?")
+     * through the update pipeline.
      */
     _recordSourceDetails(
         instruction: any,
         sourceInformation: Record<string, any>,
     ) {
-        if (!instruction.sourceDetails) {
+        if (
+            instruction.componentIdx == undefined ||
+            !instruction.sourceDetails
+        ) {
             return;
         }
 
