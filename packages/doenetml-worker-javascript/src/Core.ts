@@ -108,18 +108,17 @@ export interface CoreInfo {
  * - componentClass → string: `componentClass.componentType`.
  *
  * Nearly all of Core's prior responsibilities have been extracted into their
- * own modules (DiagnosticsManager, VisibilityTracker, StatePersistence,
- * AutoSubmitManager,
- * RendererInstructionBuilder, ProcessQueue,
- * ActionTriggerScheduler, StateVariableDefinitionFactory,
- * StateVariableInitializer, ComponentBuilder, CompositeExpander,
- * StateVariableEvaluator, StalenessPropagator, EssentialValueWriter,
- * CompositeReplacementUpdater, UpdateExecutor, and the `nameResolver`
- * namespace). Core retains thin wrapper methods so the public surface — used
- * by CoreWorker, `coreFunctions`-bound references, components, and tests —
- * keeps working. Each delegating block is grouped near its original location
- * and tagged with a `// → managerName` marker; see the corresponding module
- * for details.
+ * own modules. Some are class instances held on Core (DiagnosticsManager,
+ * VisibilityTracker, StatePersistence, AutoSubmitManager,
+ * RendererInstructionBuilder, ProcessQueue, ActionTriggerScheduler,
+ * StateVariableDefinitionFactory, StateVariableInitializer, ComponentBuilder,
+ * CompositeExpander, StateVariableEvaluator, StalenessPropagator,
+ * EssentialValueWriter, CompositeReplacementUpdater, UpdateExecutor, and the
+ * `nameResolver` namespace); others (NavigationHandler, ResolverAdapter,
+ * ComponentLifecycle, ChildMatcher, DeletionEngine) are plain module-level
+ * functions imported directly by callers. Each delegating block still held on
+ * Core is grouped near its original location and tagged with a
+ * `// → managerName` marker; see the corresponding module for details.
  */
 export default class Core {
     // ─── Identity / configuration ─────────────────────────────────────────

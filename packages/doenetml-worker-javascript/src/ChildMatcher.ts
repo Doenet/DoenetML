@@ -108,7 +108,7 @@ export async function deriveChildResultsFromDefiningChildren({
     // replace with new components given by the composite component
     await core.replaceCompositeChildren(parent);
 
-    let childGroupResults = await matchChildrenToChildGroups(core, parent);
+    let childGroupResults = await matchChildrenToChildGroups({ core, parent });
 
     if (childGroupResults.success) {
         delete core.unmatchedChildren[parent.componentIdx];
@@ -182,10 +182,13 @@ export async function deriveChildResultsFromDefiningChildren({
  * `parent.childMatchesByGroup`. Returns `{ success, unmatchedChildren }`
  * where `success` is false iff any child could not be matched.
  */
-export async function matchChildrenToChildGroups(
-    core: Core,
-    parent: any,
-): Promise<any> {
+export async function matchChildrenToChildGroups({
+    core,
+    parent,
+}: {
+    core: Core;
+    parent: any;
+}): Promise<any> {
     parent.childMatchesByGroup = {};
 
     for (let groupName in parent.constructor.childGroupIndsByName) {
@@ -208,7 +211,11 @@ export async function matchChildrenToChildGroups(
             continue;
         }
 
-        let result = findChildGroup(core, childType, parent.constructor);
+        let result = findChildGroup({
+            core,
+            childType,
+            parentClass: parent.constructor,
+        });
 
         if (result.success) {
             parent.childMatchesByGroup[result.group!].push(ind);
@@ -237,16 +244,24 @@ export async function matchChildrenToChildGroups(
  * `afterAdapters: true` for groups that opt into late matching.
  * Returns the matching `group` and (if applicable) `adapterIndUsed`.
  */
-export function findChildGroup(
-    core: Core,
-    childType: string,
-    parentClass: any,
-): {
+export function findChildGroup({
+    core,
+    childType,
+    parentClass,
+}: {
+    core: Core;
+    childType: string;
+    parentClass: any;
+}): {
     success: boolean;
     group?: string;
     adapterIndUsed?: number;
 } {
-    let result = findChildGroupNoAdapters(core, childType, parentClass);
+    let result = findChildGroupNoAdapters({
+        core,
+        componentType: childType,
+        parentClass,
+    });
 
     if (result.success) {
         return result;
@@ -266,11 +281,11 @@ export function findChildGroup(
             core.componentInfoObjects.publicStateVariableInfo,
         );
 
-        result = findChildGroupNoAdapters(
+        result = findChildGroupNoAdapters({
             core,
-            adapterComponentType,
+            componentType: adapterComponentType,
             parentClass,
-        );
+        });
 
         if (result.success) {
             (result as any).adapterIndUsed = n;
@@ -279,15 +294,25 @@ export function findChildGroup(
     }
 
     // lastly try to match with afterAdapters set to true
-    return findChildGroupNoAdapters(core, childType, parentClass, true);
+    return findChildGroupNoAdapters({
+        core,
+        componentType: childType,
+        parentClass,
+        afterAdapters: true,
+    });
 }
 
-export function findChildGroupNoAdapters(
-    core: Core,
-    componentType: string,
-    parentClass: any,
-    afterAdapters: boolean = false,
-): { success: boolean; group?: string } {
+export function findChildGroupNoAdapters({
+    core,
+    componentType,
+    parentClass,
+    afterAdapters = false,
+}: {
+    core: Core;
+    componentType: string;
+    parentClass: any;
+    afterAdapters?: boolean;
+}): { success: boolean; group?: string } {
     if (parentClass.childGroupOfComponentType[componentType]) {
         return {
             success: true,
@@ -338,10 +363,13 @@ export function findChildGroupNoAdapters(
  * `childIndicesToRender`, per-child `hidden`, and propagates
  * `hidden` from any composite that produced a primitive child.
  */
-export async function returnActiveChildrenIndicesToRender(
-    core: Core,
-    component: any,
-): Promise<number[]> {
+export async function returnActiveChildrenIndicesToRender({
+    core,
+    component,
+}: {
+    core: Core;
+    component: any;
+}): Promise<number[]> {
     let indicesToRender: number[] = [];
     let numChildrenToRender = Infinity;
     if ("numChildrenToRender" in component.state) {

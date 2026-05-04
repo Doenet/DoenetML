@@ -15,9 +15,10 @@ import { createNewComponentIndices } from "./utils/componentIndices";
  *   children into a parent and propagation to any composites that
  *   shadow that parent.
  *
- * Stateless — each function takes a back-reference to Core to read
+ * Stateless — most functions take a back-reference to Core to read
  * `_components`, `parameterStack`, and to invoke
  * `deriveChildResultsFromDefiningChildren` and `createIsolatedComponents`.
+ * (`spliceChildren` operates on a parent component only and takes no `core`.)
  */
 
 /**
@@ -25,7 +26,13 @@ import { createNewComponentIndices } from "./utils/componentIndices";
  * the index is already taken — duplicate indices indicate a bug in the
  * caller, so we fail loudly rather than silently overwriting.
  */
-export function registerComponent(core: Core, component: any): void {
+export function registerComponent({
+    core,
+    component,
+}: {
+    core: Core;
+    component: any;
+}): void {
     if (core._components[component.componentIdx] !== undefined) {
         throw Error(`Duplicate component index: ${component.componentIdx}`);
     }
@@ -38,28 +45,36 @@ export function registerComponent(core: Core, component: any): void {
  * walked the subtree and is deregistering each entry itself, e.g.
  * the `DeletionEngine` two-phase delete.
  */
-export function deregisterComponent(
-    core: Core,
-    component: any,
-    recursive: boolean = true,
-): void {
+export function deregisterComponent({
+    core,
+    component,
+    recursive = true,
+}: {
+    core: Core;
+    component: any;
+    recursive?: boolean;
+}): void {
     if (recursive) {
         for (let childIdxStr in component.allChildren) {
-            deregisterComponent(
+            deregisterComponent({
                 core,
-                component.allChildren[childIdxStr].component,
-            );
+                component: component.allChildren[childIdxStr].component,
+            });
         }
     }
 
     delete core._components[component.componentIdx];
 }
 
-export function setAncestors(
-    core: Core,
-    component: any,
-    ancestors: any[] = [],
-): void {
+export function setAncestors({
+    core,
+    component,
+    ancestors = [],
+}: {
+    core: Core;
+    component: any;
+    ancestors?: any[];
+}): void {
     // set ancestors based on allChildren and attribute components
     // so that all components get ancestors
     // even if not activeChildren or definingChildren
@@ -87,14 +102,22 @@ export function setAncestors(
         // TODO: can we avoid the need for this check by preventing the algorithm from
         // attempting to set ancestors in this case?
         if (unproxiedChild) {
-            setAncestors(core, unproxiedChild, ancestorsForChildren);
+            setAncestors({
+                core,
+                component: unproxiedChild,
+                ancestors: ancestorsForChildren,
+            });
         }
     }
 
     for (let attrName in component.attributes) {
         let comp = component.attributes[attrName].component;
         if (comp) {
-            setAncestors(core, comp, ancestorsForChildren);
+            setAncestors({
+                core,
+                component: comp,
+                ancestors: ancestorsForChildren,
+            });
         }
     }
 }
@@ -117,7 +140,7 @@ export async function addChildrenAndRecurseToShadows({
     indexOfDefiningChildren: number;
     newChildren: any[];
 }): Promise<any> {
-    spliceChildren(parent, indexOfDefiningChildren, newChildren);
+    spliceChildren({ parent, indexOfDefiningChildren, newChildren });
 
     let newChildrenResult = await processNewDefiningChildren({
         core,
@@ -259,17 +282,25 @@ export async function processNewDefiningChildren({
     // since could replace newChildren by adapters or via composites
     for (const childIdxStr in parent.allChildren) {
         let unproxiedChild = core._components[Number(childIdxStr)];
-        setAncestors(core, unproxiedChild, ancestorsForChildren);
+        setAncestors({
+            core,
+            component: unproxiedChild,
+            ancestors: ancestorsForChildren,
+        });
     }
 
     return childResult;
 }
 
-export function spliceChildren(
-    parent: any,
-    indexOfDefiningChildren: number,
-    newChildren: any[],
-): void {
+export function spliceChildren({
+    parent,
+    indexOfDefiningChildren,
+    newChildren,
+}: {
+    parent: any;
+    indexOfDefiningChildren: number;
+    newChildren: any[];
+}): void {
     // splice newChildren into parent.definingChildren
     // definingChildrenNumber is the index of parent.definingChildren
     // before which to splice the newChildren (set to array length to add at end)

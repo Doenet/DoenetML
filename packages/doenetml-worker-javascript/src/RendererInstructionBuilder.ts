@@ -13,9 +13,9 @@ import { removeFunctionsMathExpressionClass } from "./utils/math";
  *
  * Holds a back-reference to Core to read the live component tree,
  * the `updateInfo.componentsToUpdateRenderers` queue, root names,
- * and to invoke `updateRenderersCallback`. Calls into ChildMatcher's
+ * and to invoke `updateRenderersCallback`. Imports and calls ChildMatcher's
  * `deriveChildResultsFromDefiningChildren` and
- * `returnActiveChildrenIndicesToRender` (via Core's wrappers), and into
+ * `returnActiveChildrenIndicesToRender` directly, and delegates to
  * Core's `replacementChangesFromCompositesToUpdate` (slated for a later
  * phase).
  */
@@ -117,8 +117,10 @@ export class RendererInstructionBuilder {
                     }
 
                     indicesToRender = await returnActiveChildrenIndicesToRender(
-                        this.core,
-                        unproxiedComponent,
+                        {
+                            core: this.core,
+                            component: unproxiedComponent,
+                        },
                     );
 
                     let renderedInd = 0;
@@ -374,10 +376,10 @@ export class RendererInstructionBuilder {
 
         let childrenToRender: any[] = [];
         if (component.constructor.renderChildren) {
-            let indicesToRender = await returnActiveChildrenIndicesToRender(
-                this.core,
+            let indicesToRender = await returnActiveChildrenIndicesToRender({
+                core: this.core,
                 component,
-            );
+            });
             for (let [
                 ind,
                 child,

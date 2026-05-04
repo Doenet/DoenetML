@@ -197,11 +197,11 @@ export class CompositeExpander {
                 // then don't replace it with its replacements
                 // but leave the composite as an activeChild
                 if (
-                    findChildGroup(
-                        this.core,
-                        child.componentType,
-                        parent.constructor,
-                    ).success
+                    findChildGroup({
+                        core: this.core,
+                        childType: child.componentType,
+                        parentClass: parent.constructor,
+                    }).success
                 ) {
                     continue;
                 }
@@ -845,11 +845,11 @@ export class CompositeExpander {
                 // then don't replace it with its replacements
                 // but leave the composite as an activeChild
                 if (
-                    findChildGroup(
-                        this.core,
-                        child.componentType,
-                        parent.constructor,
-                    ).success
+                    findChildGroup({
+                        core: this.core,
+                        childType: child.componentType,
+                        parentClass: parent.constructor,
+                    }).success
                 ) {
                     continue;
                 }

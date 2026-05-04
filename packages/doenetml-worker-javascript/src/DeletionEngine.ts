@@ -16,12 +16,12 @@ import { removeComponentsFromResolver } from "./ResolverAdapter";
  *      the resolver, deregisters from `core._components`, and clears
  *      `updateInfo` queues for the deleted ids.
  *
- * Stateless. Each function takes a back-reference to Core to read
+ * Stateless. `deleteComponents` takes a back-reference to Core to read
  * `_components`, `dependencies`, `updateInfo`, `unmatchedChildren`,
- * `cumulativeStateVariableChanges`, `stateVariableChangeTriggers`,
- * `componentsToRender`, and to invoke `processNewDefiningChildren`,
- * `removeComponentsFromResolver`, `deregisterComponent`,
- * `deleteFromComponentsToRender`.
+ * `cumulativeStateVariableChanges`, `stateVariableChangeTriggers`, and to
+ * invoke `processNewDefiningChildren`, `removeComponentsFromResolver`, and
+ * `deregisterComponent`. `determineComponentsToDelete` only reads
+ * `core._components`.
  */
 
 /**
@@ -304,7 +304,7 @@ export async function deleteComponents({
         delete core.cumulativeStateVariableChanges[component.stateId];
 
         // don't use recursive form since all children should already be included
-        deregisterComponent(core, component, false);
+        deregisterComponent({ core, component, recursive: false });
 
         // remove deleted components from this.updateInfo sets
         core.updateInfo.componentsToUpdateRenderers.delete(componentIdx);

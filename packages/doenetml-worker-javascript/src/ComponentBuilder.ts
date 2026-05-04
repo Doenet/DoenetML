@@ -623,7 +623,7 @@ export class ComponentBuilder {
             refResolution,
         });
 
-        registerComponent(this.core, newComponent);
+        registerComponent({ core: this.core, component: newComponent });
 
         if (componentsReplacementOf) {
             newComponent.replacementOf = componentsReplacementOf;

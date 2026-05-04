@@ -49,7 +49,8 @@ type SourceOfUpdate = Record<string, any>;
  * post-update flush in `EssentialValueWriter` /
  * `RendererInstructionBuilder`). Holds a back-reference to Core for
  * the rest of the hot state and the other extracted managers
- * (notably `componentBuilder`, `compositeExpander`, `deletionEngine`).
+ * (notably `componentBuilder`, `compositeExpander`). Calls the module-level
+ * `deleteComponents` from DeletionEngine directly.
  */
 export class CompositeReplacementUpdater {
     core: Core;
@@ -471,11 +472,12 @@ export class CompositeReplacementUpdater {
                                     .componentIdx
                             ];
 
-                        spliceChildren(
+                        spliceChildren({
                             parent,
-                            change.indexOfDefiningChildren,
-                            newReplacements,
-                        );
+                            indexOfDefiningChildren:
+                                change.indexOfDefiningChildren,
+                            newChildren: newReplacements,
+                        });
 
                         await processNewDefiningChildren({
                             core: this.core,

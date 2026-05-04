@@ -139,10 +139,10 @@ export class StalenessPropagator {
 
     async markDescendantsToUpdateRenderers(component: ComponentInstance) {
         if (component.constructor.renderChildren) {
-            let indicesToRender = await returnActiveChildrenIndicesToRender(
-                this.core,
+            let indicesToRender = await returnActiveChildrenIndicesToRender({
+                core: this.core,
                 component,
-            );
+            });
             for (let ind of indicesToRender) {
                 let child = component.activeChildren![ind];
                 this.core.updateInfo.componentsToUpdateRenderers.add(
