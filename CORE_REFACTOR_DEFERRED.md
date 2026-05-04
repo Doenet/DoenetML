@@ -245,9 +245,9 @@ Still pending: the larger `_processStaleVisit({ component, varName, allStateVari
 - Four `requestComponentChanges` recursion sites collapsed onto a new `_recurseInto({ inst, newInstruction, workspace, newStateVariableValues })` helper. Sites that build a transient `inst` literal pass it inline; the `additionalStateVariableValues`-setting site keeps its mutation outside the helper (passing the assembled `inst`).
 - `_resolveValueOfStateVariable(instruction, component)` extracted; both the array-entry-path and scalar-path `valueOfStateVariable` branches now `await` it.
 
-**`CompositeReplacementUpdater`** — PARTIAL.
-- DONE: All six `component.shadowedBy` + skip-on-`propVariable || doNotExpandAsShadowed` sites replaced by a module-level `function* iterateExpandableShadows(component)`. The two "find the matching shadow by `compositeIdx`" sites collapsed onto `findExpandableShadowByCompositeIdx(component, compositeIdx)`.
-- Still pending: `_recordDeleteResults` helper for the two near-identical post-delete bookkeeping blocks in `deleteReplacementsFromShadowsThenComposite` (top-level vs non-top-level branches differ in `topLevel`/`firstIndex` fields and an extra `processNewDefiningChildren` call). Worth a separate small PR.
+**`CompositeReplacementUpdater`** — DONE.
+- All six `component.shadowedBy` + skip-on-`propVariable || doNotExpandAsShadowed` sites replaced by a module-level `function* iterateExpandableShadows(component)`. The two "find the matching shadow by `compositeIdx`" sites collapsed onto `findExpandableShadowByCompositeIdx(component, compositeIdx)`.
+- `_recordDeleteResults({ deleteResults, composite, numberDeleted, parentsOfDeleted, deletedComponents, componentChanges, topLevel, firstIndex })` extracted from `deleteReplacementsFromShadowsThenComposite`. Both branches (top-level and non-top-level) call it; the optional `topLevel`/`firstIndex` params let the helper attach the splice-position fields only when the top-level branch needs them. The non-top-level branch still owns its `Object.assign(addedComponents, …)` tail; the top-level branch still owns its extra renderer-update fan-out for `composite.parentIdx`'s descendants.
 
 **`UpdateExecutor`** — DONE.
 - `_recordSourceDetails(instruction, sourceInformation)` extracted; both call sites (read-only branch and main loop) now invoke it.
