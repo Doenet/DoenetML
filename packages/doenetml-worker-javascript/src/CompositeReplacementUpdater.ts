@@ -554,62 +554,38 @@ export class CompositeReplacementUpdater {
             return;
         }
 
-        if (composite.shadowedBy) {
-            for (let shadowingComposite of composite.shadowedBy) {
-                if (
-                    shadowingComposite.shadows.propVariable ||
-                    shadowingComposite.constructor.doNotExpandAsShadowed
-                ) {
-                    continue;
-                }
+        for (const shadowingComposite of iterateExpandableShadows(composite)) {
+            let shadowingComponentsToDelete;
 
-                let shadowingComponentsToDelete;
-
-                if (componentsToDelete) {
-                    shadowingComponentsToDelete = [];
-                    for (let compToDelete of componentsToDelete) {
-                        let shadowingCompToDelete;
-                        if (compToDelete.shadowedBy) {
-                            for (let cShadow of compToDelete.shadowedBy) {
-                                if (
-                                    cShadow.shadows.propVariable ||
-                                    cShadow.constructor.doNotExpandAsShadowed
-                                ) {
-                                    continue;
-                                }
-                                if (
-                                    cShadow.shadows.compositeIdx ===
-                                    shadowingComposite.shadows.compositeIdx
-                                ) {
-                                    shadowingCompToDelete = cShadow;
-                                    break;
-                                }
-                            }
-                        }
-                        if (!shadowingCompToDelete) {
-                            console.error(
-                                `could not find shadowing component of ${compToDelete.componentIdx}`,
-                            );
-                        } else {
-                            shadowingComponentsToDelete.push(
-                                shadowingCompToDelete,
-                            );
-                        }
+            if (componentsToDelete) {
+                shadowingComponentsToDelete = [];
+                for (let compToDelete of componentsToDelete) {
+                    const shadowingCompToDelete =
+                        findExpandableShadowByCompositeIdx(
+                            compToDelete,
+                            shadowingComposite.shadows.compositeIdx,
+                        );
+                    if (!shadowingCompToDelete) {
+                        console.error(
+                            `could not find shadowing component of ${compToDelete.componentIdx}`,
+                        );
+                    } else {
+                        shadowingComponentsToDelete.push(shadowingCompToDelete);
                     }
                 }
-
-                await this.deleteReplacementsFromShadowsThenComposite({
-                    change,
-                    composite: shadowingComposite,
-                    componentsToDelete: shadowingComponentsToDelete,
-                    componentChanges,
-                    sourceOfUpdate,
-                    parentsOfDeleted,
-                    deletedComponents,
-                    addedComponents,
-                    processNewChildren,
-                });
             }
+
+            await this.deleteReplacementsFromShadowsThenComposite({
+                change,
+                composite: shadowingComposite,
+                componentsToDelete: shadowingComponentsToDelete,
+                componentChanges,
+                sourceOfUpdate,
+                parentsOfDeleted,
+                deletedComponents,
+                addedComponents,
+                processNewChildren,
+            });
         }
 
         if (change.changeTopLevelReplacements) {
@@ -739,18 +715,10 @@ export class CompositeReplacementUpdater {
             this.core.updateInfo.componentsToUpdateRenderers.add(cIdx),
         );
 
-        if (component.shadowedBy) {
-            for (let shadowingComponent of component.shadowedBy) {
-                if (
-                    shadowingComponent.shadows.propVariable ||
-                    shadowingComponent.constructor.doNotExpandAsShadowed
-                ) {
-                    continue;
-                }
-                await this.processChildChangesAndRecurseToShadows(
-                    shadowingComponent,
-                );
-            }
+        for (const shadowingComponent of iterateExpandableShadows(component)) {
+            await this.processChildChangesAndRecurseToShadows(
+                shadowingComponent,
+            );
         }
     }
 
@@ -791,14 +759,9 @@ export class CompositeReplacementUpdater {
 
         let newComponentsForShadows: Record<string, any> = {};
 
-        for (let shadowingComponent of componentToShadow.shadowedBy) {
-            if (
-                shadowingComponent.shadows.propVariable ||
-                shadowingComponent.constructor.doNotExpandAsShadowed
-            ) {
-                continue;
-            }
-
+        for (const shadowingComponent of iterateExpandableShadows(
+            componentToShadow,
+        )) {
             if (
                 this.core.updateInfo.compositesBeingExpanded.includes(
                     shadowingComponent.componentIdx,
@@ -968,23 +931,10 @@ export class CompositeReplacementUpdater {
 
                 let shadowingParent;
                 if (parentToShadow) {
-                    if (parentToShadow.shadowedBy) {
-                        for (let pShadow of parentToShadow.shadowedBy) {
-                            if (
-                                pShadow.shadows.propVariable ||
-                                pShadow.constructor.doNotExpandAsShadowed
-                            ) {
-                                continue;
-                            }
-                            if (
-                                pShadow.shadows.compositeIdx ===
-                                shadowingComponent.shadows.compositeIdx
-                            ) {
-                                shadowingParent = pShadow;
-                                break;
-                            }
-                        }
-                    }
+                    shadowingParent = findExpandableShadowByCompositeIdx(
+                        parentToShadow,
+                        shadowingComponent.shadows.compositeIdx,
+                    );
                     if (!shadowingParent) {
                         console.error(
                             `could not find shadowing parent of ${parentToShadow.componentIdx}`,
@@ -1165,23 +1115,55 @@ export class CompositeReplacementUpdater {
             component,
         );
 
-        if (component.shadowedBy) {
-            for (let shadowingComponent of component.shadowedBy) {
-                if (
-                    shadowingComponent.shadows.propVariable ||
-                    shadowingComponent.constructor.doNotExpandAsShadowed
-                ) {
-                    continue;
-                }
-                await this.adjustReplacementsToWithhold({
-                    component: shadowingComponent,
-                    change,
-                    componentChanges,
-                    adjustResolver,
-                });
-            }
+        for (const shadowingComponent of iterateExpandableShadows(component)) {
+            await this.adjustReplacementsToWithhold({
+                component: shadowingComponent,
+                change,
+                componentChanges,
+                adjustResolver,
+            });
         }
     }
+}
+
+/**
+ * Yield each entry in `component.shadowedBy` that should participate in
+ * shadow-driven expansion. Shadows reached via a `propVariable` and shadows
+ * whose constructor sets `doNotExpandAsShadowed` are skipped — those are
+ * the same two predicates that all six iterate-shadow sites in this file
+ * had been re-checking by hand.
+ */
+function* iterateExpandableShadows(component: any) {
+    if (!component.shadowedBy) {
+        return;
+    }
+    for (const shadow of component.shadowedBy) {
+        if (
+            shadow.shadows.propVariable ||
+            shadow.constructor.doNotExpandAsShadowed
+        ) {
+            continue;
+        }
+        yield shadow;
+    }
+}
+
+/**
+ * Find the expandable shadow on `component` whose `shadows.compositeIdx`
+ * matches `compositeIdx`. Used to map a component (or component-to-delete)
+ * onto its corresponding shadow inside a particular shadowing composite.
+ * Returns `undefined` if no match.
+ */
+function findExpandableShadowByCompositeIdx(
+    component: any,
+    compositeIdx: number,
+): any | undefined {
+    for (const shadow of iterateExpandableShadows(component)) {
+        if (shadow.shadows.compositeIdx === compositeIdx) {
+            return shadow;
+        }
+    }
+    return undefined;
 }
 
 function calculateAllComponentsShadowing(component: any): number[] {

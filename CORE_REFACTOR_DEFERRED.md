@@ -141,15 +141,9 @@ The factory builds attribute-derived state variables in three almost-identical s
 3. **`definition` / `inverseDefinition` callback pair on attribute-derived state vars.** ~170 lines duplicated almost verbatim between `createAttributeStateVariableDefinitions` and `createReferenceShadowStateVariableDefinitions`. A shared closure-builder returning `{ definition, inverseDefinition }` would absorb the duplication.
 4. **`attributesToCopy` loop.** Three copies of the array + copy loop. The first intentionally adds `"triggerActionOnChange"`; the other two omit it. Today this divergence relies on visual diff; a helper like `_copyPassthroughAttributes(stateVarDef, attributeSpecification, { includeTriggerActionOnChange })` would make it explicit.
 
-### Collapse the two branches of `ComponentBuilder.addComponents`
+### Collapse the two branches of `ComponentBuilder.addComponents` — DONE
 
-The initial-add branch (`addComponents` body when `initialAdd === true`, around lines 89-185) and the incremental-add branch (around lines 186-254) share three drains verbatim:
-
-- Two `expandAllComposites(document)` calls (force=false then force=true).
-- The `stateVariablesToEvaluate` drain loop (~16 lines apiece).
-- The trailing `if (compositesToUpdateReplacements.size > 0)` "drain + re-render" tail (~12 lines apiece).
-
-Extracting `_drainStateVariablesToEvaluate()`, `_expandAllCompositesBothPasses(component)`, and `_drainCompositesToUpdateReplacements()` would shrink `addComponents` by roughly 40 lines and make the initial-add vs incremental-add asymmetry obvious.
+All three drains extracted into private helpers on the class: `_expandAllCompositesBothPasses()` (the two-pass `expandAllComposites(document)`), `_drainStateVariablesToEvaluate()` (the queue-and-evaluate loop), and `_drainCompositesToUpdateReplacements()` (the conditional "drain + re-render" tail). Both branches of `addComponents` now use them, making the initial-add vs incremental-add asymmetry visible at a glance.
 
 ### Extract `_finishExpanding` and unexpanded-composite helpers in `CompositeExpander` — DONE
 
@@ -240,13 +234,17 @@ The Phase 4 extraction (`StateVariableEvaluator`, `StalenessPropagator`, `Essent
 - The five "look up `varName` in `receivedValue`, otherwise scan `arrayEntryNames` for a matching entry, otherwise throw" sites collapsed onto `_findOrThrowMatchingArrayEntry({ varName, receivedValue, component, errorMessage })`. The two sites that additionally marked `receivedValue[entry] = true; valuesChanged[entry] = true;` keep that mark at the call site (passing the helper's return value).
 - The two byte-identical "checkForActualChange / scalar / shallow-array-equality" blocks collapsed onto `_isUnchanged(newValue, previousValue)`.
 
-**`EssentialValueWriter.requestComponentChanges`** has four near-duplicate recursion sites (currently around lines 1097, 1130, 1157, 1244 — search for `let inst = {` followed by `await this.requestComponentChanges`). All four build essentially the same `inst = { componentIdx, stateVariable, value, overrideFixed, [shadowedVariable], [arrayKey] }` and recurse. A `_recurseInto({ componentIdx, stateVariable, desiredValue, newInstruction, workspace, newStateVariableValues })` helper would collapse the four to one-liners and make the `additionalDependencyValues` block (the one of the four that takes `inst: any` because it sets `inst.additionalStateVariableValues` later) the only thing that varies. Same file: the `valueOfStateVariable` resolution (alias substitute → state lookup → `await sObj.value` → throw) is repeated at the array-entry path (around line 449) and the scalar path (around line 489). Extract `_resolveValueOfStateVariable(instruction, component) → Promise<any>`.
+**`EssentialValueWriter`** — DONE.
+- Four `requestComponentChanges` recursion sites collapsed onto a new `_recurseInto({ inst, newInstruction, workspace, newStateVariableValues })` helper. Sites that build a transient `inst` literal pass it inline; the `additionalStateVariableValues`-setting site keeps its mutation outside the helper (passing the assembled `inst`).
+- `_resolveValueOfStateVariable(instruction, component)` extracted; both the array-entry-path and scalar-path `valueOfStateVariable` branches now `await` it.
 
-**`CompositeReplacementUpdater`** has five sites that walk `component.shadowedBy` and skip when `propVariable || doNotExpandAsShadowed` (around lines 556-576, 741-746, 793-805, 970-, plus a copy buried deeper). The skip predicate alone is duplicated six times across the file. A `getExpandableShadows(component)` helper (or `function* iterateExpandableShadows(component)`) would eliminate ~20 lines and make it impossible for one site to drift from the others. The "find the matching shadow by `shadows.compositeIdx`" lookup at ~lines 574-589 and ~977-994 is the strongest helper-extraction candidate within that family. Same file: `deleteReplacementsFromShadowsThenComposite` has two near-identical post-delete bookkeeping blocks (the top-level vs non-top-level branches differ only in `topLevel`/`firstIndex` fields and one extra `processNewDefiningChildren` call). Helper: `_recordDeleteResults({ deleteResults, composite, parentsOfDeleted, deletedComponents, ... })` halves the function.
+**`CompositeReplacementUpdater`** — PARTIAL.
+- DONE: All six `component.shadowedBy` + skip-on-`propVariable || doNotExpandAsShadowed` sites replaced by a module-level `function* iterateExpandableShadows(component)`. The two "find the matching shadow by `compositeIdx`" sites collapsed onto `findExpandableShadowByCompositeIdx(component, compositeIdx)`.
+- Still pending: `_recordDeleteResults` helper for the two near-identical post-delete bookkeeping blocks in `deleteReplacementsFromShadowsThenComposite` (top-level vs non-top-level branches differ in `topLevel`/`firstIndex` fields and an extra `processNewDefiningChildren` call). Worth a separate small PR.
 
-**`UpdateExecutor`** — PARTIAL.
-- DONE: `_recordSourceDetails(instruction, sourceInformation)` extracted; both call sites (read-only branch and main loop) now invoke it.
-- Still pending: cumulative-merge pattern between the essential-values and newStateVariableValues branches. Belongs in `EssentialValueWriter` (`_mergeIntoCumulative(stateId, varName, value)`) since that class owns `cumulativeStateVariableChanges`.
+**`UpdateExecutor`** — DONE.
+- `_recordSourceDetails(instruction, sourceInformation)` extracted; both call sites (read-only branch and main loop) now invoke it.
+- Cumulative-merge pattern between the essential-values and newStateVariableValues branches relocated into `EssentialValueWriter._mergeIntoCumulative(stateId, varName, value)`. `UpdateExecutor` now hands off to `essentialValueWriter._mergeIntoCumulative(...)` from both branches; the `removeFunctionsMathExpressionClass` import that was only feeding those two sites is gone.
 
 ### Phase 4: Type the destructure parameters and complete the strict-mode pass
 

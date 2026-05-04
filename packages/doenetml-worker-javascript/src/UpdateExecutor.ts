@@ -1,5 +1,4 @@
 import type Core from "./Core";
-import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { createNewComponentIndices } from "./utils/componentIndices";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
 
@@ -291,36 +290,14 @@ export class UpdateExecutor {
                 let essentialState =
                     this.core._components[componentIdx]?.essentialState;
                 if (essentialState) {
-                    if (!this.core.cumulativeStateVariableChanges[stateId]) {
-                        this.core.cumulativeStateVariableChanges[stateId] = {};
-                    }
                     for (let varName in this.core
                         .essentialValuesSavedInDefinition[stateId]) {
                         if (essentialState[varName] !== undefined) {
-                            let cumValues =
-                                this.core.cumulativeStateVariableChanges[
-                                    stateId
-                                ][varName];
-                            // if cumValues is an object with mergeObject = true,
-                            // then merge attributes from essentialState into cumValues
-                            if (
-                                typeof cumValues === "object" &&
-                                cumValues !== null &&
-                                cumValues.mergeObject
-                            ) {
-                                Object.assign(
-                                    cumValues,
-                                    removeFunctionsMathExpressionClass(
-                                        essentialState[varName],
-                                    ),
-                                );
-                            } else {
-                                this.core.cumulativeStateVariableChanges[
-                                    stateId
-                                ][varName] = removeFunctionsMathExpressionClass(
-                                    essentialState[varName],
-                                );
-                            }
+                            this.core.essentialValueWriter._mergeIntoCumulative(
+                                stateId,
+                                varName,
+                                essentialState[varName],
+                            );
                         }
                     }
                 }
@@ -334,36 +311,12 @@ export class UpdateExecutor {
                 for (const componentIdxStr in newValuesProcessed) {
                     const stateId =
                         this.core._components[Number(componentIdxStr)].stateId;
-                    if (!this.core.cumulativeStateVariableChanges[stateId]) {
-                        this.core.cumulativeStateVariableChanges[stateId] = {};
-                    }
                     for (let varName in newValuesProcessed[componentIdxStr]) {
-                        let cumValues =
-                            this.core.cumulativeStateVariableChanges[stateId][
-                                varName
-                            ];
-                        // if cumValues is an object with mergeObject = true,
-                        // then merge attributes from newStateVariableValues into cumValues
-                        if (
-                            typeof cumValues === "object" &&
-                            cumValues !== null &&
-                            cumValues.mergeObject
-                        ) {
-                            Object.assign(
-                                cumValues,
-                                removeFunctionsMathExpressionClass(
-                                    newValuesProcessed[componentIdxStr][
-                                        varName
-                                    ],
-                                ),
-                            );
-                        } else {
-                            this.core.cumulativeStateVariableChanges[stateId][
-                                varName
-                            ] = removeFunctionsMathExpressionClass(
-                                newValuesProcessed[componentIdxStr][varName],
-                            );
-                        }
+                        this.core.essentialValueWriter._mergeIntoCumulative(
+                            stateId,
+                            varName,
+                            newValuesProcessed[componentIdxStr][varName],
+                        );
                     }
                 }
             }
