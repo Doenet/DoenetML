@@ -157,188 +157,21 @@ export class StalenessPropagator {
             );
         }
 
-        let allStateVariablesAffectedObj = {
+        const allStateVariablesAffectedObj: Record<string, any> = {
             [varName]: component.state[varName],
         };
         if (component.state[varName].additionalStateVariablesDefined) {
             component.state[varName].additionalStateVariablesDefined.forEach(
-                (x) => (allStateVariablesAffectedObj[x] = component.state[x]),
+                (x: string) =>
+                    (allStateVariablesAffectedObj[x] = component.state[x]),
             );
         }
 
-        let currentFreshnessInfo = await this.lookUpCurrentFreshness({
+        await this._processStaleVisit({
             component,
             varName,
             allStateVariablesAffectedObj,
         });
-        let previouslyFreshVars = [];
-        let previouslyEffectivelyFresh = [];
-        let sumPreviouslyPartiallyFresh = 0;
-
-        for (let vName in allStateVariablesAffectedObj) {
-            let stateVarObj = allStateVariablesAffectedObj[vName];
-            // if don't have a getter set, this indicates that, before this markStale function,
-            // a state variable was fresh.
-            if (
-                !(
-                    Object.getOwnPropertyDescriptor(stateVarObj, "value")
-                        ?.get || stateVarObj.immutable
-                )
-            ) {
-                previouslyFreshVars.push(vName);
-            } else if (currentFreshnessInfo) {
-                if (
-                    currentFreshnessInfo.fresh &&
-                    currentFreshnessInfo.fresh[vName]
-                ) {
-                    previouslyEffectivelyFresh.push(vName);
-                } else if (
-                    currentFreshnessInfo.partiallyFresh &&
-                    currentFreshnessInfo.partiallyFresh[vName]
-                ) {
-                    sumPreviouslyPartiallyFresh +=
-                        currentFreshnessInfo.partiallyFresh[vName];
-                }
-            }
-        }
-
-        previouslyEffectivelyFresh.push(...previouslyFreshVars);
-
-        let aVarWasFreshOrPartiallyFresh =
-            previouslyEffectivelyFresh.length > 0 ||
-            sumPreviouslyPartiallyFresh > 0;
-
-        let varsChanged: Record<string, boolean> = {};
-        for (let vName in allStateVariablesAffectedObj) {
-            varsChanged[vName] = true;
-        }
-
-        let freshnessDecreased = false;
-
-        if (aVarWasFreshOrPartiallyFresh) {
-            let result = await this.processMarkStale({
-                component,
-                varName,
-                allStateVariablesAffectedObj,
-            });
-
-            if (result.fresh) {
-                for (let vName in result.fresh) {
-                    if (result.fresh[vName]) {
-                        delete varsChanged[vName];
-                    }
-                }
-            }
-
-            let sumNewPartiallyFresh = 0;
-            for (let vName in allStateVariablesAffectedObj) {
-                if (
-                    previouslyEffectivelyFresh.includes(vName) &&
-                    !(result.fresh && result.fresh[vName])
-                ) {
-                    freshnessDecreased = true;
-                    break;
-                }
-                if (result.partiallyFresh && result.partiallyFresh[vName]) {
-                    sumNewPartiallyFresh += result.partiallyFresh[vName];
-                }
-            }
-
-            if (sumNewPartiallyFresh < sumPreviouslyPartiallyFresh) {
-                freshnessDecreased = true;
-            }
-
-            if (result.updateReplacements) {
-                this.core.updateInfo.compositesToUpdateReplacements.add(
-                    component.componentIdx,
-                );
-            }
-
-            if (result.updateParentRenderedChildren) {
-                // find ancestor that isn't a composite and mark it to update children to render
-                for (let ancestorObj of component.ancestors) {
-                    if (
-                        !this.core.componentInfoObjects.allComponentClasses._composite.isPrototypeOf(
-                            ancestorObj.componentCase,
-                        )
-                    ) {
-                        // found non-composite ancestor
-                        if (ancestorObj.componentClass.renderChildren) {
-                            this.core.componentsWithChangedChildrenToRender.add(
-                                ancestorObj.componentIdx,
-                            );
-                        }
-                        break;
-                    }
-                }
-            }
-
-            if (result.updateRenderedChildren) {
-                this.core.componentsWithChangedChildrenToRender.add(
-                    component.componentIdx,
-                );
-            }
-
-            if (result.updateDescendantRenderers) {
-                await this.markDescendantsToUpdateRenderers(component);
-            }
-
-            if (result.updateActionChaining) {
-                let chainObj =
-                    this.core.updateInfo.componentsToUpdateActionChaining[
-                        component.componentIdx
-                    ];
-                if (!chainObj) {
-                    chainObj =
-                        this.core.updateInfo.componentsToUpdateActionChaining[
-                            component.componentIdx
-                        ] = [];
-                }
-                for (let vName in allStateVariablesAffectedObj) {
-                    if (!chainObj.includes(vName)) {
-                        chainObj.push(vName);
-                    }
-                }
-            }
-
-            if (result.updateDependencies) {
-                for (let vName of result.updateDependencies) {
-                    component.state[vName].needDependenciesUpdated = true;
-                }
-            }
-
-            if (
-                this.core.flags.autoSubmit &&
-                result.answerCreditPotentiallyChanged
-            ) {
-                this.core.recordAnswerToAutoSubmit(component.componentIdx);
-            }
-        }
-
-        for (let vName in varsChanged) {
-            let stateVarObj = allStateVariablesAffectedObj[vName];
-
-            // delete recursive dependency values, if they exist
-            delete stateVarObj.recursiveDependencyValues;
-
-            if (previouslyFreshVars.includes(vName)) {
-                await this._replaceWithStaleGetter(
-                    stateVarObj,
-                    component,
-                    vName,
-                );
-            }
-        }
-
-        // we recurse on upstream dependents
-        if (freshnessDecreased) {
-            for (let vName in varsChanged) {
-                await this.markUpstreamDependentsStale({
-                    component,
-                    varName: vName,
-                });
-            }
-        }
     }
 
     async lookUpCurrentFreshness({
@@ -560,13 +393,14 @@ export class StalenessPropagator {
                 }
 
                 if (foundVarChange) {
-                    for (let varName of upDep.upstreamVariableNames) {
+                    const upDepComponent =
+                        this.core._components[upDep.upstreamComponentIdx];
+
+                    for (const upstreamVar of upDep.upstreamVariableNames) {
                         if (
-                            varName in
+                            upstreamVar in
                             this.core.rendererVariablesByComponentType[
-                                this.core._components[
-                                    upDep.upstreamComponentIdx
-                                ].componentType
+                                upDepComponent.componentType
                             ]
                         ) {
                             this.core.updateInfo.componentsToUpdateRenderers.add(
@@ -576,210 +410,29 @@ export class StalenessPropagator {
                         }
                     }
 
-                    let upVarName = upDep.upstreamVariableNames[0];
-                    let upDepComponent =
-                        this.core._components[upDep.upstreamComponentIdx];
-                    // let upVar = upDepComponent.state[upVarName];
+                    const upVarName = upDep.upstreamVariableNames[0];
 
-                    let allStateVariablesAffectedObj: Record<string, any> = {};
+                    const allStateVariablesAffectedObj: Record<string, any> =
+                        {};
                     upDep.upstreamVariableNames.forEach(
-                        (x) =>
+                        (x: string) =>
                             (allStateVariablesAffectedObj[x] =
                                 upDepComponent.state[x]),
                     );
 
-                    let currentFreshnessInfo =
-                        await this.lookUpCurrentFreshness({
-                            component: upDepComponent,
-                            varName: upVarName,
-                            allStateVariablesAffectedObj,
-                        });
-
-                    let previouslyFreshVars = [];
-                    let previouslyEffectivelyFresh = [];
-                    let sumPreviouslyPartiallyFresh = 0;
-                    for (let vName in allStateVariablesAffectedObj) {
-                        let stateVarObj = allStateVariablesAffectedObj[vName];
-                        // if don't have a getter set, this indicates that, before this markStale function,
-                        // a state variable was fresh.
-                        if (
-                            !(
-                                Object.getOwnPropertyDescriptor(
-                                    stateVarObj,
-                                    "value",
-                                )?.get || stateVarObj.immutable
-                            )
-                        ) {
-                            previouslyFreshVars.push(vName);
-                        } else if (currentFreshnessInfo) {
-                            if (
-                                currentFreshnessInfo.fresh &&
-                                currentFreshnessInfo.fresh[vName]
-                            ) {
-                                previouslyEffectivelyFresh.push(vName);
-                            } else if (
-                                currentFreshnessInfo.partiallyFresh &&
-                                currentFreshnessInfo.partiallyFresh[vName]
-                            ) {
-                                sumPreviouslyPartiallyFresh +=
-                                    currentFreshnessInfo.partiallyFresh[vName];
-                            }
-                        }
-                    }
-
-                    previouslyEffectivelyFresh.push(...previouslyFreshVars);
-
-                    let aVarWasFreshOrPartiallyFresh =
-                        previouslyEffectivelyFresh.length > 0 ||
-                        sumPreviouslyPartiallyFresh > 0;
-
-                    let varsChanged: Record<string, boolean> = {};
-                    for (let vName in allStateVariablesAffectedObj) {
-                        varsChanged[vName] = true;
-                    }
-
-                    let freshnessDecreased = false;
-
-                    if (aVarWasFreshOrPartiallyFresh) {
-                        let result = await this.processMarkStale({
-                            component: upDepComponent,
-                            varName: upVarName,
-                            allStateVariablesAffectedObj,
-                        });
-
-                        if (result.fresh) {
-                            for (let vName in result.fresh) {
-                                if (result.fresh[vName]) {
-                                    delete varsChanged[vName];
-                                }
-                            }
-                        }
-
-                        let sumNewPartiallyFresh = 0;
-                        for (let vName in allStateVariablesAffectedObj) {
-                            if (
-                                previouslyEffectivelyFresh.includes(vName) &&
-                                !(result.fresh && result.fresh[vName])
-                            ) {
-                                freshnessDecreased = true;
-                                break;
-                            }
-                            if (
-                                result.partiallyFresh &&
-                                result.partiallyFresh[vName]
-                            ) {
-                                sumNewPartiallyFresh +=
-                                    result.partiallyFresh[vName];
-                            }
-                        }
-
-                        if (
-                            sumNewPartiallyFresh < sumPreviouslyPartiallyFresh
-                        ) {
-                            freshnessDecreased = true;
-                        }
-
-                        if (result.updateReplacements) {
-                            this.core.updateInfo.compositesToUpdateReplacements.add(
-                                upDep.upstreamComponentIdx,
-                            );
-                        }
-
-                        if (result.updateParentRenderedChildren) {
-                            // find ancestor that isn't a composite and mark it to update children to render
-                            for (let ancestorObj of upDepComponent.ancestors) {
-                                if (
-                                    !this.core.componentInfoObjects.allComponentClasses._composite.isPrototypeOf(
-                                        ancestorObj.componentCase,
-                                    )
-                                ) {
-                                    // found non-composite ancestor
-                                    if (
-                                        ancestorObj.componentClass
-                                            .renderChildren
-                                    ) {
-                                        this.core.componentsWithChangedChildrenToRender.add(
-                                            ancestorObj.componentIdx,
-                                        );
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-
-                        if (result.updateRenderedChildren) {
-                            this.core.componentsWithChangedChildrenToRender.add(
-                                upDepComponent.componentIdx,
-                            );
-                        }
-
-                        if (result.updateDescendantRenderers) {
-                            await this.markDescendantsToUpdateRenderers(
-                                upDepComponent,
-                            );
-                        }
-
-                        if (result.updateActionChaining) {
-                            let chainObj =
-                                this.core.updateInfo
-                                    .componentsToUpdateActionChaining[
-                                    upDep.componentIdx
-                                ];
-                            if (!chainObj) {
-                                chainObj =
-                                    this.core.updateInfo.componentsToUpdateActionChaining[
-                                        upDep.componentIdx
-                                    ] = [];
-                            }
-                            for (let vName in allStateVariablesAffectedObj) {
-                                if (!chainObj.includes(vName)) {
-                                    chainObj.push(vName);
-                                }
-                            }
-                        }
-
-                        if (result.updateDependencies) {
-                            for (let vName of result.updateDependencies) {
-                                upDepComponent.state[
-                                    vName
-                                ].needDependenciesUpdated = true;
-                            }
-                        }
-
-                        if (
-                            this.core.flags.autoSubmit &&
-                            result.answerCreditPotentiallyChanged
-                        ) {
-                            this.core.recordAnswerToAutoSubmit(
-                                upDepComponent.componentIdx,
-                            );
-                        }
-                    }
-
-                    for (let vName in varsChanged) {
-                        let stateVarObj = allStateVariablesAffectedObj[vName];
-
-                        // delete recursive dependency values, if they exist
-                        delete stateVarObj.recursiveDependencyValues;
-
-                        if (previouslyFreshVars.includes(vName)) {
-                            await this._replaceWithStaleGetter(
-                                stateVarObj,
-                                upDepComponent,
-                                vName,
-                            );
-                        }
-                    }
-
-                    // we recurse on upstream dependents
-                    if (freshnessDecreased) {
-                        for (let vName in varsChanged) {
-                            await this.markUpstreamDependentsStale({
-                                component: upDepComponent,
-                                varName: vName,
-                            });
-                        }
-                    }
+                    // NOTE: previously the inline action-chaining bag was
+                    // keyed by `upDep.componentIdx` (undefined — dep objects
+                    // only carry `upstreamComponentIdx`), so every chain
+                    // entry from this branch had been routed to a single
+                    // `"undefined"` bucket. The helper keys by
+                    // `component.componentIdx`, which is `upDepComponent`'s
+                    // here, so chain entries now land on the correct
+                    // upstream component. See CORE_REFACTOR_DEFERRED.md.
+                    await this._processStaleVisit({
+                        component: upDepComponent,
+                        varName: upVarName,
+                        allStateVariablesAffectedObj,
+                    });
                 }
             }
         }
@@ -900,5 +553,205 @@ export class StalenessPropagator {
             get: () => getStateVar({ component, stateVariable: vName }),
             configurable: true,
         });
+    }
+
+    /**
+     * Visit `component` for stale-marking against `varName` plus every
+     * other state variable in `allStateVariablesAffectedObj`. Walks the
+     * freshness lookup, dispatches the markStale side effects
+     * (`updateReplacements` / `updateRenderedChildren` /
+     * `updateActionChaining` / `updateDependencies` / auto-submit), reinstalls
+     * the lazy stale getter on every previously-fresh variable, and recurses
+     * to upstream dependents when freshness has actually decreased.
+     *
+     * Both call sites pre-build `allStateVariablesAffectedObj` from the
+     * variable's `additionalStateVariablesDefined` (standalone) or from
+     * `upDep.upstreamVariableNames` (upstream-walk loop) before invoking.
+     * The standalone caller additionally fans the renderer-update marker
+     * for the single `varName`; the upstream caller iterates its multi-var
+     * dependency. Those parts stay at the call sites.
+     */
+    async _processStaleVisit({
+        component,
+        varName,
+        allStateVariablesAffectedObj,
+    }: {
+        component: any;
+        varName: string;
+        allStateVariablesAffectedObj: Record<string, any>;
+    }) {
+        const currentFreshnessInfo = await this.lookUpCurrentFreshness({
+            component,
+            varName,
+            allStateVariablesAffectedObj,
+        });
+        const previouslyFreshVars: string[] = [];
+        const previouslyEffectivelyFresh: string[] = [];
+        let sumPreviouslyPartiallyFresh = 0;
+
+        for (const vName in allStateVariablesAffectedObj) {
+            const stateVarObj = allStateVariablesAffectedObj[vName];
+            // if don't have a getter set, this indicates that, before this markStale function,
+            // a state variable was fresh.
+            if (
+                !(
+                    Object.getOwnPropertyDescriptor(stateVarObj, "value")
+                        ?.get || stateVarObj.immutable
+                )
+            ) {
+                previouslyFreshVars.push(vName);
+            } else if (currentFreshnessInfo) {
+                if (
+                    currentFreshnessInfo.fresh &&
+                    currentFreshnessInfo.fresh[vName]
+                ) {
+                    previouslyEffectivelyFresh.push(vName);
+                } else if (
+                    currentFreshnessInfo.partiallyFresh &&
+                    currentFreshnessInfo.partiallyFresh[vName]
+                ) {
+                    sumPreviouslyPartiallyFresh +=
+                        currentFreshnessInfo.partiallyFresh[vName];
+                }
+            }
+        }
+
+        previouslyEffectivelyFresh.push(...previouslyFreshVars);
+
+        const aVarWasFreshOrPartiallyFresh =
+            previouslyEffectivelyFresh.length > 0 ||
+            sumPreviouslyPartiallyFresh > 0;
+
+        const varsChanged: Record<string, boolean> = {};
+        for (const vName in allStateVariablesAffectedObj) {
+            varsChanged[vName] = true;
+        }
+
+        let freshnessDecreased = false;
+
+        if (aVarWasFreshOrPartiallyFresh) {
+            const result = await this.processMarkStale({
+                component,
+                varName,
+                allStateVariablesAffectedObj,
+            });
+
+            if (result.fresh) {
+                for (const vName in result.fresh) {
+                    if (result.fresh[vName]) {
+                        delete varsChanged[vName];
+                    }
+                }
+            }
+
+            let sumNewPartiallyFresh = 0;
+            for (const vName in allStateVariablesAffectedObj) {
+                if (
+                    previouslyEffectivelyFresh.includes(vName) &&
+                    !(result.fresh && result.fresh[vName])
+                ) {
+                    freshnessDecreased = true;
+                    break;
+                }
+                if (result.partiallyFresh && result.partiallyFresh[vName]) {
+                    sumNewPartiallyFresh += result.partiallyFresh[vName];
+                }
+            }
+
+            if (sumNewPartiallyFresh < sumPreviouslyPartiallyFresh) {
+                freshnessDecreased = true;
+            }
+
+            if (result.updateReplacements) {
+                this.core.updateInfo.compositesToUpdateReplacements.add(
+                    component.componentIdx,
+                );
+            }
+
+            if (result.updateParentRenderedChildren) {
+                // find ancestor that isn't a composite and mark it to update children to render
+                for (const ancestorObj of component.ancestors) {
+                    if (
+                        !this.core.componentInfoObjects.allComponentClasses._composite.isPrototypeOf(
+                            ancestorObj.componentCase,
+                        )
+                    ) {
+                        // found non-composite ancestor
+                        if (ancestorObj.componentClass.renderChildren) {
+                            this.core.componentsWithChangedChildrenToRender.add(
+                                ancestorObj.componentIdx,
+                            );
+                        }
+                        break;
+                    }
+                }
+            }
+
+            if (result.updateRenderedChildren) {
+                this.core.componentsWithChangedChildrenToRender.add(
+                    component.componentIdx,
+                );
+            }
+
+            if (result.updateDescendantRenderers) {
+                await this.markDescendantsToUpdateRenderers(component);
+            }
+
+            if (result.updateActionChaining) {
+                let chainObj =
+                    this.core.updateInfo.componentsToUpdateActionChaining[
+                        component.componentIdx
+                    ];
+                if (!chainObj) {
+                    chainObj =
+                        this.core.updateInfo.componentsToUpdateActionChaining[
+                            component.componentIdx
+                        ] = [];
+                }
+                for (const vName in allStateVariablesAffectedObj) {
+                    if (!chainObj.includes(vName)) {
+                        chainObj.push(vName);
+                    }
+                }
+            }
+
+            if (result.updateDependencies) {
+                for (const vName of result.updateDependencies) {
+                    component.state[vName].needDependenciesUpdated = true;
+                }
+            }
+
+            if (
+                this.core.flags.autoSubmit &&
+                result.answerCreditPotentiallyChanged
+            ) {
+                this.core.recordAnswerToAutoSubmit(component.componentIdx);
+            }
+        }
+
+        for (const vName in varsChanged) {
+            const stateVarObj = allStateVariablesAffectedObj[vName];
+
+            // delete recursive dependency values, if they exist
+            delete stateVarObj.recursiveDependencyValues;
+
+            if (previouslyFreshVars.includes(vName)) {
+                await this._replaceWithStaleGetter(
+                    stateVarObj,
+                    component,
+                    vName,
+                );
+            }
+        }
+
+        // we recurse on upstream dependents
+        if (freshnessDecreased) {
+            for (const vName in varsChanged) {
+                await this.markUpstreamDependentsStale({
+                    component,
+                    varName: vName,
+                });
+            }
+        }
     }
 }
