@@ -54,9 +54,9 @@ type SourceOfUpdate = Record<string, any>;
  * Owns `updateInfo.compositesToUpdateReplacements` (read by the
  * post-update flush in `EssentialValueWriter` /
  * `RendererInstructionBuilder`). Holds a back-reference to Core for
- * the rest of the hot state and the other extracted managers
- * (notably `componentBuilder`, `compositeExpander`). Calls the module-level
- * `deleteComponents` from DeletionEngine directly.
+ * the rest of the hot state and the other extracted managers. Calls
+ * module-level functions from `ComponentBuilder`, `CompositeExpander`,
+ * and `DeletionEngine` directly.
  */
 export class CompositeReplacementUpdater {
     core: Core;
@@ -77,9 +77,10 @@ export class CompositeReplacementUpdater {
      *      `deleteReplacementsFromShadowsThenComposite`, which recurses
      *      into shadowing composites first so the shadow tree shrinks
      *      from leaves inward.
-     *   3. Creating new replacements via `componentBuilder` /
-     *      `compositeExpander`, calling `createShadowedReplacements` for
-     *      every shadow so the shadow tree grows in lockstep.
+     *   3. Creating new replacements via the `ComponentBuilder` and
+     *      `CompositeExpander` module functions, calling
+     *      `createShadowedReplacements` for every shadow so the shadow
+     *      tree grows in lockstep.
      *   4. Threading every change through `componentChanges` so callers
      *      can inspect what moved.
      *

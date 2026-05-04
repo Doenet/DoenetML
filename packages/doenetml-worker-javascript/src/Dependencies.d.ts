@@ -95,7 +95,7 @@ export declare class DependencyHandler {
 
     checkForDependenciesOnNewComponent(
         componentIdx: ComponentIdx,
-    ): Promise<{ varsChanged: Record<string, Record<string, boolean>> }>;
+    ): Promise<Array<{ componentIdx: ComponentIdx; varName: string }>>;
 
     getStateVariableDependencyValues(args: {
         component: any;

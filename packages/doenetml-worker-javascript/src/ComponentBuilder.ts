@@ -1,4 +1,5 @@
 import type Core from "./Core";
+import type { ComponentIdx } from "@doenet/utils";
 import { deriveChildResultsFromDefiningChildren } from "./ChildMatcher";
 import {
     addChildrenAndRecurseToShadows,
@@ -33,6 +34,29 @@ import { extractCreateComponentIdxMapping } from "./utils/componentIndices";
  * `initialAddPhase`) and to dispatch through the other extracted managers.
  */
 
+/**
+ * Build a list of ancestor descriptors with `parent` prepended to its own
+ * `ancestors` chain — the canonical shape consumed by component
+ * constructors and by `createIsolatedComponents` recursion.
+ */
+function ancestorsForChild(parent: any): any[] {
+    return [
+        {
+            componentIdx: parent.componentIdx,
+            componentClass: parent.constructor,
+        },
+        ...parent.ancestors,
+    ];
+}
+
+/**
+ * Top-level entry point for materializing serialized DAST into live
+ * component instances. On `initialAdd` the resulting tree becomes
+ * `core.document` and is followed by the full initial-render pipeline
+ * (composite expansion, state-variable evaluation, queued error flush,
+ * renderer instructions). Otherwise the new components are spliced into
+ * `parent`'s defining children at `indexOfDefiningChildren`.
+ */
 export async function addComponents({
     core,
     serializedComponents,
@@ -42,8 +66,8 @@ export async function addComponents({
 }: {
     core: Core;
     serializedComponents: any;
-    parentIdx?: any;
-    indexOfDefiningChildren?: any;
+    parentIdx?: ComponentIdx;
+    indexOfDefiningChildren?: number;
     initialAdd?: boolean;
 }) {
     core.initialAddPhase = initialAdd;
@@ -56,7 +80,7 @@ export async function addComponents({
     let ancestors: any[] = [];
 
     if (!initialAdd) {
-        parent = core._components[parentIdx];
+        parent = core._components[parentIdx!];
         if (!parent) {
             core.addDiagnostic({
                 type: "warning",
@@ -65,13 +89,7 @@ export async function addComponents({
             return [];
         }
 
-        ancestors = [
-            {
-                componentIdx: parentIdx,
-                componentClass: parent.constructor,
-            },
-            ...parent.ancestors,
-        ];
+        ancestors = ancestorsForChild(parent);
 
         core.parameterStack.push(parent.sharedParameters, false);
 
@@ -80,7 +98,7 @@ export async function addComponents({
         addComponentsToResolver({
             core,
             components: serializedComponents,
-            parentIdx,
+            parentIdx: parentIdx!,
         });
     }
     let createResult = await createIsolatedComponents({
@@ -171,7 +189,7 @@ export async function addComponents({
         let addResults = await addChildrenAndRecurseToShadows({
             core,
             parent,
-            indexOfDefiningChildren: indexOfDefiningChildren,
+            indexOfDefiningChildren: indexOfDefiningChildren!,
             newChildren: newComponents,
         });
         if (!addResults.success) {
@@ -207,6 +225,14 @@ export async function addComponents({
     return newComponents;
 }
 
+/**
+ * Walks `serializedComponents` and produces matching live component
+ * instances without splicing them into any parent's defining-children
+ * list — used for replacements, attribute components, error components,
+ * and reference-resolution sub-trees that get attached by their caller.
+ * Mutually recursive with `createChildrenThenComponent` (children are
+ * built before their parent is constructed).
+ */
 export async function createIsolatedComponents({
     core,
     serializedComponents,
@@ -215,7 +241,7 @@ export async function createIsolatedComponents({
     componentsReplacementOf,
 }: {
     core: Core;
-    serializedComponents: any;
+    serializedComponents: any[];
     ancestors: any;
     shadow?: boolean;
     componentsReplacementOf?: any;
@@ -269,10 +295,8 @@ export async function createIsolatedComponents({
 
         let componentIdx = serializedComponent.componentIdx;
         if (componentIdx === undefined) {
-            throw Error(
-                "Found a serialized component without a componentIdx",
-                serializedComponent,
-            );
+            console.log(serializedComponent);
+            throw Error("Found a serialized component without a componentIdx");
         }
 
         const createResult = await createChildrenThenComponent({
@@ -301,6 +325,14 @@ export async function createIsolatedComponents({
     return results;
 }
 
+/**
+ * Materializes a single component: recursively creates its children
+ * (and attribute / reference-path sub-components) first, then constructs
+ * the component itself, registers it on Core, wires up shadow / adapter
+ * relationships, derives child results, initializes state-variable
+ * definitions and dependencies, and applies any state-variable updates
+ * that were queued for this `componentIdx` while it was missing.
+ */
 export async function createChildrenThenComponent({
     core,
     serializedComponent,
@@ -312,7 +344,7 @@ export async function createChildrenThenComponent({
 }: {
     core: Core;
     serializedComponent: any;
-    componentIdx: any;
+    componentIdx: ComponentIdx;
     ancestors: any;
     componentClass: any;
     shadow?: boolean;
@@ -751,12 +783,19 @@ export async function createChildrenThenComponent({
     return results;
 }
 
+/**
+ * Apply any state-variable updates that were queued against
+ * `componentIdx` while it was missing from `core._components` (e.g.
+ * persisted state restored before the component was constructed). Marks
+ * affected variables for re-evaluation when the component requires
+ * special handling on the first post-restoration pass.
+ */
 export async function checkForStateVariablesUpdatesForNewComponent({
     core,
     componentIdx,
 }: {
     core: Core;
-    componentIdx: any;
+    componentIdx: ComponentIdx;
 }) {
     let comp = core._components[componentIdx];
     const stateId = comp.stateId;
@@ -813,6 +852,14 @@ export async function checkForStateVariablesUpdatesForNewComponent({
     }
 }
 
+/**
+ * Drain `core.errorComponentsToAdd` (populated when state-variable
+ * definitions hit recoverable errors), creating an `_error` child under
+ * the nearest ancestor that can display child errors. Inserts the error
+ * component immediately after its triggering source within the parent's
+ * defining children when both share the same parent, so multiple errors
+ * from the same source preserve their relative order.
+ */
 export async function addQueuedErrorComponentsFromStateVariables({
     core,
 }: {
@@ -891,13 +938,7 @@ export async function addQueuedErrorComponentsFromStateVariables({
 
         core._components[core._components.length] = undefined;
 
-        let ancestors = [
-            {
-                componentIdx: parent.componentIdx,
-                componentClass: parent.constructor,
-            },
-            ...parent.ancestors,
-        ];
+        let ancestors = ancestorsForChild(parent);
 
         core.parameterStack.push(parent.sharedParameters, false);
         let createResult;
