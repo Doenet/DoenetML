@@ -197,177 +197,16 @@ export class StateVariableDefinitionFactory {
                 return dependencies;
             };
 
-            stateVarDef.definition = function ({
-                dependencyValues,
-                usedDefault,
-                essentialValues,
-            }) {
-                let attributeValue;
-                if (dependencyValues.attributeComponent) {
-                    attributeValue =
-                        dependencyValues.attributeComponent.stateValues[
-                            stateVariableForAttributeValue
-                        ];
-                } else if (dependencyValues.attributePrimitive != null) {
-                    attributeValue = dependencyValues.attributePrimitive;
-                } else if (
-                    dependencyValues.attributeRefResolutions != null &&
-                    !usedDefault.attributeRefResolutions
-                ) {
-                    attributeValue = dependencyValues.attributeRefResolutions;
-                } else {
-                    // parentValue would be undefined if fallBackToParentStateVariable wasn't specified
-                    // parentValue would be null if the parentValue state variables
-                    // did not exist or its value was null
-                    let haveParentValue = dependencyValues.parentValue != null;
-                    if (
-                        haveParentValue &&
-                        !usedDefault.parentValue &&
-                        essentialValues[varName] === undefined
-                    ) {
-                        return {
-                            setValue: {
-                                [varName]: dependencyValues.parentValue,
-                            },
-                            checkForActualChange: { [varName]: true },
-                        };
-                    } else {
-                        // sourceCompositeValue would be undefined if fallBackToSourceCompositeStateVariable wasn't specified
-                        // sourceCompositeValue would be null if the sourceCompositeValue state variables
-                        // did not exist or its value was null
-
-                        let haveSourceCompositeValue =
-                            dependencyValues.sourceCompositeValue != null;
-                        if (
-                            haveSourceCompositeValue &&
-                            !usedDefault.sourceCompositeValue &&
-                            essentialValues[varName] === undefined
-                        ) {
-                            return {
-                                setValue: {
-                                    [varName]:
-                                        dependencyValues.sourceCompositeValue,
-                                },
-                                checkForActualChange: { [varName]: true },
-                            };
-                        } else {
-                            return {
-                                useEssentialOrDefaultValue: {
-                                    [varName]: true,
-                                },
-                                checkForActualChange: { [varName]: true },
-                            };
-                        }
-                    }
-                }
-
-                let res = validateAttributeValue({
-                    value: attributeValue,
+            const { definition, inverseDefinition } =
+                this._buildAttributeDerivedDefinitions({
+                    varName,
+                    stateVariableForAttributeValue,
                     attributeSpecification,
-                    attribute: attrName,
+                    attrName,
                 });
-
-                return {
-                    setValue: { [varName]: res.value },
-                    checkForActualChange: { [varName]: true },
-                    sendDiagnostics: res.diagnostics,
-                };
-            };
-
+            stateVarDef.definition = definition;
             if (!attributeSpecification.noInverse) {
-                stateVarDef.inverseDefinition = async function ({
-                    desiredStateVariableValues,
-                    dependencyValues,
-                    usedDefault,
-                    essentialValues,
-                }) {
-                    if (!dependencyValues.attributeComponent) {
-                        if (dependencyValues.attributePrimitive != null) {
-                            // can't invert if have primitive
-                            return { success: false };
-                        }
-                        if (dependencyValues.attributeRefResolutions != null) {
-                            // can't invert if have attribute ref resolutions
-                            return { success: false };
-                        }
-
-                        let haveParentValue =
-                            dependencyValues.parentValue != null;
-                        if (
-                            haveParentValue &&
-                            !usedDefault.parentValue &&
-                            essentialValues[varName] === undefined
-                        ) {
-                            // value from parent was used, so propagate back to parent
-                            return {
-                                success: true,
-                                instructions: [
-                                    {
-                                        setDependency: "parentValue",
-                                        desiredValue:
-                                            desiredStateVariableValues[varName],
-                                    },
-                                ],
-                            };
-                        } else {
-                            let haveSourceCompositeValue =
-                                dependencyValues.sourceCompositeValue != null;
-                            if (
-                                haveSourceCompositeValue &&
-                                !usedDefault.sourceCompositeValue &&
-                                essentialValues[varName] === undefined
-                            ) {
-                                // value from source composite was used, so propagate back to source composite
-                                return {
-                                    success: true,
-                                    instructions: [
-                                        {
-                                            setDependency:
-                                                "sourceCompositeValue",
-                                            desiredValue:
-                                                desiredStateVariableValues[
-                                                    varName
-                                                ],
-                                        },
-                                    ],
-                                };
-                            } else {
-                                // no component or primitive, so value is essential and give it the desired value, but validated
-
-                                let res = validateAttributeValue({
-                                    value: desiredStateVariableValues[varName],
-                                    attributeSpecification,
-                                    attribute: attrName,
-                                });
-
-                                return {
-                                    success: true,
-                                    instructions: [
-                                        {
-                                            setEssentialValue: varName,
-                                            value: res.value,
-                                        },
-                                    ],
-                                    sendDiagnostics: res.diagnostics,
-                                };
-                            }
-                        }
-                    }
-
-                    // attribute based on component
-
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setDependency: "attributeComponent",
-                                desiredValue:
-                                    desiredStateVariableValues[varName],
-                                variableIndex: 0,
-                            },
-                        ],
-                    };
-                };
+                stateVarDef.inverseDefinition = inverseDefinition;
             }
 
             this._copyPassthroughAttributes(
@@ -656,177 +495,16 @@ export class StateVariableDefinitionFactory {
 
             stateVarDef.returnDependencies = () => thisDependencies;
 
-            stateVarDef.definition = function ({
-                dependencyValues,
-                usedDefault,
-                essentialValues,
-            }) {
-                let attributeValue;
-                if (dependencyValues.attributeComponent) {
-                    attributeValue =
-                        dependencyValues.attributeComponent.stateValues[
-                            stateVariableForAttributeValue
-                        ];
-                } else if (dependencyValues.attributePrimitive != null) {
-                    attributeValue = dependencyValues.attributePrimitive;
-                } else if (
-                    dependencyValues.attributeRefResolutions != null &&
-                    !usedDefault.attributeRefResolutions
-                ) {
-                    attributeValue = dependencyValues.attributeRefResolutions;
-                } else {
-                    // parentValue would be undefined if fallBackToParentStateVariable wasn't specified
-                    // parentValue would be null if the parentValue state variables
-                    // did not exist or its value was null
-                    let haveParentValue = dependencyValues.parentValue != null;
-                    if (
-                        haveParentValue &&
-                        !usedDefault.parentValue &&
-                        essentialValues[varName] === undefined
-                    ) {
-                        return {
-                            setValue: {
-                                [varName]: dependencyValues.parentValue,
-                            },
-                            checkForActualChange: { [varName]: true },
-                        };
-                    } else {
-                        // sourceCompositeValue would be undefined if fallBackToSourceCompositeStateVariable wasn't specified
-                        // sourceCompositeValue would be null if the sourceCompositeValue state variables
-                        // did not exist or its value was null
-
-                        let haveSourceCompositeValue =
-                            dependencyValues.sourceCompositeValue != null;
-                        if (
-                            haveSourceCompositeValue &&
-                            !usedDefault.sourceCompositeValue &&
-                            essentialValues[varName] === undefined
-                        ) {
-                            return {
-                                setValue: {
-                                    [varName]:
-                                        dependencyValues.sourceCompositeValue,
-                                },
-                                checkForActualChange: { [varName]: true },
-                            };
-                        } else {
-                            return {
-                                useEssentialOrDefaultValue: {
-                                    [varName]: true,
-                                },
-                                checkForActualChange: { [varName]: true },
-                            };
-                        }
-                    }
-                }
-
-                let res = validateAttributeValue({
-                    value: attributeValue,
+            const { definition, inverseDefinition } =
+                this._buildAttributeDerivedDefinitions({
+                    varName,
+                    stateVariableForAttributeValue,
                     attributeSpecification,
-                    attribute: attrName,
+                    attrName,
                 });
-
-                return {
-                    setValue: { [varName]: res.value },
-                    checkForActualChange: { [varName]: true },
-                    sendDiagnostics: res.diagnostics,
-                };
-            };
-
+            stateVarDef.definition = definition;
             if (!attributeSpecification.noInverse) {
-                stateVarDef.inverseDefinition = async function ({
-                    desiredStateVariableValues,
-                    dependencyValues,
-                    usedDefault,
-                    essentialValues,
-                    stateValues,
-                    workspace,
-                }) {
-                    if (!dependencyValues.attributeComponent) {
-                        if (dependencyValues.attributePrimitive != null) {
-                            // can't invert if have primitive
-                            return { success: false };
-                        }
-                        if (dependencyValues.attributeRefResolutions != null) {
-                            // can't invert if have attribute ref resolutions
-                            return { success: false };
-                        }
-
-                        let haveParentValue =
-                            dependencyValues.parentValue != null;
-                        if (
-                            haveParentValue &&
-                            !usedDefault.parentValue &&
-                            essentialValues[varName] === undefined
-                        ) {
-                            // value from parent was used, so propagate back to parent
-                            return {
-                                success: true,
-                                instructions: [
-                                    {
-                                        setDependency: "parentValue",
-                                        desiredValue:
-                                            desiredStateVariableValues[varName],
-                                    },
-                                ],
-                            };
-                        } else {
-                            let haveSourceCompositeValue =
-                                dependencyValues.sourceCompositeValue != null;
-                            if (
-                                haveSourceCompositeValue &&
-                                !usedDefault.sourceCompositeValue &&
-                                essentialValues[varName] === undefined
-                            ) {
-                                // value from source composite was used, so propagate back to source composite
-                                return {
-                                    success: true,
-                                    instructions: [
-                                        {
-                                            setDependency:
-                                                "sourceCompositeValue",
-                                            desiredValue:
-                                                desiredStateVariableValues[
-                                                    varName
-                                                ],
-                                        },
-                                    ],
-                                };
-                            } else {
-                                // no component or primitive, so value is essential and give it the desired value, but validated
-                                let res = validateAttributeValue({
-                                    value: desiredStateVariableValues[varName],
-                                    attributeSpecification,
-                                    attribute: attrName,
-                                });
-
-                                return {
-                                    success: true,
-                                    instructions: [
-                                        {
-                                            setEssentialValue: varName,
-                                            value: res.value,
-                                        },
-                                    ],
-                                    sendDiagnostics: res.diagnostics,
-                                };
-                            }
-                        }
-                    }
-                    // attribute based on child
-
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setDependency: "attributeComponent",
-                                desiredValue:
-                                    desiredStateVariableValues[varName],
-                                variableIndex: 0,
-                            },
-                        ],
-                    };
-                };
+                stateVarDef.inverseDefinition = inverseDefinition;
             }
 
             this._copyPassthroughAttributes(
@@ -1488,6 +1166,210 @@ export class StateVariableDefinitionFactory {
                 stateVarDef[attrName2] = attributeSpecification[attrName2];
             }
         }
+    }
+
+    /**
+     * Build the `definition` / `inverseDefinition` callback pair for an
+     * attribute-derived state variable. Both callbacks close over `varName`,
+     * `stateVariableForAttributeValue`, `attributeSpecification`, and
+     * `attrName`; the callers attach the returned closures to a
+     * `stateVarDef` they own.
+     *
+     * The `definition` resolves the attribute value from one of the four
+     * dependency shapes (`attributeComponent` / `attributePrimitive` /
+     * `attributeRefResolutions` / fall-back via parent or
+     * source-composite), then validates it via `validateAttributeValue`.
+     *
+     * The `inverseDefinition` (used unless `noInverse` is set) routes a
+     * desired value back to the same source — propagating to the parent
+     * state variable, source-composite state variable, or essential value
+     * when no underlying component is present, or back to the attribute
+     * component when one is.
+     */
+    _buildAttributeDerivedDefinitions({
+        varName,
+        stateVariableForAttributeValue,
+        attributeSpecification,
+        attrName,
+    }: {
+        varName: string;
+        stateVariableForAttributeValue: string | undefined;
+        attributeSpecification: any;
+        attrName: string;
+    }): {
+        definition: (args: any) => any;
+        inverseDefinition: (args: any) => Promise<any>;
+    } {
+        const definition = function ({
+            dependencyValues,
+            usedDefault,
+            essentialValues,
+        }: any) {
+            let attributeValue;
+            if (dependencyValues.attributeComponent) {
+                // The `attributeComponent` dependency is wired only when
+                // `createComponentOfType` is set (see the call sites'
+                // `returnDependencies`), which is exactly when
+                // `_resolveAttributeValueVariable` returns a defined name —
+                // so the non-null assertion is safe here.
+                attributeValue =
+                    dependencyValues.attributeComponent.stateValues[
+                        stateVariableForAttributeValue!
+                    ];
+            } else if (dependencyValues.attributePrimitive != null) {
+                attributeValue = dependencyValues.attributePrimitive;
+            } else if (
+                dependencyValues.attributeRefResolutions != null &&
+                !usedDefault.attributeRefResolutions
+            ) {
+                attributeValue = dependencyValues.attributeRefResolutions;
+            } else {
+                // parentValue would be undefined if fallBackToParentStateVariable wasn't specified
+                // parentValue would be null if the parentValue state variables
+                // did not exist or its value was null
+                let haveParentValue = dependencyValues.parentValue != null;
+                if (
+                    haveParentValue &&
+                    !usedDefault.parentValue &&
+                    essentialValues[varName] === undefined
+                ) {
+                    return {
+                        setValue: {
+                            [varName]: dependencyValues.parentValue,
+                        },
+                        checkForActualChange: { [varName]: true },
+                    };
+                } else {
+                    // sourceCompositeValue would be undefined if fallBackToSourceCompositeStateVariable wasn't specified
+                    // sourceCompositeValue would be null if the sourceCompositeValue state variables
+                    // did not exist or its value was null
+
+                    let haveSourceCompositeValue =
+                        dependencyValues.sourceCompositeValue != null;
+                    if (
+                        haveSourceCompositeValue &&
+                        !usedDefault.sourceCompositeValue &&
+                        essentialValues[varName] === undefined
+                    ) {
+                        return {
+                            setValue: {
+                                [varName]:
+                                    dependencyValues.sourceCompositeValue,
+                            },
+                            checkForActualChange: { [varName]: true },
+                        };
+                    } else {
+                        return {
+                            useEssentialOrDefaultValue: {
+                                [varName]: true,
+                            },
+                            checkForActualChange: { [varName]: true },
+                        };
+                    }
+                }
+            }
+
+            const res = validateAttributeValue({
+                value: attributeValue,
+                attributeSpecification,
+                attribute: attrName,
+            });
+
+            return {
+                setValue: { [varName]: res.value },
+                checkForActualChange: { [varName]: true },
+                sendDiagnostics: res.diagnostics,
+            };
+        };
+
+        const inverseDefinition = async function ({
+            desiredStateVariableValues,
+            dependencyValues,
+            usedDefault,
+            essentialValues,
+        }: any) {
+            if (!dependencyValues.attributeComponent) {
+                if (dependencyValues.attributePrimitive != null) {
+                    // can't invert if have primitive
+                    return { success: false };
+                }
+                if (dependencyValues.attributeRefResolutions != null) {
+                    // can't invert if have attribute ref resolutions
+                    return { success: false };
+                }
+
+                let haveParentValue = dependencyValues.parentValue != null;
+                if (
+                    haveParentValue &&
+                    !usedDefault.parentValue &&
+                    essentialValues[varName] === undefined
+                ) {
+                    // value from parent was used, so propagate back to parent
+                    return {
+                        success: true,
+                        instructions: [
+                            {
+                                setDependency: "parentValue",
+                                desiredValue:
+                                    desiredStateVariableValues[varName],
+                            },
+                        ],
+                    };
+                } else {
+                    let haveSourceCompositeValue =
+                        dependencyValues.sourceCompositeValue != null;
+                    if (
+                        haveSourceCompositeValue &&
+                        !usedDefault.sourceCompositeValue &&
+                        essentialValues[varName] === undefined
+                    ) {
+                        // value from source composite was used, so propagate back to source composite
+                        return {
+                            success: true,
+                            instructions: [
+                                {
+                                    setDependency: "sourceCompositeValue",
+                                    desiredValue:
+                                        desiredStateVariableValues[varName],
+                                },
+                            ],
+                        };
+                    } else {
+                        // no component or primitive, so value is essential and give it the desired value, but validated
+                        const res = validateAttributeValue({
+                            value: desiredStateVariableValues[varName],
+                            attributeSpecification,
+                            attribute: attrName,
+                        });
+
+                        return {
+                            success: true,
+                            instructions: [
+                                {
+                                    setEssentialValue: varName,
+                                    value: res.value,
+                                },
+                            ],
+                            sendDiagnostics: res.diagnostics,
+                        };
+                    }
+                }
+            }
+
+            // attribute based on component
+            return {
+                success: true,
+                instructions: [
+                    {
+                        setDependency: "attributeComponent",
+                        desiredValue: desiredStateVariableValues[varName],
+                        variableIndex: 0,
+                    },
+                ],
+            };
+        };
+
+        return { definition, inverseDefinition };
     }
 }
 

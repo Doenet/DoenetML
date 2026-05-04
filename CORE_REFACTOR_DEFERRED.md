@@ -132,16 +132,14 @@ Commit `aed7910c` fixed a latent bug at `ResolverAdapter.ts:84` (was reading `co
 
 This codepath fires when a copy component (created via `extend`) has a `source:sequence` attribute and a numeric `createComponentIdx`. A targeted Vitest case constructing that specific shape and asserting the resolver receives a `parentSourceSequence` with the correct `parent: <number>` field would lock the fix in. Without it, regressions could re-introduce the silent `undefined`-parent bug.
 
-### De-duplicate attribute-derived state variable construction in `StateVariableDefinitionFactory` — PARTIAL
+### De-duplicate attribute-derived state variable construction in `StateVariableDefinitionFactory` — DONE
 
-DONE: three of the four duplication families collapsed.
+All four duplication families collapsed.
 
 1. **`shadowingInstructions` block.** Three 30-line copies replaced by `_setShadowingInstructionsFromAttribute(stateVarDef, attributeSpecification)`.
-2. **`stateVariableForAttributeValue` resolution.** Two copies (plus the adapter-shadow path that I'd missed) collapsed onto `_resolveAttributeValueVariable(attributeSpecification, attrName, componentClass)`. The helper returns `undefined` for the no-`createComponentOfType` case.
+2. **`stateVariableForAttributeValue` resolution.** Two copies (plus the adapter-shadow path that the original audit had missed) collapsed onto `_resolveAttributeValueVariable(attributeSpecification, attrName, componentClass)`. The helper returns `undefined` for the no-`createComponentOfType` case.
 3. **`attributesToCopy` loop.** Three copies replaced by `_copyPassthroughAttributes(stateVarDef, attributeSpecification, { includeTriggerActionOnChange })`. The flag makes the divergence between `createAttributeStateVariableDefinitions` (forwards `triggerActionOnChange`) and the two other paths explicit.
-
-Still pending:
-4. **`definition` / `inverseDefinition` callback pair.** The ~170-line block duplicated between `createAttributeStateVariableDefinitions` and `createReferenceShadowStateVariableDefinitions` is the largest single piece left. Worth its own focused PR — the closures capture different sets of locals, so a shared closure-builder needs careful parameter design to avoid silently changing behaviour.
+4. **`definition` / `inverseDefinition` callback pair.** Both 170-line bodies were byte-identical between `createAttributeStateVariableDefinitions` and `createReferenceShadowStateVariableDefinitions`; the reference-shadow `inverseDefinition` signature declared two extra parameters (`stateValues`, `workspace`) that the body never read, so dropping them was safe. The reference-shadow site also carried a stale `// attribute based on child` comment for what is actually an attribute component, fixed in passing to match the standalone site's `// attribute based on component`. Both callbacks lifted into `_buildAttributeDerivedDefinitions({ varName, stateVariableForAttributeValue, attributeSpecification, attrName })` returning `{ definition, inverseDefinition }`. Both call sites now invoke the helper and assign the returned closures to their `stateVarDef`. The `noInverse` opt-out remains at the call site.
 
 ### Collapse the two branches of `ComponentBuilder.addComponents` — DONE
 
@@ -235,7 +233,13 @@ DONE: the three byte-identical sub-helpers extracted, eliminating the easy dupli
 - `_remapArrayEntryFreshness(result, allStateVariablesAffectedObj)` collapses the four `fresh` / `partiallyFresh` array-entry remap blocks (two in each of those functions).
 - `_replaceWithStaleGetter(stateVarObj, component, vName)` collapses the "save `_previousValue` + reinstall lazy getter" block shared between `markStateVariableAndUpstreamDependentsStale` and the upstream-walk loop.
 
-Still pending: the larger `_processStaleVisit({ component, varName, allStateVariablesAffectedObj })` extraction covering the side-effect-dispatch + getter-reinstall + recurse block (~200 lines duplicated between the two functions). The two sites diverge in subtle ways (the action-chaining bag uses `component.componentIdx` in the standalone but `upDep.componentIdx` in the upstream loop; the renderer-add at the top of each branch differs in shape; the upstream loop has additional setup around `upDep.valuesChanged` per `componentInd`/`varName`). A behaviour-preserving extraction must either accept the divergences as intentional or fix them deliberately. Worth a separate PR after auditing whether the asymmetries are bugs.
+Still pending: the larger `_processStaleVisit({ component, varName, allStateVariablesAffectedObj })` extraction covering the side-effect-dispatch + getter-reinstall + recurse block (~200 lines duplicated between the two functions). Audit completed:
+
+- The action-chaining bag in the upstream-walk loop keys by `upDep.componentIdx` (lines 726, 731), but dependency objects (instances declared in `Dependencies.js`) only carry `upstreamComponentIdx` — never `componentIdx`. The `upDep.componentIdx` lookup is `undefined`, so when `result.updateActionChaining` is true on the upstream side, every chain entry has been routed to a single `"undefined"` bucket on `componentsToUpdateActionChaining`. **This is a latent bug**, not an intentional asymmetry. The standalone site uses `component.componentIdx` correctly.
+- The renderer-add at the top of each branch differs in shape (`markStateVariableAndUpstreamDependentsStale` adds the single `varName` if it's a renderer var; the upstream loop iterates `upDep.upstreamVariableNames` and adds `upDep.upstreamComponentIdx` on the first match) — this is intentional, since the upstream branch is dispatching on a multi-variable dependency.
+- The upstream loop has additional setup around `upDep.valuesChanged` per `componentInd`/`varName` before the dispatch begins — also intentional, since the upstream branch is recording the change on the dependency record itself.
+
+Right next step: a focused PR that (a) fixes the `upDep.componentIdx` bug at `StalenessPropagator.ts:726` and `:731` — the canonical field on the dependency record is `upDep.upstreamComponentIdx` (or equivalently `upDepComponent.componentIdx`, since `upDepComponent = this.core._components[upDep.upstreamComponentIdx]` is already in scope just above), and either is the right replacement for `component.componentIdx` in the helper's contract; (b) extracts `_processStaleVisit({ component, varName, allStateVariablesAffectedObj })` covering the freshness-classification + side-effect dispatch + getter-reinstall + recurse block; and (c) leaves the renderer-add and `valuesChanged` setup at the call sites since they encode genuinely different responsibilities.
 
 **`StateVariableEvaluator`** — DONE: both clusters extracted.
 - The five "look up `varName` in `receivedValue`, otherwise scan `arrayEntryNames` for a matching entry, otherwise throw" sites collapsed onto `_findOrThrowMatchingArrayEntry({ varName, receivedValue, component, errorMessage })`. The two sites that additionally marked `receivedValue[entry] = true; valuesChanged[entry] = true;` keep that mark at the call site (passing the helper's return value).
@@ -245,9 +249,10 @@ Still pending: the larger `_processStaleVisit({ component, varName, allStateVari
 - Four `requestComponentChanges` recursion sites collapsed onto a new `_recurseInto({ inst, newInstruction, workspace, newStateVariableValues })` helper. Sites that build a transient `inst` literal pass it inline; the `additionalStateVariableValues`-setting site keeps its mutation outside the helper (passing the assembled `inst`).
 - `_resolveValueOfStateVariable(instruction, component)` extracted; both the array-entry-path and scalar-path `valueOfStateVariable` branches now `await` it.
 
-**`CompositeReplacementUpdater`** — PARTIAL.
-- DONE: All six `component.shadowedBy` + skip-on-`propVariable || doNotExpandAsShadowed` sites replaced by a module-level `function* iterateExpandableShadows(component)`. The two "find the matching shadow by `compositeIdx`" sites collapsed onto `findExpandableShadowByCompositeIdx(component, compositeIdx)`.
-- Still pending: `_recordDeleteResults` helper for the two near-identical post-delete bookkeeping blocks in `deleteReplacementsFromShadowsThenComposite` (top-level vs non-top-level branches differ in `topLevel`/`firstIndex` fields and an extra `processNewDefiningChildren` call). Worth a separate small PR.
+**`CompositeReplacementUpdater`** — DONE.
+- All six `component.shadowedBy` + skip-on-`propVariable || doNotExpandAsShadowed` sites replaced by a module-level `function* iterateExpandableShadows(component)`. The two "find the matching shadow by `compositeIdx`" sites collapsed onto `findExpandableShadowByCompositeIdx(component, compositeIdx)`.
+- `_recordDeleteResults({ deleteResults, composite, numberDeleted, parentsOfDeleted, deletedComponents, componentChanges, topLevel, firstIndex })` extracted from `deleteReplacementsFromShadowsThenComposite`. Both branches (top-level and non-top-level) call it; the optional `topLevel`/`firstIndex` params let the helper attach the splice-position fields only when the top-level branch needs them. The non-top-level branch still owns its `Object.assign(addedComponents, …)` tail; the top-level branch still owns its extra renderer-update fan-out for `composite.parentIdx`'s descendants.
+- Still pending: `calculateAllComponentsShadowing` (module-level, around line 1206) hand-rolls the same `shadowedBy` + `propVariable`/`doNotExpandAsShadowed` predicate that `iterateExpandableShadows` was extracted to centralize. It can call the iterator and recurse on each yielded shadow, leaving the `replacementOf` tail at the end. Pre-existing; folded into the same future PR that picks up the remaining shadow-iteration cleanup.
 
 **`UpdateExecutor`** — DONE.
 - `_recordSourceDetails(instruction, sourceInformation)` extracted; both call sites (read-only branch and main loop) now invoke it.

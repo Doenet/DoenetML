@@ -624,34 +624,23 @@ export class CompositeReplacementUpdater {
             if (deleteResults.success === false) {
                 throw Error("Couldn't delete components on composite update");
             }
-            for (let parent of deleteResults.parentsOfDeleted) {
-                parentsOfDeleted.add(parent.componentIdx);
-                let componentsAffected =
-                    await this.core.componentAndRenderedDescendants(parent);
-                componentsAffected.forEach((cIdx) =>
-                    this.core.updateInfo.componentsToUpdateRenderers.add(cIdx),
-                );
-            }
-            let deletedNamesByParent: Record<string, any[]> = {};
-            for (let compName in deleteResults.deletedComponents) {
-                let comp = deleteResults.deletedComponents[compName];
-                let par = comp.parentIdx;
-                if (deletedNamesByParent[par] === undefined) {
-                    deletedNamesByParent[par] = [];
-                }
-                deletedNamesByParent[par].push(compName);
-            }
-            let newChange = {
-                changeType: "deletedReplacements",
+            await this._recordDeleteResults({
+                deleteResults,
                 composite,
-                topLevel: true,
-                firstIndex: firstIndex,
                 numberDeleted: numberToDelete,
-                deletedNamesByParent: deletedNamesByParent,
-                deletedComponents: deleteResults.deletedComponents,
-            };
-            componentChanges.push(newChange);
-            Object.assign(deletedComponents, deleteResults.deletedComponents);
+                parentsOfDeleted,
+                deletedComponents,
+                componentChanges,
+                topLevel: true,
+                firstIndex,
+            });
+
+            // Top-level deletes splice replacements out of
+            // `composite.replacements`, so the composite's parent itself is
+            // the render boundary that needs updating. The non-top-level
+            // branch deletes deeper components whose parents are already
+            // covered by the `parentsOfDeleted` walk inside
+            // `_recordDeleteResults`, so it doesn't need this fan-out.
             let parent = this.core._components[composite.parentIdx];
             let componentsAffected =
                 await this.core.componentAndRenderedDescendants(parent);
@@ -673,32 +662,14 @@ export class CompositeReplacementUpdater {
                     "Couldn't delete components prescribed by composite",
                 );
             }
-            for (let parent of deleteResults.parentsOfDeleted) {
-                parentsOfDeleted.add(parent.componentIdx);
-                let componentsAffected =
-                    await this.core.componentAndRenderedDescendants(parent);
-                componentsAffected.forEach((cIdx) =>
-                    this.core.updateInfo.componentsToUpdateRenderers.add(cIdx),
-                );
-            }
-            let deletedNamesByParent: Record<string, any[]> = {};
-            for (let compName in deleteResults.deletedComponents) {
-                let comp = deleteResults.deletedComponents[compName];
-                let par = comp.parentIdx;
-                if (deletedNamesByParent[par] === undefined) {
-                    deletedNamesByParent[par] = [];
-                }
-                deletedNamesByParent[par].push(compName);
-            }
-            let newChange = {
-                changeType: "deletedReplacements",
+            await this._recordDeleteResults({
+                deleteResults,
                 composite,
                 numberDeleted: numberToDelete,
-                deletedNamesByParent: deletedNamesByParent,
-                deletedComponents: deleteResults.deletedComponents,
-            };
-            componentChanges.push(newChange);
-            Object.assign(deletedComponents, deleteResults.deletedComponents);
+                parentsOfDeleted,
+                deletedComponents,
+                componentChanges,
+            });
             Object.assign(addedComponents, deleteResults.addedComponents);
         }
     }
@@ -1123,6 +1094,75 @@ export class CompositeReplacementUpdater {
                 adjustResolver,
             });
         }
+    }
+
+    /**
+     * Shared post-delete bookkeeping for the two branches of
+     * `deleteReplacementsFromShadowsThenComposite`:
+     *   1. record every parent-of-deleted on `parentsOfDeleted` and queue
+     *      its rendered descendants for renderer update,
+     *   2. group `deleteResults.deletedComponents` by `parentIdx` into
+     *      `deletedNamesByParent`,
+     *   3. push a `deletedReplacements` change record onto
+     *      `componentChanges`, and
+     *   4. merge `deleteResults.deletedComponents` into `deletedComponents`.
+     *
+     * Pass `topLevel: true` (with `firstIndex`) for the
+     * `change.changeTopLevelReplacements` branch — the change record then
+     * carries the position of the splice. The non-top-level branch omits
+     * both fields.
+     */
+    async _recordDeleteResults({
+        deleteResults,
+        composite,
+        numberDeleted,
+        parentsOfDeleted,
+        deletedComponents,
+        componentChanges,
+        topLevel,
+        firstIndex,
+    }: {
+        deleteResults: any;
+        composite: any;
+        numberDeleted: number;
+        parentsOfDeleted: Set<number>;
+        deletedComponents: Record<string, any>;
+        componentChanges: any[];
+        topLevel?: boolean;
+        firstIndex?: number;
+    }) {
+        for (const parent of deleteResults.parentsOfDeleted) {
+            parentsOfDeleted.add(parent.componentIdx);
+            const componentsAffected =
+                await this.core.componentAndRenderedDescendants(parent);
+            componentsAffected.forEach((cIdx: number) =>
+                this.core.updateInfo.componentsToUpdateRenderers.add(cIdx),
+            );
+        }
+
+        const deletedNamesByParent: Record<string, any[]> = {};
+        for (const compName in deleteResults.deletedComponents) {
+            const comp = deleteResults.deletedComponents[compName];
+            const par = comp.parentIdx;
+            if (deletedNamesByParent[par] === undefined) {
+                deletedNamesByParent[par] = [];
+            }
+            deletedNamesByParent[par].push(compName);
+        }
+
+        const newChange: any = {
+            changeType: "deletedReplacements",
+            composite,
+            numberDeleted,
+            deletedNamesByParent,
+            deletedComponents: deleteResults.deletedComponents,
+        };
+        if (topLevel) {
+            newChange.topLevel = true;
+            newChange.firstIndex = firstIndex;
+        }
+        componentChanges.push(newChange);
+        Object.assign(deletedComponents, deleteResults.deletedComponents);
     }
 }
 
