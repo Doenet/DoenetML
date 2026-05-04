@@ -11,6 +11,17 @@
                     }
                 ]
             }
+        ],
+        "UserPromptExpansion": [
+            {
+                "matcher": "*",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "msg=$(jq -r '.userMessage'); if echo \"$msg\" | grep -qE '^/review'; then repo_root=$(git rev-parse --show-toplevel 2>/dev/null || pwd); echo \"$msg\" && echo \"\" && cat \"$repo_root/docs/PR_REVIEW_GUIDELINES.md\" 2>/dev/null; else echo \"$msg\"; fi | jq -Rs '{userMessage: .}'"
+                    }
+                ]
+            }
         ]
     }
 }
