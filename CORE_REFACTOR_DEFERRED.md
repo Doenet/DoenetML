@@ -151,12 +151,12 @@ The initial-add branch (`addComponents` body when `initialAdd === true`, around 
 
 Extracting `_drainStateVariablesToEvaluate()`, `_expandAllCompositesBothPasses(component)`, and `_drainCompositesToUpdateReplacements()` would shrink `addComponents` by roughly 40 lines and make the initial-add vs incremental-add asymmetry obvious.
 
-### Extract `_finishExpanding` and unexpanded-composite helpers in `CompositeExpander`
+### Extract `_finishExpanding` and unexpanded-composite helpers in `CompositeExpander` — DONE
 
-Two patterns duplicate verbatim across `expandCompositeComponent` and `expandShadowingComposite`:
+Both patterns extracted:
 
-1. **"Finished expanding" cleanup** (lines 411-420 and 741-750). Identical 9-line `compositesBeingExpanded.indexOf(componentIdx)` + `throw if -1` + `splice` block. Extract `_finishExpanding(componentIdx)`.
-2. **Unexpanded-composite list cleanup** in `expandCompositeComponent` (lines 277-294 of the current file). The `unexpandedCompositesReady` and `unexpandedCompositesNotReady` lists each get the same `indexOf` + `splice` treatment; can collapse to `for (const arr of [parent.unexpandedCompositesReady, parent.unexpandedCompositesNotReady])`.
+1. **"Finished expanding" cleanup** — pulled out of `expandCompositeComponent` and `expandShadowingComposite` into a private `_finishExpanding(componentIdx)` method.
+2. **Unexpanded-composite list cleanup** in `expandCompositeComponent` — collapsed the `unexpandedCompositesReady` / `unexpandedCompositesNotReady` indexOf+splice pair into `for (const list of [parent.unexpandedCompositesReady, parent.unexpandedCompositesNotReady])`, with a `continue` for the missing-list case.
 
 ### Drop dead `replacementsCreated` guard in `CompositeExpander.expandShadowingComposite`
 

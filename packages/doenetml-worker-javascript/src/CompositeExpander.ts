@@ -275,23 +275,16 @@ export class CompositeExpander {
         );
 
         if (component.parent) {
-            if (component.parent.unexpandedCompositesReady) {
-                let ind = component.parent.unexpandedCompositesReady.indexOf(
-                    component.componentIdx,
-                );
-                if (ind !== -1) {
-                    component.parent.unexpandedCompositesReady.splice(ind, 1);
+            for (const list of [
+                component.parent.unexpandedCompositesReady,
+                component.parent.unexpandedCompositesNotReady,
+            ]) {
+                if (!list) {
+                    continue;
                 }
-            }
-            if (component.parent.unexpandedCompositesNotReady) {
-                let ind = component.parent.unexpandedCompositesNotReady.indexOf(
-                    component.componentIdx,
-                );
+                const ind = list.indexOf(component.componentIdx);
                 if (ind !== -1) {
-                    component.parent.unexpandedCompositesNotReady.splice(
-                        ind,
-                        1,
-                    );
+                    list.splice(ind, 1);
                 }
             }
         }
@@ -410,16 +403,7 @@ export class CompositeExpander {
             );
         }
 
-        // record that are finished expanding the composite
-        let targetInd = this.core.updateInfo.compositesBeingExpanded.indexOf(
-            component.componentIdx,
-        );
-        if (targetInd === -1) {
-            throw Error(
-                `Something is wrong as we lost track that we were expanding ${component.componentIdx}`,
-            );
-        }
-        this.core.updateInfo.compositesBeingExpanded.splice(targetInd, 1);
+        this._finishExpanding(component.componentIdx);
 
         return { success: true, compositesExpanded: [component.componentIdx] };
     }
@@ -732,20 +716,29 @@ export class CompositeExpander {
                 shadowedComposite.replacementsToWithhold;
         }
 
-        // record that are finished expanding the composite
-        let targetInd = this.core.updateInfo.compositesBeingExpanded.indexOf(
-            component.componentIdx,
-        );
-        if (targetInd === -1) {
-            throw Error(
-                `Something is wrong as we lost track that we were expanding ${component.componentIdx}`,
-            );
-        }
-        this.core.updateInfo.compositesBeingExpanded.splice(targetInd, 1);
+        this._finishExpanding(component.componentIdx);
 
         compositesExpanded.push(component.componentIdx);
 
         return { success: true, compositesExpanded };
+    }
+
+    /**
+     * Pop `componentIdx` off `core.updateInfo.compositesBeingExpanded` to
+     * record that the composite has finished expanding. Throws if the
+     * composite was not on the in-progress list — that would indicate the
+     * push/pop pairing in `expandCompositeComponent` /
+     * `expandShadowingComposite` has drifted.
+     */
+    private _finishExpanding(componentIdx: number) {
+        const targetInd =
+            this.core.updateInfo.compositesBeingExpanded.indexOf(componentIdx);
+        if (targetInd === -1) {
+            throw Error(
+                `Something is wrong as we lost track that we were expanding ${componentIdx}`,
+            );
+        }
+        this.core.updateInfo.compositesBeingExpanded.splice(targetInd, 1);
     }
 
     /**
