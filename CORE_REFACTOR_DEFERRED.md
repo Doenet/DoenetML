@@ -145,13 +145,13 @@ Still pending:
 
 ### Collapse the two branches of `ComponentBuilder.addComponents` — DONE
 
-All three drains extracted into private helpers on the class: `_expandAllCompositesBothPasses()` (the two-pass `expandAllComposites(document)`), `_drainStateVariablesToEvaluate()` (the queue-and-evaluate loop), and `_drainCompositesToUpdateReplacements()` (the conditional "drain + re-render" tail). Both branches of `addComponents` now use them, making the initial-add vs incremental-add asymmetry visible at a glance.
+All three drains extracted into internal (underscore-prefixed) helpers on the class: `_expandAllCompositesBothPasses()` (the two-pass `expandAllComposites(document)`), `_drainStateVariablesToEvaluate()` (the queue-and-evaluate loop), and `_drainCompositesToUpdateReplacements()` (the conditional "drain + re-render" tail). Both branches of `addComponents` now use them, making the initial-add vs incremental-add asymmetry visible at a glance.
 
 ### Extract `_finishExpanding` and unexpanded-composite helpers in `CompositeExpander` — DONE
 
 Both patterns extracted:
 
-1. **"Finished expanding" cleanup** — pulled out of `expandCompositeComponent` and `expandShadowingComposite` into a private `_finishExpanding(componentIdx)` method.
+1. **"Finished expanding" cleanup** — pulled out of `expandCompositeComponent` and `expandShadowingComposite` into an internal `_finishExpanding(componentIdx)` method (underscore-prefixed per AGENTS.md; no `private` keyword).
 2. **Unexpanded-composite list cleanup** in `expandCompositeComponent` — collapsed the `unexpandedCompositesReady` / `unexpandedCompositesNotReady` indexOf+splice pair into `for (const list of [parent.unexpandedCompositesReady, parent.unexpandedCompositesNotReady])`, with a `continue` for the missing-list case.
 
 ### Pre-existing exception-leak windows in `CompositeExpander` expansion paths

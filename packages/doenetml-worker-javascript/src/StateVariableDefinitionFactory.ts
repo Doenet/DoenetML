@@ -2,6 +2,17 @@ import type Core from "./Core";
 import { preprocessAttributesObject } from "./utils/attributes";
 
 /**
+ * Map from `attributeSpecification.createPrimitiveOfType` codes to the
+ * component type used to shadow them. Codes that aren't listed (e.g.
+ * `boolean`, `number`) shadow as themselves.
+ */
+const PRIMITIVE_TO_COMPONENT_TYPE: Record<string, string> = {
+    string: "text",
+    stringArray: "textList",
+    numberArray: "numberList",
+};
+
+/**
  * Builds the synchronous state-variable *shape* (the schema-like definition
  * objects that say what each state variable depends on, how to compute it,
  * how to invert it, etc.) for a component class.
@@ -1398,27 +1409,9 @@ export class StateVariableDefinitionFactory {
         stateVarDef.public = true;
         stateVarDef.shadowingInstructions = {};
         if (attributeSpecification.createPrimitiveOfType) {
+            const primitive = attributeSpecification.createPrimitiveOfType;
             stateVarDef.shadowingInstructions.createComponentOfType =
-                attributeSpecification.createPrimitiveOfType;
-            if (
-                stateVarDef.shadowingInstructions.createComponentOfType ===
-                "string"
-            ) {
-                stateVarDef.shadowingInstructions.createComponentOfType =
-                    "text";
-            } else if (
-                stateVarDef.shadowingInstructions.createComponentOfType ===
-                "stringArray"
-            ) {
-                stateVarDef.shadowingInstructions.createComponentOfType =
-                    "textList";
-            } else if (
-                stateVarDef.shadowingInstructions.createComponentOfType ===
-                "numberArray"
-            ) {
-                stateVarDef.shadowingInstructions.createComponentOfType =
-                    "numberList";
-            }
+                PRIMITIVE_TO_COMPONENT_TYPE[primitive] ?? primitive;
         } else if (attributeSpecification.createReferences) {
             throw Error(
                 "Cannot make a public state variable from an attribute with createReferences",

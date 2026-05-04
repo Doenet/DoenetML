@@ -1345,7 +1345,7 @@ export class EssentialValueWriter {
      *
      * Lazily creates `cumulativeStateVariableChanges[stateId]` if absent.
      */
-    _mergeIntoCumulative(stateId: string, varName: string, value: any): void {
+    mergeIntoCumulative(stateId: string, varName: string, value: any): void {
         const cumulative = this.core.cumulativeStateVariableChanges;
         if (!cumulative[stateId]) {
             cumulative[stateId] = {};

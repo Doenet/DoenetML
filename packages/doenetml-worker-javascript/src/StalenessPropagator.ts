@@ -807,11 +807,14 @@ export class StalenessPropagator {
     async _getArrayKeysAndSize(
         stateVarObj: any,
         component: any,
-    ): Promise<{ arrayKeys: any; arraySize: any[] | undefined }> {
-        let arrayKeys, arraySize;
+    ): Promise<{
+        arrayKeys: any[] | undefined;
+        arraySize: any[] | undefined;
+    }> {
+        let arrayKeys: any[] | undefined;
+        let arraySize: any[] | undefined;
 
         if (stateVarObj.isArrayEntry) {
-            // arrayKeys = new Proxy(stateVarObj._arrayKeys, readOnlyProxyHandler);
             arrayKeys = stateVarObj._arrayKeys;
         }
 
@@ -827,9 +830,7 @@ export class StalenessPropagator {
                 arraySize = await arraySizeStateVar.value;
             }
 
-            if (Array.isArray(arraySize)) {
-                // arraySize = new Proxy(arraySize, readOnlyProxyHandler);
-            } else {
+            if (!Array.isArray(arraySize)) {
                 arraySize = [];
             }
         }

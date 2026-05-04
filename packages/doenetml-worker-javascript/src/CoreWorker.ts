@@ -422,10 +422,11 @@ export class PublicDoenetMLCore {
     // TODO: restore functionality that opens collapsible sections
     // when navigating to them or to items inside them
     navigatingToComponent(componentIdx: number, hash: string) {
-        // This function no longer works
-        // Fire-and-forget: navigation is best-effort and the message handler
-        // is synchronous. Surface rejections so they don't slip past
-        // `unhandledRejection`.
+        // Currently a no-op (see TODO above), but the call is wired
+        // fire-and-forget through a synchronous message handler. The
+        // `.catch` ensures any future implementation's rejections surface
+        // through the centralized timer-error logger instead of slipping
+        // past `unhandledRejection`.
         this.core
             ?.handleNavigatingToComponent({ componentIdx, hash })
             .catch(reportTimerError(TimerLabels.navigateToComponent));

@@ -293,7 +293,7 @@ export class UpdateExecutor {
                     for (let varName in this.core
                         .essentialValuesSavedInDefinition[stateId]) {
                         if (essentialState[varName] !== undefined) {
-                            this.core.essentialValueWriter._mergeIntoCumulative(
+                            this.core.essentialValueWriter.mergeIntoCumulative(
                                 stateId,
                                 varName,
                                 essentialState[varName],
@@ -312,7 +312,7 @@ export class UpdateExecutor {
                     const stateId =
                         this.core._components[Number(componentIdxStr)].stateId;
                     for (let varName in newValuesProcessed[componentIdxStr]) {
-                        this.core.essentialValueWriter._mergeIntoCumulative(
+                        this.core.essentialValueWriter.mergeIntoCumulative(
                             stateId,
                             varName,
                             newValuesProcessed[componentIdxStr][varName],
