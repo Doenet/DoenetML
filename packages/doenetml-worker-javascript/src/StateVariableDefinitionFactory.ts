@@ -1207,6 +1207,11 @@ export class StateVariableDefinitionFactory {
         }: any) {
             let attributeValue;
             if (dependencyValues.attributeComponent) {
+                // The `attributeComponent` dependency is wired only when
+                // `createComponentOfType` is set (see the call sites'
+                // `returnDependencies`), which is exactly when
+                // `_resolveAttributeValueVariable` returns a defined name —
+                // so the non-null assertion is safe here.
                 attributeValue =
                     dependencyValues.attributeComponent.stateValues[
                         stateVariableForAttributeValue!

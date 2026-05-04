@@ -635,9 +635,12 @@ export class CompositeReplacementUpdater {
                 firstIndex,
             });
 
-            // top-level deletes additionally fan out a renderer update for
-            // the composite's parent's descendants (the non-top-level branch
-            // doesn't, since it's already targeting parents-of-deleted above).
+            // Top-level deletes splice replacements out of
+            // `composite.replacements`, so the composite's parent itself is
+            // the render boundary that needs updating. The non-top-level
+            // branch deletes deeper components whose parents are already
+            // covered by the `parentsOfDeleted` walk inside
+            // `_recordDeleteResults`, so it doesn't need this fan-out.
             let parent = this.core._components[composite.parentIdx];
             let componentsAffected =
                 await this.core.componentAndRenderedDescendants(parent);
