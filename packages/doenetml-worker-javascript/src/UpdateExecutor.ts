@@ -1,6 +1,82 @@
 import type Core from "./Core";
+import type { ComponentIdx } from "@doenet/utils";
 import { createNewComponentIndices } from "./utils/componentIndices";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
+
+/**
+ * Source-side metadata about *how* an update originated. Indexed by
+ * `componentIdx` (string-coerced because that's what `for...in` yields);
+ * each entry is a free-form bag of provenance attributes that flows
+ * through to renderers via `sourceOfUpdate`.
+ */
+type SourceInformation = Record<string, any>;
+
+/**
+ * One entry in `performUpdate`'s `updateInstructions` array. The shape
+ * varies by `updateType`; the explicit fields below are documentation
+ * for the most common keys, while the `[k: string]: any` index signature
+ * is what TypeScript actually checks against — necessary because the
+ * historical call sites mix authored, interactive, and chained
+ * instructions on the same array. A discriminated union per `updateType`
+ * is deferred (see `CORE_REFACTOR_DEFERRED.md`).
+ */
+type UpdateInstruction = {
+    updateType: string;
+    componentIdx?: ComponentIdx;
+    stateVariable?: string;
+    value?: any;
+    serializedComponents?: any;
+    parentIdx?: ComponentIdx;
+    componentIndices?: ComponentIdx[];
+    componentNumber?: number;
+    sourceDetails?: Record<string, any>;
+    [k: string]: any;
+};
+
+type RecordEvent = Record<string, any>;
+type Diagnostic = Record<string, any>;
+
+type PerformActionArgs = {
+    componentIdx?: ComponentIdx;
+    actionName: string;
+    args?: Record<string, any>;
+    event?: RecordEvent;
+    caseInsensitiveMatch?: boolean;
+};
+
+type PerformUpdateArgs = {
+    updateInstructions: UpdateInstruction[];
+    diagnostics?: Diagnostic[];
+    actionId?: string;
+    event?: RecordEvent;
+    /**
+     * When true, perform the update even if `core.flags.readOnly` is set.
+     * Used by Core's own internal flows (e.g. theme set) where the caller
+     * has decided the read-only flag does not apply.
+     */
+    overrideReadOnly?: boolean;
+    /**
+     * Skip the debounced state-persistence side effect. The update still
+     * mutates state and updates renderers; only the call to
+     * `statePersistence.scheduleSave` is suppressed. Used for theme
+     * changes and other non-interactions.
+     */
+    doNotSave?: boolean;
+    /**
+     * Skip *both* renderer-update paths (the read-only mirror and the
+     * post-update fan-out). Used when the caller will re-issue updates
+     * imminently and renderer churn would be wasted.
+     */
+    canSkipUpdatingRenderer?: boolean;
+    /**
+     * Skip only the late `updateAllChangedRenderers` call at the end of
+     * `performUpdate`, while still letting the early read-only path and
+     * the components-to-update bookkeeping run. Submission-recording
+     * updates override this and always fan out.
+     */
+    skipRendererUpdate?: boolean;
+    sourceInformation?: SourceInformation;
+};
 
 /**
  * The orchestrators dequeued by `ProcessQueue`:
@@ -24,13 +100,36 @@ export class UpdateExecutor {
         this.core = core;
     }
 
+    /**
+     * Run a component-defined action method (e.g. `submitAnswer`,
+     * `revealSection`).
+     *
+     * Special-case branches handled before the main dispatch:
+     *   - `actionName === "setTheme"` with no `componentIdx`: re-enters via
+     *     `performUpdate` to set `document.theme`. The action mechanism is
+     *     co-opted here because the document doesn't expose a real action
+     *     surface, but theme is a UI-only state variable that the viewer
+     *     needs to be able to set. `doNotSave` is always passed since theme
+     *     is not user content.
+     *   - Component missing + `actionName === "recordVisibilityChange"`
+     *     with `args.isVisible === false`: a "component became hidden"
+     *     event for a component that has already been deleted. Recorded
+     *     directly via `requestRecordEvent` because there is no live
+     *     component to dispatch through.
+     *
+     * Main path: look up `component.actions[actionName]` (with optional
+     * case-insensitive fallback when `caseInsensitiveMatch` is set), record
+     * the `event` if provided, and `await` the action. Returns
+     * `{ actionId }` on success. If the component exists but the action
+     * does not, a warning diagnostic is added and `{}` is returned.
+     */
     async performAction({
         componentIdx,
         actionName,
         args,
         event,
         caseInsensitiveMatch,
-    }) {
+    }: PerformActionArgs) {
         if (actionName === "setTheme" && componentIdx === undefined) {
             // For now, co-opting the action mechanism to let the viewer set the theme (dark mode) on document.
             // Don't have an actual action on document as don't want the ability for others to call it.
@@ -41,17 +140,17 @@ export class UpdateExecutor {
                         updateType: "updateValue",
                         componentIdx: this.core.documentIdx,
                         stateVariable: "theme",
-                        value: args.theme,
+                        value: args!.theme,
                     },
                 ],
-                actionId: args.actionId,
+                actionId: args!.actionId,
                 doNotSave: true, // this isn't an interaction, so don't save doc state
             });
 
-            return { actionId: args.actionId };
+            return { actionId: args!.actionId };
         }
 
-        let component = this.core._components[componentIdx];
+        let component = this.core._components[componentIdx!];
         if (component && component.actions) {
             let action = component.actions[actionName];
             if (!action && caseInsensitiveMatch) {
@@ -107,6 +206,40 @@ export class UpdateExecutor {
         return {};
     }
 
+    /**
+     * Drive a batch of update instructions through the inverse-definition
+     * pipeline, then surface the results to renderers and persistence.
+     *
+     * The instruction array is processed in order. Each instruction
+     * dispatches by `updateType`:
+     *   - `updateValue`: hand off to `requestComponentChanges`, accumulating
+     *     `newStateVariableValues` for the post-loop flush.
+     *   - `addComponents` / `deleteComponents`: structural changes that
+     *     synchronously call `Core.addComponents` / `Core.deleteComponents`.
+     *   - `executeUpdate`: flush the currently-accumulated
+     *     `newStateVariableValues` immediately so subsequent inverse
+     *     definitions can read the updated values.
+     *   - `recordItemSubmission`: queue the instruction for the
+     *     post-loop submission-event recording (and triggers an
+     *     immediate save).
+     *   - `setComponentNeedingUpdateValue` /
+     *     `unsetComponentNeedingUpdateValue`: flag bookkeeping for
+     *     downstream answer-submission detection.
+     *
+     * After the loop, `executeUpdateStateVariables` runs once more on
+     * any leftover `newStateVariableValues`, then
+     * `processStateVariableTriggers` and `updateAllChangedRenderers` run
+     * conditionally based on the `skipRendererUpdate` /
+     * `canSkipUpdatingRenderer` flags. Essential values saved during
+     * definitions are merged into the cumulative changes log so they
+     * persist on the next save.
+     *
+     * Persistence side effects:
+     *   - Submission updates fire `saveState(true, true)` immediately
+     *     (fire-and-forget; failures are logged but do not block).
+     *   - Otherwise `statePersistence.scheduleSave(1000)` debounces a
+     *     save unless `doNotSave` is set.
+     */
     async performUpdate({
         updateInstructions,
         diagnostics,
@@ -117,7 +250,7 @@ export class UpdateExecutor {
         canSkipUpdatingRenderer = false,
         skipRendererUpdate = false,
         sourceInformation = {},
-    }) {
+    }: PerformUpdateArgs) {
         if (diagnostics) {
             for (let diagnostic of diagnostics) {
                 this.core.addDiagnostic(diagnostic);
@@ -131,9 +264,9 @@ export class UpdateExecutor {
                 }
 
                 await this.core.updateRendererInstructions({
-                    componentNamesToUpdate: updateInstructions.map(
-                        (x) => x.componentIdx,
-                    ),
+                    componentNamesToUpdate: updateInstructions
+                        .map((x: UpdateInstruction) => x.componentIdx)
+                        .filter((idx): idx is ComponentIdx => idx != undefined),
                     sourceOfUpdate: { sourceInformation },
                     actionId,
                 });
@@ -154,9 +287,7 @@ export class UpdateExecutor {
         let recordComponentSubmissions: any[] = [];
 
         for (let instruction of updateInstructions) {
-            if (instruction.componentIdx != undefined) {
-                this._recordSourceDetails(instruction, sourceInformation);
-            }
+            this._recordSourceDetails(instruction, sourceInformation);
 
             if (instruction.updateType === "updateValue") {
                 await this.core.requestComponentChanges({
@@ -177,9 +308,9 @@ export class UpdateExecutor {
                     parentIdx: instruction.parentIdx,
                 });
             } else if (instruction.updateType === "deleteComponents") {
-                if (instruction.componentIndices.length > 0) {
+                if (instruction.componentIndices!.length > 0) {
                     let componentsToDelete = [];
-                    for (let componentIdx of instruction.componentIndices) {
+                    for (let componentIdx of instruction.componentIndices!) {
                         let component = this.core._components[componentIdx];
                         if (component) {
                             componentsToDelete.push(component);
@@ -214,7 +345,7 @@ export class UpdateExecutor {
                 instruction.updateType === "setComponentNeedingUpdateValue"
             ) {
                 this.core.cumulativeStateVariableChanges.__componentNeedingUpdateValue =
-                    this.core._components[instruction.componentIdx].stateId;
+                    this.core._components[instruction.componentIdx!]!.stateId;
             } else if (
                 instruction.updateType === "unsetComponentNeedingUpdateValue"
             ) {
@@ -344,15 +475,25 @@ export class UpdateExecutor {
     }
 
     /**
-     * Stash `instruction.sourceDetails` onto the per-component bag inside
-     * `sourceInformation`, creating the bag if it doesn't exist. Used to
-     * forward upstream-action provenance ("which input triggered this
-     * change?") through the update pipeline.
+     * Merge `instruction.sourceDetails` into the per-component bag inside
+     * `sourceInformation`. No-op when `sourceDetails` is absent or when the
+     * instruction has no `componentIdx` (e.g. `recordItemSubmission`
+     * entries from `Answer.js`/`Pretzel.js`, which would otherwise create
+     * a `sourceInformation["undefined"]` sentinel bucket). Used to forward
+     * upstream-action provenance ("which input triggered this change?")
+     * through the update pipeline.
      */
     _recordSourceDetails(
         instruction: any,
         sourceInformation: Record<string, any>,
     ) {
+        if (
+            instruction.componentIdx == undefined ||
+            !instruction.sourceDetails
+        ) {
+            return;
+        }
+
         let componentSourceInformation =
             sourceInformation[instruction.componentIdx];
         if (!componentSourceInformation) {
@@ -361,11 +502,6 @@ export class UpdateExecutor {
             ] = {};
         }
 
-        if (instruction.sourceDetails) {
-            Object.assign(
-                componentSourceInformation,
-                instruction.sourceDetails,
-            );
-        }
+        Object.assign(componentSourceInformation, instruction.sourceDetails);
     }
 }

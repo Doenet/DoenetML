@@ -1,4 +1,6 @@
 import type Core from "./Core";
+import type { ComponentInstance } from "./types/componentInstance";
+import type { ComponentIdx } from "@doenet/utils";
 import { postProcessCopy } from "./utils/copy";
 import { preprocessAttributesObject } from "./utils/attributes";
 import { convertUnresolvedAttributesForComponentType } from "./utils/dast/convertNormalizedDast";
@@ -6,6 +8,24 @@ import {
     createComponentIndicesFromSerializedChildren,
     createNewComponentIndices,
 } from "./utils/componentIndices";
+
+/**
+ * Loose-typed bag describing one entry in the `componentChanges` array
+ * threaded through the update pipeline. Each call site builds these
+ * inline; a stricter discriminated union waits for the broader inverse-
+ * definition typing pass.
+ */
+type ComponentChange = Record<string, any>;
+
+/**
+ * Keyed by component-index string; each entry is the component instance
+ * that was added or deleted during this update. Loose-typed because the
+ * bookkeeping survives across Core, the dependency engine, and the
+ * persistence layer with different field expectations.
+ */
+type ComponentMap = Record<string, any>;
+
+type SourceOfUpdate = Record<string, any>;
 
 /**
  * Recomputes a composite component's replacements after its inputs
@@ -29,16 +49,52 @@ export class CompositeReplacementUpdater {
         this.core = core;
     }
 
+    /**
+     * Public entry point: recompute a composite's replacements after its
+     * inputs change.
+     *
+     * Walks the diff between old and new replacement lists by:
+     *   1. Asking the composite's `calculateReplacementChanges` for an
+     *      ordered list of structural changes (added/deleted/withheld
+     *      replacement spans).
+     *   2. Deleting obsolete replacements via
+     *      `deleteReplacementsFromShadowsThenComposite`, which recurses
+     *      into shadowing composites first so the shadow tree shrinks
+     *      from leaves inward.
+     *   3. Creating new replacements via `componentBuilder` /
+     *      `compositeExpander`, calling `createShadowedReplacements` for
+     *      every shadow so the shadow tree grows in lockstep.
+     *   4. Threading every change through `componentChanges` so callers
+     *      can inspect what moved.
+     *
+     * Returns `{ success, deletedComponents, addedComponents,
+     * parentsOfDeleted }`. `parentsOfDeleted` carries every parent whose
+     * defining-children list was touched, so the caller knows what to
+     * re-render. The `do…while` retry loop inside reruns
+     * `calculateReplacementChanges` when `core._components.length` shifted
+     * during the call (a sign that another expansion happened mid-resolve
+     * and could collide with our assigned indices); it terminates as soon
+     * as the length is stable across one pass. There is currently no
+     * explicit upper bound — see the `TODO` at the loop's tail.
+     *
+     * Skips entirely when this composite is itself a shadow — its
+     * replacements will be (re)created when the shadowed composite is
+     * processed.
+     */
     async updateCompositeReplacements({
         component,
         componentChanges,
         sourceOfUpdate,
+    }: {
+        component: ComponentInstance;
+        componentChanges: ComponentChange[];
+        sourceOfUpdate: SourceOfUpdate;
     }) {
         // console.log("updateCompositeReplacements " + component.componentIdx);
 
         let deletedComponents: Record<string, any> = {};
         let addedComponents: Record<string, any> = {};
-        let parentsOfDeleted = new Set();
+        let parentsOfDeleted = new Set<ComponentIdx>();
 
         if (
             component.shadows &&
@@ -205,8 +261,9 @@ export class CompositeReplacementUpdater {
                 );
 
                 // determine which replacements are blank strings before deleting replacements
-                const blankStringReplacements = component.replacements.map(
-                    (repl) => typeof repl === "string" && repl.trim() === "",
+                const blankStringReplacements = component.replacements!.map(
+                    (repl: any) =>
+                        typeof repl === "string" && repl.trim() === "",
                 );
 
                 if (numberToDelete > 0 && change.changeTopLevelReplacements) {
@@ -385,7 +442,7 @@ export class CompositeReplacementUpdater {
                             await this.core.componentAndRenderedDescendants(
                                 parent,
                             );
-                        componentsAffected.forEach((cIdx) =>
+                        componentsAffected.forEach((cIdx: ComponentIdx) =>
                             this.core.updateInfo.componentsToUpdateRenderers.add(
                                 cIdx,
                             ),
@@ -419,7 +476,7 @@ export class CompositeReplacementUpdater {
                             await this.core.componentAndRenderedDescendants(
                                 parent,
                             );
-                        componentsAffected.forEach((cIdx) =>
+                        componentsAffected.forEach((cIdx: ComponentIdx) =>
                             this.core.updateInfo.componentsToUpdateRenderers.add(
                                 cIdx,
                             ),
@@ -504,7 +561,13 @@ export class CompositeReplacementUpdater {
         return results;
     }
 
-    async setErrorReplacements({ composite, message }) {
+    async setErrorReplacements({
+        composite,
+        message,
+    }: {
+        composite: ComponentInstance;
+        message: string;
+    }) {
         // display error for replacements and set composite to error state
 
         this.core.addDiagnostic({
@@ -549,6 +612,16 @@ export class CompositeReplacementUpdater {
         deletedComponents,
         addedComponents,
         processNewChildren = true,
+    }: {
+        change: ComponentChange;
+        composite: ComponentInstance;
+        componentsToDelete?: ComponentInstance[];
+        componentChanges: ComponentChange[];
+        sourceOfUpdate: SourceOfUpdate;
+        parentsOfDeleted: Set<ComponentIdx>;
+        deletedComponents: ComponentMap;
+        addedComponents: ComponentMap;
+        processNewChildren?: boolean;
     }) {
         if (!composite.isExpanded) {
             return;
@@ -596,7 +669,7 @@ export class CompositeReplacementUpdater {
             }
 
             // delete from replacements
-            let replacementsToDelete = composite.replacements.splice(
+            let replacementsToDelete = composite.replacements!.splice(
                 firstIndex,
                 numberToDelete,
             );
@@ -616,7 +689,7 @@ export class CompositeReplacementUpdater {
             if (processNewChildren) {
                 // since skipped, process children now but without expanding composites
                 await this.core.processNewDefiningChildren({
-                    parent: this.core._components[composite.parentIdx],
+                    parent: this.core._components[composite.parentIdx!],
                     expandComposites: false,
                 });
             }
@@ -641,15 +714,15 @@ export class CompositeReplacementUpdater {
             // branch deletes deeper components whose parents are already
             // covered by the `parentsOfDeleted` walk inside
             // `_recordDeleteResults`, so it doesn't need this fan-out.
-            let parent = this.core._components[composite.parentIdx];
+            let parent = this.core._components[composite.parentIdx!];
             let componentsAffected =
                 await this.core.componentAndRenderedDescendants(parent);
-            componentsAffected.forEach((cIdx) =>
+            componentsAffected.forEach((cIdx: ComponentIdx) =>
                 this.core.updateInfo.componentsToUpdateRenderers.add(cIdx),
             );
         } else {
             // if not change top level replacements
-            let numberToDelete = componentsToDelete.length;
+            let numberToDelete = componentsToDelete!.length;
             // TODO: check if components are appropriate dependency of composite
             let deleteResults = await this.core.deleteComponents({
                 components: componentsToDelete,
@@ -674,15 +747,15 @@ export class CompositeReplacementUpdater {
         }
     }
 
-    async processChildChangesAndRecurseToShadows(component) {
-        let parent = this.core._components[component.parentIdx];
+    async processChildChangesAndRecurseToShadows(component: ComponentInstance) {
+        let parent = this.core._components[component.parentIdx!];
         await this.core.processNewDefiningChildren({
             parent,
             expandComposites: false,
         });
         let componentsAffected =
             await this.core.componentAndRenderedDescendants(parent);
-        componentsAffected.forEach((cIdx) =>
+        componentsAffected.forEach((cIdx: ComponentIdx) =>
             this.core.updateInfo.componentsToUpdateRenderers.add(cIdx),
         );
 
@@ -706,6 +779,19 @@ export class CompositeReplacementUpdater {
         updateOldReplacementsStart,
         updateOldReplacementsEnd,
         blankStringReplacements,
+    }: {
+        replacementsToShadow: any[];
+        componentToShadow: ComponentInstance;
+        parentToShadow: ComponentInstance;
+        currentShadowedBy: Record<string, any[]>;
+        componentChanges: ComponentChange[];
+        sourceOfUpdate: SourceOfUpdate;
+        parentsOfDeleted: Set<ComponentIdx>;
+        deletedComponents: ComponentMap;
+        addedComponents: ComponentMap;
+        updateOldReplacementsStart: number;
+        updateOldReplacementsEnd: number;
+        blankStringReplacements: boolean[];
     }) {
         let newShadowedBy = calculateAllComponentsShadowing(componentToShadow);
 
@@ -962,6 +1048,11 @@ export class CompositeReplacementUpdater {
         change,
         componentChanges,
         adjustResolver = false,
+    }: {
+        component: ComponentInstance;
+        change: ComponentChange;
+        componentChanges: ComponentChange[];
+        adjustResolver?: boolean;
     }) {
         let replacementsToWithhold = change.replacementsToWithhold;
 
@@ -975,12 +1066,12 @@ export class CompositeReplacementUpdater {
         if (changeInReplacementsToWithhold < 0) {
             // Note: don't subtract one of this last ind, as slice doesn't include last ind
             let lastIndToStopWithholding =
-                component.replacements.length - replacementsToWithhold;
+                component.replacements!.length - replacementsToWithhold;
             let firstIndToStopWithholding =
-                component.replacements.length -
+                component.replacements!.length -
                 replacementsToWithhold +
                 changeInReplacementsToWithhold;
-            let newReplacements = component.replacements.slice(
+            let newReplacements = component.replacements!.slice(
                 firstIndToStopWithholding,
                 lastIndToStopWithholding,
             );
@@ -996,16 +1087,16 @@ export class CompositeReplacementUpdater {
             componentChanges.push(newChange);
         } else if (changeInReplacementsToWithhold > 0) {
             let firstIndToStartWithholding =
-                component.replacements.length - replacementsToWithhold;
+                component.replacements!.length - replacementsToWithhold;
             let lastIndToStartWithholding =
                 firstIndToStartWithholding + changeInReplacementsToWithhold;
-            let withheldReplacements = component.replacements.slice(
+            let withheldReplacements = component.replacements!.slice(
                 firstIndToStartWithholding,
                 lastIndToStartWithholding,
             );
             let withheldNamesByParent: Record<string, any[]> = {};
             for (let comp of withheldReplacements) {
-                let par = comp.parentIdx;
+                let par = comp.parentIdx!;
                 if (withheldNamesByParent[par] === undefined) {
                     withheldNamesByParent[par] = [];
                 }
@@ -1024,8 +1115,8 @@ export class CompositeReplacementUpdater {
         }
 
         if (adjustResolver) {
-            const blankStringReplacements = component.replacements.map(
-                (repl) => typeof repl === "string" && repl.trim() === "",
+            const blankStringReplacements = component.replacements!.map(
+                (repl: any) => typeof repl === "string" && repl.trim() === "",
             );
 
             const { indexResolution } =
@@ -1033,7 +1124,7 @@ export class CompositeReplacementUpdater {
                     component,
                     updateOldReplacementsStart: 0,
                     updateOldReplacementsEnd:
-                        component.replacements.length -
+                        component.replacements!.length -
                         (component.replacementsToWithhold ?? 0),
                     blankStringReplacements,
                 });
@@ -1051,13 +1142,13 @@ export class CompositeReplacementUpdater {
 
                 if (indexParentComposite) {
                     if (this.core.replaceIndexResolutionsInResolver) {
-                        const newContentForIndex = component.replacements
-                            .slice(
+                        const newContentForIndex = component
+                            .replacements!.slice(
                                 0,
-                                component.replacements.length -
+                                component.replacements!.length -
                                     change.replacementsToWithhold,
                             )
-                            .map((repl) => {
+                            .map((repl: any) => {
                                 if (typeof repl === "string") {
                                     return repl;
                                 } else {
@@ -1125,7 +1216,7 @@ export class CompositeReplacementUpdater {
         deleteResults: any;
         composite: any;
         numberDeleted: number;
-        parentsOfDeleted: Set<number>;
+        parentsOfDeleted: Set<ComponentIdx>;
         deletedComponents: Record<string, any>;
         componentChanges: any[];
         topLevel?: boolean;
@@ -1135,7 +1226,7 @@ export class CompositeReplacementUpdater {
             parentsOfDeleted.add(parent.componentIdx);
             const componentsAffected =
                 await this.core.componentAndRenderedDescendants(parent);
-            componentsAffected.forEach((cIdx: number) =>
+            componentsAffected.forEach((cIdx: ComponentIdx) =>
                 this.core.updateInfo.componentsToUpdateRenderers.add(cIdx),
             );
         }
@@ -1196,7 +1287,7 @@ function* iterateExpandableShadows(component: any) {
  */
 function findExpandableShadowByCompositeIdx(
     component: any,
-    compositeIdx: number,
+    compositeIdx: ComponentIdx,
 ): any | undefined {
     for (const shadow of iterateExpandableShadows(component)) {
         if (shadow.shadows.compositeIdx === compositeIdx) {
@@ -1206,8 +1297,8 @@ function findExpandableShadowByCompositeIdx(
     return undefined;
 }
 
-function calculateAllComponentsShadowing(component: any): number[] {
-    const allShadowing: number[] = [];
+function calculateAllComponentsShadowing(component: any): ComponentIdx[] {
+    const allShadowing: ComponentIdx[] = [];
     for (const shadow of iterateExpandableShadows(component)) {
         allShadowing.push(shadow.componentIdx);
         allShadowing.push(...calculateAllComponentsShadowing(shadow));

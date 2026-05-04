@@ -251,31 +251,40 @@ The Phase 4 extraction (`StateVariableEvaluator`, `StalenessPropagator`, `Essent
 - `_recordSourceDetails(instruction, sourceInformation)` extracted; both call sites (read-only branch and main loop) now invoke it.
 - Cumulative-merge pattern between the essential-values and newStateVariableValues branches relocated into `EssentialValueWriter._mergeIntoCumulative(stateId, varName, value)`. `UpdateExecutor` now hands off to `essentialValueWriter._mergeIntoCumulative(...)` from both branches; the `removeFunctionsMathExpressionClass` import that was only feeding those two sites is gone.
 
-### Phase 4: Type the destructure parameters and complete the strict-mode pass
+### Phase 4: Type the destructure parameters and complete the strict-mode pass — DONE
 
-The Phase 4 modules carry ~96 TypeScript warnings (down from ~188 after the inline cleanup pass on `Record<string, any>` bag locals, `Object.getOwnPropertyDescriptor(...)?.get` null-safety, `catch (e: any)`, and the three latent bugs TS caught — `&` typo, `Array.isArray()` no-arg, and `valuesChanged.arraySizeChanged` missing the `[varName]` index). The remaining warnings cluster:
+All five Phase 4 modules now report 0 errors under `tsc --noEmit`; package-level total dropped from 366 → 277. Public destructure parameters are typed using `ComponentInstance` (lifted to required `stateId` and `essentialState` since both are always present once `BaseComponent` / `ComponentBuilder` have run) and per-file local aliases for the loose-typed bags (`UpdateInstruction`, `PerformActionArgs`, `PerformUpdateArgs`, `NewStateVariableValues`, `ComponentChange`, `ComponentMap`, `SourceInformation`, `SourceOfUpdate`).
 
-- **TS7031 / TS7006 (~87 warnings)** — untyped destructured binding elements and untyped function parameters. Every public method on the five new managers (and most private ones) destructures `{ component, varName, ... }` without a parameter type. This is the same "established sibling-style pattern" that Phases 1-3 left in place; it's flagged as a follow-up rather than a regression. Adopting types for a single manager's surface (e.g., `StateVariableEvaluator`'s three public methods — `getStateVariableValue`, `getStateVariableDefinitionArguments`, `recordActualChangeInStateVariable`) is the highest-leverage starting point because callers are concentrated. The deferred `CoreBackref` interface (see top of this file) would also let `core: any` shed its `any`.
-- **TS7053 (~7 warnings)** — `sourceInformation[idx]` indexing in `UpdateExecutor` (lines 141, 143, 182, 184) and `arrayInstructionInProgress.desiredValue[arrayKey]` indexing in `EssentialValueWriter` (lines 765, 773, 804). Both root-cause to a destructure parameter that needs a type — once the wider pass above happens, these resolve as a side effect.
-- **TS2345 (4 warnings) — real signature drift across managers**:
-  - `CompositeReplacementUpdater.ts:213` — call to `deleteReplacementsFromShadowsThenComposite` is missing `componentsToDelete` from the destructure expectation.
-  - `EssentialValueWriter.ts:131` — `Argument of type 'any' is not assignable to parameter of type 'never'`; suggests an array typed as `never[]` getting pushed into.
-  - `StateVariableEvaluator.ts:91` — call to `getStateVariableDefinitionArguments` missing `excludeDependencyValues` from the destructure expectation.
-  - `UpdateExecutor.ts:39` — `performAction`'s recursive call to `performUpdate` passes only `{ updateInstructions, actionId, doNotSave }` while the destructure declares `diagnostics` and `event` as required. Either widen `performUpdate`'s destructure (mark them `?`) or pass them in the recursive call.
+Notable fixes folded in:
+- **Real shim bug in `Dependencies.d.ts`** — `checkForCircularDependency` was declared with `stateVariable: string`, but `Dependencies.js:566` accepts `varName`. The shim mismatch had been silently mis-rejecting the only TypeScript caller. Fixed.
+- **Empty `Set` initialisations** typed: `compositesNotReady` (`Set<number>`), `parentsOfDeleted` (`Set<ComponentIdx>`), `arrayVarNamesChanged` (`string[]`).
+- **TS2345 #1 (`UpdateExecutor.ts:39`)** — `PerformUpdateArgs` now declares `diagnostics`, `event`, and `actionId` optional (the recursive setTheme call only passes `updateInstructions`, `actionId`, `doNotSave`). The flag fields each got a JSDoc paragraph distinguishing `canSkipUpdatingRenderer` from `skipRendererUpdate`.
+- **TS2345 #2 (`EssentialValueWriter.ts:131`)** — fixed by typing the empty `Set` literal.
+- **TS2345 #3 (`StateVariableEvaluator.ts:91`)** — `getStateVariableDefinitionArguments` now marks `excludeDependencyValues` as `boolean | undefined` (defaulting to `false`) instead of declaring it required.
+- **TS2345 #4 (`CompositeReplacementUpdater.ts:213`)** — `deleteReplacementsFromShadowsThenComposite` now declares `componentsToDelete` as optional, matching the actual `if (componentsToDelete) { ... }` body.
 
-Each TS2345 hints at either a buggy call site or a destructure that should be marked optional. None have caused observable failures, so they're judgment calls — fix them when designing the real interfaces above.
+Where the strict cascade exposed nullable fields the codepath guarantees populated (e.g. `component.replacements` inside `adjustReplacementsToWithhold`, `component.shadows` inside `shadowedBy` walks, `component.parentIdx` inside `_components` lookups), non-null assertions (`!`) were used at the use site rather than tightening `ComponentInstance` further. The two newly-required fields were tightened deliberately because they are set unconditionally during construction.
 
-### Phase 4: JSDoc on public entry points
+### Phase 4: JSDoc on public entry points — DONE
 
-Each of the five new managers has a strong class-level docstring (`StateVariableEvaluator.ts:1-16` is the model — a one-paragraph contract describing role and back-reference fields). But the public methods themselves have no JSDoc, despite carrying rich option-bag semantics:
+JSDoc paragraphs added to every public entry point identified in the original list, plus the surrounding methods on the same classes for symmetry:
 
-- `UpdateExecutor.performUpdate` — has ~9 boolean flags (`overrideReadOnly`, `doNotSave`, `canSkipUpdatingRenderer`, `skipRendererUpdate`, …). The difference between `canSkipUpdatingRenderer` (skips both renderer paths) and `skipRendererUpdate` (skips only the late `updateAllChangedRenderers`) in particular is non-obvious and worth documenting.
-- `EssentialValueWriter.processNewStateVariableValues` and `requestComponentChanges` — the inverse-definition contract (what an instruction's `value` / `valueOfStateVariable` / `additionalDependencyValues` means and how the chain terminates) is the trickiest piece of the engine and lives only in code.
-- `StateVariableEvaluator.getStateVariableValue` — the most-called method on the class. A one-paragraph contract describing what it mutates on `component.state[*]` and when it triggers `markStateVariableAndUpstreamDependentsStale` would significantly help future maintainers.
-- `CompositeReplacementUpdater.updateCompositeReplacements` — the public entry point. The contract for `calculateReplacementChanges` (currently a free-floating comment block at the top of the function) should become a JSDoc on the helper or on the `do…while` retry loop.
-- `StalenessPropagator.processMarkStale` — the freshness-predicate contract (the meaning of `fresh`/`partiallyFresh` returns and how the array-entry remap bridges array-level and entry-level freshness) is alluded to in the class header but belongs on the method itself.
+- `UpdateExecutor.performUpdate` — full contract for the `updateInstructions` dispatch loop, the post-loop renderer/persistence side effects, and an inline distinction between the four boolean flags (notably `canSkipUpdatingRenderer` vs `skipRendererUpdate`).
+- `UpdateExecutor.performAction` — special-case branches (`setTheme` re-entry, post-deletion `recordVisibilityChange`) and the main action-dispatch path with optional case-insensitive matching.
+- `EssentialValueWriter.executeUpdateStateVariables` — public bulk-write entry point: write → flush composites → expand → flush again.
+- `EssentialValueWriter.processNewStateVariableValues` — bulk-apply contract, missing-component bookkeeping, and the role of the `newComponent` flag.
+- `EssentialValueWriter.requestComponentChanges` — inverse-definition chain contract: how `instruction` is recursively expanded, where `newStateVariableValues` and `workspace` accumulate, and how the chain terminates.
+- `StateVariableEvaluator.getStateVariableValue` — what gets mutated on `component.state[*]`, the `reprocessAfterEvaluate` kludge, and the relationship to `markStateVariableAndUpstreamDependentsStale`.
+- `StateVariableEvaluator.recordActualChangeInStateVariable` — the three side effects (mark-stale, force-recalculation, record-actual-change) and how they relate to the `additionalStateVariablesDefined` group.
+- `CompositeReplacementUpdater.updateCompositeReplacements` — the four-step pipeline (calculate / delete / create / thread) and the shadow short-circuit.
+- `StalenessPropagator.markStateVariableAndUpstreamDependentsStale` — the entry-point contract for the staleness pass.
+- `StalenessPropagator.lookUpCurrentFreshness` — the read-only freshness probe used to capture "previously effectively fresh" before the new mark-stale pass runs.
+- `StalenessPropagator.processMarkStale` — the `fresh` / `partiallyFresh` freshness verdict shape and the array-level/entry-level bridging via `_remapArrayEntryFreshness`.
+- `StalenessPropagator.markUpstreamDependentsStale` — one-step upstream walk, per-edge bookkeeping, and the `_processStaleVisit` re-entry that terminates at any cached-stale frontier.
 
-This is a documentation-only PR; can be done independently of the duplication or typing work above.
+### Phase 4: Loose `(repl: any)` callbacks in `CompositeReplacementUpdater` — deferred
+
+Several arrow-callback parameters in `CompositeReplacementUpdater` carry an explicit `(repl: any)` annotation (lines around the `component.replacements!.map(...)` calls and the `(x: unknown) => !x` filter in `EssentialValueWriter`). They survive only because `ComponentInstance.replacements` is loosely typed as `any[]` (with a `!` non-null assertion at each use site). Once `replacements` is tightened to `(ComponentInstance | string)[]` (and `dep.downstreamPrimitives` to a concrete shape), these annotations should drop. Tracking here so the cleanup happens together with the wider `ComponentInstance` typing pass.
 
 ### Phase 4: Pre-existing console-error-and-throw blocks — DONE
 
