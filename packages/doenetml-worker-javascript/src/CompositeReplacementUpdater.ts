@@ -70,9 +70,12 @@ export class CompositeReplacementUpdater {
      * Returns `{ success, deletedComponents, addedComponents,
      * parentsOfDeleted }`. `parentsOfDeleted` carries every parent whose
      * defining-children list was touched, so the caller knows what to
-     * re-render. The `do…while` retry loop inside is bounded by the
-     * `nPasses` counter elsewhere in the file (100 passes max) to break
-     * any pathological recursion.
+     * re-render. The `do…while` retry loop inside reruns
+     * `calculateReplacementChanges` when `core._components.length` shifted
+     * during the call (a sign that another expansion happened mid-resolve
+     * and could collide with our assigned indices); it terminates as soon
+     * as the length is stable across one pass. There is currently no
+     * explicit upper bound — see the `TODO` at the loop's tail.
      *
      * Skips entirely when this composite is itself a shadow — its
      * replacements will be (re)created when the shadowed composite is
