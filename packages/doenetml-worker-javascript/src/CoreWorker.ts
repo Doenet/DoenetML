@@ -14,6 +14,7 @@ import {
     RootNames,
 } from "@doenet/doenetml-worker";
 import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormalizedDast";
+import { reportTimerError, TimerLabels } from "./utils/timerErrors";
 
 // Type signatures for callbacks
 export type UpdateRenderersCallback = (arg: {
@@ -422,7 +423,12 @@ export class PublicDoenetMLCore {
     // when navigating to them or to items inside them
     navigatingToComponent(componentIdx: number, hash: string) {
         // This function no longer works
-        this.core?.handleNavigatingToComponent({ componentIdx, hash });
+        // Fire-and-forget: navigation is best-effort and the message handler
+        // is synchronous. Surface rejections so they don't slip past
+        // `unhandledRejection`.
+        this.core
+            ?.handleNavigatingToComponent({ componentIdx, hash })
+            .catch(reportTimerError(TimerLabels.navigateToComponent));
     }
 
     /**

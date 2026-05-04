@@ -158,6 +158,34 @@ Both patterns extracted:
 1. **"Finished expanding" cleanup** — pulled out of `expandCompositeComponent` and `expandShadowingComposite` into a private `_finishExpanding(componentIdx)` method.
 2. **Unexpanded-composite list cleanup** in `expandCompositeComponent` — collapsed the `unexpandedCompositesReady` / `unexpandedCompositesNotReady` indexOf+splice pair into `for (const list of [parent.unexpandedCompositesReady, parent.unexpandedCompositesNotReady])`, with a `continue` for the missing-list case.
 
+### Pre-existing exception-leak windows in `CompositeExpander` expansion paths
+
+Both `expandCompositeComponent` and `expandShadowingComposite` mutate
+expansion-tracking state at points that are not protected against a thrown
+exception in the awaited work that follows:
+
+1. **Parent's unexpanded-composite lists** (`expandCompositeComponent`,
+   around line 277). The composite is removed from
+   `parent.unexpandedCompositesReady` / `unexpandedCompositesNotReady`
+   *before* `createSerializedReplacements` and the rest of the async
+   expansion run. If a later `await` throws, the parent's lists no
+   longer reflect that the child still needs expansion, and dependency
+   code that consults those lists will misclassify the parent.
+2. **`compositesBeingExpanded` push/pop pairing**. Both functions push
+   `componentIdx` onto `core.updateInfo.compositesBeingExpanded` near the
+   top of the function and only pop (via `_finishExpanding`) at the end.
+   Any throw between leaks the entry permanently. `Dependencies.resolveItem()`
+   and the circular-shadow checks both consult this array, so a single
+   failed expansion can cause later updates to be misclassified as
+   circular or in-progress until the worker is recreated.
+
+Both windows pre-date the Phase 5f refactor (the splices were inline
+before extraction; the cleanup site has not moved). Fix is a `try`/`finally`
+wrapper around each function body so the cleanup runs on the throw path,
+or — for the parent-list mutation — defer the splice until after the
+work that can throw has completed. Surface for separate PR; verify
+against tests that intentionally trigger expansion failures.
+
 ### Drop dead `replacementsCreated` guard in `CompositeExpander.expandShadowingComposite`
 
 Around line 674 (the second `if (component.replacementsWorkspace.replacementsCreated === undefined) { ... = 0 }` inside the `!foundCircular` branch). `replacementsCreated` is already initialized to `0` ~200 lines earlier in the same function (around line 467) and is never re-set to undefined between the two checks. The second guard is dead.
