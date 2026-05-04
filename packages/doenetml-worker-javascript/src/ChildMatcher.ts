@@ -1,5 +1,9 @@
 import type Core from "./Core";
 import { assignDoenetMLRange } from "@doenet/utils";
+import {
+    expandCompositeOfDefiningChildren,
+    replaceCompositeChildren,
+} from "./CompositeExpander";
 
 /**
  * Resolves a parent's defining children into matched, adapted, ordered
@@ -66,12 +70,13 @@ export async function deriveChildResultsFromDefiningChildren({
         // apply child logic and substitute adapters to modify activeChildren
 
         // attempt to expand composites before modifying active children
-        let result = await core.expandCompositeOfDefiningChildren(
+        let result = await expandCompositeOfDefiningChildren({
+            core,
             parent,
-            parent.definingChildren,
+            children: parent.definingChildren,
             expandComposites,
             forceExpandComposites,
-        );
+        });
         parent.unexpandedCompositesReady = result.unexpandedCompositesReady;
         parent.unexpandedCompositesNotReady =
             result.unexpandedCompositesNotReady;
@@ -118,7 +123,7 @@ export async function deriveChildResultsFromDefiningChildren({
 
         // if any of activeChildren are expanded compositeComponents
         // replace with new components given by the composite component
-        await core.replaceCompositeChildren(parent);
+        await replaceCompositeChildren({ core, parent });
 
         const childGroupResults = await matchChildrenToChildGroups({
             core,

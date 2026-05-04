@@ -19,7 +19,6 @@ import { DependencyHandler } from "./Dependencies";
 import { ActionTriggerScheduler } from "./ActionTriggerScheduler";
 import { AutoSubmitManager } from "./AutoSubmitManager";
 import { ComponentBuilder } from "./ComponentBuilder";
-import { CompositeExpander } from "./CompositeExpander";
 import { CompositeReplacementUpdater } from "./CompositeReplacementUpdater";
 import { DiagnosticsManager } from "./DiagnosticsManager";
 import { EssentialValueWriter } from "./EssentialValueWriter";
@@ -109,10 +108,10 @@ export interface CoreInfo {
  * VisibilityTracker, StatePersistence, AutoSubmitManager,
  * RendererInstructionBuilder, ProcessQueue, ActionTriggerScheduler,
  * StateVariableDefinitionFactory, StateVariableInitializer, ComponentBuilder,
- * CompositeExpander, StateVariableEvaluator, StalenessPropagator,
- * EssentialValueWriter, CompositeReplacementUpdater, UpdateExecutor, and the
- * `nameResolver` namespace); others (NavigationHandler, ResolverAdapter,
- * ComponentLifecycle, ChildMatcher, DeletionEngine) are plain module-level
+ * StateVariableEvaluator, StalenessPropagator, EssentialValueWriter,
+ * CompositeReplacementUpdater, UpdateExecutor, and the `nameResolver`
+ * namespace); others (NavigationHandler, ResolverAdapter, ComponentLifecycle,
+ * ChildMatcher, DeletionEngine, CompositeExpander) are plain module-level
  * functions imported directly by callers. Each delegating block still held on
  * Core is grouped near its original location and tagged with a
  * `// → managerName` marker; see the corresponding module for details.
@@ -204,7 +203,6 @@ export default class Core {
     stalenessPropagator: StalenessPropagator;
     essentialValueWriter: EssentialValueWriter;
     componentBuilder: ComponentBuilder;
-    compositeExpander: CompositeExpander;
     compositeReplacementUpdater: CompositeReplacementUpdater;
     updateExecutor: UpdateExecutor;
     statePersistence: StatePersistence;
@@ -375,7 +373,6 @@ export default class Core {
         this.stalenessPropagator = new StalenessPropagator({ core: this });
         this.essentialValueWriter = new EssentialValueWriter({ core: this });
         this.componentBuilder = new ComponentBuilder({ core: this });
-        this.compositeExpander = new CompositeExpander({ core: this });
         this.compositeReplacementUpdater = new CompositeReplacementUpdater({
             core: this,
         });
@@ -744,78 +741,6 @@ export default class Core {
 
     async checkForActionChaining(args: any): Promise<any> {
         return this.actionTriggerScheduler.checkForActionChaining(args);
-    }
-
-    // → compositeExpander
-    async expandAllComposites(
-        component: any,
-        force: boolean = false,
-    ): Promise<any> {
-        return this.compositeExpander.expandAllComposites(component, force);
-    }
-
-    async expandCompositesOfDescendants(
-        component: any,
-        force: boolean = false,
-    ): Promise<any> {
-        return this.compositeExpander.expandCompositesOfDescendants(
-            component,
-            force,
-        );
-    }
-
-    async componentAndRenderedDescendants(
-        component: ComponentInstance,
-    ): Promise<any> {
-        return this.compositeExpander.componentAndRenderedDescendants(
-            component,
-        );
-    }
-
-    async expandCompositeOfDefiningChildren(
-        parent: any,
-        children: any,
-        expandComposites: any,
-        forceExpandComposites: any,
-    ): Promise<any> {
-        return this.compositeExpander.expandCompositeOfDefiningChildren(
-            parent,
-            children,
-            expandComposites,
-            forceExpandComposites,
-        );
-    }
-
-    async expandCompositeComponent(component: ComponentInstance): Promise<any> {
-        return this.compositeExpander.expandCompositeComponent(component);
-    }
-
-    adjustForCreateComponentIdxName(
-        serializedReplacements: any,
-        composite: any,
-    ): any {
-        return this.compositeExpander.adjustForCreateComponentIdxName(
-            serializedReplacements,
-            composite,
-        );
-    }
-
-    async createAndSetReplacements(args: any): Promise<any> {
-        return this.compositeExpander.createAndSetReplacements(args);
-    }
-
-    async replaceCompositeChildren(parent: any): Promise<any> {
-        return this.compositeExpander.replaceCompositeChildren(parent);
-    }
-
-    async changeInactiveComponentAndDescendants(
-        component: any,
-        inactive: any,
-    ): Promise<any> {
-        return this.compositeExpander.changeInactiveComponentAndDescendants(
-            component,
-            inactive,
-        );
     }
 
     async createStateVariableDefinitions(args: any): Promise<any> {
