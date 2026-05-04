@@ -1,3 +1,4 @@
+import type Core from "./Core";
 import { preprocessAttributesObject } from "./utils/attributes";
 
 /**
@@ -20,9 +21,9 @@ import { preprocessAttributesObject } from "./utils/attributes";
  * on Core.)
  */
 export class StateVariableDefinitionFactory {
-    core: any;
+    core: Core;
 
-    constructor({ core }: { core: any }) {
+    constructor({ core }: { core: Core }) {
         this.core = core;
     }
 

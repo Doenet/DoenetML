@@ -1,3 +1,5 @@
+import type Core from "./Core";
+
 /**
  * Handles navigation actions: revealing closed sections in the ancestor chain
  * before navigating to a target component, and posting `navigateToTarget`
@@ -7,9 +9,9 @@
  * dispatch `performAction`, and read `coreId`.
  */
 export class NavigationHandler {
-    core: any;
+    core: Core;
 
-    constructor({ core }: { core: any }) {
+    constructor({ core }: { core: Core }) {
         this.core = core;
     }
 

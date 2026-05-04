@@ -1,6 +1,7 @@
+import type Core from "./Core";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { createNewComponentIndices } from "./utils/componentIndices";
-import { reportTimerError } from "./utils/timerErrors";
+import { reportTimerError, TimerLabels } from "./utils/timerErrors";
 
 /**
  * The orchestrators dequeued by `ProcessQueue`:
@@ -18,9 +19,9 @@ import { reportTimerError } from "./utils/timerErrors";
  * hot state and the other extracted managers.
  */
 export class UpdateExecutor {
-    core: any;
+    core: Core;
 
-    constructor({ core }: { core: any }) {
+    constructor({ core }: { core: Core }) {
         this.core = core;
     }
 
@@ -410,7 +411,7 @@ export class UpdateExecutor {
             // block the caller.
             this.core
                 .saveState(true, true)
-                .catch(reportTimerError("submission saveState"));
+                .catch(reportTimerError(TimerLabels.submissionSaveState));
         } else if (!doNotSave) {
             //Debounce the save to localstorage and then to DB with a throttle
             this.core.statePersistence.scheduleSave(1000);

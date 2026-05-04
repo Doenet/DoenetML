@@ -1,3 +1,4 @@
+import type Core from "./Core";
 import { deepClone } from "@doenet/utils";
 import {
     addAttributesToSingleReplacement,
@@ -28,9 +29,9 @@ import {
  * `updateInfo`, `rootNames`, and to invoke the other extracted managers.
  */
 export class CompositeExpander {
-    core: any;
+    core: Core;
 
-    constructor({ core }: { core: any }) {
+    constructor({ core }: { core: Core }) {
         this.core = core;
     }
 
@@ -667,12 +668,13 @@ export class CompositeExpander {
         // }
 
         if (!foundCircular) {
-            if (
-                component.replacementsWorkspace.replacementsCreated ===
-                undefined
-            ) {
-                component.replacementsWorkspace.replacementsCreated = 0;
-            }
+            // `replacementsCreated` is already initialized to 0 ~200 lines
+            // earlier in this same function (`if (component.replacementsWorkspace
+            // .replacementsCreated === undefined) { ... = 0 }`) and is never
+            // re-set to undefined between the two sites, so the duplicate
+            // guard that used to live here is dead. Removed per
+            // CORE_REFACTOR_DEFERRED.md §"Drop dead `replacementsCreated`
+            // guard".
 
             let verificationResult = await verifyReplacementsMatchSpecifiedType(
                 {
@@ -692,17 +694,8 @@ export class CompositeExpander {
                 },
             );
 
-            for (const error of verificationResult.diagnostics) {
-                this.core.addDiagnostic({
-                    ...error,
-                    type: "error",
-                });
-            }
-            for (const warning of verificationResult.diagnostics) {
-                this.core.addDiagnostic({
-                    ...warning,
-                    type: "warning",
-                });
+            for (const diagnostic of verificationResult.diagnostics) {
+                this.core.addDiagnostic(diagnostic);
             }
 
             newNComponents = verificationResult.nComponents;

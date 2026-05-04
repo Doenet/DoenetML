@@ -1,13 +1,15 @@
-import { reportTimerError } from "./utils/timerErrors";
+import type Core from "./Core";
+import type { TimerHandle } from "@doenet/utils";
+import { reportTimerError, TimerLabels } from "./utils/timerErrors";
 
 type VisibilityInfo = {
     componentsCurrentlyVisible: Record<string, Date>;
     infoToSend: Record<string, number>;
     timeLastSent: Date;
     saveDelay: number;
-    saveTimerId: ReturnType<typeof setTimeout> | null;
+    saveTimerId: TimerHandle;
     suspendDelay: number;
-    suspendTimerId: ReturnType<typeof setTimeout> | null;
+    suspendTimerId: TimerHandle;
     suspended: boolean;
     documentHasBeenVisible: boolean;
 };
@@ -22,10 +24,10 @@ type VisibilityInfo = {
  * first time the document becomes visible.
  */
 export class VisibilityTracker {
-    core: any;
+    core: Core;
     info: VisibilityInfo;
 
-    constructor({ core }: { core: any }) {
+    constructor({ core }: { core: Core }) {
         this.core = core;
         this.info = {
             componentsCurrentlyVisible: {},
@@ -143,7 +145,7 @@ export class VisibilityTracker {
             }
             this.info.saveTimerId = setTimeout(() => {
                 this.sendVisibilityChangedEvents()?.catch(
-                    reportTimerError("visibility periodic send"),
+                    reportTimerError(TimerLabels.visibilityPeriodicSend),
                 );
             }, this.info.saveDelay);
         }
@@ -174,7 +176,7 @@ export class VisibilityTracker {
             }
             this.info.saveTimerId = setTimeout(() => {
                 this.sendVisibilityChangedEvents()?.catch(
-                    reportTimerError("visibility resume send"),
+                    reportTimerError(TimerLabels.visibilityResumeSend),
                 );
             }, this.info.saveDelay);
         }
@@ -184,7 +186,7 @@ export class VisibilityTracker {
         }
         this.info.suspendTimerId = setTimeout(() => {
             this.suspendVisibilityMeasuring().catch(
-                reportTimerError("visibility auto-suspend"),
+                reportTimerError(TimerLabels.visibilityAutoSuspend),
             );
         }, this.info.suspendDelay);
     }

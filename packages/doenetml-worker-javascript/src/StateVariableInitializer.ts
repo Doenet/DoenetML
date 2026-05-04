@@ -1,3 +1,4 @@
+import type Core from "./Core";
 import { deepClone, flattenDeep } from "@doenet/utils";
 import {
     returnDefaultArrayVarNameFromPropIndex,
@@ -25,9 +26,9 @@ import {
  * `addDiagnostic`, and `createFromArrayEntry`.
  */
 export class StateVariableInitializer {
-    core: any;
+    core: Core;
 
-    constructor({ core }: { core: any }) {
+    constructor({ core }: { core: Core }) {
         this.core = core;
     }
 
@@ -450,7 +451,12 @@ export class StateVariableInitializer {
             }) {
                 let index = stateVarObj.keyToIndex(arrayKey);
                 let numDimensionsInArrayKey = index.length;
-                if (!numDimensionsInArrayKey > stateVarObj.numDimensions) {
+                // Pre-existing typo fixed per CORE_REFACTOR_DEFERRED.md
+                // §"Pre-existing unreachable diagnostic": the original
+                // `!numDimensionsInArrayKey > stateVarObj.numDimensions`
+                // evaluates to `false > number === false` for any positive
+                // integer, so the diagnostic was unreachable.
+                if (numDimensionsInArrayKey > stateVarObj.numDimensions) {
                     core.addDiagnostic({
                         type: "info",
                         message:

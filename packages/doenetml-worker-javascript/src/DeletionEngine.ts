@@ -1,3 +1,4 @@
+import type Core from "./Core";
 /**
  * Deletes components from the live tree. The bulk of the work is the
  * two-phase walk:
@@ -18,9 +19,9 @@
  * `deleteFromComponentsToRender`.
  */
 export class DeletionEngine {
-    core: any;
+    core: Core;
 
-    constructor({ core }: { core: any }) {
+    constructor({ core }: { core: Core }) {
         this.core = core;
     }
 

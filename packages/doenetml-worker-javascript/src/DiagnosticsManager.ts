@@ -13,24 +13,16 @@ type NonErrorDiagnosticRecord =
 /**
  * Owns the diagnostics queue (errors, warnings, info, accessibility) for a Core
  * instance. Core delegates to this manager for adding and reading diagnostics.
- *
- * Holds a back-reference to Core so `getSourceLocationForComponent` can walk
- * the parent chain via `core._components`.
  */
 export class DiagnosticsManager {
-    core: any;
     diagnostics: DiagnosticRecord[];
     hasPendingDiagnostics: boolean;
 
     constructor({
-        core,
         preliminaryDiagnostics,
     }: {
-        core: any;
         preliminaryDiagnostics: DiagnosticRecord[];
     }) {
-        this.core = core;
-
         // Preliminary diagnostics seed the queue at construction. We skip the
         // dedup pass here — it would be O(n²) and these come from a single
         // upstream pass that has already produced unique entries. Errors are
@@ -148,29 +140,5 @@ export class DiagnosticsManager {
 
         this.hasPendingDiagnostics = true;
         return true;
-    }
-
-    /**
-     * Find the nearest available source position/sourceDoc for a component,
-     * walking up ancestors when the component itself has no position.
-     */
-    getSourceLocationForComponent(component: any): {
-        position: any;
-        sourceDoc: number | undefined;
-    } {
-        let position = component.position;
-        let sourceDoc = component.sourceDoc;
-        let comp = component;
-
-        while (position === undefined) {
-            if (!(comp.parentIdx > 0)) {
-                break;
-            }
-            comp = this.core._components[comp.parentIdx];
-            position = comp.position;
-            sourceDoc = comp.sourceDoc;
-        }
-
-        return { position, sourceDoc };
     }
 }

@@ -1,9 +1,11 @@
 import {
     serializedComponentsReplacer,
     data_format_version,
+    type TimerHandle,
 } from "@doenet/utils";
 import { set as idb_set } from "idb-keyval";
-import { reportTimerError } from "./utils/timerErrors";
+import { reportTimerError, TimerLabels } from "./utils/timerErrors";
+import type Core from "./Core";
 
 /**
  * Owns the save-to-localStorage and save-to-database pipeline for a Core
@@ -19,13 +21,13 @@ import { reportTimerError } from "./utils/timerErrors";
  * (see `processNewStateVariableValues` in Core).
  */
 export class StatePersistence {
-    core: any;
-    saveStateToDBTimerId: ReturnType<typeof setTimeout> | null;
-    saveDocStateTimeoutID: ReturnType<typeof setTimeout> | null;
+    core: Core;
+    saveStateToDBTimerId: TimerHandle;
+    saveDocStateTimeoutID: TimerHandle;
     docStateToBeSavedToDatabase: any;
     changesToBeSaved: boolean;
 
-    constructor({ core }: { core: any }) {
+    constructor({ core }: { core: Core }) {
         this.core = core;
         this.saveStateToDBTimerId = null;
         this.saveDocStateTimeoutID = null;
@@ -60,7 +62,9 @@ export class StatePersistence {
             clearTimeout(this.saveDocStateTimeoutID);
         }
         this.saveDocStateTimeoutID = setTimeout(() => {
-            this.saveState().catch(reportTimerError("scheduled saveState"));
+            this.saveState().catch(
+                reportTimerError(TimerLabels.scheduledSaveState),
+            );
         }, delayMs);
     }
 
@@ -160,7 +164,7 @@ export class StatePersistence {
         this.saveStateToDBTimerId = setTimeout(() => {
             this.saveStateToDBTimerId = null;
             this.saveChangesToDatabase().catch(
-                reportTimerError("throttled saveChangesToDatabase"),
+                reportTimerError(TimerLabels.throttledSaveChanges),
             );
         }, 60000);
 

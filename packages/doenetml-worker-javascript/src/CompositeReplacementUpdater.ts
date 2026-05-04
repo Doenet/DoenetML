@@ -1,3 +1,4 @@
+import type Core from "./Core";
 import { postProcessCopy } from "./utils/copy";
 import { preprocessAttributesObject } from "./utils/attributes";
 import { convertUnresolvedAttributesForComponentType } from "./utils/dast/convertNormalizedDast";
@@ -22,9 +23,9 @@ import {
  * `resolverAdapter`, `componentLifecycle`).
  */
 export class CompositeReplacementUpdater {
-    core: any;
+    core: Core;
 
-    constructor({ core }: { core: any }) {
+    constructor({ core }: { core: Core }) {
         this.core = core;
     }
 
@@ -1148,7 +1149,8 @@ export class CompositeReplacementUpdater {
                             indexResolution,
                         );
 
-                        this.core.rootNames = this.core.calculateRootNames?.();
+                        this.core.rootNames =
+                            this.core.calculateRootNames?.().names;
 
                         await this.core.dependencies.addBlockersFromChangedReplacements(
                             indexParentComposite,

@@ -1,31 +1,20 @@
 import ParameterStack from "./ParameterStack";
+// `Numerics.js` is still JavaScript; cast at the import site once.
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 import Numerics from "./Numerics";
 import seedrandom from "seedrandom";
-import me from "math-expressions";
 import {
     serializedComponentsReplacer,
     serializedComponentsReviver,
     deepClone,
-    assignDoenetMLRange,
     findAllNewlines,
-    flattenDeep,
+    type ComponentIdx,
 } from "@doenet/utils";
-import { convertToErrorComponent } from "./utils/dast/errors";
-import { gatherVariantComponents, getNumVariants } from "./utils/variants";
-import {
-    removeFunctionsMathExpressionClass,
-    preprocessMathInverseDefinition,
-} from "./utils/math";
-import {
-    addAttributesToSingleReplacement,
-    postProcessCopy,
-    verifyReplacementsMatchSpecifiedType,
-} from "./utils/copy";
-import { preprocessAttributesObject } from "./utils/attributes";
-import {
-    convertUnresolvedAttributesForComponentType,
-    unwrapSource,
-} from "./utils/dast/convertNormalizedDast";
+import { getNumVariants } from "./utils/variants";
+import { removeFunctionsMathExpressionClass } from "./utils/math";
+import { reportTimerError, TimerLabels } from "./utils/timerErrors";
+import { getSourceLocationForComponent } from "./utils/sourceLocation";
+import type { ComponentInstance } from "./types/componentInstance";
 import { DependencyHandler } from "./Dependencies";
 import { ActionTriggerScheduler } from "./ActionTriggerScheduler";
 import { AutoSubmitManager } from "./AutoSubmitManager";
@@ -49,34 +38,194 @@ import { StateVariableInitializer } from "./StateVariableInitializer";
 import { UpdateExecutor } from "./UpdateExecutor";
 import { VisibilityTracker } from "./VisibilityTracker";
 import * as nameResolver from "./StateVariableNameResolver";
-import {
-    returnDefaultArrayVarNameFromPropIndex,
-    returnDefaultGetArrayKeysFromVarName,
-} from "./utils/stateVariables";
-import {
-    createComponentIndicesFromSerializedChildren,
-    createNewComponentIndices,
-    extractCreateComponentIdxMapping,
-} from "./utils/componentIndices";
 import { numberAnswers } from "./utils/answer";
-// string to componentClass: this.componentInfoObjects.allComponentClasses["string"]
-// componentClass to string: componentClass.componentType
 
-// Nearly all of Core's prior responsibilities have been extracted into their
-// own modules (DiagnosticsManager, VisibilityTracker, StatePersistence,
-// AutoSubmitManager, NavigationHandler, ResolverAdapter,
-// RendererInstructionBuilder, ProcessQueue, ComponentLifecycle, ChildMatcher,
-// DeletionEngine, ActionTriggerScheduler, StateVariableDefinitionFactory,
-// StateVariableInitializer, ComponentBuilder, CompositeExpander,
-// StateVariableEvaluator, StalenessPropagator, EssentialValueWriter,
-// CompositeReplacementUpdater, UpdateExecutor, and the `nameResolver`
-// namespace). Core retains thin wrapper methods so the public surface — used
-// by CoreWorker, `coreFunctions`-bound references, components, and tests —
-// keeps working. Each delegating block is grouped near its original location
-// and tagged with a `// → managerName` marker; see the corresponding module
-// for details.
+/**
+ * Constructor arguments passed in from `CoreWorker`. The resolver callbacks
+ * are optional because `CoreWorker` types them as optional fields and spreads
+ * them into the constructor bag — they may be `undefined` until
+ * `initializeWorker` has run. Extra fields (e.g. `userId`) are forwarded
+ * untouched by the spread and accepted via the index signature.
+ */
+export interface CoreOptions {
+    doenetML: string;
+    serializedDocument: any;
+    nComponentsInit: number;
+    componentInfoObjects: any;
+    flags: Record<string, any>;
+    allDoenetMLs: string[];
+    preliminaryDiagnostics?: any;
+    activityId: string;
+    cid: string | null;
+    docId: string;
+    attemptNumber?: number;
+    requestedVariant?: Record<string, any>;
+    requestedVariantIndex?: number;
+    initializeCounters?: Record<string, number>;
+    theme?: "dark" | "light";
+    prerender?: boolean;
+    stateVariableChanges?: string;
+    coreId: string;
+    addNodesToResolver?: (...args: any[]) => any;
+    replaceIndexResolutionsInResolver?: (...args: any[]) => any;
+    deleteNodesFromResolver?: (...args: any[]) => any;
+    resolvePath?: (...args: any[]) => any;
+    calculateRootNames?: () => { names: Record<ComponentIdx, any> };
+    updateRenderersCallback: (...args: any[]) => any;
+    reportScoreAndStateCallback: (...args: any[]) => any;
+    requestAnimationFrame: (...args: any[]) => any;
+    cancelAnimationFrame: (...args: any[]) => any;
+    copyToClipboard: (...args: any[]) => any;
+    sendEvent: (payload: any) => any;
+    requestSolutionView: (componentIdx: ComponentIdx) => Promise<any>;
+    [k: string]: any;
+}
 
+export interface UpdateInfo {
+    componentsToUpdateRenderers: Set<ComponentIdx>;
+    compositesToExpand: Set<ComponentIdx>;
+    compositesToUpdateReplacements: Set<ComponentIdx>;
+    inactiveCompositesToUpdateReplacements: Set<ComponentIdx>;
+    componentsToUpdateActionChaining: Record<string, any>;
+    unresolvedDependencies: Record<string, any>;
+    unresolvedByDependent: Record<string, any>;
+    deletedStateVariables: Record<string, any>;
+    deletedComponents: Record<ComponentIdx, any>;
+    compositesBeingExpanded: ComponentIdx[];
+    stateVariableUpdatesForMissingComponents: Record<string, any>;
+    stateVariablesToEvaluate: any[];
+}
+
+export interface CoreInfo {
+    generatedVariantString: string;
+    allPossibleVariants: any;
+    rendererTypesInDocument: any;
+    documentToRender: any;
+}
+
+/**
+ * Component lookup conventions:
+ * - String → componentClass: `this.componentInfoObjects.allComponentClasses["string"]`.
+ * - componentClass → string: `componentClass.componentType`.
+ *
+ * Nearly all of Core's prior responsibilities have been extracted into their
+ * own modules (DiagnosticsManager, VisibilityTracker, StatePersistence,
+ * AutoSubmitManager, NavigationHandler, ResolverAdapter,
+ * RendererInstructionBuilder, ProcessQueue, ComponentLifecycle, ChildMatcher,
+ * DeletionEngine, ActionTriggerScheduler, StateVariableDefinitionFactory,
+ * StateVariableInitializer, ComponentBuilder, CompositeExpander,
+ * StateVariableEvaluator, StalenessPropagator, EssentialValueWriter,
+ * CompositeReplacementUpdater, UpdateExecutor, and the `nameResolver`
+ * namespace). Core retains thin wrapper methods so the public surface — used
+ * by CoreWorker, `coreFunctions`-bound references, components, and tests —
+ * keeps working. Each delegating block is grouped near its original location
+ * and tagged with a `// → managerName` marker; see the corresponding module
+ * for details.
+ */
 export default class Core {
+    // ─── Identity / configuration ─────────────────────────────────────────
+    coreId: string;
+    activityId: string;
+    docId: string;
+    attemptNumber: number;
+    doenetML: string;
+    allDoenetMLs: string[];
+    serializedDocument: any;
+    nComponentsInit: number;
+    cid: string | null;
+    flags: Record<string, any>;
+    theme?: "dark" | "light";
+    initializeCounters: Record<string, number>;
+
+    // ─── Resolver callbacks (from CoreWorker) ─────────────────────────────
+    addNodesToResolver?: (...args: any[]) => any;
+    replaceIndexResolutionsInResolver?: (...args: any[]) => any;
+    deleteNodesFromResolver?: (...args: any[]) => any;
+    resolvePath?: (...args: any[]) => any;
+    calculateRootNames?: () => { names: Record<ComponentIdx, any> };
+    rootNames: Record<ComponentIdx, any> | undefined;
+
+    // ─── Host callbacks ───────────────────────────────────────────────────
+    updateRenderersCallback: (...args: any[]) => any;
+    reportScoreAndStateCallback: (...args: any[]) => any;
+    requestAnimationFrame: (...args: any[]) => any;
+    cancelAnimationFrame: (...args: any[]) => any;
+    copyToClipboard: (...args: any[]) => any;
+    sendEvent: (payload: any) => any;
+    requestSolutionViewCallback: (componentIdx: ComponentIdx) => Promise<any>;
+
+    // ─── Bound entry points ───────────────────────────────────────────────
+    coreFunctions: Record<string, (...args: any[]) => any>;
+
+    // ─── Variant / state ──────────────────────────────────────────────────
+    requestedVariantIndex?: number;
+    requestedVariant?: Record<string, any>;
+    receivedStateVariableChanges: boolean;
+    cumulativeStateVariableChanges: any;
+    canonicalGeneratedVariantString?: string;
+    canonicalDocVariantStrings?: string[];
+    coreInfo?: CoreInfo;
+    coreInfoString?: string;
+    doenetMLNewlines?: any;
+
+    // ─── Component graph ──────────────────────────────────────────────────
+    componentInfoObjects: any;
+    /** Sparse array of components keyed by `componentIdx`. May contain
+     * undefined slots from sparse-array bookkeeping (`_components[i] =
+     * undefined` is used to extend the array; reads on those slots return
+     * undefined). Typed as `any[]` because the strict
+     * `(ComponentInstance | undefined)[]` shape would force null-checking
+     * at hundreds of read sites — that wider tightening waits until the
+     * component-class refactor lands. */
+    _components!: any[];
+    document!: ComponentInstance;
+    documentIdx!: ComponentIdx;
+    componentIdxByStateId!: Record<string, ComponentIdx>;
+    createComponentIdxMapping: Record<number, number>;
+    errorComponentsToAdd!: any[];
+    essentialValuesSavedInDefinition!: Record<string, any>;
+    rendererVariablesByComponentType!: Record<string, any>;
+    unmatchedChildren!: Record<number, any>;
+    updateInfo: UpdateInfo;
+    /** Set by `ComponentBuilder` once the document renderer tree exists. */
+    documentRendererInstructions?: any;
+    /** Counter mutated by `ComponentBuilder.addComponents`. */
+    nTimesAddedComponents?: number;
+    /** Set by `ComponentBuilder.addComponents`; read by state-variable
+     * evaluation to gate definition arguments during initial document
+     * construction. */
+    initialAddPhase?: boolean;
+
+    // ─── Manager instances ────────────────────────────────────────────────
+    diagnosticsManager: DiagnosticsManager;
+    visibilityTracker: VisibilityTracker;
+    autoSubmitManager: AutoSubmitManager;
+    navigationHandler: NavigationHandler;
+    resolverAdapter: ResolverAdapter;
+    rendererInstructionBuilder: RendererInstructionBuilder;
+    processQueueManager: ProcessQueue;
+    componentLifecycle: ComponentLifecycle;
+    childMatcher: ChildMatcher;
+    deletionEngine: DeletionEngine;
+    actionTriggerScheduler: ActionTriggerScheduler;
+    stateVariableDefinitionFactory: StateVariableDefinitionFactory;
+    stateVariableInitializer: StateVariableInitializer;
+    stateVariableEvaluator: StateVariableEvaluator;
+    stalenessPropagator: StalenessPropagator;
+    essentialValueWriter: EssentialValueWriter;
+    componentBuilder: ComponentBuilder;
+    compositeExpander: CompositeExpander;
+    compositeReplacementUpdater: CompositeReplacementUpdater;
+    updateExecutor: UpdateExecutor;
+    statePersistence: StatePersistence;
+
+    // ─── Utility services (still untyped JS) ──────────────────────────────
+    numerics: any;
+    parameterStack: ParameterStack;
+
+    // ─── Dependencies (typed via Dependencies.d.ts shim) ──────────────────
+    dependencies!: DependencyHandler;
+
     constructor({
         doenetML,
         serializedDocument,
@@ -108,11 +257,7 @@ export default class Core {
         copyToClipboard,
         sendEvent,
         requestSolutionView,
-    }) {
-        // console.time('core');
-
-        // console.log("serialized document", serializedDocument);
-
+    }: CoreOptions) {
         this.coreId = coreId;
         this.activityId = activityId;
         this.docId = docId;
@@ -143,16 +288,13 @@ export default class Core {
         this.cid = cid;
 
         this.diagnosticsManager = new DiagnosticsManager({
-            core: this,
             preliminaryDiagnostics,
         });
 
-        this.numerics = new Numerics();
-        // this.flags = new Proxy(flags, readOnlyProxyHandler); //components shouldn't modify flags
+        this.numerics = new (Numerics as any)();
         this.flags = flags;
         this.theme = theme;
 
-        this.getDast = this.generateDast.bind(this);
         this.getStateVariableValue = this.getStateVariableValue.bind(this);
 
         this.componentInfoObjects = componentInfoObjects;
@@ -185,19 +327,23 @@ export default class Core {
         };
 
         this.updateInfo = {
-            componentsToUpdateRenderers: new Set([]),
-            compositesToExpand: new Set([]),
-            compositesToUpdateReplacements: new Set([]),
-            inactiveCompositesToUpdateReplacements: new Set([]),
+            componentsToUpdateRenderers: new Set<ComponentIdx>(),
+            compositesToExpand: new Set<ComponentIdx>(),
+            compositesToUpdateReplacements: new Set<ComponentIdx>(),
+            inactiveCompositesToUpdateReplacements: new Set<ComponentIdx>(),
             componentsToUpdateActionChaining: {},
 
             unresolvedDependencies: {},
             unresolvedByDependent: {},
             deletedStateVariables: {},
             deletedComponents: {},
-            // parentsToUpdateDescendants: new Set(),
             compositesBeingExpanded: [],
-            // stateVariableUpdatesForMissingComponents: deepClone(stateVariableChanges),
+            // `stateVariableUpdatesForMissingComponents` is the set of
+            // updates whose target component does not yet exist (e.g. it
+            // hasn't been created by a composite). The original
+            // `JSON.stringify`/`JSON.parse` round-trip with the
+            // replacer/reviver pair is preserved verbatim — `deepClone`
+            // would not invoke the replacer.
             stateVariableUpdatesForMissingComponents: JSON.parse(
                 JSON.stringify(
                     stateVariableChanges,
@@ -248,9 +394,11 @@ export default class Core {
             core: this,
         });
         this.updateExecutor = new UpdateExecutor({ core: this });
+        // `StatePersistence` is grouped with the other lifecycle managers
+        // here (deferred §"`statePersistence` instantiation position");
+        // its `terminate()` awaits `saveImmediately()`, so it must be
+        // present before the first `terminate()` call.
         this.statePersistence = new StatePersistence({ core: this });
-
-        // console.time('serialize doenetML');
 
         this.parameterStack = new ParameterStack();
 
@@ -267,13 +415,10 @@ export default class Core {
      *
      * The dast is communicated back to the renderer via calls to `updateRenderersCallback`.
      */
-    async generateDast() {
+    async generateDast(): Promise<{ coreInfo: CoreInfo; diagnostics?: any }> {
         this.doenetMLNewlines = findAllNewlines(this.allDoenetMLs[0]);
 
         let serializedComponents = [deepClone(this.serializedDocument)];
-
-        // console.log(`serialized components at the beginning`)
-        // console.log(deepClone(serializedComponents));
 
         numberAnswers(serializedComponents, this.componentInfoObjects);
 
@@ -307,9 +452,8 @@ export default class Core {
         // into this document.
         this.rendererInstructionBuilder.reset();
 
-        // rendererVariablesByComponentType is a description
-        // of the which variables are sent to the renderers,
-        // keyed by componentType
+        // `rendererVariablesByComponentType` is a description of the variables
+        // sent to the renderers, keyed by componentType.
         this.rendererVariablesByComponentType = {};
         for (let componentType in this.componentInfoObjects
             .allComponentClasses) {
@@ -317,7 +461,7 @@ export default class Core {
                 this.rendererVariablesByComponentType,
                 componentType,
                 {
-                    get: function () {
+                    get: function (this: Core) {
                         let varDescriptions =
                             this.componentInfoObjects.allComponentClasses[
                                 componentType
@@ -349,18 +493,15 @@ export default class Core {
 
         this.unmatchedChildren = {};
 
-        // console.timeEnd('serialize doenetML');
-
         let numVariants = getNumVariants({
             serializedComponent: serializedComponents[0],
             componentInfoObjects: this.componentInfoObjects,
         }).numVariants;
 
         if (!this.requestedVariant) {
-            // don't have full variant, just requested variant index
-
+            // Don't have full variant, just requested variant index.
             this.requestedVariantIndex =
-                ((((this.requestedVariantIndex - 1) % numVariants) +
+                ((((this.requestedVariantIndex! - 1) % numVariants) +
                     numVariants) %
                     numVariants) +
                 1;
@@ -382,10 +523,9 @@ export default class Core {
                 }
             }
 
-            // either didn't have unique variants
-            // or getting unique variant failed,
-            // so just set variant index
-            // and rest of variant will be generated from that index
+            // Either didn't have unique variants or getting unique variant
+            // failed, so just set variant index — the rest of the variant
+            // is generated from that index.
             if (!this.requestedVariant) {
                 this.requestedVariant = { index: this.requestedVariantIndex };
             }
@@ -395,18 +535,6 @@ export default class Core {
         serializedComponents[0].variants.desiredVariant =
             this.parameterStack.parameters.variant;
 
-        // //Make these variables available for cypress
-        // window.state = {
-        //   components: this._components,
-        //   componentsToRender: this.componentsToRender,
-        //   renderedComponentTypes: this.renderedComponentTypes,
-        //   dependencies: this.dependencies,
-        //   core: this,
-        //   componentInfoObjects: this.componentInfoObjects,
-        // }
-
-        // this.changedStateVariables = {};
-
         await this.addComponents({
             serializedComponents,
             initialAdd: true,
@@ -414,14 +542,9 @@ export default class Core {
 
         this.updateInfo.componentsToUpdateRenderers.clear();
 
-        // evaluate componentCreditAchieved so that will be fresh
-        // and can detect changes when it is marked stale
+        // Evaluate `componentCreditAchieved` so it's fresh and changes
+        // can be detected when it's marked stale.
         await this.document.stateValues.componentCreditAchieved;
-
-        // console.log(serializedComponents)
-        // console.timeEnd('start up time');
-        // console.log("** components at the end of the core constructor **");
-        // console.log(this._components);
 
         this.canonicalGeneratedVariantString = JSON.stringify(
             await this.document.stateValues.generatedVariantInfo,
@@ -429,15 +552,15 @@ export default class Core {
         );
         this.canonicalDocVariantStrings = (
             await this.document.stateValues.docVariantInfo
-        ).map((x) => JSON.stringify(x, serializedComponentsReplacer));
+        ).map((x: any) => JSON.stringify(x, serializedComponentsReplacer));
 
-        // Note: coreInfo is fixed even though this.rendererTypesInDocument could change
-        // Note 2: both canonical variant strings and original rendererTypesInDocument
-        // could differ depending on the initial state
+        // Note: `coreInfo` is fixed even though `this.rendererTypesInDocument`
+        // could change. Both the canonical variant strings and the original
+        // `rendererTypesInDocument` could differ depending on the initial state.
         this.coreInfo = {
-            generatedVariantString: this.canonicalGeneratedVariantString,
+            generatedVariantString: this.canonicalGeneratedVariantString!,
             allPossibleVariants: deepClone(
-                await this.document.sharedParameters.allPossibleVariants,
+                await this.document.sharedParameters!.allPossibleVariants,
             ),
             rendererTypesInDocument: deepClone(this.rendererTypesInDocument),
             documentToRender: this.documentRendererInstructions,
@@ -461,28 +584,33 @@ export default class Core {
         }
 
         if (!this.receivedStateVariableChanges) {
-            // TODO: find a way to delay this until after send the result on
-            this.saveState();
+            // TODO: find a way to delay this until after sending the result.
+            // Fire-and-forget by design; surface rejections instead of
+            // letting them slip past `unhandledRejection`.
+            this.saveState().catch(
+                reportTimerError(TimerLabels.generateDastSaveState),
+            );
         }
 
         const returnResult = {
             coreInfo: this.coreInfo,
         };
 
-        // warning if there are any children that are unmatched
+        // Warn about any unmatched children.
         if (Object.keys(this.unmatchedChildren).length > 0) {
             for (const componentIdxStr in this.unmatchedChildren) {
-                let parent = this._components[componentIdxStr];
+                let parent = this._components[Number(componentIdxStr)];
                 this.addDiagnostic({
                     type: "warning",
-                    message: this.unmatchedChildren[componentIdxStr].message,
+                    message:
+                        this.unmatchedChildren[Number(componentIdxStr)].message,
                     position: parent.position,
                     sourceDoc: parent.sourceDoc,
                 });
             }
         }
 
-        let diagnostics = undefined;
+        let diagnostics: any = undefined;
         if (this.hasPendingDiagnostics) {
             diagnostics = this.getDiagnostics().diagnostics;
         }
@@ -490,7 +618,7 @@ export default class Core {
         return { ...returnResult, diagnostics };
     }
 
-    async onDocumentFirstVisible() {
+    async onDocumentFirstVisible(): Promise<void> {
         this.requestRecordEvent({
             verb: "experienced",
             object: {
@@ -499,153 +627,172 @@ export default class Core {
             },
         });
 
-        await this.document.stateValues.scoredDescendants; // to evaluated scoredDescendants
+        await this.document.stateValues.scoredDescendants; // evaluate scoredDescendants
 
-        setTimeout(
-            this.sendVisibilityChangedEvents.bind(this),
-            this.visibilityInfo.saveDelay,
-        );
+        // `sendVisibilityChangedEvents()` returns a Promise; the bare
+        // `setTimeout` call would discard rejections. Wrap so unhandled
+        // errors surface (deferred §"Pre-existing fire-and-forget calls").
+        setTimeout(() => {
+            this.sendVisibilityChangedEvents()?.catch(
+                reportTimerError(TimerLabels.firstVisibleSend),
+            );
+        }, this.visibilityInfo.saveDelay);
     }
 
     // → rendererInstructionBuilder
-    get componentsToRender() {
+    get componentsToRender(): any {
         return this.rendererInstructionBuilder.componentsToRender;
     }
 
-    get componentsWithChangedChildrenToRender() {
+    get componentsWithChangedChildrenToRender(): any {
         return this.rendererInstructionBuilder
             .componentsWithChangedChildrenToRender;
     }
 
-    get rendererState() {
+    get rendererState(): any {
         return this.rendererInstructionBuilder.rendererState;
     }
 
-    callUpdateRenderers(args, init = false) {
+    callUpdateRenderers(args: any, init: boolean = false): any {
         return this.rendererInstructionBuilder.callUpdateRenderers(args, init);
     }
 
     // → diagnosticsManager
-    get diagnostics() {
+    get diagnostics(): any {
         return this.diagnosticsManager.diagnostics;
     }
 
-    get hasPendingDiagnostics() {
+    get hasPendingDiagnostics(): boolean {
         return this.diagnosticsManager.hasPendingDiagnostics;
     }
 
-    getDiagnostics() {
+    getDiagnostics(): any {
         return this.diagnosticsManager.getDiagnostics();
     }
 
-    addDiagnostic(diagnostic) {
+    addDiagnostic(diagnostic: any): any {
         return this.diagnosticsManager.addDiagnostic(diagnostic);
     }
 
-    getSourceLocationForComponent(component) {
-        return this.diagnosticsManager.getSourceLocationForComponent(component);
+    getSourceLocationForComponent(component: ComponentInstance): {
+        position: any;
+        sourceDoc: number | undefined;
+    } {
+        return getSourceLocationForComponent(component, this._components);
     }
 
     // → componentBuilder
-    async addComponents(args) {
+    async addComponents(args: any): Promise<any> {
         return this.componentBuilder.addComponents(args);
     }
 
-    async createIsolatedComponents(args) {
+    async createIsolatedComponents(args: any): Promise<any> {
         return this.componentBuilder.createIsolatedComponents(args);
     }
 
-    async createChildrenThenComponent(args) {
+    async createChildrenThenComponent(args: any): Promise<any> {
         return this.componentBuilder.createChildrenThenComponent(args);
     }
 
-    async checkForStateVariablesUpdatesForNewComponent(componentIdx) {
+    async checkForStateVariablesUpdatesForNewComponent(
+        componentIdx: ComponentIdx,
+    ): Promise<any> {
         return this.componentBuilder.checkForStateVariablesUpdatesForNewComponent(
             componentIdx,
         );
     }
 
-    async addQueuedErrorComponentsFromStateVariables() {
+    async addQueuedErrorComponentsFromStateVariables(): Promise<any> {
         return this.componentBuilder.addQueuedErrorComponentsFromStateVariables();
     }
 
-    async updateRendererInstructions(args) {
+    async updateRendererInstructions(args: any): Promise<any> {
         return this.rendererInstructionBuilder.updateRendererInstructions(args);
     }
 
     async initializeRenderedComponentInstruction(
-        component,
-        componentsWithChangedChildrenToRenderInProgress,
-    ) {
+        component: any,
+        componentsWithChangedChildrenToRenderInProgress?: Set<number>,
+    ): Promise<any> {
         return this.rendererInstructionBuilder.initializeRenderedComponentInstruction(
             component,
             componentsWithChangedChildrenToRenderInProgress,
         );
     }
 
-    getRendererId(component) {
+    getRendererId(component: ComponentInstance): any {
         return this.rendererInstructionBuilder.getRendererId(component);
     }
 
-    deleteFromComponentsToRender(args) {
+    deleteFromComponentsToRender(args: any): any {
         return this.rendererInstructionBuilder.deleteFromComponentsToRender(
             args,
         );
     }
 
     // → actionTriggerScheduler
-    get stateVariableChangeTriggers() {
+    get stateVariableChangeTriggers(): any {
         return this.actionTriggerScheduler.stateVariableChangeTriggers;
     }
 
-    get actionsChangedToActions() {
+    get actionsChangedToActions(): any {
         return this.actionTriggerScheduler.actionsChangedToActions;
     }
 
-    get originsOfActionsChangedToActions() {
+    get originsOfActionsChangedToActions(): any {
         return this.actionTriggerScheduler.originsOfActionsChangedToActions;
     }
 
-    async processStateVariableTriggers(updateRenderersIfTriggered = false) {
+    async processStateVariableTriggers(
+        updateRenderersIfTriggered: boolean = false,
+    ): Promise<any> {
         return this.actionTriggerScheduler.processStateVariableTriggers(
             updateRenderersIfTriggered,
         );
     }
 
-    recordStateVariablesMustEvaluate(componentIdx) {
+    recordStateVariablesMustEvaluate(componentIdx: ComponentIdx): any {
         return this.actionTriggerScheduler.recordStateVariablesMustEvaluate(
             componentIdx,
         );
     }
 
-    async checkForActionChaining(args) {
+    async checkForActionChaining(args: any): Promise<any> {
         return this.actionTriggerScheduler.checkForActionChaining(args);
     }
 
     // → compositeExpander
-    async expandAllComposites(component, force = false) {
+    async expandAllComposites(
+        component: any,
+        force: boolean = false,
+    ): Promise<any> {
         return this.compositeExpander.expandAllComposites(component, force);
     }
 
-    async expandCompositesOfDescendants(component, force = false) {
+    async expandCompositesOfDescendants(
+        component: any,
+        force: boolean = false,
+    ): Promise<any> {
         return this.compositeExpander.expandCompositesOfDescendants(
             component,
             force,
         );
     }
 
-    async componentAndRenderedDescendants(component) {
+    async componentAndRenderedDescendants(
+        component: ComponentInstance,
+    ): Promise<any> {
         return this.compositeExpander.componentAndRenderedDescendants(
             component,
         );
     }
 
     async expandCompositeOfDefiningChildren(
-        parent,
-        children,
-        expandComposites,
-        forceExpandComposites,
-    ) {
+        parent: any,
+        children: any,
+        expandComposites: any,
+        forceExpandComposites: any,
+    ): Promise<any> {
         return this.compositeExpander.expandCompositeOfDefiningChildren(
             parent,
             children,
@@ -654,26 +801,32 @@ export default class Core {
         );
     }
 
-    async expandCompositeComponent(component) {
+    async expandCompositeComponent(component: ComponentInstance): Promise<any> {
         return this.compositeExpander.expandCompositeComponent(component);
     }
 
-    adjustForCreateComponentIdxName(serializedReplacements, composite) {
+    adjustForCreateComponentIdxName(
+        serializedReplacements: any,
+        composite: any,
+    ): any {
         return this.compositeExpander.adjustForCreateComponentIdxName(
             serializedReplacements,
             composite,
         );
     }
 
-    async createAndSetReplacements(args) {
+    async createAndSetReplacements(args: any): Promise<any> {
         return this.compositeExpander.createAndSetReplacements(args);
     }
 
-    async replaceCompositeChildren(parent) {
+    async replaceCompositeChildren(parent: any): Promise<any> {
         return this.compositeExpander.replaceCompositeChildren(parent);
     }
 
-    async changeInactiveComponentAndDescendants(component, inactive) {
+    async changeInactiveComponentAndDescendants(
+        component: any,
+        inactive: any,
+    ): Promise<any> {
         return this.compositeExpander.changeInactiveComponentAndDescendants(
             component,
             inactive,
@@ -681,126 +834,141 @@ export default class Core {
     }
 
     // → childMatcher
-    async deriveChildResultsFromDefiningChildren(args) {
+    async deriveChildResultsFromDefiningChildren(args: any): Promise<any> {
         return this.childMatcher.deriveChildResultsFromDefiningChildren(args);
     }
 
-    async matchChildrenToChildGroups(parent) {
+    async matchChildrenToChildGroups(parent: any): Promise<any> {
         return this.childMatcher.matchChildrenToChildGroups(parent);
     }
 
-    findChildGroup(childType, parentClass) {
+    findChildGroup(childType: any, parentClass: any): any {
         return this.childMatcher.findChildGroup(childType, parentClass);
     }
 
-    async returnActiveChildrenIndicesToRender(component) {
+    async returnActiveChildrenIndicesToRender(
+        component: ComponentInstance,
+    ): Promise<any> {
         return this.childMatcher.returnActiveChildrenIndicesToRender(component);
     }
 
-    async substituteAdapter(args) {
+    async substituteAdapter(args: any): Promise<any> {
         return this.childMatcher.substituteAdapter(args);
     }
 
-    async addReplacementsToResolver(args) {
+    // → resolverAdapter
+    async addReplacementsToResolver(args: any): Promise<any> {
         return this.resolverAdapter.addReplacementsToResolver(args);
     }
 
-    async determineParentAndIndexResolutionForResolver(args) {
+    async determineParentAndIndexResolutionForResolver(
+        args: any,
+    ): Promise<any> {
         return this.resolverAdapter.determineParentAndIndexResolutionForResolver(
             args,
         );
     }
 
-    addComponentsToResolver(components, parentIdx) {
+    addComponentsToResolver(components: any, parentIdx: any): any {
         return this.resolverAdapter.addComponentsToResolver(
             components,
             parentIdx,
         );
     }
 
-    gatherDiagnosticsAndAssignDoenetMLRange(args) {
+    gatherDiagnosticsAndAssignDoenetMLRange(args: any): any {
         return this.resolverAdapter.gatherDiagnosticsAndAssignDoenetMLRange(
             args,
         );
     }
 
-    async createStateVariableDefinitions(args) {
+    async createStateVariableDefinitions(args: any): Promise<any> {
         return this.stateVariableDefinitionFactory.createStateVariableDefinitions(
             args,
         );
     }
 
-    createAttributeStateVariableDefinitions(args) {
+    createAttributeStateVariableDefinitions(args: any): any {
         return this.stateVariableDefinitionFactory.createAttributeStateVariableDefinitions(
             args,
         );
     }
 
-    createAdapterStateVariableDefinitions(args) {
+    createAdapterStateVariableDefinitions(args: any): any {
         return this.stateVariableDefinitionFactory.createAdapterStateVariableDefinitions(
             args,
         );
     }
 
-    async createReferenceShadowStateVariableDefinitions(args) {
+    async createReferenceShadowStateVariableDefinitions(
+        args: any,
+    ): Promise<any> {
         return this.stateVariableDefinitionFactory.createReferenceShadowStateVariableDefinitions(
             args,
         );
     }
 
     // → stateVariableInitializer
-    async initializeComponentStateVariables(component) {
+    async initializeComponentStateVariables(
+        component: ComponentInstance,
+    ): Promise<any> {
         return this.stateVariableInitializer.initializeComponentStateVariables(
             component,
         );
     }
 
-    async initializeStateVariable(args) {
+    async initializeStateVariable(args: any): Promise<any> {
         return this.stateVariableInitializer.initializeStateVariable(args);
     }
 
-    async initializeArrayEntryStateVariable(args) {
+    async initializeArrayEntryStateVariable(args: any): Promise<any> {
         return this.stateVariableInitializer.initializeArrayEntryStateVariable(
             args,
         );
     }
 
-    async initializeArrayStateVariable(args) {
+    async initializeArrayStateVariable(args: any): Promise<any> {
         return this.stateVariableInitializer.initializeArrayStateVariable(args);
     }
 
-    async createArraySizeStateVariable(args) {
+    async createArraySizeStateVariable(args: any): Promise<any> {
         return this.stateVariableInitializer.createArraySizeStateVariable(args);
     }
 
-    async arrayEntryNamesFromPropIndex(args) {
+    async arrayEntryNamesFromPropIndex(args: any): Promise<any> {
         return this.stateVariableInitializer.arrayEntryNamesFromPropIndex(args);
     }
 
-    recursivelyReplaceCompositesWithReplacements(args) {
+    recursivelyReplaceCompositesWithReplacements(args: any): any {
         return this.stateVariableInitializer.recursivelyReplaceCompositesWithReplacements(
             args,
         );
     }
 
     // → stateVariableEvaluator
-    async getStateVariableValue(args) {
+    async getStateVariableValue(args: any): Promise<any> {
         return this.stateVariableEvaluator.getStateVariableValue(args);
     }
 
-    async getStateVariableDefinitionArguments(args) {
+    async getStateVariableDefinitionArguments(args: any): Promise<any> {
         return this.stateVariableEvaluator.getStateVariableDefinitionArguments(
             args,
         );
     }
 
-    async recordActualChangeInStateVariable(args) {
+    async recordActualChangeInStateVariable(args: any): Promise<any> {
         return this.stateVariableEvaluator.recordActualChangeInStateVariable(
             args,
         );
     }
 
-    findCaseInsensitiveMatches({ stateVariables, componentClass }) {
+    findCaseInsensitiveMatches({
+        stateVariables,
+        componentClass,
+    }: {
+        stateVariables: any;
+        componentClass: any;
+    }): any {
         return nameResolver.findCaseInsensitiveMatches({
             stateVariables,
             componentClass,
@@ -808,7 +976,13 @@ export default class Core {
         });
     }
 
-    matchPublicStateVariables({ stateVariables, componentClass }) {
+    matchPublicStateVariables({
+        stateVariables,
+        componentClass,
+    }: {
+        stateVariables: any;
+        componentClass: any;
+    }): any {
         return nameResolver.matchPublicStateVariables({
             stateVariables,
             componentClass,
@@ -816,7 +990,13 @@ export default class Core {
         });
     }
 
-    substituteAliases({ stateVariables, componentClass }) {
+    substituteAliases({
+        stateVariables,
+        componentClass,
+    }: {
+        stateVariables: any;
+        componentClass: any;
+    }): any {
         return nameResolver.substituteAliases({
             stateVariables,
             componentClass,
@@ -827,7 +1007,10 @@ export default class Core {
     publicCaseInsensitiveAliasSubstitutions({
         stateVariables,
         componentClass,
-    }) {
+    }: {
+        stateVariables: any;
+        componentClass: any;
+    }): any {
         return nameResolver.publicCaseInsensitiveAliasSubstitutions({
             stateVariables,
             componentClass,
@@ -835,55 +1018,67 @@ export default class Core {
         });
     }
 
-    checkIfArrayEntry({ stateVariable, component }) {
+    checkIfArrayEntry({
+        stateVariable,
+        component,
+    }: {
+        stateVariable: any;
+        component: any;
+    }): any {
         return nameResolver.checkIfArrayEntry({ stateVariable, component });
     }
 
     // → stalenessPropagator
-    async createFromArrayEntry(args) {
+    async createFromArrayEntry(args: any): Promise<any> {
         return this.stalenessPropagator.createFromArrayEntry(args);
     }
 
-    async markDescendantsToUpdateRenderers(component) {
+    async markDescendantsToUpdateRenderers(
+        component: ComponentInstance,
+    ): Promise<any> {
         return this.stalenessPropagator.markDescendantsToUpdateRenderers(
             component,
         );
     }
 
-    async markStateVariableAndUpstreamDependentsStale(args) {
+    async markStateVariableAndUpstreamDependentsStale(args: any): Promise<any> {
         return this.stalenessPropagator.markStateVariableAndUpstreamDependentsStale(
             args,
         );
     }
 
-    async lookUpCurrentFreshness(args) {
+    async lookUpCurrentFreshness(args: any): Promise<any> {
         return this.stalenessPropagator.lookUpCurrentFreshness(args);
     }
 
-    async processMarkStale(args) {
+    async processMarkStale(args: any): Promise<any> {
         return this.stalenessPropagator.processMarkStale(args);
     }
 
-    async markUpstreamDependentsStale(args) {
+    async markUpstreamDependentsStale(args: any): Promise<any> {
         return this.stalenessPropagator.markUpstreamDependentsStale(args);
     }
 
-    registerComponent(component) {
+    // → componentLifecycle
+    registerComponent(component: ComponentInstance): any {
         return this.componentLifecycle.registerComponent(component);
     }
 
-    deregisterComponent(component, recursive = true) {
+    deregisterComponent(
+        component: ComponentInstance,
+        recursive: boolean = true,
+    ): any {
         return this.componentLifecycle.deregisterComponent(
             component,
             recursive,
         );
     }
 
-    setAncestors(component, ancestors = []) {
+    setAncestors(component: any, ancestors: any[] = []): any {
         return this.componentLifecycle.setAncestors(component, ancestors);
     }
 
-    async addChildrenAndRecurseToShadows(args) {
+    async addChildrenAndRecurseToShadows(args: any): Promise<any> {
         return this.componentLifecycle.addChildrenAndRecurseToShadows(args);
     }
 
@@ -891,11 +1086,15 @@ export default class Core {
      * Create and insert `_error` siblings requested by state-variable definitions
      * during initial document construction.
      */
-    async processNewDefiningChildren(args) {
+    async processNewDefiningChildren(args: any): Promise<any> {
         return this.componentLifecycle.processNewDefiningChildren(args);
     }
 
-    spliceChildren(parent, indexOfDefiningChildren, newChildren) {
+    spliceChildren(
+        parent: any,
+        indexOfDefiningChildren: any,
+        newChildren: any,
+    ): any {
         return this.componentLifecycle.spliceChildren(
             parent,
             indexOfDefiningChildren,
@@ -904,120 +1103,122 @@ export default class Core {
     }
 
     // → deletionEngine
-    async deleteComponents(args) {
+    async deleteComponents(args: any): Promise<any> {
         return this.deletionEngine.deleteComponents(args);
     }
 
-    removeComponentsFromResolver(componentsToRemove) {
+    removeComponentsFromResolver(componentsToRemove: any): any {
         return this.resolverAdapter.removeComponentsFromResolver(
             componentsToRemove,
         );
     }
 
-    determineComponentsToDelete(args) {
+    determineComponentsToDelete(args: any): any {
         return this.deletionEngine.determineComponentsToDelete(args);
     }
 
     // → compositeReplacementUpdater
 
-    async updateCompositeReplacements(args) {
+    async updateCompositeReplacements(args: any): Promise<any> {
         return this.compositeReplacementUpdater.updateCompositeReplacements(
             args,
         );
     }
 
-    async setErrorReplacements(args) {
+    async setErrorReplacements(args: any): Promise<any> {
         return this.compositeReplacementUpdater.setErrorReplacements(args);
     }
 
-    async deleteReplacementsFromShadowsThenComposite(args) {
+    async deleteReplacementsFromShadowsThenComposite(args: any): Promise<any> {
         return this.compositeReplacementUpdater.deleteReplacementsFromShadowsThenComposite(
             args,
         );
     }
 
-    async createShadowedReplacements(args) {
+    async createShadowedReplacements(args: any): Promise<any> {
         return this.compositeReplacementUpdater.createShadowedReplacements(
             args,
         );
     }
 
-    async adjustReplacementsToWithhold(args) {
+    async adjustReplacementsToWithhold(args: any): Promise<any> {
         return this.compositeReplacementUpdater.adjustReplacementsToWithhold(
             args,
         );
     }
 
-    get rendererTypesInDocument() {
+    get rendererTypesInDocument(): any {
         return this.document.allPotentialRendererTypes;
     }
 
-    get components() {
-        // return new Proxy(this._components, readOnlyProxyHandler);
+    get components(): any[] {
         return this._components;
     }
 
-    set components(value) {
-        return null;
-    }
-
     // → processQueueManager
+    //
+    // The accessor pair below is preserved because `VisibilityTracker.ts`
+    // pushes onto `core.processQueue` directly (the underlying array). A
+    // future refactor could replace that push with a method on
+    // `ProcessQueue`, drop these accessors, and rename
+    // `processQueueManager` → `processQueue` (deferred §"`processQueue`
+    // field naming").
 
-    get processQueue() {
+    get processQueue(): any[] {
         return this.processQueueManager.queue;
     }
 
-    set processQueue(value) {
+    set processQueue(value: any[]) {
         this.processQueueManager.queue = value;
     }
 
-    get processing() {
+    get processing(): boolean {
         return this.processQueueManager.processing;
     }
 
-    set processing(value) {
+    set processing(value: boolean) {
         this.processQueueManager.processing = value;
     }
 
-    get stopProcessingRequests() {
+    get stopProcessingRequests(): boolean {
         return this.processQueueManager.stopProcessingRequests;
     }
 
-    set stopProcessingRequests(value) {
+    set stopProcessingRequests(value: boolean) {
         this.processQueueManager.stopProcessingRequests = value;
     }
 
-    async executeProcesses() {
+    async executeProcesses(): Promise<any> {
         return this.processQueueManager.executeProcesses();
     }
 
-    requestAction(args) {
+    requestAction(args: any): any {
         return this.processQueueManager.requestAction(args);
     }
 
     // → updateExecutor
 
-    async performAction(args) {
+    async performAction(args: any): Promise<any> {
         return this.updateExecutor.performAction(args);
     }
 
-    async performUpdate(args) {
+    async performUpdate(args: any): Promise<any> {
         return this.updateExecutor.performUpdate(args);
     }
 
     // → actionTriggerScheduler (cont.)
 
-    async triggerChainedActions(args) {
+    async triggerChainedActions(args: any): Promise<any> {
         return this.actionTriggerScheduler.triggerChainedActions(args);
     }
 
     // → processQueueManager (cont.)
 
-    async requestUpdate(args) {
+    async requestUpdate(args: any): Promise<any> {
         return this.processQueueManager.requestUpdate(args);
     }
 
-    requestRecordEvent(event) {
+    requestRecordEvent(event: any): any {
         return this.processQueueManager.requestRecordEvent(event);
     }
 
@@ -1028,23 +1229,30 @@ export default class Core {
         actionId,
         sourceInformation = {},
         skipRendererUpdate = false,
-    }) {
+    }: {
+        actionId?: string;
+        sourceInformation?: any;
+        skipRendererUpdate?: boolean;
+    }): Promise<void> {
         if (!skipRendererUpdate) {
             await this.updateAllChangedRenderers(sourceInformation, actionId);
         }
     }
 
-    async updateAllChangedRenderers(sourceInformation = {}, actionId) {
+    async updateAllChangedRenderers(
+        sourceInformation: any = {},
+        actionId?: string,
+    ): Promise<any> {
         return this.rendererInstructionBuilder.updateAllChangedRenderers(
             sourceInformation,
             actionId,
         );
     }
 
-    // event emission — assembles the event payload and dispatches it
+    // Event emission — assembles the event payload and dispatches it
     // through the host-provided `sendEvent`.
 
-    async performRecordEvent({ event }) {
+    async performRecordEvent({ event }: { event: any }): Promise<void> {
         if (!this.flags.allowSaveEvents) {
             return;
         }
@@ -1061,7 +1269,7 @@ export default class Core {
             cid: this.cid,
             docId: this.docId,
             attemptNumber: this.attemptNumber,
-            variantIndex: this.requestedVariant.index,
+            variantIndex: this.requestedVariant!.index,
             verb: event.verb,
             object: JSON.stringify(event.object, serializedComponentsReplacer),
             result: JSON.stringify(
@@ -1081,66 +1289,77 @@ export default class Core {
 
     // → visibilityTracker
 
-    get visibilityInfo() {
+    get visibilityInfo(): any {
         return this.visibilityTracker.info;
     }
 
-    processVisibilityChangedEvent(event) {
+    processVisibilityChangedEvent(event: any): any {
         return this.visibilityTracker.processVisibilityChangedEvent(event);
     }
 
-    sendVisibilityChangedEvents() {
+    sendVisibilityChangedEvents(): any {
         return this.visibilityTracker.sendVisibilityChangedEvents();
     }
 
-    async suspendVisibilityMeasuring() {
+    async suspendVisibilityMeasuring(): Promise<any> {
         return this.visibilityTracker.suspendVisibilityMeasuring();
     }
 
-    resumeVisibilityMeasuring() {
+    resumeVisibilityMeasuring(): any {
         return this.visibilityTracker.resumeVisibilityMeasuring();
     }
 
-    async saveImmediately() {
+    async saveImmediately(): Promise<any> {
         return this.statePersistence.saveImmediately();
     }
 
-    async saveState(overrideThrottle = false, onSubmission = false) {
+    async saveState(
+        overrideThrottle: boolean = false,
+        onSubmission: boolean = false,
+    ): Promise<any> {
         return this.statePersistence.saveState(overrideThrottle, onSubmission);
     }
 
-    async saveChangesToDatabase(overrideThrottle) {
+    async saveChangesToDatabase(overrideThrottle: boolean): Promise<any> {
         return this.statePersistence.saveChangesToDatabase(overrideThrottle);
     }
 
     // → essentialValueWriter
 
-    async executeUpdateStateVariables(newStateVariableValues) {
+    async executeUpdateStateVariables(
+        newStateVariableValues: any,
+    ): Promise<any> {
         return this.essentialValueWriter.executeUpdateStateVariables(
             newStateVariableValues,
         );
     }
 
-    async replacementChangesFromCompositesToUpdate() {
+    async replacementChangesFromCompositesToUpdate(): Promise<any> {
         return this.essentialValueWriter.replacementChangesFromCompositesToUpdate();
     }
 
-    async processNewStateVariableValues(...args) {
-        return this.essentialValueWriter.processNewStateVariableValues(...args);
+    async processNewStateVariableValues(
+        newStateVariableValues: any,
+        newComponent: boolean = false,
+    ): Promise<any> {
+        return this.essentialValueWriter.processNewStateVariableValues(
+            newStateVariableValues,
+            newComponent,
+        );
     }
 
-    async requestComponentChanges(args) {
+    async requestComponentChanges(args: any): Promise<any> {
         return this.essentialValueWriter.requestComponentChanges(args);
     }
 
     /**
-     * Poll `requestSolutionViewCallback` to determine whether or not
-     * the user is allowed to view the solution.
-     *
-     * Note: this will occur only if the `solutionDisplayMode` flag is set to
-     * "buttonRequirePermission".
+     * Poll `requestSolutionViewCallback` to determine whether the user is
+     * allowed to view the solution. Only fires when `solutionDisplayMode`
+     * is set to "buttonRequirePermission".
      */
-    async requestSolutionView(componentIdx) {
+    async requestSolutionView(
+        componentIdx: ComponentIdx,
+    ): Promise<{ allowView: boolean }> {
         const requestResult =
             await this.requestSolutionViewCallback(componentIdx);
 
@@ -1149,14 +1368,14 @@ export default class Core {
         };
     }
 
-    get scoredComponentWeights() {
+    get scoredComponentWeights(): Promise<any[]> {
         return (async () =>
             (await this.document.stateValues.scoredDescendants).map(
-                (x) => x.stateValues.weight,
+                (x: any) => x.stateValues.weight,
             ))();
     }
 
-    handleVisibilityChange(documentIsVisible) {
+    handleVisibilityChange(documentIsVisible: boolean): void {
         if (documentIsVisible) {
             this.resumeVisibilityMeasuring();
         } else {
@@ -1165,18 +1384,18 @@ export default class Core {
     }
 
     // → navigationHandler
-    async handleNavigatingToComponent(args) {
+    async handleNavigatingToComponent(args: any): Promise<any> {
         return this.navigationHandler.handleNavigatingToComponent(args);
     }
 
-    async terminate() {
+    async terminate(): Promise<void> {
         let pause100 = function () {
-            return new Promise((resolve, reject) => {
+            return new Promise<void>((resolve) => {
                 setTimeout(resolve, 100);
             });
         };
 
-        // suspend visibility measuring so that remaining times collected are saved
+        // Suspend visibility measuring so remaining times collected are saved.
         await this.suspendVisibilityMeasuring();
 
         await this.autoSubmitManager.flush();
@@ -1196,15 +1415,18 @@ export default class Core {
     }
 
     // → autoSubmitManager
-    recordAnswerToAutoSubmit(componentIdx) {
+    recordAnswerToAutoSubmit(componentIdx: ComponentIdx): void {
         this.autoSubmitManager.recordAnswer(componentIdx);
     }
 
-    async autoSubmitAnswers() {
+    async autoSubmitAnswers(): Promise<any> {
         return this.autoSubmitManager.submitNow();
     }
 
-    requestComponentDoenetML(componentIdx, displayOnlyChildren) {
+    requestComponentDoenetML(
+        componentIdx: ComponentIdx,
+        displayOnlyChildren: boolean,
+    ): string | null {
         let component = this.components[componentIdx];
 
         if (!component) {
@@ -1218,7 +1440,7 @@ export default class Core {
         }
         let sourceDoc = component.sourceDoc ?? 0;
 
-        let startInd, endInd;
+        let startInd: number, endInd: number;
 
         if (displayOnlyChildren) {
             if (!component.childrenPosition) {
@@ -1237,9 +1459,9 @@ export default class Core {
         );
 
         if (displayOnlyChildren) {
-            // remove any leading linebreak
-            // or any trailing linebreak (possibly followed by spaces or tabs)
-            // to remove spacing due to just having the children on different lines from the enclosing parent tags
+            // Remove any leading linebreak or trailing linebreak
+            // (possibly followed by spaces or tabs) to drop the
+            // gutter spacing introduced by the enclosing parent tags.
             if (componentDoenetML[0] === "\n") {
                 componentDoenetML = componentDoenetML.slice(1);
             }
@@ -1251,7 +1473,8 @@ export default class Core {
 
         let lines = componentDoenetML.split("\n");
 
-        // min number of spaces that begin a line (ignoring first and any lines that are all whitespace)
+        // Min number of leading spaces (ignore the first line and
+        // any all-whitespace lines).
         let minSpaces = lines
             .slice(1)
             .reduce(
@@ -1263,7 +1486,7 @@ export default class Core {
                 Infinity,
             );
 
-        // check first line if didn't get a number of spaces from remaining lines
+        // Check the first line if no number of spaces was found in the rest.
         if (minSpaces === Infinity && lines[0].trim().length > 1) {
             minSpaces = lines[0].search(/\S|$/);
         }
@@ -1279,7 +1502,7 @@ export default class Core {
         return componentDoenetML;
     }
 
-    navigateToTarget(args) {
+    navigateToTarget(args: any): any {
         return this.navigationHandler.navigateToTarget(args);
     }
 }
