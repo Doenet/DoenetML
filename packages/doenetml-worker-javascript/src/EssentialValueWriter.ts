@@ -1,5 +1,6 @@
 import type Core from "./Core";
 import type { ComponentInstance } from "./types/componentInstance";
+import type { ComponentIdx } from "@doenet/utils";
 import me from "math-expressions";
 import {
     preprocessMathInverseDefinition,
@@ -49,6 +50,27 @@ export class EssentialValueWriter {
         this.core = core;
     }
 
+    /**
+     * Public bulk-write entry point. Applies `newStateVariableValues` to the
+     * live component tree, then flushes any composite-replacement work the
+     * writes triggered:
+     *   1. `processNewStateVariableValues` writes the values and records
+     *      the changes back to upstream dependencies.
+     *   2. `replacementChangesFromCompositesToUpdate` recomputes the
+     *      replacements of every composite added to
+     *      `updateInfo.compositesToUpdateReplacements` during step 1.
+     *   3. If any composite produced new replacements, `expandAllComposites`
+     *      runs (twice — once normally, once with the force flag) to
+     *      catch composites that became expandable as a side effect, and
+     *      any deferred state variables in
+     *      `updateInfo.stateVariablesToEvaluate` are evaluated.
+     *   4. A second `replacementChangesFromCompositesToUpdate` pass picks
+     *      up composites scheduled by step 3.
+     *
+     * Note: this stops after one expand/flush cycle. If step 3 schedules
+     * further composites, they will be picked up on the next call from
+     * `UpdateExecutor.performUpdate` rather than looping here.
+     */
     async executeUpdateStateVariables(
         newStateVariableValues: NewStateVariableValues,
     ) {
@@ -96,7 +118,7 @@ export class EssentialValueWriter {
         ];
         this.core.updateInfo.compositesToUpdateReplacements.clear();
 
-        let compositesNotReady = new Set<number>();
+        let compositesNotReady = new Set<ComponentIdx>();
 
         let nPasses = 0;
 
@@ -852,30 +874,9 @@ export class EssentialValueWriter {
                                     // need to convert multidimensional array (newInstruction.desiredValue)
                                     // to an object with multidimesional arrayKeys
                                     // where each array key is a concatenation of the array indices, joined by commas
-
-                                    function convert_md_array(
-                                        array: any,
-                                        n_dim: number,
-                                    ): Record<string, any> {
-                                        if (n_dim === 1) {
-                                            return Object.assign({}, array);
-                                        }
-                                        let new_obj: Record<string, any> = {};
-                                        for (let ind in array) {
-                                            let sub_obj = convert_md_array(
-                                                array[ind],
-                                                n_dim - 1,
-                                            );
-                                            for (let key in sub_obj) {
-                                                new_obj[`${ind},${key}`] =
-                                                    sub_obj[key];
-                                            }
-                                        }
-                                        return new_obj;
-                                    }
                                     Object.assign(
                                         arrayInstructionInProgress.desiredValue,
-                                        convert_md_array(
+                                        convertMultidimensionalArrayToKeyedObject(
                                             newInstruction.desiredValue,
                                             depStateVarObj.numDimensions,
                                         ),
@@ -1378,7 +1379,7 @@ export class EssentialValueWriter {
         definingInd: number;
         newValue: any;
         newStateVariableValues: NewStateVariableValues;
-        markToIgnoreForParent: number | undefined;
+        markToIgnoreForParent?: ComponentIdx;
     }) {
         if (!newStateVariableValues[parent.componentIdx]) {
             newStateVariableValues[parent.componentIdx] = {};
@@ -1484,4 +1485,31 @@ export class EssentialValueWriter {
             newStateVariableValues,
         });
     }
+}
+
+/**
+ * Flatten a multidimensional `array` of depth `nDim` into an object whose
+ * keys are comma-joined indices (e.g. `"0,1"` for `array[0][1]`) and whose
+ * values are the leaf entries. Used by `requestComponentChanges` to feed
+ * a multidimensional desired-value into the array-keyed
+ * `arrayInstructionInProgress.desiredValue` shape.
+ */
+function convertMultidimensionalArrayToKeyedObject(
+    array: any,
+    nDim: number,
+): Record<string, any> {
+    if (nDim === 1) {
+        return Object.assign({}, array);
+    }
+    let newObj: Record<string, any> = {};
+    for (let ind in array) {
+        let subObj = convertMultidimensionalArrayToKeyedObject(
+            array[ind],
+            nDim - 1,
+        );
+        for (let key in subObj) {
+            newObj[`${ind},${key}`] = subObj[key];
+        }
+    }
+    return newObj;
 }

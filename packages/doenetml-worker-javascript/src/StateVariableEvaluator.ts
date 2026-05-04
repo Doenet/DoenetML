@@ -944,6 +944,20 @@ export class StateVariableEvaluator {
         return args;
     }
 
+    /**
+     * Record that `componentIdx`/`varName` has actually changed (called
+     * after the bulk-write path has updated values in `comp.essentialState`
+     * and friends). Three side effects, in order:
+     *   1. `markStateVariableAndUpstreamDependentsStale` — invalidate
+     *      `varName` and propagate up the dependency graph. The mark-stale
+     *      pass already covers `additionalStateVariablesDefined`.
+     *   2. Set `forceRecalculation = true` on `varName` and every entry in
+     *      its `additionalStateVariablesDefined` group, so the next
+     *      `getStateVariableValue` call ignores the "no changes detected"
+     *      fast-path and re-runs the definition.
+     *   3. `recordActualChangeInUpstreamDependencies` for each variable in
+     *      the group, so dependents see a concrete change flag.
+     */
     async recordActualChangeInStateVariable({
         componentIdx,
         varName,

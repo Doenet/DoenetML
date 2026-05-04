@@ -206,6 +206,17 @@ export class StalenessPropagator {
         });
     }
 
+    /**
+     * Read-only freshness probe: invoke the variable's `getCurrentFreshness`
+     * predicate (if defined) and return the same `{ fresh, partiallyFresh,
+     * ... }` verdict shape that `processMarkStale` uses, with
+     * array-state-variable readings remapped onto their array-entry mirrors
+     * via `_remapArrayEntryFreshness`. Returns `undefined` when the
+     * variable has no predicate. Does not mutate state.
+     *
+     * Called from `_processStaleVisit` to decide whether a variable was
+     * "previously effectively fresh" before the new mark-stale pass runs.
+     */
     async lookUpCurrentFreshness({
         component,
         varName,
@@ -329,6 +340,26 @@ export class StalenessPropagator {
         return result;
     }
 
+    /**
+     * Walk one step upward from `component`/`varName` and queue stale-marking
+     * on every upstream dependent that consumes it. For each upstream
+     * dependency:
+     *   - Skip if `onlyToSetInInverseDefinition` (write-only edge).
+     *   - Run the dependency's optional `markStale` side effect.
+     *   - Find the position of `componentIdx` in
+     *     `downstreamComponentIndices` and record `valuesChanged` for that
+     *     slot (with our `freshnessInfo` if available) so the upstream
+     *     definition sees a concrete change.
+     *   - If the upstream variable is in its component's
+     *     `rendererVariablesByComponentType` set, queue the upstream
+     *     component for a renderer update.
+     *   - Dispatch `_processStaleVisit` against the upstream component, which
+     *     re-enters this function for its upstream dependents.
+     *
+     * `_processStaleVisit` already short-circuits when a variable is
+     * already stale (has a getter in place), so this walk terminates at
+     * any cached-stale frontier.
+     */
     async markUpstreamDependentsStale({
         component,
         varName,
@@ -336,13 +367,6 @@ export class StalenessPropagator {
         component: ComponentInstance;
         varName: string;
     }) {
-        // Recursively mark every upstream dependency of component/varName as stale
-        // If a state variable is already stale (has a getter in place)
-        // then don't recurse
-        // Before marking a stateVariable as stale, run markStale function, if it exists
-        // Record additional information about the staleness from result of markStale,
-        // and recurse only if markStale indicates variable is actually stale
-
         let componentIdx = component.componentIdx;
 
         // console.log(`marking upstream of ${varName} of ${componentIdx} as stale`);

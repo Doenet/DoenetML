@@ -1213,7 +1213,7 @@ export class CompositeReplacementUpdater {
         deleteResults: any;
         composite: any;
         numberDeleted: number;
-        parentsOfDeleted: Set<number>;
+        parentsOfDeleted: Set<ComponentIdx>;
         deletedComponents: Record<string, any>;
         componentChanges: any[];
         topLevel?: boolean;
@@ -1223,7 +1223,7 @@ export class CompositeReplacementUpdater {
             parentsOfDeleted.add(parent.componentIdx);
             const componentsAffected =
                 await this.core.componentAndRenderedDescendants(parent);
-            componentsAffected.forEach((cIdx: number) =>
+            componentsAffected.forEach((cIdx: ComponentIdx) =>
                 this.core.updateInfo.componentsToUpdateRenderers.add(cIdx),
             );
         }
@@ -1284,7 +1284,7 @@ function* iterateExpandableShadows(component: any) {
  */
 function findExpandableShadowByCompositeIdx(
     component: any,
-    compositeIdx: number,
+    compositeIdx: ComponentIdx,
 ): any | undefined {
     for (const shadow of iterateExpandableShadows(component)) {
         if (shadow.shadows.compositeIdx === compositeIdx) {
@@ -1294,8 +1294,8 @@ function findExpandableShadowByCompositeIdx(
     return undefined;
 }
 
-function calculateAllComponentsShadowing(component: any): number[] {
-    const allShadowing: number[] = [];
+function calculateAllComponentsShadowing(component: any): ComponentIdx[] {
+    const allShadowing: ComponentIdx[] = [];
     for (const shadow of iterateExpandableShadows(component)) {
         allShadowing.push(shadow.componentIdx);
         allShadowing.push(...calculateAllComponentsShadowing(shadow));

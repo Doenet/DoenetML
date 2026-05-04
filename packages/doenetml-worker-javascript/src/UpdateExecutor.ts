@@ -5,17 +5,20 @@ import { reportTimerError, TimerLabels } from "./utils/timerErrors";
 
 /**
  * Source-side metadata about *how* an update originated. Indexed by
- * `componentIdx` (string-coerced because this object also carries
- * non-numeric keys like `actionId` from upstream callers); each entry is
- * a free-form bag of provenance attributes that flows through to renderers.
+ * `componentIdx` (string-coerced because that's what `for...in` yields);
+ * each entry is a free-form bag of provenance attributes that flows
+ * through to renderers via `sourceOfUpdate`.
  */
 type SourceInformation = Record<string, any>;
 
 /**
  * One entry in `performUpdate`'s `updateInstructions` array. The shape
- * varies by `updateType`; this discriminated union is loose because the
+ * varies by `updateType`; the explicit fields below are documentation
+ * for the most common keys, while the `[k: string]: any` index signature
+ * is what TypeScript actually checks against — necessary because the
  * historical call sites mix authored, interactive, and chained
- * instructions on the same array.
+ * instructions on the same array. A discriminated union per `updateType`
+ * is deferred (see `CORE_REFACTOR_DEFERRED.md`).
  */
 type UpdateInstruction = {
     updateType: string;
@@ -97,6 +100,29 @@ export class UpdateExecutor {
         this.core = core;
     }
 
+    /**
+     * Run a component-defined action method (e.g. `submitAnswer`,
+     * `revealSection`).
+     *
+     * Special-case branches handled before the main dispatch:
+     *   - `actionName === "setTheme"` with no `componentIdx`: re-enters via
+     *     `performUpdate` to set `document.theme`. The action mechanism is
+     *     co-opted here because the document doesn't expose a real action
+     *     surface, but theme is a UI-only state variable that the viewer
+     *     needs to be able to set. `doNotSave` is always passed since theme
+     *     is not user content.
+     *   - Component missing + `actionName === "recordVisibilityChange"`
+     *     with `args.isVisible === false`: a "component became hidden"
+     *     event for a component that has already been deleted. Recorded
+     *     directly via `requestRecordEvent` because there is no live
+     *     component to dispatch through.
+     *
+     * Main path: look up `component.actions[actionName]` (with optional
+     * case-insensitive fallback when `caseInsensitiveMatch` is set), record
+     * the `event` if provided, and `await` the action. Returns
+     * `{ actionId }` on success. If the component exists but the action
+     * does not, a warning diagnostic is added and `{}` is returned.
+     */
     async performAction({
         componentIdx,
         actionName,
@@ -451,8 +477,8 @@ export class UpdateExecutor {
     }
 
     /**
-     * Stash `instruction.sourceDetails` onto the per-component bag inside
-     * `sourceInformation`, creating the bag if it doesn't exist. Used to
+     * Merge `instruction.sourceDetails` into the per-component bag inside
+     * `sourceInformation`. No-op when `sourceDetails` is absent. Used to
      * forward upstream-action provenance ("which input triggered this
      * change?") through the update pipeline.
      */
@@ -460,6 +486,10 @@ export class UpdateExecutor {
         instruction: any,
         sourceInformation: Record<string, any>,
     ) {
+        if (!instruction.sourceDetails) {
+            return;
+        }
+
         let componentSourceInformation =
             sourceInformation[instruction.componentIdx];
         if (!componentSourceInformation) {
@@ -468,11 +498,6 @@ export class UpdateExecutor {
             ] = {};
         }
 
-        if (instruction.sourceDetails) {
-            Object.assign(
-                componentSourceInformation,
-                instruction.sourceDetails,
-            );
-        }
+        Object.assign(componentSourceInformation, instruction.sourceDetails);
     }
 }

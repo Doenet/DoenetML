@@ -267,15 +267,24 @@ Where the strict cascade exposed nullable fields the codepath guarantees populat
 
 ### Phase 4: JSDoc on public entry points — DONE
 
-JSDoc paragraphs added to every public entry point identified in the original list:
+JSDoc paragraphs added to every public entry point identified in the original list, plus the surrounding methods on the same classes for symmetry:
 
 - `UpdateExecutor.performUpdate` — full contract for the `updateInstructions` dispatch loop, the post-loop renderer/persistence side effects, and an inline distinction between the four boolean flags (notably `canSkipUpdatingRenderer` vs `skipRendererUpdate`).
+- `UpdateExecutor.performAction` — special-case branches (`setTheme` re-entry, post-deletion `recordVisibilityChange`) and the main action-dispatch path with optional case-insensitive matching.
+- `EssentialValueWriter.executeUpdateStateVariables` — public bulk-write entry point: write → flush composites → expand → flush again.
 - `EssentialValueWriter.processNewStateVariableValues` — bulk-apply contract, missing-component bookkeeping, and the role of the `newComponent` flag.
 - `EssentialValueWriter.requestComponentChanges` — inverse-definition chain contract: how `instruction` is recursively expanded, where `newStateVariableValues` and `workspace` accumulate, and how the chain terminates.
 - `StateVariableEvaluator.getStateVariableValue` — what gets mutated on `component.state[*]`, the `reprocessAfterEvaluate` kludge, and the relationship to `markStateVariableAndUpstreamDependentsStale`.
+- `StateVariableEvaluator.recordActualChangeInStateVariable` — the three side effects (mark-stale, force-recalculation, record-actual-change) and how they relate to the `additionalStateVariablesDefined` group.
 - `CompositeReplacementUpdater.updateCompositeReplacements` — the four-step pipeline (calculate / delete / create / thread) and the shadow short-circuit.
 - `StalenessPropagator.markStateVariableAndUpstreamDependentsStale` — the entry-point contract for the staleness pass.
+- `StalenessPropagator.lookUpCurrentFreshness` — the read-only freshness probe used to capture "previously effectively fresh" before the new mark-stale pass runs.
 - `StalenessPropagator.processMarkStale` — the `fresh` / `partiallyFresh` freshness verdict shape and the array-level/entry-level bridging via `_remapArrayEntryFreshness`.
+- `StalenessPropagator.markUpstreamDependentsStale` — one-step upstream walk, per-edge bookkeeping, and the `_processStaleVisit` re-entry that terminates at any cached-stale frontier.
+
+### Phase 4: Loose `(repl: any)` callbacks in `CompositeReplacementUpdater` — deferred
+
+Several arrow-callback parameters in `CompositeReplacementUpdater` carry an explicit `(repl: any)` annotation (lines around the `component.replacements!.map(...)` calls and the `(x: unknown) => !x` filter in `EssentialValueWriter`). They survive only because `ComponentInstance.replacements` is loosely typed as `any[]` (with a `!` non-null assertion at each use site). Once `replacements` is tightened to `(ComponentInstance | string)[]` (and `dep.downstreamPrimitives` to a concrete shape), these annotations should drop. Tracking here so the cleanup happens together with the wider `ComponentInstance` typing pass.
 
 ### Phase 4: Pre-existing console-error-and-throw blocks — DONE
 
