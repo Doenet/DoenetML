@@ -281,12 +281,17 @@ function getEffectiveComponentName(
  * `replacementOf`'s flattened replacements, for the resolver's `ReplaceRange`
  * index resolution.
  *
+ * Async because `isInactiveCompositeReplacement` is a state-value getter that
+ * may resolve asynchronously.
+ *
  * Behaviour preserved verbatim from the original closure form in
  * `ResolverAdapter`:
  * - Withheld replacements (`stateValues.isInactiveCompositeReplacement`)
  *   and blank-string replacements are skipped.
  * - Expanded `_copy` replacements are substituted in place by their own
- *   replacements (recursively); unexpanded copies remain.
+ *   replacements (recursively); unexpanded copies remain. An expanded copy
+ *   missing `replacements` (shouldn't happen at runtime, but the type allows
+ *   it) is treated as having no replacements.
  * - When `copyComponentIdx` matches at the current level, `startIdx`/`endIdx`
  *   are set to the position in the current level's flattened result. A match
  *   at the current level overrides any match found in a recursive call (the
@@ -311,26 +316,23 @@ export async function calcStartEndIdx({
     startIdx?: number;
     endIdx?: number;
 }> {
-    const nonWithheldReplacements: (ComponentInstance | string)[] = [];
+    const activeReplacements: (ComponentInstance | string)[] = [];
     for (const repl of replacements) {
-        if (
-            typeof repl === "string" ||
-            !(await repl.stateValues.isInactiveCompositeReplacement)
-        ) {
-            nonWithheldReplacements.push(repl);
+        if (typeof repl === "string") {
+            if (repl.trim() !== "") {
+                activeReplacements.push(repl);
+            }
+        } else if (!(await repl.stateValues.isInactiveCompositeReplacement)) {
+            activeReplacements.push(repl);
         }
     }
-
-    const nonBlankStringReplacements = nonWithheldReplacements.filter(
-        (x) => typeof x !== "string" || x.trim() !== "",
-    );
 
     const flattenedReplacements: (ComponentInstance | string)[] = [];
     let startIdx: number | undefined;
     let endIdx: number | undefined;
     let i = 0;
 
-    for (const repl of nonBlankStringReplacements) {
+    for (const repl of activeReplacements) {
         if (typeof repl === "string" || repl.componentType !== "_copy") {
             flattenedReplacements.push(repl);
             i++;
@@ -361,8 +363,8 @@ export async function calcStartEndIdx({
             updateStart,
             updateEnd,
         });
-        const newReplacements = recursionResult.flattenedReplacements;
-        const n = newReplacements.length;
+        const recurFlattened = recursionResult.flattenedReplacements;
+        const n = recurFlattened.length;
 
         // The recursion may have produced a match. The current level's own
         // match (below) overrides it — preserving the closure-mutation
@@ -382,7 +384,7 @@ export async function calcStartEndIdx({
             }
         }
 
-        flattenedReplacements.push(...newReplacements);
+        flattenedReplacements.push(...recurFlattened);
         i += n;
     }
 
