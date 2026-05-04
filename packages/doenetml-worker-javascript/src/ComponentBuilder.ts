@@ -10,6 +10,7 @@ import {
     expandAllComposites,
 } from "./CompositeExpander";
 import { addComponentsToResolver } from "./ResolverAdapter";
+import { createStateVariableDefinitions } from "./StateVariableDefinitionFactory";
 import { initializeComponentStateVariables } from "./StateVariableInitializer";
 import { convertToErrorComponent } from "./utils/dast/errors";
 import { gatherVariantComponents } from "./utils/variants";
@@ -636,7 +637,8 @@ export async function createChildrenThenComponent({
         }
     }
 
-    const stateVariableDefinitions = await core.createStateVariableDefinitions({
+    const stateVariableDefinitions = await createStateVariableDefinitions({
+        core,
         componentClass,
         prescribedDependencies,
         componentIdx,

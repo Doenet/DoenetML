@@ -314,6 +314,24 @@ Phase 3 hit two regressions of the same shape (fixed in `caf3033f5`) that future
 
 Quick grep targets when reviewing the next phase: `let core = this`, `\.bind(this)`, and arrow vs. `function` callback choices on objects assigned to `stateDef`/`stateVarObj`.
 
+### Further de-duplication in `StateVariableDefinitionFactory`
+
+The class→module conversion (`core-refactor-18`) preserved three small duplications that are still candidates for follow-up extraction. They pre-date the conversion and were intentionally left alone there to keep the diff scoped to the structural change:
+
+1. **`primaryStateVariableForDefinition` resolution.** The 8-line block that picks `redefineDependencies.substituteForPrimaryStateVariable` → `componentClass.primaryStateVariableForDefinition` → `"value"` and then looks the resulting key up in `stateVariableDefinitions` appears in both `createAdapterStateVariableDefinitions` (~line 333) and `createReferenceShadowStateVariableDefinitions` (~line 515, with an additional `throw` on missing `stateDef`). Extracting `_resolvePrimaryStateVariableForDefinition({ redefineDependencies, componentClass, stateVariableDefinitions, throwIfMissing })` would centralise the precedence rule and the error message.
+2. **Attribute-spec → dependency-shape switch.** The four-way branch on `attributeSpecification` (`createPrimitiveOfType` → `attributePrimitive`, `createReferences` → `attributeRefResolutions`, else → `attributeComponent`, plus the two `fallBack*` branches) is structurally identical between `createAttributeStateVariableDefinitions` (~lines 180–196 inside the `returnDependencies` closure) and `createReferenceShadowStateVariableDefinitions` (~lines 452–483 building `thisDependencies`). A small `_buildAttributeValueDependencies(spec, attrName, stateVariableForAttributeValue)` helper that returns the dependency map would consolidate them; the only behavioural difference is the order in which `fallBack*` and the value-source branch are added, which the helper can preserve by returning a map both call sites spread into their own object.
+3. **Shadow-variable scan.** Inside `createReferenceShadowStateVariableDefinitions`, the same `for (let varName in targetComponent.state) { if (stateObj.shadowVariable || stateObj.isShadow) stateVariablesToShadow.push(varName); }` loop appears twice — at lines ~650–655 (the prop-variable branch) and again at lines ~733–738 (the no-prop-variable branch). Lifting it into a tiny `_collectShadowVariableNames(targetComponent)` would be one line at each call site.
+
+None of these are urgent; each is a 5–15 line collapse and would land cleanly with no behavioural change.
+
+### Tighten remaining `: any` in `StateVariableDefinitionFactory`
+
+`core-refactor-18` (and the small follow-up review pass) tightened the public destructure shapes (`componentIdx: ComponentIdx`, `prescribedDependencies: Record<string, any[]> | undefined`, `stateVariableDefinitions: Record<string, any>`, etc.) but several inner positions remain `any`:
+
+- `componentClass: any`, `redefineDependencies: any`, and `targetComponent`/`adapterTargetComponent: any` — tightening requires real types for the component-class shape (`createAttributesObject`, `returnNormalizedStateVariableDefinitions`, `primaryStateVariableForDefinition`, `implicitPropReturnsSameType`) and a `RedefineDependencies` discriminated union (`{ linkSource: "adapter" | "referenceShadow"; … }`). Both are bigger pieces of typing work than fits in a tightening pass on this file alone.
+- `attributeSpecification: any` in the four `_*Attribute*` helpers — `AttributeDefinition<unknown>` (from `utils/dast/types.ts`) covers most fields, but the runtime additionally reads `noInverse`, `componentStateVariableForAttributeValue`, `fallBackToSourceCompositeStateVariable`, `essentialVarName`, `isLocation`, and (for the inverse path) more. `AttributeDefinition` would need to grow to cover them before the parameter type can be tightened.
+- The internal callbacks attached to `stateDef` (e.g. `function ({ dependencyValues, usedDefault, essentialValues }) { … }`) carry implicit-`any` errors. They run in the StateVariableEvaluator's call-time context; tightening would mean importing/exporting the dep-value/usedDefault/essentialValues bag types from the evaluator. Cheap interim fix: explicit `(args: any)` annotations to silence the ~20 implicit-any errors in this file without changing semantics.
+
 ## Notes for the next agent
 
 - The applied items in this PR are self-contained — see the diff against the previous commit. The structural deferrals above don't depend on each other except that #1 (typing) makes #2 (stateless→plain) cleaner since the back-reference type would already exist.
