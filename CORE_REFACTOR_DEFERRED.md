@@ -58,11 +58,9 @@ export const TimerLabels = {
 
 Skip if the next phase introduces a broader logging/instrumentation layer that supersedes this helper.
 
-### Refactor `calcStartEndIdx` out of `determineParentAndIndexResolutionForResolver`
+### Refactor `calcStartEndIdx` out of `determineParentAndIndexResolutionForResolver` — DONE
 
-`ResolverAdapter.determineParentAndIndexResolutionForResolver` contains a nested `async function calcStartEndIdx(replacements)` that mutates three variables from the outer scope (`start_idx`, `end_idx`, and reads `update_start`, `update_end`, `copyComponent`) as side effects. The function is recursive and returns a value, but callers discard the return and rely entirely on the side-effect mutations. This was carried over verbatim from Core.js.
-
-A cleaner shape: make `calcStartEndIdx` a standalone helper (or a private method on `ResolverAdapter`) that returns `{ start_idx, end_idx }` directly, eliminating the closure mutation. This untangles the logic and makes the function independently testable.
+Extracted from the nested closure in `ResolverAdapter.determineParentAndIndexResolutionForResolver` into a standalone module-level helper in `utils/resolver.ts`. The new `calcStartEndIdx({ replacements, copyComponentIdx, updateStart, updateEnd })` returns `{ flattenedReplacements, startIdx, endIdx }` directly — no closure mutation, no discarded return value. Behaviour is preserved verbatim, including the parent-overrides-child semantics that the original closure relied on. Unit tests cover the nine behavioural branches in `src/test/utils/calcStartEndIdx.test.ts`.
 
 ### Pre-existing fire-and-forget calls still in `Core.js`
 

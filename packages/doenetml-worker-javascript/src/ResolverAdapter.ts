@@ -3,6 +3,7 @@ import { assignDoenetMLRange } from "@doenet/utils";
 import { FlatFragment } from "@doenet/doenetml-worker";
 import {
     addNodesToFlatFragment,
+    calcStartEndIdx,
     getEffectiveComponentIdx,
 } from "./utils/resolver";
 
@@ -242,95 +243,18 @@ export class ResolverAdapter {
                 const indexParent = copyComponent.replacementOf;
 
                 // determine where the replacement will end up being spliced in
+                const { startIdx, endIdx } = await calcStartEndIdx({
+                    replacements: indexParent.replacements,
+                    copyComponentIdx: copyComponent.componentIdx,
+                    updateStart: update_start,
+                    updateEnd: update_end,
+                });
 
-                let start_idx: number | undefined;
-                let end_idx: number | undefined;
-
-                async function calcStartEndIdx(
-                    replacements: any[],
-                ): Promise<any[]> {
-                    let nonWithheldReplacements: any[] = [];
-                    for (const repl of replacements) {
-                        if (
-                            typeof repl === "string" ||
-                            !(await repl.stateValues
-                                .isInactiveCompositeReplacement)
-                        ) {
-                            nonWithheldReplacements.push(repl);
-                        }
-                    }
-
-                    const nonBlankStringReplacements =
-                        nonWithheldReplacements.filter(
-                            (x) => typeof x !== "string" || x.trim() !== "",
-                        );
-                    const replacementsWithoutExpandedCopies: any[] = [];
-
-                    let i = 0;
-
-                    for (const repl of nonBlankStringReplacements) {
-                        if (repl.componentType == "_copy") {
-                            if (!repl.isExpanded) {
-                                if (
-                                    repl.componentIdx ===
-                                    copyComponent.componentIdx
-                                ) {
-                                    start_idx = i;
-                                    end_idx = i + 1;
-                                }
-                                replacementsWithoutExpandedCopies.push(repl);
-                                i++;
-                            } else {
-                                let replReplacements = repl.replacements;
-                                if (repl.replacementsToWithhold) {
-                                    replReplacements = replReplacements.slice(
-                                        0,
-                                        replReplacements.length -
-                                            repl.replacementsToWithhold,
-                                    );
-                                }
-
-                                const newReplacements =
-                                    await calcStartEndIdx(replReplacements);
-                                const n = newReplacements.length;
-
-                                if (
-                                    repl.componentIdx ===
-                                    copyComponent.componentIdx
-                                ) {
-                                    if (
-                                        update_start !== undefined &&
-                                        update_end !== undefined
-                                    ) {
-                                        start_idx = i + update_start;
-                                        end_idx = i + update_end;
-                                    } else {
-                                        start_idx = i;
-                                        end_idx = i + n;
-                                    }
-                                }
-
-                                replacementsWithoutExpandedCopies.push(
-                                    ...newReplacements,
-                                );
-                                i += n;
-                            }
-                        } else {
-                            replacementsWithoutExpandedCopies.push(repl);
-                            i++;
-                        }
-                    }
-
-                    return replacementsWithoutExpandedCopies;
-                }
-
-                await calcStartEndIdx(indexParent.replacements);
-
-                if (start_idx !== undefined && end_idx !== undefined) {
+                if (startIdx !== undefined && endIdx !== undefined) {
                     indexResolution = {
                         ReplaceRange: {
                             parent: indexParent.componentIdx,
-                            range: { start: start_idx, end: end_idx },
+                            range: { start: startIdx, end: endIdx },
                         },
                     };
                 } else {

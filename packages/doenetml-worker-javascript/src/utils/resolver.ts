@@ -2,6 +2,7 @@ import { FlatElement, FlatFragment } from "@doenet/doenetml-worker";
 import { SerializedComponent } from "./dast/types";
 import { unwrapSource } from "./dast/convertNormalizedDast";
 import { UnflattenedComponent } from "./dast/intermediateTypes";
+import type { ComponentInstance } from "../types/componentInstance";
 
 /**
  * Convert the `serializedComponents` into `FlatElements` and add them to `flatFragment` as children to `parentIdx`
@@ -268,4 +269,122 @@ function getEffectiveComponentName(
             return null;
         }
     }
+}
+
+/**
+ * Walk a tree of `replacements`, locating where the copy with index
+ * `copyComponentIdx` appears in the flattened (composite-expanded) list, and
+ * return the slice indices.
+ *
+ * Used by `ResolverAdapter.determineParentAndIndexResolutionForResolver` to
+ * translate a copy component's location back to a range in its
+ * `replacementOf`'s flattened replacements, for the resolver's `ReplaceRange`
+ * index resolution.
+ *
+ * Behaviour preserved verbatim from the original closure form in
+ * `ResolverAdapter`:
+ * - Withheld replacements (`stateValues.isInactiveCompositeReplacement`)
+ *   and blank-string replacements are skipped.
+ * - Expanded `_copy` replacements are substituted in place by their own
+ *   replacements (recursively); unexpanded copies remain.
+ * - When `copyComponentIdx` matches at the current level, `startIdx`/`endIdx`
+ *   are set to the position in the current level's flattened result. A match
+ *   at the current level overrides any match found in a recursive call (the
+ *   original code mutated outer-scope variables, so the last write — the
+ *   parent level — won).
+ * - When `updateStart`/`updateEnd` are provided and the match falls inside an
+ *   expanded copy, the indices are offset by `updateStart`/`updateEnd` instead
+ *   of spanning the whole expansion.
+ */
+export async function calcStartEndIdx({
+    replacements,
+    copyComponentIdx,
+    updateStart,
+    updateEnd,
+}: {
+    replacements: (ComponentInstance | string)[];
+    copyComponentIdx: number;
+    updateStart?: number;
+    updateEnd?: number;
+}): Promise<{
+    flattenedReplacements: (ComponentInstance | string)[];
+    startIdx?: number;
+    endIdx?: number;
+}> {
+    const nonWithheldReplacements: (ComponentInstance | string)[] = [];
+    for (const repl of replacements) {
+        if (
+            typeof repl === "string" ||
+            !(await repl.stateValues.isInactiveCompositeReplacement)
+        ) {
+            nonWithheldReplacements.push(repl);
+        }
+    }
+
+    const nonBlankStringReplacements = nonWithheldReplacements.filter(
+        (x) => typeof x !== "string" || x.trim() !== "",
+    );
+
+    const flattenedReplacements: (ComponentInstance | string)[] = [];
+    let startIdx: number | undefined;
+    let endIdx: number | undefined;
+    let i = 0;
+
+    for (const repl of nonBlankStringReplacements) {
+        if (typeof repl === "string" || repl.componentType !== "_copy") {
+            flattenedReplacements.push(repl);
+            i++;
+            continue;
+        }
+
+        if (!repl.isExpanded) {
+            if (repl.componentIdx === copyComponentIdx) {
+                startIdx = i;
+                endIdx = i + 1;
+            }
+            flattenedReplacements.push(repl);
+            i++;
+            continue;
+        }
+
+        let replReplacements = repl.replacements ?? [];
+        if (repl.replacementsToWithhold) {
+            replReplacements = replReplacements.slice(
+                0,
+                replReplacements.length - repl.replacementsToWithhold,
+            );
+        }
+
+        const recursionResult = await calcStartEndIdx({
+            replacements: replReplacements,
+            copyComponentIdx,
+            updateStart,
+            updateEnd,
+        });
+        const newReplacements = recursionResult.flattenedReplacements;
+        const n = newReplacements.length;
+
+        // The recursion may have produced a match. The current level's own
+        // match (below) overrides it — preserving the closure-mutation
+        // semantics of the original code.
+        if (recursionResult.startIdx !== undefined) {
+            startIdx = recursionResult.startIdx;
+            endIdx = recursionResult.endIdx;
+        }
+
+        if (repl.componentIdx === copyComponentIdx) {
+            if (updateStart !== undefined && updateEnd !== undefined) {
+                startIdx = i + updateStart;
+                endIdx = i + updateEnd;
+            } else {
+                startIdx = i;
+                endIdx = i + n;
+            }
+        }
+
+        flattenedReplacements.push(...newReplacements);
+        i += n;
+    }
+
+    return { flattenedReplacements, startIdx, endIdx };
 }
