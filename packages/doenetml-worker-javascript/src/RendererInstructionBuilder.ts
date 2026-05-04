@@ -1,4 +1,8 @@
 import type Core from "./Core";
+import {
+    deriveChildResultsFromDefiningChildren,
+    returnActiveChildrenIndicesToRender,
+} from "./ChildMatcher";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 
 /**
@@ -104,17 +108,18 @@ export class RendererInstructionBuilder {
                     unproxiedComponent.constructor.renderChildren
                 ) {
                     if (!unproxiedComponent.matchedCompositeChildren) {
-                        await this.core.deriveChildResultsFromDefiningChildren({
+                        await deriveChildResultsFromDefiningChildren({
+                            core: this.core,
                             parent: unproxiedComponent,
                             expandComposites: true,
                             forceExpandComposites: true,
                         });
                     }
 
-                    indicesToRender =
-                        await this.core.returnActiveChildrenIndicesToRender(
-                            unproxiedComponent,
-                        );
+                    indicesToRender = await returnActiveChildrenIndicesToRender(
+                        this.core,
+                        unproxiedComponent,
+                    );
 
                     let renderedInd = 0;
                     for (let [
@@ -331,7 +336,8 @@ export class RendererInstructionBuilder {
         }
 
         if (!component.matchedCompositeChildren) {
-            await this.core.deriveChildResultsFromDefiningChildren({
+            await deriveChildResultsFromDefiningChildren({
+                core: this.core,
                 parent: component,
                 expandComposites: true, //forceExpandComposites: true,
             });
@@ -368,8 +374,10 @@ export class RendererInstructionBuilder {
 
         let childrenToRender: any[] = [];
         if (component.constructor.renderChildren) {
-            let indicesToRender =
-                await this.core.returnActiveChildrenIndicesToRender(component);
+            let indicesToRender = await returnActiveChildrenIndicesToRender(
+                this.core,
+                component,
+            );
             for (let [
                 ind,
                 child,

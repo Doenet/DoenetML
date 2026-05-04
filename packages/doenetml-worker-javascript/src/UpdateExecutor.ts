@@ -1,5 +1,6 @@
 import type Core from "./Core";
 import type { ComponentIdx } from "@doenet/utils";
+import { deleteComponents } from "./DeletionEngine";
 import { createNewComponentIndices } from "./utils/componentIndices";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
 
@@ -323,7 +324,8 @@ export class UpdateExecutor {
                     }
 
                     if (componentsToDelete.length > 0) {
-                        await this.core.deleteComponents({
+                        await deleteComponents({
+                            core: this.core,
                             components: componentsToDelete,
                         });
                     }

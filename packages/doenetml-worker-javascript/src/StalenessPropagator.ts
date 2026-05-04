@@ -1,5 +1,6 @@
 import type Core from "./Core";
 import type { ComponentInstance } from "./types/componentInstance";
+import { returnActiveChildrenIndicesToRender } from "./ChildMatcher";
 /**
  * Walks the dependency graph to invalidate state-variable values and
  * propagate freshness changes:
@@ -138,8 +139,10 @@ export class StalenessPropagator {
 
     async markDescendantsToUpdateRenderers(component: ComponentInstance) {
         if (component.constructor.renderChildren) {
-            let indicesToRender =
-                await this.core.returnActiveChildrenIndicesToRender(component);
+            let indicesToRender = await returnActiveChildrenIndicesToRender(
+                this.core,
+                component,
+            );
             for (let ind of indicesToRender) {
                 let child = component.activeChildren![ind];
                 this.core.updateInfo.componentsToUpdateRenderers.add(
