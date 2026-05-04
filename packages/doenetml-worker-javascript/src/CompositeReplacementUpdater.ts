@@ -1207,19 +1207,10 @@ function findExpandableShadowByCompositeIdx(
 }
 
 function calculateAllComponentsShadowing(component: any): number[] {
-    let allShadowing: number[] = [];
-    if (component.shadowedBy) {
-        for (let comp2 of component.shadowedBy) {
-            if (
-                !comp2.shadows.propVariable &&
-                !comp2.constructor.doNotExpandAsShadowed
-            ) {
-                allShadowing.push(comp2.componentIdx);
-                let additionalShadowing =
-                    calculateAllComponentsShadowing(comp2);
-                allShadowing.push(...additionalShadowing);
-            }
-        }
+    const allShadowing: number[] = [];
+    for (const shadow of iterateExpandableShadows(component)) {
+        allShadowing.push(shadow.componentIdx);
+        allShadowing.push(...calculateAllComponentsShadowing(shadow));
     }
 
     // Idea for this part: if a component is shadowing this component's composite,
