@@ -33,7 +33,10 @@ export interface ComponentInstance {
      * the adapted index instead. */
     componentOrAdaptedIdx?: ComponentIdx;
     rendererType?: string;
-    stateId?: string;
+    /** Set to `serializedComponent.stateId ?? componentIdx.toString()` in
+     * `ComponentBuilder.createComponentClass`. Always present once the
+     * component is in `Core._components`. */
+    stateId: string;
 
     // ─── Tree pointers ────────────────────────────────────────────────────
     parent: ComponentInstance | null;
@@ -64,7 +67,9 @@ export interface ComponentInstance {
     // ─── State ────────────────────────────────────────────────────────────
     state: ComponentStateBag;
     stateValues: ComponentStateValues;
-    essentialState?: Record<string, any>;
+    /** Initialized to `{}` in `BaseComponent` and populated as essential
+     * values are set; always present on a constructed component. */
+    essentialState: Record<string, any>;
     unresolvedState?: Record<string, any>;
     unresolvedDependencies?: Record<string, any>;
     stateVarAliases?: Record<string, string>;

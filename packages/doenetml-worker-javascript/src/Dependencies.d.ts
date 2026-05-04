@@ -89,7 +89,7 @@ export declare class DependencyHandler {
 
     checkForCircularDependency(args: {
         componentIdx: ComponentIdx;
-        stateVariable: string;
+        varName: string;
         previouslyVisited?: any[];
     }): void;
 

@@ -1,9 +1,18 @@
 import type Core from "./Core";
+import type { ComponentInstance } from "./types/componentInstance";
 import me from "math-expressions";
 import {
     preprocessMathInverseDefinition,
     removeFunctionsMathExpressionClass,
 } from "./utils/math";
+
+/**
+ * Loose-typed bag of `componentIdx → varName → newValue` entries that the
+ * inverse-definition pipeline accumulates and the essential-write engine
+ * applies. Keys are component-index strings (the form `for...in` yields);
+ * indices are coerced to `Number` only at lookup time.
+ */
+type NewStateVariableValues = Record<string, Record<string, any>>;
 
 /**
  * Applies authored / interactive state-variable changes to the live
@@ -40,7 +49,9 @@ export class EssentialValueWriter {
         this.core = core;
     }
 
-    async executeUpdateStateVariables(newStateVariableValues) {
+    async executeUpdateStateVariables(
+        newStateVariableValues: NewStateVariableValues,
+    ) {
         await this.processNewStateVariableValues(newStateVariableValues);
 
         // calculate any replacement changes on composites touched
@@ -85,7 +96,7 @@ export class EssentialValueWriter {
         ];
         this.core.updateInfo.compositesToUpdateReplacements.clear();
 
-        let compositesNotReady = new Set([]);
+        let compositesNotReady = new Set<number>();
 
         let nPasses = 0;
 
@@ -165,8 +176,29 @@ export class EssentialValueWriter {
         return { updatedComposites };
     }
 
+    /**
+     * Apply a bulk batch of `componentIdx → varName → newValue` updates to
+     * the live component tree. Used at boot to re-apply persisted /
+     * restored state and after `executeUpdate` instructions to flush
+     * intermediate inverse-definition results.
+     *
+     * For each component:
+     *   - Skips and stashes onto `updateInfo.stateVariableUpdatesForMissingComponents`
+     *     when the component does not exist yet (it will be re-applied
+     *     once the component is created via `checkForDependenciesOnNewComponent`).
+     *   - For each variable, calls `processNewStateVariableValueForVariable`,
+     *     which dispatches into the array / scalar / essential / primitive-child
+     *     branches and may recurse into shadowing variables.
+     *   - Records actual changes back to upstream dependencies so the rest
+     *     of the staleness machinery sees the write.
+     *
+     * The optional `newComponent` flag is set when the bulk apply is
+     * happening as part of a fresh component initialization, which
+     * suppresses some warnings that would otherwise fire for
+     * not-yet-resolved variables.
+     */
     async processNewStateVariableValues(
-        newStateVariableValues,
+        newStateVariableValues: NewStateVariableValues,
         newComponent = false,
     ) {
         // console.log("process new state variable values");
@@ -310,7 +342,7 @@ export class EssentialValueWriter {
                             continue;
                         }
 
-                        let set = (x) => x;
+                        let set = (x: any) => x;
                         if (compStateObj.set) {
                             set = compStateObj.set;
                         }
@@ -369,11 +401,39 @@ export class EssentialValueWriter {
         return { nFailures, foundIgnore };
     }
 
+    /**
+     * Walk one update instruction's inverse-definition chain, threading
+     * desired values through dependencies until each lands on an essential
+     * or inverse-set target. The instruction object describes a single
+     * variable change; the function recursively expands it via the
+     * variable's `inverseDefinition` (or `arrayInverseDefinition` for
+     * arrays), calling itself on each downstream "set" instruction the
+     * inverse returns.
+     *
+     * Result accumulators:
+     *   - `newStateVariableValues[componentIdx][varName]` collects the
+     *     final values to write — flushed by the caller via
+     *     `executeUpdateStateVariables` / `processNewStateVariableValues`.
+     *   - `workspace[componentIdx]` holds per-component scratch state
+     *     shared across recursive calls so each variable is processed once.
+     *
+     * Termination: a chain ends at an essential variable, an inverse
+     * definition returning `success: false`, or an instruction whose
+     * `value` already matches the current value (per `_isUnchanged` checks
+     * inside the inverse definitions). The `initialChange` flag is true
+     * only for the top-level call so child recursions can suppress some
+     * provenance bookkeeping.
+     */
     async requestComponentChanges({
         instruction,
         initialChange = true,
         workspace,
         newStateVariableValues,
+    }: {
+        instruction: Record<string, any>;
+        initialChange?: boolean;
+        workspace: Record<string, any>;
+        newStateVariableValues: NewStateVariableValues;
     }) {
         // console.log(`request component changes`);
         // console.log(instruction);
@@ -1070,7 +1130,7 @@ export class EssentialValueWriter {
                         let downstreamInd =
                             dep.downstreamPrimitives
                                 .slice(0, childInd + 1)
-                                .filter((x) => !x).length - 1;
+                                .filter((x: unknown) => !x).length - 1;
 
                         let cIdx =
                             dep.downstreamComponentIndices[downstreamInd];
@@ -1258,6 +1318,12 @@ export class EssentialValueWriter {
         value,
         newStateVariableValues,
         recurseToShadows = true,
+    }: {
+        component: ComponentInstance;
+        varName: string;
+        value: any;
+        newStateVariableValues: NewStateVariableValues;
+        recurseToShadows?: boolean;
     }) {
         if (!newStateVariableValues[component.componentIdx]) {
             newStateVariableValues[component.componentIdx] = {};
@@ -1286,7 +1352,7 @@ export class EssentialValueWriter {
                 // Don't include shadows due to propVariable
                 // unless it is a plain copy marked as returning the same type
                 if (
-                    shadow.shadows.propVariable === undefined ||
+                    shadow.shadows!.propVariable === undefined ||
                     (shadow.doenetAttributes.fromImplicitProp &&
                         component.constructor.implicitPropReturnsSameType)
                 ) {
@@ -1307,6 +1373,12 @@ export class EssentialValueWriter {
         newValue,
         newStateVariableValues,
         markToIgnoreForParent,
+    }: {
+        parent: ComponentInstance;
+        definingInd: number;
+        newValue: any;
+        newStateVariableValues: NewStateVariableValues;
+        markToIgnoreForParent: number | undefined;
     }) {
         if (!newStateVariableValues[parent.componentIdx]) {
             newStateVariableValues[parent.componentIdx] = {};
@@ -1323,7 +1395,7 @@ export class EssentialValueWriter {
 
         if (parent.shadowedBy) {
             for (let shadow of parent.shadowedBy) {
-                if (shadow.shadows.propVariable === undefined) {
+                if (shadow.shadows!.propVariable === undefined) {
                     this.calculatePrimitiveChildChanges({
                         parent: shadow,
                         definingInd,

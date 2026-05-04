@@ -1,4 +1,6 @@
 import type Core from "./Core";
+import type { ComponentInstance } from "./types/componentInstance";
+import type { ComponentIdx } from "@doenet/utils";
 /**
  * Resolves a state variable's value: walks the dependency graph to gather
  * fresh inputs, invokes the variable's `definition` function (or
@@ -22,7 +24,36 @@ export class StateVariableEvaluator {
         this.core = core;
     }
 
-    async getStateVariableValue({ component, stateVariable }) {
+    /**
+     * Resolve `component.state[stateVariable]` to a fresh value, returning the
+     * awaited `value` (or array values for array state variables).
+     *
+     * Behaviour highlights for callers that need to reason about side effects:
+     *  - Lazily resolves any unresolved state variables in the
+     *    `additionalStateVariablesDefined` group via
+     *    `dependencies.resolveItem`; throws if resolution fails.
+     *  - Records a `dependencies.recordActualChangeInUpstreamDependencies`
+     *    entry for every variable whose value materially changed (per
+     *    `_isUnchanged`), and for the matching array entries when an array
+     *    state variable's keys, size, or contents changed.
+     *  - Forces a re-evaluation of `expressionWithCodes`-style state via
+     *    `component.reprocessAfterEvaluate` (see the kludge note below) when
+     *    that flag is set on the component.
+     *  - Mutates `component.state[varName].value`,
+     *    `_previousValue`, `freshnessInfo`, `arrayValues`, and clears
+     *    `forceRecalculation` and `justUpdatedForNewComponent` on the
+     *    affected variables. Does not mark anything stale itself —
+     *    downstream invalidation is the responsibility of
+     *    `markStateVariableAndUpstreamDependentsStale`, called by callers
+     *    that record a change.
+     */
+    async getStateVariableValue({
+        component,
+        stateVariable,
+    }: {
+        component: ComponentInstance;
+        stateVariable: string;
+    }) {
         // console.log(`getting value of state variable ${stateVariable} of ${component.componentIdx}`)
 
         let stateVarObj = component.state[stateVariable];
@@ -782,7 +813,7 @@ export class StateVariableEvaluator {
             });
 
             if (component.state[varName].isArray) {
-                let arrayVarNamesChanged = [];
+                let arrayVarNamesChanged: string[] = [];
                 if (
                     valuesChanged[varName] === true ||
                     valuesChanged[varName].allArrayKeysChanged ||
@@ -832,8 +863,13 @@ export class StateVariableEvaluator {
     async getStateVariableDefinitionArguments({
         component,
         stateVariable,
-        excludeDependencyValues,
+        excludeDependencyValues = false,
         consumeChanges = true,
+    }: {
+        component: ComponentInstance;
+        stateVariable: string;
+        excludeDependencyValues?: boolean;
+        consumeChanges?: boolean;
     }) {
         // console.log(`get state variable dependencies of ${component.componentIdx}, ${stateVariable}`)
 
@@ -908,7 +944,13 @@ export class StateVariableEvaluator {
         return args;
     }
 
-    async recordActualChangeInStateVariable({ componentIdx, varName }) {
+    async recordActualChangeInStateVariable({
+        componentIdx,
+        varName,
+    }: {
+        componentIdx: ComponentIdx;
+        varName: string;
+    }) {
         let component = this.core._components[componentIdx];
 
         // mark stale always includes additional state variables defined

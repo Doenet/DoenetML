@@ -1,4 +1,5 @@
 import type Core from "./Core";
+import type { ComponentInstance } from "./types/componentInstance";
 /**
  * Walks the dependency graph to invalidate state-variable values and
  * propagate freshness changes:
@@ -33,6 +34,10 @@ export class StalenessPropagator {
         stateVariable,
         component,
         initializeOnly = false,
+    }: {
+        stateVariable: string;
+        component: ComponentInstance;
+        initializeOnly?: boolean;
     }) {
         if (!component.arrayEntryPrefixes) {
             throw Error(
@@ -131,12 +136,12 @@ export class StalenessPropagator {
         );
     }
 
-    async markDescendantsToUpdateRenderers(component) {
+    async markDescendantsToUpdateRenderers(component: ComponentInstance) {
         if (component.constructor.renderChildren) {
             let indicesToRender =
                 await this.core.returnActiveChildrenIndicesToRender(component);
             for (let ind of indicesToRender) {
-                let child = component.activeChildren[ind];
+                let child = component.activeChildren![ind];
                 this.core.updateInfo.componentsToUpdateRenderers.add(
                     child.componentIdx,
                 );
@@ -145,7 +150,34 @@ export class StalenessPropagator {
         }
     }
 
-    async markStateVariableAndUpstreamDependentsStale({ component, varName }) {
+    /**
+     * Public entry point used after a value has materially changed: invalidate
+     * `varName` and every state variable downstream of it.
+     *
+     *  - Adds `component.componentIdx` to `componentsToUpdateRenderers` if
+     *    `varName` is in the component's renderer-variable set.
+     *  - Builds the `allStateVariablesAffectedObj` covering `varName` and
+     *    every entry in its `additionalStateVariablesDefined` group, then
+     *    dispatches into `_processStaleVisit`, which:
+     *      - Calls each variable's `markStale` predicate, classifying the
+     *        result as `fresh` (no recursion), `partiallyFresh` (mark and
+     *        recurse), or fully stale (replace `value` with the lazy getter
+     *        and recurse). For array state variables, the array-entry remap
+     *        bridges array-level freshness to the per-entry mirrors via
+     *        `_remapArrayEntryFreshness`.
+     *      - When the variable is fully stale, saves `_previousValue`,
+     *        reinstalls the lazy getter via `_replaceWithStaleGetter`, and
+     *        calls `markUpstreamDependentsStale` to walk the upstream graph.
+     *      - Triggers `actionTriggerScheduler.queueTriggeredActions` and the
+     *        auto-submit detector for each visited variable.
+     */
+    async markStateVariableAndUpstreamDependentsStale({
+        component,
+        varName,
+    }: {
+        component: ComponentInstance;
+        varName: string;
+    }) {
         // console.log(`mark state variable ${varName} of ${component.componentIdx} and updeps stale`)
 
         if (
@@ -178,6 +210,10 @@ export class StalenessPropagator {
         component,
         varName,
         allStateVariablesAffectedObj,
+    }: {
+        component: ComponentInstance;
+        varName: string;
+        allStateVariablesAffectedObj: Record<string, any>;
     }) {
         let stateVarObj = component.state[varName];
 
@@ -206,25 +242,32 @@ export class StalenessPropagator {
         return result;
     }
 
+    /**
+     * Run the variable's `markStale` predicate (if any) and merge the result
+     * back into `allStateVariablesAffectedObj`.
+     *
+     * Returns a freshness verdict:
+     *   - `{ fresh: { [varName]: true, ... } }`: predicate considers the value
+     *     completely fresh; the caller should not recurse into upstream deps.
+     *   - `{ partiallyFresh: { [varName]: true, ... } }`: predicate sees a
+     *     partial change; the caller should recurse but also mark the variable
+     *     so a later mark-stale invocation can revisit it.
+     *   - other attributes set by `markStale` are passed through to the caller.
+     *
+     * For array state variables the predicate is invoked with `arrayKeys` and
+     * `arraySize`; the caller bridges array-level vs entry-level freshness
+     * via `_remapArrayEntryFreshness`. May mutate `freshnessInfo` on the
+     * affected variables; does not record changes or queue renderer updates.
+     */
     async processMarkStale({
         component,
         varName,
         allStateVariablesAffectedObj,
+    }: {
+        component: ComponentInstance;
+        varName: string;
+        allStateVariablesAffectedObj: Record<string, any>;
     }) {
-        // if the stateVariable varName (or its array state variable)
-        // has a markStale function, then run that function,
-        // giving it arguments with information about what changed
-
-        // markStale may change the freshnessInfo for varName (or its array state variable)
-        // and will return an object with attributes
-        // - fresh: if the variable is to be considered completely fresh,
-        //   indicating the mark stale process should not recurse
-        // - partiallyFresh: if the variable is partially fresh,
-        //   indicating the mark stale process should recurse,
-        //   but the variable should be marked to allow later mark stale
-        //   processes that involve the variable to process the variable again
-        // - other attributes that not processed in this function but returned
-
         let stateVarObj = component.state[varName];
 
         if (!stateVarObj.markStale || !stateVarObj.initiallyResolved) {
@@ -286,7 +329,13 @@ export class StalenessPropagator {
         return result;
     }
 
-    async markUpstreamDependentsStale({ component, varName }) {
+    async markUpstreamDependentsStale({
+        component,
+        varName,
+    }: {
+        component: ComponentInstance;
+        varName: string;
+    }) {
         // Recursively mark every upstream dependency of component/varName as stale
         // If a state variable is already stale (has a getter in place)
         // then don't recurse

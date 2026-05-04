@@ -1,6 +1,79 @@
 import type Core from "./Core";
+import type { ComponentIdx } from "@doenet/utils";
 import { createNewComponentIndices } from "./utils/componentIndices";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
+
+/**
+ * Source-side metadata about *how* an update originated. Indexed by
+ * `componentIdx` (string-coerced because this object also carries
+ * non-numeric keys like `actionId` from upstream callers); each entry is
+ * a free-form bag of provenance attributes that flows through to renderers.
+ */
+type SourceInformation = Record<string, any>;
+
+/**
+ * One entry in `performUpdate`'s `updateInstructions` array. The shape
+ * varies by `updateType`; this discriminated union is loose because the
+ * historical call sites mix authored, interactive, and chained
+ * instructions on the same array.
+ */
+type UpdateInstruction = {
+    updateType: string;
+    componentIdx?: ComponentIdx;
+    stateVariable?: string;
+    value?: any;
+    serializedComponents?: any;
+    parentIdx?: ComponentIdx;
+    componentIndices?: ComponentIdx[];
+    componentNumber?: number;
+    sourceDetails?: Record<string, any>;
+    [k: string]: any;
+};
+
+type RecordEvent = Record<string, any>;
+type Diagnostic = Record<string, any>;
+
+type PerformActionArgs = {
+    componentIdx?: ComponentIdx;
+    actionName: string;
+    args?: Record<string, any>;
+    event?: RecordEvent;
+    caseInsensitiveMatch?: boolean;
+};
+
+type PerformUpdateArgs = {
+    updateInstructions: UpdateInstruction[];
+    diagnostics?: Diagnostic[];
+    actionId?: string;
+    event?: RecordEvent;
+    /**
+     * When true, perform the update even if `core.flags.readOnly` is set.
+     * Used by Core's own internal flows (e.g. theme set) where the caller
+     * has decided the read-only flag does not apply.
+     */
+    overrideReadOnly?: boolean;
+    /**
+     * Skip the debounced state-persistence side effect. The update still
+     * mutates state and updates renderers; only the call to
+     * `statePersistence.scheduleSave` is suppressed. Used for theme
+     * changes and other non-interactions.
+     */
+    doNotSave?: boolean;
+    /**
+     * Skip *both* renderer-update paths (the read-only mirror and the
+     * post-update fan-out). Used when the caller will re-issue updates
+     * imminently and renderer churn would be wasted.
+     */
+    canSkipUpdatingRenderer?: boolean;
+    /**
+     * Skip only the late `updateAllChangedRenderers` call at the end of
+     * `performUpdate`, while still letting the early read-only path and
+     * the components-to-update bookkeeping run. Submission-recording
+     * updates override this and always fan out.
+     */
+    skipRendererUpdate?: boolean;
+    sourceInformation?: SourceInformation;
+};
 
 /**
  * The orchestrators dequeued by `ProcessQueue`:
@@ -30,7 +103,7 @@ export class UpdateExecutor {
         args,
         event,
         caseInsensitiveMatch,
-    }) {
+    }: PerformActionArgs) {
         if (actionName === "setTheme" && componentIdx === undefined) {
             // For now, co-opting the action mechanism to let the viewer set the theme (dark mode) on document.
             // Don't have an actual action on document as don't want the ability for others to call it.
@@ -41,17 +114,17 @@ export class UpdateExecutor {
                         updateType: "updateValue",
                         componentIdx: this.core.documentIdx,
                         stateVariable: "theme",
-                        value: args.theme,
+                        value: args!.theme,
                     },
                 ],
-                actionId: args.actionId,
+                actionId: args!.actionId,
                 doNotSave: true, // this isn't an interaction, so don't save doc state
             });
 
-            return { actionId: args.actionId };
+            return { actionId: args!.actionId };
         }
 
-        let component = this.core._components[componentIdx];
+        let component = this.core._components[componentIdx!];
         if (component && component.actions) {
             let action = component.actions[actionName];
             if (!action && caseInsensitiveMatch) {
@@ -107,6 +180,40 @@ export class UpdateExecutor {
         return {};
     }
 
+    /**
+     * Drive a batch of update instructions through the inverse-definition
+     * pipeline, then surface the results to renderers and persistence.
+     *
+     * The instruction array is processed in order. Each instruction
+     * dispatches by `updateType`:
+     *   - `updateValue`: hand off to `requestComponentChanges`, accumulating
+     *     `newStateVariableValues` for the post-loop flush.
+     *   - `addComponents` / `deleteComponents`: structural changes that
+     *     synchronously call `Core.addComponents` / `Core.deleteComponents`.
+     *   - `executeUpdate`: flush the currently-accumulated
+     *     `newStateVariableValues` immediately so subsequent inverse
+     *     definitions can read the updated values.
+     *   - `recordItemSubmission`: queue the instruction for the
+     *     post-loop submission-event recording (and triggers an
+     *     immediate save).
+     *   - `setComponentNeedingUpdateValue` /
+     *     `unsetComponentNeedingUpdateValue`: flag bookkeeping for
+     *     downstream answer-submission detection.
+     *
+     * After the loop, `executeUpdateStateVariables` runs once more on
+     * any leftover `newStateVariableValues`, then
+     * `processStateVariableTriggers` and `updateAllChangedRenderers` run
+     * conditionally based on the `skipRendererUpdate` /
+     * `canSkipUpdatingRenderer` flags. Essential values saved during
+     * definitions are merged into the cumulative changes log so they
+     * persist on the next save.
+     *
+     * Persistence side effects:
+     *   - Submission updates fire `saveState(true, true)` immediately
+     *     (fire-and-forget; failures are logged but do not block).
+     *   - Otherwise `statePersistence.scheduleSave(1000)` debounces a
+     *     save unless `doNotSave` is set.
+     */
     async performUpdate({
         updateInstructions,
         diagnostics,
@@ -117,7 +224,7 @@ export class UpdateExecutor {
         canSkipUpdatingRenderer = false,
         skipRendererUpdate = false,
         sourceInformation = {},
-    }) {
+    }: PerformUpdateArgs) {
         if (diagnostics) {
             for (let diagnostic of diagnostics) {
                 this.core.addDiagnostic(diagnostic);
@@ -132,7 +239,7 @@ export class UpdateExecutor {
 
                 await this.core.updateRendererInstructions({
                     componentNamesToUpdate: updateInstructions.map(
-                        (x) => x.componentIdx,
+                        (x: UpdateInstruction) => x.componentIdx,
                     ),
                     sourceOfUpdate: { sourceInformation },
                     actionId,
@@ -177,9 +284,9 @@ export class UpdateExecutor {
                     parentIdx: instruction.parentIdx,
                 });
             } else if (instruction.updateType === "deleteComponents") {
-                if (instruction.componentIndices.length > 0) {
+                if (instruction.componentIndices!.length > 0) {
                     let componentsToDelete = [];
-                    for (let componentIdx of instruction.componentIndices) {
+                    for (let componentIdx of instruction.componentIndices!) {
                         let component = this.core._components[componentIdx];
                         if (component) {
                             componentsToDelete.push(component);
@@ -214,7 +321,7 @@ export class UpdateExecutor {
                 instruction.updateType === "setComponentNeedingUpdateValue"
             ) {
                 this.core.cumulativeStateVariableChanges.__componentNeedingUpdateValue =
-                    this.core._components[instruction.componentIdx].stateId;
+                    this.core._components[instruction.componentIdx!]!.stateId;
             } else if (
                 instruction.updateType === "unsetComponentNeedingUpdateValue"
             ) {
