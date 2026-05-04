@@ -11,6 +11,17 @@
                     }
                 ]
             }
+        ],
+        "UserPromptExpansion": [
+            {
+                "matcher": "*",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "msg=$(jq -r '.userMessage'); if echo \"$msg\" | grep -qE '^/review'; then cat docs/PR_REVIEW_GUIDELINES.md && echo \"\" && echo \"$msg\"; else echo \"$msg\"; fi | jq -Rs '{userMessage: .}'"
+                    }
+                ]
+            }
         ]
     }
 }
