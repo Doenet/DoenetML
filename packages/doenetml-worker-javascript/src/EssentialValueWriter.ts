@@ -475,7 +475,14 @@ export class EssentialValueWriter {
                         try {
                             desiredValuesForArray[arrayKey] =
                                 instruction.value.get_component(ind);
-                        } catch (e) {}
+                        } catch (e) {
+                            // `get_component(ind)` throws when `ind` is out of
+                            // range for this math expression; treat it as "no
+                            // desired value for this arrayKey" and leave the
+                            // slot unset. Any other exception shape would also
+                            // be swallowed here — narrow if a concrete error
+                            // type from math-expressions becomes available.
+                        }
                     }
                 }
             }

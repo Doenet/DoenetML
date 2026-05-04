@@ -730,7 +730,7 @@ export class CompositeExpander {
      * push/pop pairing in `expandCompositeComponent` /
      * `expandShadowingComposite` has drifted.
      */
-    private _finishExpanding(componentIdx: number) {
+    _finishExpanding(componentIdx: number) {
         const targetInd =
             this.core.updateInfo.compositesBeingExpanded.indexOf(componentIdx);
         if (targetInd === -1) {

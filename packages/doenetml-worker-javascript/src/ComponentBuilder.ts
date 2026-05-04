@@ -65,11 +65,8 @@ export class ComponentBuilder {
 
             this.core.parameterStack.push(parent.sharedParameters, false);
 
-            if (!this.core.nTimesAddedComponents) {
-                this.core.nTimesAddedComponents = 1;
-            } else {
-                this.core.nTimesAddedComponents++;
-            }
+            this.core.nTimesAddedComponents =
+                (this.core.nTimesAddedComponents ?? 0) + 1;
 
             this.core.addComponentsToResolver(serializedComponents, parentIdx);
         }
@@ -309,7 +306,7 @@ export class ComponentBuilder {
             }
 
             let componentIdx = serializedComponent.componentIdx;
-            if (componentIdx == undefined) {
+            if (componentIdx === undefined) {
                 throw Error(
                     "Found a serialized component without a componentIdx",
                     serializedComponent,
@@ -513,28 +510,23 @@ export class ComponentBuilder {
                         }
                     }
                 } else if (attribute.references) {
-                    try {
-                        const attrResult = await this.createIsolatedComponents({
-                            serializedComponents: attribute.references,
-                            ancestors: ancestorsForChildren,
-                            shadow,
-                            componentsReplacementOf,
-                        });
+                    const attrResult = await this.createIsolatedComponents({
+                        serializedComponents: attribute.references,
+                        ancestors: ancestorsForChildren,
+                        shadow,
+                        componentsReplacementOf,
+                    });
 
-                        if (attrResult.lastErrorMessage) {
-                            lastErrorMessage = attrResult.lastErrorMessage;
-                            lastErrorMessageFromAttribute =
-                                attrResult.lastErrorMessage;
-                        }
-
-                        attributes[attrName] = {
-                            references: attrResult.components,
-                            stringChildren: attribute.stringChildren,
-                        };
-                    } catch (e) {
-                        console.error(e);
-                        throw e;
+                    if (attrResult.lastErrorMessage) {
+                        lastErrorMessage = attrResult.lastErrorMessage;
+                        lastErrorMessageFromAttribute =
+                            attrResult.lastErrorMessage;
                     }
+
+                    attributes[attrName] = {
+                        references: attrResult.components,
+                        stringChildren: attribute.stringChildren,
+                    };
                 } else {
                     attributes[attrName] =
                         serializedComponent.attributes[attrName];
