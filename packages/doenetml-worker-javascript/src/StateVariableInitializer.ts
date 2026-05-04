@@ -1,5 +1,6 @@
 import type Core from "./Core";
 import { deepClone, flattenDeep } from "@doenet/utils";
+import type { ComponentInstance } from "./types/componentInstance";
 import {
     returnDefaultArrayVarNameFromPropIndex,
     returnDefaultGetArrayKeysFromVarName,
@@ -20,10 +21,11 @@ import {
  * `getStateVariableValue` onto a separate manager, this capture must
  * become a lazy lookup so the binding source stays live.
  *
- * Stateless — each function takes a back-reference to Core to read
- * `_components`, `componentInfoObjects`, and
- * `stateVariableChangeTriggers`, and to invoke `getStateVariableValue`,
- * `checkIfArrayEntry`, `addDiagnostic`, and `createFromArrayEntry`.
+ * Stateless — exported functions take a back-reference to Core to read
+ * `stateVariableChangeTriggers` and to invoke `getStateVariableValue`,
+ * `checkIfArrayEntry`, `addDiagnostic`, and `createFromArrayEntry`. The
+ * private helper `initializeArrayEntryStateVariable` needs none of these
+ * and so does not take `core`.
  */
 
 export async function initializeComponentStateVariables({
@@ -31,7 +33,7 @@ export async function initializeComponentStateVariables({
     component,
 }: {
     core: Core;
-    component: any;
+    component: ComponentInstance;
 }) {
     for (let stateVariable in component.state) {
         if (component.state[stateVariable].isAlias) {
@@ -61,10 +63,10 @@ export async function initializeStateVariable({
     arrayEntryPrefix,
 }: {
     core: Core;
-    component: any;
-    stateVariable: any;
-    arrayStateVariable?: any;
-    arrayEntryPrefix?: any;
+    component: ComponentInstance;
+    stateVariable: string;
+    arrayStateVariable?: string;
+    arrayEntryPrefix?: string;
 }) {
     let getStateVar = core.getStateVariableValue;
     if (!component.state[stateVariable]) {
@@ -78,9 +80,11 @@ export async function initializeStateVariable({
     });
 
     if (arrayEntryPrefix !== undefined) {
+        // Callers always pair `arrayEntryPrefix` with `arrayStateVariable`;
+        // assert here so the inner helper can require both as `string`.
         await initializeArrayEntryStateVariable({
             stateVarObj,
-            arrayStateVariable,
+            arrayStateVariable: arrayStateVariable!,
             arrayEntryPrefix,
             component,
             stateVariable,
@@ -116,10 +120,10 @@ async function initializeArrayEntryStateVariable({
     stateVariable,
 }: {
     stateVarObj: any;
-    arrayStateVariable: any;
-    arrayEntryPrefix: any;
-    component: any;
-    stateVariable: any;
+    arrayStateVariable: string;
+    arrayEntryPrefix: string;
+    component: ComponentInstance;
+    stateVariable: string;
 }) {
     // This function used for initializing array entry variables
     // (not the original array variable)
@@ -384,8 +388,8 @@ async function initializeArrayStateVariable({
 }: {
     core: Core;
     stateVarObj: any;
-    component: any;
-    stateVariable: any;
+    component: ComponentInstance;
+    stateVariable: string;
 }) {
     // This function used for initializing original array variables
     // (not array entry variables)
@@ -1463,8 +1467,8 @@ async function createArraySizeStateVariable({
 }: {
     core: Core;
     stateVarObj: any;
-    component: any;
-    stateVariable: any;
+    component: ComponentInstance;
+    stateVariable: string;
 }) {
     let allStateVariablesAffected = [stateVariable];
     if (stateVarObj.additionalStateVariablesDefined) {
@@ -1556,9 +1560,9 @@ export async function arrayEntryNamesFromPropIndex({
     propIndex,
 }: {
     core: Core;
-    stateVariables: any;
-    component: any;
-    propIndex: any;
+    stateVariables: string[];
+    component: ComponentInstance;
+    propIndex: number[];
 }) {
     let newVarNames = [];
     for (let varName of stateVariables) {

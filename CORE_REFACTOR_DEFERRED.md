@@ -193,6 +193,24 @@ if (!numDimensionsInArrayKey > stateVarObj.numDimensions) {
 
 `!numDimensionsInArrayKey` is `false` for any positive integer, and `false > number` is always `false`, so the diagnostic is unreachable. Almost certainly intended `numDimensionsInArrayKey > stateVarObj.numDimensions`. Pre-dates the refactor (present in `Core.js` since the 2021 rename); flag for a separate fix once the intended check has been confirmed against test expectations.
 
+### Collapse the 1-D vs N-D branches of `StateVariableInitializer.initializeArrayStateVariable`
+
+`StateVariableInitializer.ts:449-797` (the `if (stateVarObj.numDimensions > 1) { ... } else { ... }` block) duplicates the per-array plumbing across both branches: `keyToIndex`, `setArrayValue`, `getArrayValue`, `getAllArrayKeys`, `arrayVarNameFromArrayKey`, `arrayVarNameFromPropIndex`, and `adjustArrayToNewArraySize`. The 1-D branch is essentially the N-D branch specialised to `numDimensions === 1`.
+
+A unified implementation that always uses the multi-index path would shed roughly 80 lines of duplication. The trade-off is that the 1-D path has a flatter, faster shape (`Number(key)` instead of `key.split(",").map(Number)`); benchmarking against the existing array-heavy components (`mathList`, `numberList`, `point`'s array entries) is the gating step before unifying. Carried over verbatim from `Core.js`; not introduced by the class→module conversion (PR `core-refactor-17`).
+
+### `getAllArrayKeys` default in `StateVariableInitializer.initializeArrayStateVariable`
+
+Five sites inside `initializeArrayStateVariable` (`returnDependencies`, `getCurrentFreshness`, `markStale`, `freshenOnNoChanges`, `definition`, `inverseDefinition`) all open with the same defaulting line:
+
+```ts
+if (args.arrayKeys === undefined) {
+    args.arrayKeys = stateVarObj.getAllArrayKeys(args.arraySize);
+}
+```
+
+Folding this into `getAllArrayKeys` itself (so callers can pass `undefined` and get the all-keys default back) would cut five 3-line repetitions to one. Pre-existing pattern carried over from `Core.js`; not introduced by the class→module conversion (PR `core-refactor-17`).
+
 ### Re-home `recursivelyReplaceCompositesWithReplacements` — DONE
 
 Moved from `StateVariableInitializer` to `CompositeExpander`. Dropped the unread
