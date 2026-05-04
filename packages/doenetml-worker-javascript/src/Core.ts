@@ -18,18 +18,14 @@ import type { ComponentInstance } from "./types/componentInstance";
 import { DependencyHandler } from "./Dependencies";
 import { ActionTriggerScheduler } from "./ActionTriggerScheduler";
 import { AutoSubmitManager } from "./AutoSubmitManager";
-import { ChildMatcher } from "./ChildMatcher";
 import { ComponentBuilder } from "./ComponentBuilder";
-import { ComponentLifecycle } from "./ComponentLifecycle";
 import { CompositeExpander } from "./CompositeExpander";
 import { CompositeReplacementUpdater } from "./CompositeReplacementUpdater";
-import { DeletionEngine } from "./DeletionEngine";
 import { DiagnosticsManager } from "./DiagnosticsManager";
 import { EssentialValueWriter } from "./EssentialValueWriter";
-import { NavigationHandler } from "./NavigationHandler";
+import { navigateToTarget } from "./NavigationHandler";
 import { ProcessQueue } from "./ProcessQueue";
 import { RendererInstructionBuilder } from "./RendererInstructionBuilder";
-import { ResolverAdapter } from "./ResolverAdapter";
 import { StalenessPropagator } from "./StalenessPropagator";
 import { StatePersistence } from "./StatePersistence";
 import { StateVariableDefinitionFactory } from "./StateVariableDefinitionFactory";
@@ -109,18 +105,17 @@ export interface CoreInfo {
  * - componentClass → string: `componentClass.componentType`.
  *
  * Nearly all of Core's prior responsibilities have been extracted into their
- * own modules (DiagnosticsManager, VisibilityTracker, StatePersistence,
- * AutoSubmitManager, NavigationHandler, ResolverAdapter,
- * RendererInstructionBuilder, ProcessQueue, ComponentLifecycle, ChildMatcher,
- * DeletionEngine, ActionTriggerScheduler, StateVariableDefinitionFactory,
- * StateVariableInitializer, ComponentBuilder, CompositeExpander,
- * StateVariableEvaluator, StalenessPropagator, EssentialValueWriter,
- * CompositeReplacementUpdater, UpdateExecutor, and the `nameResolver`
- * namespace). Core retains thin wrapper methods so the public surface — used
- * by CoreWorker, `coreFunctions`-bound references, components, and tests —
- * keeps working. Each delegating block is grouped near its original location
- * and tagged with a `// → managerName` marker; see the corresponding module
- * for details.
+ * own modules. Some are class instances held on Core (DiagnosticsManager,
+ * VisibilityTracker, StatePersistence, AutoSubmitManager,
+ * RendererInstructionBuilder, ProcessQueue, ActionTriggerScheduler,
+ * StateVariableDefinitionFactory, StateVariableInitializer, ComponentBuilder,
+ * CompositeExpander, StateVariableEvaluator, StalenessPropagator,
+ * EssentialValueWriter, CompositeReplacementUpdater, UpdateExecutor, and the
+ * `nameResolver` namespace); others (NavigationHandler, ResolverAdapter,
+ * ComponentLifecycle, ChildMatcher, DeletionEngine) are plain module-level
+ * functions imported directly by callers. Each delegating block still held on
+ * Core is grouped near its original location and tagged with a
+ * `// → managerName` marker; see the corresponding module for details.
  */
 export default class Core {
     // ─── Identity / configuration ─────────────────────────────────────────
@@ -200,13 +195,8 @@ export default class Core {
     diagnosticsManager: DiagnosticsManager;
     visibilityTracker: VisibilityTracker;
     autoSubmitManager: AutoSubmitManager;
-    navigationHandler: NavigationHandler;
-    resolverAdapter: ResolverAdapter;
     rendererInstructionBuilder: RendererInstructionBuilder;
     processQueue: ProcessQueue;
-    componentLifecycle: ComponentLifecycle;
-    childMatcher: ChildMatcher;
-    deletionEngine: DeletionEngine;
     actionTriggerScheduler: ActionTriggerScheduler;
     stateVariableDefinitionFactory: StateVariableDefinitionFactory;
     stateVariableInitializer: StateVariableInitializer;
@@ -323,7 +313,8 @@ export default class Core {
             requestSolutionView: this.requestSolutionView.bind(this),
             requestComponentDoenetML: this.requestComponentDoenetML.bind(this),
             copyToClipboard: this.copyToClipboard.bind(this),
-            navigateToTarget: this.navigateToTarget.bind(this),
+            navigateToTarget: (args: any) =>
+                navigateToTarget({ core: this, args }),
         };
 
         this.updateInfo = {
@@ -364,15 +355,10 @@ export default class Core {
 
         this.visibilityTracker = new VisibilityTracker({ core: this });
         this.autoSubmitManager = new AutoSubmitManager({ core: this });
-        this.navigationHandler = new NavigationHandler({ core: this });
-        this.resolverAdapter = new ResolverAdapter({ core: this });
         this.rendererInstructionBuilder = new RendererInstructionBuilder({
             core: this,
         });
         this.processQueue = new ProcessQueue({ core: this });
-        this.componentLifecycle = new ComponentLifecycle({ core: this });
-        this.childMatcher = new ChildMatcher({ core: this });
-        this.deletionEngine = new DeletionEngine({ core: this });
         this.actionTriggerScheduler = new ActionTriggerScheduler({
             core: this,
         });
@@ -832,55 +818,6 @@ export default class Core {
         );
     }
 
-    // → childMatcher
-    async deriveChildResultsFromDefiningChildren(args: any): Promise<any> {
-        return this.childMatcher.deriveChildResultsFromDefiningChildren(args);
-    }
-
-    async matchChildrenToChildGroups(parent: any): Promise<any> {
-        return this.childMatcher.matchChildrenToChildGroups(parent);
-    }
-
-    findChildGroup(childType: any, parentClass: any): any {
-        return this.childMatcher.findChildGroup(childType, parentClass);
-    }
-
-    async returnActiveChildrenIndicesToRender(
-        component: ComponentInstance,
-    ): Promise<any> {
-        return this.childMatcher.returnActiveChildrenIndicesToRender(component);
-    }
-
-    async substituteAdapter(args: any): Promise<any> {
-        return this.childMatcher.substituteAdapter(args);
-    }
-
-    // → resolverAdapter
-    async addReplacementsToResolver(args: any): Promise<any> {
-        return this.resolverAdapter.addReplacementsToResolver(args);
-    }
-
-    async determineParentAndIndexResolutionForResolver(
-        args: any,
-    ): Promise<any> {
-        return this.resolverAdapter.determineParentAndIndexResolutionForResolver(
-            args,
-        );
-    }
-
-    addComponentsToResolver(components: any, parentIdx: any): any {
-        return this.resolverAdapter.addComponentsToResolver(
-            components,
-            parentIdx,
-        );
-    }
-
-    gatherDiagnosticsAndAssignDoenetMLRange(args: any): any {
-        return this.resolverAdapter.gatherDiagnosticsAndAssignDoenetMLRange(
-            args,
-        );
-    }
-
     async createStateVariableDefinitions(args: any): Promise<any> {
         return this.stateVariableDefinitionFactory.createStateVariableDefinitions(
             args,
@@ -1050,64 +987,6 @@ export default class Core {
 
     async markUpstreamDependentsStale(args: any): Promise<any> {
         return this.stalenessPropagator.markUpstreamDependentsStale(args);
-    }
-
-    // → componentLifecycle
-    registerComponent(component: ComponentInstance): any {
-        return this.componentLifecycle.registerComponent(component);
-    }
-
-    deregisterComponent(
-        component: ComponentInstance,
-        recursive: boolean = true,
-    ): any {
-        return this.componentLifecycle.deregisterComponent(
-            component,
-            recursive,
-        );
-    }
-
-    setAncestors(component: any, ancestors: any[] = []): any {
-        return this.componentLifecycle.setAncestors(component, ancestors);
-    }
-
-    async addChildrenAndRecurseToShadows(args: any): Promise<any> {
-        return this.componentLifecycle.addChildrenAndRecurseToShadows(args);
-    }
-
-    /**
-     * Create and insert `_error` siblings requested by state-variable definitions
-     * during initial document construction.
-     */
-    async processNewDefiningChildren(args: any): Promise<any> {
-        return this.componentLifecycle.processNewDefiningChildren(args);
-    }
-
-    spliceChildren(
-        parent: any,
-        indexOfDefiningChildren: any,
-        newChildren: any,
-    ): any {
-        return this.componentLifecycle.spliceChildren(
-            parent,
-            indexOfDefiningChildren,
-            newChildren,
-        );
-    }
-
-    // → deletionEngine
-    async deleteComponents(args: any): Promise<any> {
-        return this.deletionEngine.deleteComponents(args);
-    }
-
-    removeComponentsFromResolver(componentsToRemove: any): any {
-        return this.resolverAdapter.removeComponentsFromResolver(
-            componentsToRemove,
-        );
-    }
-
-    determineComponentsToDelete(args: any): any {
-        return this.deletionEngine.determineComponentsToDelete(args);
     }
 
     // → compositeReplacementUpdater
@@ -1339,11 +1218,6 @@ export default class Core {
         }
     }
 
-    // → navigationHandler
-    async handleNavigatingToComponent(args: any): Promise<any> {
-        return this.navigationHandler.handleNavigatingToComponent(args);
-    }
-
     async terminate(): Promise<void> {
         let pause100 = function () {
             return new Promise<void>((resolve) => {
@@ -1456,9 +1330,5 @@ export default class Core {
         }
 
         return componentDoenetML;
-    }
-
-    navigateToTarget(args: any): any {
-        return this.navigationHandler.navigateToTarget(args);
     }
 }

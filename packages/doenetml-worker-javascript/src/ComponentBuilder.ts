@@ -1,4 +1,10 @@
 import type Core from "./Core";
+import { deriveChildResultsFromDefiningChildren } from "./ChildMatcher";
+import {
+    addChildrenAndRecurseToShadows,
+    registerComponent,
+} from "./ComponentLifecycle";
+import { addComponentsToResolver } from "./ResolverAdapter";
 import { convertToErrorComponent } from "./utils/dast/errors";
 import { gatherVariantComponents } from "./utils/variants";
 import { unwrapSource } from "./utils/dast/convertNormalizedDast";
@@ -68,7 +74,11 @@ export class ComponentBuilder {
             this.core.nTimesAddedComponents =
                 (this.core.nTimesAddedComponents ?? 0) + 1;
 
-            this.core.addComponentsToResolver(serializedComponents, parentIdx);
+            addComponentsToResolver({
+                core: this.core,
+                components: serializedComponents,
+                parentIdx,
+            });
         }
         let createResult = await this.createIsolatedComponents({
             serializedComponents,
@@ -157,7 +167,8 @@ export class ComponentBuilder {
                 indexOfDefiningChildren = parent.definingChildren.length;
             }
 
-            let addResults = await this.core.addChildrenAndRecurseToShadows({
+            let addResults = await addChildrenAndRecurseToShadows({
+                core: this.core,
                 parent,
                 indexOfDefiningChildren: indexOfDefiningChildren,
                 newChildren: newComponents,
@@ -415,10 +426,11 @@ export class ComponentBuilder {
 
                 if (attribute.component) {
                     if (attrName === componentClass.addAttributeToResolver) {
-                        this.core.addComponentsToResolver(
-                            [attribute.component],
-                            serializedComponent.componentIdx,
-                        );
+                        addComponentsToResolver({
+                            core: this.core,
+                            components: [attribute.component],
+                            parentIdx: serializedComponent.componentIdx,
+                        });
                     }
 
                     try {
@@ -611,7 +623,7 @@ export class ComponentBuilder {
             refResolution,
         });
 
-        this.core.registerComponent(newComponent);
+        registerComponent({ core: this.core, component: newComponent });
 
         if (componentsReplacementOf) {
             newComponent.replacementOf = componentsReplacementOf;
@@ -684,7 +696,8 @@ export class ComponentBuilder {
                 serializedComponent.unlinkedCopySource;
         }
 
-        await this.core.deriveChildResultsFromDefiningChildren({
+        await deriveChildResultsFromDefiningChildren({
+            core: this.core,
             parent: newComponent,
             expandComposites: false,
         });
@@ -875,7 +888,8 @@ export class ComponentBuilder {
                 this.core.parameterStack.pop();
             }
 
-            let addResults = await this.core.addChildrenAndRecurseToShadows({
+            let addResults = await addChildrenAndRecurseToShadows({
+                core: this.core,
                 parent,
                 indexOfDefiningChildren,
                 newChildren: createResult.components,

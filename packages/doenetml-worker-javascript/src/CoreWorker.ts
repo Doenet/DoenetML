@@ -1,4 +1,5 @@
 import Core from "./Core";
+import { handleNavigatingToComponent } from "./NavigationHandler";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { createComponentInfoObjects } from "./utils/componentInfoObjects";
 export { createComponentInfoObjects } from "./utils/componentInfoObjects";
@@ -427,9 +428,13 @@ export class PublicDoenetMLCore {
         // `.catch` ensures any future implementation's rejections surface
         // through the centralized timer-error logger instead of slipping
         // past `unhandledRejection`.
-        this.core
-            ?.handleNavigatingToComponent({ componentIdx, hash })
-            .catch(reportTimerError(TimerLabels.navigateToComponent));
+        if (this.core) {
+            handleNavigatingToComponent({
+                core: this.core,
+                componentIdx,
+                hash,
+            }).catch(reportTimerError(TimerLabels.navigateToComponent));
+        }
     }
 
     /**

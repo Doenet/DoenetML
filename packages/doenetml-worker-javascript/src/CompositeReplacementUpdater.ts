@@ -1,6 +1,16 @@
 import type Core from "./Core";
 import type { ComponentInstance } from "./types/componentInstance";
 import type { ComponentIdx } from "@doenet/utils";
+import {
+    processNewDefiningChildren,
+    spliceChildren,
+} from "./ComponentLifecycle";
+import { deleteComponents } from "./DeletionEngine";
+import {
+    addReplacementsToResolver,
+    determineParentAndIndexResolutionForResolver,
+    gatherDiagnosticsAndAssignDoenetMLRange,
+} from "./ResolverAdapter";
 import { postProcessCopy } from "./utils/copy";
 import { preprocessAttributesObject } from "./utils/attributes";
 import { convertUnresolvedAttributesForComponentType } from "./utils/dast/convertNormalizedDast";
@@ -39,8 +49,8 @@ type SourceOfUpdate = Record<string, any>;
  * post-update flush in `EssentialValueWriter` /
  * `RendererInstructionBuilder`). Holds a back-reference to Core for
  * the rest of the hot state and the other extracted managers
- * (notably `componentBuilder`, `compositeExpander`, `deletionEngine`,
- * `resolverAdapter`, `componentLifecycle`).
+ * (notably `componentBuilder`, `compositeExpander`). Calls the module-level
+ * `deleteComponents` from DeletionEngine directly.
  */
 export class CompositeReplacementUpdater {
     core: Core;
@@ -206,7 +216,8 @@ export class CompositeReplacementUpdater {
 
         if (replacementResults.diagnostics.length > 0) {
             const parent = this.core._components[component.componentIdx];
-            this.core.gatherDiagnosticsAndAssignDoenetMLRange({
+            gatherDiagnosticsAndAssignDoenetMLRange({
+                core: this.core,
                 components: [],
                 diagnostics: replacementResults.diagnostics,
                 position: parent.position,
@@ -293,7 +304,8 @@ export class CompositeReplacementUpdater {
                 const overwriteDoenetMLRange =
                     component.componentType === "_copy";
 
-                this.core.gatherDiagnosticsAndAssignDoenetMLRange({
+                gatherDiagnosticsAndAssignDoenetMLRange({
+                    core: this.core,
                     components: serializedReplacements,
                     diagnostics: [],
                     position,
@@ -303,7 +315,8 @@ export class CompositeReplacementUpdater {
 
                 const newNComponents = change.nComponents;
 
-                await this.core.addReplacementsToResolver({
+                await addReplacementsToResolver({
+                    core: this.core,
                     serializedReplacements,
                     component,
                     updateOldReplacementsStart,
@@ -433,7 +446,8 @@ export class CompositeReplacementUpdater {
 
                         componentChanges.push(newChange);
 
-                        await this.core.processNewDefiningChildren({
+                        await processNewDefiningChildren({
+                            core: this.core,
                             parent,
                             expandComposites: false,
                         });
@@ -458,13 +472,17 @@ export class CompositeReplacementUpdater {
                                     .componentIdx
                             ];
 
-                        this.core.spliceChildren(
+                        spliceChildren({
                             parent,
-                            change.indexOfDefiningChildren,
-                            newReplacements,
-                        );
+                            indexOfDefiningChildren:
+                                change.indexOfDefiningChildren,
+                            newChildren: newReplacements,
+                        });
 
-                        await this.core.processNewDefiningChildren({ parent });
+                        await processNewDefiningChildren({
+                            core: this.core,
+                            parent,
+                        });
 
                         for (const repl of newReplacements) {
                             if (typeof repl === "object") {
@@ -679,16 +697,16 @@ export class CompositeReplacementUpdater {
 
             // TODO: why does this delete delete upstream components
             // but the non toplevel delete doesn't?
-            let deleteResults = await this.core.deleteComponents({
+            let deleteResults = await deleteComponents({
+                core: this.core,
                 components: replacementsToDelete,
-                componentChanges,
-                sourceOfUpdate,
-                skipProcessingChildrenOfParents: [composite.parentIdx],
+                skipProcessingChildrenOfParents: [composite.parentIdx!],
             });
 
             if (processNewChildren) {
                 // since skipped, process children now but without expanding composites
-                await this.core.processNewDefiningChildren({
+                await processNewDefiningChildren({
+                    core: this.core,
                     parent: this.core._components[composite.parentIdx!],
                     expandComposites: false,
                 });
@@ -724,11 +742,10 @@ export class CompositeReplacementUpdater {
             // if not change top level replacements
             let numberToDelete = componentsToDelete!.length;
             // TODO: check if components are appropriate dependency of composite
-            let deleteResults = await this.core.deleteComponents({
+            let deleteResults = await deleteComponents({
+                core: this.core,
                 components: componentsToDelete,
                 deleteUpstreamDependencies: false,
-                componentChanges: componentChanges,
-                sourceOfUpdate: sourceOfUpdate,
             });
             if (deleteResults.success === false) {
                 throw Error(
@@ -749,7 +766,8 @@ export class CompositeReplacementUpdater {
 
     async processChildChangesAndRecurseToShadows(component: ComponentInstance) {
         let parent = this.core._components[component.parentIdx!];
-        await this.core.processNewDefiningChildren({
+        await processNewDefiningChildren({
+            core: this.core,
             parent,
             expandComposites: false,
         });
@@ -893,7 +911,8 @@ export class CompositeReplacementUpdater {
                     shadowingComponent,
                 );
 
-                await this.core.addReplacementsToResolver({
+                await addReplacementsToResolver({
+                    core: this.core,
                     serializedReplacements: newSerializedReplacements,
                     component: shadowingComponent,
                     updateOldReplacementsStart,
@@ -1120,7 +1139,8 @@ export class CompositeReplacementUpdater {
             );
 
             const { indexResolution } =
-                await this.core.determineParentAndIndexResolutionForResolver({
+                await determineParentAndIndexResolutionForResolver({
+                    core: this.core,
                     component,
                     updateOldReplacementsStart: 0,
                     updateOldReplacementsEnd:

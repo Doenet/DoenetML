@@ -1,6 +1,15 @@
 import type Core from "./Core";
 import { deepClone } from "@doenet/utils";
 import {
+    deriveChildResultsFromDefiningChildren,
+    findChildGroup,
+} from "./ChildMatcher";
+import { processNewDefiningChildren } from "./ComponentLifecycle";
+import {
+    addReplacementsToResolver,
+    gatherDiagnosticsAndAssignDoenetMLRange,
+} from "./ResolverAdapter";
+import {
     addAttributesToSingleReplacement,
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
@@ -72,7 +81,8 @@ export class CompositeExpander {
 
                 if (foundReady) {
                     let parent = this.core._components[parentIdx];
-                    await this.core.deriveChildResultsFromDefiningChildren({
+                    await deriveChildResultsFromDefiningChildren({
+                        core: this.core,
                         parent,
                         expandComposites: true,
                         forceExpandComposites: force,
@@ -92,7 +102,8 @@ export class CompositeExpander {
         let parentsWithCompositesNotReady = [];
 
         if (!component.matchedCompositeChildren) {
-            await this.core.deriveChildResultsFromDefiningChildren({
+            await deriveChildResultsFromDefiningChildren({
+                core: this.core,
                 parent: component,
                 expandComposites: true,
                 forceExpandComposites,
@@ -148,7 +159,8 @@ export class CompositeExpander {
         let componentIndices = [component.componentIdx];
         if (component.constructor.renderChildren) {
             if (!component.matchedCompositeChildren) {
-                await this.core.deriveChildResultsFromDefiningChildren({
+                await deriveChildResultsFromDefiningChildren({
+                    core: this.core,
                     parent: component,
                     expandComposites: true, //forceExpandComposites: true,
                 });
@@ -185,10 +197,11 @@ export class CompositeExpander {
                 // then don't replace it with its replacements
                 // but leave the composite as an activeChild
                 if (
-                    this.core.findChildGroup(
-                        child.componentType,
-                        parent.constructor,
-                    ).success
+                    findChildGroup({
+                        core: this.core,
+                        childType: child.componentType,
+                        parentClass: parent.constructor,
+                    }).success
                 ) {
                     continue;
                 }
@@ -366,7 +379,8 @@ export class CompositeExpander {
         let sourceDoc = this.core._components[component.componentIdx].sourceDoc;
         let overwriteDoenetMLRange = component.componentType === "_copy";
 
-        this.core.gatherDiagnosticsAndAssignDoenetMLRange({
+        gatherDiagnosticsAndAssignDoenetMLRange({
+            core: this.core,
             components: result.replacements,
             diagnostics: result.diagnostics,
             position,
@@ -383,7 +397,8 @@ export class CompositeExpander {
         if (result.replacements) {
             let serializedReplacements = result.replacements;
 
-            await this.core.addReplacementsToResolver({
+            await addReplacementsToResolver({
+                core: this.core,
                 serializedReplacements,
                 component,
             });
@@ -696,7 +711,8 @@ export class CompositeExpander {
 
         component.replacementsWorkspace.replacementsCreated = stateIdInfo.num;
 
-        await this.core.addReplacementsToResolver({
+        await addReplacementsToResolver({
+            core: this.core,
             serializedReplacements,
             component,
         });
@@ -829,10 +845,11 @@ export class CompositeExpander {
                 // then don't replace it with its replacements
                 // but leave the composite as an activeChild
                 if (
-                    this.core.findChildGroup(
-                        child.componentType,
-                        parent.constructor,
-                    ).success
+                    findChildGroup({
+                        core: this.core,
+                        childType: child.componentType,
+                        parentClass: parent.constructor,
+                    }).success
                 ) {
                     continue;
                 }
@@ -1096,7 +1113,8 @@ export class CompositeExpander {
             ...undisplayableErrorChildren,
         );
 
-        await this.core.processNewDefiningChildren({
+        await processNewDefiningChildren({
+            core: this.core,
             parent: ancestorToDisplayErrors,
             expandComposites: false,
         });

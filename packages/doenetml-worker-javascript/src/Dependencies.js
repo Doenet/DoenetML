@@ -1,3 +1,4 @@
+import { deriveChildResultsFromDefiningChildren } from "./ChildMatcher";
 import {
     ancestorsIncludingComposites,
     gatherDescendants,
@@ -2043,13 +2044,12 @@ export class DependencyHandler {
                 if (component) {
                     if (!component.childrenMatched) {
                         let result =
-                            await this.core.deriveChildResultsFromDefiningChildren(
-                                {
-                                    parent: component,
-                                    expandComposites,
-                                    forceExpandComposites: force,
-                                },
-                            );
+                            await deriveChildResultsFromDefiningChildren({
+                                core: this.core,
+                                parent: component,
+                                expandComposites,
+                                forceExpandComposites: force,
+                            });
 
                         if (
                             !result.skipping &&

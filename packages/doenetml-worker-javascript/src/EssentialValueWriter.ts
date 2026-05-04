@@ -2,6 +2,7 @@ import type Core from "./Core";
 import type { ComponentInstance } from "./types/componentInstance";
 import type { ComponentIdx } from "@doenet/utils";
 import me from "math-expressions";
+import { processNewDefiningChildren } from "./ComponentLifecycle";
 import {
     preprocessMathInverseDefinition,
     removeFunctionsMathExpressionClass,
@@ -273,7 +274,8 @@ export class EssentialValueWriter {
                         comp.definingChildren[childInd] =
                             newComponentStateVariables[vName];
 
-                        await this.core.processNewDefiningChildren({
+                        await processNewDefiningChildren({
+                            core: this.core,
                             parent: comp,
                             expandComposites: false,
                         });
