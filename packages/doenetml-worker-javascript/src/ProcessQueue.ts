@@ -243,7 +243,18 @@ export class ProcessQueue {
             return this.core.processVisibilityChangedEvent(event);
         }
 
-        return new Promise((resolve, reject) => {
+        return this.sendRecordEvent(event);
+    }
+
+    /**
+     * Push a recordEvent entry directly onto the queue and kick the drain
+     * loop. Used by `VisibilityTracker.sendVisibilityChangedEvents`, which
+     * intentionally bypasses `requestRecordEvent` (no
+     * `resumeVisibilityMeasuring`, no visibility-event short-circuit — that
+     * path is what feeds events into this method in the first place).
+     */
+    sendRecordEvent(event: any): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
             this.queue.push({
                 type: "recordEvent",
                 event,

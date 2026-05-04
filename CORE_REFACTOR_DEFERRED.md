@@ -105,16 +105,9 @@ Phase 4 lifted further `TODO`s verbatim into the five new modules — line numbe
 - `StalenessPropagator.ts` — "TODO: remove all these error checks to speed up process" decade-old marker in `processMarkStale`'s validation block.
 - `CompositeReplacementUpdater.ts` — `updateCompositeReplacements` carries TODOs at "why must we evaluate and not just resolve it?" (around line 71), an "infinite loop?" reflection in the `do…while` retry, "used to checkForDownstreamDependencies here" placeholders, "check if change.parent is appropriate dependency", "check if component...", "why does this delete delete upstream", "check if components...", "is isResponse the only attribute...". Two unanswered TODOs in `calculateAllComponentsShadowing` ask why `replacementOf` is needed (not reachable through `shadowedBy`?) and whether the no-link case is handled.
 
-### `processQueue` field naming inside Core
+### `processQueue` field naming inside Core (DONE)
 
-`Core` stores the `ProcessQueue` instance as `this.processQueueManager` while every other manager is named after its class (`this.componentLifecycle`, `this.childMatcher`, `this.deletionEngine`, `this.actionTriggerScheduler`, `this.rendererInstructionBuilder`, `this.diagnosticsManager`, `this.statePersistence`, etc.). The `Manager` suffix is here because `Core` already exposes `get processQueue() { return this.processQueueManager.queue; }` for the underlying array — and JS doesn't let an instance field shadow an inherited accessor of the same name.
-
-Two cleanups to consider together:
-
-1. Drop the `get/set processQueue` wrappers on `Core` (no current consumers need the array directly — components and CoreWorker only see the four request entry points and the `processing`/`stopProcessingRequests` flags), then rename `processQueueManager` → `processQueue`.
-2. Or leave as-is for the explicit symmetry between "manager class instance" and "the array it owns".
-
-Pick one; the current shape inherits the asymmetry from a half-finished rename.
+Resolved in PR #1049. Added `ProcessQueue.sendRecordEvent(event)` (push-and-kickoff) and switched `VisibilityTracker.sendVisibilityChangedEvents` to call it instead of poking `core.processQueue.push(...)` and `core.processing` / `core.executeProcesses()` directly. With no remaining external readers of the array or the processing flags, dropped Core's `get/set processQueue` (array), `get/set processing`, `get/set stopProcessingRequests`, and the `executeProcesses()` wrapper, then renamed `processQueueManager` → `processQueue`. `Core.terminate()` now reads `this.processQueue.processing` / `.stopProcessingRequests` directly.
 
 ### `statePersistence` instantiation position in the Core constructor
 
