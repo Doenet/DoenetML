@@ -83,7 +83,6 @@ export async function expandAllComposites({
             }
 
             if (foundReady) {
-                let parent = core._components[parentIdx];
                 await deriveChildResultsFromDefiningChildren({
                     core,
                     parent,
@@ -177,7 +176,7 @@ export async function componentAndRenderedDescendants({
             await deriveChildResultsFromDefiningChildren({
                 core,
                 parent: component,
-                expandComposites: true, //forceExpandComposites: true,
+                expandComposites: true,
             });
         }
         for (let child of component.activeChildren) {
@@ -240,7 +239,7 @@ export async function expandCompositeOfDefiningChildren({
                                 componentIdx: child.componentIdx,
                                 type: "stateVariable",
                                 stateVariable: "readyToExpandWhenResolved",
-                                expandComposites, //: forceExpandComposites,
+                                expandComposites,
                                 force: forceExpandComposites,
                             },
                         );
@@ -409,10 +408,7 @@ export async function expandCompositeComponent({
             component,
         });
 
-        // expand `core._components` to length `newNComponents` so that the component indices will not be reused
-        if (newNComponents > core._components.length) {
-            core._components[newNComponents - 1] = undefined;
-        }
+        reserveComponentIndices(core, newNComponents);
 
         await createAndSetReplacements({
             core,
@@ -487,8 +483,7 @@ async function expandShadowingComposite({
         num: component.replacementsWorkspace.replacementsCreated,
     };
 
-    let nComponents = core._components.length;
-    let newNComponents = nComponents;
+    let newNComponents = core._components.length;
 
     // We address one complication from shadowing a component with copied in children.
     // In this case, the name resolver will already have the component indices of the serialized children of `component`.
@@ -692,10 +687,7 @@ async function expandShadowingComposite({
         component,
     });
 
-    // expand `core._components` to length `newNComponents` so that the component indices will not be reused
-    if (newNComponents > core._components.length) {
-        core._components[newNComponents - 1] = undefined;
-    }
+    reserveComponentIndices(core, newNComponents);
 
     await createAndSetReplacements({
         core,
@@ -737,6 +729,17 @@ function _finishExpanding({
         );
     }
     core.updateInfo.compositesBeingExpanded.splice(targetInd, 1);
+}
+
+/**
+ * Pad `core._components` out to `newNComponents` slots so the indices
+ * already handed out by `createSerializedReplacements` (and reflected in
+ * the resolver) cannot be reused by a subsequent expansion.
+ */
+function reserveComponentIndices(core: Core, newNComponents: number) {
+    if (newNComponents > core._components.length) {
+        core._components[newNComponents - 1] = undefined;
+    }
 }
 
 /**
@@ -799,7 +802,6 @@ export async function createAndSetReplacements({
         component.replacements = replacementResult.components;
     } catch (e: any) {
         console.error(e);
-        // throw e;
         component.replacements = await core.setErrorReplacements({
             composite: component,
             message: e.message,

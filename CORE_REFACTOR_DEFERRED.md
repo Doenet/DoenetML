@@ -96,7 +96,6 @@ Phase 3 lifted further `TODO`s verbatim from `Core.js` into the new modules:
 - `StateVariableDefinitionFactory.ts:1355, 1451` — duplicate `// TODO: how do we make it do this just once?` on the array-entry definition setup.
 - `ComponentBuilder.ts:170, 238` — duplicate `// TODO: should we check for child results earlier so we don't have to check them ...` on the post-creation child-result re-derivation.
 - `CompositeExpander.ts:373` — `// TODO: are there any scenarios where this will lead to an infinite loop?` on the `createSerializedReplacements` retry loop.
-- `CompositeExpander.ts:688` — `// XXX: what is the replacement for targetComponentIdx?` on the shadow-mediating composite branch.
 
 Phase 4 lifted further `TODO`s verbatim into the five new modules — line numbers are approximate and subject to drift; `grep -n "TODO\|XXX\|kludge" path/to/file` is the canonical lookup:
 

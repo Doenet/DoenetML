@@ -3,6 +3,7 @@ import { handleNavigatingToComponent } from "./NavigationHandler";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { createComponentInfoObjects } from "./utils/componentInfoObjects";
 export { createComponentInfoObjects } from "./utils/componentInfoObjects";
+export { expandCompositeComponent } from "./CompositeExpander";
 import { returnAllPossibleVariants } from "./utils/returnAllPossibleVariants";
 import {
     FlatFragment,
