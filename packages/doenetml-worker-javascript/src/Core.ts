@@ -27,7 +27,6 @@ import { ProcessQueue } from "./ProcessQueue";
 import { RendererInstructionBuilder } from "./RendererInstructionBuilder";
 import { StalenessPropagator } from "./StalenessPropagator";
 import { StatePersistence } from "./StatePersistence";
-import { StateVariableDefinitionFactory } from "./StateVariableDefinitionFactory";
 import { StateVariableEvaluator } from "./StateVariableEvaluator";
 import { UpdateExecutor } from "./UpdateExecutor";
 import { VisibilityTracker } from "./VisibilityTracker";
@@ -106,15 +105,14 @@ export interface CoreInfo {
  * own modules. Some are class instances held on Core (DiagnosticsManager,
  * VisibilityTracker, StatePersistence, AutoSubmitManager,
  * RendererInstructionBuilder, ProcessQueue, ActionTriggerScheduler,
- * StateVariableDefinitionFactory,
  * StateVariableEvaluator, StalenessPropagator, EssentialValueWriter,
  * CompositeReplacementUpdater, UpdateExecutor, and the `nameResolver`
  * namespace); others (NavigationHandler, ResolverAdapter, ComponentLifecycle,
  * ChildMatcher, DeletionEngine, CompositeExpander, ComponentBuilder,
- * StateVariableInitializer) are plain module-level functions imported
- * directly by callers. Each delegating block still held on Core is grouped
- * near its original location and tagged with a `// → managerName` marker;
- * see the corresponding module for details.
+ * StateVariableInitializer, StateVariableDefinitionFactory) are plain
+ * module-level functions imported directly by callers. Each delegating
+ * block still held on Core is grouped near its original location and tagged
+ * with a `// → managerName` marker; see the corresponding module for details.
  */
 export default class Core {
     // ─── Identity / configuration ─────────────────────────────────────────
@@ -197,7 +195,6 @@ export default class Core {
     rendererInstructionBuilder: RendererInstructionBuilder;
     processQueue: ProcessQueue;
     actionTriggerScheduler: ActionTriggerScheduler;
-    stateVariableDefinitionFactory: StateVariableDefinitionFactory;
     stateVariableEvaluator: StateVariableEvaluator;
     stalenessPropagator: StalenessPropagator;
     essentialValueWriter: EssentialValueWriter;
@@ -358,10 +355,6 @@ export default class Core {
         this.actionTriggerScheduler = new ActionTriggerScheduler({
             core: this,
         });
-        this.stateVariableDefinitionFactory =
-            new StateVariableDefinitionFactory({
-                core: this,
-            });
         this.stateVariableEvaluator = new StateVariableEvaluator({
             core: this,
         });
@@ -711,32 +704,6 @@ export default class Core {
 
     async checkForActionChaining(args: any): Promise<any> {
         return this.actionTriggerScheduler.checkForActionChaining(args);
-    }
-
-    async createStateVariableDefinitions(args: any): Promise<any> {
-        return this.stateVariableDefinitionFactory.createStateVariableDefinitions(
-            args,
-        );
-    }
-
-    createAttributeStateVariableDefinitions(args: any): any {
-        return this.stateVariableDefinitionFactory.createAttributeStateVariableDefinitions(
-            args,
-        );
-    }
-
-    createAdapterStateVariableDefinitions(args: any): any {
-        return this.stateVariableDefinitionFactory.createAdapterStateVariableDefinitions(
-            args,
-        );
-    }
-
-    async createReferenceShadowStateVariableDefinitions(
-        args: any,
-    ): Promise<any> {
-        return this.stateVariableDefinitionFactory.createReferenceShadowStateVariableDefinitions(
-            args,
-        );
     }
 
     // → stateVariableEvaluator
