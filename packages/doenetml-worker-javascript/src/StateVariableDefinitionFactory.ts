@@ -174,40 +174,14 @@ function createAttributeStateVariableDefinitions({
         );
 
         stateVarDef.returnDependencies = function () {
-            let dependencies = {};
-            if (attributeSpecification.fallBackToParentStateVariable) {
-                dependencies.parentValue = {
-                    dependencyType: "parentStateVariable",
-                    variableName:
-                        attributeSpecification.fallBackToParentStateVariable,
-                };
-            }
-            if (attributeSpecification.fallBackToSourceCompositeStateVariable) {
-                dependencies.sourceCompositeValue = {
-                    dependencyType: "sourceCompositeStateVariable",
-                    variableName:
-                        attributeSpecification.fallBackToSourceCompositeStateVariable,
-                };
-            }
-            if (attributeSpecification.createPrimitiveOfType) {
-                dependencies.attributePrimitive = {
-                    dependencyType: "attributePrimitive",
-                    attributeName: attrName,
-                };
-            } else if (attributeSpecification.createReferences) {
-                dependencies.attributeRefResolutions = {
-                    dependencyType: "attributeRefResolutions",
-                    attributeName: attrName,
-                };
-            } else {
-                dependencies.attributeComponent = {
-                    dependencyType: "attributeComponent",
-                    attributeName: attrName,
-                    variableNames: [stateVariableForAttributeValue],
-                };
-            }
-
-            return dependencies;
+            return {
+                ..._buildAttributeFallbackDependencies(attributeSpecification),
+                ..._buildAttributeValueDependency(
+                    attributeSpecification,
+                    attrName,
+                    stateVariableForAttributeValue,
+                ),
+            };
         };
 
         const { definition, inverseDefinition } =
@@ -345,18 +319,13 @@ function createAdapterStateVariableDefinitions({
         _copyPassthroughAttributes(stateVarDef, attributeSpecification);
     }
 
-    // primaryStateVariableForDefinition is the state variable that the componentClass
-    // being created has specified should be given the value when it
-    // is created from an outside source like a reference to a prop or an adapter
-    let primaryStateVariableForDefinition = "value";
-    if (redefineDependencies.substituteForPrimaryStateVariable) {
-        primaryStateVariableForDefinition =
-            redefineDependencies.substituteForPrimaryStateVariable;
-    } else if (componentClass.primaryStateVariableForDefinition) {
-        primaryStateVariableForDefinition =
-            componentClass.primaryStateVariableForDefinition;
-    }
-    let stateDef = stateVariableDefinitions[primaryStateVariableForDefinition];
+    const { name: primaryStateVariableForDefinition, stateDef } =
+        _resolvePrimaryStateVariableForDefinition({
+            redefineDependencies,
+            componentClass,
+            stateVariableDefinitions,
+            throwIfMissing: false,
+        });
     stateDef.isShadow = true;
     stateDef.returnDependencies = () => ({
         adapterTargetVariable: {
@@ -498,40 +467,14 @@ async function createReferenceShadowStateVariableDefinitions({
             componentClass,
         );
 
-        let thisDependencies = {};
-
-        if (attributeSpecification.createPrimitiveOfType) {
-            thisDependencies.attributePrimitive = {
-                dependencyType: "attributePrimitive",
-                attributeName: attrName,
-            };
-        } else if (attributeSpecification.createReferences) {
-            thisDependencies.attributeRefResolutions = {
-                dependencyType: "attributeRefResolutions",
-                attributeName: attrName,
-            };
-        } else {
-            thisDependencies.attributeComponent = {
-                dependencyType: "attributeComponent",
-                attributeName: attrName,
-                variableNames: [stateVariableForAttributeValue],
-            };
-        }
-
-        if (attributeSpecification.fallBackToParentStateVariable) {
-            thisDependencies.parentValue = {
-                dependencyType: "parentStateVariable",
-                variableName:
-                    attributeSpecification.fallBackToParentStateVariable,
-            };
-        }
-        if (attributeSpecification.fallBackToSourceCompositeStateVariable) {
-            thisDependencies.sourceCompositeValue = {
-                dependencyType: "sourceCompositeStateVariable",
-                variableName:
-                    attributeSpecification.fallBackToSourceCompositeStateVariable,
-            };
-        }
+        const thisDependencies = {
+            ..._buildAttributeValueDependency(
+                attributeSpecification,
+                attrName,
+                stateVariableForAttributeValue,
+            ),
+            ..._buildAttributeFallbackDependencies(attributeSpecification),
+        };
 
         stateVarDef.returnDependencies = () => thisDependencies;
 
@@ -552,30 +495,13 @@ async function createReferenceShadowStateVariableDefinitions({
 
     if (redefineDependencies.propVariable) {
         if (!redefineDependencies.ignorePrimaryStateVariable) {
-            // primaryStateVariableForDefinition is the state variable that the componentClass
-            // being created has specified should be given the value when it
-            // is created from an outside source like a reference to a prop or an adapter
-            let primaryStateVariableForDefinition = "value";
-            if (redefineDependencies.substituteForPrimaryStateVariable) {
-                primaryStateVariableForDefinition =
-                    redefineDependencies.substituteForPrimaryStateVariable;
-            } else if (componentClass.primaryStateVariableForDefinition) {
-                primaryStateVariableForDefinition =
-                    componentClass.primaryStateVariableForDefinition;
-            }
-            let stateDef =
-                stateVariableDefinitions[primaryStateVariableForDefinition];
-            if (!stateDef) {
-                if (redefineDependencies.substituteForPrimaryStateVariable) {
-                    throw Error(
-                        `Invalid public state variable of componentType ${componentClass.componentType}: substituteForPrimaryStateVariable ${redefineDependencies.substituteForPrimaryStateVariable} does not exist`,
-                    );
-                } else {
-                    throw Error(
-                        `Cannot have a public state variable with componentType ${componentClass.componentType} as the class doesn't have a primary state variable for definition`,
-                    );
-                }
-            }
+            const { name: primaryStateVariableForDefinition, stateDef } =
+                _resolvePrimaryStateVariableForDefinition({
+                    redefineDependencies,
+                    componentClass,
+                    stateVariableDefinitions,
+                    throwIfMissing: true,
+                });
             stateDef.isShadow = true;
             stateDef.returnDependencies = () => ({
                 targetVariable: {
@@ -1105,6 +1031,115 @@ function modifyStateDefToDeleteVariableReferences({
         }
         return results;
     };
+}
+
+/**
+ * Build the `{ attributePrimitive | attributeRefResolutions | attributeComponent }`
+ * single-key dependency entry for an attribute-derived state variable.
+ * The shape is determined by the attribute spec: `createPrimitiveOfType`
+ * → primitive, `createReferences` → ref-resolutions, otherwise →
+ * the attribute component (reading `stateVariableForAttributeValue`).
+ */
+function _buildAttributeValueDependency(
+    attributeSpecification: any,
+    attrName: string,
+    stateVariableForAttributeValue: string | undefined,
+): Record<string, any> {
+    if (attributeSpecification.createPrimitiveOfType) {
+        return {
+            attributePrimitive: {
+                dependencyType: "attributePrimitive",
+                attributeName: attrName,
+            },
+        };
+    } else if (attributeSpecification.createReferences) {
+        return {
+            attributeRefResolutions: {
+                dependencyType: "attributeRefResolutions",
+                attributeName: attrName,
+            },
+        };
+    } else {
+        return {
+            attributeComponent: {
+                dependencyType: "attributeComponent",
+                attributeName: attrName,
+                variableNames: [stateVariableForAttributeValue],
+            },
+        };
+    }
+}
+
+/**
+ * Build the optional fall-back dependency entries (`parentValue`,
+ * `sourceCompositeValue`) for an attribute-derived state variable.
+ * Returns an empty object when the spec declares no fall-backs. Both
+ * call sites spread the result into their own dependency map; the
+ * order in which the spread is placed determines the iteration order
+ * of the resulting object.
+ */
+function _buildAttributeFallbackDependencies(
+    attributeSpecification: any,
+): Record<string, any> {
+    const deps: Record<string, any> = {};
+    if (attributeSpecification.fallBackToParentStateVariable) {
+        deps.parentValue = {
+            dependencyType: "parentStateVariable",
+            variableName: attributeSpecification.fallBackToParentStateVariable,
+        };
+    }
+    if (attributeSpecification.fallBackToSourceCompositeStateVariable) {
+        deps.sourceCompositeValue = {
+            dependencyType: "sourceCompositeStateVariable",
+            variableName:
+                attributeSpecification.fallBackToSourceCompositeStateVariable,
+        };
+    }
+    return deps;
+}
+
+/**
+ * Resolve the primary state variable that an adapter or reference-shadow
+ * should rewire to. Precedence is `redefineDependencies.substituteForPrimaryStateVariable`
+ * → `componentClass.primaryStateVariableForDefinition` → `"value"`.
+ * Returns the looked-up `stateDef` so the caller can mutate it.
+ *
+ * When `throwIfMissing` is true (the reference-shadow path requires the
+ * primary state variable to exist), the helper throws a descriptive error
+ * for both the explicit-substitute and default cases. The adapter path
+ * passes `throwIfMissing: false` and accepts that downstream code may
+ * crash on an undefined `stateDef` if a class is malformed.
+ */
+function _resolvePrimaryStateVariableForDefinition({
+    redefineDependencies,
+    componentClass,
+    stateVariableDefinitions,
+    throwIfMissing,
+}: {
+    redefineDependencies: any;
+    componentClass: any;
+    stateVariableDefinitions: Record<string, any>;
+    throwIfMissing: boolean;
+}): { name: string; stateDef: any } {
+    let name = "value";
+    if (redefineDependencies.substituteForPrimaryStateVariable) {
+        name = redefineDependencies.substituteForPrimaryStateVariable;
+    } else if (componentClass.primaryStateVariableForDefinition) {
+        name = componentClass.primaryStateVariableForDefinition;
+    }
+    const stateDef = stateVariableDefinitions[name];
+    if (throwIfMissing && !stateDef) {
+        if (redefineDependencies.substituteForPrimaryStateVariable) {
+            throw Error(
+                `Invalid public state variable of componentType ${componentClass.componentType}: substituteForPrimaryStateVariable ${redefineDependencies.substituteForPrimaryStateVariable} does not exist`,
+            );
+        } else {
+            throw Error(
+                `Cannot have a public state variable with componentType ${componentClass.componentType} as the class doesn't have a primary state variable for definition`,
+            );
+        }
+    }
+    return { name, stateDef };
 }
 
 /**

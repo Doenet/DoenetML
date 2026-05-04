@@ -560,4 +560,39 @@ describe("External References Tests @group1", async () => {
                 .text,
         ).eq("10, 6");
     });
+
+    // Regression: `addReplacementsToResolver` populates a fragment's
+    // `parentSourceSequence.parent` from the copy's `createComponentIdx`
+    // primitive value (a number). Reading `.primitive.number` instead of
+    // `.primitive.value` yields `undefined`, which silently breaks name
+    // resolution for any reference that needs to walk through the
+    // sequence into an extended external document. This test pins the
+    // contract: a name nested two layers below a copied-and-renamed
+    // external section must resolve.
+    it("name reference into extended external content resolves through parentSourceSequence (regression)", async () => {
+        const doenetMLs = {
+            outer: `<section name="outer"><section name="inner"><p name="leaf">target</p></section></section>`,
+        };
+
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <section copy="doenet:outer" name="s" />
+    <p extend="$s.inner.leaf" name="p1" />
+    `,
+            externalDoenetMLs: doenetMLs,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // If parentSourceSequence.parent were undefined (the bug shape),
+        // the resolver would not route the `s.inner.leaf` lookup into
+        // the external document, and `p1` would not resolve to the leaf.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s.inner.leaf")]
+                .stateValues.text,
+        ).eq("target");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("target");
+    });
 });

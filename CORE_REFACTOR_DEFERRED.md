@@ -4,75 +4,29 @@ These items came out of the PR reviews for the multi-phase refactor (`core-refac
 
 ## Deferred items
 
-### Type the `core: any` back-reference in extracted managers
+### Type the `core: any` back-reference in extracted managers — DONE
 
-Every new manager declares `core: any;` — Phase 1 (`DiagnosticsManager`, `VisibilityTracker`, `StatePersistence`, `AutoSubmitManager`, `NavigationHandler`, `ResolverAdapter`), Phase 2 (`RendererInstructionBuilder`, `ProcessQueue`, `ComponentLifecycle`, `ChildMatcher`, `DeletionEngine`, `ActionTriggerScheduler`), and Phase 3 (`StateVariableDefinitionFactory`, `StateVariableInitializer`, `ComponentBuilder`, `CompositeExpander`). That defeats the point of converting to TypeScript — typos and accidental property reads through `core` go unchecked.
+Resolved via PR #1041 (commit `bbb808f6a`): `Core.js` was converted to `Core.ts`, giving managers a real `Core` type to import. The managers that still hold a back-reference (`ProcessQueue`, `AutoSubmitManager`, `RendererInstructionBuilder`, `StatePersistence`, `VisibilityTracker`, `ActionTriggerScheduler`, `StalenessPropagator`, `StateVariableEvaluator`, `UpdateExecutor`, `CompositeReplacementUpdater`, `EssentialValueWriter`, plus `DiagnosticsManager` which dropped its back-ref entirely) now declare `core: Core` instead of `core: any`. The intermediate `CoreBackref` interface ended up unnecessary — the direct `Core` import is cleaner.
 
-Since `Core.js` is still JavaScript, defining a real `Core` interface is awkward. Two practical paths:
+### Reduce stateless managers to plain functions — DONE
 
-1. **A minimal `CoreBackref` interface** in `packages/doenetml-worker-javascript/src/types/coreBackref.ts` listing only the fields each manager actually reads. This is documentary and catches typos. Each manager can narrow further with `Pick<CoreBackref, ...>`.
-2. **Convert `Core.js` to `Core.ts`** in a follow-up phase. Requires real type definitions for `_components`, `flags`, `componentInfoObjects`, etc. — a much larger lift but lets the managers drop their back-reference typing concerns entirely.
+All nine identified managers were converted to module-function form across PRs #1050 (`af88a65f4` — `NavigationHandler`, `ResolverAdapter`, `ComponentLifecycle`, `DeletionEngine`, `ChildMatcher`), #1051 (`618adce9b` — `CompositeExpander`), #1052 (`9ee2f37ce` — `ComponentBuilder`), #1053 (`52bc49c06` — `StateVariableInitializer`), and #1054 (`4ff8b3352` — `StateVariableDefinitionFactory`). `ChildMatcher`'s `derivingChildResultsInProgress` array became a module-level closure. Core no longer instantiates these as managers; it imports the functions directly.
 
-(1) is the cheaper near-term win.
+### Move `getSourceLocationForComponent` out of `DiagnosticsManager` — DONE
 
-### Reduce stateless managers to plain functions
+Relocated; `DiagnosticsManager` no longer carries any back-reference to `core`.
 
-Several managers hold no state of their own — only a `core` back-reference:
+### `TimerLabels` constants for `reportTimerError` — DONE
 
-- Phase 1: `NavigationHandler`, `ResolverAdapter`
-- Phase 2: `ComponentLifecycle`, `DeletionEngine` (and `ChildMatcher`, modulo its single recursion-guard array)
-- Phase 3: `StateVariableDefinitionFactory`, `StateVariableInitializer`, `ComponentBuilder`, `CompositeExpander` — none keep their own state; they only read/write through `core`
-
-The pure-function shape used in `StateVariableNameResolver.ts` is more honest for these:
-
-```ts
-// NavigationHandler.ts
-export async function handleNavigatingToComponent({
-    core, componentIdx, hash,
-}: { core: CoreBackref; componentIdx: number; hash: string }) { ... }
-
-export function navigateToTarget({ core, args }: { core: CoreBackref; args: any }) { ... }
-```
-
-Core's wrappers shrink by one line each. If we keep the class form for symmetry with the other (genuinely stateful) managers, that's defensible — but the current shape has both forms coexisting, so the inconsistency is real. `ChildMatcher`'s `derivingChildResultsInProgress` array is a small enough piece of state that it could be lifted into a module-level closure or threaded through the call, allowing it to also become a plain-function module.
-
-### Move `getSourceLocationForComponent` out of `DiagnosticsManager`
-
-It currently lives at `DiagnosticsManager.ts:150-170`. It walks `_components` ancestors to find a position; nothing about it is diagnostic-specific. It's only there because diagnostics are its primary caller (`Core.js:7530`). Better home: `packages/doenetml-worker-javascript/src/utils/descendants.js` alongside `ancestorsIncludingComposites`.
-
-### `TimerLabels` constants for `reportTimerError`
-
-Each call site to `reportTimerError(...)` writes a hand-typed label (`"auto-submit answers"`, `"scheduled saveState"`, `"throttled saveChangesToDatabase"`, `"visibility periodic send"`, `"visibility resume send"`, `"visibility auto-suspend"`). A shared object would catch typos and centralize the namespace:
-
-```ts
-// packages/doenetml-worker-javascript/src/utils/timerErrors.ts
-export const TimerLabels = {
-    autoSubmit: "auto-submit answers",
-    scheduledSaveState: "scheduled saveState",
-    throttledSaveChanges: "throttled saveChangesToDatabase",
-    visibilityPeriodicSend: "visibility periodic send",
-    visibilityResumeSend: "visibility resume send",
-    visibilityAutoSuspend: "visibility auto-suspend",
-} as const;
-```
-
-Skip if the next phase introduces a broader logging/instrumentation layer that supersedes this helper.
+`src/utils/timerErrors.ts` exports the `TimerLabels` constant; all `reportTimerError(...)` callsites in `AutoSubmitManager`, `CoreWorker`, `StatePersistence`, `UpdateExecutor`, `Core`, and `VisibilityTracker` use it.
 
 ### Refactor `calcStartEndIdx` out of `determineParentAndIndexResolutionForResolver` — DONE
 
 Extracted from the nested closure in `ResolverAdapter.determineParentAndIndexResolutionForResolver` into a standalone module-level helper in `utils/resolver.ts`. The new `calcStartEndIdx({ replacements, copyComponentIdx, updateStart, updateEnd })` returns `{ flattenedReplacements, startIdx, endIdx }` directly — no closure mutation, no discarded return value. Behaviour is preserved verbatim, including the parent-overrides-child semantics that the original closure relied on. Unit tests cover the nine behavioural branches in `src/test/utils/calcStartEndIdx.test.ts`.
 
-### Pre-existing fire-and-forget calls still in `Core.js`
+### Pre-existing fire-and-forget calls still in `Core.js` — DONE
 
-Three intentionally unawaited Promise calls remain in `Core.js`. They pre-date this PR (this refactor did not introduce them, and adding `.catch` handlers was out of scope for a behavior-preserving extraction), but they violate the AGENTS.md convention that fire-and-forget Promises must attach an explicit `.catch(...)` handler. They should be picked up in the next phase that touches Core directly.
-
-- **`Core.js:444`** — `this.saveState();` inside the `generateDast` epilogue (`if (!this.receivedStateVariableChanges) { this.saveState(); }`). Returns a Promise; rejection is unhandled.
-- **`Core.js:4387`** — `this.saveState(true, true);` inside `processNewStateVariableValues` after recording component submissions. Same shape as above.
-- **`Core.js:483-486`** — `setTimeout(this.sendVisibilityChangedEvents.bind(this), this.visibilityInfo.saveDelay)` inside `onDocumentFirstVisible()`. The bound function returns `Promise<void> | undefined`; setTimeout discards the return, so any rejection is unhandled.
-
-Suggested fix in each case: wrap with `.catch(reportTimerError("<label>"))` using the helper added in this PR (`src/utils/timerErrors.ts`). For the setTimeout case, use a thin arrow wrapper: `setTimeout(() => { this.sendVisibilityChangedEvents()?.catch(reportTimerError("first-visible visibility send")); }, ...)`.
-
-Phase 2's `ProcessQueue._kickoff` already attaches a `.catch(console.error)` to its `executeProcesses()` call, but the rest of the codebase still needs a sweep for bare `executeProcesses()` invocations and other unawaited Promises.
+The three `saveState()` and `setTimeout(...)` callsites in `Core.ts` (now-`.ts`) were wrapped with `.catch(reportTimerError(TimerLabels.*))`. `ProcessQueue._kickoff`'s `executeProcesses()` is also `.catch`-wrapped.
 
 ### Carried-over `TODO` comments in the new managers
 
@@ -108,21 +62,17 @@ Phase 4 lifted further `TODO`s verbatim into the five new modules — line numbe
 
 Resolved in PR #1049. Added `ProcessQueue.sendRecordEvent(event)` (push-and-kickoff) and switched `VisibilityTracker.sendVisibilityChangedEvents` to call it instead of poking `core.processQueue.push(...)` and `core.processing` / `core.executeProcesses()` directly. With no remaining external readers of the array or the processing flags, dropped Core's `get/set processQueue` (array), `get/set processing`, `get/set stopProcessingRequests`, and the `executeProcesses()` wrapper, then renamed `processQueueManager` → `processQueue`. `Core.terminate()` now reads `this.processQueue.processing` / `.stopProcessingRequests` directly.
 
-### `statePersistence` instantiation position in the Core constructor
+### `statePersistence` instantiation position in the Core constructor — DONE
 
-Phase 4 moved `new StatePersistence({ core: this })` from `generateDast` into the constructor (commit `73a2337ec`), which is correct — `terminate()` awaits `saveImmediately()`, so calling `terminate` before the first `generateDast` would have thrown without it. But the new instantiation sits at the tail of the constructor (`Core.js:251`), after `updateExecutor`, rather than grouped with the other persistence/lifecycle managers earlier in the block.
+`new StatePersistence({ core: this })` now sits with the other manager instantiations in the main constructor block (Core.ts:371) rather than at the tail.
 
-Functionally fine (every back-reference is resolved at call time, not constructor time), but visually the manager-instantiation block has a clear top-to-bottom grouping that this entry breaks. One-line move into the natural position once someone is touching this file.
+### Standardize `core._components` vs `core.components` access in extracted managers — DONE
 
-### Standardize `core._components` vs `core.components` access in extracted managers
+All extracted managers and module functions consistently use `core._components`; no remaining read-side uses of the `components` getter. Convention to be enforced in future extractions.
 
-`Core` exposes `_components` as the canonical array and `get components()` as a read-only accessor returning the same array. Phase 2's and Phase 3's modules now consistently use `core._components` (Phase 1 mostly does too). If future managers are added, keep this convention so reviewers don't have to remember the array and getter are the same thing. The deferred `CoreBackref` interface above is the natural place to enforce it (expose only `_components`).
+### Regression test for the `.primitive.number` → `.primitive.value` fix — DONE
 
-### Regression test for the `.primitive.number` → `.primitive.value` fix
-
-Commit `aed7910c` fixed a latent bug at `ResolverAdapter.ts:84` (was reading `component.attributes.createComponentIdx.primitive.number`, should be `.value` after a `primitive.type === "number"` guard). The fix matches the pattern at `utils/resolver.ts:220-224` and `utils/componentIndices.ts:725`.
-
-This codepath fires when a copy component (created via `extend`) has a `source:sequence` attribute and a numeric `createComponentIdx`. A targeted Vitest case constructing that specific shape and asserting the resolver receives a `parentSourceSequence` with the correct `parent: <number>` field would lock the fix in. Without it, regressions could re-introduce the silent `undefined`-parent bug.
+Added at `src/test/copying/external_references.test.ts` ("name reference into extended external content resolves through parentSourceSequence (regression)"). The test pins the contract: with the bug shape (`parent: undefined` from a missing primitive field), name resolution into a copied-and-renamed external section would not reach the leaf, and the test's `s.inner.leaf` and `p1` lookups would fail.
 
 ### De-duplicate attribute-derived state variable construction in `StateVariableDefinitionFactory` — DONE
 
@@ -151,47 +101,42 @@ expansion-tracking state at points that are not protected against a thrown
 exception in the awaited work that follows:
 
 1. **Parent's unexpanded-composite lists** (`expandCompositeComponent`,
-   around line 277). The composite is removed from
+   around line 315). The composite is removed from
    `parent.unexpandedCompositesReady` / `unexpandedCompositesNotReady`
    *before* `createSerializedReplacements` and the rest of the async
    expansion run. If a later `await` throws, the parent's lists no
    longer reflect that the child still needs expansion, and dependency
    code that consults those lists will misclassify the parent.
-2. **`compositesBeingExpanded` push/pop pairing**. Both functions push
-   `componentIdx` onto `core.updateInfo.compositesBeingExpanded` near the
-   top of the function and only pop (via `_finishExpanding`) at the end.
-   Any throw between leaks the entry permanently. `Dependencies.resolveItem()`
-   and the circular-shadow checks both consult this array, so a single
-   failed expansion can cause later updates to be misclassified as
-   circular or in-progress until the worker is recreated.
+2. **`compositesBeingExpanded` push/pop pairing**. The push happens at the
+   top of `expandCompositeComponent` (line 313), and the matching pop happens
+   in either `_finishExpanding(line 425)` (non-shadow path) or inside
+   `expandShadowingComposite` at `_finishExpanding(line 704)` (shadow path).
+   Any throw between push and pop leaks the entry permanently.
+   `Dependencies.resolveItem()` and the circular-shadow checks both consult
+   this array, so a single failed expansion can cause later updates to be
+   misclassified as circular or in-progress until the worker is recreated.
 
 Both windows pre-date the Phase 5f refactor (the splices were inline
-before extraction; the cleanup site has not moved). Fix is a `try`/`finally`
-wrapper around each function body so the cleanup runs on the throw path,
-or — for the parent-list mutation — defer the splice until after the
-work that can throw has completed. Surface for separate PR; verify
-against tests that intentionally trigger expansion failures.
+before extraction; the cleanup site has not moved). The clean fix is a
+`try`/`finally` wrapper in `expandCompositeComponent` that owns the
+push/pop, plus deferring the parent-list splice until after the work
+that can throw has completed. Holding off until there is at least one
+test that intentionally triggers an expansion failure — the only
+existing test in `functionTag.test.ts` (line 7319) is a happy-path
+regression for an error that *was* reachable, not a forced-throw test.
+Behavior change for an untested error path is the gating risk.
 
-### Drop dead `replacementsCreated` guard in `CompositeExpander.expandShadowingComposite`
+### Drop dead `replacementsCreated` guard in `CompositeExpander.expandShadowingComposite` — DONE
 
-Around line 674 (the second `if (component.replacementsWorkspace.replacementsCreated === undefined) { ... = 0 }` inside the `!foundCircular` branch). `replacementsCreated` is already initialized to `0` ~200 lines earlier in the same function (around line 467) and is never re-set to undefined between the two checks. The second guard is dead.
+Removed.
 
-### Pre-existing `verifyReplacementsMatchSpecifiedType` warnings loop bug
+### Pre-existing `verifyReplacementsMatchSpecifiedType` warnings loop bug — DONE
 
-`CompositeExpander.expandShadowingComposite`, around lines 695-704. Both loops iterate `verificationResult.diagnostics` and add the items as both `"error"` and `"warning"` diagnostics, so every diagnostic is double-reported and there is no path for a true warning to come through. The second loop almost certainly should iterate `verificationResult.warnings` (or equivalent), or be deleted. Carried over verbatim from `Core.js`; not introduced by the refactor. Confirm against the verifier's actual output shape and fix in a separate PR.
+The duplicate warning-loop was deleted; only the single `diagnostics` loop remains.
 
-### Pre-existing unreachable diagnostic in `StateVariableInitializer.initializeArrayStateVariable`
+### Pre-existing unreachable diagnostic in `StateVariableInitializer.initializeArrayStateVariable` — DONE
 
-Around line 453 of the current file:
-
-```ts
-if (!numDimensionsInArrayKey > stateVarObj.numDimensions) {
-    core.addDiagnostic({ ... "Number of dimensions specified in array key ..." ... });
-    ...
-}
-```
-
-`!numDimensionsInArrayKey` is `false` for any positive integer, and `false > number` is always `false`, so the diagnostic is unreachable. Almost certainly intended `numDimensionsInArrayKey > stateVarObj.numDimensions`. Pre-dates the refactor (present in `Core.js` since the 2021 rename); flag for a separate fix once the intended check has been confirmed against test expectations.
+The `!numDimensionsInArrayKey > stateVarObj.numDimensions` typo was corrected to `numDimensionsInArrayKey > stateVarObj.numDimensions`, restoring reachability.
 
 ### Collapse the 1-D vs N-D branches of `StateVariableInitializer.initializeArrayStateVariable`
 
@@ -199,17 +144,9 @@ if (!numDimensionsInArrayKey > stateVarObj.numDimensions) {
 
 A unified implementation that always uses the multi-index path would shed roughly 80 lines of duplication. The trade-off is that the 1-D path has a flatter, faster shape (`Number(key)` instead of `key.split(",").map(Number)`); benchmarking against the existing array-heavy components (`mathList`, `numberList`, `point`'s array entries) is the gating step before unifying. Carried over verbatim from `Core.js`; not introduced by the class→module conversion (PR `core-refactor-17`).
 
-### `getAllArrayKeys` default in `StateVariableInitializer.initializeArrayStateVariable`
+### `getAllArrayKeys` default in `StateVariableInitializer.initializeArrayStateVariable` — DEFERRED INDEFINITELY
 
-Five sites inside `initializeArrayStateVariable` (`returnDependencies`, `getCurrentFreshness`, `markStale`, `freshenOnNoChanges`, `definition`, `inverseDefinition`) all open with the same defaulting line:
-
-```ts
-if (args.arrayKeys === undefined) {
-    args.arrayKeys = stateVarObj.getAllArrayKeys(args.arraySize);
-}
-```
-
-Folding this into `getAllArrayKeys` itself (so callers can pass `undefined` and get the all-keys default back) would cut five 3-line repetitions to one. Pre-existing pattern carried over from `Core.js`; not introduced by the class→module conversion (PR `core-refactor-17`).
+Three sites still open with `if (args.arrayKeys === undefined) { args.arrayKeys = stateVarObj.getAllArrayKeys(args.arraySize); }` (down from five since the original audit). The originally-proposed "fold into `getAllArrayKeys` itself" doesn't apply cleanly: the function takes `arraySize`, not `arrayKeys` — they are different concerns. A small `_resolveArrayKeysOnArgs(args, stateVarObj)` mutating helper saves only ~6 net lines and adds an indirection; not worth the churn unless touched in passing during a larger pass. `??=` would also work but subtly changes the null/undefined semantics.
 
 ### Re-home `recursivelyReplaceCompositesWithReplacements` — DONE
 
