@@ -23,10 +23,7 @@ import { CompositeExpander } from "./CompositeExpander";
 import { CompositeReplacementUpdater } from "./CompositeReplacementUpdater";
 import { DiagnosticsManager } from "./DiagnosticsManager";
 import { EssentialValueWriter } from "./EssentialValueWriter";
-import {
-    handleNavigatingToComponent,
-    navigateToTarget,
-} from "./NavigationHandler";
+import { navigateToTarget } from "./NavigationHandler";
 import { ProcessQueue } from "./ProcessQueue";
 import { RendererInstructionBuilder } from "./RendererInstructionBuilder";
 import { StalenessPropagator } from "./StalenessPropagator";

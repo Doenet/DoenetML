@@ -8,8 +8,9 @@ import { assignDoenetMLRange } from "@doenet/utils";
  * to a parent's child group, and computing which active children should
  * actually be rendered.
  *
- * Stateless apart from the module-level recursion guard
- * `derivingChildResultsInProgress`. Each function takes a back-reference
+ * Stateless apart from the module-level `derivingChildResultsInProgress`
+ * recursion guard (a `WeakMap<Core, Set<number>>`). Each function takes a
+ * back-reference
  * to Core to read `_components`, `componentInfoObjects`, `dependencies`,
  * `updateInfo`, and to invoke expansion methods
  * (`expandCompositeOfDefiningChildren`, `replaceCompositeChildren`,
@@ -22,10 +23,14 @@ import { assignDoenetMLRange } from "@doenet/utils";
  * call back into the same parent indirectly; on re-entry we return
  * `{ success: false, skipping: true }` so the outer call finishes first.
  *
- * Module-level so all call sites share the same guard set without
- * threading it through every entry point.
+ * Keyed by Core instance so multiple Core objects in the same JS context
+ * (e.g. simultaneous vitest suites) cannot collide on a shared componentIdx.
+ * WeakMap also ensures entries are GC'd when a Core is dropped.
  */
-const derivingChildResultsInProgress: Set<number> = new Set();
+const derivingChildResultsInProgress: WeakMap<
+    Core,
+    Set<number>
+> = new WeakMap();
 
 /**
  * Build `parent.activeChildren`, `parent.allChildren`, and
@@ -46,133 +51,148 @@ export async function deriveChildResultsFromDefiningChildren({
     expandComposites?: boolean;
     forceExpandComposites?: boolean;
 }): Promise<any> {
-    if (derivingChildResultsInProgress.has(parent.componentIdx)) {
+    let inProgress = derivingChildResultsInProgress.get(core);
+    if (!inProgress) {
+        inProgress = new Set();
+        derivingChildResultsInProgress.set(core, inProgress);
+    }
+    if (inProgress.has(parent.componentIdx)) {
         return { success: false, skipping: true };
     }
-    derivingChildResultsInProgress.add(parent.componentIdx);
+    inProgress.add(parent.componentIdx);
 
-    // create allChildren and activeChildren from defining children
-    // apply child logic and substitute adapters to modify activeChildren
+    try {
+        // create allChildren and activeChildren from defining children
+        // apply child logic and substitute adapters to modify activeChildren
 
-    // attempt to expand composites before modifying active children
-    let result = await core.expandCompositeOfDefiningChildren(
-        parent,
-        parent.definingChildren,
-        expandComposites,
-        forceExpandComposites,
-    );
-    parent.unexpandedCompositesReady = result.unexpandedCompositesReady;
-    parent.unexpandedCompositesNotReady = result.unexpandedCompositesNotReady;
-
-    let previousActiveChildren: any[] | undefined;
-
-    if (parent.activeChildren) {
-        previousActiveChildren = parent.activeChildren.map((child: any) =>
-            child.componentIdx ? child.componentIdx : child,
+        // attempt to expand composites before modifying active children
+        let result = await core.expandCompositeOfDefiningChildren(
+            parent,
+            parent.definingChildren,
+            expandComposites,
+            forceExpandComposites,
         );
-    }
+        parent.unexpandedCompositesReady = result.unexpandedCompositesReady;
+        parent.unexpandedCompositesNotReady =
+            result.unexpandedCompositesNotReady;
 
-    parent.activeChildren = parent.definingChildren.slice(); // shallow copy
+        let previousActiveChildren: any[] | undefined;
 
-    // allChildren include activeChildren, definingChildren,
-    // and possibly some children that are neither
-    // (which could occur when a composite is expanded and the result is adapted)
-    // ignores string and number primitive children
-    parent.allChildren = {};
-
-    // allChildrenOrdered contains same children as allChildren,
-    // but retaining an order that we can use for counters.
-    // If defining children are replaced my composite replacements or adapters,
-    // those children will come immediately after the corresponding defining child
-    parent.allChildrenOrdered = [];
-
-    for (let ind = 0; ind < parent.activeChildren.length; ind++) {
-        let child = parent.activeChildren[ind];
-        let childIdx;
-        if (typeof child !== "object") {
-            continue;
+        if (parent.activeChildren) {
+            previousActiveChildren = parent.activeChildren.map((child: any) =>
+                child.componentIdx ? child.componentIdx : child,
+            );
         }
 
-        childIdx = child.componentIdx;
+        parent.activeChildren = parent.definingChildren.slice(); // shallow copy
 
-        parent.allChildren[childIdx] = {
-            activeChildrenIndex: ind,
-            definingChildrenIndex: ind,
-            component: child,
-        };
+        // allChildren include activeChildren, definingChildren,
+        // and possibly some children that are neither
+        // (which could occur when a composite is expanded and the result is adapted)
+        // ignores string and number primitive children
+        parent.allChildren = {};
 
-        parent.allChildrenOrdered.push(childIdx);
-    }
+        // allChildrenOrdered contains same children as allChildren,
+        // but retaining an order that we can use for counters.
+        // If defining children are replaced my composite replacements or adapters,
+        // those children will come immediately after the corresponding defining child
+        parent.allChildrenOrdered = [];
 
-    // if any of activeChildren are expanded compositeComponents
-    // replace with new components given by the composite component
-    await core.replaceCompositeChildren(parent);
+        for (let ind = 0; ind < parent.activeChildren.length; ind++) {
+            let child = parent.activeChildren[ind];
+            let childIdx;
+            if (typeof child !== "object") {
+                continue;
+            }
 
-    let childGroupResults = await matchChildrenToChildGroups({ core, parent });
+            childIdx = child.componentIdx;
 
-    if (childGroupResults.success) {
-        delete core.unmatchedChildren[parent.componentIdx];
-        parent.childrenMatchedWithPlaceholders = true;
-        parent.matchedCompositeChildrenWithPlaceholders = true;
-    } else {
-        parent.childrenMatchedWithPlaceholders = false;
-        parent.matchedCompositeChildrenWithPlaceholders = true;
+            parent.allChildren[childIdx] = {
+                activeChildrenIndex: ind,
+                definingChildrenIndex: ind,
+                component: child,
+            };
 
-        let unmatchedChildrenTypes: string[] = [];
-        for (let child of childGroupResults.unmatchedChildren) {
-            if (typeof child === "string") {
-                unmatchedChildrenTypes.push("string");
-            } else {
-                unmatchedChildrenTypes.push("`<" + child.componentType + ">`");
-                if (
-                    core.componentInfoObjects.isInheritedComponentType({
-                        inheritedComponentType: child.componentType,
-                        baseComponentType: "_composite",
-                    })
-                ) {
-                    parent.matchedCompositeChildrenWithPlaceholders = false;
+            parent.allChildrenOrdered.push(childIdx);
+        }
+
+        // if any of activeChildren are expanded compositeComponents
+        // replace with new components given by the composite component
+        await core.replaceCompositeChildren(parent);
+
+        const childGroupResults = await matchChildrenToChildGroups({
+            core,
+            parent,
+        });
+
+        if (childGroupResults.success) {
+            delete core.unmatchedChildren[parent.componentIdx];
+            parent.childrenMatchedWithPlaceholders = true;
+            parent.matchedCompositeChildrenWithPlaceholders = true;
+        } else {
+            parent.childrenMatchedWithPlaceholders = false;
+            parent.matchedCompositeChildrenWithPlaceholders = true;
+
+            let unmatchedChildrenTypes: string[] = [];
+            for (let child of childGroupResults.unmatchedChildren) {
+                if (typeof child === "string") {
+                    unmatchedChildrenTypes.push("string");
+                } else {
+                    unmatchedChildrenTypes.push(
+                        "`<" + child.componentType + ">`",
+                    );
+                    if (
+                        core.componentInfoObjects.isInheritedComponentType({
+                            inheritedComponentType: child.componentType,
+                            baseComponentType: "_composite",
+                        })
+                    ) {
+                        parent.matchedCompositeChildrenWithPlaceholders = false;
+                    }
                 }
+            }
+
+            if (parent.doenetAttributes.isAttributeChildFor) {
+                let attributeForComponentType =
+                    parent.ancestors[0].componentClass.componentType;
+                core.unmatchedChildren[parent.componentIdx] = {
+                    message: `Invalid format for attribute ${parent.doenetAttributes.isAttributeChildFor} of \`<${attributeForComponentType}>\`.`,
+                };
+            } else {
+                core.unmatchedChildren[parent.componentIdx] = {
+                    message: `Invalid children for \`<${
+                        parent.componentType
+                    }>\`: Found invalid children: ${unmatchedChildrenTypes.join(
+                        ", ",
+                    )}`,
+                };
             }
         }
 
-        if (parent.doenetAttributes.isAttributeChildFor) {
-            let attributeForComponentType =
-                parent.ancestors[0].componentClass.componentType;
-            core.unmatchedChildren[parent.componentIdx] = {
-                message: `Invalid format for attribute ${parent.doenetAttributes.isAttributeChildFor} of \`<${attributeForComponentType}>\`.`,
-            };
-        } else {
-            core.unmatchedChildren[parent.componentIdx] = {
-                message: `Invalid children for \`<${
-                    parent.componentType
-                }>\`: Found invalid children: ${unmatchedChildrenTypes.join(
-                    ", ",
-                )}`,
-            };
+        await core.dependencies.addBlockersFromChangedActiveChildren({
+            parent,
+        });
+
+        if (parent.constructor.renderChildren) {
+            let childrenUnchanged =
+                previousActiveChildren &&
+                previousActiveChildren.length == parent.activeChildren.length &&
+                parent.activeChildren.every((child: any, ind: number) =>
+                    child.componentIdx
+                        ? child.componentIdx === previousActiveChildren![ind]
+                        : child === previousActiveChildren![ind],
+                );
+            if (!childrenUnchanged) {
+                core.componentsWithChangedChildrenToRender.add(
+                    parent.componentIdx,
+                );
+            }
         }
+
+        return childGroupResults;
+    } finally {
+        inProgress.delete(parent.componentIdx);
     }
-
-    await core.dependencies.addBlockersFromChangedActiveChildren({
-        parent,
-    });
-
-    derivingChildResultsInProgress.delete(parent.componentIdx);
-
-    if (parent.constructor.renderChildren) {
-        let childrenUnchanged =
-            previousActiveChildren &&
-            previousActiveChildren.length == parent.activeChildren.length &&
-            parent.activeChildren.every((child: any, ind: number) =>
-                child.componentIdx
-                    ? child.componentIdx === previousActiveChildren![ind]
-                    : child === previousActiveChildren![ind],
-            );
-        if (!childrenUnchanged) {
-            core.componentsWithChangedChildrenToRender.add(parent.componentIdx);
-        }
-    }
-
-    return childGroupResults;
 }
 
 /**
