@@ -19,9 +19,10 @@ type VisibilityInfo = {
  * `isVisible` events to the host. Owns timer state for the periodic
  * "send" cycle and the auto-suspend after inactivity.
  *
- * Holds a back-reference to Core to push aggregated events onto
- * `core.processQueue` and to call `core.onDocumentFirstVisible()` the
- * first time the document becomes visible.
+ * Holds a back-reference to Core to enqueue aggregated events via
+ * `core.processQueue.sendRecordEvent()` and to call
+ * `core.onDocumentFirstVisible()` the first time the document becomes
+ * visible.
  */
 export class VisibilityTracker {
     core: Core;
@@ -124,19 +125,7 @@ export class VisibilityTracker {
                 result: infoToSend,
             };
 
-            promise = new Promise<void>((resolve, reject) => {
-                this.core.processQueue.push({
-                    type: "recordEvent",
-                    event,
-                    resolve,
-                    reject,
-                });
-
-                if (!this.core.processing) {
-                    this.core.processing = true;
-                    this.core.executeProcesses();
-                }
-            });
+            promise = this.core.processQueue.sendRecordEvent(event);
         }
 
         if (!this.info.suspended) {

@@ -203,7 +203,7 @@ export default class Core {
     navigationHandler: NavigationHandler;
     resolverAdapter: ResolverAdapter;
     rendererInstructionBuilder: RendererInstructionBuilder;
-    processQueueManager: ProcessQueue;
+    processQueue: ProcessQueue;
     componentLifecycle: ComponentLifecycle;
     childMatcher: ChildMatcher;
     deletionEngine: DeletionEngine;
@@ -369,7 +369,7 @@ export default class Core {
         this.rendererInstructionBuilder = new RendererInstructionBuilder({
             core: this,
         });
-        this.processQueueManager = new ProcessQueue({ core: this });
+        this.processQueue = new ProcessQueue({ core: this });
         this.componentLifecycle = new ComponentLifecycle({ core: this });
         this.childMatcher = new ChildMatcher({ core: this });
         this.deletionEngine = new DeletionEngine({ core: this });
@@ -480,10 +480,9 @@ export default class Core {
             );
         }
 
-        // Reset the process queue managed by `this.processQueueManager`
-        // (see ProcessQueue.ts) so a previous run does not leak into this
-        // document.
-        this.processQueueManager.reset();
+        // Reset the process queue (see ProcessQueue.ts) so a previous
+        // run does not leak into this document.
+        this.processQueue.reset();
 
         this.dependencies = new DependencyHandler({
             _components: this._components,
@@ -1149,45 +1148,18 @@ export default class Core {
         return this._components;
     }
 
-    // → processQueueManager
-    //
-    // The accessor pair below is preserved because `VisibilityTracker.ts`
-    // pushes onto `core.processQueue` directly (the underlying array). A
-    // future refactor could replace that push with a method on
-    // `ProcessQueue`, drop these accessors, and rename
-    // `processQueueManager` → `processQueue` (deferred §"`processQueue`
-    // field naming").
-
-    get processQueue(): any[] {
-        return this.processQueueManager.queue;
-    }
-
-    set processQueue(value: any[]) {
-        this.processQueueManager.queue = value;
-    }
-
-    get processing(): boolean {
-        return this.processQueueManager.processing;
-    }
-
-    set processing(value: boolean) {
-        this.processQueueManager.processing = value;
-    }
-
-    get stopProcessingRequests(): boolean {
-        return this.processQueueManager.stopProcessingRequests;
-    }
-
-    set stopProcessingRequests(value: boolean) {
-        this.processQueueManager.stopProcessingRequests = value;
-    }
-
-    async executeProcesses(): Promise<any> {
-        return this.processQueueManager.executeProcesses();
-    }
+    // → processQueue
 
     requestAction(args: any): any {
-        return this.processQueueManager.requestAction(args);
+        return this.processQueue.requestAction(args);
+    }
+
+    async requestUpdate(args: any): Promise<any> {
+        return this.processQueue.requestUpdate(args);
+    }
+
+    requestRecordEvent(event: any): any {
+        return this.processQueue.requestRecordEvent(event);
     }
 
     // → updateExecutor
@@ -1204,16 +1176,6 @@ export default class Core {
 
     async triggerChainedActions(args: any): Promise<any> {
         return this.actionTriggerScheduler.triggerChainedActions(args);
-    }
-
-    // → processQueueManager (cont.)
-
-    async requestUpdate(args: any): Promise<any> {
-        return this.processQueueManager.requestUpdate(args);
-    }
-
-    requestRecordEvent(event: any): any {
-        return this.processQueueManager.requestRecordEvent(event);
     }
 
     // → rendererInstructionBuilder (cont.) — `updateRenderers` is the
@@ -1394,12 +1356,12 @@ export default class Core {
 
         await this.autoSubmitManager.flush();
 
-        this.stopProcessingRequests = true;
+        this.processQueue.stopProcessingRequests = true;
 
-        if (this.processing) {
+        if (this.processQueue.processing) {
             for (let i = 0; i < 10; i++) {
                 await pause100();
-                if (!this.processing) {
+                if (!this.processQueue.processing) {
                     break;
                 }
             }

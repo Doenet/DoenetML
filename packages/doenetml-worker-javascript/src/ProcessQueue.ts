@@ -243,7 +243,19 @@ export class ProcessQueue {
             return this.core.processVisibilityChangedEvent(event);
         }
 
-        return new Promise((resolve, reject) => {
+        return this.sendRecordEvent(event);
+    }
+
+    /**
+     * Push a recordEvent entry directly onto the queue and kick the drain
+     * loop. Called by `VisibilityTracker.sendVisibilityChangedEvents` to
+     * emit aggregated `isVisible` events. Bypasses `requestRecordEvent`
+     * because that path routes inbound `visibilityChanged` events into
+     * VisibilityTracker and calls `resumeVisibilityMeasuring` — both
+     * inappropriate on the outbound batch path.
+     */
+    sendRecordEvent(event: any): Promise<void> {
+        return new Promise<void>((resolve, reject) => {
             this.queue.push({
                 type: "recordEvent",
                 event,
