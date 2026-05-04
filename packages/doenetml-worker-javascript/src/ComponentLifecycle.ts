@@ -1,5 +1,6 @@
 import type Core from "./Core";
 import { deriveChildResultsFromDefiningChildren } from "./ChildMatcher";
+import { createIsolatedComponents } from "./ComponentBuilder";
 import { postProcessCopy } from "./utils/copy";
 import { createNewComponentIndices } from "./utils/componentIndices";
 
@@ -213,7 +214,8 @@ export async function addChildrenAndRecurseToShadows({
                 false,
             );
 
-            let createResult = await core.createIsolatedComponents({
+            let createResult = await createIsolatedComponents({
+                core,
                 serializedComponents: shadowingSerializeChildren,
                 ancestors: shadowingParent.ancestors,
             });

@@ -1,6 +1,7 @@
 import type Core from "./Core";
 import type { ComponentInstance } from "./types/componentInstance";
 import type { ComponentIdx } from "@doenet/utils";
+import { createIsolatedComponents } from "./ComponentBuilder";
 import {
     processNewDefiningChildren,
     spliceChildren,
@@ -53,9 +54,9 @@ type SourceOfUpdate = Record<string, any>;
  * Owns `updateInfo.compositesToUpdateReplacements` (read by the
  * post-update flush in `EssentialValueWriter` /
  * `RendererInstructionBuilder`). Holds a back-reference to Core for
- * the rest of the hot state and the other extracted managers
- * (notably `componentBuilder`, `compositeExpander`). Calls the module-level
- * `deleteComponents` from DeletionEngine directly.
+ * the rest of the hot state and the other extracted managers. Calls
+ * module-level functions from `ComponentBuilder`, `CompositeExpander`,
+ * and `DeletionEngine` directly.
  */
 export class CompositeReplacementUpdater {
     core: Core;
@@ -76,9 +77,10 @@ export class CompositeReplacementUpdater {
      *      `deleteReplacementsFromShadowsThenComposite`, which recurses
      *      into shadowing composites first so the shadow tree shrinks
      *      from leaves inward.
-     *   3. Creating new replacements via `componentBuilder` /
-     *      `compositeExpander`, calling `createShadowedReplacements` for
-     *      every shadow so the shadow tree grows in lockstep.
+     *   3. Creating new replacements via the `ComponentBuilder` and
+     *      `CompositeExpander` module functions, calling
+     *      `createShadowedReplacements` for every shadow so the shadow
+     *      tree grows in lockstep.
      *   4. Threading every change through `componentChanges` so callers
      *      can inspect what moved.
      *
@@ -335,12 +337,12 @@ export class CompositeReplacementUpdater {
                 }
 
                 try {
-                    const createResult =
-                        await this.core.createIsolatedComponents({
-                            serializedComponents: serializedReplacements,
-                            ancestors: component.ancestors,
-                            componentsReplacementOf: component,
-                        });
+                    const createResult = await createIsolatedComponents({
+                        core: this.core,
+                        serializedComponents: serializedReplacements,
+                        ancestors: component.ancestors,
+                        componentsReplacementOf: component,
+                    });
 
                     newComponents = createResult.components;
                 } catch (e: any) {
@@ -621,7 +623,8 @@ export class CompositeReplacementUpdater {
 
         composite.isInErrorState = true;
 
-        let createResult = await this.core.createIsolatedComponents({
+        let createResult = await createIsolatedComponents({
+            core: this.core,
             serializedComponents: errorReplacements,
             ancestors: composite.ancestors,
             componentsReplacementOf: composite,
@@ -1000,13 +1003,12 @@ export class CompositeReplacementUpdater {
                 );
 
                 try {
-                    let createResult = await this.core.createIsolatedComponents(
-                        {
-                            serializedComponents: newSerializedReplacements,
-                            ancestors: shadowingComponent.ancestors,
-                            componentsReplacementOf: shadowingComponent,
-                        },
-                    );
+                    let createResult = await createIsolatedComponents({
+                        core: this.core,
+                        serializedComponents: newSerializedReplacements,
+                        ancestors: shadowingComponent.ancestors,
+                        componentsReplacementOf: shadowingComponent,
+                    });
                     newComponents = createResult.components;
                 } catch (e: any) {
                     console.error(e);

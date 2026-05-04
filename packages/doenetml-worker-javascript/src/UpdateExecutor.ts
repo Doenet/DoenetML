@@ -1,5 +1,6 @@
 import type Core from "./Core";
 import type { ComponentIdx } from "@doenet/utils";
+import { addComponents } from "./ComponentBuilder";
 import { deleteComponents } from "./DeletionEngine";
 import { createNewComponentIndices } from "./utils/componentIndices";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
@@ -304,7 +305,8 @@ export class UpdateExecutor {
                 if (res.nComponents > this.core._components.length) {
                     this.core._components[res.nComponents - 1] = undefined;
                 }
-                await this.core.addComponents({
+                await addComponents({
+                    core: this.core,
                     serializedComponents: res.components,
                     parentIdx: instruction.parentIdx,
                 });

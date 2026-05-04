@@ -4,6 +4,7 @@ import {
     deriveChildResultsFromDefiningChildren,
     findChildGroup,
 } from "./ChildMatcher";
+import { createIsolatedComponents } from "./ComponentBuilder";
 import { processNewDefiningChildren } from "./ComponentLifecycle";
 import {
     addReplacementsToResolver,
@@ -793,7 +794,8 @@ export async function createAndSetReplacements({
     core.parameterStack.push(component.sharedParameters, false);
 
     try {
-        let replacementResult = await core.createIsolatedComponents({
+        let replacementResult = await createIsolatedComponents({
+            core,
             serializedComponents: serializedReplacements,
             ancestors: component.ancestors,
             shadow: true,
