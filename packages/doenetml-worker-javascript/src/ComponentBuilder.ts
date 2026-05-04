@@ -10,6 +10,7 @@ import {
     expandAllComposites,
 } from "./CompositeExpander";
 import { addComponentsToResolver } from "./ResolverAdapter";
+import { initializeComponentStateVariables } from "./StateVariableInitializer";
 import { convertToErrorComponent } from "./utils/dast/errors";
 import { gatherVariantComponents } from "./utils/variants";
 import { unwrapSource } from "./utils/dast/convertNormalizedDast";
@@ -747,7 +748,7 @@ export async function createChildrenThenComponent({
         expandComposites: false,
     });
 
-    await core.initializeComponentStateVariables(newComponent);
+    await initializeComponentStateVariables({ core, component: newComponent });
 
     await core.dependencies.setUpComponentDependencies(newComponent);
 

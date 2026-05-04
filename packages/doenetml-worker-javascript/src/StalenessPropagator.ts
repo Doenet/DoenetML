@@ -1,6 +1,7 @@
 import type Core from "./Core";
 import type { ComponentInstance } from "./types/componentInstance";
 import { returnActiveChildrenIndicesToRender } from "./ChildMatcher";
+import { initializeStateVariable } from "./StateVariableInitializer";
 /**
  * Walks the dependency graph to invalidate state-variable values and
  * propagate freshness changes:
@@ -69,7 +70,8 @@ export class StalenessPropagator {
                 if (arrayKeys.length > 0) {
                     // found a reference to an arrayEntry that hasn't been created yet
                     // create this arrayEntry
-                    await this.core.initializeStateVariable({
+                    await initializeStateVariable({
+                        core: this.core,
                         component,
                         stateVariable,
                         arrayStateVariable: arrayVariableName,

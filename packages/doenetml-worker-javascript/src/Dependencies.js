@@ -3,6 +3,7 @@ import {
     expandCompositeComponent,
     recursivelyReplaceCompositesWithReplacements,
 } from "./CompositeExpander";
+import { arrayEntryNamesFromPropIndex } from "./StateVariableInitializer";
 import {
     ancestorsIncludingComposites,
     gatherDescendants,
@@ -2938,14 +2939,12 @@ class Dependency {
             }
 
             if (this.propIndex !== undefined) {
-                mappedVarNames =
-                    await this.dependencyHandler.core.arrayEntryNamesFromPropIndex(
-                        {
-                            stateVariables: mappedVarNames,
-                            component: downComponent,
-                            propIndex: this.propIndex,
-                        },
-                    );
+                mappedVarNames = await arrayEntryNamesFromPropIndex({
+                    core: this.dependencyHandler.core,
+                    stateVariables: mappedVarNames,
+                    component: downComponent,
+                    propIndex: this.propIndex,
+                });
             }
 
             // Note: mappedVarNames contains all original variables mapped with any aliases.
