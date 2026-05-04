@@ -284,6 +284,66 @@ The current inventory (for awareness, not as a punch list):
   dependency removal, `replacementOf` necessity in
   `calculateAllComponentsShadowing`).
 
+## 9. Latent `variableNames: [undefined]` in `_buildAttributeValueDependency`
+
+**Scope.** The `else` branch of `_buildAttributeValueDependency` in
+`src/core/StateVariableDefinitionFactory.ts` emits:
+
+```ts
+return {
+    attributeComponent: {
+        dependencyType: "attributeComponent",
+        attributeName: attrName,
+        variableNames: [stateVariableForAttributeValue],
+    },
+};
+```
+
+`stateVariableForAttributeValue` comes from `_resolveAttributeValueVariable`,
+which returns `undefined` when `attributeSpecification.createComponentOfType`
+is absent. If a spec reaches the `else` branch (no `createPrimitiveOfType`,
+no `createReferences`) without `createComponentOfType`, the emitted dependency
+carries `variableNames: [undefined]`, which the dependency system would
+receive silently.
+
+This was the pre-existing behaviour at both original call sites before the
+helper was extracted in PR #1056; the refactor correctly preserved it. The
+question is whether the combination — else-branch spec with no
+`createComponentOfType` — is actually reachable in practice or is already
+excluded upstream by how `createAttributeStateVariableDefinitions` and
+`createReferenceShadowStateVariableDefinitions` are called.
+
+**Blocker.** No concrete repro; unclear if reachable.
+
+**Strategy.**
+
+1. When the `AttributeDefinition` typing pass (item #1, step 3) lands, add
+   `createComponentOfType` to the type and check whether the type system
+   statically rules out the problematic combination. If it does, the issue is
+   moot.
+2. If the combination is reachable (a spec with neither flag nor
+   `createComponentOfType`), add a guard in `_buildAttributeValueDependency`
+   that throws a descriptive error rather than silently passing `[undefined]`.
+
+## 10. Error quality in `_resolvePrimaryStateVariableForDefinition` adapter path
+
+**Scope.** `_resolvePrimaryStateVariableForDefinition` is called with
+`throwIfMissing: false` from `createAdapterStateVariableDefinitions`. When the
+primary state variable name does not exist in `stateVariableDefinitions`, the
+helper returns `{ name, stateDef: undefined }`. The caller immediately does
+`stateDef.isShadow = true`, producing a bare `TypeError: Cannot set properties
+of undefined` at that line — the same crash point and error quality as before
+the helper was introduced (the original code had an identical assignment on the
+next line after the local lookup). No regression.
+
+**Blocker.** None — this is a future quality-of-life improvement, not a fix.
+
+**Strategy.** When the typing pass (item #1) reaches `componentClass` and
+`redefineDependencies`, revisit the adapter path: add an explicit `if
+(!stateDef)` guard with a descriptive throw analogous to the
+`throwIfMissing: true` messages, so a malformed component class surfaces a
+clear error instead of a null-access crash.
+
 ---
 
 ## Notes for next agent
@@ -295,7 +355,10 @@ The current inventory (for awareness, not as a punch list):
 - **Item dependencies.** #2 (`(repl: any)` callbacks) is blocked on the same
   upstream `ComponentInstance` work that #1 needs. Sequence them together. #5
   (1-D vs N-D) and #6 (`getAllArrayKeys` defaulting) touch the same file —
-  fold #6 in if #5 is being done. Everything else is independent.
+  fold #6 in if #5 is being done. #9 (`variableNames: [undefined]`) and #10
+  (adapter error quality) both become easier to close out once the
+  `AttributeDefinition` and `componentClass` typing in #1 lands — check them
+  during that pass. Everything else is independent.
 - **Items intentionally out of this plan.** Wider Core typing (converting
   `ComponentInstance.state`, `dependencies`, etc. to concrete types) is its
   own initiative, not refactor follow-up. The TODO inventory in #8 is awareness,
