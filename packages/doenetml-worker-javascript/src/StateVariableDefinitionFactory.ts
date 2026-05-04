@@ -1,3 +1,4 @@
+import type { ComponentIdx } from "@doenet/utils";
 import type Core from "./Core";
 import { preprocessAttributesObject } from "./utils/attributes";
 
@@ -32,7 +33,6 @@ const PRIMITIVE_TO_COMPONENT_TYPE: Record<string, string> = {
  * (`arrayVarNameFromArrayKey` is invoked on the per-variable `stateDef`,
  * not on Core.)
  */
-
 export async function createStateVariableDefinitions({
     core,
     componentClass,
@@ -41,9 +41,9 @@ export async function createStateVariableDefinitions({
 }: {
     core: Core;
     componentClass: any;
-    prescribedDependencies: any;
-    componentIdx: any;
-}) {
+    prescribedDependencies: Record<string, any[]> | undefined;
+    componentIdx: ComponentIdx;
+}): Promise<Record<string, any>> {
     let redefineDependencies;
 
     if (prescribedDependencies) {
@@ -124,11 +124,23 @@ export async function createStateVariableDefinitions({
     return stateVariableDefinitions;
 }
 
+/**
+ * Build a state-variable definition for each attribute on `componentClass`
+ * that has `createStateVariable` set. Used when the component is created
+ * directly (i.e. not as an adapter or reference shadow); the resulting
+ * variables read their value from the attribute component / primitive /
+ * ref-resolutions, with optional fall-backs to a parent or
+ * source-composite state variable.
+ */
 function createAttributeStateVariableDefinitions({
     core,
     componentClass,
     stateVariableDefinitions,
-}: any) {
+}: {
+    core: Core;
+    componentClass: any;
+    stateVariableDefinitions: Record<string, any>;
+}) {
     let attributes = preprocessAttributesObject(
         componentClass.createAttributesObject(),
     );
@@ -216,12 +228,26 @@ function createAttributeStateVariableDefinitions({
     }
 }
 
+/**
+ * Override `stateVariableDefinitions` for a component being created as an
+ * adapter for another component. Attribute-derived variables shadow the
+ * adapter target's matching state variable (if it exists), and the
+ * primary state variable is rewired to read from
+ * `redefineDependencies.adapterVariable`. Variables in
+ * `stateVariablesToShadow` are subsequently rewritten via
+ * `modifyStateDefsToBeShadows`.
+ */
 function createAdapterStateVariableDefinitions({
     core,
     redefineDependencies,
     stateVariableDefinitions,
     componentClass,
-}: any) {
+}: {
+    core: Core;
+    redefineDependencies: any;
+    stateVariableDefinitions: Record<string, any>;
+    componentClass: any;
+}) {
     // attributes depend on adapterTarget (if attribute exists in adapterTarget)
     let adapterTargetComponent =
         core._components[
@@ -384,12 +410,37 @@ function createAdapterStateVariableDefinitions({
     }
 }
 
+/**
+ * Override `stateVariableDefinitions` for a component being created as a
+ * reference shadow of another component (via `<copy>` / prop reference /
+ * implicit prop / etc.).
+ *
+ * Two sub-flows:
+ *   - `propVariable` is set: the shadow points at a single prop on the
+ *     target. The primary state variable becomes a thin shadow of that
+ *     prop (unless `ignorePrimaryStateVariable`), other variables are
+ *     left alone, and only `shadowVariable`/`isShadow` flagged variables
+ *     and any explicit `additionalStateVariableShadowing` are made into
+ *     shadows.
+ *   - no `propVariable`: the shadow points at the whole target component.
+ *     `readyToExpandWhenResolved` is augmented to also wait on the
+ *     target's, and every `shadowVariable`/`isShadow` flagged variable
+ *     in the target is shadowed.
+ *
+ * May be `await`ed because it can call into `core.createFromArrayEntry`
+ * to materialize an array-entry prop on the target before shadowing it.
+ */
 async function createReferenceShadowStateVariableDefinitions({
     core,
     redefineDependencies,
     stateVariableDefinitions,
     componentClass,
-}: any) {
+}: {
+    core: Core;
+    redefineDependencies: any;
+    stateVariableDefinitions: Record<string, any>;
+    componentClass: any;
+}) {
     let targetComponent = core._components[redefineDependencies.targetIdx];
 
     if (redefineDependencies.propVariable) {
@@ -745,13 +796,29 @@ async function createReferenceShadowStateVariableDefinitions({
     });
 }
 
+/**
+ * Rewrite each named state-variable definition in
+ * `stateVariableDefinitions` so it reads from the corresponding variable
+ * on `targetComponent` instead of computing its own value. Handles both
+ * scalar and array variables; `differentStateVariablesInTarget[i]` (if
+ * provided) overrides the target variable name for shadow `i`. When a
+ * shadowed variable was used by an `additionalStateVariablesDefined`
+ * group, the un-shadowed siblings get the variable scrubbed from their
+ * definition output via `modifyStateDefToDeleteVariableReferences`.
+ */
 function modifyStateDefsToBeShadows({
     stateVariablesToShadow,
     stateVariableDefinitions,
     foundReadyToExpandWhenResolved,
     targetComponent,
     differentStateVariablesInTarget = [],
-}: any) {
+}: {
+    stateVariablesToShadow: string[];
+    stateVariableDefinitions: Record<string, any>;
+    foundReadyToExpandWhenResolved?: boolean;
+    targetComponent: any;
+    differentStateVariablesInTarget?: (string | undefined)[];
+}) {
     // Note: if add a markStale function to these shadow,
     // will need to modify array size state variable definition
     // (createArraySizeStateVariable)
@@ -998,10 +1065,20 @@ function modifyStateDefsToBeShadows({
     }
 }
 
+/**
+ * Strip references to `varNamesToDelete` from a `stateDef` that defined
+ * those variables alongside others via `additionalStateVariablesDefined`.
+ * Removes them from the sibling list and wraps the original `definition`
+ * so its returned `setValue` / `useEssentialOrDefaultValue` / etc. no
+ * longer mention the now-shadowed variables.
+ */
 function modifyStateDefToDeleteVariableReferences({
     varNamesToDelete,
     stateDef,
-}: any) {
+}: {
+    varNamesToDelete: string[];
+    stateDef: any;
+}) {
     // delete variables from additionalStateVariablesDefined
     for (let varName2 of varNamesToDelete) {
         let ind = stateDef.additionalStateVariablesDefined.indexOf(varName2);
@@ -1331,6 +1408,13 @@ function _buildAttributeDerivedDefinitions({
     return { definition, inverseDefinition };
 }
 
+/**
+ * Coerce / validate an attribute value against its spec. Applies
+ * `transformNonFiniteTo`, `toLowerCase`, `trim`, and either
+ * `validValues` (falling back to the default with a diagnostic when the
+ * value isn't allowed) or `clamp`. Returns the (possibly modified)
+ * value alongside any user-facing diagnostics produced along the way.
+ */
 function validateAttributeValue({
     value,
     attributeSpecification,
