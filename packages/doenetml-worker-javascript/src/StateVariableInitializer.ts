@@ -22,8 +22,8 @@ import {
  *
  * Holds a back-reference to Core to read `_components`,
  * `componentInfoObjects`, and `stateVariableChangeTriggers`, and to invoke
- * `getStateVariableValue`, `checkIfArrayEntry`, `matchPublicStateVariables`,
- * `addDiagnostic`, and `createFromArrayEntry`.
+ * `getStateVariableValue`, `checkIfArrayEntry`, `addDiagnostic`, and
+ * `createFromArrayEntry`.
  */
 export class StateVariableInitializer {
     core: Core;
