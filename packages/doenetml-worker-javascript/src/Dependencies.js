@@ -6901,7 +6901,7 @@ class ReplacementDependency extends Dependency {
 
         if (this.recursive) {
             let result =
-                this.dependencyHandler.core.recursivelyReplaceCompositesWithReplacements(
+                this.dependencyHandler.core.compositeExpander.recursivelyReplaceCompositesWithReplacements(
                     {
                         replacements,
                         recurseNonStandardComposites:

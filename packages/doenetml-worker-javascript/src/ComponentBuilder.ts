@@ -846,28 +846,6 @@ export class ComponentBuilder {
         }
     }
 
-    findShadowedChildInSerializedComponents({
-        serializedComponents,
-        shadowedComponentName,
-    }) {
-        for (let serializedComponent of serializedComponents) {
-            if (serializedComponent.originalIdx === shadowedComponentName) {
-                return serializedComponent;
-            }
-            if (serializedComponent.children) {
-                let result = this.findShadowedChildInSerializedComponents({
-                    serializedComponents: serializedComponent.children,
-                    shadowedComponentName,
-                });
-                if (result) {
-                    return result;
-                }
-            }
-        }
-
-        return;
-    }
-
     async addQueuedErrorComponentsFromStateVariables() {
         if (!this.core.errorComponentsToAdd?.length) {
             return;

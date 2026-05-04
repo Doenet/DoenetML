@@ -939,12 +939,6 @@ export default class Core {
         return this.stateVariableInitializer.arrayEntryNamesFromPropIndex(args);
     }
 
-    recursivelyReplaceCompositesWithReplacements(args: any): any {
-        return this.stateVariableInitializer.recursivelyReplaceCompositesWithReplacements(
-            args,
-        );
-    }
-
     // → stateVariableEvaluator
     async getStateVariableValue(args: any): Promise<any> {
         return this.stateVariableEvaluator.getStateVariableValue(args);

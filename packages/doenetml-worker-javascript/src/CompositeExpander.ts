@@ -1183,4 +1183,118 @@ export class CompositeExpander {
             }
         }
     }
+
+    /**
+     * Walk `replacements`, substituting each composite for its (already
+     * expanded) replacements. Returns the flattened list of non-composite
+     * replacements together with the composite indices encountered and the
+     * indices of any composites that were not yet expanded — split by
+     * whether `readyToExpandWhenResolved` had resolved.
+     *
+     * `recurseNonStandardComposites` widens the "what counts as a composite"
+     * test to include non-standard composites. `includeWithheldReplacements`
+     * keeps replacements past `replacementsToWithhold`. `stopIfHaveProp`,
+     * if set, names a state variable: a composite that publicly exposes
+     * that variable is treated as the replacement itself rather than
+     * recursed into.
+     */
+    recursivelyReplaceCompositesWithReplacements({
+        replacements,
+        recurseNonStandardComposites = false,
+        includeWithheldReplacements = false,
+        stopIfHaveProp,
+    }: {
+        replacements: any[];
+        recurseNonStandardComposites?: boolean;
+        includeWithheldReplacements?: boolean;
+        stopIfHaveProp?: string;
+    }): {
+        compositesFound: number[];
+        newReplacements: any[];
+        unexpandedCompositesReady: number[];
+        unexpandedCompositesNotReady: number[];
+    } {
+        let compositesFound: number[] = [];
+        let newReplacements: any[] = [];
+        let unexpandedCompositesReady: number[] = [];
+        let unexpandedCompositesNotReady: number[] = [];
+
+        for (let replacement of replacements) {
+            if (
+                this.core.componentInfoObjects.isCompositeComponent({
+                    componentType: replacement.componentType,
+                    includeNonStandard: recurseNonStandardComposites,
+                })
+            ) {
+                if (stopIfHaveProp) {
+                    const checkForPublic = this.core.matchPublicStateVariables({
+                        stateVariables: [stopIfHaveProp],
+                        componentClass: replacement.constructor,
+                    })[0];
+
+                    if (!checkForPublic.startsWith("__not_public_")) {
+                        // The composite has a public state variable that matches `stopIfHaveProp`.
+                        // Therefore, we don't recurse to its replacements but treat the composite itself as the replacement
+                        newReplacements.push(replacement);
+                        continue;
+                    }
+                }
+
+                compositesFound.push(replacement.componentIdx);
+
+                if (!replacement.isExpanded) {
+                    if (
+                        replacement.state.readyToExpandWhenResolved.isResolved
+                    ) {
+                        unexpandedCompositesReady.push(
+                            replacement.componentIdx,
+                        );
+                    } else {
+                        unexpandedCompositesNotReady.push(
+                            replacement.componentIdx,
+                        );
+                    }
+                }
+
+                if (replacement.isExpanded) {
+                    let replacementReplacements = replacement.replacements;
+                    if (
+                        !includeWithheldReplacements &&
+                        replacement.replacementsToWithhold > 0
+                    ) {
+                        replacementReplacements = replacementReplacements.slice(
+                            0,
+                            -replacement.replacementsToWithhold,
+                        );
+                    }
+                    let recursionResult =
+                        this.recursivelyReplaceCompositesWithReplacements({
+                            replacements: replacementReplacements,
+                            recurseNonStandardComposites,
+                            includeWithheldReplacements,
+                            stopIfHaveProp,
+                        });
+                    compositesFound.push(...recursionResult.compositesFound);
+                    newReplacements.push(...recursionResult.newReplacements);
+                    unexpandedCompositesReady.push(
+                        ...recursionResult.unexpandedCompositesReady,
+                    );
+                    unexpandedCompositesNotReady.push(
+                        ...recursionResult.unexpandedCompositesNotReady,
+                    );
+                } else {
+                    newReplacements.push(replacement);
+                }
+            } else {
+                newReplacements.push(replacement);
+            }
+        }
+
+        return {
+            compositesFound,
+            newReplacements,
+            unexpandedCompositesReady,
+            unexpandedCompositesNotReady,
+        };
+    }
 }
