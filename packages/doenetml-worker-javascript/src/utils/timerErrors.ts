@@ -12,6 +12,7 @@ export const TimerLabels = {
     visibilityAutoSuspend: "visibility auto-suspend",
     firstVisibleSend: "first-visible visibility send",
     generateDastSaveState: "saveState (generateDast epilogue)",
+    navigateToComponent: "navigateToComponent",
 } as const;
 
 export type TimerLabel = (typeof TimerLabels)[keyof typeof TimerLabels];

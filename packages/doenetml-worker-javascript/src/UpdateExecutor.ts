@@ -36,23 +36,18 @@ export class UpdateExecutor {
             // For now, co-opting the action mechanism to let the viewer set the theme (dark mode) on document.
             // Don't have an actual action on document as don't want the ability for others to call it.
             // Theme doesn't affect the colors displayed, only the words in the styleDescriptions.
-            try {
-                await this.performUpdate({
-                    updateInstructions: [
-                        {
-                            updateType: "updateValue",
-                            componentIdx: this.core.documentIdx,
-                            stateVariable: "theme",
-                            value: args.theme,
-                        },
-                    ],
-                    actionId: args.actionId,
-                    doNotSave: true, // this isn't an interaction, so don't save doc state
-                });
-            } catch (e) {
-                console.error(e);
-                throw e;
-            }
+            await this.performUpdate({
+                updateInstructions: [
+                    {
+                        updateType: "updateValue",
+                        componentIdx: this.core.documentIdx,
+                        stateVariable: "theme",
+                        value: args.theme,
+                    },
+                ],
+                actionId: args.actionId,
+                doNotSave: true, // this isn't an interaction, so don't save doc state
+            });
 
             return { actionId: args.actionId };
         }
@@ -77,12 +72,7 @@ export class UpdateExecutor {
                 if (!args) {
                     args = {};
                 }
-                try {
-                    await action(args);
-                } catch (e) {
-                    console.error(e);
-                    throw e;
-                }
+                await action(args);
                 return { actionId: args.actionId };
             }
         }
@@ -138,20 +128,7 @@ export class UpdateExecutor {
         if (this.core.flags.readOnly && !overrideReadOnly) {
             if (!canSkipUpdatingRenderer) {
                 for (let instruction of updateInstructions) {
-                    let componentSourceInformation =
-                        sourceInformation[instruction.componentIdx];
-                    if (!componentSourceInformation) {
-                        componentSourceInformation = sourceInformation[
-                            instruction.componentIdx
-                        ] = {};
-                    }
-
-                    if (instruction.sourceDetails) {
-                        Object.assign(
-                            componentSourceInformation,
-                            instruction.sourceDetails,
-                        );
-                    }
+                    this._recordSourceDetails(instruction, sourceInformation);
                 }
 
                 await this.core.updateRendererInstructions({
@@ -179,20 +156,7 @@ export class UpdateExecutor {
 
         for (let instruction of updateInstructions) {
             if (instruction.componentIdx != undefined) {
-                let componentSourceInformation =
-                    sourceInformation[instruction.componentIdx];
-                if (!componentSourceInformation) {
-                    componentSourceInformation = sourceInformation[
-                        instruction.componentIdx
-                    ] = {};
-                }
-
-                if (instruction.sourceDetails) {
-                    Object.assign(
-                        componentSourceInformation,
-                        instruction.sourceDetails,
-                    );
-                }
+                this._recordSourceDetails(instruction, sourceInformation);
             }
 
             if (instruction.updateType === "updateValue") {
@@ -423,6 +387,32 @@ export class UpdateExecutor {
 
         if (event) {
             this.core.requestRecordEvent(event);
+        }
+    }
+
+    /**
+     * Stash `instruction.sourceDetails` onto the per-component bag inside
+     * `sourceInformation`, creating the bag if it doesn't exist. Used to
+     * forward upstream-action provenance ("which input triggered this
+     * change?") through the update pipeline.
+     */
+    _recordSourceDetails(
+        instruction: any,
+        sourceInformation: Record<string, any>,
+    ) {
+        let componentSourceInformation =
+            sourceInformation[instruction.componentIdx];
+        if (!componentSourceInformation) {
+            componentSourceInformation = sourceInformation[
+                instruction.componentIdx
+            ] = {};
+        }
+
+        if (instruction.sourceDetails) {
+            Object.assign(
+                componentSourceInformation,
+                instruction.sourceDetails,
+            );
         }
     }
 }

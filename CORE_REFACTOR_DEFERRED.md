@@ -151,12 +151,40 @@ The initial-add branch (`addComponents` body when `initialAdd === true`, around 
 
 Extracting `_drainStateVariablesToEvaluate()`, `_expandAllCompositesBothPasses(component)`, and `_drainCompositesToUpdateReplacements()` would shrink `addComponents` by roughly 40 lines and make the initial-add vs incremental-add asymmetry obvious.
 
-### Extract `_finishExpanding` and unexpanded-composite helpers in `CompositeExpander`
+### Extract `_finishExpanding` and unexpanded-composite helpers in `CompositeExpander` — DONE
 
-Two patterns duplicate verbatim across `expandCompositeComponent` and `expandShadowingComposite`:
+Both patterns extracted:
 
-1. **"Finished expanding" cleanup** (lines 411-420 and 741-750). Identical 9-line `compositesBeingExpanded.indexOf(componentIdx)` + `throw if -1` + `splice` block. Extract `_finishExpanding(componentIdx)`.
-2. **Unexpanded-composite list cleanup** in `expandCompositeComponent` (lines 277-294 of the current file). The `unexpandedCompositesReady` and `unexpandedCompositesNotReady` lists each get the same `indexOf` + `splice` treatment; can collapse to `for (const arr of [parent.unexpandedCompositesReady, parent.unexpandedCompositesNotReady])`.
+1. **"Finished expanding" cleanup** — pulled out of `expandCompositeComponent` and `expandShadowingComposite` into a private `_finishExpanding(componentIdx)` method.
+2. **Unexpanded-composite list cleanup** in `expandCompositeComponent` — collapsed the `unexpandedCompositesReady` / `unexpandedCompositesNotReady` indexOf+splice pair into `for (const list of [parent.unexpandedCompositesReady, parent.unexpandedCompositesNotReady])`, with a `continue` for the missing-list case.
+
+### Pre-existing exception-leak windows in `CompositeExpander` expansion paths
+
+Both `expandCompositeComponent` and `expandShadowingComposite` mutate
+expansion-tracking state at points that are not protected against a thrown
+exception in the awaited work that follows:
+
+1. **Parent's unexpanded-composite lists** (`expandCompositeComponent`,
+   around line 277). The composite is removed from
+   `parent.unexpandedCompositesReady` / `unexpandedCompositesNotReady`
+   *before* `createSerializedReplacements` and the rest of the async
+   expansion run. If a later `await` throws, the parent's lists no
+   longer reflect that the child still needs expansion, and dependency
+   code that consults those lists will misclassify the parent.
+2. **`compositesBeingExpanded` push/pop pairing**. Both functions push
+   `componentIdx` onto `core.updateInfo.compositesBeingExpanded` near the
+   top of the function and only pop (via `_finishExpanding`) at the end.
+   Any throw between leaks the entry permanently. `Dependencies.resolveItem()`
+   and the circular-shadow checks both consult this array, so a single
+   failed expansion can cause later updates to be misclassified as
+   circular or in-progress until the worker is recreated.
+
+Both windows pre-date the Phase 5f refactor (the splices were inline
+before extraction; the cleanup site has not moved). Fix is a `try`/`finally`
+wrapper around each function body so the cleanup runs on the throw path,
+or — for the parent-list mutation — defer the splice until after the
+work that can throw has completed. Surface for separate PR; verify
+against tests that intentionally trigger expansion failures.
 
 ### Drop dead `replacementsCreated` guard in `CompositeExpander.expandShadowingComposite`
 
@@ -187,11 +215,11 @@ wrapper; `Dependencies.js` now calls `core.compositeExpander.recursivelyReplaceC
 directly. Annotated the destructure parameter and return shape, eliminating the
 implicit-any warnings that came with the original method.
 
-### Minor cleanups in `ComponentBuilder`
+### Minor cleanups in `ComponentBuilder` — DONE
 
-- **`componentIdx == undefined` (line 311)** uses loose equality where the rest of the file uses strict (`=== undefined`). Tighten for consistency.
-- **`if (!this.core.nTimesAddedComponents) { ... = 1 } else { ...++ }` (lines 67-71)** is a verbose increment-or-init. `this.core.nTimesAddedComponents = (this.core.nTimesAddedComponents ?? 0) + 1;` is one line.
-- **Bare `catch (e) { console.error(e); throw e; }` (around line 534)** in the `attribute.references` branch of `createChildrenThenComponent`. The catch adds nothing the caller can't see; consider dropping it. The sibling catch at line 503 has real logic (rewrites circular-dependency messages) and should stay.
+- Loose `componentIdx == undefined` tightened to strict (`=== undefined`).
+- `if (!nTimesAddedComponents) { ...= 1 } else ++` collapsed to `nTimesAddedComponents = (nTimesAddedComponents ?? 0) + 1`.
+- Bare `catch (e) { console.error(e); throw e; }` in the `attribute.references` branch of `createChildrenThenComponent` deleted (the call already propagates and the log adds no info). Sibling catch at the `attribute.component` path retained (it still rewrites circular-dependency messages).
 
 ### Move `findShadowedChildInSerializedComponents` to `utils/` — RESOLVED (deleted instead)
 
@@ -208,17 +236,17 @@ The Phase 4 extraction (`StateVariableEvaluator`, `StalenessPropagator`, `Essent
 - `lookUpCurrentFreshness` (~lines 352-432) and `processMarkStale` (~lines 438-) repeat the array-entry remap (`fresh`/`partiallyFresh` rewriting) and the arrayKey/arraySize-from-`_previousValue` block. Extract `_getArrayKeysAndSize(stateVarObj, component)` and `_remapArrayEntryFreshness(result, allStateVariablesAffectedObj)`.
 - The "reinstall stale getter" block (one site early in `markStateVariableAndUpstreamDependentsStale`, another inside the upstream-walk loop) repeats. Extract `_replaceWithStaleGetter(component, vName, stateVarObj)`.
 
-**`StateVariableEvaluator`** has two clusters worth ~80 lines of compression:
-- Five copies of the "look up `varName` in `receivedValue`, otherwise scan `arrayEntryNames` for a matching entry, otherwise throw" pattern at lines 164, 302, 511, 553, 599 (grep for `matchingArrayEntry = arrayEntryName`). They differ only in the error-message string. Helper: `_findOrThrowForVar(varName, receivedValue, component, contextMessage, { markReceived })` returning `matchingArrayEntry`.
-- Two byte-identical "checkForActualChange / scalar / shallow-array-equality" blocks. Helper: `_isUnchanged(newValue, previousValue) → boolean`.
+**`StateVariableEvaluator`** — DONE: both clusters extracted.
+- The five "look up `varName` in `receivedValue`, otherwise scan `arrayEntryNames` for a matching entry, otherwise throw" sites collapsed onto `_findOrThrowMatchingArrayEntry({ varName, receivedValue, component, errorMessage })`. The two sites that additionally marked `receivedValue[entry] = true; valuesChanged[entry] = true;` keep that mark at the call site (passing the helper's return value).
+- The two byte-identical "checkForActualChange / scalar / shallow-array-equality" blocks collapsed onto `_isUnchanged(newValue, previousValue)`.
 
 **`EssentialValueWriter.requestComponentChanges`** has four near-duplicate recursion sites (currently around lines 1097, 1130, 1157, 1244 — search for `let inst = {` followed by `await this.requestComponentChanges`). All four build essentially the same `inst = { componentIdx, stateVariable, value, overrideFixed, [shadowedVariable], [arrayKey] }` and recurse. A `_recurseInto({ componentIdx, stateVariable, desiredValue, newInstruction, workspace, newStateVariableValues })` helper would collapse the four to one-liners and make the `additionalDependencyValues` block (the one of the four that takes `inst: any` because it sets `inst.additionalStateVariableValues` later) the only thing that varies. Same file: the `valueOfStateVariable` resolution (alias substitute → state lookup → `await sObj.value` → throw) is repeated at the array-entry path (around line 449) and the scalar path (around line 489). Extract `_resolveValueOfStateVariable(instruction, component) → Promise<any>`.
 
 **`CompositeReplacementUpdater`** has five sites that walk `component.shadowedBy` and skip when `propVariable || doNotExpandAsShadowed` (around lines 556-576, 741-746, 793-805, 970-, plus a copy buried deeper). The skip predicate alone is duplicated six times across the file. A `getExpandableShadows(component)` helper (or `function* iterateExpandableShadows(component)`) would eliminate ~20 lines and make it impossible for one site to drift from the others. The "find the matching shadow by `shadows.compositeIdx`" lookup at ~lines 574-589 and ~977-994 is the strongest helper-extraction candidate within that family. Same file: `deleteReplacementsFromShadowsThenComposite` has two near-identical post-delete bookkeeping blocks (the top-level vs non-top-level branches differ only in `topLevel`/`firstIndex` fields and one extra `processNewDefiningChildren` call). Helper: `_recordDeleteResults({ deleteResults, composite, parentsOfDeleted, deletedComponents, ... })` halves the function.
 
-**`UpdateExecutor`** has two smaller dups:
-- The `componentSourceInformation` initialization at lines 140-153 (read-only branch) and 181-187 (main loop) is identical. Extract `_recordSourceDetails(instruction, sourceInformation)`.
-- The cumulative-merge pattern at lines 322-353 (essential-values branch) and 365-394 (newStateVariableValues branch) is identical, including the inline comment. The natural home is `EssentialValueWriter` since it owns `cumulativeStateVariableChanges`; the helper would be `essentialValueWriter._mergeIntoCumulative(stateId, varName, value)`.
+**`UpdateExecutor`** — PARTIAL.
+- DONE: `_recordSourceDetails(instruction, sourceInformation)` extracted; both call sites (read-only branch and main loop) now invoke it.
+- Still pending: cumulative-merge pattern between the essential-values and newStateVariableValues branches. Belongs in `EssentialValueWriter` (`_mergeIntoCumulative(stateId, varName, value)`) since that class owns `cumulativeStateVariableChanges`.
 
 ### Phase 4: Type the destructure parameters and complete the strict-mode pass
 
@@ -246,13 +274,13 @@ Each of the five new managers has a strong class-level docstring (`StateVariable
 
 This is a documentation-only PR; can be done independently of the duplication or typing work above.
 
-### Phase 4: Pre-existing console-error-and-throw blocks
+### Phase 4: Pre-existing console-error-and-throw blocks — DONE
 
-`UpdateExecutor.ts` carries two `try { await ... } catch (e) { console.error(e); throw e; }` blocks — one around line 51 (in the theme-set branch of `performAction`) and one around line 81 (the main action-dispatch branch). They log and rethrow without adding context, and `ProcessQueue` is the eventual catcher and will surface the throw on its own. Either delete the try/catch (the error already propagates) or wrap with a meaningful prefix (e.g. `` `performAction(${actionName}) failed:` ``). Pre-existing pattern carried verbatim from `Core.js`; not introduced by Phase 4. Same shape as the bare `catch (e) { console.error(e); throw e; }` flagged in the existing `ComponentBuilder` deferred item.
+Both `try { await ... } catch (e) { console.error(e); throw e; }` blocks in `UpdateExecutor.ts` (theme-set branch of `performAction` and main action-dispatch branch) deleted. The errors already propagate; `ProcessQueue` is the eventual catcher.
 
-### Phase 4: Empty `catch (e) {}` in `EssentialValueWriter`
+### Phase 4: Empty `catch (e) {}` in `EssentialValueWriter` — DONE
 
-Around `EssentialValueWriter.ts:477`, inside the multi-arrayKey `me.class` (math expression) branch of `requestComponentChanges`. The intent is presumably "treat `me.class.get_component(ind)` failures as no-value-for-this-key" but the silent swallow loses any other error. Pre-existing; minimum bar is a one-line comment explaining why the swallow is safe (e.g., `// get_component throws on out-of-range; treat as no value for this arrayKey`). A more thorough fix would narrow the catch to only swallow the expected throw shape.
+Annotated with a comment explaining the expected `get_component(ind)` out-of-range throw and that any other error shape is also swallowed (worth narrowing if math-expressions ever exposes a concrete error type).
 
 ### Audit class for future extraction phases: `this`-rebinding traps
 

@@ -152,28 +152,17 @@ export class StateVariableEvaluator {
                 );
             }
 
-            let matchingArrayEntry;
+            let matchingArrayEntry: string | undefined;
 
             if (!(varName in receivedValue)) {
-                if (
-                    component.state[varName].isArray &&
-                    component.state[varName].arrayEntryNames
-                ) {
-                    for (let arrayEntryName of component.state[varName]
-                        .arrayEntryNames) {
-                        if (arrayEntryName in receivedValue) {
-                            matchingArrayEntry = arrayEntryName;
-                            receivedValue[arrayEntryName] = true;
-                            valuesChanged[arrayEntryName] = true;
-                            break;
-                        }
-                    }
-                }
-                if (!matchingArrayEntry) {
-                    throw Error(
-                        `Attempting to set value of stateVariable ${varName} in definition of ${stateVariable} of ${component.componentIdx}, but it's not listed as an additional state variable defined.`,
-                    );
-                }
+                matchingArrayEntry = this._findOrThrowMatchingArrayEntry({
+                    varName,
+                    receivedValue,
+                    component,
+                    errorMessage: `Attempting to set value of stateVariable ${varName} in definition of ${stateVariable} of ${component.componentIdx}, but it's not listed as an additional state variable defined.`,
+                });
+                receivedValue[matchingArrayEntry] = true;
+                valuesChanged[matchingArrayEntry] = true;
             } else {
                 receivedValue[varName] = true;
 
@@ -254,24 +243,13 @@ export class StateVariableEvaluator {
                 delete component.state[varName].usedDefault;
 
                 if (result.checkForActualChange?.[varName]) {
-                    let newValue = component.state[varName].value;
-                    let previousValue = component.state[varName]._previousValue;
-
-                    if (newValue === previousValue) {
-                        delete valuesChanged[varName];
-                    } else if (
-                        Array.isArray(newValue) &&
-                        Array.isArray(previousValue)
+                    if (
+                        this._isUnchanged(
+                            component.state[varName].value,
+                            component.state[varName]._previousValue,
+                        )
                     ) {
-                        // for arrays, do a shallow comparison along first dimension
-                        // TODO: is there a reason to check deeper?
-                        // Probably, not as have array state variables that would usually handle this
-                        if (
-                            newValue.length === previousValue.length &&
-                            newValue.every((v, i) => v === previousValue[i])
-                        ) {
-                            delete valuesChanged[varName];
-                        }
+                        delete valuesChanged[varName];
                     }
                 }
             }
@@ -290,28 +268,17 @@ export class StateVariableEvaluator {
                 );
             }
 
-            let matchingArrayEntry;
+            let matchingArrayEntry: string | undefined;
 
             if (!(varName in receivedValue)) {
-                if (
-                    component.state[varName].isArray &&
-                    component.state[varName].arrayEntryNames
-                ) {
-                    for (let arrayEntryName of component.state[varName]
-                        .arrayEntryNames) {
-                        if (arrayEntryName in receivedValue) {
-                            matchingArrayEntry = arrayEntryName;
-                            receivedValue[arrayEntryName] = true;
-                            valuesChanged[arrayEntryName] = true;
-                            break;
-                        }
-                    }
-                }
-                if (!matchingArrayEntry) {
-                    throw Error(
-                        `Attempting to set value of stateVariable ${varName} in definition of ${stateVariable} of ${component.componentIdx}, but it's not listed as an additional state variable defined.`,
-                    );
-                }
+                matchingArrayEntry = this._findOrThrowMatchingArrayEntry({
+                    varName,
+                    receivedValue,
+                    component,
+                    errorMessage: `Attempting to set value of stateVariable ${varName} in definition of ${stateVariable} of ${component.componentIdx}, but it's not listed as an additional state variable defined.`,
+                });
+                receivedValue[matchingArrayEntry] = true;
+                valuesChanged[matchingArrayEntry] = true;
             } else {
                 receivedValue[varName] = true;
                 if (component.state[varName].isArray) {
@@ -470,24 +437,13 @@ export class StateVariableEvaluator {
                 }
 
                 if (result.checkForActualChange?.[varName]) {
-                    let newValue = component.state[varName].value;
-                    let previousValue = component.state[varName]._previousValue;
-
-                    if (newValue === previousValue) {
-                        delete valuesChanged[varName];
-                    } else if (
-                        Array.isArray(newValue) &&
-                        Array.isArray(previousValue)
+                    if (
+                        this._isUnchanged(
+                            component.state[varName].value,
+                            component.state[varName]._previousValue,
+                        )
                     ) {
-                        // for arrays, do a shallow comparison along first dimension
-                        // TODO: is there a reason to check deeper?
-                        // Probably, not as have array state variables that would usually handle this
-                        if (
-                            newValue.length === previousValue.length &&
-                            newValue.every((v, i) => v === previousValue[i])
-                        ) {
-                            delete valuesChanged[varName];
-                        }
+                        delete valuesChanged[varName];
                     }
                 }
             }
@@ -501,24 +457,12 @@ export class StateVariableEvaluator {
             }
 
             if (!(varName in receivedValue)) {
-                let matchingArrayEntry;
-                if (
-                    component.state[varName].isArray &&
-                    component.state[varName].arrayEntryNames
-                ) {
-                    for (let arrayEntryName of component.state[varName]
-                        .arrayEntryNames) {
-                        if (arrayEntryName in receivedValue) {
-                            matchingArrayEntry = arrayEntryName;
-                            break;
-                        }
-                    }
-                }
-                if (!matchingArrayEntry) {
-                    throw Error(
-                        `Marking state variable  ${varName} as used default in definition of ${stateVariable} of ${component.componentIdx}, but it's not listed as an additional state variable defined.`,
-                    );
-                }
+                this._findOrThrowMatchingArrayEntry({
+                    varName,
+                    receivedValue,
+                    component,
+                    errorMessage: `Marking state variable  ${varName} as used default in definition of ${stateVariable} of ${component.componentIdx}, but it's not listed as an additional state variable defined.`,
+                });
             }
 
             if (Array.isArray(result.markAsUsedDefault[varName])) {
@@ -543,24 +487,12 @@ export class StateVariableEvaluator {
                 }
 
                 if (!(varName in receivedValue)) {
-                    let matchingArrayEntry;
-                    if (
-                        component.state[varName].isArray &&
-                        component.state[varName].arrayEntryNames
-                    ) {
-                        for (let arrayEntryName of component.state[varName]
-                            .arrayEntryNames) {
-                            if (arrayEntryName in receivedValue) {
-                                matchingArrayEntry = arrayEntryName;
-                                break;
-                            }
-                        }
-                    }
-                    if (!matchingArrayEntry) {
-                        throw Error(
-                            `Claiming stateVariable ${varName} is unchanged in definition of ${stateVariable} of ${component.componentIdx}, but it's not listed as an additional state variable defined.`,
-                        );
-                    }
+                    this._findOrThrowMatchingArrayEntry({
+                        varName,
+                        receivedValue,
+                        component,
+                        errorMessage: `Claiming stateVariable ${varName} is unchanged in definition of ${stateVariable} of ${component.componentIdx}, but it's not listed as an additional state variable defined.`,
+                    });
                 }
 
                 receivedValue[varName] = true;
@@ -589,24 +521,12 @@ export class StateVariableEvaluator {
             }
 
             if (!(varName in receivedValue)) {
-                let matchingArrayEntry;
-                if (
-                    component.state[varName].isArray &&
-                    component.state[varName].arrayEntryNames
-                ) {
-                    for (let arrayEntryName of component.state[varName]
-                        .arrayEntryNames) {
-                        if (arrayEntryName in receivedValue) {
-                            matchingArrayEntry = arrayEntryName;
-                            break;
-                        }
-                    }
-                }
-                if (!matchingArrayEntry) {
-                    throw Error(
-                        `Attempting to set essential value of stateVariable ${varName} in definition of ${stateVariable} of ${component.componentIdx}, but it's not listed as an additional state variable defined.`,
-                    );
-                }
+                this._findOrThrowMatchingArrayEntry({
+                    varName,
+                    receivedValue,
+                    component,
+                    errorMessage: `Attempting to set essential value of stateVariable ${varName} in definition of ${stateVariable} of ${component.componentIdx}, but it's not listed as an additional state variable defined.`,
+                });
             }
 
             if (!component.state[varName].hasEssential) {
@@ -1011,6 +931,64 @@ export class StateVariableEvaluator {
                 varName: vName,
             });
         }
+    }
+
+    /**
+     * Look up `varName` in `receivedValue`'s array-entry alternates: scan
+     * the component's `arrayEntryNames` for one already in `receivedValue`,
+     * and return it. Throws with `errorMessage` if no array-entry match is
+     * found (or if the state variable is not an array). The caller decides
+     * whether to additionally mark the entry on `receivedValue`/`valuesChanged`.
+     */
+    _findOrThrowMatchingArrayEntry({
+        varName,
+        receivedValue,
+        component,
+        errorMessage,
+    }: {
+        varName: string;
+        receivedValue: Record<string, any>;
+        component: any;
+        errorMessage: string;
+    }): string {
+        let matchingArrayEntry: string | undefined;
+        if (
+            component.state[varName].isArray &&
+            component.state[varName].arrayEntryNames
+        ) {
+            for (let arrayEntryName of component.state[varName]
+                .arrayEntryNames) {
+                if (arrayEntryName in receivedValue) {
+                    matchingArrayEntry = arrayEntryName;
+                    break;
+                }
+            }
+        }
+        if (!matchingArrayEntry) {
+            throw Error(errorMessage);
+        }
+        return matchingArrayEntry;
+    }
+
+    /**
+     * Decide whether two state-variable values should be treated as
+     * unchanged for the purpose of `checkForActualChange`. Triple-equals for
+     * scalars; for arrays, a shallow first-dimension comparison.
+     *
+     * TODO: deeper comparison for arrays? Likely unnecessary — array state
+     * variables usually surface deeper changes through their own machinery.
+     */
+    _isUnchanged(newValue: any, previousValue: any): boolean {
+        if (newValue === previousValue) {
+            return true;
+        }
+        if (Array.isArray(newValue) && Array.isArray(previousValue)) {
+            return (
+                newValue.length === previousValue.length &&
+                newValue.every((v, i) => v === previousValue[i])
+            );
+        }
+        return false;
     }
 
     // The five state-variable name-resolution helpers below live as pure
