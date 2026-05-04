@@ -536,7 +536,7 @@ async function initializeArrayStateVariable({
                     if (desiredValue.length > currentSize) {
                         core.addDiagnostic({
                             type: "info",
-                            message: "ignoring array values of out bounds",
+                            message: "ignoring array values out of bounds",
                             position: component.position,
                             sourceDoc: component.sourceDoc,
                         });
@@ -562,12 +562,12 @@ async function initializeArrayStateVariable({
                             [number, any]
                         >) {
                             if (!arrayValuesPiece[ind]) {
-                                arrayValuesPiece = [];
+                                arrayValuesPiece[ind] = [];
                             }
                             let result = setArrayValuesPiece(
                                 val,
                                 arrayValuesPiece[ind],
-                                arraySizePiece[ind],
+                                arraySizePiece.slice(1),
                             );
                             nFailuresSub += result.nFailures;
                         }
