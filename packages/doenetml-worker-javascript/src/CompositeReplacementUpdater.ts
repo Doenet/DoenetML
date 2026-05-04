@@ -1206,6 +1206,46 @@ function findExpandableShadowByCompositeIdx(
     return undefined;
 }
 
+/**
+ * Yield each entry in `component.shadowedBy` that should participate in
+ * shadow-driven expansion. Shadows reached via a `propVariable` and shadows
+ * whose constructor sets `doNotExpandAsShadowed` are skipped — those are
+ * the same two predicates that all six iterate-shadow sites in this file
+ * had been re-checking by hand.
+ */
+function* iterateExpandableShadows(component: any) {
+    if (!component.shadowedBy) {
+        return;
+    }
+    for (const shadow of component.shadowedBy) {
+        if (
+            shadow.shadows.propVariable ||
+            shadow.constructor.doNotExpandAsShadowed
+        ) {
+            continue;
+        }
+        yield shadow;
+    }
+}
+
+/**
+ * Find the expandable shadow on `component` whose `shadows.compositeIdx`
+ * matches `compositeIdx`. Used to map a component (or component-to-delete)
+ * onto its corresponding shadow inside a particular shadowing composite.
+ * Returns `undefined` if no match.
+ */
+function findExpandableShadowByCompositeIdx(
+    component: any,
+    compositeIdx: number,
+): any | undefined {
+    for (const shadow of iterateExpandableShadows(component)) {
+        if (shadow.shadows.compositeIdx === compositeIdx) {
+            return shadow;
+        }
+    }
+    return undefined;
+}
+
 function calculateAllComponentsShadowing(component: any): number[] {
     let allShadowing: number[] = [];
     if (component.shadowedBy) {
