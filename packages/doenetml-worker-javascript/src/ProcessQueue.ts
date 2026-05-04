@@ -248,10 +248,11 @@ export class ProcessQueue {
 
     /**
      * Push a recordEvent entry directly onto the queue and kick the drain
-     * loop. Used by `VisibilityTracker.sendVisibilityChangedEvents`, which
-     * intentionally bypasses `requestRecordEvent` (no
-     * `resumeVisibilityMeasuring`, no visibility-event short-circuit — that
-     * path is what feeds events into this method in the first place).
+     * loop. Called by `VisibilityTracker.sendVisibilityChangedEvents` to
+     * emit aggregated `isVisible` events. Bypasses `requestRecordEvent`
+     * because that path routes inbound `visibilityChanged` events into
+     * VisibilityTracker and calls `resumeVisibilityMeasuring` — both
+     * inappropriate on the outbound batch path.
      */
     sendRecordEvent(event: any): Promise<void> {
         return new Promise<void>((resolve, reject) => {

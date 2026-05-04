@@ -480,9 +480,8 @@ export default class Core {
             );
         }
 
-        // Reset the process queue managed by `this.processQueue`
-        // (see ProcessQueue.ts) so a previous run does not leak into this
-        // document.
+        // Reset the process queue (see ProcessQueue.ts) so a previous
+        // run does not leak into this document.
         this.processQueue.reset();
 
         this.dependencies = new DependencyHandler({
@@ -1155,6 +1154,14 @@ export default class Core {
         return this.processQueue.requestAction(args);
     }
 
+    async requestUpdate(args: any): Promise<any> {
+        return this.processQueue.requestUpdate(args);
+    }
+
+    requestRecordEvent(event: any): any {
+        return this.processQueue.requestRecordEvent(event);
+    }
+
     // → updateExecutor
 
     async performAction(args: any): Promise<any> {
@@ -1169,16 +1176,6 @@ export default class Core {
 
     async triggerChainedActions(args: any): Promise<any> {
         return this.actionTriggerScheduler.triggerChainedActions(args);
-    }
-
-    // → processQueue (cont.)
-
-    async requestUpdate(args: any): Promise<any> {
-        return this.processQueue.requestUpdate(args);
-    }
-
-    requestRecordEvent(event: any): any {
-        return this.processQueue.requestRecordEvent(event);
     }
 
     // → rendererInstructionBuilder (cont.) — `updateRenderers` is the
