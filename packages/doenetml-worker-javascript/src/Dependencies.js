@@ -1,5 +1,9 @@
 import { deriveChildResultsFromDefiningChildren } from "./ChildMatcher";
 import {
+    expandCompositeComponent,
+    recursivelyReplaceCompositesWithReplacements,
+} from "./CompositeExpander";
+import {
     ancestorsIncludingComposites,
     gatherDescendants,
 } from "./utils/descendants";
@@ -2074,9 +2078,10 @@ export class DependencyHandler {
                         return { success: false };
                     }
 
-                    await this.core.expandCompositeComponent(
-                        this._components[componentIdxNewlyResolved],
-                    );
+                    await expandCompositeComponent({
+                        core: this.core,
+                        component: this._components[componentIdxNewlyResolved],
+                    });
                 }
             } else {
                 throw Error(
@@ -6900,17 +6905,13 @@ class ReplacementDependency extends Dependency {
         }
 
         if (this.recursive) {
-            let result =
-                this.dependencyHandler.core.compositeExpander.recursivelyReplaceCompositesWithReplacements(
-                    {
-                        replacements,
-                        recurseNonStandardComposites:
-                            this.recurseNonStandardComposites,
-                        includeWithheldReplacements:
-                            this.includeWithheldReplacements,
-                        stopIfHaveProp: this.stopIfHaveProp,
-                    },
-                );
+            let result = recursivelyReplaceCompositesWithReplacements({
+                core: this.dependencyHandler.core,
+                replacements,
+                recurseNonStandardComposites: this.recurseNonStandardComposites,
+                includeWithheldReplacements: this.includeWithheldReplacements,
+                stopIfHaveProp: this.stopIfHaveProp,
+            });
 
             if (
                 result.unexpandedCompositesNotReady.length > 0 ||

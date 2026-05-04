@@ -4,6 +4,10 @@ import {
     addChildrenAndRecurseToShadows,
     registerComponent,
 } from "./ComponentLifecycle";
+import {
+    componentAndRenderedDescendants,
+    expandAllComposites,
+} from "./CompositeExpander";
 import { addComponentsToResolver } from "./ResolverAdapter";
 import { convertToErrorComponent } from "./utils/dast/errors";
 import { gatherVariantComponents } from "./utils/variants";
@@ -186,8 +190,10 @@ export class ComponentBuilder {
             await this.core.replacementChangesFromCompositesToUpdate();
 
             await this.core.updateRendererInstructions({
-                componentNamesToUpdate:
-                    await this.core.componentAndRenderedDescendants(parent),
+                componentNamesToUpdate: await componentAndRenderedDescendants({
+                    core: this.core,
+                    component: parent,
+                }),
             });
 
             // updating renderer instructions could trigger more composite updates
@@ -910,8 +916,15 @@ export class ComponentBuilder {
      * mutating the tree.
      */
     async _expandAllCompositesBothPasses() {
-        await this.core.expandAllComposites(this.core.document);
-        await this.core.expandAllComposites(this.core.document, true);
+        await expandAllComposites({
+            core: this.core,
+            component: this.core.document,
+        });
+        await expandAllComposites({
+            core: this.core,
+            component: this.core.document,
+            force: true,
+        });
     }
 
     /**

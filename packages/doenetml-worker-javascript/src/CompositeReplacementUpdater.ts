@@ -5,6 +5,11 @@ import {
     processNewDefiningChildren,
     spliceChildren,
 } from "./ComponentLifecycle";
+import {
+    adjustForCreateComponentIdxName,
+    componentAndRenderedDescendants,
+    expandCompositeComponent,
+} from "./CompositeExpander";
 import { deleteComponents } from "./DeletionEngine";
 import {
     addReplacementsToResolver,
@@ -396,7 +401,10 @@ export class CompositeReplacementUpdater {
                         newReplacementsByComposite[compositeIdx].newComponents;
 
                     if (!composite.isExpanded) {
-                        await this.core.expandCompositeComponent(composite);
+                        await expandCompositeComponent({
+                            core: this.core,
+                            component: composite,
+                        });
 
                         const newChange = {
                             changeType: "addedReplacements",
@@ -453,9 +461,10 @@ export class CompositeReplacementUpdater {
                         });
 
                         const componentsAffected =
-                            await this.core.componentAndRenderedDescendants(
-                                parent,
-                            );
+                            await componentAndRenderedDescendants({
+                                core: this.core,
+                                component: parent,
+                            });
                         componentsAffected.forEach((cIdx: ComponentIdx) =>
                             this.core.updateInfo.componentsToUpdateRenderers.add(
                                 cIdx,
@@ -491,9 +500,10 @@ export class CompositeReplacementUpdater {
                         }
 
                         const componentsAffected =
-                            await this.core.componentAndRenderedDescendants(
-                                parent,
-                            );
+                            await componentAndRenderedDescendants({
+                                core: this.core,
+                                component: parent,
+                            });
                         componentsAffected.forEach((cIdx: ComponentIdx) =>
                             this.core.updateInfo.componentsToUpdateRenderers.add(
                                 cIdx,
@@ -733,8 +743,10 @@ export class CompositeReplacementUpdater {
             // covered by the `parentsOfDeleted` walk inside
             // `_recordDeleteResults`, so it doesn't need this fan-out.
             let parent = this.core._components[composite.parentIdx!];
-            let componentsAffected =
-                await this.core.componentAndRenderedDescendants(parent);
+            let componentsAffected = await componentAndRenderedDescendants({
+                core: this.core,
+                component: parent,
+            });
             componentsAffected.forEach((cIdx: ComponentIdx) =>
                 this.core.updateInfo.componentsToUpdateRenderers.add(cIdx),
             );
@@ -771,8 +783,10 @@ export class CompositeReplacementUpdater {
             parent,
             expandComposites: false,
         });
-        let componentsAffected =
-            await this.core.componentAndRenderedDescendants(parent);
+        let componentsAffected = await componentAndRenderedDescendants({
+            core: this.core,
+            component: parent,
+        });
         componentsAffected.forEach((cIdx: ComponentIdx) =>
             this.core.updateInfo.componentsToUpdateRenderers.add(cIdx),
         );
@@ -906,10 +920,10 @@ export class CompositeReplacementUpdater {
                 shadowingComponent.replacementsWorkspace.replacementsCreated =
                     stateIdInfo.num;
 
-                this.core.adjustForCreateComponentIdxName(
-                    newSerializedReplacements,
-                    shadowingComponent,
-                );
+                adjustForCreateComponentIdxName({
+                    serializedReplacements: newSerializedReplacements,
+                    composite: shadowingComponent,
+                });
 
                 await addReplacementsToResolver({
                     core: this.core,
@@ -1244,8 +1258,10 @@ export class CompositeReplacementUpdater {
     }) {
         for (const parent of deleteResults.parentsOfDeleted) {
             parentsOfDeleted.add(parent.componentIdx);
-            const componentsAffected =
-                await this.core.componentAndRenderedDescendants(parent);
+            const componentsAffected = await componentAndRenderedDescendants({
+                core: this.core,
+                component: parent,
+            });
             componentsAffected.forEach((cIdx: ComponentIdx) =>
                 this.core.updateInfo.componentsToUpdateRenderers.add(cIdx),
             );

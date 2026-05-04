@@ -3,6 +3,7 @@ import type { ComponentInstance } from "./types/componentInstance";
 import type { ComponentIdx } from "@doenet/utils";
 import me from "math-expressions";
 import { processNewDefiningChildren } from "./ComponentLifecycle";
+import { expandAllComposites } from "./CompositeExpander";
 import {
     preprocessMathInverseDefinition,
     removeFunctionsMathExpressionClass,
@@ -84,8 +85,15 @@ export class EssentialValueWriter {
         if (replacementResult.updatedComposites) {
             // make sure the new composite replacements didn't
             // create other composites that have to be expanded
-            await this.core.expandAllComposites(this.core.document);
-            await this.core.expandAllComposites(this.core.document, true);
+            await expandAllComposites({
+                core: this.core,
+                component: this.core.document,
+            });
+            await expandAllComposites({
+                core: this.core,
+                component: this.core.document,
+                force: true,
+            });
 
             if (this.core.updateInfo.stateVariablesToEvaluate) {
                 let stateVariablesToEvaluate =
