@@ -1,5 +1,5 @@
-import type Core from "./Core";
-import type { ComponentInstance } from "./types/componentInstance";
+import type Core from "../Core";
+import type { ComponentInstance } from "../types/componentInstance";
 import type { ComponentIdx } from "@doenet/utils";
 import me from "math-expressions";
 import { processNewDefiningChildren } from "./ComponentLifecycle";
@@ -7,7 +7,7 @@ import { expandAllComposites } from "./CompositeExpander";
 import {
     preprocessMathInverseDefinition,
     removeFunctionsMathExpressionClass,
-} from "./utils/math";
+} from "../utils/math";
 
 /**
  * Loose-typed bag of `componentIdx → varName → newValue` entries that the

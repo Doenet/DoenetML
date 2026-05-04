@@ -1,8 +1,8 @@
-import type Core from "./Core";
+import type Core from "../Core";
 import { deriveChildResultsFromDefiningChildren } from "./ChildMatcher";
 import { createIsolatedComponents } from "./ComponentBuilder";
-import { postProcessCopy } from "./utils/copy";
-import { createNewComponentIndices } from "./utils/componentIndices";
+import { postProcessCopy } from "../utils/copy";
+import { createNewComponentIndices } from "../utils/componentIndices";
 
 /**
  * Bookkeeping for component objects in the live tree:

@@ -1,5 +1,5 @@
-import { reportTimerError, TimerLabels } from "./utils/timerErrors";
-import type Core from "./Core";
+import { reportTimerError, TimerLabels } from "../utils/timerErrors";
+import type Core from "../Core";
 import type { TimerHandle } from "@doenet/utils";
 
 /**

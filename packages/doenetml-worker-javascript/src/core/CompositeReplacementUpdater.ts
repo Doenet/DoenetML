@@ -1,5 +1,5 @@
-import type Core from "./Core";
-import type { ComponentInstance } from "./types/componentInstance";
+import type Core from "../Core";
+import type { ComponentInstance } from "../types/componentInstance";
 import type { ComponentIdx } from "@doenet/utils";
 import { createIsolatedComponents } from "./ComponentBuilder";
 import {
@@ -17,13 +17,13 @@ import {
     determineParentAndIndexResolutionForResolver,
     gatherDiagnosticsAndAssignDoenetMLRange,
 } from "./ResolverAdapter";
-import { postProcessCopy } from "./utils/copy";
-import { preprocessAttributesObject } from "./utils/attributes";
-import { convertUnresolvedAttributesForComponentType } from "./utils/dast/convertNormalizedDast";
+import { postProcessCopy } from "../utils/copy";
+import { preprocessAttributesObject } from "../utils/attributes";
+import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import {
     createComponentIndicesFromSerializedChildren,
     createNewComponentIndices,
-} from "./utils/componentIndices";
+} from "../utils/componentIndices";
 
 /**
  * Loose-typed bag describing one entry in the `componentChanges` array

@@ -1,11 +1,11 @@
-import type Core from "./Core";
+import type Core from "../Core";
 import { assignDoenetMLRange } from "@doenet/utils";
 import { FlatFragment } from "@doenet/doenetml-worker";
 import {
     addNodesToFlatFragment,
     calcStartEndIdx,
     getEffectiveComponentIdx,
-} from "./utils/resolver";
+} from "../utils/resolver";
 
 /**
  * Adapter to the external (Rust) name resolver. Translates Core's

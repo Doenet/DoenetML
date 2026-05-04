@@ -1,4 +1,4 @@
-import type Core from "./Core";
+import type Core from "../Core";
 
 /**
  * Reveal any closed sections on the path from the document root to the

@@ -1,9 +1,9 @@
 import Core from "./Core";
-import { handleNavigatingToComponent } from "./NavigationHandler";
+import { handleNavigatingToComponent } from "./core/NavigationHandler";
 import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { createComponentInfoObjects } from "./utils/componentInfoObjects";
 export { createComponentInfoObjects } from "./utils/componentInfoObjects";
-export { expandCompositeComponent } from "./CompositeExpander";
+export { expandCompositeComponent } from "./core/CompositeExpander";
 import { returnAllPossibleVariants } from "./utils/returnAllPossibleVariants";
 import {
     FlatFragment,

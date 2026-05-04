@@ -1,4 +1,4 @@
-import type Core from "./Core";
+import type Core from "../Core";
 import { deepClone } from "@doenet/utils";
 import {
     deriveChildResultsFromDefiningChildren,
@@ -14,12 +14,12 @@ import {
     addAttributesToSingleReplacement,
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
-} from "./utils/copy";
-import { preprocessAttributesObject } from "./utils/attributes";
+} from "../utils/copy";
+import { preprocessAttributesObject } from "../utils/attributes";
 import {
     createComponentIndicesFromSerializedChildren,
     createNewComponentIndices,
-} from "./utils/componentIndices";
+} from "../utils/componentIndices";
 
 /**
  * Expands composite components into their replacements: walks descendants

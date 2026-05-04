@@ -1,5 +1,5 @@
-import type Core from "./Core";
-import type { ComponentInstance } from "./types/componentInstance";
+import type Core from "../Core";
+import type { ComponentInstance } from "../types/componentInstance";
 import type { ComponentIdx } from "@doenet/utils";
 /**
  * Resolves a state variable's value: walks the dependency graph to gather
