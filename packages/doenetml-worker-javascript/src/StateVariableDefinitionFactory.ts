@@ -134,63 +134,18 @@ export class StateVariableDefinitionFactory {
             });
 
             if (attributeSpecification.public) {
-                stateVarDef.public = true;
-                stateVarDef.shadowingInstructions = {};
-                if (attributeSpecification.createPrimitiveOfType) {
-                    stateVarDef.shadowingInstructions.createComponentOfType =
-                        attributeSpecification.createPrimitiveOfType;
-                    if (
-                        stateVarDef.shadowingInstructions
-                            .createComponentOfType === "string"
-                    ) {
-                        stateVarDef.shadowingInstructions.createComponentOfType =
-                            "text";
-                    } else if (
-                        stateVarDef.shadowingInstructions
-                            .createComponentOfType === "stringArray"
-                    ) {
-                        stateVarDef.shadowingInstructions.createComponentOfType =
-                            "textList";
-                    } else if (
-                        stateVarDef.shadowingInstructions
-                            .createComponentOfType === "numberArray"
-                    ) {
-                        stateVarDef.shadowingInstructions.createComponentOfType =
-                            "numberList";
-                    }
-                } else if (attributeSpecification.createReferences) {
-                    throw Error(
-                        "Cannot make a public state variable from an attribute with createReferences",
-                    );
-                } else {
-                    stateVarDef.shadowingInstructions.createComponentOfType =
-                        attributeSpecification.createComponentOfType;
-                }
+                this._setShadowingInstructionsFromAttribute(
+                    stateVarDef,
+                    attributeSpecification,
+                );
             }
 
-            let stateVariableForAttributeValue;
-
-            if (attributeSpecification.createComponentOfType) {
-                let attributeClass =
-                    this.core.componentInfoObjects.allComponentClasses[
-                        attributeSpecification.createComponentOfType
-                    ];
-                if (!attributeClass) {
-                    throw Error(
-                        `Component type ${attributeSpecification.createComponentOfType} does not exist so cannot create state variable for attribute ${attrName} of componentType ${componentClass.componentType}.`,
-                    );
-                }
-
-                stateVariableForAttributeValue =
-                    attributeSpecification.componentStateVariableForAttributeValue;
-                if (stateVariableForAttributeValue === undefined) {
-                    stateVariableForAttributeValue =
-                        attributeClass.stateVariableToBeShadowed;
-                    if (stateVariableForAttributeValue === undefined) {
-                        stateVariableForAttributeValue = "value";
-                    }
-                }
-            }
+            let stateVariableForAttributeValue =
+                this._resolveAttributeValueVariable(
+                    attributeSpecification,
+                    attrName,
+                    componentClass,
+                );
 
             stateVarDef.returnDependencies = function () {
                 let dependencies = {};
@@ -404,21 +359,13 @@ export class StateVariableDefinitionFactory {
                 };
             }
 
-            let attributesToCopy = [
-                "forRenderer",
-                "defaultValue",
-                "propagateToProps",
-                "triggerActionOnChange",
-                "ignoreFixed",
-                "isLocation",
-                "essentialVarName",
-            ];
-
-            for (let attrName2 of attributesToCopy) {
-                if (attrName2 in attributeSpecification) {
-                    stateVarDef[attrName2] = attributeSpecification[attrName2];
-                }
-            }
+            this._copyPassthroughAttributes(
+                stateVarDef,
+                attributeSpecification,
+                {
+                    includeTriggerActionOnChange: true,
+                },
+            );
         }
     }
 
@@ -451,38 +398,10 @@ export class StateVariableDefinitionFactory {
             });
 
             if (attributeSpecification.public) {
-                stateVarDef.public = true;
-                stateVarDef.shadowingInstructions = {};
-                if (attributeSpecification.createPrimitiveOfType) {
-                    stateVarDef.shadowingInstructions.createComponentOfType =
-                        attributeSpecification.createPrimitiveOfType;
-                    if (
-                        stateVarDef.shadowingInstructions
-                            .createComponentOfType === "string"
-                    ) {
-                        stateVarDef.shadowingInstructions.createComponentOfType =
-                            "text";
-                    } else if (
-                        stateVarDef.shadowingInstructions
-                            .createComponentOfType === "stringArray"
-                    ) {
-                        stateVarDef.shadowingInstructions.createComponentOfType =
-                            "textList";
-                    } else if (
-                        stateVarDef.shadowingInstructions
-                            .createComponentOfType === "numberArray"
-                    ) {
-                        stateVarDef.shadowingInstructions.createComponentOfType =
-                            "numberList";
-                    }
-                } else if (attributeSpecification.createReferences) {
-                    throw Error(
-                        "Cannot make a public state variable from an attribute with createReferences",
-                    );
-                } else {
-                    stateVarDef.shadowingInstructions.createComponentOfType =
-                        attributeSpecification.createComponentOfType;
-                }
+                this._setShadowingInstructionsFromAttribute(
+                    stateVarDef,
+                    attributeSpecification,
+                );
             }
 
             if (varName in adapterTargetComponent.state) {
@@ -553,20 +472,10 @@ export class StateVariableDefinitionFactory {
                 };
             }
 
-            let attributesToCopy = [
-                "forRenderer",
-                "defaultValue",
-                "propagateToProps",
-                "ignoreFixed",
-                "isLocation",
-                "essentialVarName",
-            ];
-
-            for (let attrName2 of attributesToCopy) {
-                if (attrName2 in attributeSpecification) {
-                    stateVarDef[attrName2] = attributeSpecification[attrName2];
-                }
-            }
+            this._copyPassthroughAttributes(
+                stateVarDef,
+                attributeSpecification,
+            );
         }
 
         // primaryStateVariableForDefinition is the state variable that the componentClass
@@ -686,63 +595,18 @@ export class StateVariableDefinitionFactory {
                 !attributeSpecification.createComponentOfType;
 
             if (attributeSpecification.public) {
-                stateVarDef.public = true;
-                stateVarDef.shadowingInstructions = {};
-                if (attributeSpecification.createPrimitiveOfType) {
-                    stateVarDef.shadowingInstructions.createComponentOfType =
-                        attributeSpecification.createPrimitiveOfType;
-                    if (
-                        stateVarDef.shadowingInstructions
-                            .createComponentOfType === "string"
-                    ) {
-                        stateVarDef.shadowingInstructions.createComponentOfType =
-                            "text";
-                    } else if (
-                        stateVarDef.shadowingInstructions
-                            .createComponentOfType === "stringArray"
-                    ) {
-                        stateVarDef.shadowingInstructions.createComponentOfType =
-                            "textList";
-                    } else if (
-                        stateVarDef.shadowingInstructions
-                            .createComponentOfType === "numberArray"
-                    ) {
-                        stateVarDef.shadowingInstructions.createComponentOfType =
-                            "numberList";
-                    }
-                } else if (attributeSpecification.createReferences) {
-                    throw Error(
-                        "Cannot make a public state variable from an attribute with createReferences",
-                    );
-                } else {
-                    stateVarDef.shadowingInstructions.createComponentOfType =
-                        attributeSpecification.createComponentOfType;
-                }
+                this._setShadowingInstructionsFromAttribute(
+                    stateVarDef,
+                    attributeSpecification,
+                );
             }
 
-            let stateVariableForAttributeValue;
-
-            if (attributeSpecification.createComponentOfType) {
-                let attributeClass =
-                    this.core.componentInfoObjects.allComponentClasses[
-                        attributeSpecification.createComponentOfType
-                    ];
-                if (!attributeClass) {
-                    throw Error(
-                        `Component type ${attributeSpecification.createComponentOfType} does not exist so cannot create state variable for attribute ${attrName} of componentType ${componentClass.componentType}.`,
-                    );
-                }
-
-                stateVariableForAttributeValue =
-                    attributeSpecification.componentStateVariableForAttributeValue;
-                if (stateVariableForAttributeValue === undefined) {
-                    stateVariableForAttributeValue =
-                        attributeClass.stateVariableToBeShadowed;
-                    if (stateVariableForAttributeValue === undefined) {
-                        stateVariableForAttributeValue = "value";
-                    }
-                }
-            }
+            let stateVariableForAttributeValue =
+                this._resolveAttributeValueVariable(
+                    attributeSpecification,
+                    attrName,
+                    componentClass,
+                );
 
             let thisDependencies = {};
 
@@ -954,20 +818,10 @@ export class StateVariableDefinitionFactory {
                 };
             }
 
-            let attributesToCopy = [
-                "forRenderer",
-                "defaultValue",
-                "propagateToProps",
-                "ignoreFixed",
-                "isLocation",
-                "essentialVarName",
-            ];
-
-            for (let attrName2 of attributesToCopy) {
-                if (attrName2 in attributeSpecification) {
-                    stateVarDef[attrName2] = attributeSpecification[attrName2];
-                }
-            }
+            this._copyPassthroughAttributes(
+                stateVarDef,
+                attributeSpecification,
+            );
         }
 
         if (redefineDependencies.propVariable) {
@@ -1525,6 +1379,122 @@ export class StateVariableDefinitionFactory {
             }
             return results;
         };
+    }
+
+    /**
+     * Mark `stateVarDef` as public and populate
+     * `shadowingInstructions.createComponentOfType` from
+     * `attributeSpecification`. Maps `createPrimitiveOfType` codes
+     * (`string`/`stringArray`/`numberArray`) to their component-shaped
+     * equivalents (`text`/`textList`/`numberList`); falls back to
+     * `attributeSpecification.createComponentOfType` if no primitive type.
+     * Throws when `createReferences` is set, since references can't shadow
+     * publicly.
+     */
+    _setShadowingInstructionsFromAttribute(
+        stateVarDef: any,
+        attributeSpecification: any,
+    ) {
+        stateVarDef.public = true;
+        stateVarDef.shadowingInstructions = {};
+        if (attributeSpecification.createPrimitiveOfType) {
+            stateVarDef.shadowingInstructions.createComponentOfType =
+                attributeSpecification.createPrimitiveOfType;
+            if (
+                stateVarDef.shadowingInstructions.createComponentOfType ===
+                "string"
+            ) {
+                stateVarDef.shadowingInstructions.createComponentOfType =
+                    "text";
+            } else if (
+                stateVarDef.shadowingInstructions.createComponentOfType ===
+                "stringArray"
+            ) {
+                stateVarDef.shadowingInstructions.createComponentOfType =
+                    "textList";
+            } else if (
+                stateVarDef.shadowingInstructions.createComponentOfType ===
+                "numberArray"
+            ) {
+                stateVarDef.shadowingInstructions.createComponentOfType =
+                    "numberList";
+            }
+        } else if (attributeSpecification.createReferences) {
+            throw Error(
+                "Cannot make a public state variable from an attribute with createReferences",
+            );
+        } else {
+            stateVarDef.shadowingInstructions.createComponentOfType =
+                attributeSpecification.createComponentOfType;
+        }
+    }
+
+    /**
+     * Decide which state-variable name to read from the attribute's
+     * component to populate the dependency value: prefer the explicit
+     * `componentStateVariableForAttributeValue`, fall back to the attribute
+     * class's `stateVariableToBeShadowed`, then default to `"value"`.
+     * Returns `undefined` when no `createComponentOfType` is specified
+     * (the dependency will use a different shape, e.g. `attributePrimitive`).
+     * Throws if the attribute class doesn't exist.
+     */
+    _resolveAttributeValueVariable(
+        attributeSpecification: any,
+        attrName: string,
+        componentClass: any,
+    ): string | undefined {
+        if (!attributeSpecification.createComponentOfType) {
+            return undefined;
+        }
+        const attributeClass =
+            this.core.componentInfoObjects.allComponentClasses[
+                attributeSpecification.createComponentOfType
+            ];
+        if (!attributeClass) {
+            throw Error(
+                `Component type ${attributeSpecification.createComponentOfType} does not exist so cannot create state variable for attribute ${attrName} of componentType ${componentClass.componentType}.`,
+            );
+        }
+        let stateVariableForAttributeValue =
+            attributeSpecification.componentStateVariableForAttributeValue;
+        if (stateVariableForAttributeValue === undefined) {
+            stateVariableForAttributeValue =
+                attributeClass.stateVariableToBeShadowed;
+            if (stateVariableForAttributeValue === undefined) {
+                stateVariableForAttributeValue = "value";
+            }
+        }
+        return stateVariableForAttributeValue;
+    }
+
+    /**
+     * Copy the canonical pass-through fields from `attributeSpecification`
+     * onto `stateVarDef`. Only fields that are explicitly present on the
+     * spec are copied (so that defaults stay defaults). The
+     * `triggerActionOnChange` field is opt-in via
+     * `includeTriggerActionOnChange` because only the
+     * `createAttributeStateVariableDefinitions` site forwards it; the
+     * adapter-shadow and reference-shadow paths intentionally don't.
+     */
+    _copyPassthroughAttributes(
+        stateVarDef: any,
+        attributeSpecification: any,
+        { includeTriggerActionOnChange = false } = {},
+    ) {
+        const attributesToCopy = [
+            "forRenderer",
+            "defaultValue",
+            "propagateToProps",
+            ...(includeTriggerActionOnChange ? ["triggerActionOnChange"] : []),
+            "ignoreFixed",
+            "isLocation",
+            "essentialVarName",
+        ];
+        for (const attrName2 of attributesToCopy) {
+            if (attrName2 in attributeSpecification) {
+                stateVarDef[attrName2] = attributeSpecification[attrName2];
+            }
+        }
     }
 }
 

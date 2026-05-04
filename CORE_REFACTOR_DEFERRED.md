@@ -132,14 +132,16 @@ Commit `aed7910c` fixed a latent bug at `ResolverAdapter.ts:84` (was reading `co
 
 This codepath fires when a copy component (created via `extend`) has a `source:sequence` attribute and a numeric `createComponentIdx`. A targeted Vitest case constructing that specific shape and asserting the resolver receives a `parentSourceSequence` with the correct `parent: <number>` field would lock the fix in. Without it, regressions could re-introduce the silent `undefined`-parent bug.
 
-### De-duplicate attribute-derived state variable construction in `StateVariableDefinitionFactory`
+### De-duplicate attribute-derived state variable construction in `StateVariableDefinitionFactory` — PARTIAL
 
-The factory builds attribute-derived state variables in three almost-identical sites: `createAttributeStateVariableDefinitions` (around lines 130, 170, 232-402, 405-419), `createReferenceShadowStateVariableDefinitions` (around lines 678, 721-743, 782-952, 955-968), and the adapter-shadow path (around line 448, 554-567). Four families of duplication are visible:
+DONE: three of the four duplication families collapsed.
 
-1. **`shadowingInstructions` block.** Three near-identical 30-line blocks that map `attributeSpecification.createPrimitiveOfType` (string/stringArray/numberArray) to the corresponding component type (text/textList/numberList) and assign it to `stateVarDef.shadowingInstructions.createComponentOfType`. Extract a `_setShadowingInstructionsFromAttribute(stateVarDef, attributeSpecification)` helper.
-2. **`stateVariableForAttributeValue` resolution.** Two identical lookups of `componentStateVariableForAttributeValue → attributeClass.stateVariableToBeShadowed → "value"`, both with the same "Component type … does not exist" throw. Extract `_resolveAttributeValueVariable(attributeSpecification, attrName, componentClass)`.
-3. **`definition` / `inverseDefinition` callback pair on attribute-derived state vars.** ~170 lines duplicated almost verbatim between `createAttributeStateVariableDefinitions` and `createReferenceShadowStateVariableDefinitions`. A shared closure-builder returning `{ definition, inverseDefinition }` would absorb the duplication.
-4. **`attributesToCopy` loop.** Three copies of the array + copy loop. The first intentionally adds `"triggerActionOnChange"`; the other two omit it. Today this divergence relies on visual diff; a helper like `_copyPassthroughAttributes(stateVarDef, attributeSpecification, { includeTriggerActionOnChange })` would make it explicit.
+1. **`shadowingInstructions` block.** Three 30-line copies replaced by `_setShadowingInstructionsFromAttribute(stateVarDef, attributeSpecification)`.
+2. **`stateVariableForAttributeValue` resolution.** Two copies (plus the adapter-shadow path that I'd missed) collapsed onto `_resolveAttributeValueVariable(attributeSpecification, attrName, componentClass)`. The helper returns `undefined` for the no-`createComponentOfType` case.
+3. **`attributesToCopy` loop.** Three copies replaced by `_copyPassthroughAttributes(stateVarDef, attributeSpecification, { includeTriggerActionOnChange })`. The flag makes the divergence between `createAttributeStateVariableDefinitions` (forwards `triggerActionOnChange`) and the two other paths explicit.
+
+Still pending:
+4. **`definition` / `inverseDefinition` callback pair.** The ~170-line block duplicated between `createAttributeStateVariableDefinitions` and `createReferenceShadowStateVariableDefinitions` is the largest single piece left. Worth its own focused PR — the closures capture different sets of locals, so a shared closure-builder needs careful parameter design to avoid silently changing behaviour.
 
 ### Collapse the two branches of `ComponentBuilder.addComponents` — DONE
 
