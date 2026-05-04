@@ -29,7 +29,6 @@ import { StalenessPropagator } from "./StalenessPropagator";
 import { StatePersistence } from "./StatePersistence";
 import { StateVariableDefinitionFactory } from "./StateVariableDefinitionFactory";
 import { StateVariableEvaluator } from "./StateVariableEvaluator";
-import { StateVariableInitializer } from "./StateVariableInitializer";
 import { UpdateExecutor } from "./UpdateExecutor";
 import { VisibilityTracker } from "./VisibilityTracker";
 import * as nameResolver from "./StateVariableNameResolver";
@@ -107,14 +106,15 @@ export interface CoreInfo {
  * own modules. Some are class instances held on Core (DiagnosticsManager,
  * VisibilityTracker, StatePersistence, AutoSubmitManager,
  * RendererInstructionBuilder, ProcessQueue, ActionTriggerScheduler,
- * StateVariableDefinitionFactory, StateVariableInitializer,
+ * StateVariableDefinitionFactory,
  * StateVariableEvaluator, StalenessPropagator, EssentialValueWriter,
  * CompositeReplacementUpdater, UpdateExecutor, and the `nameResolver`
  * namespace); others (NavigationHandler, ResolverAdapter, ComponentLifecycle,
- * ChildMatcher, DeletionEngine, CompositeExpander, ComponentBuilder) are
- * plain module-level functions imported directly by callers. Each delegating
- * block still held on Core is grouped near its original location and tagged
- * with a `// → managerName` marker; see the corresponding module for details.
+ * ChildMatcher, DeletionEngine, CompositeExpander, ComponentBuilder,
+ * StateVariableInitializer) are plain module-level functions imported
+ * directly by callers. Each delegating block still held on Core is grouped
+ * near its original location and tagged with a `// → managerName` marker;
+ * see the corresponding module for details.
  */
 export default class Core {
     // ─── Identity / configuration ─────────────────────────────────────────
@@ -198,7 +198,6 @@ export default class Core {
     processQueue: ProcessQueue;
     actionTriggerScheduler: ActionTriggerScheduler;
     stateVariableDefinitionFactory: StateVariableDefinitionFactory;
-    stateVariableInitializer: StateVariableInitializer;
     stateVariableEvaluator: StateVariableEvaluator;
     stalenessPropagator: StalenessPropagator;
     essentialValueWriter: EssentialValueWriter;
@@ -363,9 +362,6 @@ export default class Core {
             new StateVariableDefinitionFactory({
                 core: this,
             });
-        this.stateVariableInitializer = new StateVariableInitializer({
-            core: this,
-        });
         this.stateVariableEvaluator = new StateVariableEvaluator({
             core: this,
         });
@@ -741,37 +737,6 @@ export default class Core {
         return this.stateVariableDefinitionFactory.createReferenceShadowStateVariableDefinitions(
             args,
         );
-    }
-
-    // → stateVariableInitializer
-    async initializeComponentStateVariables(
-        component: ComponentInstance,
-    ): Promise<any> {
-        return this.stateVariableInitializer.initializeComponentStateVariables(
-            component,
-        );
-    }
-
-    async initializeStateVariable(args: any): Promise<any> {
-        return this.stateVariableInitializer.initializeStateVariable(args);
-    }
-
-    async initializeArrayEntryStateVariable(args: any): Promise<any> {
-        return this.stateVariableInitializer.initializeArrayEntryStateVariable(
-            args,
-        );
-    }
-
-    async initializeArrayStateVariable(args: any): Promise<any> {
-        return this.stateVariableInitializer.initializeArrayStateVariable(args);
-    }
-
-    async createArraySizeStateVariable(args: any): Promise<any> {
-        return this.stateVariableInitializer.createArraySizeStateVariable(args);
-    }
-
-    async arrayEntryNamesFromPropIndex(args: any): Promise<any> {
-        return this.stateVariableInitializer.arrayEntryNamesFromPropIndex(args);
     }
 
     // → stateVariableEvaluator
