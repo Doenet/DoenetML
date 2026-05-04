@@ -1,276 +1,302 @@
-# Core.js refactor — deferred findings
+# Core refactor — remaining work
 
-These items came out of the PR reviews for the multi-phase refactor (`core-refactor-1`, `core-refactor-2`, …) extracting helpers from `packages/doenetml-worker-javascript/src/Core.js`. They were intentionally out of scope for those PRs but are good candidates for a follow-up pass.
+Forward-looking plan for items that were intentionally deferred during the multi-phase
+refactor that extracted helpers from `packages/doenetml-worker-javascript/src/Core.js`
+(now `Core.ts`) into `src/core/*.ts`. PRs #1036–#1056 closed the large structural
+work; what remains is a mix of (a) typing tightening blocked on upstream type work,
+(b) behaviour fixes in untested error paths, (c) a benchmarking-gated unification, and
+(d) old TODO/XXX markers lifted verbatim from `Core.js` that were never refactor work
+in the first place.
 
-## Deferred items
+Each section below lists the **scope**, **blocker** (why it isn't done yet), and
+**strategy** (concrete next step when someone picks it up).
 
-### Type the `core: any` back-reference in extracted managers — DONE
+---
 
-Resolved via PR #1041 (commit `bbb808f6a`): `Core.js` was converted to `Core.ts`, giving managers a real `Core` type to import. The managers that still hold a back-reference (`ProcessQueue`, `AutoSubmitManager`, `RendererInstructionBuilder`, `StatePersistence`, `VisibilityTracker`, `ActionTriggerScheduler`, `StalenessPropagator`, `StateVariableEvaluator`, `UpdateExecutor`, `CompositeReplacementUpdater`, `EssentialValueWriter`, plus `DiagnosticsManager` which dropped its back-ref entirely) now declare `core: Core` instead of `core: any`. The intermediate `CoreBackref` interface ended up unnecessary — the direct `Core` import is cleaner.
+## 1. Tighten typing in `StateVariableDefinitionFactory`
 
-### Reduce stateless managers to plain functions — DONE
+**Scope.** Several inner positions in `src/core/StateVariableDefinitionFactory.ts`
+remain `any`:
 
-All nine identified managers were converted to module-function form across PRs #1050 (`af88a65f4` — `NavigationHandler`, `ResolverAdapter`, `ComponentLifecycle`, `DeletionEngine`, `ChildMatcher`), #1051 (`618adce9b` — `CompositeExpander`), #1052 (`9ee2f37ce` — `ComponentBuilder`), #1053 (`52bc49c06` — `StateVariableInitializer`), and #1054 (`4ff8b3352` — `StateVariableDefinitionFactory`). `ChildMatcher`'s `derivingChildResultsInProgress` array became a module-level closure. Core no longer instantiates these as managers; it imports the functions directly.
+- `componentClass: any`, `redefineDependencies: any`, `targetComponent`/
+  `adapterTargetComponent: any` on the public functions.
+- `attributeSpecification: any` in the four `_*Attribute*` helpers.
+- The internal callbacks attached to `stateDef` (`function ({ dependencyValues,
+  usedDefault, essentialValues }) { … }`) carry ~20 implicit-any errors.
 
-### Move `getSourceLocationForComponent` out of `DiagnosticsManager` — DONE
+**Blocker.** Tightening requires upstream type work that is bigger than this file:
 
-Relocated; `DiagnosticsManager` no longer carries any back-reference to `core`.
+- A real type for the component-class shape (`createAttributesObject`,
+  `returnNormalizedStateVariableDefinitions`, `primaryStateVariableForDefinition`,
+  `implicitPropReturnsSameType`).
+- A `RedefineDependencies` discriminated union (`{ linkSource: "adapter" |
+  "referenceShadow"; … }`).
+- Growing `AttributeDefinition<unknown>` (in `utils/dast/types.ts`) to cover the
+  fields the runtime additionally reads: `noInverse`,
+  `componentStateVariableForAttributeValue`, `fallBackToSourceCompositeStateVariable`,
+  `essentialVarName`, `isLocation`, and the inverse-path fields.
+- For the `stateDef` callbacks: importing/exporting the dep-value/usedDefault/
+  essentialValues bag types from `StateVariableEvaluator`.
 
-### `TimerLabels` constants for `reportTimerError` — DONE
+**Strategy.** Sequence the upstream work first:
 
-`src/utils/timerErrors.ts` exports the `TimerLabels` constant; all `reportTimerError(...)` callsites in `AutoSubmitManager`, `CoreWorker`, `StatePersistence`, `UpdateExecutor`, `Core`, and `VisibilityTracker` use it.
+1. Define `ComponentClassShape` in `src/types/` (or extend the existing
+   `componentInstance.ts`).
+2. Define `RedefineDependencies` as a discriminated union.
+3. Extend `AttributeDefinition` with the missing fields.
+4. Then thread the new types through `StateVariableDefinitionFactory`'s public
+   functions and the four `_*Attribute*` helpers.
+5. For the `stateDef` callbacks, factor the bag types out of
+   `StateVariableEvaluator` into a shared types module and tighten in one pass.
 
-### Refactor `calcStartEndIdx` out of `determineParentAndIndexResolutionForResolver` — DONE
+A cheap interim fix worth doing alone: add explicit `(args: any)` annotations on
+the `stateDef` callbacks to silence the ~20 implicit-any errors without changing
+semantics. That brings the file's tsc error count down and makes the real
+tightening work easier to read against later.
 
-Extracted from the nested closure in `ResolverAdapter.determineParentAndIndexResolutionForResolver` into a standalone module-level helper in `utils/resolver.ts`. The new `calcStartEndIdx({ replacements, copyComponentIdx, updateStart, updateEnd })` returns `{ flattenedReplacements, startIdx, endIdx }` directly — no closure mutation, no discarded return value. Behaviour is preserved verbatim, including the parent-overrides-child semantics that the original closure relied on. Unit tests cover the nine behavioural branches in `src/test/utils/calcStartEndIdx.test.ts`.
+## 2. Loose `(repl: any)` callbacks in `CompositeReplacementUpdater`
 
-### Pre-existing fire-and-forget calls still in `Core.js` — DONE
+**Scope.** Several arrow-callback parameters in
+`src/core/CompositeReplacementUpdater.ts` carry an explicit `(repl: any)`
+annotation (around the `component.replacements!.map(...)` calls and the
+`(x: unknown) => !x` filter in `EssentialValueWriter`). They survive only because
+`ComponentInstance.replacements` is loosely typed as `any[]`, with a `!` non-null
+assertion at each use site.
 
-The three `saveState()` and `setTimeout(...)` callsites in `Core.ts` (now-`.ts`) were wrapped with `.catch(reportTimerError(TimerLabels.*))`. `ProcessQueue._kickoff`'s `executeProcesses()` is also `.catch`-wrapped.
+**Blocker.** Tightening `ComponentInstance.replacements` to
+`(ComponentInstance | string)[]` (and `dep.downstreamPrimitives` to a concrete
+shape) is the prerequisite. Doing it scoped just to this file would create
+churn that conflicts with the upstream typing pass.
 
-### Carried-over `TODO` comments in the new managers
+**Strategy.** Land this together with the wider `ComponentInstance` typing pass
+(item #1's first prerequisite). Once `replacements` is tightened, the `(repl: any)`
+annotations and most of the `!` non-null assertions in this file drop without
+behaviour change.
 
-When the Phase 2 modules were extracted, several `TODO` / `XXX` markers were lifted verbatim from `Core.js`. They aren't blockers but represent unanswered design questions that have been deferred for years; tackling them is independent of the refactor itself.
+## 3. Shadow-variable scan loop dedup in `StateVariableDefinitionFactory`
 
-- `ProcessQueue.ts:97, 106` — `// TODO: if skip an update, presumably we should call reject???` Unresolved: skipped queue entries currently never resolve or reject, so callers awaiting them hang.
-- `ProcessQueue.ts` (between the `update` and `action` branches in `executeProcesses`) — commented-out `getStateVariableValues` queue branch. Either revive or delete.
-- `RendererInstructionBuilder.ts:91` — `//TODO: Figure out what we need from here` above the change-detection pass.
-- `RendererInstructionBuilder.ts:253` — `// && !deletedRenderers.includes(componentIdx)  TODO: what if recreate with same name?` — guards re-render of a name that has been deleted and re-created.
-- `RendererInstructionBuilder.ts:275` — `// TODO: need this to ignore baseVariables change: is this right place?` on `rendererType` capture.
-- `ChildMatcher.ts:430, 468` — two `// XXX: how does this work with the new componentIdx approach?` comments on the placeholder-adapter branch.
+**Scope.** Inside `createReferenceShadowStateVariableDefinitions`, the same loop
+appears twice:
 
-Phase 3 lifted further `TODO`s verbatim from `Core.js` into the new modules:
+```ts
+for (let varName in targetComponent.state) {
+    let stateObj = targetComponent.state[varName];
+    if (stateObj.shadowVariable || stateObj.isShadow) {
+        stateVariablesToShadow.push(varName);
+    }
+}
+```
 
-- `StateVariableInitializer.ts:42` — `// TODO: do we want to delete alias from state?` on the alias-handling branch of `initializeComponentStateVariables`.
-- `StateVariableInitializer.ts:313` — `// TODO: delete since arrayEntrySize isn't currently used?` on the array-entry size dependency setup.
-- `StateVariableInitializer.ts:362, 923` — `// TODO: we are communicating this to updateDependencies by adding ...` on dependency-name punning.
-- `StateVariableInitializer.ts:666, 766` — duplicate `// TODO: if we redesign arrays to be based on indices (or even slices), ...` reflections on array-entry materialization.
-- `StateVariableInitializer.ts:817` — `// TODO: wrapping components (like most array features) was designed before ...`.
-- `StateVariableInitializer.ts:868, 1449` — duplicate `// TODO: a better idea? This seems like it could lead to confusion.` on the public-state-variable-name resolution path.
-- `StateVariableDefinitionFactory.ts:1355, 1451` — duplicate `// TODO: how do we make it do this just once?` on the array-entry definition setup.
-- `ComponentBuilder.ts:170, 238` — duplicate `// TODO: should we check for child results earlier so we don't have to check them ...` on the post-creation child-result re-derivation.
-- `CompositeExpander.ts:373` — `// TODO: are there any scenarios where this will lead to an infinite loop?` on the `createSerializedReplacements` retry loop.
+at the prop-variable branch (~lines 650–655) and again at the no-prop-variable
+branch (~lines 733–738).
 
-Phase 4 lifted further `TODO`s verbatim into the five new modules — line numbers are approximate and subject to drift; `grep -n "TODO\|XXX\|kludge" path/to/file` is the canonical lookup:
+**Blocker.** None — this is a 1-line collapse per call site. Left as the third
+item of "Further de-duplication" because it pre-dates the class→module
+conversion and was scoped out of the de-dup PR (#1056) which only touched
+items #1 and #2.
 
-- `EssentialValueWriter.ts` — top-of-`executeUpdateStateVariables` "do we need to check again ... how would we end the loop?" on the post-flush composite-expand re-check; `requestComponentChanges` carries a TODO about `additionalStateVariableValues` guarding (`additionalStateVariablesDefined.includes` may NPE if falsy); the "TODO: if child is a replacement of a composite, determine what to do" branch in the primitive-child path that throws when hit.
-- `StateVariableEvaluator.ts` — "This is a kludge" comment on the `reprocessAfterEvaluate` second-pass mechanism for math expressions ignoring strings; two duplicate "TODO: is there a reason to check deeper?" comments on shallow-array-equality checks; "TODO: is this the correct response to having no changes but a variable not resolved?" on the `noChanges` branch; "TODO: address multidimensional arrays" on the array-entry resolution path.
-- `StalenessPropagator.ts` — "TODO: remove all these error checks to speed up process" decade-old marker in `processMarkStale`'s validation block.
-- `CompositeReplacementUpdater.ts` — `updateCompositeReplacements` carries TODOs at "why must we evaluate and not just resolve it?" (around line 71), an "infinite loop?" reflection in the `do…while` retry, "used to checkForDownstreamDependencies here" placeholders, "check if change.parent is appropriate dependency", "check if component...", "why does this delete delete upstream", "check if components...", "is isResponse the only attribute...". Two unanswered TODOs in `calculateAllComponentsShadowing` ask why `replacementOf` is needed (not reachable through `shadowedBy`?) and whether the no-link case is handled.
+**Strategy.** Lift into `_collectShadowVariableNames(targetComponent)` returning
+a `string[]`; both call sites become `stateVariablesToShadow.push(...
+_collectShadowVariableNames(targetComponent))`. ~15 lines of code change,
+behaviour-preserving.
 
-### `processQueue` field naming inside Core (DONE)
+## 4. Pre-existing exception-leak windows in `CompositeExpander`
 
-Resolved in PR #1049. Added `ProcessQueue.sendRecordEvent(event)` (push-and-kickoff) and switched `VisibilityTracker.sendVisibilityChangedEvents` to call it instead of poking `core.processQueue.push(...)` and `core.processing` / `core.executeProcesses()` directly. With no remaining external readers of the array or the processing flags, dropped Core's `get/set processQueue` (array), `get/set processing`, `get/set stopProcessingRequests`, and the `executeProcesses()` wrapper, then renamed `processQueueManager` → `processQueue`. `Core.terminate()` now reads `this.processQueue.processing` / `.stopProcessingRequests` directly.
+**Scope.** Two windows in `src/core/CompositeExpander.ts` where expansion-tracking
+state is mutated before async work that may throw:
 
-### `statePersistence` instantiation position in the Core constructor — DONE
-
-`new StatePersistence({ core: this })` now sits with the other manager instantiations in the main constructor block (Core.ts:371) rather than at the tail.
-
-### Standardize `core._components` vs `core.components` access in extracted managers — DONE
-
-All extracted managers and module functions consistently use `core._components`; no remaining read-side uses of the `components` getter. Convention to be enforced in future extractions.
-
-### Regression test for the `.primitive.number` → `.primitive.value` fix — DONE
-
-Added at `src/test/copying/external_references.test.ts` ("name reference into extended external content resolves through parentSourceSequence (regression)"). The test pins the contract: with the bug shape (`parent: undefined` from a missing primitive field), name resolution into a copied-and-renamed external section would not reach the leaf, and the test's `s.inner.leaf` and `p1` lookups would fail.
-
-### De-duplicate attribute-derived state variable construction in `StateVariableDefinitionFactory` — DONE
-
-All four duplication families collapsed.
-
-1. **`shadowingInstructions` block.** Three 30-line copies replaced by `_setShadowingInstructionsFromAttribute(stateVarDef, attributeSpecification)`.
-2. **`stateVariableForAttributeValue` resolution.** Two copies (plus the adapter-shadow path that the original audit had missed) collapsed onto `_resolveAttributeValueVariable(attributeSpecification, attrName, componentClass)`. The helper returns `undefined` for the no-`createComponentOfType` case.
-3. **`attributesToCopy` loop.** Three copies replaced by `_copyPassthroughAttributes(stateVarDef, attributeSpecification, { includeTriggerActionOnChange })`. The flag makes the divergence between `createAttributeStateVariableDefinitions` (forwards `triggerActionOnChange`) and the two other paths explicit.
-4. **`definition` / `inverseDefinition` callback pair.** Both 170-line bodies were byte-identical between `createAttributeStateVariableDefinitions` and `createReferenceShadowStateVariableDefinitions`; the reference-shadow `inverseDefinition` signature declared two extra parameters (`stateValues`, `workspace`) that the body never read, so dropping them was safe. The reference-shadow site also carried a stale `// attribute based on child` comment for what is actually an attribute component, fixed in passing to match the standalone site's `// attribute based on component`. Both callbacks lifted into `_buildAttributeDerivedDefinitions({ varName, stateVariableForAttributeValue, attributeSpecification, attrName })` returning `{ definition, inverseDefinition }`. Both call sites now invoke the helper and assign the returned closures to their `stateVarDef`. The `noInverse` opt-out remains at the call site.
-
-### Collapse the two branches of `ComponentBuilder.addComponents` — DONE
-
-All three drains extracted into internal (underscore-prefixed) helpers on the class: `_expandAllCompositesBothPasses()` (the two-pass `expandAllComposites(document)`), `_drainStateVariablesToEvaluate()` (the queue-and-evaluate loop), and `_drainCompositesToUpdateReplacements()` (the conditional "drain + re-render" tail). Both branches of `addComponents` now use them, making the initial-add vs incremental-add asymmetry visible at a glance.
-
-### Extract `_finishExpanding` and unexpanded-composite helpers in `CompositeExpander` — DONE
-
-Both patterns extracted:
-
-1. **"Finished expanding" cleanup** — pulled out of `expandCompositeComponent` and `expandShadowingComposite` into an internal `_finishExpanding(componentIdx)` method (underscore-prefixed per AGENTS.md; no `private` keyword).
-2. **Unexpanded-composite list cleanup** in `expandCompositeComponent` — collapsed the `unexpandedCompositesReady` / `unexpandedCompositesNotReady` indexOf+splice pair into `for (const list of [parent.unexpandedCompositesReady, parent.unexpandedCompositesNotReady])`, with a `continue` for the missing-list case.
-
-### Pre-existing exception-leak windows in `CompositeExpander` expansion paths
-
-Both `expandCompositeComponent` and `expandShadowingComposite` mutate
-expansion-tracking state at points that are not protected against a thrown
-exception in the awaited work that follows:
-
-1. **Parent's unexpanded-composite lists** (`expandCompositeComponent`,
-   around line 315). The composite is removed from
-   `parent.unexpandedCompositesReady` / `unexpandedCompositesNotReady`
-   *before* `createSerializedReplacements` and the rest of the async
-   expansion run. If a later `await` throws, the parent's lists no
-   longer reflect that the child still needs expansion, and dependency
-   code that consults those lists will misclassify the parent.
-2. **`compositesBeingExpanded` push/pop pairing**. The push happens at the
-   top of `expandCompositeComponent` (line 313), and the matching pop happens
-   in either `_finishExpanding(line 425)` (non-shadow path) or inside
+1. **Parent's unexpanded-composite lists** (`expandCompositeComponent`, around line
+   315). The composite is removed from `parent.unexpandedCompositesReady` /
+   `unexpandedCompositesNotReady` *before* `createSerializedReplacements` and the
+   rest of the async expansion run. If a later `await` throws, the parent's lists
+   no longer reflect that the child still needs expansion, and dependency code
+   that consults those lists (`Dependencies.js:5208,5212,5281`) will misclassify
+   the parent.
+2. **`compositesBeingExpanded` push/pop pairing.** The push happens at the top of
+   `expandCompositeComponent` (line 313); the matching pop happens in either
+   `_finishExpanding(line 425)` (non-shadow path) or inside
    `expandShadowingComposite` at `_finishExpanding(line 704)` (shadow path).
    Any throw between push and pop leaks the entry permanently.
-   `Dependencies.resolveItem()` and the circular-shadow checks both consult
-   this array, so a single failed expansion can cause later updates to be
-   misclassified as circular or in-progress until the worker is recreated.
+   `Dependencies.resolveItem()` and the circular-shadow checks both consult this
+   array, so a single failed expansion can cause later updates to be misclassified
+   as circular or in-progress until the worker is recreated.
 
-Both windows pre-date the Phase 5f refactor (the splices were inline
-before extraction; the cleanup site has not moved). The clean fix is a
-`try`/`finally` wrapper in `expandCompositeComponent` that owns the
-push/pop, plus deferring the parent-list splice until after the work
-that can throw has completed. Holding off until there is at least one
-test that intentionally triggers an expansion failure — the only
-existing test in `functionTag.test.ts` (line 7319) is a happy-path
-regression for an error that *was* reachable, not a forced-throw test.
-Behavior change for an untested error path is the gating risk.
+**Blocker.** Behaviour change for an error path with no forced-throw test. The
+only existing test that touches this code (`functionTag.test.ts:7319`) is a
+happy-path regression for an error that *was* reachable, not a forced-throw
+test. Without coverage, it's impossible to verify the fix doesn't introduce a
+new failure mode.
 
-### Drop dead `replacementsCreated` guard in `CompositeExpander.expandShadowingComposite` — DONE
+**Strategy.**
 
-Removed.
+1. First write a Vitest test that intentionally triggers an expansion failure
+   (e.g. a composite whose `createSerializedReplacements` throws via a
+   maliciously-shaped DoenetML), and asserts that subsequent unrelated
+   expansions still succeed (proves the leak).
+2. Then in `expandCompositeComponent`, wrap the body after the push (line 313)
+   in `try`/`finally` that owns the `compositesBeingExpanded` pop via an
+   idempotent `indexOf` + `splice` (so it's safe even if the dispatch into
+   `expandShadowingComposite`'s own `_finishExpanding` already popped on the
+   success path).
+3. Defer the parent-list splice (lines 315–328) until after the awaited work
+   that can throw — i.e. either move it after the `await
+   createAndSetReplacements` or capture the splice positions and restore them
+   in the `catch` branch.
+4. Remove the inline `_finishExpanding` calls at lines 425 and 704 once the
+   `try`/`finally` owns the cleanup.
+5. Run the new test plus the existing `functionTag.test.ts` regression to
+   confirm the happy path is unchanged.
 
-### Pre-existing `verifyReplacementsMatchSpecifiedType` warnings loop bug — DONE
+## 5. Collapse 1-D vs N-D branches of `StateVariableInitializer.initializeArrayStateVariable`
 
-The duplicate warning-loop was deleted; only the single `diagnostics` loop remains.
+**Scope.** `src/core/StateVariableInitializer.ts:449–797` — the `if
+(stateVarObj.numDimensions > 1) { ... } else { ... }` block — duplicates the
+per-array plumbing across both branches: `keyToIndex`, `setArrayValue`,
+`getArrayValue`, `getAllArrayKeys`, `arrayVarNameFromArrayKey`,
+`arrayVarNameFromPropIndex`, and `adjustArrayToNewArraySize`. The 1-D branch is
+essentially the N-D branch specialised to `numDimensions === 1`.
 
-### Pre-existing unreachable diagnostic in `StateVariableInitializer.initializeArrayStateVariable` — DONE
+A unified implementation that always uses the multi-index path would shed
+roughly 80 lines of duplication.
 
-The `!numDimensionsInArrayKey > stateVarObj.numDimensions` typo was corrected to `numDimensionsInArrayKey > stateVarObj.numDimensions`, restoring reachability.
+**Blocker.** The 1-D path is hot and has a flatter, faster shape (`Number(key)`
+instead of `key.split(",").map(Number)`). Unifying without measuring the
+performance impact on array-heavy components risks a silent regression on the
+common case.
 
-### Collapse the 1-D vs N-D branches of `StateVariableInitializer.initializeArrayStateVariable`
+**Strategy.**
 
-`StateVariableInitializer.ts:449-797` (the `if (stateVarObj.numDimensions > 1) { ... } else { ... }` block) duplicates the per-array plumbing across both branches: `keyToIndex`, `setArrayValue`, `getArrayValue`, `getAllArrayKeys`, `arrayVarNameFromArrayKey`, `arrayVarNameFromPropIndex`, and `adjustArrayToNewArraySize`. The 1-D branch is essentially the N-D branch specialised to `numDimensions === 1`.
+1. Benchmark the 1-D path against the existing array-heavy components
+   (`mathList`, `numberList`, `point`'s array entries) under realistic
+   document sizes. The package has no existing benchmark harness — this likely
+   means setting up a small Vitest `bench` file or using the existing
+   `createTestCore` with `performance.now()` brackets.
+2. If the perf delta is negligible (<5%), unify on the N-D path and delete the
+   1-D specialisation.
+3. If the delta is meaningful, keep both branches but extract the shared
+   plumbing (the seven functions above) into a helper that both branches
+   instantiate, parameterised by the index-decoder function.
 
-A unified implementation that always uses the multi-index path would shed roughly 80 lines of duplication. The trade-off is that the 1-D path has a flatter, faster shape (`Number(key)` instead of `key.split(",").map(Number)`); benchmarking against the existing array-heavy components (`mathList`, `numberList`, `point`'s array entries) is the gating step before unifying. Carried over verbatim from `Core.js`; not introduced by the class→module conversion (PR `core-refactor-17`).
+## 6. `getAllArrayKeys` defaulting in `StateVariableInitializer.initializeArrayStateVariable`
 
-### `getAllArrayKeys` default in `StateVariableInitializer.initializeArrayStateVariable` — DEFERRED INDEFINITELY
+**Scope.** Three sites in `src/core/StateVariableInitializer.ts` open with
+`if (args.arrayKeys === undefined) { args.arrayKeys =
+stateVarObj.getAllArrayKeys(args.arraySize); }`.
 
-Three sites still open with `if (args.arrayKeys === undefined) { args.arrayKeys = stateVarObj.getAllArrayKeys(args.arraySize); }` (down from five since the original audit). The originally-proposed "fold into `getAllArrayKeys` itself" doesn't apply cleanly: the function takes `arraySize`, not `arrayKeys` — they are different concerns. A small `_resolveArrayKeysOnArgs(args, stateVarObj)` mutating helper saves only ~6 net lines and adds an indirection; not worth the churn unless touched in passing during a larger pass. `??=` would also work but subtly changes the null/undefined semantics.
+**Blocker.** Status: deferred indefinitely. Originally proposed as "fold into
+`getAllArrayKeys` itself", but that doesn't compose — `getAllArrayKeys` takes
+`arraySize`, not `arrayKeys`, so the fold isn't actually possible. A small
+mutating helper `_resolveArrayKeysOnArgs(args, stateVarObj)` saves ~6 net lines
+and adds an indirection. `??=` would also work but subtly changes the
+null/undefined semantics.
 
-### Re-home `recursivelyReplaceCompositesWithReplacements` — DONE
+**Strategy.** Don't pursue as standalone work. If the file is opened for the
+1-D vs N-D unification (item #5), fold the defaulting into a single helper
+during that pass while everything is being moved around anyway.
 
-Moved from `StateVariableInitializer` to `CompositeExpander`. Dropped the unread
-`forceExpandComposites` parameter. Removed the `Core.recursivelyReplaceCompositesWithReplacements`
-wrapper; `Dependencies.js` now calls `core.compositeExpander.recursivelyReplaceCompositesWithReplacements(...)`
-directly. Annotated the destructure parameter and return shape, eliminating the
-implicit-any warnings that came with the original method.
+## 7. Audit checklist for `this`-rebinding traps in future extractions
 
-### Minor cleanups in `ComponentBuilder` — DONE
+**Scope.** Phase 3 hit two regressions of the same shape (fixed in `caf3033f5`)
+that any future mechanical extraction from `Core` will hit again. This is a
+checklist to run when reviewing the next extraction PR, not active code work.
 
-- Loose `componentIdx == undefined` tightened to strict (`=== undefined`).
-- `if (!nTimesAddedComponents) { ...= 1 } else ++` collapsed to `nTimesAddedComponents = (nTimesAddedComponents ?? 0) + 1`.
-- Bare `catch (e) { console.error(e); throw e; }` in the `attribute.references` branch of `createChildrenThenComponent` deleted (the call already propagates and the log adds no info). Sibling catch at the `attribute.component` path retained (it still rewrites circular-dependency messages).
+**Blocker.** None — this isn't a fix, it's review guidance.
 
-### Move `findShadowedChildInSerializedComponents` to `utils/` — RESOLVED (deleted instead)
+**Strategy.** Move into `AGENTS.md` (or a sibling reviewer's-checklist file) so
+it surfaces during PR review of future Core extractions, then remove from this
+plan. The checklist itself:
 
-On inspection, `ComponentBuilder.findShadowedChildInSerializedComponents` had
-no callers anywhere in the workspace — only its own self-recursion. It has been
-dead code since at least the April 2025 worker-package rename (the historical
-`originalName` version had the same shape). Deleted rather than relocated.
+1. **`let core = this;` captures.** Inside the original Core method, `this` is
+   Core. Inside the extracted manager method, `this` is the manager — so the
+   line must become `let core = this.core;`. A blind copy silently changes
+   which object `core` refers to.
+2. **`function () {}` callbacks attached to plain objects** (e.g.,
+   `stateDef.definition = function (args) { ... this.X(...) ... }`). These are
+   call-site-bound by whatever later invokes them — typically Core or a
+   state-var machinery object — so `this` inside the body refers to *that*
+   call-site object, not the surrounding lexical scope. After extraction, if
+   the body uses `this.X()` expecting Core, it still works (the call site is
+   unchanged). But if the body was rewritten to use `this.core.X()` during
+   extraction (assuming "this is the manager"), it breaks. Leave these bodies
+   alone — let `this` resolve at the call site.
+3. **`.bind(this)` on wrappers passed by reference** (e.g.,
+   `core.foo.bind(this)`). After extraction, `this` is the manager; the bind
+   target needs to become `this.core` explicitly.
 
-### Phase 4: Heavy duplication across the new managers
+Quick grep targets when reviewing the next phase: `let core = this`,
+`\.bind(this)`, and arrow vs. `function` callback choices on objects assigned
+to `stateDef` / `stateVarObj`.
 
-The Phase 4 extraction (`StateVariableEvaluator`, `StalenessPropagator`, `EssentialValueWriter`, `CompositeReplacementUpdater`, `UpdateExecutor`) preserved several copy-paste clusters that were already in `Core.js`. Each is a real refactor — extracting them is a separate behavior-preserving PR rather than something to fold into the extraction itself.
+## 8. Carried-over `TODO` / `XXX` / `kludge` markers
 
-**`StalenessPropagator`** — DONE.
+**Scope.** Markers lifted verbatim from `Core.js` into the extracted modules
+during Phases 2–4. None are blockers — they're unanswered design questions
+that have been deferred for years.
 
-- `_getArrayKeysAndSize(stateVarObj, component)` collapses the arrayKey/arraySize-from-`_previousValue` block shared between `lookUpCurrentFreshness` and `processMarkStale`.
-- `_remapArrayEntryFreshness(result, allStateVariablesAffectedObj)` collapses the four `fresh` / `partiallyFresh` array-entry remap blocks (two in each of those functions).
-- `_replaceWithStaleGetter(stateVarObj, component, vName)` collapses the "save `_previousValue` + reinstall lazy getter" block shared between `markStateVariableAndUpstreamDependentsStale` and the upstream-walk loop.
-- `_processStaleVisit({ component, varName, allStateVariablesAffectedObj })` collapses the ~200-line freshness-classification + side-effect-dispatch + getter-reinstall + recurse block. Both call sites now invoke it with their pre-built `allStateVariablesAffectedObj`. The renderer-add at the top of each branch and the `upDep.valuesChanged` setup remain at the call sites since they encode genuinely different responsibilities (single-var vs multi-var renderer detection; per-`componentInd`/`varName` change-record write on the dependency).
-- **Bug fix folded in:** the action-chaining bag in the upstream-walk loop had been keying by `upDep.componentIdx`, but dependency objects (per `Dependencies.js`) only carry `upstreamComponentIdx`. The lookup was always `undefined`, so every chain entry from the upstream side had been routed to a single `"undefined"` bucket on `componentsToUpdateActionChaining`. With the helper now keying by `component.componentIdx` (which is `upDepComponent` in the upstream context), chain entries land on the correct upstream component.
+**Blocker.** Most of these aren't refactor work; they're domain-design
+questions whose answers depend on understanding the original intent. Tackling
+them is independent of the structural refactor.
 
-**`StateVariableEvaluator`** — DONE: both clusters extracted.
-- The five "look up `varName` in `receivedValue`, otherwise scan `arrayEntryNames` for a matching entry, otherwise throw" sites collapsed onto `_findOrThrowMatchingArrayEntry({ varName, receivedValue, component, errorMessage })`. The two sites that additionally marked `receivedValue[entry] = true; valuesChanged[entry] = true;` keep that mark at the call site (passing the helper's return value).
-- The two byte-identical "checkForActualChange / scalar / shallow-array-equality" blocks collapsed onto `_isUnchanged(newValue, previousValue)`.
+**Strategy.** Don't address as a batch. Each marker should be revisited the
+next time someone genuinely needs to change behaviour in that area —
+debugging, feature work, or tracing an unrelated bug. The canonical lookup is
+`grep -nE "TODO|XXX|kludge" src/core/<file>` since line numbers drift.
 
-**`EssentialValueWriter`** — DONE.
-- Four `requestComponentChanges` recursion sites collapsed onto a new `_recurseInto({ inst, newInstruction, workspace, newStateVariableValues })` helper. Sites that build a transient `inst` literal pass it inline; the `additionalStateVariableValues`-setting site keeps its mutation outside the helper (passing the assembled `inst`).
-- `_resolveValueOfStateVariable(instruction, component)` extracted; both the array-entry-path and scalar-path `valueOfStateVariable` branches now `await` it.
+The current inventory (for awareness, not as a punch list):
 
-**`CompositeReplacementUpdater`** — DONE.
-- All six `component.shadowedBy` + skip-on-`propVariable || doNotExpandAsShadowed` sites replaced by a module-level `function* iterateExpandableShadows(component)`. The two "find the matching shadow by `compositeIdx`" sites collapsed onto `findExpandableShadowByCompositeIdx(component, compositeIdx)`.
-- `_recordDeleteResults({ deleteResults, composite, numberDeleted, parentsOfDeleted, deletedComponents, componentChanges, topLevel, firstIndex })` extracted from `deleteReplacementsFromShadowsThenComposite`. Both branches (top-level and non-top-level) call it; the optional `topLevel`/`firstIndex` params let the helper attach the splice-position fields only when the top-level branch needs them. The non-top-level branch still owns its `Object.assign(addedComponents, …)` tail; the top-level branch still owns its extra renderer-update fan-out for `composite.parentIdx`'s descendants.
-- `calculateAllComponentsShadowing` now uses `iterateExpandableShadows` for its `shadowedBy` walk, replacing the hand-rolled `propVariable`/`doNotExpandAsShadowed` skip predicate. The `replacementOf` tail is unchanged.
+**Phase 2 modules:**
 
-**`UpdateExecutor`** — DONE.
-- `_recordSourceDetails(instruction, sourceInformation)` extracted; both call sites (read-only branch and main loop) now invoke it.
-- Cumulative-merge pattern between the essential-values and newStateVariableValues branches relocated into `EssentialValueWriter._mergeIntoCumulative(stateId, varName, value)`. `UpdateExecutor` now hands off to `essentialValueWriter._mergeIntoCumulative(...)` from both branches; the `removeFunctionsMathExpressionClass` import that was only feeding those two sites is gone.
+- `ProcessQueue.ts` (~lines 97, 106) — "if skip an update, presumably we
+  should call reject???" — skipped queue entries currently never resolve or
+  reject, so callers awaiting them hang. Also a commented-out
+  `getStateVariableValues` queue branch between `update` and `action` —
+  revive or delete.
+- `RendererInstructionBuilder.ts` (~lines 91, 253, 275) — change-detection
+  pass design questions; deleted-and-recreated-with-same-name guard;
+  `rendererType` capture position.
+- `ChildMatcher.ts` (~lines 430, 468) — placeholder-adapter vs new
+  componentIdx approach.
 
-### Phase 4: Type the destructure parameters and complete the strict-mode pass — DONE
+**Phase 3 modules:**
 
-All five Phase 4 modules now report 0 errors under `tsc --noEmit`; package-level total dropped from 366 → 277. Public destructure parameters are typed using `ComponentInstance` (lifted to required `stateId` and `essentialState` since both are always present once `BaseComponent` / `ComponentBuilder` have run) and per-file local aliases for the loose-typed bags (`UpdateInstruction`, `PerformActionArgs`, `PerformUpdateArgs`, `NewStateVariableValues`, `ComponentChange`, `ComponentMap`, `SourceInformation`, `SourceOfUpdate`).
+- `StateVariableInitializer.ts` (~lines 42, 313, 362, 666, 766, 817, 868,
+  923, 1449) — alias-handling, array-entry size, dependency-name punning,
+  array-entry materialization, public-state-variable-name resolution.
+- `StateVariableDefinitionFactory.ts` (~lines 1355, 1451) — array-entry
+  definition setup ("how do we make it do this just once?").
+- `ComponentBuilder.ts` (~lines 170, 238) — post-creation child-result
+  re-derivation.
+- `CompositeExpander.ts` (~line 373) — `createSerializedReplacements` retry
+  loop infinite-loop concern.
 
-Notable fixes folded in:
-- **Real shim bug in `Dependencies.d.ts`** — `checkForCircularDependency` was declared with `stateVariable: string`, but `Dependencies.js:566` accepts `varName`. The shim mismatch had been silently mis-rejecting the only TypeScript caller. Fixed.
-- **Empty `Set` initialisations** typed: `compositesNotReady` (`Set<number>`), `parentsOfDeleted` (`Set<ComponentIdx>`), `arrayVarNamesChanged` (`string[]`).
-- **TS2345 #1 (`UpdateExecutor.ts:39`)** — `PerformUpdateArgs` now declares `diagnostics`, `event`, and `actionId` optional (the recursive setTheme call only passes `updateInstructions`, `actionId`, `doNotSave`). The flag fields each got a JSDoc paragraph distinguishing `canSkipUpdatingRenderer` from `skipRendererUpdate`.
-- **TS2345 #2 (`EssentialValueWriter.ts:131`)** — fixed by typing the empty `Set` literal.
-- **TS2345 #3 (`StateVariableEvaluator.ts:91`)** — `getStateVariableDefinitionArguments` now marks `excludeDependencyValues` as `boolean | undefined` (defaulting to `false`) instead of declaring it required.
-- **TS2345 #4 (`CompositeReplacementUpdater.ts:213`)** — `deleteReplacementsFromShadowsThenComposite` now declares `componentsToDelete` as optional, matching the actual `if (componentsToDelete) { ... }` body.
+**Phase 4 modules:**
 
-Where the strict cascade exposed nullable fields the codepath guarantees populated (e.g. `component.replacements` inside `adjustReplacementsToWithhold`, `component.shadows` inside `shadowedBy` walks, `component.parentIdx` inside `_components` lookups), non-null assertions (`!`) were used at the use site rather than tightening `ComponentInstance` further. The two newly-required fields were tightened deliberately because they are set unconditionally during construction.
+- `EssentialValueWriter.ts` — `executeUpdateStateVariables` post-flush
+  composite-expand re-check; `requestComponentChanges` `additionalStateVariableValues`
+  guarding; the throw branch in the primitive-child path.
+- `StateVariableEvaluator.ts` — the `reprocessAfterEvaluate` "kludge" comment;
+  shallow-array-equality check depth; `noChanges`+unresolved-variable
+  response; multidimensional-array handling.
+- `StalenessPropagator.ts` — decade-old "remove all these error checks to
+  speed up process" marker in `processMarkStale`'s validation block.
+- `CompositeReplacementUpdater.ts` — `updateCompositeReplacements` carries
+  several open questions (evaluate-vs-resolve, infinite-loop, downstream
+  dependency removal, `replacementOf` necessity in
+  `calculateAllComponentsShadowing`).
 
-### Phase 4: JSDoc on public entry points — DONE
+---
 
-JSDoc paragraphs added to every public entry point identified in the original list, plus the surrounding methods on the same classes for symmetry:
+## Notes for next agent
 
-- `UpdateExecutor.performUpdate` — full contract for the `updateInstructions` dispatch loop, the post-loop renderer/persistence side effects, and an inline distinction between the four boolean flags (notably `canSkipUpdatingRenderer` vs `skipRendererUpdate`).
-- `UpdateExecutor.performAction` — special-case branches (`setTheme` re-entry, post-deletion `recordVisibilityChange`) and the main action-dispatch path with optional case-insensitive matching.
-- `EssentialValueWriter.executeUpdateStateVariables` — public bulk-write entry point: write → flush composites → expand → flush again.
-- `EssentialValueWriter.processNewStateVariableValues` — bulk-apply contract, missing-component bookkeeping, and the role of the `newComponent` flag.
-- `EssentialValueWriter.requestComponentChanges` — inverse-definition chain contract: how `instruction` is recursively expanded, where `newStateVariableValues` and `workspace` accumulate, and how the chain terminates.
-- `StateVariableEvaluator.getStateVariableValue` — what gets mutated on `component.state[*]`, the `reprocessAfterEvaluate` kludge, and the relationship to `markStateVariableAndUpstreamDependentsStale`.
-- `StateVariableEvaluator.recordActualChangeInStateVariable` — the three side effects (mark-stale, force-recalculation, record-actual-change) and how they relate to the `additionalStateVariablesDefined` group.
-- `CompositeReplacementUpdater.updateCompositeReplacements` — the four-step pipeline (calculate / delete / create / thread) and the shadow short-circuit.
-- `StalenessPropagator.markStateVariableAndUpstreamDependentsStale` — the entry-point contract for the staleness pass.
-- `StalenessPropagator.lookUpCurrentFreshness` — the read-only freshness probe used to capture "previously effectively fresh" before the new mark-stale pass runs.
-- `StalenessPropagator.processMarkStale` — the `fresh` / `partiallyFresh` freshness verdict shape and the array-level/entry-level bridging via `_remapArrayEntryFreshness`.
-- `StalenessPropagator.markUpstreamDependentsStale` — one-step upstream walk, per-edge bookkeeping, and the `_processStaleVisit` re-entry that terminates at any cached-stale frontier.
-
-### Phase 4: Loose `(repl: any)` callbacks in `CompositeReplacementUpdater` — deferred
-
-Several arrow-callback parameters in `CompositeReplacementUpdater` carry an explicit `(repl: any)` annotation (lines around the `component.replacements!.map(...)` calls and the `(x: unknown) => !x` filter in `EssentialValueWriter`). They survive only because `ComponentInstance.replacements` is loosely typed as `any[]` (with a `!` non-null assertion at each use site). Once `replacements` is tightened to `(ComponentInstance | string)[]` (and `dep.downstreamPrimitives` to a concrete shape), these annotations should drop. Tracking here so the cleanup happens together with the wider `ComponentInstance` typing pass.
-
-### Phase 4: Pre-existing console-error-and-throw blocks — DONE
-
-Both `try { await ... } catch (e) { console.error(e); throw e; }` blocks in `UpdateExecutor.ts` (theme-set branch of `performAction` and main action-dispatch branch) deleted. The errors already propagate; `ProcessQueue` is the eventual catcher.
-
-### Phase 4: Empty `catch (e) {}` in `EssentialValueWriter` — DONE
-
-Annotated with a comment explaining the expected `get_component(ind)` out-of-range throw and that any other error shape is also swallowed (worth narrowing if math-expressions ever exposes a concrete error type).
-
-### Audit class for future extraction phases: `this`-rebinding traps
-
-Phase 3 hit two regressions of the same shape (fixed in `caf3033f5`) that future mechanical extractions will hit again. When lifting code out of `Core.js` into a new manager class, every occurrence of these patterns needs a deliberate look:
-
-1. **`let core = this;` captures.** Inside the original Core method, `this` is Core. Inside the extracted manager method, `this` is the manager — so the line must become `let core = this.core;`. A blind copy silently changes which object `core` refers to.
-2. **`function () {}` callbacks attached to plain objects** (e.g., `stateDef.definition = function (args) { ... this.X(...) ... }`). These are call-site-bound by whatever later invokes them — typically Core or a state-var machinery object — so `this` inside the body refers to *that* call-site object, not the surrounding lexical scope. After extraction, if the body uses `this.X()` expecting Core, it still works (the call site is unchanged). But if the body was rewritten to use `this.core.X()` during extraction (assuming "this is the manager"), it breaks. Leave these bodies alone — let `this` resolve at the call site.
-3. **`.bind(this)` on wrappers passed by reference** (e.g., `core.foo.bind(this)`). After extraction, `this` is the manager; the bind target needs to become `this.core` explicitly.
-
-Quick grep targets when reviewing the next phase: `let core = this`, `\.bind(this)`, and arrow vs. `function` callback choices on objects assigned to `stateDef`/`stateVarObj`.
-
-### Further de-duplication in `StateVariableDefinitionFactory`
-
-The class→module conversion (`core-refactor-18`) preserved three small duplications that are still candidates for follow-up extraction. They pre-date the conversion and were intentionally left alone there to keep the diff scoped to the structural change:
-
-1. **`primaryStateVariableForDefinition` resolution.** The 8-line block that picks `redefineDependencies.substituteForPrimaryStateVariable` → `componentClass.primaryStateVariableForDefinition` → `"value"` and then looks the resulting key up in `stateVariableDefinitions` appears in both `createAdapterStateVariableDefinitions` (~line 333) and `createReferenceShadowStateVariableDefinitions` (~line 515, with an additional `throw` on missing `stateDef`). Extracting `_resolvePrimaryStateVariableForDefinition({ redefineDependencies, componentClass, stateVariableDefinitions, throwIfMissing })` would centralise the precedence rule and the error message.
-2. **Attribute-spec → dependency-shape switch.** The four-way branch on `attributeSpecification` (`createPrimitiveOfType` → `attributePrimitive`, `createReferences` → `attributeRefResolutions`, else → `attributeComponent`, plus the two `fallBack*` branches) is structurally identical between `createAttributeStateVariableDefinitions` (~lines 180–196 inside the `returnDependencies` closure) and `createReferenceShadowStateVariableDefinitions` (~lines 452–483 building `thisDependencies`). A small `_buildAttributeValueDependencies(spec, attrName, stateVariableForAttributeValue)` helper that returns the dependency map would consolidate them; the only behavioural difference is the order in which `fallBack*` and the value-source branch are added, which the helper can preserve by returning a map both call sites spread into their own object.
-3. **Shadow-variable scan.** Inside `createReferenceShadowStateVariableDefinitions`, the same `for (let varName in targetComponent.state) { if (stateObj.shadowVariable || stateObj.isShadow) stateVariablesToShadow.push(varName); }` loop appears twice — at lines ~650–655 (the prop-variable branch) and again at lines ~733–738 (the no-prop-variable branch). Lifting it into a tiny `_collectShadowVariableNames(targetComponent)` would be one line at each call site.
-
-None of these are urgent; each is a 5–15 line collapse and would land cleanly with no behavioural change.
-
-### Tighten remaining `: any` in `StateVariableDefinitionFactory`
-
-`core-refactor-18` (and the small follow-up review pass) tightened the public destructure shapes (`componentIdx: ComponentIdx`, `prescribedDependencies: Record<string, any[]> | undefined`, `stateVariableDefinitions: Record<string, any>`, etc.) but several inner positions remain `any`:
-
-- `componentClass: any`, `redefineDependencies: any`, and `targetComponent`/`adapterTargetComponent: any` — tightening requires real types for the component-class shape (`createAttributesObject`, `returnNormalizedStateVariableDefinitions`, `primaryStateVariableForDefinition`, `implicitPropReturnsSameType`) and a `RedefineDependencies` discriminated union (`{ linkSource: "adapter" | "referenceShadow"; … }`). Both are bigger pieces of typing work than fits in a tightening pass on this file alone.
-- `attributeSpecification: any` in the four `_*Attribute*` helpers — `AttributeDefinition<unknown>` (from `utils/dast/types.ts`) covers most fields, but the runtime additionally reads `noInverse`, `componentStateVariableForAttributeValue`, `fallBackToSourceCompositeStateVariable`, `essentialVarName`, `isLocation`, and (for the inverse path) more. `AttributeDefinition` would need to grow to cover them before the parameter type can be tightened.
-- The internal callbacks attached to `stateDef` (e.g. `function ({ dependencyValues, usedDefault, essentialValues }) { … }`) carry implicit-`any` errors. They run in the StateVariableEvaluator's call-time context; tightening would mean importing/exporting the dep-value/usedDefault/essentialValues bag types from the evaluator. Cheap interim fix: explicit `(args: any)` annotations to silence the ~20 implicit-any errors in this file without changing semantics.
-
-## Notes for the next agent
-
-- The applied items in this PR are self-contained — see the diff against the previous commit. The structural deferrals above don't depend on each other except that #1 (typing) makes #2 (stateless→plain) cleaner since the back-reference type would already exist.
-- AGENTS.md is the source of truth for project conventions; CLAUDE.md is now a one-line pointer.
-- Cypress runs in CI; do not include local Cypress steps in any verification plan.
+- **Cypress runs in CI** — do not include local Cypress steps in any
+  verification plan.
+- **AGENTS.md is the source of truth for project conventions**; CLAUDE.md is a
+  one-line pointer.
+- **Item dependencies.** #2 (`(repl: any)` callbacks) is blocked on the same
+  upstream `ComponentInstance` work that #1 needs. Sequence them together. #5
+  (1-D vs N-D) and #6 (`getAllArrayKeys` defaulting) touch the same file —
+  fold #6 in if #5 is being done. Everything else is independent.
+- **Items intentionally out of this plan.** Wider Core typing (converting
+  `ComponentInstance.state`, `dependencies`, etc. to concrete types) is its
+  own initiative, not refactor follow-up. The TODO inventory in #8 is awareness,
+  not work.
