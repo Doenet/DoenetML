@@ -132,16 +132,14 @@ Commit `aed7910c` fixed a latent bug at `ResolverAdapter.ts:84` (was reading `co
 
 This codepath fires when a copy component (created via `extend`) has a `source:sequence` attribute and a numeric `createComponentIdx`. A targeted Vitest case constructing that specific shape and asserting the resolver receives a `parentSourceSequence` with the correct `parent: <number>` field would lock the fix in. Without it, regressions could re-introduce the silent `undefined`-parent bug.
 
-### De-duplicate attribute-derived state variable construction in `StateVariableDefinitionFactory` — PARTIAL
+### De-duplicate attribute-derived state variable construction in `StateVariableDefinitionFactory` — DONE
 
-DONE: three of the four duplication families collapsed.
+All four duplication families collapsed.
 
 1. **`shadowingInstructions` block.** Three 30-line copies replaced by `_setShadowingInstructionsFromAttribute(stateVarDef, attributeSpecification)`.
-2. **`stateVariableForAttributeValue` resolution.** Two copies (plus the adapter-shadow path that I'd missed) collapsed onto `_resolveAttributeValueVariable(attributeSpecification, attrName, componentClass)`. The helper returns `undefined` for the no-`createComponentOfType` case.
+2. **`stateVariableForAttributeValue` resolution.** Two copies (plus the adapter-shadow path that the original audit had missed) collapsed onto `_resolveAttributeValueVariable(attributeSpecification, attrName, componentClass)`. The helper returns `undefined` for the no-`createComponentOfType` case.
 3. **`attributesToCopy` loop.** Three copies replaced by `_copyPassthroughAttributes(stateVarDef, attributeSpecification, { includeTriggerActionOnChange })`. The flag makes the divergence between `createAttributeStateVariableDefinitions` (forwards `triggerActionOnChange`) and the two other paths explicit.
-
-Still pending:
-4. **`definition` / `inverseDefinition` callback pair.** The ~170-line block duplicated between `createAttributeStateVariableDefinitions` and `createReferenceShadowStateVariableDefinitions` is the largest single piece left. Worth its own focused PR — the closures capture different sets of locals, so a shared closure-builder needs careful parameter design to avoid silently changing behaviour.
+4. **`definition` / `inverseDefinition` callback pair.** Both 170-line callback bodies were byte-identical between `createAttributeStateVariableDefinitions` and `createReferenceShadowStateVariableDefinitions`. The reference-shadow inverse-definition declared two extra parameters (`stateValues`, `workspace`) that were never read inside the body, so the byte-identical content was the same. Both callbacks lifted into `_buildAttributeDerivedDefinitions({ varName, stateVariableForAttributeValue, attributeSpecification, attrName })` returning `{ definition, inverseDefinition }`. Both call sites now invoke the helper and assign the returned closures to their `stateVarDef`. The `noInverse` opt-out remains at the call site.
 
 ### Collapse the two branches of `ComponentBuilder.addComponents` — DONE
 
