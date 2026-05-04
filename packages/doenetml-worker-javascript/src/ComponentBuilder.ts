@@ -92,27 +92,8 @@ export class ComponentBuilder {
             }
             this.core.document = newComponents[0];
 
-            await this.core.expandAllComposites(this.core.document);
-
-            await this.core.expandAllComposites(this.core.document, true);
-
-            if (this.core.updateInfo.stateVariablesToEvaluate) {
-                let stateVariablesToEvaluate =
-                    this.core.updateInfo.stateVariablesToEvaluate;
-                this.core.updateInfo.stateVariablesToEvaluate = [];
-                for (let {
-                    componentIdx,
-                    stateVariable,
-                } of stateVariablesToEvaluate) {
-                    let comp = this.core._components[componentIdx];
-                    if (comp && comp.state[stateVariable]) {
-                        await this.core.getStateVariableValue({
-                            component: comp,
-                            stateVariable,
-                        });
-                    }
-                }
-            }
+            await this._expandAllCompositesBothPasses();
+            await this._drainStateVariablesToEvaluate();
 
             await this.addQueuedErrorComponentsFromStateVariables();
 
@@ -165,18 +146,7 @@ export class ComponentBuilder {
             // if so, make replacement changes and update renderer instructions again
             // TODO: should we check for child results earlier so we don't have to check them
             // when updating renderer instructions?
-            if (this.core.updateInfo.compositesToUpdateReplacements.size > 0) {
-                await this.core.replacementChangesFromCompositesToUpdate();
-
-                let componentNamesToUpdate = [
-                    ...this.core.updateInfo.componentsToUpdateRenderers,
-                ];
-                this.core.updateInfo.componentsToUpdateRenderers.clear();
-
-                await this.core.updateRendererInstructions({
-                    componentNamesToUpdate,
-                });
-            }
+            await this._drainCompositesToUpdateReplacements();
 
             await this.core.processStateVariableTriggers(true);
         } else {
@@ -200,26 +170,8 @@ export class ComponentBuilder {
             Object.assign(addedComponents, addResults.addedComponents);
             Object.assign(deletedComponents, addResults.deletedComponents);
 
-            await this.core.expandAllComposites(this.core.document);
-            await this.core.expandAllComposites(this.core.document, true);
-
-            if (this.core.updateInfo.stateVariablesToEvaluate) {
-                let stateVariablesToEvaluate =
-                    this.core.updateInfo.stateVariablesToEvaluate;
-                this.core.updateInfo.stateVariablesToEvaluate = [];
-                for (let {
-                    componentIdx,
-                    stateVariable,
-                } of stateVariablesToEvaluate) {
-                    let comp = this.core._components[componentIdx];
-                    if (comp && comp.state[stateVariable]) {
-                        await this.core.getStateVariableValue({
-                            component: comp,
-                            stateVariable,
-                        });
-                    }
-                }
-            }
+            await this._expandAllCompositesBothPasses();
+            await this._drainStateVariablesToEvaluate();
             await this.core.replacementChangesFromCompositesToUpdate();
 
             await this.core.updateRendererInstructions({
@@ -232,18 +184,7 @@ export class ComponentBuilder {
             // if so, make replacement changes and update renderer instructions again
             // TODO: should we check for child results earlier so we don't have to check them
             // when updating renderer instructions?
-            if (this.core.updateInfo.compositesToUpdateReplacements.size > 0) {
-                await this.core.replacementChangesFromCompositesToUpdate();
-
-                let componentNamesToUpdate = [
-                    ...this.core.updateInfo.componentsToUpdateRenderers,
-                ];
-                this.core.updateInfo.componentsToUpdateRenderers.clear();
-
-                await this.core.updateRendererInstructions({
-                    componentNamesToUpdate,
-                });
-            }
+            await this._drainCompositesToUpdateReplacements();
 
             await this.core.processStateVariableTriggers(true);
         }
@@ -946,5 +887,64 @@ export class ComponentBuilder {
                 );
             }
         }
+    }
+
+    /**
+     * Two-pass `expandAllComposites` against the document: first the
+     * non-forced pass, then a forced pass to flush anything that was still
+     * pending. Both branches of `addComponents` need this sequence after
+     * mutating the tree.
+     */
+    async _expandAllCompositesBothPasses() {
+        await this.core.expandAllComposites(this.core.document);
+        await this.core.expandAllComposites(this.core.document, true);
+    }
+
+    /**
+     * Drain `updateInfo.stateVariablesToEvaluate`, evaluating each queued
+     * `(componentIdx, stateVariable)` pair via `getStateVariableValue`. The
+     * queue is reset before evaluation so re-entrant pushes accumulate for
+     * the next drain.
+     */
+    async _drainStateVariablesToEvaluate() {
+        if (!this.core.updateInfo.stateVariablesToEvaluate) {
+            return;
+        }
+        const stateVariablesToEvaluate =
+            this.core.updateInfo.stateVariablesToEvaluate;
+        this.core.updateInfo.stateVariablesToEvaluate = [];
+        for (const {
+            componentIdx,
+            stateVariable,
+        } of stateVariablesToEvaluate) {
+            const comp = this.core._components[componentIdx];
+            if (comp && comp.state[stateVariable]) {
+                await this.core.getStateVariableValue({
+                    component: comp,
+                    stateVariable,
+                });
+            }
+        }
+    }
+
+    /**
+     * If composites have queued replacement updates, flush them and
+     * forward the resulting `componentsToUpdateRenderers` to the renderer.
+     * No-op when the queue is empty.
+     */
+    async _drainCompositesToUpdateReplacements() {
+        if (this.core.updateInfo.compositesToUpdateReplacements.size === 0) {
+            return;
+        }
+        await this.core.replacementChangesFromCompositesToUpdate();
+
+        const componentNamesToUpdate = [
+            ...this.core.updateInfo.componentsToUpdateRenderers,
+        ];
+        this.core.updateInfo.componentsToUpdateRenderers.clear();
+
+        await this.core.updateRendererInstructions({
+            componentNamesToUpdate,
+        });
     }
 }

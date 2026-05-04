@@ -322,20 +322,11 @@ export class StalenessPropagator {
             delete stateVarObj.recursiveDependencyValues;
 
             if (previouslyFreshVars.includes(vName)) {
-                // save old value
-                // mark stale by putting getter back in place to get a new value next time it is requested
-                stateVarObj._previousValue = await stateVarObj.value;
-                if (Array.isArray(stateVarObj._previousValue)) {
-                    stateVarObj._previousValue = [
-                        ...stateVarObj._previousValue,
-                    ];
-                }
-                delete stateVarObj.value;
-                let getStateVar = this.core.getStateVariableValue;
-                Object.defineProperty(stateVarObj, "value", {
-                    get: () => getStateVar({ component, stateVariable: vName }),
-                    configurable: true,
-                });
+                await this._replaceWithStaleGetter(
+                    stateVarObj,
+                    component,
+                    vName,
+                );
             }
         }
 
@@ -363,37 +354,10 @@ export class StalenessPropagator {
 
         let freshnessInfo = stateVarObj.freshnessInfo;
 
-        let arrayKeys, arraySize;
-
-        if (stateVarObj.isArrayEntry) {
-            // have to use last calculated value of arrayKeys
-            // because can't evaluate state variable in middle of marking stale
-
-            // arrayKeys = new Proxy(stateVarObj._arrayKeys, readOnlyProxyHandler);
-            arrayKeys = stateVarObj._arrayKeys;
-        }
-
-        if (stateVarObj.isArrayEntry || stateVarObj.isArray) {
-            // have to use old value of arraySize
-            // because can't evaluate state variable in middle of marking stale
-
-            let arraySizeStateVar =
-                component.state[stateVarObj.arraySizeStateVariable];
-            arraySize = arraySizeStateVar._previousValue;
-            let varWasFresh = !(
-                Object.getOwnPropertyDescriptor(arraySizeStateVar, "value")
-                    ?.get || arraySizeStateVar.immutable
-            );
-            if (varWasFresh) {
-                arraySize = await arraySizeStateVar.value;
-            }
-
-            if (Array.isArray(arraySize)) {
-                // arraySize = new Proxy(arraySize, readOnlyProxyHandler);
-            } else {
-                arraySize = [];
-            }
-        }
+        const { arrayKeys, arraySize } = await this._getArrayKeysAndSize(
+            stateVarObj,
+            component,
+        );
 
         let result = stateVarObj.getCurrentFreshness({
             freshnessInfo,
@@ -401,34 +365,7 @@ export class StalenessPropagator {
             arraySize,
         });
 
-        if (result.partiallyFresh) {
-            // if have array entry, then interpret partiallyfresh as indicating
-            // freshness of array entry, not whole array
-            for (let vName in allStateVariablesAffectedObj) {
-                if (allStateVariablesAffectedObj[vName].isArrayEntry) {
-                    let arrayName =
-                        allStateVariablesAffectedObj[vName].arrayStateVariable;
-                    result.partiallyFresh[vName] =
-                        result.partiallyFresh[arrayName];
-                    delete result.partiallyFresh[arrayName];
-                }
-            }
-        }
-
-        if (result.fresh) {
-            // if have array entry, then interpret fresh as indicating
-            // freshness of array entry, not whole array
-            for (let vName in allStateVariablesAffectedObj) {
-                if (allStateVariablesAffectedObj[vName].isArrayEntry) {
-                    let arrayName =
-                        allStateVariablesAffectedObj[vName].arrayStateVariable;
-                    if (arrayName in result.fresh) {
-                        result.fresh[vName] = result.fresh[arrayName];
-                        delete result.fresh[arrayName];
-                    }
-                }
-            }
-        }
+        this._remapArrayEntryFreshness(result, allStateVariablesAffectedObj);
 
         // console.log(`result of lookUpCurrentFreshness of ${varName} of ${component.componentIdx}`)
         // console.log(JSON.parse(JSON.stringify(result)))
@@ -494,37 +431,10 @@ export class StalenessPropagator {
 
         let freshnessInfo = stateVarObj.freshnessInfo;
 
-        let arrayKeys, arraySize;
-
-        if (stateVarObj.isArrayEntry) {
-            // have to use last calculated value of arrayKeys
-            // because can't evaluate state variable in middle of marking stale
-
-            // arrayKeys = new Proxy(stateVarObj._arrayKeys, readOnlyProxyHandler);
-            arrayKeys = stateVarObj._arrayKeys;
-        }
-
-        if (stateVarObj.isArrayEntry || stateVarObj.isArray) {
-            // have to use old value of arraySize
-            // because can't evaluate state variable in middle of marking stale
-
-            let arraySizeStateVar =
-                component.state[stateVarObj.arraySizeStateVariable];
-            arraySize = arraySizeStateVar._previousValue;
-            let varWasFresh = !(
-                Object.getOwnPropertyDescriptor(arraySizeStateVar, "value")
-                    ?.get || arraySizeStateVar.immutable
-            );
-            if (varWasFresh) {
-                arraySize = await arraySizeStateVar.value;
-            }
-
-            if (Array.isArray(arraySize)) {
-                // arraySize = new Proxy(arraySize, readOnlyProxyHandler);
-            } else {
-                arraySize = [];
-            }
-        }
+        const { arrayKeys, arraySize } = await this._getArrayKeysAndSize(
+            stateVarObj,
+            component,
+        );
 
         let result = stateVarObj.markStale({
             freshnessInfo,
@@ -535,34 +445,7 @@ export class StalenessPropagator {
 
         // console.log(`result of mark stale`, deepClone(result))
 
-        if (result.partiallyFresh) {
-            // if have array entry, then interpret partiallyfresh as indicating
-            // freshness of array entry, not whole array
-            for (let vName in allStateVariablesAffectedObj) {
-                if (allStateVariablesAffectedObj[vName].isArrayEntry) {
-                    let arrayName =
-                        allStateVariablesAffectedObj[vName].arrayStateVariable;
-                    result.partiallyFresh[vName] =
-                        result.partiallyFresh[arrayName];
-                    delete result.partiallyFresh[arrayName];
-                }
-            }
-        }
-
-        if (result.fresh) {
-            // if have array entry, then interpret fresh as indicating
-            // freshness of array entry, not whole array
-            for (let vName in allStateVariablesAffectedObj) {
-                if (allStateVariablesAffectedObj[vName].isArrayEntry) {
-                    let arrayName =
-                        allStateVariablesAffectedObj[vName].arrayStateVariable;
-                    if (arrayName in result.fresh) {
-                        result.fresh[vName] = result.fresh[arrayName];
-                        delete result.fresh[arrayName];
-                    }
-                }
-            }
-        }
+        this._remapArrayEntryFreshness(result, allStateVariablesAffectedObj);
 
         // console.log(`result of process mark stale of ${varName} of ${component.componentIdx}`)
         // console.log(JSON.parse(JSON.stringify(result)))
@@ -579,7 +462,6 @@ export class StalenessPropagator {
         // and recurse only if markStale indicates variable is actually stale
 
         let componentIdx = component.componentIdx;
-        let getStateVar = this.core.getStateVariableValue;
 
         // console.log(`marking upstream of ${varName} of ${componentIdx} as stale`);
 
@@ -881,24 +763,11 @@ export class StalenessPropagator {
                         delete stateVarObj.recursiveDependencyValues;
 
                         if (previouslyFreshVars.includes(vName)) {
-                            // save old value
-                            // mark stale by putting getter back in place to get a new value next time it is requested
-                            stateVarObj._previousValue =
-                                await stateVarObj.value;
-                            if (Array.isArray(stateVarObj._previousValue)) {
-                                stateVarObj._previousValue = [
-                                    ...stateVarObj._previousValue,
-                                ];
-                            }
-                            delete stateVarObj.value;
-                            Object.defineProperty(stateVarObj, "value", {
-                                get: () =>
-                                    getStateVar({
-                                        component: upDepComponent,
-                                        stateVariable: vName,
-                                    }),
-                                configurable: true,
-                            });
+                            await this._replaceWithStaleGetter(
+                                stateVarObj,
+                                upDepComponent,
+                                vName,
+                            );
                         }
                     }
 
@@ -927,4 +796,109 @@ export class StalenessPropagator {
     //     }
     //   }
     // }
+
+    /**
+     * Pull the read-only `arrayKeys` and `arraySize` snapshot needed by
+     * `getCurrentFreshness` / `markStale`. We can't evaluate state variables
+     * mid-mark-stale, so we read the last calculated `_arrayKeys` and the
+     * `arraySize` state variable's `_previousValue` (or its current value if
+     * that variable was itself fresh).
+     */
+    async _getArrayKeysAndSize(
+        stateVarObj: any,
+        component: any,
+    ): Promise<{
+        arrayKeys: any[] | undefined;
+        arraySize: any[] | undefined;
+    }> {
+        let arrayKeys: any[] | undefined;
+        let arraySize: any[] | undefined;
+
+        if (stateVarObj.isArrayEntry) {
+            arrayKeys = stateVarObj._arrayKeys;
+        }
+
+        if (stateVarObj.isArrayEntry || stateVarObj.isArray) {
+            const arraySizeStateVar =
+                component.state[stateVarObj.arraySizeStateVariable];
+            arraySize = arraySizeStateVar._previousValue;
+            const varWasFresh = !(
+                Object.getOwnPropertyDescriptor(arraySizeStateVar, "value")
+                    ?.get || arraySizeStateVar.immutable
+            );
+            if (varWasFresh) {
+                arraySize = await arraySizeStateVar.value;
+            }
+
+            if (!Array.isArray(arraySize)) {
+                arraySize = [];
+            }
+        }
+
+        return { arrayKeys, arraySize };
+    }
+
+    /**
+     * Rewrite the `fresh` / `partiallyFresh` keys returned by
+     * `getCurrentFreshness` or `markStale` so that an array-state-variable
+     * reading is reinterpreted as the freshness of a specific
+     * `arrayEntry` listed in `allStateVariablesAffectedObj`. The array's own
+     * key is removed once its value has been moved onto the entry.
+     */
+    _remapArrayEntryFreshness(
+        result: any,
+        allStateVariablesAffectedObj: Record<string, any>,
+    ) {
+        if (result.partiallyFresh) {
+            for (const vName in allStateVariablesAffectedObj) {
+                if (allStateVariablesAffectedObj[vName].isArrayEntry) {
+                    const arrayName =
+                        allStateVariablesAffectedObj[vName].arrayStateVariable;
+                    result.partiallyFresh[vName] =
+                        result.partiallyFresh[arrayName];
+                    delete result.partiallyFresh[arrayName];
+                }
+            }
+        }
+
+        if (result.fresh) {
+            for (const vName in allStateVariablesAffectedObj) {
+                if (allStateVariablesAffectedObj[vName].isArrayEntry) {
+                    const arrayName =
+                        allStateVariablesAffectedObj[vName].arrayStateVariable;
+                    if (arrayName in result.fresh) {
+                        result.fresh[vName] = result.fresh[arrayName];
+                        delete result.fresh[arrayName];
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Stash `stateVarObj`'s current value into `_previousValue` (cloning if
+     * it's an array) and reinstall the lazy `value` getter that pulls
+     * through `core.getStateVariableValue`. Together these mark the variable
+     * as stale: the next `await stateVarObj.value` will recompute, while
+     * `_previousValue` is preserved for change-detection.
+     */
+    async _replaceWithStaleGetter(
+        stateVarObj: any,
+        component: any,
+        vName: string,
+    ) {
+        // save old value
+        stateVarObj._previousValue = await stateVarObj.value;
+        if (Array.isArray(stateVarObj._previousValue)) {
+            stateVarObj._previousValue = [...stateVarObj._previousValue];
+        }
+        // mark stale by putting the getter back in place to compute a new
+        // value next time it is requested
+        delete stateVarObj.value;
+        const getStateVar = this.core.getStateVariableValue;
+        Object.defineProperty(stateVarObj, "value", {
+            get: () => getStateVar({ component, stateVariable: vName }),
+            configurable: true,
+        });
+    }
 }

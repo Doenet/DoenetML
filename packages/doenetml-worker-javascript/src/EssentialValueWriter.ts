@@ -1,6 +1,9 @@
 import type Core from "./Core";
 import me from "math-expressions";
-import { preprocessMathInverseDefinition } from "./utils/math";
+import {
+    preprocessMathInverseDefinition,
+    removeFunctionsMathExpressionClass,
+} from "./utils/math";
 
 /**
  * Applies authored / interactive state-variable changes to the live
@@ -448,20 +451,11 @@ export class EssentialValueWriter {
                     desiredValuesForArray[inverseDefinitionArgs.arrayKeys[0]] =
                         instruction.value;
                 } else if ("valueOfStateVariable" in instruction) {
-                    let otherStateVariable = this.core.substituteAliases({
-                        stateVariables: [instruction.valueOfStateVariable],
-                        componentClass: component.constructor,
-                    })[0];
-                    let sObj = component.state[otherStateVariable];
-                    if (sObj) {
-                        desiredValuesForArray[
-                            inverseDefinitionArgs.arrayKeys[0]
-                        ] = await sObj.value;
-                    } else {
-                        throw Error(
-                            `Invalid instruction to change ${instruction.stateVariable} of ${instruction.componentIdx}, value of state variable ${instruction.valueOfStateVariable} not found.`,
+                    desiredValuesForArray[inverseDefinitionArgs.arrayKeys[0]] =
+                        await this._resolveValueOfStateVariable(
+                            instruction,
+                            component,
                         );
-                    }
                 }
             } else {
                 for (let [
@@ -495,20 +489,12 @@ export class EssentialValueWriter {
                     [stateVariable]: instruction.value,
                 };
             } else if ("valueOfStateVariable" in instruction) {
-                let otherStateVariable = this.core.substituteAliases({
-                    stateVariables: [instruction.valueOfStateVariable],
-                    componentClass: component.constructor,
-                })[0];
-                let sObj = component.state[otherStateVariable];
-                if (sObj) {
-                    inverseDefinitionArgs.desiredStateVariableValues = {
-                        [stateVariable]: await sObj.value,
-                    };
-                } else {
-                    throw Error(
-                        `Invalid instruction to change ${instruction.stateVariable} of ${instruction.componentIdx}, value of state variable ${instruction.valueOfStateVariable} not found.`,
-                    );
-                }
+                inverseDefinitionArgs.desiredStateVariableValues = {
+                    [stateVariable]: await this._resolveValueOfStateVariable(
+                        instruction,
+                        component,
+                    ),
+                };
             }
         }
 
@@ -1102,17 +1088,15 @@ export class EssentialValueWriter {
                                 `Invalid inverse definition of ${stateVariable} of ${component.componentIdx}: ${dependencyName} variable of index ${newInstruction.variableIndex} does not exist.`,
                             );
                         }
-                        let inst = {
-                            componentIdx: cIdx,
-                            stateVariable: varName,
-                            value: newInstruction.desiredValue,
-                            overrideFixed: instruction.overrideFixed,
-                            arrayKey: newInstruction.arrayKey,
-                        };
-                        await this.requestComponentChanges({
-                            instruction: inst,
-                            initialChange:
-                                newInstruction.treatAsInitialChange === true,
+                        await this._recurseInto({
+                            inst: {
+                                componentIdx: cIdx,
+                                stateVariable: varName,
+                                value: newInstruction.desiredValue,
+                                overrideFixed: instruction.overrideFixed,
+                                arrayKey: newInstruction.arrayKey,
+                            },
+                            newInstruction,
                             workspace,
                             newStateVariableValues,
                         });
@@ -1135,17 +1119,15 @@ export class EssentialValueWriter {
                             `Invalid inverse definition of ${stateVariable} of ${component.componentIdx}: ${dependencyName} variable of index ${newInstruction.variableIndex} does not exist.`,
                         );
                     }
-                    let inst = {
-                        componentIdx: cIdx,
-                        stateVariable: varName,
-                        value: newInstruction.desiredValue,
-                        overrideFixed: instruction.overrideFixed,
-                        arrayKey: newInstruction.arrayKey,
-                    };
-                    await this.requestComponentChanges({
-                        instruction: inst,
-                        initialChange:
-                            newInstruction.treatAsInitialChange === true,
+                    await this._recurseInto({
+                        inst: {
+                            componentIdx: cIdx,
+                            stateVariable: varName,
+                            value: newInstruction.desiredValue,
+                            overrideFixed: instruction.overrideFixed,
+                            arrayKey: newInstruction.arrayKey,
+                        },
+                        newInstruction,
                         workspace,
                         newStateVariableValues,
                     });
@@ -1236,10 +1218,9 @@ export class EssentialValueWriter {
                                 ];
                         }
                     }
-                    await this.requestComponentChanges({
-                        instruction: inst,
-                        initialChange:
-                            newInstruction.treatAsInitialChange === true,
+                    await this._recurseInto({
+                        inst,
+                        newInstruction,
                         workspace,
                         newStateVariableValues,
                     });
@@ -1249,17 +1230,15 @@ export class EssentialValueWriter {
                     );
                 }
             } else if (newInstruction.combinedArray) {
-                let inst = {
-                    componentIdx: newInstruction.componentIdx,
-                    stateVariable: newInstruction.stateVariable,
-                    value: newInstruction.desiredValue,
-                    overrideFixed: instruction.overrideFixed,
-                    shadowedVariable: newInstruction.shadowedVariable,
-                };
-
-                await this.requestComponentChanges({
-                    instruction: inst,
-                    initialChange: newInstruction.treatAsInitialChange === true,
+                await this._recurseInto({
+                    inst: {
+                        componentIdx: newInstruction.componentIdx,
+                        stateVariable: newInstruction.stateVariable,
+                        value: newInstruction.desiredValue,
+                        overrideFixed: instruction.overrideFixed,
+                        shadowedVariable: newInstruction.shadowedVariable,
+                    },
+                    newInstruction,
                     workspace,
                     newStateVariableValues,
                 });
@@ -1355,5 +1334,82 @@ export class EssentialValueWriter {
                 }
             }
         }
+    }
+
+    /**
+     * Merge `value` for a state variable into the `cumulativeStateVariableChanges`
+     * bag at `[stateId][varName]`. If the existing entry is an object with
+     * `mergeObject = true`, attributes are `Object.assign`ed in (rather than
+     * replacing the whole entry). Function values inside `value` are stripped
+     * via `removeFunctionsMathExpressionClass` before write.
+     *
+     * Lazily creates `cumulativeStateVariableChanges[stateId]` if absent.
+     */
+    mergeIntoCumulative(stateId: string, varName: string, value: any): void {
+        const cumulative = this.core.cumulativeStateVariableChanges;
+        if (!cumulative[stateId]) {
+            cumulative[stateId] = {};
+        }
+        const cumValues = cumulative[stateId][varName];
+        const incoming = removeFunctionsMathExpressionClass(value);
+
+        if (
+            typeof cumValues === "object" &&
+            cumValues !== null &&
+            cumValues.mergeObject
+        ) {
+            Object.assign(cumValues, incoming);
+        } else {
+            cumulative[stateId][varName] = incoming;
+        }
+    }
+
+    /**
+     * Resolve `instruction.valueOfStateVariable` to its current value on
+     * `component`: substitute aliases, look up the resolved state-variable
+     * object, and `await` its `.value` getter. Throws a uniform
+     * "value of state variable not found" error if the alias resolves to
+     * a name that doesn't exist on the component's state.
+     */
+    async _resolveValueOfStateVariable(
+        instruction: any,
+        component: any,
+    ): Promise<any> {
+        const otherStateVariable = this.core.substituteAliases({
+            stateVariables: [instruction.valueOfStateVariable],
+            componentClass: component.constructor,
+        })[0];
+        const sObj = component.state[otherStateVariable];
+        if (!sObj) {
+            throw Error(
+                `Invalid instruction to change ${instruction.stateVariable} of ${instruction.componentIdx}, value of state variable ${instruction.valueOfStateVariable} not found.`,
+            );
+        }
+        return await sObj.value;
+    }
+
+    /**
+     * Forward an inverse-definition recursion: invoke
+     * `requestComponentChanges` with the prepared `inst` instruction,
+     * propagating `treatAsInitialChange` from `newInstruction` and threading
+     * the same `workspace` / `newStateVariableValues` bags through.
+     */
+    async _recurseInto({
+        inst,
+        newInstruction,
+        workspace,
+        newStateVariableValues,
+    }: {
+        inst: any;
+        newInstruction: any;
+        workspace: any;
+        newStateVariableValues: any;
+    }) {
+        await this.requestComponentChanges({
+            instruction: inst,
+            initialChange: newInstruction.treatAsInitialChange === true,
+            workspace,
+            newStateVariableValues,
+        });
     }
 }
