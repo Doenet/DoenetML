@@ -420,14 +420,6 @@ export class StalenessPropagator {
                                 upDepComponent.state[x]),
                     );
 
-                    // NOTE: previously the inline action-chaining bag was
-                    // keyed by `upDep.componentIdx` (undefined — dep objects
-                    // only carry `upstreamComponentIdx`), so every chain
-                    // entry from this branch had been routed to a single
-                    // `"undefined"` bucket. The helper keys by
-                    // `component.componentIdx`, which is `upDepComponent`'s
-                    // here, so chain entries now land on the correct
-                    // upstream component. See CORE_REFACTOR_DEFERRED.md.
                     await this._processStaleVisit({
                         component: upDepComponent,
                         varName: upVarName,
@@ -588,8 +580,10 @@ export class StalenessPropagator {
         const previouslyFreshVars: string[] = [];
         const previouslyEffectivelyFresh: string[] = [];
         let sumPreviouslyPartiallyFresh = 0;
+        const varsChanged: Record<string, boolean> = {};
 
         for (const vName in allStateVariablesAffectedObj) {
+            varsChanged[vName] = true;
             const stateVarObj = allStateVariablesAffectedObj[vName];
             // if don't have a getter set, this indicates that, before this markStale function,
             // a state variable was fresh.
@@ -621,11 +615,6 @@ export class StalenessPropagator {
         const aVarWasFreshOrPartiallyFresh =
             previouslyEffectivelyFresh.length > 0 ||
             sumPreviouslyPartiallyFresh > 0;
-
-        const varsChanged: Record<string, boolean> = {};
-        for (const vName in allStateVariablesAffectedObj) {
-            varsChanged[vName] = true;
-        }
 
         let freshnessDecreased = false;
 
