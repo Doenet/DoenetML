@@ -1,6 +1,6 @@
 import type { ComponentIdx } from "@doenet/utils";
-import type Core from "./Core";
-import { preprocessAttributesObject } from "./utils/attributes";
+import type Core from "../Core";
+import { preprocessAttributesObject } from "../utils/attributes";
 
 /**
  * Map from `attributeSpecification.createPrimitiveOfType` codes to the

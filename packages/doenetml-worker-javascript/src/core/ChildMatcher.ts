@@ -1,4 +1,4 @@
-import type Core from "./Core";
+import type Core from "../Core";
 import { assignDoenetMLRange } from "@doenet/utils";
 import { createIsolatedComponents } from "./ComponentBuilder";
 import {

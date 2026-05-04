@@ -1,5 +1,5 @@
-import type Core from "./Core";
-import type { ComponentInstance } from "./types/componentInstance";
+import type Core from "../Core";
+import type { ComponentInstance } from "../types/componentInstance";
 import { returnActiveChildrenIndicesToRender } from "./ChildMatcher";
 import { initializeStateVariable } from "./StateVariableInitializer";
 /**

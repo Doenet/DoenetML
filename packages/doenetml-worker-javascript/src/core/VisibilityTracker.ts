@@ -1,6 +1,6 @@
-import type Core from "./Core";
+import type Core from "../Core";
 import type { TimerHandle } from "@doenet/utils";
-import { reportTimerError, TimerLabels } from "./utils/timerErrors";
+import { reportTimerError, TimerLabels } from "../utils/timerErrors";
 
 type VisibilityInfo = {
     componentsCurrentlyVisible: Record<string, Date>;

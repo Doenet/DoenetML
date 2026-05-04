@@ -4,8 +4,8 @@ import {
     type TimerHandle,
 } from "@doenet/utils";
 import { set as idb_set } from "idb-keyval";
-import { reportTimerError, TimerLabels } from "./utils/timerErrors";
-import type Core from "./Core";
+import { reportTimerError, TimerLabels } from "../utils/timerErrors";
+import type Core from "../Core";
 
 /**
  * Owns the save-to-localStorage and save-to-database pipeline for a Core

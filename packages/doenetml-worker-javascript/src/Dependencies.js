@@ -1,9 +1,9 @@
-import { deriveChildResultsFromDefiningChildren } from "./ChildMatcher";
+import { deriveChildResultsFromDefiningChildren } from "./core/ChildMatcher";
 import {
     expandCompositeComponent,
     recursivelyReplaceCompositesWithReplacements,
-} from "./CompositeExpander";
-import { arrayEntryNamesFromPropIndex } from "./StateVariableInitializer";
+} from "./core/CompositeExpander";
+import { arrayEntryNamesFromPropIndex } from "./core/StateVariableInitializer";
 import {
     ancestorsIncludingComposites,
     gatherDescendants,

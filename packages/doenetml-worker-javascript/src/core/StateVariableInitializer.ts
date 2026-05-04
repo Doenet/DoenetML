@@ -1,10 +1,10 @@
-import type Core from "./Core";
+import type Core from "../Core";
 import { deepClone, flattenDeep } from "@doenet/utils";
-import type { ComponentInstance } from "./types/componentInstance";
+import type { ComponentInstance } from "../types/componentInstance";
 import {
     returnDefaultArrayVarNameFromPropIndex,
     returnDefaultGetArrayKeysFromVarName,
-} from "./utils/stateVariables";
+} from "../utils/stateVariables";
 
 /**
  * Initializes state variables on a freshly-created component: walks the

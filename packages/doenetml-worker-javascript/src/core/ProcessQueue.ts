@@ -1,4 +1,4 @@
-import type Core from "./Core";
+import type Core from "../Core";
 type QueueEntry =
     | {
           type: "update";

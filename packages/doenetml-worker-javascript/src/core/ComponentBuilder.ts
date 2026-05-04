@@ -1,4 +1,4 @@
-import type Core from "./Core";
+import type Core from "../Core";
 import type { ComponentIdx } from "@doenet/utils";
 import { deriveChildResultsFromDefiningChildren } from "./ChildMatcher";
 import {
@@ -12,10 +12,10 @@ import {
 import { addComponentsToResolver } from "./ResolverAdapter";
 import { createStateVariableDefinitions } from "./StateVariableDefinitionFactory";
 import { initializeComponentStateVariables } from "./StateVariableInitializer";
-import { convertToErrorComponent } from "./utils/dast/errors";
-import { gatherVariantComponents } from "./utils/variants";
-import { unwrapSource } from "./utils/dast/convertNormalizedDast";
-import { extractCreateComponentIdxMapping } from "./utils/componentIndices";
+import { convertToErrorComponent } from "../utils/dast/errors";
+import { gatherVariantComponents } from "../utils/variants";
+import { unwrapSource } from "../utils/dast/convertNormalizedDast";
+import { extractCreateComponentIdxMapping } from "../utils/componentIndices";
 
 /**
  * Builds component instances from serialized DAST. Handles the recursive

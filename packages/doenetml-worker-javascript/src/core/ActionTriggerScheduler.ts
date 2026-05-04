@@ -1,4 +1,4 @@
-import type Core from "./Core";
+import type Core from "../Core";
 /**
  * Tracks state-variable-driven action triggers and the chained-action
  * graph. Each cycle, `processStateVariableTriggers` polls registered

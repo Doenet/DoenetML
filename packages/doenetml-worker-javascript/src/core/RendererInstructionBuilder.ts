@@ -1,9 +1,9 @@
-import type Core from "./Core";
+import type Core from "../Core";
 import {
     deriveChildResultsFromDefiningChildren,
     returnActiveChildrenIndicesToRender,
 } from "./ChildMatcher";
-import { removeFunctionsMathExpressionClass } from "./utils/math";
+import { removeFunctionsMathExpressionClass } from "../utils/math";
 
 /**
  * Builds the dast/instruction stream sent to the renderer. Owns the
