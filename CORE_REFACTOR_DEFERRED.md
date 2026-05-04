@@ -181,9 +181,13 @@ if (!numDimensionsInArrayKey > stateVarObj.numDimensions) {
 
 `!numDimensionsInArrayKey` is `false` for any positive integer, and `false > number` is always `false`, so the diagnostic is unreachable. Almost certainly intended `numDimensionsInArrayKey > stateVarObj.numDimensions`. Pre-dates the refactor (present in `Core.js` since the 2021 rename); flag for a separate fix once the intended check has been confirmed against test expectations.
 
-### Re-home `recursivelyReplaceCompositesWithReplacements`
+### Re-home `recursivelyReplaceCompositesWithReplacements` — DONE
 
-Currently at `StateVariableInitializer.ts:1609` and exposed via the wrapper `Core.js:recursivelyReplaceCompositesWithReplacements`. Conceptually it walks composites and substitutes their replacements — nothing to do with state-variable initialization. Better home: `CompositeExpander` (or a new `CompositeReplacementWalker` if `CompositeExpander` shouldn't grow further). While moving it, drop the unread `forceExpandComposites` parameter — declared at line 1612, never read in the body, only forwarded recursively (line 1673). Pre-existing dead parameter, lifted from `Core.js`.
+Moved from `StateVariableInitializer` to `CompositeExpander`. Dropped the unread
+`forceExpandComposites` parameter. Removed the `Core.recursivelyReplaceCompositesWithReplacements`
+wrapper; `Dependencies.js` now calls `core.compositeExpander.recursivelyReplaceCompositesWithReplacements(...)`
+directly. Annotated the destructure parameter and return shape, eliminating the
+implicit-any warnings that came with the original method.
 
 ### Minor cleanups in `ComponentBuilder`
 
@@ -191,9 +195,12 @@ Currently at `StateVariableInitializer.ts:1609` and exposed via the wrapper `Cor
 - **`if (!this.core.nTimesAddedComponents) { ... = 1 } else { ...++ }` (lines 67-71)** is a verbose increment-or-init. `this.core.nTimesAddedComponents = (this.core.nTimesAddedComponents ?? 0) + 1;` is one line.
 - **Bare `catch (e) { console.error(e); throw e; }` (around line 534)** in the `attribute.references` branch of `createChildrenThenComponent`. The catch adds nothing the caller can't see; consider dropping it. The sibling catch at line 503 has real logic (rewrites circular-dependency messages) and should stay.
 
-### Move `findShadowedChildInSerializedComponents` to `utils/`
+### Move `findShadowedChildInSerializedComponents` to `utils/` — RESOLVED (deleted instead)
 
-`ComponentBuilder.findShadowedChildInSerializedComponents` (around lines 850-869 of the current file) reads/writes nothing on `this.core` and is a pure recursion over a serialized component tree. A natural fit for `utils/` next to the other serialized-tree walkers. This overlaps with the broader "stateless managers → plain functions" deferred item but is a particularly clean lift.
+On inspection, `ComponentBuilder.findShadowedChildInSerializedComponents` had
+no callers anywhere in the workspace — only its own self-recursion. It has been
+dead code since at least the April 2025 worker-package rename (the historical
+`originalName` version had the same shape). Deleted rather than relocated.
 
 ### Phase 4: Heavy duplication across the new managers
 
