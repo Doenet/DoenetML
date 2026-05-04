@@ -18,7 +18,7 @@ import type { ComponentInstance } from "./types/componentInstance";
 import { DependencyHandler } from "./Dependencies";
 import { ActionTriggerScheduler } from "./ActionTriggerScheduler";
 import { AutoSubmitManager } from "./AutoSubmitManager";
-import { ComponentBuilder } from "./ComponentBuilder";
+import { addComponents } from "./ComponentBuilder";
 import { CompositeReplacementUpdater } from "./CompositeReplacementUpdater";
 import { DiagnosticsManager } from "./DiagnosticsManager";
 import { EssentialValueWriter } from "./EssentialValueWriter";
@@ -107,14 +107,14 @@ export interface CoreInfo {
  * own modules. Some are class instances held on Core (DiagnosticsManager,
  * VisibilityTracker, StatePersistence, AutoSubmitManager,
  * RendererInstructionBuilder, ProcessQueue, ActionTriggerScheduler,
- * StateVariableDefinitionFactory, StateVariableInitializer, ComponentBuilder,
+ * StateVariableDefinitionFactory, StateVariableInitializer,
  * StateVariableEvaluator, StalenessPropagator, EssentialValueWriter,
  * CompositeReplacementUpdater, UpdateExecutor, and the `nameResolver`
  * namespace); others (NavigationHandler, ResolverAdapter, ComponentLifecycle,
- * ChildMatcher, DeletionEngine, CompositeExpander) are plain module-level
- * functions imported directly by callers. Each delegating block still held on
- * Core is grouped near its original location and tagged with a
- * `// → managerName` marker; see the corresponding module for details.
+ * ChildMatcher, DeletionEngine, CompositeExpander, ComponentBuilder) are
+ * plain module-level functions imported directly by callers. Each delegating
+ * block still held on Core is grouped near its original location and tagged
+ * with a `// → managerName` marker; see the corresponding module for details.
  */
 export default class Core {
     // ─── Identity / configuration ─────────────────────────────────────────
@@ -202,7 +202,6 @@ export default class Core {
     stateVariableEvaluator: StateVariableEvaluator;
     stalenessPropagator: StalenessPropagator;
     essentialValueWriter: EssentialValueWriter;
-    componentBuilder: ComponentBuilder;
     compositeReplacementUpdater: CompositeReplacementUpdater;
     updateExecutor: UpdateExecutor;
     statePersistence: StatePersistence;
@@ -372,7 +371,6 @@ export default class Core {
         });
         this.stalenessPropagator = new StalenessPropagator({ core: this });
         this.essentialValueWriter = new EssentialValueWriter({ core: this });
-        this.componentBuilder = new ComponentBuilder({ core: this });
         this.compositeReplacementUpdater = new CompositeReplacementUpdater({
             core: this,
         });
@@ -517,7 +515,8 @@ export default class Core {
         serializedComponents[0].variants.desiredVariant =
             this.parameterStack.parameters.variant;
 
-        await this.addComponents({
+        await addComponents({
+            core: this,
             serializedComponents,
             initialAdd: true,
         });
@@ -661,31 +660,6 @@ export default class Core {
         sourceDoc: number | undefined;
     } {
         return getSourceLocationForComponent(component, this._components);
-    }
-
-    // → componentBuilder
-    async addComponents(args: any): Promise<any> {
-        return this.componentBuilder.addComponents(args);
-    }
-
-    async createIsolatedComponents(args: any): Promise<any> {
-        return this.componentBuilder.createIsolatedComponents(args);
-    }
-
-    async createChildrenThenComponent(args: any): Promise<any> {
-        return this.componentBuilder.createChildrenThenComponent(args);
-    }
-
-    async checkForStateVariablesUpdatesForNewComponent(
-        componentIdx: ComponentIdx,
-    ): Promise<any> {
-        return this.componentBuilder.checkForStateVariablesUpdatesForNewComponent(
-            componentIdx,
-        );
-    }
-
-    async addQueuedErrorComponentsFromStateVariables(): Promise<any> {
-        return this.componentBuilder.addQueuedErrorComponentsFromStateVariables();
     }
 
     async updateRendererInstructions(args: any): Promise<any> {

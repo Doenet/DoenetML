@@ -1,5 +1,6 @@
 import type Core from "./Core";
 import { assignDoenetMLRange } from "@doenet/utils";
+import { createIsolatedComponents } from "./ComponentBuilder";
 import {
     expandCompositeOfDefiningChildren,
     replaceCompositeChildren,
@@ -506,7 +507,8 @@ export async function substituteAdapter({
                 originalChild.position,
                 originalChild.sourceDoc,
             );
-            let newChildrenResult = await core.createIsolatedComponents({
+            let newChildrenResult = await createIsolatedComponents({
+                core,
                 serializedComponents: [newSerializedChild],
                 shadow: true,
                 ancestors: originalChild.ancestors,

@@ -1,6 +1,7 @@
 import type Core from "./Core";
 import type { ComponentInstance } from "./types/componentInstance";
 import type { ComponentIdx } from "@doenet/utils";
+import { createIsolatedComponents } from "./ComponentBuilder";
 import {
     processNewDefiningChildren,
     spliceChildren,
@@ -335,12 +336,12 @@ export class CompositeReplacementUpdater {
                 }
 
                 try {
-                    const createResult =
-                        await this.core.createIsolatedComponents({
-                            serializedComponents: serializedReplacements,
-                            ancestors: component.ancestors,
-                            componentsReplacementOf: component,
-                        });
+                    const createResult = await createIsolatedComponents({
+                        core: this.core,
+                        serializedComponents: serializedReplacements,
+                        ancestors: component.ancestors,
+                        componentsReplacementOf: component,
+                    });
 
                     newComponents = createResult.components;
                 } catch (e: any) {
@@ -621,7 +622,8 @@ export class CompositeReplacementUpdater {
 
         composite.isInErrorState = true;
 
-        let createResult = await this.core.createIsolatedComponents({
+        let createResult = await createIsolatedComponents({
+            core: this.core,
             serializedComponents: errorReplacements,
             ancestors: composite.ancestors,
             componentsReplacementOf: composite,
@@ -1000,13 +1002,12 @@ export class CompositeReplacementUpdater {
                 );
 
                 try {
-                    let createResult = await this.core.createIsolatedComponents(
-                        {
-                            serializedComponents: newSerializedReplacements,
-                            ancestors: shadowingComponent.ancestors,
-                            componentsReplacementOf: shadowingComponent,
-                        },
-                    );
+                    let createResult = await createIsolatedComponents({
+                        core: this.core,
+                        serializedComponents: newSerializedReplacements,
+                        ancestors: shadowingComponent.ancestors,
+                        componentsReplacementOf: shadowingComponent,
+                    });
                     newComponents = createResult.components;
                 } catch (e: any) {
                     console.error(e);
