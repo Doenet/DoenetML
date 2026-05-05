@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 
 /**
  * Bundle of refs every JSXgraph-renderable graphical component needs to track
@@ -21,10 +21,21 @@ export interface PointerDragState {
 }
 
 export function usePointerDragState(): PointerDragState {
-    return {
-        pointerAtDown: useRef<[number, number] | null>(null),
-        pointerIsDown: useRef(false),
-        pointerMovedSinceDown: useRef(false),
-        dragged: useRef(false),
-    };
+    const pointerAtDown = useRef<[number, number] | null>(null);
+    const pointerIsDown = useRef(false);
+    const pointerMovedSinceDown = useRef(false);
+    const dragged = useRef(false);
+    // Memoize the wrapper object so consumers that list `dragState` in
+    // useEffect deps (e.g. useBoardPointerTracking) don't re-run on every
+    // render. The refs themselves are stable; this just stabilizes the
+    // wrapper identity around them.
+    return useMemo(
+        () => ({
+            pointerAtDown,
+            pointerIsDown,
+            pointerMovedSinceDown,
+            dragged,
+        }),
+        [],
+    );
 }
