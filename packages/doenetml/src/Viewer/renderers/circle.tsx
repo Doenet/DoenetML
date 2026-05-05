@@ -150,7 +150,6 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             jsxCircleAttributes.fillColor = "none";
             jsxCircleAttributes.highlightFillColor = "none";
         }
-        const fillColor = jsxCircleAttributes.fillColor;
 
         if (SVs.filled) {
             jsxCircleAttributes.hasInnerPoints = true;
