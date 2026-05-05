@@ -1,37 +1,50 @@
-// @ts-nocheck
-import React, { useContext, useEffect, useState, useRef } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import React, { useContext, useRef } from "react";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET } from "./graph";
 import { DocContext } from "../DocViewer";
-import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
 import {
     applyLineFamilyLabelPlacement,
     buildLineFamilyLabelAttributes,
     stabilizeInitialLineFamilyLabelPlacement,
 } from "./utils/jsxgraph";
+import { JXGLine } from "./jsxgraph-distrib/types";
+import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
+import { usePointerDragState } from "./utils/pointerDragState";
+import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
+import { exceededDragThreshold } from "./utils/dragThreshold";
+import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
+import { resolveLineColor } from "./utils/styleColors";
+import { styleToDash } from "./utils/styleToDash";
 
-export default React.memo(function Ray(props) {
-    let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
-        useDoenetRenderer(props);
+interface RaySVs extends DraggableGraphicalSVs {
+    numericalEndpoint: [number, number];
+    numericalThroughpoint: [number, number];
+}
 
+export default React.memo(function Ray(props: UseDoenetRendererProps) {
+    let { componentIdx, id, SVs, actions, callAction } =
+        useDoenetRenderer<RaySVs>(props);
+
+    // @ts-ignore
     Ray.ignoreActionsWithoutCore = () => true;
 
     const board = useContext(BoardContext);
 
-    let rayJXG = useRef({});
+    let rayJXG = useRef<JXGLine | null>(null);
 
-    let pointerAtDown = useRef(null);
-    let pointsAtDown = useRef(null);
-    let pointerIsDown = useRef(false);
-    let pointerMovedSinceDown = useRef(false);
-    let dragged = useRef(false);
+    const dragState = usePointerDragState();
+    const { pointerAtDown, pointerIsDown, pointerMovedSinceDown, dragged } =
+        dragState;
+    let pointsAtDown = useRef<[number[], number[]] | null>(null);
 
-    let previousWithLabel = useRef(null);
-    let cancelInitialLabelPlacement = useRef(null);
-    let pointCoords = useRef(null);
+    let previousWithLabel = useRef<boolean | null>(null);
+    let cancelInitialLabelPlacement = useRef<(() => void) | null>(null);
+    let pointCoords = useRef<[number, number][] | null>(null);
 
-    let lastEndpointFromCore = useRef(null);
-    let lastThroughpointFromCore = useRef(null);
+    let lastEndpointFromCore = useRef<[number, number] | null>(null);
+    let lastThroughpointFromCore = useRef<[number, number] | null>(null);
     let fixed = useRef(false);
     let fixLocation = useRef(false);
 
@@ -42,26 +55,16 @@ export default React.memo(function Ray(props) {
 
     const { darkMode } = useContext(DocContext) || {};
 
-    useEffect(() => {
-        //On unmount
+    useBoardPointerTracking(board, dragState);
+
+    React.useEffect(() => {
         return () => {
             cancelInitialLabelPlacement.current?.();
-            // if ray is defined
-            if (Object.keys(rayJXG.current).length !== 0) {
+            if (rayJXG.current !== null) {
                 deleteRayJXG();
-            }
-
-            if (board) {
-                board.off("move", boardMoveHandler);
             }
         };
     }, []);
-
-    useEffect(() => {
-        if (board) {
-            board.on("move", boardMoveHandler);
-        }
-    }, [board]);
 
     function createRayJXG() {
         if (board === null) {
@@ -71,18 +74,14 @@ export default React.memo(function Ray(props) {
             SVs.numericalEndpoint.length !== 2 ||
             SVs.numericalThroughpoint.length !== 2
         ) {
-            rayJXG.current = {};
-
+            rayJXG.current = null;
             return;
         }
 
-        let lineColor =
-            darkMode === "dark"
-                ? SVs.selectedStyle.lineColorDarkMode
-                : SVs.selectedStyle.lineColor;
+        const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
 
         //things to be passed to JSXGraph as attributes
-        var jsxRayAttributes = {
+        var jsxRayAttributes: Record<string, any> = {
             name: SVs.labelForGraph,
             visible: !SVs.hidden,
             withLabel: SVs.labelForGraph !== "",
@@ -115,57 +114,49 @@ export default React.memo(function Ray(props) {
         cancelInitialLabelPlacement.current?.();
         cancelInitialLabelPlacement.current = null;
 
-        let newRayJXG = board.create("line", through, jsxRayAttributes);
+        let newRayJXG: JXGLine = board.create(
+            "line",
+            through,
+            jsxRayAttributes,
+        );
         newRayJXG.isDraggable = !fixLocation.current;
 
         newRayJXG.on("drag", function (e) {
-            let viaPointer = e.type === "pointermove";
-
-            //Protect against very small unintended drags
-            if (
-                !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current[0]) >
-                    POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current[1]) >
-                    POINTER_DRAG_THRESHOLD
-            ) {
+            if (exceededDragThreshold(e, pointerAtDown.current)) {
                 dragged.current = true;
 
                 pointCoords.current = [];
 
-                for (let i = 0; i < 2; i++) {
-                    if (viaPointer) {
-                        // the reason we calculate point position with this algorithm,
-                        // rather than using .X() and .Y() directly
-                        // is so that points don't get trapped on an attracting object
-                        // if you move the mouse slowly.
-                        // The attributes .X() and .Y() are affected by
-                        // .setCoordinates functions called in update()
-                        // so will get modified to go back to the attracting object
-                        var o = board.origin.scrCoords;
-                        let calculatedX =
-                            (pointsAtDown.current[i][1] +
-                                e.x -
-                                pointerAtDown.current[0] -
-                                o[1]) /
-                            board.unitX;
-                        let calculatedY =
-                            (o[2] -
-                                (pointsAtDown.current[i][2] +
-                                    e.y -
-                                    pointerAtDown.current[1])) /
-                            board.unitY;
-                        pointCoords.current.push([calculatedX, calculatedY]);
-                    } else {
-                        pointCoords.current.push([
-                            newRayJXG.point1.X(),
-                            newRayJXG.point1.Y(),
-                        ]);
-                        pointCoords.current.push([
-                            newRayJXG.point2.X(),
-                            newRayJXG.point2.Y(),
-                        ]);
+                if (
+                    e.type === "pointermove" &&
+                    pointerAtDown.current &&
+                    pointsAtDown.current
+                ) {
+                    // Compute from pointer delta rather than .X()/.Y() directly
+                    // so points don't snap back to attractors on slow drags.
+                    for (let i = 0; i < 2; i++) {
+                        pointCoords.current.push(
+                            pointerEventToUserCoords(
+                                e,
+                                pointerAtDown.current,
+                                pointsAtDown.current[i] as [
+                                    number,
+                                    number,
+                                    number,
+                                ],
+                                board,
+                            ),
+                        );
                     }
+                } else {
+                    pointCoords.current.push([
+                        newRayJXG.point1.X(),
+                        newRayJXG.point1.Y(),
+                    ]);
+                    pointCoords.current.push([
+                        newRayJXG.point2.X(),
+                        newRayJXG.point2.Y(),
+                    ]);
                 }
 
                 callAction({
@@ -179,11 +170,11 @@ export default React.memo(function Ray(props) {
                 });
             }
 
-            rayJXG.current.point1.coords.setCoordinates(
+            newRayJXG.point1.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
                 lastEndpointFromCore.current,
             );
-            rayJXG.current.point2.coords.setCoordinates(
+            newRayJXG.point2.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
                 lastThroughpointFromCore.current,
             );
@@ -194,14 +185,14 @@ export default React.memo(function Ray(props) {
                 callAction({
                     action: actions.moveRay,
                     args: {
-                        endpointcoords: pointCoords.current[0],
-                        throughcoords: pointCoords.current[1],
+                        endpointcoords: pointCoords.current?.[0],
+                        throughcoords: pointCoords.current?.[1],
                     },
                 });
             } else if (!pointerMovedSinceDown.current && !fixed.current) {
                 callAction({
                     action: actions.rayClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                    args: { componentIdx },
                 });
             }
             pointerIsDown.current = false;
@@ -212,8 +203,8 @@ export default React.memo(function Ray(props) {
                 callAction({
                     action: actions.moveRay,
                     args: {
-                        point1coords: pointCoords.current[0],
-                        point2coords: pointCoords.current[1],
+                        point1coords: pointCoords.current?.[0],
+                        point2coords: pointCoords.current?.[1],
                     },
                 });
                 dragged.current = false;
@@ -234,7 +225,7 @@ export default React.memo(function Ray(props) {
             if (!fixed.current) {
                 callAction({
                     action: actions.rayFocused,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                    args: { componentIdx },
                 });
             }
         });
@@ -243,7 +234,7 @@ export default React.memo(function Ray(props) {
             dragged.current = false;
             callAction({
                 action: actions.rayFocused,
-                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                args: { componentIdx },
             });
         });
 
@@ -253,8 +244,8 @@ export default React.memo(function Ray(props) {
                     callAction({
                         action: actions.moveRay,
                         args: {
-                            point1coords: pointCoords.current[0],
-                            point2coords: pointCoords.current[1],
+                            point1coords: pointCoords.current?.[0],
+                            point2coords: pointCoords.current?.[1],
                         },
                     });
                     dragged.current = false;
@@ -262,7 +253,7 @@ export default React.memo(function Ray(props) {
 
                 callAction({
                     action: actions.rayClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                    args: { componentIdx },
                 });
             }
         });
@@ -296,23 +287,12 @@ export default React.memo(function Ray(props) {
         previousWithLabel.current = SVs.labelForGraph !== "";
     }
 
-    function boardMoveHandler(e) {
-        if (pointerIsDown.current) {
-            //Protect against very small unintended move
-            if (
-                Math.abs(e.x - pointerAtDown.current[0]) >
-                    POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current[1]) >
-                    POINTER_DRAG_THRESHOLD
-            ) {
-                pointerMovedSinceDown.current = true;
-            }
-        }
-    }
-
     function deleteRayJXG() {
         cancelInitialLabelPlacement.current?.();
         cancelInitialLabelPlacement.current = null;
+        if (!rayJXG.current) {
+            return;
+        }
         rayJXG.current.off("drag");
         rayJXG.current.off("down");
         rayJXG.current.off("hit");
@@ -320,11 +300,11 @@ export default React.memo(function Ray(props) {
         rayJXG.current.off("keyfocusout");
         rayJXG.current.off("keydown");
         board?.removeObject(rayJXG.current);
-        rayJXG.current = {};
+        rayJXG.current = null;
     }
 
     if (board) {
-        if (Object.keys(rayJXG.current).length === 0) {
+        if (rayJXG.current === null) {
             createRayJXG();
         } else if (
             SVs.numericalEndpoint.length !== 2 ||
@@ -371,7 +351,6 @@ export default React.memo(function Ray(props) {
             } else {
                 rayJXG.current.visProp["visible"] = false;
                 rayJXG.current.visPropCalc["visible"] = false;
-                // rayJXG.current.setAttribute({visible: false})
             }
 
             rayJXG.current.visProp.fixed = fixed.current;
@@ -385,10 +364,7 @@ export default React.memo(function Ray(props) {
                 rayJXG.current.setAttribute({ layer });
             }
 
-            let lineColor =
-                darkMode === "dark"
-                    ? SVs.selectedStyle.lineColorDarkMode
-                    : SVs.selectedStyle.lineColor;
+            const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
 
             if (rayJXG.current.visProp.strokecolor !== lineColor) {
                 rayJXG.current.visProp.strokecolor = lineColor;
@@ -427,12 +403,12 @@ export default React.memo(function Ray(props) {
 
             rayJXG.current.needsUpdate = true;
             rayJXG.current.update();
-            if (rayJXG.current.hasLabel) {
+            if (rayJXG.current.hasLabel && rayJXG.current.label) {
+                const label = rayJXG.current.label;
                 if (SVs.applyStyleToLabel) {
-                    rayJXG.current.label.visProp.strokecolor = lineColor;
+                    label.visProp.strokecolor = lineColor;
                 } else {
-                    rayJXG.current.label.visProp.strokecolor =
-                        "var(--canvasText)";
+                    label.visProp.strokecolor = "var(--canvasText)";
                 }
 
                 applyLineFamilyLabelPlacement({
@@ -456,15 +432,3 @@ export default React.memo(function Ray(props) {
         </>
     );
 });
-
-function styleToDash(style) {
-    if (style === "solid") {
-        return 0;
-    } else if (style === "dashed") {
-        return 2;
-    } else if (style === "dotted") {
-        return 1;
-    } else {
-        return 0;
-    }
-}
