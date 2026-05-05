@@ -15,7 +15,7 @@ import { removeFunctionsMathExpressionClass } from "./utils/math";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
 import { getSourceLocationForComponent } from "./utils/sourceLocation";
 import type { ComponentInstance } from "./types/componentInstance";
-import { DependencyHandler } from "./Dependencies";
+import { DependencyHandler } from "./core/dependencies";
 import { ActionTriggerScheduler } from "./core/ActionTriggerScheduler";
 import { AutoSubmitManager } from "./core/AutoSubmitManager";
 import { addComponents } from "./core/ComponentBuilder";
@@ -206,7 +206,7 @@ export default class Core {
     numerics: any;
     parameterStack: ParameterStack;
 
-    // ─── Dependencies (typed via Dependencies.d.ts shim) ──────────────────
+    // ─── Dependencies ────────────────────────────────────────────────────
     dependencies!: DependencyHandler;
 
     constructor({
