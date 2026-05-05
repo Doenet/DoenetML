@@ -17,6 +17,7 @@ import {
     syncLayer,
     syncLineStrokeStyle,
 } from "./utils/jsxgraph";
+import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
 
 interface PolylineSVs extends DraggableGraphicalSVs {
     numVertices: number;
@@ -99,19 +100,14 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
 
         //things to be passed to JSXGraph as attributes
         let jsxPolylineAttributes: Record<string, any> = {
-            name: SVs.labelForGraph,
+            ...buildLineLikeAttributes({
+                SVs,
+                layerOffset: LINE_LAYER_OFFSET,
+                fixed: fixed.current,
+                fixLocation: fixLocation.current,
+                darkMode,
+            }),
             visible: !SVs.hidden && validCoords,
-            withLabel: SVs.labelForGraph !== "",
-            layer: 10 * SVs.layer + LINE_LAYER_OFFSET,
-            fixed: fixed.current,
-            strokeColor: lineColor,
-            strokeOpacity: SVs.selectedStyle.lineOpacity,
-            highlightStrokeColor: lineColor,
-            highlightStrokeOpacity: SVs.selectedStyle.lineOpacity * 0.5,
-            strokeWidth: SVs.selectedStyle.lineWidth,
-            highlightStrokeWidth: SVs.selectedStyle.lineWidth,
-            dash: styleToDash(SVs.selectedStyle.lineStyle),
-            highlight: !fixLocation.current,
             lineCap: "butt",
         };
 

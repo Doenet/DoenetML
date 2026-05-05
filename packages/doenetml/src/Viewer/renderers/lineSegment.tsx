@@ -14,6 +14,7 @@ import {
     syncLineStrokeStyle,
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
+import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
 import { JXGLine, JXGPoint } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
@@ -92,26 +93,18 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
             return;
         }
 
-        let withlabel = SVs.labelForGraph !== "";
-
         const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
 
         //things to be passed to JSXGraph as attributes
-        var jsxSegmentAttributes: Record<string, any> = {
-            name: SVs.labelForGraph,
-            visible: !SVs.hidden,
-            withlabel,
-            fixed: fixed.current,
-            layer: 10 * SVs.layer + LINE_LAYER_OFFSET,
-            strokeColor: lineColor,
-            strokeOpacity: SVs.selectedStyle.lineOpacity,
-            highlightStrokeColor: lineColor,
-            highlightStrokeOpacity: SVs.selectedStyle.lineOpacity * 0.5,
-            strokeWidth: SVs.selectedStyle.lineWidth,
-            highlightStrokeWidth: SVs.selectedStyle.lineWidth,
-            dash: styleToDash(SVs.selectedStyle.lineStyle),
-            highlight: !fixLocation.current,
-        };
+        var jsxSegmentAttributes: Record<string, any> = buildLineLikeAttributes(
+            {
+                SVs,
+                layerOffset: LINE_LAYER_OFFSET,
+                fixed: fixed.current,
+                fixLocation: fixLocation.current,
+                darkMode,
+            },
+        );
 
         jsxSegmentAttributes.label = buildLineFamilyLabelAttributes({
             labelForGraph: SVs.labelForGraph,
@@ -392,7 +385,7 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
         cancelInitialLabelPlacement.current?.();
         cancelInitialLabelPlacement.current = null;
 
-        if (withlabel && lineSegmentJXG.current.hasLabel) {
+        if (SVs.labelForGraph !== "" && lineSegmentJXG.current.hasLabel) {
             const createdLineSegment = lineSegmentJXG.current;
             cancelInitialLabelPlacement.current =
                 stabilizeInitialLineFamilyLabelPlacement({
@@ -417,7 +410,7 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
                 });
         }
 
-        previousWithLabel.current = withlabel;
+        previousWithLabel.current = SVs.labelForGraph !== "";
 
         return lineSegmentJXG.current;
     }

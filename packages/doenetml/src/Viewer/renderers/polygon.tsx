@@ -17,6 +17,7 @@ import {
     syncLayer,
     syncLineStrokeStyle,
 } from "./utils/jsxgraph";
+import { buildBaseAttributes } from "./utils/buildGraphicalAttributes";
 
 interface PolygonSVs extends DraggableGraphicalSVs {
     numVertices: number;
@@ -114,18 +115,18 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
         };
 
         let jsxPolygonAttributes: Record<string, any> = {
-            name: SVs.labelForGraph,
-            visible: !SVs.hidden,
-            withLabel: SVs.labelForGraph !== "",
-            fixed: fixed.current,
-            layer: 10 * SVs.layer + LINE_LAYER_OFFSET,
+            ...buildBaseAttributes({
+                SVs,
+                layerOffset: LINE_LAYER_OFFSET,
+                fixed: fixed.current,
+                fixLocation: fixLocation.current,
+            }),
 
             //specific to polygon
             fillColor,
             fillOpacity: SVs.selectedStyle.fillOpacity,
             highlightFillColor: fillColor,
             highlightFillOpacity: SVs.selectedStyle.fillOpacity * 0.5,
-            highlight: !fixLocation.current,
             vertices: jsxPointAttributes.current,
             borders: jsxBorderAttributes,
         };

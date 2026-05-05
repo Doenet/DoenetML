@@ -17,6 +17,7 @@ import {
     syncLineStrokeStyle,
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
+import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
 import { JXGLine } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
@@ -90,26 +91,17 @@ export default React.memo(function Line(props: UseDoenetRendererProps) {
             return;
         }
 
-        let withlabel = SVs.labelForGraph !== "";
-
         const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
 
         //things to be passed to JSXGraph as attributes
-        var jsxLineAttributes: Record<string, any> = {
-            name: SVs.labelForGraph,
-            visible: !SVs.hidden,
-            withlabel,
+        var jsxLineAttributes: Record<string, any> = buildLineLikeAttributes({
+            SVs,
+            layerOffset: LINE_LAYER_OFFSET,
             fixed: fixed.current,
-            layer: 10 * SVs.layer + LINE_LAYER_OFFSET,
-            strokeColor: lineColor,
-            strokeOpacity: SVs.selectedStyle.lineOpacity,
-            highlightStrokeColor: lineColor,
-            highlightStrokeOpacity: SVs.selectedStyle.lineOpacity * 0.5,
-            strokeWidth: SVs.selectedStyle.lineWidth,
-            highlightStrokeWidth: SVs.selectedStyle.lineWidth,
-            dash: styleToDash(SVs.selectedStyle.lineStyle, SVs.dashed),
-            highlight: !fixLocation.current,
-        };
+            fixLocation: fixLocation.current,
+            darkMode,
+            dashed: SVs.dashed,
+        });
 
         jsxLineAttributes.label = buildLineFamilyLabelAttributes({
             labelForGraph: SVs.labelForGraph,
@@ -293,7 +285,7 @@ export default React.memo(function Line(props: UseDoenetRendererProps) {
 
         lineJXG.current = newLineJXG;
 
-        if (withlabel && newLineJXG.hasLabel) {
+        if (SVs.labelForGraph !== "" && newLineJXG.hasLabel) {
             cancelInitialLabelPlacement.current =
                 stabilizeInitialLineFamilyLabelPlacement({
                     board,

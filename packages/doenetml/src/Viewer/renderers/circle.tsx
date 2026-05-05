@@ -35,6 +35,7 @@ import {
     syncLineStrokeStyle,
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
+import { buildFilledShapeAttributes } from "./utils/buildGraphicalAttributes";
 
 interface CircleSVs extends DraggableGraphicalSVs {
     numericalCenter: [number, number];
@@ -135,32 +136,24 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         }
 
         const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
-        let fillColor = SVs.filled
-            ? resolveFillColor(SVs.selectedStyle, darkMode)
-            : "none";
         const markerColor = resolveMarkerColor(SVs.selectedStyle, darkMode);
 
         let withlabel = SVs.labelForGraph !== "";
 
-        var jsxCircleAttributes: Record<string, any> = {
-            name: SVs.labelForGraph,
-            visible: !SVs.hidden,
-            withlabel,
-            fixed: fixed.current,
-            layer: 10 * SVs.layer + LINE_LAYER_OFFSET,
-            strokeColor: lineColor,
-            strokeOpacity: SVs.selectedStyle.lineOpacity,
-            highlightStrokeColor: lineColor,
-            strokeWidth: SVs.selectedStyle.lineWidth,
-            highlightStrokeWidth: SVs.selectedStyle.lineWidth,
-            highlightStrokeOpacity: SVs.selectedStyle.lineOpacity * 0.5,
-            dash: styleToDash(SVs.selectedStyle.lineStyle),
-            fillColor,
-            fillOpacity: SVs.selectedStyle.fillOpacity,
-            highlightFillColor: fillColor,
-            highlightFillOpacity: SVs.selectedStyle.fillOpacity * 0.5,
-            highlight: !fixLocation.current,
-        };
+        var jsxCircleAttributes: Record<string, any> =
+            buildFilledShapeAttributes({
+                SVs,
+                layerOffset: LINE_LAYER_OFFSET,
+                fixed: fixed.current,
+                fixLocation: fixLocation.current,
+                darkMode,
+            });
+
+        if (!SVs.filled) {
+            jsxCircleAttributes.fillColor = "none";
+            jsxCircleAttributes.highlightFillColor = "none";
+        }
+        const fillColor = jsxCircleAttributes.fillColor;
 
         if (SVs.filled) {
             jsxCircleAttributes.hasInnerPoints = true;
