@@ -150,11 +150,6 @@ export interface AttachDragHandlersConfig<TTag, TSnapshot> {
     onHitExtra?: () => void;
     /** Extra logic at the start of `keyfocusout` (before commit/clear). */
     onKeyFocusOutExtra?: () => void;
-    /** Extra logic at the start of `keydown` Enter (before commit). */
-    onKeyDownEnterExtra?: () => void;
-
-    /** Additional `jxg.on(name, handler)` registrations (e.g., over/out). */
-    extraEvents?: Record<string, (e: any) => void>;
 }
 
 /**
@@ -198,8 +193,6 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
         onUpExtra,
         onHitExtra,
         onKeyFocusOutExtra,
-        onKeyDownEnterExtra,
-        extraEvents,
     } = config;
 
     const focusArgs = { componentIdx };
@@ -323,17 +316,10 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
         if (e.key !== "Enter") {
             return;
         }
-        onKeyDownEnterExtra?.();
         if (coordination.draggedTag.current === tag) {
             dispatchCommit("keyEnter");
             coordination.draggedTag.current = null;
         }
         dispatchClick();
     });
-
-    if (extraEvents) {
-        for (const [name, handler] of Object.entries(extraEvents)) {
-            jxg.on(name, handler);
-        }
-    }
 }
