@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, useRef } from "react";
+import React, { useContext, useRef } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
@@ -8,36 +8,52 @@ import { textRendererStyle } from "@doenet/utils";
 import { characterizeOffGraphPoint } from "./utils/offGraphIndicators";
 import {
     LabelPosition,
-    POINTER_DRAG_THRESHOLD,
     adjustPointLabelPosition,
     calculatePointLabelAnchor,
     normalizePointSize,
     normalizePointStyle,
 } from "./utils/graph";
 import { DocContext } from "../DocViewer";
-import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
+import { JXGPoint } from "./jsxgraph-distrib/types";
 import { ChoiceInputInlineContext } from "./choiceInput";
+import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
+import { usePointerDragState } from "./utils/pointerDragState";
+import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
+import { exceededDragThreshold } from "./utils/dragThreshold";
+import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
+import { resolveMarkerColor } from "./utils/styleColors";
+import {
+    syncLabelStrokeColor,
+    syncLayer,
+    syncWithLabelToggle,
+} from "./utils/jsxgraph";
+
+interface PointSVs extends DraggableGraphicalSVs {
+    numericalXs: [number, number];
+    open: boolean;
+    switchable: boolean;
+    hideOffGraphIndicator: boolean;
+    showCoordsWhenDragging: boolean;
+    latex: string;
+}
 
 export default React.memo(function Point(props: UseDoenetRendererProps) {
     let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
-        useDoenetRenderer(props);
+        useDoenetRenderer<PointSVs>(props);
 
     // @ts-ignore
     Point.ignoreActionsWithoutCore = () => true;
 
-    // console.log(`for point ${name}, SVs: `, SVs)
-
     const board = useContext(BoardContext);
     const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
 
-    let pointJXG = useRef<JXGObject | null>(null);
-    let shadowPointJXG = useRef<JXGObject | null>(null);
+    let pointJXG = useRef<JXGPoint | null>(null);
+    let shadowPointJXG = useRef<JXGPoint | null>(null);
 
-    let pointerAtDown = useRef<[number, number] | null>(null);
+    const dragState = usePointerDragState();
+    const { pointerAtDown, pointerIsDown, pointerMovedSinceDown, dragged } =
+        dragState;
     let pointAtDown = useRef<[number, number, number] | null>(null);
-    let pointerIsDown = useRef(false);
-    let pointerMovedSinceDown = useRef(false);
-    let dragged = useRef(false);
     let previousWithLabel = useRef<boolean | null>(null);
     let previousLabelPosition = useRef<LabelPosition | null>(null);
     let calculatedX = useRef<number | null>(null);
@@ -64,10 +80,11 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
     const useOpenSymbol =
         SVs.open || ["cross", "plus"].includes(SVs.selectedStyle.markerStyle); // Cross and plus should always be treated as "open" to remain visible on graph
 
-    useEffect(() => {
+    useBoardPointerTracking(board, dragState);
+
+    React.useEffect(() => {
         //On unmount
         return () => {
-            // if point is defined
             if (pointJXG.current !== null && shadowPointJXG.current !== null) {
                 shadowPointJXG.current.off("drag");
                 shadowPointJXG.current.off("down");
@@ -80,28 +97,15 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                 pointJXG.current = null;
                 shadowPointJXG.current = null;
             }
-
-            if (board) {
-                board.off("move", boardMoveHandler);
-            }
         };
     }, []);
-
-    useEffect(() => {
-        if (board) {
-            board.on("move", boardMoveHandler);
-        }
-    }, [board]);
 
     function createPointJXG() {
         if (board === null) {
             return null;
         }
 
-        let markerColor =
-            darkMode === "dark"
-                ? SVs.selectedStyle.markerColorDarkMode
-                : SVs.selectedStyle.markerColor;
+        const markerColor = resolveMarkerColor(SVs.selectedStyle, darkMode);
         let fillColor = useOpenSymbol ? "var(--canvas)" : markerColor;
         let strokeColor = useOpenSymbol ? markerColor : "none";
 
@@ -193,14 +197,18 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
         shadowPointAttributes.highlightFillOpacity = 0;
         shadowPointAttributes.highlightStrokeOpacity = 0;
 
-        let newShadowPointJXG: JXGObject = board.create(
+        let newShadowPointJXG: JXGPoint = board.create(
             "point",
             coords,
             shadowPointAttributes,
         );
         newShadowPointJXG.isDraggable = !fixLocation.current;
 
-        let newPointJXG = board.create("point", coords, jsxPointAttributes);
+        let newPointJXG: JXGPoint = board.create(
+            "point",
+            coords,
+            jsxPointAttributes,
+        );
 
         newShadowPointJXG.on("down", function (e: { x: number; y: number }) {
             (document.activeElement as HTMLElement | null)?.blur();
@@ -295,14 +303,9 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
             function (e: { type: string; x: number; y: number }) {
                 let viaPointer = e.type === "pointermove";
 
-                //Protect against very small unintended drags
                 if (
-                    !viaPointer ||
-                    (pointAtDown.current != null &&
-                        (Math.abs(e.x - pointerAtDown.current![0]) >
-                            POINTER_DRAG_THRESHOLD ||
-                            Math.abs(e.y - pointerAtDown.current![1]) >
-                                POINTER_DRAG_THRESHOLD))
+                    pointAtDown.current != null &&
+                    exceededDragThreshold(e, pointerAtDown.current)
                 ) {
                     dragged.current = true;
                 }
@@ -334,28 +337,18 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                     pointAtDown.current &&
                     pointerAtDown.current
                 ) {
-                    // the reason we calculate point position with this algorithm,
-                    // rather than using .X() and .Y() directly
-                    // is that attributes .X() and .Y() are affected by the
-                    // .setCoordinates function called in update().
-                    // Due to this dependence, the location of .X() and .Y()
-                    // can be affected by constraints of objects that the points depends on,
-                    // leading to a different location on up than on drag
-                    // (as dragging uses the mouse location)
-                    // TODO: find an example where need this this additional complexity
-                    var o = board.origin.scrCoords;
-                    calculatedX.current =
-                        (pointAtDown.current[1] +
-                            e.x -
-                            pointerAtDown.current[0] -
-                            o[1]) /
-                        board.unitX;
-                    calculatedY.current =
-                        (o[2] -
-                            (pointAtDown.current[2] +
-                                e.y -
-                                pointerAtDown.current[1])) /
-                        board.unitY;
+                    // Compute from pointer delta rather than .X()/.Y() directly:
+                    // .X()/.Y() are affected by setCoordinates calls in update(),
+                    // so attractor/constraint dependencies can shift them on
+                    // drag and produce a different location on up than during
+                    // drag (which uses the mouse location).
+                    [calculatedX.current, calculatedY.current] =
+                        pointerEventToUserCoords(
+                            e,
+                            pointerAtDown.current,
+                            pointAtDown.current,
+                            board,
+                        );
                 } else {
                     calculatedX.current = newShadowPointJXG.X();
                     calculatedY.current = newShadowPointJXG.Y();
@@ -436,20 +429,6 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
         previousWithLabel.current = withlabel;
     }
 
-    function boardMoveHandler(e: JXGEvent) {
-        if (pointerIsDown.current && pointerAtDown.current) {
-            //Protect against very small unintended move
-            if (
-                Math.abs(e.x - pointerAtDown.current[0]) >
-                    POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current[1]) >
-                    POINTER_DRAG_THRESHOLD
-            ) {
-                pointerMovedSinceDown.current = true;
-            }
-        }
-    }
-
     if (board) {
         lastPositionFromCore.current = [...SVs.numericalXs] as [number, number];
         offGraphIndicator.current = [0, 0];
@@ -515,10 +494,7 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
             createPointJXG();
         } else {
             //if values update
-            let markerColor =
-                darkMode === "dark"
-                    ? SVs.selectedStyle.markerColorDarkMode
-                    : SVs.selectedStyle.markerColor;
+            const markerColor = resolveMarkerColor(SVs.selectedStyle, darkMode);
             let fillColor = useOpenSymbol ? "var(--canvas)" : markerColor;
             let strokeColor = useOpenSymbol ? markerColor : "none";
 
@@ -573,12 +549,11 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                 // pointJXG.current.setAttribute({visible: false})
             }
 
-            let layer = 10 * SVs.layer + POINT_LAYER_OFFSET;
-            let layerChanged = pointJXG.current.visProp.layer !== layer;
-
-            if (layerChanged) {
-                pointJXG.current.setAttribute({ layer });
-                shadowPointJXG.current?.setAttribute({ layer });
+            // shadowPoint layer must follow pointJXG when it changes.
+            if (syncLayer(pointJXG.current, SVs.layer, POINT_LAYER_OFFSET)) {
+                shadowPointJXG.current?.setAttribute({
+                    layer: 10 * SVs.layer + POINT_LAYER_OFFSET,
+                });
             }
 
             pointJXG.current.visProp.highlight = !fixLocation.current;
@@ -637,20 +612,16 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
 
             pointJXG.current.name = SVs.labelForGraph;
 
-            let withlabel = SVs.labelForGraph !== "";
-            if (withlabel != previousWithLabel.current) {
-                pointJXG.current.setAttribute({ withlabel: withlabel });
-                previousWithLabel.current = withlabel;
-            }
+            syncWithLabelToggle(
+                pointJXG.current,
+                SVs.labelForGraph,
+                previousWithLabel,
+            );
 
-            if (pointJXG.current.hasLabel) {
-                pointJXG.current.label.needsUpdate = true;
-                if (SVs.applyStyleToLabel) {
-                    pointJXG.current.label.visProp.strokecolor = markerColor;
-                } else {
-                    pointJXG.current.label.visProp.strokecolor =
-                        "var(--canvasText)";
-                }
+            if (pointJXG.current.hasLabel && pointJXG.current.label) {
+                const label = pointJXG.current.label;
+                label.needsUpdate = true;
+                syncLabelStrokeColor(label, SVs.applyStyleToLabel, markerColor);
 
                 let labelPosition = adjustPointLabelPosition(
                     SVs.labelPosition,
@@ -660,13 +631,13 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                 if (labelPosition !== previousLabelPosition.current) {
                     let { offset, anchorx, anchory } =
                         calculatePointLabelAnchor(labelPosition);
-                    pointJXG.current.label.visProp.anchorx = anchorx;
-                    pointJXG.current.label.visProp.anchory = anchory;
-                    pointJXG.current.label.visProp.offset = offset;
+                    label.visProp.anchorx = anchorx;
+                    label.visProp.anchory = anchory;
+                    label.visProp.offset = offset;
                     previousLabelPosition.current = labelPosition;
-                    pointJXG.current.label.fullUpdate();
+                    label.fullUpdate();
                 } else {
-                    pointJXG.current.label.update();
+                    label.update();
                 }
             }
 

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useContext, useRef } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
@@ -9,7 +9,6 @@ import {
 } from "./utils/offGraphIndicators";
 import {
     LabelPosition,
-    POINTER_DRAG_THRESHOLD,
     adjustPointLabelPosition,
     calculatePointLabelAnchor,
     getEffectiveBoundingBox,
@@ -18,24 +17,48 @@ import {
     normalizePointStyle,
 } from "./utils/graph";
 import { DocContext } from "../DocViewer";
-import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
+import { JXGCircle, JXGPoint } from "./jsxgraph-distrib/types";
+import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
+import { usePointerDragState } from "./utils/pointerDragState";
+import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
+import { exceededDragThreshold } from "./utils/dragThreshold";
+import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
+import {
+    resolveLineColor,
+    resolveFillColor,
+    resolveMarkerColor,
+} from "./utils/styleColors";
+import { styleToDash } from "./utils/styleToDash";
+import {
+    syncLabelStrokeColor,
+    syncLayer,
+    syncLineStrokeStyle,
+    syncWithLabelToggle,
+} from "./utils/jsxgraph";
+
+interface CircleSVs extends DraggableGraphicalSVs {
+    numericalCenter: [number, number];
+    numericalRadius: number;
+    throughAngles: [number, number];
+    filled: boolean;
+    hideOffGraphIndicator: boolean;
+}
 
 export default React.memo(function Circle(props: UseDoenetRendererProps) {
     let { componentIdx, id, SVs, actions, callAction } =
-        useDoenetRenderer(props);
+        useDoenetRenderer<CircleSVs>(props);
 
     // @ts-ignore
     Circle.ignoreActionsWithoutCore = () => true;
 
     const board = useContext(BoardContext);
 
-    let circleJXG = useRef<JXGObject | null>(null);
-    let indicatorJXG = useRef<JXGObject | null>(null);
+    let circleJXG = useRef<JXGCircle | null>(null);
+    let indicatorJXG = useRef<JXGPoint | null>(null);
 
-    let dragged = useRef(false);
-    let pointerAtDown = useRef<[number, number] | null>(null);
-    let pointerIsDown = useRef<boolean | null>(false);
-    let pointerMovedSinceDown = useRef(false);
+    const dragState = usePointerDragState();
+    const { pointerAtDown, pointerIsDown, pointerMovedSinceDown, dragged } =
+        dragState;
     let centerAtDown = useRef<[number, number, number] | null>(null);
     let radiusAtDown = useRef<number | null>(null);
     let throughAnglesAtDown = useRef<[number, number] | null>(null);
@@ -44,7 +67,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
     let centerCoords = useRef<[number, number] | null>(null);
 
     let lastCenterFromCore = useRef<number[] | null>(null);
-    let throughAnglesFromCore = useRef(null);
+    let throughAnglesFromCore = useRef<[number, number] | null>(null);
     let fixed = useRef(false);
     let fixLocation = useRef(false);
 
@@ -61,25 +84,16 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
 
     const { darkMode } = useContext(DocContext) || {};
 
-    useEffect(() => {
+    useBoardPointerTracking(board, dragState);
+
+    React.useEffect(() => {
         //On unmount
         return () => {
-            // if point is defined
             if (circleJXG.current) {
                 deleteCircleJXG();
             }
-
-            if (board) {
-                board.off("move", boardMoveHandler);
-            }
         };
     }, []);
-
-    useEffect(() => {
-        if (board) {
-            board.on("move", boardMoveHandler);
-        }
-    }, [board]);
 
     function createCircleJXG() {
         if (board === null) {
@@ -120,19 +134,11 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             });
         }
 
-        let lineColor =
-            darkMode === "dark"
-                ? SVs.selectedStyle.lineColorDarkMode
-                : SVs.selectedStyle.lineColor;
-        let fillColor =
-            darkMode === "dark"
-                ? SVs.selectedStyle.fillColorDarkMode
-                : SVs.selectedStyle.fillColor;
-        fillColor = SVs.filled ? fillColor : "none";
-        let markerColor =
-            darkMode === "dark"
-                ? SVs.selectedStyle.markerColorDarkMode
-                : SVs.selectedStyle.markerColor;
+        const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
+        let fillColor = SVs.filled
+            ? resolveFillColor(SVs.selectedStyle, darkMode)
+            : "none";
+        const markerColor = resolveMarkerColor(SVs.selectedStyle, darkMode);
 
         let withlabel = SVs.labelForGraph !== "";
 
@@ -256,43 +262,19 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         circleJXG.current.on("drag", function (e) {
             let viaPointer = e.type === "pointermove";
 
-            //Protect against very small unintended drags
-            if (
-                !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current![0]) >
-                    POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current![1]) >
-                    POINTER_DRAG_THRESHOLD
-            ) {
+            if (exceededDragThreshold(e, pointerAtDown.current)) {
                 dragged.current = true;
             }
 
-            if (viaPointer) {
-                // the reason we calculate point position with this algorithm,
-                // rather than using .X() and .Y() directly
-                // is so that center doesn't get trapped on an attracting object
-                // if you move the mouse slowly.
-                // The attributes .X() and .Y() are affected by
-                // .setCoordinates functions called in update()
-                // so will get modified to go back to the attracting object
-
-                var o = board.origin.scrCoords;
-                let calculatedX =
-                    (centerAtDown.current![1] +
-                        e.x -
-                        pointerAtDown.current![0] -
-                        o[1]) /
-                    board.unitX;
-                let calculatedY =
-                    (o[2] -
-                        (centerAtDown.current![2] +
-                            e.y -
-                            pointerAtDown.current![1])) /
-                    board.unitY;
-                centerCoords.current = [calculatedX, calculatedY] as [
-                    number,
-                    number,
-                ];
+            if (viaPointer && pointerAtDown.current && centerAtDown.current) {
+                // Compute from pointer delta rather than .X()/.Y() directly so
+                // the center doesn't snap back to an attractor on slow drags.
+                centerCoords.current = pointerEventToUserCoords(
+                    e,
+                    pointerAtDown.current,
+                    centerAtDown.current,
+                    board,
+                );
             } else {
                 centerCoords.current = [
                     circleJXG.current!.center.X(),
@@ -379,16 +361,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         });
 
         indicatorJXG.current.on("drag", function (e) {
-            let viaPointer = e.type === "pointermove";
-
-            //Protect against very small unintended drags
-            if (
-                !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current![0]) >
-                    POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current![1]) >
-                    POINTER_DRAG_THRESHOLD
-            ) {
+            if (exceededDragThreshold(e, pointerAtDown.current)) {
                 dragged.current = true;
             }
 
@@ -515,20 +488,6 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         previousWithLabel.current = SVs.labelForGraph !== "";
 
         return circleJXG.current;
-    }
-
-    function boardMoveHandler(e: JXGEvent) {
-        if (pointerIsDown.current) {
-            //Protect against very small unintended move
-            if (
-                Math.abs(e.x - pointerAtDown.current![0]) >
-                    POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current![1]) >
-                    POINTER_DRAG_THRESHOLD
-            ) {
-                pointerMovedSinceDown.current = true;
-            }
-        }
     }
 
     function deleteCircleJXG() {
@@ -813,7 +772,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             deleteCircleJXG();
         } else if (indicatorJXG.current) {
             if (board.updateQuality === board.BOARD_QUALITY_LOW) {
-                board.itemsRenderedLowQuality[id] = circleJXG.current;
+                board.itemsRenderedLowQuality[id] = circleJXG.current as any;
             }
 
             let validCoords = SVs.numericalCenter.every((x: any) =>
@@ -841,49 +800,19 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             circleJXG.current.visProp.highlight = !fixLocation.current;
             circleJXG.current.isDraggable = !fixLocation.current;
 
-            let layer = 10 * SVs.layer + LINE_LAYER_OFFSET;
-            let layerChanged = circleJXG.current.visProp.layer !== layer;
+            syncLayer(circleJXG.current, SVs.layer, LINE_LAYER_OFFSET);
 
-            if (layerChanged) {
-                circleJXG.current.setAttribute({ layer });
-            }
+            const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
+            const fillColor = SVs.filled
+                ? resolveFillColor(SVs.selectedStyle, darkMode)
+                : "none";
 
-            let lineColor =
-                darkMode === "dark"
-                    ? SVs.selectedStyle.lineColorDarkMode
-                    : SVs.selectedStyle.lineColor;
-            let fillColor =
-                darkMode === "dark"
-                    ? SVs.selectedStyle.fillColorDarkMode
-                    : SVs.selectedStyle.fillColor;
-            fillColor = SVs.filled ? fillColor : "none";
-
-            if (circleJXG.current.visProp.strokecolor !== lineColor) {
-                circleJXG.current.visProp.strokecolor = lineColor;
-                circleJXG.current.visProp.highlightstrokecolor = lineColor;
-            }
-            if (
-                circleJXG.current.visProp.strokeopacity !==
-                SVs.selectedStyle.lineOpacity
-            ) {
-                circleJXG.current.visProp.strokeopacity =
-                    SVs.selectedStyle.lineOpacity;
-                circleJXG.current.visProp.highlightstrokeopacity =
-                    SVs.selectedStyle.lineOpacity * 0.5;
-            }
-            let newDash = styleToDash(SVs.selectedStyle.lineStyle);
-            if (circleJXG.current.visProp.dash !== newDash) {
-                circleJXG.current.visProp.dash = newDash;
-            }
-            if (
-                circleJXG.current.visProp.strokewidth !==
-                SVs.selectedStyle.lineWidth
-            ) {
-                circleJXG.current.visProp.strokewidth =
-                    SVs.selectedStyle.lineWidth;
-                circleJXG.current.visProp.highlightstrokewidth =
-                    SVs.selectedStyle.lineWidth;
-            }
+            syncLineStrokeStyle(circleJXG.current, {
+                lineColor,
+                lineWidth: SVs.selectedStyle.lineWidth,
+                lineOpacity: SVs.selectedStyle.lineOpacity,
+                dash: styleToDash(SVs.selectedStyle.lineStyle),
+            });
 
             if (circleJXG.current.visProp.fillcolor !== fillColor) {
                 circleJXG.current.visProp.fillcolor = fillColor;
@@ -902,24 +831,20 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
 
             circleJXG.current.name = SVs.labelForGraph;
 
-            let withlabel = SVs.labelForGraph !== "";
-            if (withlabel != previousWithLabel.current) {
-                circleJXG.current.setAttribute({ withlabel: withlabel });
-                previousWithLabel.current = withlabel;
-            }
+            const withlabel = syncWithLabelToggle(
+                circleJXG.current,
+                SVs.labelForGraph,
+                previousWithLabel,
+            );
 
             circleJXG.current.needsUpdate = true;
             circleJXG.current.update();
 
-            if (circleJXG.current.hasLabel) {
-                if (SVs.applyStyleToLabel) {
-                    circleJXG.current.label.visProp.strokecolor = lineColor;
-                } else {
-                    circleJXG.current.label.visProp.strokecolor =
-                        "var(--canvasText)";
-                }
-                circleJXG.current.label.needsUpdate = true;
-                circleJXG.current.label.update();
+            if (circleJXG.current.hasLabel && circleJXG.current.label) {
+                const label = circleJXG.current.label;
+                syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
+                label.needsUpdate = true;
+                label.update();
             }
 
             let showIndicator = displayOffGraphIndicator.current && !SVs.hidden;
@@ -936,21 +861,16 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                     offGraphIndicatorCoords.current,
                 );
 
-                let layer = 10 * SVs.layer + POINT_LAYER_OFFSET;
-                let layerChanged = indicatorJXG.current.visProp.layer !== layer;
-
-                if (layerChanged) {
-                    indicatorJXG.current.setAttribute({ layer });
-                }
+                syncLayer(indicatorJXG.current, SVs.layer, POINT_LAYER_OFFSET);
 
                 indicatorJXG.current.visProp.highlight = !fixLocation.current;
                 indicatorJXG.current.visProp.fixed = fixed.current;
                 indicatorJXG.current.isDraggable = !fixLocation.current;
 
-                let markerColor =
-                    darkMode === "dark"
-                        ? SVs.selectedStyle.markerColorDarkMode
-                        : SVs.selectedStyle.markerColor;
+                const markerColor = resolveMarkerColor(
+                    SVs.selectedStyle,
+                    darkMode,
+                );
                 if (indicatorJXG.current.visProp.fillcolor !== markerColor) {
                     indicatorJXG.current.visProp.fillcolor = markerColor;
                 }
@@ -985,15 +905,17 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                     indicatorJXG.current.setAttribute({ withlabel: withlabel });
                 }
 
-                if (indicatorJXG.current.hasLabel) {
-                    indicatorJXG.current.label.needsUpdate = true;
-                    if (SVs.applyStyleToLabel) {
-                        indicatorJXG.current.label.visProp.strokecolor =
-                            markerColor;
-                    } else {
-                        indicatorJXG.current.label.visProp.strokecolor =
-                            "var(--canvasText)";
-                    }
+                if (
+                    indicatorJXG.current.hasLabel &&
+                    indicatorJXG.current.label
+                ) {
+                    const label = indicatorJXG.current.label;
+                    label.needsUpdate = true;
+                    syncLabelStrokeColor(
+                        label,
+                        SVs.applyStyleToLabel,
+                        markerColor,
+                    );
 
                     let labelPosition = adjustPointLabelPosition(
                         "upperright",
@@ -1003,13 +925,13 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                     if (labelPosition !== previousPointLabelPosition.current) {
                         let { offset, anchorx, anchory } =
                             calculatePointLabelAnchor(labelPosition);
-                        indicatorJXG.current.label.visProp.anchorx = anchorx;
-                        indicatorJXG.current.label.visProp.anchory = anchory;
-                        indicatorJXG.current.label.visProp.offset = offset;
+                        label.visProp.anchorx = anchorx;
+                        label.visProp.anchory = anchory;
+                        label.visProp.offset = offset;
                         previousPointLabelPosition.current = labelPosition;
-                        indicatorJXG.current.label.fullUpdate();
+                        label.fullUpdate();
                     } else {
-                        indicatorJXG.current.label.update();
+                        label.update();
                     }
                 }
             }
@@ -1031,15 +953,3 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
 
     return <span id={id} />;
 });
-
-function styleToDash(style: string) {
-    if (style === "solid") {
-        return 0;
-    } else if (style === "dashed") {
-        return 2;
-    } else if (style === "dotted") {
-        return 1;
-    } else {
-        return 0;
-    }
-}

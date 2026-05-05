@@ -1,8 +1,35 @@
-// @ts-nocheck
 import me from "math-expressions";
 import { cesc } from "@doenet/utils";
+import type { MutableRefObject } from "react";
+import { JXGBoard, JXGElement } from "../jsxgraph-distrib/types";
 
-export function setMinorTicks(axis) {
+type AxisJXG = JXGElement & {
+    defaultTicks: {
+        getDistanceMajorTicks: () => number;
+        visProp: Record<string, any>;
+        setAttribute: (attrs: Record<string, any>) => void;
+        fullUpdate: () => void;
+    };
+    getLabelAnchor?: () => { scrCoords?: number[] };
+};
+
+type AxisRef = MutableRefObject<AxisJXG | null | undefined>;
+
+/**
+ * Minimal structural shape for the line-like objects these helpers touch.
+ * Defined loosely so both legacy `JXGObject` consumers and new `JXGElement`
+ * consumers can pass values without contortion.
+ */
+type LineLikeJXG = {
+    hasLabel?: boolean;
+    label?: any;
+    needsUpdate?: boolean;
+    update?: Function;
+    getLabelAnchor?: () => { scrCoords?: number[] };
+    [key: string]: any;
+};
+
+export function setMinorTicks(axis: AxisJXG): void {
     const ticks = axis.defaultTicks;
     const tickInterval = ticks.getDistanceMajorTicks();
 
@@ -25,7 +52,13 @@ export function applyAxisTickHeights({
     yaxisRef,
     displayXAxisTicks = true,
     displayYAxisTicks = true,
-}) {
+}: {
+    grid: string;
+    xaxisRef: AxisRef;
+    yaxisRef: AxisRef;
+    displayXAxisTicks?: boolean;
+    displayYAxisTicks?: boolean;
+}): void {
     // Only control real ticks (height != -1), not grid lines (height = -1)
     if (grid === "dense") {
         if (xaxisRef.current) {
@@ -74,8 +107,13 @@ export function createYAxis({
     SVs,
     yaxisRef,
     previousYaxisWithLabelRef,
-}) {
-    const yaxisOptions = { highlight: false, fixed: true };
+}: {
+    theBoard: JXGBoard;
+    SVs: Record<string, any>;
+    yaxisRef: AxisRef;
+    previousYaxisWithLabelRef: MutableRefObject<boolean>;
+}): void {
+    const yaxisOptions: Record<string, any> = { highlight: false, fixed: true };
     if (SVs.yLabel) {
         let position = "rt";
         const offset = [-10, -5];
@@ -123,7 +161,7 @@ export function createYAxis({
     if (SVs.yTickScaleFactor !== null) {
         const yTickScaleFactor = me.fromAst(SVs.yTickScaleFactor);
         const scale = yTickScaleFactor.evaluate_to_constant();
-        if (scale > 0) {
+        if (scale !== null && scale > 0) {
             const scaleSymbol = yTickScaleFactor.toString();
             yaxisOptions.ticks.scale = scale;
             yaxisOptions.ticks.scaleSymbol = scaleSymbol;
@@ -154,7 +192,7 @@ export function createYAxis({
             [0, 1],
         ],
         yaxisOptions,
-    );
+    ) as AxisJXG;
 
     setMinorTicks(yaxisRef.current);
 
@@ -166,8 +204,13 @@ export function createXAxis({
     SVs,
     xaxisRef,
     previousXaxisWithLabelRef,
-}) {
-    const xaxisOptions = { highlight: false, fixed: true };
+}: {
+    theBoard: JXGBoard;
+    SVs: Record<string, any>;
+    xaxisRef: AxisRef;
+    previousXaxisWithLabelRef: MutableRefObject<boolean>;
+}): void {
+    const xaxisOptions: Record<string, any> = { highlight: false, fixed: true };
     if (SVs.xLabel) {
         let position = "rt";
         let offset = [5, 10];
@@ -209,7 +252,7 @@ export function createXAxis({
     if (SVs.xTickScaleFactor !== null) {
         const xTickScaleFactor = me.fromAst(SVs.xTickScaleFactor);
         const scale = xTickScaleFactor.evaluate_to_constant();
-        if (scale > 0) {
+        if (scale !== null && scale > 0) {
             const scaleSymbol = xTickScaleFactor.toString();
             xaxisOptions.ticks.scale = scale;
             xaxisOptions.ticks.scaleSymbol = scaleSymbol;
@@ -243,13 +286,19 @@ export function createXAxis({
             [1, 0],
         ],
         xaxisOptions,
-    );
+    ) as AxisJXG;
 
     setMinorTicks(xaxisRef.current);
     theBoard.unsuspendUpdate();
 }
 
-export function addNavigationButtons({ board, id }) {
+export function addNavigationButtons({
+    board,
+    id,
+}: {
+    board: JXGBoard;
+    id: string;
+}): void {
     const navigationBar = document.querySelector(
         "#" + cesc(id) + `_navigationbar`,
     );
@@ -258,30 +307,30 @@ export function addNavigationButtons({ board, id }) {
         return;
     }
 
-    const addEvent = function (obj, type, fn) {
-        const el = function () {
-            return fn.apply(board, arguments);
+    const addEvent = function (obj: Element, type: string, fn: Function) {
+        const el = function (this: unknown) {
+            return fn.apply(board, arguments as unknown as any[]);
         };
 
         board["x_internal" + type] = board["x_internal" + type] || [];
         board["x_internal" + type].push(el);
 
-        obj.addEventListener(type, el, false);
+        obj.addEventListener(type, el as EventListener, false);
     };
 
-    const cancelbubble = function (e) {
+    const cancelbubble = function (e: Event | undefined) {
         if (!e) {
-            e = window.event;
+            e = window.event as Event | undefined;
         }
 
-        if (e.stopPropagation) {
+        if (e?.stopPropagation) {
             e.stopPropagation();
-        } else {
-            e.cancelBubble = true;
+        } else if (e) {
+            (e as any).cancelBubble = true;
         }
     };
 
-    const createButton = function (label, handler) {
+    const createButton = function (label: string, handler: Function) {
         const button = document.createElement("span");
         navigationBar.appendChild(button);
         button.setAttribute("style", "color: var(--canvasText); opacity: 0.7");
@@ -295,15 +344,10 @@ export function addNavigationButtons({ board, id }) {
             button.classList.add("JXG_navigation_button");
         }
 
-        addEvent(
-            button,
-            "click",
-            function () {
-                handler.bind(board)();
-                return false;
-            },
-            board,
-        );
+        addEvent(button, "click", function () {
+            handler.bind(board)();
+            return false;
+        });
         addEvent(button, "mouseup", cancelbubble);
         addEvent(button, "mousedown", cancelbubble);
         addEvent(button, "touchend", cancelbubble);
@@ -320,7 +364,13 @@ export function addNavigationButtons({ board, id }) {
     }
 }
 
-export function removeNavigationButtons({ board, id }) {
+export function removeNavigationButtons({
+    board,
+    id,
+}: {
+    board: JXGBoard;
+    id: string;
+}): void {
     const navigationBar = document.querySelector(
         "#" + cesc(id) + `_navigationbar`,
     );
@@ -346,6 +396,13 @@ export function removeNavigationButtons({ board, id }) {
     }
 }
 
+export type LineFamilyLabelPlacement = {
+    position: string;
+    offset: [number, number];
+    anchorx: "left" | "right" | "middle";
+    anchory: "top" | "bottom" | "middle";
+};
+
 /**
  * Map Doenet line-family `labelPosition` values onto the JSXGraph placement
  * tuple used by line-like labels.
@@ -358,8 +415,10 @@ export function removeNavigationButtons({ board, id }) {
  * so the label stays attached to the line midpoint instead of being treated as
  * a distinct side placement.
  */
-export function getLineFamilyLabelPlacementSpec(labelPosition) {
-    const positionMap = {
+export function getLineFamilyLabelPlacementSpec(
+    labelPosition: string,
+): LineFamilyLabelPlacement {
+    const positionMap: Record<string, LineFamilyLabelPlacement> = {
         upperright: {
             position: "urt",
             offset: [0, 0],
@@ -425,7 +484,13 @@ export function adjustLineFamilyLabelAnchorXToStayInGraph({
     label,
     anchorx,
     offset,
-}) {
+}: {
+    board: JXGBoard | null;
+    lineLike: LineLikeJXG | null | undefined;
+    label: { size?: [number, number] } | null | undefined;
+    anchorx: string;
+    offset: [number, number] | undefined;
+}): string {
     if (!board || !lineLike?.getLabelAnchor || !label?.size) {
         return anchorx;
     }
@@ -484,12 +549,18 @@ export function buildLineFamilyLabelAttributes({
     labelHasLatex,
     applyStyleToLabel,
     lineColor,
-}) {
+}: {
+    labelForGraph: string;
+    labelPosition: string;
+    labelHasLatex: boolean;
+    applyStyleToLabel: boolean;
+    lineColor: string;
+}): Record<string, any> {
     if (labelForGraph !== "") {
         const { position, offset, anchorx, anchory } =
             getLineFamilyLabelPlacementSpec(labelPosition);
 
-        const labelAttributes = {
+        const labelAttributes: Record<string, any> = {
             position,
             offset,
             anchorx,
@@ -505,7 +576,7 @@ export function buildLineFamilyLabelAttributes({
         return labelAttributes;
     }
 
-    const labelAttributes = {
+    const labelAttributes: Record<string, any> = {
         highlight: false,
     };
 
@@ -528,7 +599,13 @@ export function applyLineFamilyLabelPlacement({
     labelPosition,
     forceFullUpdate = false,
     setNeedsUpdateOnNoChange = false,
-}) {
+}: {
+    board: JXGBoard | null;
+    lineLike: LineLikeJXG | null | undefined;
+    labelPosition: string;
+    forceFullUpdate?: boolean;
+    setNeedsUpdateOnNoChange?: boolean;
+}): void {
     if (!lineLike?.hasLabel || !lineLike.label) {
         return;
     }
@@ -538,26 +615,27 @@ export function applyLineFamilyLabelPlacement({
     const adjustedAnchorx = adjustLineFamilyLabelAnchorXToStayInGraph({
         board,
         lineLike,
-        label: lineLike.label,
+        label: lineLike.label as unknown as { size?: [number, number] },
         anchorx,
         offset,
     });
 
+    const labelVisProp = lineLike.label.visProp as Record<string, any>;
     const offsetChanged =
-        lineLike.label.visProp.offset?.[0] !== offset[0] ||
-        lineLike.label.visProp.offset?.[1] !== offset[1];
+        labelVisProp.offset?.[0] !== offset[0] ||
+        labelVisProp.offset?.[1] !== offset[1];
 
     const placementChanged =
-        lineLike.label.visProp.position !== position ||
-        lineLike.label.visProp.anchorx !== adjustedAnchorx ||
-        lineLike.label.visProp.anchory !== anchory ||
+        labelVisProp.position !== position ||
+        labelVisProp.anchorx !== adjustedAnchorx ||
+        labelVisProp.anchory !== anchory ||
         offsetChanged;
 
     if (placementChanged || forceFullUpdate) {
-        lineLike.label.visProp.position = position;
-        lineLike.label.visProp.anchorx = adjustedAnchorx;
-        lineLike.label.visProp.anchory = anchory;
-        lineLike.label.visProp.offset = offset;
+        labelVisProp.position = position;
+        labelVisProp.anchorx = adjustedAnchorx;
+        labelVisProp.anchory = anchory;
+        labelVisProp.offset = offset;
         lineLike.label.needsUpdate = true;
         lineLike.label.fullUpdate();
         return;
@@ -581,14 +659,19 @@ export function stabilizeInitialLineFamilyLabelPlacement({
     lineLike,
     applyPlacement,
     delayMs = 120,
-}) {
+}: {
+    board: JXGBoard | null;
+    lineLike: LineLikeJXG | null | undefined;
+    applyPlacement: ((forceFullUpdate: boolean) => boolean | void) | null;
+    delayMs?: number;
+}): () => void {
     if (!lineLike?.hasLabel || !lineLike.label || !applyPlacement) {
         return () => {};
     }
 
     let cancelled = false;
-    let animationFrameId = null;
-    let timeoutId = null;
+    let animationFrameId: number | null = null;
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
 
     const runPlacement = () => {
         if (cancelled || !lineLike?.hasLabel || !lineLike.label) {
@@ -643,4 +726,145 @@ export function stabilizeInitialLineFamilyLabelPlacement({
             clearTimeout(timeoutId);
         }
     };
+}
+
+/**
+ * Minimal structural shape for `visProp`-bearing JSXgraph objects whose
+ * attributes the sync helpers below mutate. Using a structural type keeps
+ * these helpers usable from both legacy `JXGObject` consumers and new
+ * per-kind `JXGElement` consumers.
+ */
+type SyncableJXG = {
+    visProp: Record<string, any>;
+    visPropCalc?: Record<string, any>;
+    setAttribute: Function;
+};
+
+/**
+ * Sync visibility on a line-family object, gated by `validCoords`.
+ *
+ * Mirrors the per-renderer pattern of writing both `visProp.visible` and
+ * `visPropCalc.visible`, but only calling `setAttribute({ visible })` when the
+ * value actually changes — `setAttribute` is incredibly slow on point labels,
+ * so it should not run when nothing changed. When `validCoords` is false,
+ * forces both flags off without invoking `setAttribute`.
+ *
+ * Returns whether `visProp.visible` actually changed (callers may piggyback
+ * additional updates on this signal).
+ */
+export function syncLineFamilyVisibility(
+    obj: SyncableJXG,
+    visible: boolean,
+    validCoords: boolean,
+): boolean {
+    if (!validCoords) {
+        obj.visProp.visible = false;
+        if (obj.visPropCalc) {
+            obj.visPropCalc.visible = false;
+        }
+        return false;
+    }
+
+    const changed = obj.visProp.visible !== visible;
+    obj.visProp.visible = visible;
+    if (obj.visPropCalc) {
+        obj.visPropCalc.visible = visible;
+    }
+    if (changed) {
+        obj.setAttribute({ visible });
+    }
+    return changed;
+}
+
+/**
+ * Sync a JSXgraph object's layer attribute. Doenet `SVs.layer` is multiplied
+ * by 10 and added to a per-element-kind offset (see `LINE_LAYER_OFFSET`,
+ * `VERTEX_LAYER_OFFSET`, etc. in `graph.ts`). Returns whether the layer
+ * actually changed, so callers can mirror updates to companion objects
+ * (e.g. endpoint points whose layer must follow the segment's).
+ */
+export function syncLayer(
+    obj: SyncableJXG,
+    svsLayer: number,
+    offset: number,
+): boolean {
+    const layer = 10 * svsLayer + offset;
+    const changed = obj.visProp.layer !== layer;
+    if (changed) {
+        obj.setAttribute({ layer });
+    }
+    return changed;
+}
+
+/**
+ * Sync stroke color/width/opacity/dash on a line-family object.
+ *
+ * Highlight values mirror the base values, with `strokeOpacity` halved on
+ * highlight (matching the convention used across renderers prior to this
+ * helper). `dash` is taken as a precomputed numeric value because some
+ * renderers (e.g. line.tsx) pass an extra `dashed` SV into `styleToDash`.
+ */
+export function syncLineStrokeStyle(
+    obj: SyncableJXG,
+    {
+        lineColor,
+        lineWidth,
+        lineOpacity,
+        dash,
+    }: {
+        lineColor: string;
+        lineWidth: number;
+        lineOpacity: number;
+        dash: number;
+    },
+): void {
+    const vp = obj.visProp;
+    if (vp.strokecolor !== lineColor) {
+        vp.strokecolor = lineColor;
+        vp.highlightstrokecolor = lineColor;
+    }
+    if (vp.strokewidth !== lineWidth) {
+        vp.strokewidth = lineWidth;
+        vp.highlightstrokewidth = lineWidth;
+    }
+    if (vp.strokeopacity !== lineOpacity) {
+        vp.strokeopacity = lineOpacity;
+        vp.highlightstrokeopacity = lineOpacity * 0.5;
+    }
+    if (vp.dash !== dash) {
+        vp.dash = dash;
+    }
+}
+
+/**
+ * Sync the `withlabel` attribute based on whether `labelForGraph` is
+ * non-empty, calling `setAttribute` only when the value actually changes.
+ * `previousWithLabelRef` tracks the last applied value across renders.
+ * Returns the resolved `withlabel` boolean.
+ */
+export function syncWithLabelToggle(
+    obj: SyncableJXG,
+    labelForGraph: string,
+    previousWithLabelRef: MutableRefObject<boolean | null>,
+): boolean {
+    const withlabel = labelForGraph !== "";
+    if (withlabel !== previousWithLabelRef.current) {
+        obj.setAttribute({ withlabel });
+        previousWithLabelRef.current = withlabel;
+    }
+    return withlabel;
+}
+
+/**
+ * Set a label's stroke color: either inherit the line color
+ * (`applyStyleToLabel`) or fall back to `var(--canvasText)`.
+ */
+export function syncLabelStrokeColor(
+    label: { visProp: Record<string, any> },
+    applyStyleToLabel: boolean,
+    lineColor: string,
+): void {
+    label.visProp.strokecolor = applyStyleToLabel
+        ? lineColor
+        : "var(--canvasText)";
 }

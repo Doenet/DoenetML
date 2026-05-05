@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState, useRef } from "react";
+import React, { useContext, useRef } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
@@ -6,18 +6,36 @@ import { BoardContext, LINE_LAYER_OFFSET, VERTEX_LAYER_OFFSET } from "./graph";
 import { MathJax } from "better-react-mathjax";
 import { textRendererStyle } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
-import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
-import { JXGObject } from "./jsxgraph-distrib/types";
+import { JXGLine, JXGPoint } from "./jsxgraph-distrib/types";
 import { ChoiceInputInlineContext } from "./choiceInput";
 import {
     applyLineFamilyLabelPlacement,
     buildLineFamilyLabelAttributes,
     stabilizeInitialLineFamilyLabelPlacement,
+    syncLabelStrokeColor,
+    syncLayer,
+    syncLineStrokeStyle,
+    syncWithLabelToggle,
 } from "./utils/jsxgraph";
+import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
+import { usePointerDragState } from "./utils/pointerDragState";
+import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
+import { exceededDragThreshold } from "./utils/dragThreshold";
+import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
+import { resolveLineColor } from "./utils/styleColors";
+import { styleToDash } from "./utils/styleToDash";
+
+interface VectorSVs extends DraggableGraphicalSVs {
+    numericalEndpoints: [number, number][];
+    tailDraggable: boolean;
+    headDraggable: boolean;
+    showCoordsWhenDragging: boolean;
+    latex: string;
+}
 
 export default React.memo(function Vector(props: UseDoenetRendererProps) {
     let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
-        useDoenetRenderer(props);
+        useDoenetRenderer<VectorSVs>(props);
 
     // @ts-ignore
     Vector.ignoreActionsWithoutCore = () => true;
@@ -25,14 +43,13 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
     const board = useContext(BoardContext);
     const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
 
-    let vectorJXG = useRef<JXGObject | null>(null);
-    let point1JXG = useRef<JXGObject | null>(null);
-    let point2JXG = useRef<JXGObject | null>(null);
+    let vectorJXG = useRef<JXGLine | null>(null);
+    let point1JXG = useRef<JXGPoint | null>(null);
+    let point2JXG = useRef<JXGPoint | null>(null);
 
-    let pointerAtDown = useRef<[number, number] | null>(null);
+    const dragState = usePointerDragState();
+    const { pointerAtDown, pointerIsDown, pointerMovedSinceDown } = dragState;
     let pointsAtDown = useRef<[number[], number[]] | null>(null);
-    let pointerIsDown = useRef(false);
-    let pointerMovedSinceDown = useRef(false);
     let headBeingDragged = useRef(false);
     let tailBeingDragged = useRef(false);
     let downOnPoint = useRef<number | null>(null);
@@ -42,7 +59,9 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
     let previousWithLabel = useRef<boolean | null>(null);
     let cancelInitialLabelPlacement = useRef<(() => void) | null>(null);
 
-    let lastPositionsFromCore = useRef<number[]>(SVs.numericalEndpoints);
+    let lastPositionsFromCore = useRef<[number, number][]>(
+        SVs.numericalEndpoints,
+    );
     let fixed = useRef(false);
     let fixLocation = useRef(false);
     let headDraggable = useRef(true);
@@ -56,26 +75,17 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
 
     const { darkMode } = useContext(DocContext) || {};
 
-    useEffect(() => {
+    useBoardPointerTracking(board, dragState);
+
+    React.useEffect(() => {
         //On unmount
         return () => {
             cancelInitialLabelPlacement.current?.();
-            // if vector is defined
             if (vectorJXG.current !== null) {
                 deleteVectorJXG();
             }
-
-            if (board) {
-                board.off("move", boardMoveHandler);
-            }
         };
     }, []);
-
-    useEffect(() => {
-        if (board) {
-            board.on("move", boardMoveHandler);
-        }
-    }, [board]);
 
     function createVectorJXG() {
         if (board === null) {
@@ -92,13 +102,9 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
             return;
         }
 
-        let layer = 10 * SVs.layer + LINE_LAYER_OFFSET;
         let pointLayer = 10 * SVs.layer + VERTEX_LAYER_OFFSET;
 
-        let lineColor =
-            darkMode === "dark"
-                ? SVs.selectedStyle.lineColorDarkMode
-                : SVs.selectedStyle.lineColor;
+        const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
 
         //things to be passed to JSXGraph as attributes
         var jsxVectorAttributes: Record<string, any> = {
@@ -106,7 +112,7 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
             visible: !SVs.hidden,
             withLabel: SVs.labelForGraph !== "",
             fixed: fixed.current,
-            layer,
+            layer: 10 * SVs.layer + LINE_LAYER_OFFSET,
             strokeColor: lineColor,
             strokeOpacity: SVs.selectedStyle.lineOpacity,
             highlightStrokeColor: lineColor,
@@ -142,7 +148,7 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
         let tailPointAttributes = Object.assign({}, jsxPointAttributes);
         let tailVisible = tailDraggable.current && !SVs.hidden;
         tailPointAttributes.visible = tailVisible;
-        let newPoint1JXG: JXGObject = board.create(
+        let newPoint1JXG: JXGPoint = board.create(
             "point",
             endpoints[0],
             tailPointAttributes,
@@ -151,7 +157,7 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
         let headPointAttributes = Object.assign({}, jsxPointAttributes);
         let headVisible = headDraggable.current && !SVs.hidden;
         headPointAttributes.visible = headVisible;
-        let newPoint2JXG: JXGObject = board.create(
+        let newPoint2JXG: JXGPoint = board.create(
             "point",
             endpoints[1],
             headPointAttributes,
@@ -165,7 +171,7 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
             lineColor,
         });
 
-        let newVectorJXG: JXGObject = board.create(
+        let newVectorJXG: JXGLine = board.create(
             "arrow",
             [newPoint1JXG, newPoint2JXG],
             jsxVectorAttributes,
@@ -438,21 +444,6 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
         previousWithLabel.current = SVs.labelForGraph !== "";
     }
 
-    function boardMoveHandler(e: { x: number; y: number }) {
-        if (pointerIsDown.current) {
-            //Protect against very small unintended move
-            if (
-                pointerAtDown.current &&
-                (Math.abs(e.x - pointerAtDown.current[0]) >
-                    POINTER_DRAG_THRESHOLD ||
-                    Math.abs(e.y - pointerAtDown.current[1]) >
-                        POINTER_DRAG_THRESHOLD)
-            ) {
-                pointerMovedSinceDown.current = true;
-            }
-        }
-    }
-
     function onDragHandler(
         e: { x: number; y: number; type: string },
         i: number,
@@ -460,17 +451,8 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
         if (vectorJXG.current === null || board === null) {
             return;
         }
-        let viaPointer = e.type === "pointermove";
 
-        //Protect against very small unintended drags
-        if (
-            !viaPointer ||
-            (pointerAtDown.current !== null &&
-                (Math.abs(e.x - pointerAtDown.current[0]) >
-                    POINTER_DRAG_THRESHOLD ||
-                    Math.abs(e.y - pointerAtDown.current[1]) >
-                        POINTER_DRAG_THRESHOLD))
-        ) {
+        if (exceededDragThreshold(e, pointerAtDown.current)) {
             if (i === 0) {
                 tailBeingDragged.current = true;
             } else if (i === 1) {
@@ -585,36 +567,17 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
             pointsAtDown.current !== null &&
             pointerAtDown.current !== null
         ) {
-            var o = board.origin.scrCoords;
-
-            let calculatedX =
-                (pointsAtDown.current[i][1] +
-                    e.x -
-                    pointerAtDown.current[0] -
-                    o[1]) /
-                board.unitX;
-            let calculatedY =
-                (o[2] -
-                    (pointsAtDown.current[i][2] +
-                        e.y -
-                        pointerAtDown.current[1])) /
-                board.unitY;
-            let pointCoords = [calculatedX, calculatedY];
-
-            return pointCoords;
-        } else {
-            if (i == 0) {
-                return [
-                    vectorJXG.current.point1.X(),
-                    vectorJXG.current.point1.Y(),
-                ];
-            } else {
-                return [
-                    vectorJXG.current.point2.X(),
-                    vectorJXG.current.point2.Y(),
-                ];
-            }
+            return pointerEventToUserCoords(
+                e,
+                pointerAtDown.current,
+                pointsAtDown.current[i] as [number, number, number],
+                board,
+            );
         }
+        if (i == 0) {
+            return [vectorJXG.current.point1.X(), vectorJXG.current.point1.Y()];
+        }
+        return [vectorJXG.current.point2.X(), vectorJXG.current.point2.Y()];
     }
 
     if (board) {
@@ -692,65 +655,38 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
                 }
             }
 
-            let layer = 10 * SVs.layer + LINE_LAYER_OFFSET;
-            let layerChanged = vectorJXG.current.visProp.layer !== layer;
-
-            if (layerChanged) {
-                let pointLayer = 10 * SVs.layer + VERTEX_LAYER_OFFSET;
-                vectorJXG.current.setAttribute({ layer });
+            // Endpoint layers must follow the vector's layer when it changes.
+            if (syncLayer(vectorJXG.current, SVs.layer, LINE_LAYER_OFFSET)) {
+                const pointLayer = 10 * SVs.layer + VERTEX_LAYER_OFFSET;
                 point1JXG.current.setAttribute({ layer: pointLayer });
                 point2JXG.current.setAttribute({ layer: pointLayer });
             }
 
-            let lineColor =
-                darkMode === "dark"
-                    ? SVs.selectedStyle.lineColorDarkMode
-                    : SVs.selectedStyle.lineColor;
+            const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
 
-            if (vectorJXG.current.visProp.strokecolor !== lineColor) {
-                vectorJXG.current.visProp.strokecolor = lineColor;
-                vectorJXG.current.visProp.highlightstrokecolor = lineColor;
-            }
-            if (
-                vectorJXG.current.visProp.strokewidth !==
-                SVs.selectedStyle.lineWidth
-            ) {
-                vectorJXG.current.visProp.strokewidth =
-                    SVs.selectedStyle.lineWidth;
-                vectorJXG.current.visProp.highlightstrokewidth =
-                    SVs.selectedStyle.lineWidth;
-            }
-            if (
-                vectorJXG.current.visProp.strokeopacity !==
-                SVs.selectedStyle.lineOpacity
-            ) {
-                vectorJXG.current.visProp.strokeopacity =
-                    SVs.selectedStyle.lineOpacity;
-                vectorJXG.current.visProp.highlightstrokeopacity =
-                    SVs.selectedStyle.lineOpacity * 0.5;
-            }
-            let newDash = styleToDash(SVs.selectedStyle.lineStyle);
-            if (vectorJXG.current.visProp.dash !== newDash) {
-                vectorJXG.current.visProp.dash = newDash;
-            }
+            syncLineStrokeStyle(vectorJXG.current, {
+                lineColor,
+                lineWidth: SVs.selectedStyle.lineWidth,
+                lineOpacity: SVs.selectedStyle.lineOpacity,
+                dash: styleToDash(SVs.selectedStyle.lineStyle),
+            });
 
             vectorJXG.current.name = SVs.labelForGraph;
 
-            let withlabel = SVs.labelForGraph !== "";
-            if (withlabel != previousWithLabel.current) {
-                vectorJXG.current.setAttribute({ withlabel: withlabel });
-                previousWithLabel.current = withlabel;
-            }
+            syncWithLabelToggle(
+                vectorJXG.current,
+                SVs.labelForGraph,
+                previousWithLabel,
+            );
 
             vectorJXG.current.needsUpdate = true;
             vectorJXG.current.update();
-            if (vectorJXG.current.hasLabel) {
-                if (SVs.applyStyleToLabel) {
-                    vectorJXG.current.label.visProp.strokecolor = lineColor;
-                } else {
-                    vectorJXG.current.label.visProp.strokecolor =
-                        "var(--canvasText)";
-                }
+            if (vectorJXG.current.hasLabel && vectorJXG.current.label) {
+                syncLabelStrokeColor(
+                    vectorJXG.current.label,
+                    SVs.applyStyleToLabel,
+                    lineColor,
+                );
 
                 applyLineFamilyLabelPlacement({
                     board,
@@ -791,15 +727,3 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
         </span>
     );
 });
-
-function styleToDash(style: string) {
-    if (style === "solid") {
-        return 0;
-    } else if (style === "dashed") {
-        return 2;
-    } else if (style === "dotted") {
-        return 1;
-    } else {
-        return 0;
-    }
-}
