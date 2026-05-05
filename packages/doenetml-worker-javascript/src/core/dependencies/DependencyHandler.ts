@@ -1,11 +1,12 @@
-// @ts-nocheck
 // `DependencyHandler` was extracted from the original ~10k-line
-// `Dependencies.js` and is still loosely typed JavaScript at heart;
-// converting the body to type-checked TypeScript is a multi-PR effort
-// (see `CORE_REFACTOR_DEFERRED.md`). The public surface below mirrors the
-// hand-written `Dependencies.d.ts` shim that this file replaces, so
-// callers (today, only `Core.ts`) get the same types they did before.
+// `Dependencies.js`. The body is still loosely typed (most internal bags
+// are `any` / `Record<string, any>`); the field declarations and method
+// signatures below capture the surface that callers — today
+// `Core.ts` plus the other extracted managers — depend on.
 
+import type Core from "../../Core";
+import type { ComponentInstance } from "../../types/componentInstance";
+import type { ComponentInfoObjects } from "../../utils/componentInfoObjects";
 import type { ComponentIdx } from "@doenet/utils";
 import { deepClone, deepCompare, getLineCharRange } from "@doenet/utils";
 import { deriveChildResultsFromDefiningChildren } from "../ChildMatcher";
@@ -39,29 +40,31 @@ export interface DependencyUpdateTriggers {
 }
 
 /**
- * Constructor argument for `DependencyHandler`. Mirrors the destructure in
- * the constructor below.
+ * Constructor argument for `DependencyHandler`. `_components` and
+ * `componentInfoObjects` are sourced from the owning `Core`; the
+ * three-arg shape preserves what the JavaScript constructor used and lets
+ * the back-references be re-bound separately during tests.
  */
 export interface DependencyHandlerOptions {
-    _components: any[];
-    componentInfoObjects: any;
-    core: any;
+    _components: ComponentInstance[];
+    componentInfoObjects: ComponentInfoObjects;
+    core: Core;
 }
 
-/**
- * Public field types for `DependencyHandler` consumed by `Core` and the
- * extracted core managers. Declaration-merged with the class below so that
- * other modules see typed members even though the implementation is
- * `@ts-nocheck`. Method signatures are NOT declared here — class+interface
- * merge resolves duplicate methods to the class's inferred signature, so
- * methods that callers depend on are annotated directly on the class
- * below (look for explicit `: Promise<any>` / similar return types).
- *
- * Update this when callers begin reading a new property on
- * `core.dependencies`.
- */
-export interface DependencyHandler {
+export class DependencyHandler {
+    /** Index signature: subclass dependencies set arbitrary fields on the
+     * handler during graph walks, and the bodies below still mirror that
+     * dynamic JS pattern. Declared fields below take precedence at the
+     * type level. */
     [key: string]: any;
+
+    /** Read-only snapshot of every component the dependency graph knows
+     * about; same array reference Core holds in `_components`. */
+    _components: ComponentInstance[];
+    /** Component-class metadata table provided by Core. */
+    componentInfoObjects: ComponentInfoObjects;
+    /** Back-reference to the owning Core instance. */
+    core: Core;
 
     /** `upstreamDependencies[componentIdx][stateVariable]` → upstream entries. */
     upstreamDependencies: Record<ComponentIdx, Record<string, any>>;
@@ -79,10 +82,12 @@ export interface DependencyHandler {
         resolveBlockedBy: Record<string, any>;
     };
     attributeRefResolutionDependenciesByReferenced: Record<ComponentIdx, any>;
-}
 
-export class DependencyHandler {
-    constructor({ _components, componentInfoObjects, core }) {
+    constructor({
+        _components,
+        componentInfoObjects,
+        core,
+    }: DependencyHandlerOptions) {
         this.upstreamDependencies = {};
         this.downstreamDependencies = {};
         this.switchDependencies = {};
@@ -119,7 +124,7 @@ export class DependencyHandler {
         this.attributeRefResolutionDependenciesByReferenced = {};
     }
 
-    async setUpComponentDependencies(component) {
+    async setUpComponentDependencies(component: ComponentInstance) {
         // if component already has downstream dependencies
         // delete them, and the corresponding upstream dependencies
         if (this.downstreamDependencies[component.componentIdx]) {
@@ -132,8 +137,8 @@ export class DependencyHandler {
             this.upstreamDependencies[component.componentIdx] = {};
         }
 
-        let stateVariablesToProccess = [];
-        let additionalStateVariablesThatWillBeProcessed = [];
+        let stateVariablesToProccess: string[] = [];
+        let additionalStateVariablesThatWillBeProcessed: string[] = [];
         for (let stateVariable in component.state) {
             if (
                 !(
@@ -181,12 +186,12 @@ export class DependencyHandler {
         component,
         stateVariable,
         allStateVariablesAffected,
-    }) {
+    }: any) {
         let stateVarObj = component.state[stateVariable];
         let dependencies;
 
         if (stateVarObj.stateVariablesDeterminingDependencies) {
-            dependencies = {};
+            dependencies = {} as Record<string, any>;
 
             if (stateVarObj.stateVariablesDeterminingDependencies) {
                 dependencies.__determine_dependencies = {
@@ -277,7 +282,7 @@ export class DependencyHandler {
         component,
         stateVariables = "__all__",
         completelyDelete = false,
-    }) {
+    }: any) {
         // if completelyDelete is false, then just remove component from dependency
 
         // console.log(`delete all upstream dependencies of ${component.componentIdx}, ${stateVariables.toString()}`)
@@ -350,7 +355,7 @@ export class DependencyHandler {
     async addBlockersFromChangedStateVariableDependencies({
         componentIdx,
         stateVariables,
-    }) {
+    }: any) {
         let triggersForComponent =
             this.updateTriggers.dependenciesBasedOnDependenciesOfStateVariables[
                 componentIdx
@@ -393,7 +398,7 @@ export class DependencyHandler {
         }
     }
 
-    async addBlockersFromChangedActiveChildren({ parent }) {
+    async addBlockersFromChangedActiveChildren({ parent }: any) {
         // console.log(`add blockers to dependencies of active children of ${parent.componentIdx}`)
 
         await this.collateCountersAndPropagateToAncestors(parent);
@@ -485,7 +490,7 @@ export class DependencyHandler {
         }
     }
 
-    async resolveBlockersFromChangedActiveChildren(parent, force = false) {
+    async resolveBlockersFromChangedActiveChildren(parent: any, force = false) {
         // console.log(`resolve blockers for dependencies of active children of ${parent.componentIdx}`)
 
         await this.collateCountersAndPropagateToAncestors(parent);
@@ -559,7 +564,7 @@ export class DependencyHandler {
         }
     }
 
-    async addDescendantBlockersToAncestor(ancestorIdx) {
+    async addDescendantBlockersToAncestor(ancestorIdx: ComponentIdx) {
         // console.log(`update descendant dependencies for ${ancestorIdx}`)
 
         if (this.updateTriggers.descendantDependenciesByAncestor[ancestorIdx]) {
@@ -584,7 +589,10 @@ export class DependencyHandler {
         }
     }
 
-    async resolveDescendantBlockersToAncestor(ancestorIdx, force = false) {
+    async resolveDescendantBlockersToAncestor(
+        ancestorIdx: ComponentIdx,
+        force = false,
+    ) {
         // console.log(`update descendant dependencies for ${ancestorIdx}`)
 
         if (this.updateTriggers.descendantDependenciesByAncestor[ancestorIdx]) {
@@ -602,7 +610,7 @@ export class DependencyHandler {
         }
     }
 
-    async addBlockersFromChangedReplacements(composite) {
+    async addBlockersFromChangedReplacements(composite: any) {
         if (
             this.updateTriggers.replacementDependenciesByComposite[
                 composite.componentIdx
@@ -636,7 +644,7 @@ export class DependencyHandler {
         componentIdx,
         varName,
         previouslyVisited = [],
-    }) {
+    }: any) {
         let stateVariableIdentifier = componentIdx + ":" + varName;
 
         if (previouslyVisited.includes(stateVariableIdentifier)) {
@@ -651,7 +659,10 @@ export class DependencyHandler {
 
             let componentNameRe = /^(.*):/;
             let componentsInvolved = previouslyVisited.map(
-                (x) => this.components[x.match(componentNameRe)[1]],
+                (x: string) =>
+                    this.components[
+                        x.match(componentNameRe)![1] as unknown as number
+                    ],
             );
 
             let message = this.getCircularDependencyMessage(componentsInvolved);
@@ -701,7 +712,7 @@ export class DependencyHandler {
         }
     }
 
-    resetCircularCheckPassed(componentIdx, varName) {
+    resetCircularCheckPassed(componentIdx: ComponentIdx, varName: string) {
         let stateVariableIdentifier = componentIdx + ":" + varName;
         if (this.circularCheckPassed[stateVariableIdentifier]) {
             delete this.circularCheckPassed[stateVariableIdentifier];
@@ -723,7 +734,7 @@ export class DependencyHandler {
         }
     }
 
-    async updateDependencies({ componentIdx, stateVariable, dependency }) {
+    async updateDependencies({ componentIdx, stateVariable, dependency }: any) {
         // console.log(`update dependencies of ${stateVariable} of ${componentIdx}`)
 
         let component = this._components[componentIdx];
@@ -755,7 +766,7 @@ export class DependencyHandler {
                         let resolved = comp.state[vName].isResolved;
 
                         if (!resolved) {
-                            let result = await this.resolveItem({
+                            let result: any = await this.resolveItem({
                                 componentIdx: cIdx,
                                 type: "stateVariable",
                                 stateVariable: vName,
@@ -813,7 +824,7 @@ export class DependencyHandler {
             stateValues: Object.assign({}, dependencyResult.value.stateValues),
             componentInfoObjects: this.componentInfoObjects,
             sharedParameters: component.sharedParameters,
-        };
+        } as Record<string, any>;
 
         let newDependencies =
             await stateVarObj.returnDependencies(returnDepArgs);
@@ -895,7 +906,7 @@ export class DependencyHandler {
         stateVariable,
         newDependencies,
         allStateVariablesAffected,
-    }) {
+    }: any) {
         // Note: currentDeps object is downstream dependencies
         // of allStateVariablesAffected
         let currentDeps =
@@ -959,12 +970,12 @@ export class DependencyHandler {
         return { changedDependency, newlyCreatedDependencies };
     }
 
-    async checkForDependenciesOnNewComponent(componentIdx) {
+    async checkForDependenciesOnNewComponent(componentIdx: ComponentIdx) {
         // console.log(`check for dependencies on new component ${componentIdx}`)
 
-        let variablesChanged = [];
+        let variablesChanged: any[] = [];
 
-        let variablesJustResolved = {};
+        let variablesJustResolved: Record<string, any> = {};
 
         if (
             this.updateTriggers.dependenciesMissingComponentBySpecifiedName[
@@ -1082,10 +1093,10 @@ export class DependencyHandler {
         component,
         stateVariable,
         consumeChanges = true,
-    }): Promise<any> {
-        let dependencyValues = {};
-        let dependencyChanges = {};
-        let dependencyUsedDefault = {};
+    }: any): Promise<any> {
+        let dependencyValues: Record<string, any> = {};
+        let dependencyChanges: Record<string, any> = {};
+        let dependencyUsedDefault: Record<string, any> = {};
 
         let downDeps =
             this.downstreamDependencies[component.componentIdx][stateVariable];
@@ -1151,9 +1162,14 @@ export class DependencyHandler {
                                 if (
                                     component.stateVarAliases[alias] ===
                                         varName &&
+                                    // @ts-expect-error see "Note (dated July 20, 2023)" above:
+                                    // `upValuesChangedSub` is undefined; keeping the
+                                    // reference verbatim so behavior matches the JS source.
                                     alias in upValuesChangedSub
                                 ) {
-                                    upValuesChanged = upValuesChangedSub[alias];
+                                    upValuesChanged =
+                                        // @ts-expect-error same as above
+                                        upValuesChangedSub[alias];
                                 }
                             }
                         }
@@ -1168,9 +1184,9 @@ export class DependencyHandler {
                                 `Something is wrong, as a variable ${varName} of ${component.componentIdx} actually changed, but wasn't marked with a potential change`,
                             );
                         }
-                        upValuesChanged = upValuesChangedSub[varName] = {
-                            changed: {},
-                        };
+                        upValuesChanged =
+                            // @ts-expect-error same as above
+                            upValuesChangedSub[varName] = { changed: {} };
                     }
 
                     if (
@@ -1206,7 +1222,7 @@ export class DependencyHandler {
         }
     }
 
-    async collateCountersAndPropagateToAncestors(component) {
+    async collateCountersAndPropagateToAncestors(component: any): Promise<any> {
         let allCounterNames = Object.keys(component.counters);
         for (let childIdx of component.allChildrenOrdered) {
             let child = this._components[childIdx];
@@ -1250,7 +1266,9 @@ export class DependencyHandler {
 
             if (
                 componentList.length !== counters.componentList.length ||
-                counters.componentList.some((v, i) => v != componentList[i])
+                counters.componentList.some(
+                    (v: any, i: number) => v != componentList[i],
+                )
             ) {
                 foundChange = true;
                 counters.componentList = componentList;
@@ -1326,7 +1344,7 @@ export class DependencyHandler {
         };
     }
 
-    getNeededToResolve({ componentIdx, type, stateVariable, dependency }) {
+    getNeededToResolve({ componentIdx, type, stateVariable, dependency }: any) {
         let neededToResolveForComponent =
             this.resolveBlockers.neededToResolve[componentIdx];
         if (!neededToResolveForComponent) {
@@ -1369,7 +1387,7 @@ export class DependencyHandler {
         blockerType,
         blockerCode,
         deleteFromReciprocal = true,
-    }) {
+    }: any) {
         // console.log(`delete from needed to resolve ${componentIdxBlocked}, ${typeBlocked}, ${stateVariableBlocked}, ${dependencyBlocked}, ${blockerType}, ${blockerCode}`)
         // console.log(JSON.parse(JSON.stringify(this.resolveBlockers)))
 
@@ -1381,7 +1399,12 @@ export class DependencyHandler {
             }
         }
 
-        let deleteBlockerTypeAndCode = function (neededObj) {
+        // Arrow function so `this` resolves to the surrounding class
+        // instance (the original JS authored these as `function`
+        // expressions; the calls inside use `this.deleteFromResolveBlockedBy`,
+        // so the lexical-`this` form matches the runtime behavior the
+        // tests already exercise).
+        let deleteBlockerTypeAndCode = (neededObj: any) => {
             if (blockerType) {
                 if (neededObj[blockerType]) {
                     if (blockerCode) {
@@ -1466,7 +1489,7 @@ export class DependencyHandler {
                     }
                 }
             }
-        }.bind(this);
+        };
 
         let neededToResolveForComponent =
             this.resolveBlockers.neededToResolve[componentIdxBlocked];
@@ -1554,7 +1577,7 @@ export class DependencyHandler {
         type,
         stateVariable,
         dependency,
-    }) {
+    }: any) {
         let neededToResolveForComponent =
             this.resolveBlockers.neededToResolve[componentIdx];
         if (!neededToResolveForComponent) {
@@ -1587,7 +1610,12 @@ export class DependencyHandler {
         return Object.keys(neededToResolve).length > 0;
     }
 
-    getResolveBlockedBy({ componentIdx, type, stateVariable, dependency }) {
+    getResolveBlockedBy({
+        componentIdx,
+        type,
+        stateVariable,
+        dependency,
+    }: any) {
         let resolveBlockedByComponent =
             this.resolveBlockers.resolveBlockedBy[componentIdx];
         if (!resolveBlockedByComponent) {
@@ -1630,7 +1658,7 @@ export class DependencyHandler {
         typeBlocked,
         codeBlocked,
         deleteFromReciprocal = true,
-    }) {
+    }: any) {
         // console.log(`delete from resolve blocked by ${blockerComponentIdx}, ${blockerType}, ${blockerStateVariable}, ${blockerDependency}, ${typeBlocked}, ${codeBlocked}`)
         // console.log(JSON.parse(JSON.stringify(this.resolveBlockers)))
 
@@ -1642,7 +1670,10 @@ export class DependencyHandler {
             }
         }
 
-        let deleteTypeAndCodeBlocked = function (neededObj) {
+        // Arrow form for the same reason as `deleteBlockerTypeAndCode`
+        // above — the body uses `this.<method>` so it must lexically
+        // capture the surrounding class instance.
+        let deleteTypeAndCodeBlocked = (neededObj: any) => {
             if (typeBlocked) {
                 if (neededObj[typeBlocked]) {
                     if (codeBlocked) {
@@ -1728,7 +1759,7 @@ export class DependencyHandler {
                     }
                 }
             }
-        }.bind(this);
+        };
 
         let resolveBlockedByForComponent =
             this.resolveBlockers.resolveBlockedBy[blockerComponentIdx];
@@ -1820,7 +1851,7 @@ export class DependencyHandler {
         typeBlocked,
         stateVariableBlocked,
         dependencyBlocked,
-    }) {
+    }: any) {
         let blockerCode = blockerComponentIdx.toString();
         if (blockerStateVariable) {
             blockerCode += "|" + blockerStateVariable;
@@ -1938,7 +1969,7 @@ export class DependencyHandler {
         expandComposites = true,
         force = false,
         recurseUpstream = false,
-    }) {
+    }: any) {
         // console.log(`process newly resolved ${componentIdxNewlyResolved}, ${typeNewlyResolved}, ${stateVariableNewlyResolved}`)
 
         // Note: even if expandComposites=false and force=false
@@ -2275,7 +2306,7 @@ export class DependencyHandler {
         expandComposites = true,
         force = false,
         recurseUpstream = false,
-    }) {
+    }: any) {
         // console.log(`resolve if ready ${componentIdx}, ${type}, ${stateVariable}, ${dependency}`)
 
         let haveNeededToResolve = this.checkIfHaveNeededToResolve({
@@ -2321,7 +2352,7 @@ export class DependencyHandler {
         recurseUpstream = false,
         expandComposites = true,
         numPreviouslyNeeded,
-    }: any) {
+    }: any): Promise<any> {
         // if (!this.resolveLevels) {
         //   this.resolveLevels = 0;
         // }
@@ -2357,7 +2388,7 @@ export class DependencyHandler {
                         ? blockerCode.split("|")
                         : [blockerCode];
 
-                let result = await this.resolveItem({
+                let result: any = await this.resolveItem({
                     componentIdx: blockerComponentIdx,
                     type: "determineDependencies",
                     stateVariable: blockerStateVariable,
@@ -2420,7 +2451,7 @@ export class DependencyHandler {
                         blockerDependency,
                     ] = typeof code === "string" ? code.split("|") : [code];
 
-                    let result = await this.resolveItem({
+                    let result: any = await this.resolveItem({
                         componentIdx: blockerComponentIdx,
                         type: blockerType,
                         stateVariable: blockerStateVariable,
@@ -2470,7 +2501,7 @@ export class DependencyHandler {
                             blockerDependency,
                         ] = typeof code === "string" ? code.split("|") : [code];
 
-                        let result = await this.resolveItem({
+                        let result: any = await this.resolveItem({
                             componentIdx: blockerComponentIdx,
                             type: blockerType,
                             stateVariable: blockerStateVariable,
@@ -2550,7 +2581,7 @@ export class DependencyHandler {
         stateVariable,
         dependency,
         previouslyVisited = [],
-    }) {
+    }: any) {
         let code = componentIdx.toString();
         if (stateVariable) {
             code += "|" + stateVariable;
@@ -2570,7 +2601,10 @@ export class DependencyHandler {
             let componentNameRe = /^([^|]*)\|/;
 
             let componentsInvolved = previouslyVisited.map(
-                (x) => this.components[x.match(componentNameRe)[1]],
+                (x: string) =>
+                    this.components[
+                        x.match(componentNameRe)![1] as unknown as number
+                    ],
             );
 
             let message = this.getCircularDependencyMessage(componentsInvolved);
@@ -2614,10 +2648,10 @@ export class DependencyHandler {
         }
     }
 
-    getCircularDependencyMessage(componentsInvolved) {
-        let uniqueComponentNames = [];
-        let componentTypesForUniqueNames = [];
-        let linesForUniqueNames = [];
+    getCircularDependencyMessage(componentsInvolved: any[]) {
+        let uniqueComponentNames: any[] = [];
+        let componentTypesForUniqueNames: any[] = [];
+        let linesForUniqueNames: any[] = [];
 
         // remove internally created component names
         // and deduplicate while keeping order (so don't use Set)
@@ -2710,7 +2744,7 @@ export class DependencyHandler {
         type,
         stateVariable,
         dependency,
-    }) {
+    }: any) {
         let code = componentIdx.toString();
         if (stateVariable) {
             code += "|" + stateVariable;
@@ -2758,7 +2792,8 @@ export class DependencyHandler {
         // return new Proxy(this._components, readOnlyProxyHandler);
     }
 
-    set components(value) {
-        return null;
+    set components(_value: any) {
+        // intentional no-op — `components` is read-only by design but the
+        // setter exists to match the historical API surface.
     }
 }

@@ -1,8 +1,9 @@
-// @ts-nocheck
-// Concrete dependency subclasses extracted from the original
-// `Dependencies.js`. Type checking is disabled file-wide because the
-// classes inherit a dynamic field set from `Dependency` and were
-// untyped JavaScript prior to the split.
+/**
+ * Dependency subclasses that walk downward through the component tree —
+ * `ChildDependency` (active children matched against component-type
+ * filters) and `DescendantDependency` (recursive variant via
+ * `gatherDescendants`).
+ */
 
 import { Dependency } from "./Dependency";
 import { gatherDescendants } from "../../utils/descendants";
@@ -39,7 +40,7 @@ export class ChildDependency extends Dependency {
         }
 
         if (this.definition.childIndices !== undefined) {
-            this.childIndices = this.definition.childIndices.map((x) =>
+            this.childIndices = this.definition.childIndices.map((x: any) =>
                 Number(x),
             );
         }
@@ -64,7 +65,7 @@ export class ChildDependency extends Dependency {
 
         this.downstreamPrimitives = [];
 
-        let parent = this.dependencyHandler._components[this.parentIdx];
+        let parent: any = this.dependencyHandler._components[this.parentIdx];
 
         if (!parent) {
             let dependenciesMissingComponent =
@@ -138,8 +139,8 @@ export class ChildDependency extends Dependency {
         // (not actual index in activeChildren)
         // so filter uses the i argument, not the x argument
         if (this.childIndices) {
-            activeChildrenIndices = activeChildrenIndices.filter((x, i) =>
-                this.childIndices.includes(i),
+            activeChildrenIndices = activeChildrenIndices.filter(
+                (x: any, i: number) => this.childIndices.includes(i),
             );
         }
 
@@ -149,7 +150,7 @@ export class ChildDependency extends Dependency {
             if (parent.childrenMatchedWithPlaceholders) {
                 if (this.skipPlaceholders) {
                     activeChildrenIndices = activeChildrenIndices.filter(
-                        (x) =>
+                        (x: any) =>
                             !parent.placeholderActiveChildrenIndices.includes(
                                 x,
                             ),
@@ -169,7 +170,7 @@ export class ChildDependency extends Dependency {
                     // then we can proceed only if we aren't asking for any placeholder children
 
                     canProceedWithPlaceholders = activeChildrenIndices.every(
-                        (x) =>
+                        (x: any) =>
                             !parent.placeholderActiveChildrenIndices.includes(
                                 x,
                             ),
@@ -264,7 +265,8 @@ export class ChildDependency extends Dependency {
                                 ];
                             if (
                                 inds.every(
-                                    (x) => !activeChildrenIndices.includes(x),
+                                    (x: any) =>
+                                        !activeChildrenIndices.includes(x),
                                 )
                             ) {
                                 continue;
@@ -319,7 +321,7 @@ export class ChildDependency extends Dependency {
         }
 
         let activeChildrenMatched = activeChildrenIndices.map(
-            (x) => parent.activeChildren[x],
+            (x: any) => parent.activeChildren[x],
         );
 
         this.compositeReplacementRange = [];
@@ -455,7 +457,7 @@ export class ChildDependency extends Dependency {
 
         if (
             this.originalDownstreamVariableNames.includes("hidden") &&
-            this.downstreamPrimitives.find((x) => x !== null)
+            this.downstreamPrimitives.find((x: any) => x !== null)
         ) {
             // We are asking for the hidden state variable and the result includes primitives.
             // Since primitives don't have a hidden state variable, we instead depend on the hidden state variable
@@ -489,7 +491,7 @@ export class ChildDependency extends Dependency {
         };
     }
 
-    async getValue({ verbose, consumeChanges = true } = {}) {
+    async getValue({ verbose, consumeChanges = true }: any = {}) {
         let result = await this.getValueNoProxy({
             verbose,
             consumeChanges,
@@ -520,7 +522,7 @@ export class ChildDependency extends Dependency {
             }
         }
 
-        let resultValueWithPrimitives = [];
+        let resultValueWithPrimitives: any = [];
         let resultInd = 0;
 
         for (let primitiveOrNull of this.downstreamPrimitives) {
@@ -541,7 +543,8 @@ export class ChildDependency extends Dependency {
             this.downstreamPrimitives.length !==
                 this.previousDownstreamPrimitives.length ||
             this.downstreamPrimitives.some(
-                (v, i) => v !== this.previousDownstreamPrimitives[i],
+                (v: any, i: number) =>
+                    v !== this.previousDownstreamPrimitives[i],
             )
         ) {
             result.changes.componentIdentitiesChanged = true;
@@ -586,7 +589,6 @@ export class ChildDependency extends Dependency {
         }
     }
 }
-
 
 export class DescendantDependency extends Dependency {
     static dependencyType = "descendant";
@@ -799,14 +801,18 @@ export class DescendantDependency extends Dependency {
 
         return {
             success: true,
-            downstreamComponentIndices: descendants.map((x) => x.componentIdx),
-            downstreamComponentTypes: descendants.map((x) => x.componentType),
+            downstreamComponentIndices: descendants.map(
+                (x: any) => x.componentIdx,
+            ),
+            downstreamComponentTypes: descendants.map(
+                (x: any) => x.componentType,
+            ),
         };
     }
 
-    gatherUnexpandedComposites(component) {
-        let unexpandedCompositesReadyByParentName = {};
-        let unexpandedCompositesNotReadyByParentName = {};
+    gatherUnexpandedComposites(component: any) {
+        let unexpandedCompositesReadyByParentName: Record<string, any> = {};
+        let unexpandedCompositesNotReadyByParentName: Record<string, any> = {};
         let haveUnexpandedCompositeReady = false;
         let haveCompositesNotReady = false;
 
@@ -890,8 +896,8 @@ export class DescendantDependency extends Dependency {
     }
 
     unexpandedCompositesAdjustedForPlacedholders(
-        unexpandedComposites,
-        placeholdersOKForMatchedDescendants,
+        unexpandedComposites: any,
+        placeholdersOKForMatchedDescendants: any,
     ) {
         let adjustedUnexpanded = [];
         for (let compositeIdx of unexpandedComposites) {
@@ -903,7 +909,7 @@ export class DescendantDependency extends Dependency {
                         composite.attributes.createComponentOfType.primitive.value.toLowerCase()
                     ];
 
-                let matches = this.componentTypes.some((ct) =>
+                let matches = this.componentTypes.some((ct: any) =>
                     this.dependencyHandler.componentInfoObjects.isInheritedComponentType(
                         {
                             inheritedComponentType: placeholderType,
@@ -957,4 +963,3 @@ export class DescendantDependency extends Dependency {
         }
     }
 }
-

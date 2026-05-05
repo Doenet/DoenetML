@@ -1,8 +1,8 @@
-// @ts-nocheck
-// Concrete dependency subclasses extracted from the original
-// `Dependencies.js`. Type checking is disabled file-wide because the
-// classes inherit a dynamic field set from `Dependency` and were
-// untyped JavaScript prior to the split.
+/**
+ * Dependency subclasses that resolve string-style component references
+ * (e.g. `<copy target="…">`) and the attribute-ref machinery used by
+ * those references.
+ */
 
 import { Dependency } from "./Dependency";
 
@@ -68,7 +68,7 @@ export class RefResolutionIndexDependencies extends Dependency {
     // - success: true,
     // - componentList: a list of the component indices of the "integer" components found in the unresolved path
     // Throw an error if an index of unresolved path does not contain either a string or a single integer component
-    async gatherComponentsInPath(originalPath) {
+    async gatherComponentsInPath(originalPath: any) {
         const componentList = [];
         let foundUnexpanded = false;
         for (const path_part of originalPath) {
@@ -154,7 +154,6 @@ export class RefResolutionIndexDependencies extends Dependency {
         );
     }
 }
-
 
 /**
  * A dependency that attempts to resolve the `originalPath` of a `refResolution` on a composite component.
@@ -345,7 +344,7 @@ export class RefResolutionDependency extends Dependency {
         // );
 
         try {
-            refResolution = this.dependencyHandler.core.resolvePath(
+            refResolution = this.dependencyHandler.core.resolvePath!(
                 { path: resolveComponentResult.path },
                 composite.refResolution.nodesInResolvedPath[0],
                 skip_parent_search,
@@ -537,7 +536,10 @@ export class RefResolutionDependency extends Dependency {
      * Note: we use strings rather than numbers for the literal indices
      * so that the unresolved path follows the `FlatPathPart` assumed by the resolver.
      */
-    async resolveComponentsInPathIndices(path) {
+    async resolveComponentsInPathIndices(
+        path: any,
+        _force?: boolean,
+    ): Promise<any> {
         const pathWithResolvedIndexComponents = [];
         for (const path_part of path) {
             let index = [];
@@ -637,7 +639,6 @@ export class RefResolutionDependency extends Dependency {
     }
 }
 
-
 /**
  * A dependency that gives the resolutions of references from an attribute
  * that was marked `createReferences: true`.
@@ -695,10 +696,10 @@ export class AttributeRefResolutions extends Dependency {
             return {
                 success: true,
                 downstreamComponentIndices: attribute.references.map(
-                    (comp) => comp.componentIdx,
+                    (comp: any) => comp.componentIdx,
                 ),
                 downstreamComponentTypes: attribute.references.map(
-                    (comp) => comp.componentType,
+                    (comp: any) => comp.componentType,
                 ),
             };
         } else {
@@ -800,7 +801,7 @@ export class AttributeRefResolutions extends Dependency {
                     .attributeRefResolutionDependenciesByReferenced[extendIdx];
             if (attributeRefResolutionDeps) {
                 let ind = attributeRefResolutionDeps.findIndex(
-                    (entry) => entry.dependency === this,
+                    (entry: any) => entry.dependency === this,
                 );
                 if (ind !== -1) {
                     attributeRefResolutionDeps.splice(ind, 1);
@@ -809,7 +810,6 @@ export class AttributeRefResolutions extends Dependency {
         }
     }
 }
-
 
 /**
  * A dependency that gives the list of components that reference
@@ -872,14 +872,14 @@ export class ComponentsReferencingAttributeDependency extends Dependency {
         if (attributeRefResolutionDeps) {
             if (!this.allowUnresolvedPath) {
                 attributeRefResolutionDeps = attributeRefResolutionDeps.filter(
-                    (entry) =>
+                    (entry: any) =>
                         entry.composite.stateValues.unresolvedPath === null,
                 );
             }
 
             if (this.attributeName) {
                 attributeRefResolutionDeps = attributeRefResolutionDeps.filter(
-                    (entry) =>
+                    (entry: any) =>
                         entry.dependency.attributeName === this.attributeName,
                 );
             }
@@ -916,7 +916,6 @@ export class ComponentsReferencingAttributeDependency extends Dependency {
         }
     }
 }
-
 
 /**
  * A dependency that gives the (non-blank) strings from an attribute
@@ -984,7 +983,6 @@ export class StringsFromReferenceAttribute extends Dependency {
         }
     }
 }
-
 
 /**
  * A dependency that gives the `rendererId` of the specified component,
@@ -1054,4 +1052,3 @@ export class RendererId extends Dependency {
         }
     }
 }
-

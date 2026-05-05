@@ -1,8 +1,7 @@
-// @ts-nocheck
-// Concrete dependency subclasses extracted from the original
-// `Dependencies.js`. Type checking is disabled file-wide because the
-// classes inherit a dynamic field set from `Dependency` and were
-// untyped JavaScript prior to the split.
+/**
+ * Dependency subclasses that walk upward through the component tree
+ * (parent / parent identity / ancestor lookups).
+ */
 
 import { Dependency } from "./Dependency";
 
@@ -219,7 +218,6 @@ export class ParentDependency extends Dependency {
     }
 }
 
-
 export class ParentIdentityDependency extends Dependency {
     static dependencyType = "parentIdentity";
 
@@ -418,7 +416,6 @@ export class ParentIdentityDependency extends Dependency {
     }
 }
 
-
 export class AncestorDependency extends Dependency {
     static dependencyType = "ancestor";
 
@@ -614,8 +611,8 @@ export class AncestorDependency extends Dependency {
         }
     }
 
-    findMatchingAncestor(descendant) {
-        let ancestorsExamined = [];
+    findMatchingAncestor(descendant: any): any {
+        let ancestorsExamined: any[] = [];
 
         if (this.componentType) {
             for (let ancestor of descendant.ancestors) {
@@ -739,4 +736,3 @@ export class AncestorDependency extends Dependency {
         }
     }
 }
-

@@ -1,8 +1,8 @@
-// @ts-nocheck
-// Concrete dependency subclasses extracted from the original
-// `Dependencies.js`. Type checking is disabled file-wide because the
-// classes inherit a dynamic field set from `Dependency` and were
-// untyped JavaScript prior to the split.
+/**
+ * Dependency on the replacements of a composite component. Optionally
+ * recurses through nested composites so that nested replacement values
+ * roll up.
+ */
 
 import { Dependency } from "./Dependency";
 import { recursivelyReplaceCompositesWithReplacements } from "../CompositeExpander";
@@ -67,7 +67,8 @@ export class ReplacementDependency extends Dependency {
 
         this.replacementPrimitives = [];
 
-        let composite = this.dependencyHandler._components[this.compositeIdx];
+        let composite: any =
+            this.dependencyHandler._components[this.compositeIdx];
 
         if (!composite) {
             let dependenciesMissingComponent =
@@ -267,7 +268,7 @@ export class ReplacementDependency extends Dependency {
             // Rationale: we do not have a mechanism for linking a string to its replacement source,
             // so returning the string would it unlinked and inconsistent with other cases.
             let nonBlankStringReplacements = replacements.filter(
-                (x) => typeof x !== "string" || x.trim() !== "",
+                (x: any) => typeof x !== "string" || x.trim() !== "",
             );
             let theReplacement =
                 nonBlankStringReplacements[this.sourceIndex - 1];
@@ -300,7 +301,7 @@ export class ReplacementDependency extends Dependency {
         };
     }
 
-    async getValue({ verbose, consumeChanges = true } = {}) {
+    async getValue({ verbose, consumeChanges = true }: any = {}) {
         let result = await this.getValueNoProxy({
             verbose,
             consumeChanges,
@@ -309,7 +310,7 @@ export class ReplacementDependency extends Dependency {
         // TODO: do we have to adjust anything else from result
         // if we add primitives to result.value?
 
-        let resultValueWithPrimitives = [];
+        let resultValueWithPrimitives: any[] = [];
         let resultInd = 0;
 
         for (let primitiveOrNull of this.replacementPrimitives) {
@@ -327,7 +328,8 @@ export class ReplacementDependency extends Dependency {
             this.replacementPrimitives.length !==
                 this.previousReplacementPrimitives.length ||
             this.replacementPrimitives.some(
-                (v, i) => v !== this.previousReplacementPrimitives[i],
+                (v: any, i: number) =>
+                    v !== this.previousReplacementPrimitives[i],
             )
         ) {
             result.changes.componentIdentitiesChanged = true;
@@ -375,4 +377,3 @@ export class ReplacementDependency extends Dependency {
         }
     }
 }
-

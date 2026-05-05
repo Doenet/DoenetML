@@ -1,13 +1,21 @@
 import { deepClone } from "@doenet/utils";
+import type { ComponentIdx } from "@doenet/utils";
+import type { ComponentInstance } from "../../types/componentInstance";
+import type { DependencyHandler } from "./DependencyHandler";
 import { arrayEntryNamesFromPropIndex } from "../StateVariableInitializer";
 
 /**
  * Base class shared by every concrete dependency type. Concrete subclasses
  * (in sibling modules within `core/dependencies/`) override
  * `setUpParameters`, `determineDownstreamComponents`, and occasionally
- * `getValue` / `deleteFromUpdateTriggers`. The dynamic per-subclass field
- * set is preserved with an index signature; the implementation is still
- * loosely typed (see `CORE_REFACTOR_DEFERRED.md`).
+ * `getValue` / `deleteFromUpdateTriggers`.
+ *
+ * The class carries an index signature: subclasses freely set arbitrary
+ * fields (`this.componentIdx`, `this.staticValue`, `this.parentIdx`, …)
+ * during graph construction. Tightening that to a per-subclass interface
+ * would be a follow-up to typing the subclasses themselves; the index
+ * signature lets the dynamic fields satisfy `noImplicitAny` without
+ * blanketing the file with `// @ts-nocheck`.
  */
 
 export function cloneChangeMetadataIfNeeded({
@@ -28,6 +36,24 @@ export class Dependency {
 
     downstreamVariableNameIfNoVariables = "__identity";
 
+    /** Display name on `dependencyHandler.downstreamDependencies`. */
+    dependencyName: string;
+    /** Back-reference to the owning handler, used for graph mutations. */
+    dependencyHandler: DependencyHandler;
+    /** Component this dependency was attached to. */
+    upstreamComponentIdx: ComponentIdx;
+    /** Variables on the upstream component this dependency feeds. */
+    upstreamVariableNames: string[];
+    /** Snapshot of the dependency-definition entry that produced this
+     * instance. */
+    definition: Record<string, any>;
+    /** State variable this dependency was created for; used for diagnostics. */
+    representativeStateVariable: string;
+
+    returnSingleVariableValue: boolean;
+    returnSingleComponent: boolean;
+    originalDownstreamVariableNames: string[];
+
     constructor({
         component,
         stateVariable,
@@ -36,12 +62,12 @@ export class Dependency {
         dependencyDefinition,
         dependencyHandler,
     }: {
-        component: any;
+        component: ComponentInstance;
         stateVariable: string;
         allStateVariablesAffected: string[];
         dependencyName: string;
         dependencyDefinition: any;
-        dependencyHandler: any;
+        dependencyHandler: DependencyHandler;
     }) {
         this.dependencyName = dependencyName;
         this.dependencyHandler = dependencyHandler;
@@ -698,7 +724,7 @@ export class Dependency {
         verbose?: boolean;
         skipProxy?: boolean;
         consumeChanges?: boolean;
-    } = {}): Promise<{ value: any; changes: any; usedDefault: any }> {
+    } = {}): Promise<any> {
         let value: any = [];
         let changes: any = {};
         let usedDefault: any = [];

@@ -1,8 +1,10 @@
-// @ts-nocheck
-// Concrete dependency subclasses extracted from the original
-// `Dependencies.js`. Type checking is disabled file-wide because the
-// classes inherit a dynamic field set from `Dependency` and were
-// untyped JavaScript prior to the split.
+/**
+ * Dependency subclasses that read state-variable values from a single
+ * downstream component. `StateVariableDependency` is the workhorse;
+ * the rest specialize it (component-type lookup, array-size lookup,
+ * unresolved-path resolution, multi-variable bundles, recursive
+ * dependency walks).
+ */
 
 import { Dependency, cloneChangeMetadataIfNeeded } from "./Dependency";
 
@@ -68,7 +70,6 @@ export class StateVariableDependency extends Dependency {
         }
     }
 }
-
 
 /**
  * A dependency to return the value of the state variable given an `unresolvedPath`.
@@ -145,7 +146,7 @@ export class StateVariableFromUnresolvedPathDependency extends Dependency {
         let propIndex = [];
         let foundBadIndex = false;
         if (nextPart.index.length > 0) {
-            propIndex = nextPart.index.map((index_part) =>
+            propIndex = nextPart.index.map((index_part: any) =>
                 Math.round(Number(index_part.value[0])),
             );
             if (!propIndex.every(Number.isFinite)) {
@@ -175,10 +176,13 @@ export class StateVariableFromUnresolvedPathDependency extends Dependency {
         if (nextPart != undefined) {
             let foundMatchToNextName = false;
 
-            const stateVarInfo =
-                this.dependencyHandler.componentInfoObjects
-                    .publicStateVariableInfo[component.componentType]
-                    .stateVariableDescriptions[variableName];
+            // `indexAliases` exists on the runtime descriptor objects but
+            // isn't part of the declared `StateVariableDescription` type
+            // yet — see `utils/componentInfoObjects.ts`. Cast locally so
+            // adding it to the public type can be a separate, audited PR.
+            const stateVarInfo = this.dependencyHandler.componentInfoObjects
+                .publicStateVariableInfo[component.componentType]
+                .stateVariableDescriptions[variableName] as any;
 
             if (stateVarInfo?.indexAliases) {
                 const dim = propIndex.length;
@@ -259,7 +263,6 @@ export class StateVariableFromUnresolvedPathDependency extends Dependency {
         }
     }
 }
-
 
 export class MultipleStateVariablesDependency extends Dependency {
     static dependencyType = "multipleStateVariables";
@@ -353,13 +356,12 @@ export class MultipleStateVariablesDependency extends Dependency {
     }
 }
 
-
 export class StateVariableComponentTypeDependency extends StateVariableDependency {
     static dependencyType = "stateVariableComponentType";
 
-    async getValue({ verbose = false, consumeChanges = true } = {}) {
-        let value = [];
-        let changes = {};
+    async getValue({ verbose = false, consumeChanges = true }: any = {}) {
+        let value: any = [];
+        let changes: any = {};
 
         if (this.staticValue) {
             value = [this.staticValue];
@@ -376,7 +378,7 @@ export class StateVariableComponentTypeDependency extends StateVariableDependenc
                 let depComponent =
                     this.dependencyHandler.components[componentIdx];
 
-                let componentObj = {
+                let componentObj: any = {
                     componentIdx: depComponent.componentIdx,
                     componentType: depComponent.componentType,
                 };
@@ -511,13 +513,11 @@ export class StateVariableComponentTypeDependency extends StateVariableDependenc
     }
 }
 
-
 export class StateVariableArraySizeDependency extends StateVariableDependency {
     static dependencyType = "stateVariableArraySize";
 
     static convertToArraySize = true;
 }
-
 
 export class RecursiveDependencyValuesDependency extends Dependency {
     static dependencyType = "recursiveDependencyValues";
@@ -625,7 +625,7 @@ export class RecursiveDependencyValuesDependency extends Dependency {
         variableNames,
         force,
         components = {},
-    }) {
+    }: any): Promise<any> {
         // console.log(`get recursive dependency variables for ${componentIdx}`, variableNames)
 
         let component = this.dependencyHandler._components[componentIdx];
@@ -809,16 +809,16 @@ export class RecursiveDependencyValuesDependency extends Dependency {
         };
     }
 
-    async getValue({ consumeChanges: consumeChanges = true } = {}) {
+    async getValue({ consumeChanges = true }: any = {}) {
         this.gettingValue = true;
         this.varsWithUpdatedDeps = {};
 
-        let result;
-        let accumulatedVarsWithUpdatedDeps = {};
+        let result: any;
+        let accumulatedVarsWithUpdatedDeps: Record<string, any> = {};
 
         let foundNewUpdated = true;
 
-        let changes = {};
+        let changes: any = {};
 
         try {
             while (foundNewUpdated) {
@@ -889,4 +889,3 @@ export class RecursiveDependencyValuesDependency extends Dependency {
         }
     }
 }
-

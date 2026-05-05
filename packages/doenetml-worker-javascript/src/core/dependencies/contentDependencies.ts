@@ -1,8 +1,11 @@
-// @ts-nocheck
-// Concrete dependency subclasses extracted from the original
-// `Dependencies.js`. Type checking is disabled file-wide because the
-// classes inherit a dynamic field set from `Dependency` and were
-// untyped JavaScript prior to the split.
+/**
+ * Dependency subclasses that read content lifted from the document
+ * itself rather than from another component's state — serialized
+ * children, DoenetML source / range, document variants, counters,
+ * file-by-cid lookups, and the meta-dependency
+ * `DetermineDependenciesDependency` that wraps a state-variable's
+ * dynamic dependency-resolution step.
+ */
 
 import { Dependency } from "./Dependency";
 import { retrieveTextFileForCid } from "@doenet/utils";
@@ -98,7 +101,6 @@ export class SerializedChildrenDependency extends Dependency {
         }
     }
 }
-
 
 export class DoenetMLDependency extends Dependency {
     static dependencyType = "doenetML";
@@ -197,7 +199,6 @@ export class DoenetMLDependency extends Dependency {
     }
 }
 
-
 export class DoenetMLRangeDependency extends Dependency {
     static dependencyType = "position";
 
@@ -292,7 +293,6 @@ export class DoenetMLRangeDependency extends Dependency {
     }
 }
 
-
 export class VariantsDependency extends Dependency {
     static dependencyType = "variants";
 
@@ -385,7 +385,6 @@ export class VariantsDependency extends Dependency {
     }
 }
 
-
 export class CounterDependency extends Dependency {
     static dependencyType = "counter";
 
@@ -431,7 +430,6 @@ export class CounterDependency extends Dependency {
         };
     }
 }
-
 
 export class DetermineDependenciesDependency extends Dependency {
     static dependencyType = "determineDependencies";
@@ -587,7 +585,6 @@ export class DetermineDependenciesDependency extends Dependency {
     }
 }
 
-
 export class FileDependency extends Dependency {
     static dependencyType = "file";
 
@@ -638,4 +635,3 @@ export class FileDependency extends Dependency {
         }
     }
 }
-

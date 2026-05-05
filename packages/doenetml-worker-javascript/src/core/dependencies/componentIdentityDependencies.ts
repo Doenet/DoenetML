@@ -1,8 +1,8 @@
-// @ts-nocheck
-// Concrete dependency subclasses extracted from the original
-// `Dependencies.js`. Type checking is disabled file-wide because the
-// classes inherit a dynamic field set from `Dependency` and were
-// untyped JavaScript prior to the split.
+/**
+ * Dependency subclasses that resolve to a single component identity
+ * (with no state-variable values), differing only in which component
+ * lookup table they consult.
+ */
 
 import { Dependency } from "./Dependency";
 
@@ -90,7 +90,6 @@ export class ComponentIdentityDependency extends Dependency {
         }
     }
 }
-
 
 export class AttributeComponentDependency extends Dependency {
     static dependencyType = "attributeComponent";
@@ -290,7 +289,7 @@ export class AttributeComponentDependency extends Dependency {
         };
     }
 
-    async getValue({ verbose, consumeChanges = true } = {}) {
+    async getValue({ verbose, consumeChanges = true }: any = {}) {
         let result = await this.getValueNoProxy({
             verbose,
             consumeChanges,
@@ -319,4 +318,3 @@ export class AttributeComponentDependency extends Dependency {
         }
     }
 }
-

@@ -1,8 +1,8 @@
-// @ts-nocheck
-// Concrete dependency subclasses extracted from the original
-// `Dependencies.js`. Type checking is disabled file-wide because the
-// classes inherit a dynamic field set from `Dependency` and were
-// untyped JavaScript prior to the split.
+/**
+ * Dependency subclasses that follow the adapter chain — the upstream
+ * component's `adaptedFrom` link, optionally reading state from that
+ * source.
+ */
 
 import { Dependency } from "./Dependency";
 
@@ -116,7 +116,6 @@ export class AdapterSourceStateVariableDependency extends Dependency {
     }
 }
 
-
 export class AdapterSourceDependency extends Dependency {
     static dependencyType = "adapterSource";
 
@@ -228,4 +227,3 @@ export class AdapterSourceDependency extends Dependency {
         }
     }
 }
-

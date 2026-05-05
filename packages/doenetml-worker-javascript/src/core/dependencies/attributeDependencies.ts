@@ -1,9 +1,9 @@
-// @ts-nocheck
-// Concrete dependency subclasses extracted from the original
-// `Dependencies.js`. Type checking is disabled file-wide because the
-// classes inherit a dynamic field set from `Dependency` and were
-// untyped JavaScript prior to the split (see `CORE_REFACTOR_DEFERRED.md`
-// for the long-term plan to type these incrementally).
+/**
+ * Dependency subclasses backed by data lifted off a single component
+ * (doenet attributes, extension target, primitive attribute values).
+ * All three reuse `StateVariableDependency`'s downstream-component
+ * machinery; only the `getValue` payload differs.
+ */
 
 import { StateVariableDependency } from "./stateVariableDependencies";
 

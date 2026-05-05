@@ -1,8 +1,8 @@
-// @ts-nocheck
-// Concrete dependency subclasses extracted from the original
-// `Dependencies.js`. Type checking is disabled file-wide because the
-// classes inherit a dynamic field set from `Dependency` and were
-// untyped JavaScript prior to the split.
+/**
+ * Dependency subclasses that follow the shadow / source-composite chain:
+ * the original composite a component was extended from, the shadow
+ * source it copies, primary-shadow links, and unlinked-copy sources.
+ */
 
 import { Dependency } from "./Dependency";
 
@@ -172,7 +172,6 @@ export class SourceCompositeStateVariableDependency extends Dependency {
     }
 }
 
-
 export class SourceCompositeIdentityDependency extends Dependency {
     static dependencyType = "sourceCompositeIdentity";
 
@@ -268,7 +267,6 @@ export class SourceCompositeIdentityDependency extends Dependency {
         }
     }
 }
-
 
 export class ShadowSourceStateVariableDependency extends Dependency {
     static dependencyType = "shadowSourceStateVariable";
@@ -389,7 +387,6 @@ export class ShadowSourceStateVariableDependency extends Dependency {
         }
     }
 }
-
 
 export class ShadowSourceDependency extends Dependency {
     static dependencyType = "shadowSource";
@@ -543,7 +540,6 @@ export class ShadowSourceDependency extends Dependency {
     }
 }
 
-
 export class UnlinkedCopySourceDependency extends Dependency {
     static dependencyType = "unlinkedCopySource";
 
@@ -665,7 +661,6 @@ export class UnlinkedCopySourceDependency extends Dependency {
         }
     }
 }
-
 
 export class PrimaryShadowDependency extends Dependency {
     static dependencyType = "primaryShadow";
@@ -802,4 +797,3 @@ export class PrimaryShadowDependency extends Dependency {
         }
     }
 }
-

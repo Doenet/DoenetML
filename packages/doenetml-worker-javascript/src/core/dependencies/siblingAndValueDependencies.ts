@@ -1,8 +1,10 @@
-// @ts-nocheck
-// Concrete dependency subclasses extracted from the original
-// `Dependencies.js`. Type checking is disabled file-wide because the
-// classes inherit a dynamic field set from `Dependency` and were
-// untyped JavaScript prior to the split.
+/**
+ * Dependency subclasses driven by sibling / value lookups:
+ *  - `CountAmongSiblings` — index of a component among siblings of the
+ *    same type
+ *  - `Value` / `Flag` — return a literal value (Flag pulls from
+ *    `Core.flags`)
+ */
 
 import { Dependency } from "./Dependency";
 
@@ -86,7 +88,7 @@ export class CountAmongSiblingsDependency extends Dependency {
         }
 
         this.parentIdx = component.parentIdx;
-        let parent = this.dependencyHandler._components[this.parentIdx];
+        let parent: any = this.dependencyHandler._components[this.parentIdx];
 
         if (!parent) {
             // Note: since parent is created after children,
@@ -303,7 +305,7 @@ export class CountAmongSiblingsDependency extends Dependency {
             this.dependencyHandler.components[this.parentIdx].activeChildren;
         if (childComponentType) {
             if (this.includeInheritedComponentTypes) {
-                children = children.filter((x) =>
+                children = children.filter((x: any) =>
                     this.dependencyHandler.componentInfoObjects.isInheritedComponentType(
                         {
                             inheritedComponentType: x.componentType,
@@ -313,7 +315,7 @@ export class CountAmongSiblingsDependency extends Dependency {
                 );
             } else {
                 children = children.filter(
-                    (x) => x.componentType === childComponentType,
+                    (x: any) => x.componentType === childComponentType,
                 );
             }
         }
@@ -321,7 +323,7 @@ export class CountAmongSiblingsDependency extends Dependency {
         // This could be 0 if the component doesn't match the specified componentType
         let value =
             children
-                .map((x) => x.componentIdx)
+                .map((x: any) => x.componentIdx)
                 .indexOf(this.upstreamComponentIdx) + 1;
 
         // if `initializeCounters` was passed into core with a key that matches the component type
@@ -361,7 +363,6 @@ export class CountAmongSiblingsDependency extends Dependency {
     }
 }
 
-
 export class ValueDependency extends Dependency {
     static dependencyType = "value";
 
@@ -377,7 +378,6 @@ export class ValueDependency extends Dependency {
     }
 }
 
-
 export class FlagDependency extends ValueDependency {
     static dependencyType = "flag";
 
@@ -386,4 +386,3 @@ export class FlagDependency extends ValueDependency {
         this.value = this.dependencyHandler.core.flags[this.flagName];
     }
 }
-
