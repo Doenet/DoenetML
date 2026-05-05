@@ -23,6 +23,7 @@ import { exceededDragThreshold } from "./utils/dragThreshold";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveMarkerColor } from "./utils/styleColors";
 import {
+    removeJXGEventHandlers,
     syncLabelStrokeColor,
     syncLayer,
     syncWithLabelToggle,
@@ -86,12 +87,7 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
         //On unmount
         return () => {
             if (pointJXG.current !== null && shadowPointJXG.current !== null) {
-                shadowPointJXG.current.off("drag");
-                shadowPointJXG.current.off("down");
-                shadowPointJXG.current.off("hit");
-                shadowPointJXG.current.off("up");
-                shadowPointJXG.current.off("keyfocusout");
-                shadowPointJXG.current.off("keydown");
+                removeJXGEventHandlers(shadowPointJXG.current);
                 board!.removeObject(pointJXG.current);
                 board!.removeObject(shadowPointJXG.current);
                 pointJXG.current = null;

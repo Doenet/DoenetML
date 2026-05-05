@@ -15,6 +15,7 @@ import { styleToDash } from "./utils/styleToDash";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 import {
+    removeJXGEventHandlers,
     syncLabelStrokeColor,
     syncLayer,
     syncLineStrokeStyle,
@@ -196,12 +197,7 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
         if (!polylineJXG.current) {
             return;
         }
-        polylineJXG.current.off("drag");
-        polylineJXG.current.off("down");
-        polylineJXG.current.off("hit");
-        polylineJXG.current.off("up");
-        polylineJXG.current.off("keyfocusout");
-        polylineJXG.current.off("keydown");
+        removeJXGEventHandlers(polylineJXG.current);
         board?.removeObject(polylineJXG.current);
         polylineJXG.current = null;
 
@@ -209,12 +205,7 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
             for (let i = 0; i < SVs.numVertices; i++) {
                 let point = pointsJXG.current[i];
                 if (point) {
-                    point.off("drag");
-                    point.off("down");
-                    point.off("hit");
-                    point.off("up");
-                    point.off("keyfocusout");
-                    point.off("keydown");
+                    removeJXGEventHandlers(point);
                     board?.removeObject(point);
                 }
             }
@@ -548,12 +539,7 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
                 ) {
                     let pt = pointsJXG.current.pop();
                     if (pt) {
-                        pt.off("drag");
-                        pt.off("down");
-                        pt.off("hit");
-                        pt.off("up");
-                        pt.off("keyfocusout");
-                        pt.off("keydown");
+                        removeJXGEventHandlers(pt);
                         board?.removeObject(pt);
                     }
                 }

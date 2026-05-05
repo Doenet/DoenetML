@@ -10,6 +10,7 @@ import { ChoiceInputInlineContext } from "./choiceInput";
 import {
     applyLineFamilyLabelPlacement,
     buildLineFamilyLabelAttributes,
+    removeJXGEventHandlers,
     stabilizeInitialLineFamilyLabelPlacement,
     syncLabelStrokeColor,
     syncLayer,
@@ -313,12 +314,7 @@ export default React.memo(function Line(props: UseDoenetRendererProps) {
         if (!lineJXG.current) {
             return;
         }
-        lineJXG.current.off("drag");
-        lineJXG.current.off("down");
-        lineJXG.current.off("hit");
-        lineJXG.current.off("up");
-        lineJXG.current.off("keyfocusout");
-        lineJXG.current.off("keydown");
+        removeJXGEventHandlers(lineJXG.current);
         board?.removeObject(lineJXG.current);
         lineJXG.current = null;
     }

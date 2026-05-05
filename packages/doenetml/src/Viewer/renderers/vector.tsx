@@ -11,6 +11,7 @@ import { ChoiceInputInlineContext } from "./choiceInput";
 import {
     applyLineFamilyLabelPlacement,
     buildLineFamilyLabelAttributes,
+    removeJXGEventHandlers,
     stabilizeInitialLineFamilyLabelPlacement,
     syncLabelStrokeColor,
     syncLayer,
@@ -508,34 +509,19 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
         cancelInitialLabelPlacement.current?.();
         cancelInitialLabelPlacement.current = null;
         if (vectorJXG.current) {
-            vectorJXG.current.off("drag");
-            vectorJXG.current.off("down");
-            vectorJXG.current.off("hit");
-            vectorJXG.current.off("up");
-            vectorJXG.current.off("keyfocusout");
-            vectorJXG.current.off("keydown");
+            removeJXGEventHandlers(vectorJXG.current);
             board?.removeObject(vectorJXG.current);
             vectorJXG.current = null;
         }
 
         if (point1JXG.current) {
-            point1JXG.current.off("drag");
-            point1JXG.current.off("down");
-            point1JXG.current.off("hit");
-            point1JXG.current.off("up");
-            point1JXG.current.off("keyfocusout");
-            point1JXG.current.off("keydown");
+            removeJXGEventHandlers(point1JXG.current);
             board?.removeObject(point1JXG.current);
             point1JXG.current = null;
         }
 
         if (point2JXG.current) {
-            point2JXG.current.off("drag");
-            point2JXG.current.off("down");
-            point2JXG.current.off("hit");
-            point2JXG.current.off("up");
-            point2JXG.current.off("keyfocusout");
-            point2JXG.current.off("keydown");
+            removeJXGEventHandlers(point2JXG.current);
             board?.removeObject(point2JXG.current);
             point2JXG.current = null;
         }

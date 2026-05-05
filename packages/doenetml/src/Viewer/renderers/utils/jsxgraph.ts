@@ -868,3 +868,33 @@ export function syncLabelStrokeColor(
         ? lineColor
         : "var(--canvasText)";
 }
+
+/**
+ * Pointer/keyboard event names registered by line-family renderers (line,
+ * lineSegment, ray, vector, polyline, polygon, circle, and point's shadow
+ * point) on every draggable JSXgraph object. Centralized so adding a new
+ * event type is a one-place change.
+ */
+export const LINE_FAMILY_EVENTS = [
+    "drag",
+    "down",
+    "hit",
+    "up",
+    "keyfocusout",
+    "keydown",
+] as const;
+
+/**
+ * Deregister event handlers from a JSXgraph object. No-op if `obj` is
+ * null/undefined; defaults to `LINE_FAMILY_EVENTS` so the common case is a
+ * single argument.
+ */
+export function removeJXGEventHandlers(
+    obj: { off: (event: string) => void } | null | undefined,
+    events: readonly string[] = LINE_FAMILY_EVENTS,
+): void {
+    if (!obj) return;
+    for (const event of events) {
+        obj.off(event);
+    }
+}

@@ -15,6 +15,7 @@ import { styleToDash } from "./utils/styleToDash";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 import {
+    removeJXGEventHandlers,
     syncLabelStrokeColor,
     syncLayer,
     syncLineStrokeStyle,
@@ -193,17 +194,12 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
     function initializePoints(polygon: JXGPolygon) {
         for (let i = 0; i < SVs.numVertices; i++) {
             let vertex = polygon.vertices[i];
-            vertex.off("drag");
+            removeJXGEventHandlers(vertex);
             vertex.on("drag", (e) => dragHandler(i, e));
-            vertex.off("up");
             vertex.on("up", () => upHandler(i));
-            vertex.off("keyfocusout");
             vertex.on("keyfocusout", () => keyFocusOutHandler(i));
-            vertex.off("keydown");
             vertex.on("keydown", (e) => keyDownHandler(i, e));
-            vertex.off("down");
             vertex.on("down", (e) => downHandler(i, e));
-            vertex.off("hit");
             vertex.on("hit", () => hitHandler());
         }
     }
@@ -520,12 +516,7 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                     i >= SVs.numVertices;
                     i--
                 ) {
-                    polygonJXG.current.vertices[i].off("drag");
-                    polygonJXG.current.vertices[i].off("down");
-                    polygonJXG.current.vertices[i].off("hit");
-                    polygonJXG.current.vertices[i].off("up");
-                    polygonJXG.current.vertices[i].off("keyfocusout");
-                    polygonJXG.current.vertices[i].off("keydown");
+                    removeJXGEventHandlers(polygonJXG.current.vertices[i]);
                     polygonJXG.current.removePoints(
                         polygonJXG.current.vertices[i],
                     );

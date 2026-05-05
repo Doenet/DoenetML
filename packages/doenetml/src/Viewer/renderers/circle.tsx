@@ -30,6 +30,7 @@ import {
 } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import {
+    removeJXGEventHandlers,
     syncLabelStrokeColor,
     syncLayer,
     syncLineStrokeStyle,
@@ -483,21 +484,11 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         if (!circleJXG.current || !indicatorJXG.current) {
             return;
         }
-        indicatorJXG.current.off("drag");
-        indicatorJXG.current.off("down");
-        indicatorJXG.current.off("up");
-        indicatorJXG.current.off("hit");
-        indicatorJXG.current.off("keyfocusout");
-        indicatorJXG.current.off("keydown");
+        removeJXGEventHandlers(indicatorJXG.current);
         board?.removeObject(indicatorJXG.current);
         indicatorJXG.current = null;
 
-        circleJXG.current.off("drag");
-        circleJXG.current.off("down");
-        circleJXG.current.off("up");
-        circleJXG.current.off("hit");
-        circleJXG.current.off("keyfocusout");
-        circleJXG.current.off("keydown");
+        removeJXGEventHandlers(circleJXG.current);
         board?.removeObject(circleJXG.current);
         circleJXG.current = null;
     }

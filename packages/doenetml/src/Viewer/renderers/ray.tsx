@@ -7,6 +7,7 @@ import { DocContext } from "../DocViewer";
 import {
     applyLineFamilyLabelPlacement,
     buildLineFamilyLabelAttributes,
+    removeJXGEventHandlers,
     stabilizeInitialLineFamilyLabelPlacement,
     syncLabelStrokeColor,
     syncLayer,
@@ -290,12 +291,7 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
         if (!rayJXG.current) {
             return;
         }
-        rayJXG.current.off("drag");
-        rayJXG.current.off("down");
-        rayJXG.current.off("hit");
-        rayJXG.current.off("up");
-        rayJXG.current.off("keyfocusout");
-        rayJXG.current.off("keydown");
+        removeJXGEventHandlers(rayJXG.current);
         board?.removeObject(rayJXG.current);
         rayJXG.current = null;
     }
