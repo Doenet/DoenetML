@@ -288,7 +288,7 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                 for (let j = 0; j < SVs.numVertices; j++) {
                     polygonJXG.current.vertices[j].coords.setCoordinates(
                         JXG.COORDS_BY_USER,
-                        [...lastPositionsFromCore.current![j]],
+                        [...lastPositionsFromCore.current[j]],
                     );
                 }
             } else {
@@ -308,7 +308,7 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                 });
                 polygonJXG.current.vertices[i].coords.setCoordinates(
                     JXG.COORDS_BY_USER,
-                    [...lastPositionsFromCore.current![i]],
+                    [...lastPositionsFromCore.current[i]],
                 );
                 board.updateInfobox(polygonJXG.current.vertices[i]);
             }

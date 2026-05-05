@@ -278,7 +278,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
 
             circleJXG.current!.center.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                [...lastCenterFromCore.current!],
+                [...lastCenterFromCore.current],
             );
         });
 
@@ -507,10 +507,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
 
             if (centerOffResults.needIndicator) {
                 // center is off graph
-                if (
-                    !offGraphIndicatorCoords.current ||
-                    !lastCenterFromCore.current
-                ) {
+                if (!offGraphIndicatorCoords.current) {
                     return;
                 }
 

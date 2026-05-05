@@ -491,11 +491,11 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
 
             vectorJXG.current?.point1.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                lastPositionsFromCore.current![0],
+                lastPositionsFromCore.current[0],
             );
             vectorJXG.current?.point2.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                lastPositionsFromCore.current![1],
+                lastPositionsFromCore.current[1],
             );
             if (i === 0) {
                 board.updateInfobox(point1JXG.current);

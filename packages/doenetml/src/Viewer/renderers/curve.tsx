@@ -529,7 +529,7 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
 
         throughPointsJXG.current![i].coords.setCoordinates(
             JXG.COORDS_BY_USER,
-            lastThroughPointPositionsFromCore.current![i],
+            lastThroughPointPositionsFromCore.current[i],
         );
         board!.updateInfobox(throughPointsJXG.current![i]);
     }

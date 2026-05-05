@@ -501,11 +501,11 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
 
         lineSegmentJXG.current.point1.coords.setCoordinates(
             JXG.COORDS_BY_USER,
-            lastPositionsFromCore.current![0],
+            lastPositionsFromCore.current[0],
         );
         lineSegmentJXG.current.point2.coords.setCoordinates(
             JXG.COORDS_BY_USER,
-            lastPositionsFromCore.current![1],
+            lastPositionsFromCore.current[1],
         );
         if (i == 1) {
             board.updateInfobox(lineSegmentJXG.current.point1);

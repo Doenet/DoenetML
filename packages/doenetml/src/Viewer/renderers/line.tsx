@@ -171,11 +171,11 @@ export default React.memo(function Line(props: UseDoenetRendererProps) {
 
             newLineJXG.point1.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                lastPositionsFromCore.current![0],
+                lastPositionsFromCore.current[0],
             );
             newLineJXG.point2.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                lastPositionsFromCore.current![1],
+                lastPositionsFromCore.current[1],
             );
         });
 

@@ -277,12 +277,12 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
                 for (let j = 0; j < SVs.numVertices; j++) {
                     pointsJXG.current[j].coords.setCoordinates(
                         JXG.COORDS_BY_USER,
-                        [...lastPositionsFromCore.current![j]],
+                        [...lastPositionsFromCore.current[j]],
                     );
                     polylineJXG.current.dataX[j] =
-                        lastPositionsFromCore.current![j][0] - shiftX;
+                        lastPositionsFromCore.current[j][0] - shiftX;
                     polylineJXG.current.dataY[j] =
-                        lastPositionsFromCore.current![j][1] - shiftY;
+                        lastPositionsFromCore.current[j][1] - shiftY;
                 }
             } else {
                 pointCoords.current = {};
@@ -300,7 +300,7 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
                     },
                 });
                 pointsJXG.current[i].coords.setCoordinates(JXG.COORDS_BY_USER, [
-                    ...lastPositionsFromCore.current![i],
+                    ...lastPositionsFromCore.current[i],
                 ]);
                 board.updateInfobox(pointsJXG.current[i]);
             }

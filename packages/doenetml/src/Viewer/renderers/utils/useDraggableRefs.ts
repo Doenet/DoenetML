@@ -20,11 +20,11 @@ export function useDraggableRefs<TPos>(
     SVs: DraggableGraphicalSVs,
     position: TPos,
 ): {
-    lastPositionFromCore: MutableRefObject<TPos | null>;
+    lastPositionFromCore: MutableRefObject<TPos>;
     fixed: MutableRefObject<boolean>;
     fixLocation: MutableRefObject<boolean>;
 } {
-    const lastPositionFromCore = useRef<TPos | null>(null);
+    const lastPositionFromCore = useRef(position);
     const fixed = useRef(false);
     const fixLocation = useRef(false);
 
