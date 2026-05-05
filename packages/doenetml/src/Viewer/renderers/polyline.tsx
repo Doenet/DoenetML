@@ -13,6 +13,7 @@ import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveLineColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
+import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 import {
     syncLabelStrokeColor,
     syncLayer,
@@ -64,13 +65,10 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
 
     useBoardPointerTracking(board, dragState);
 
-    React.useEffect(() => {
-        return () => {
-            if (polylineJXG.current) {
-                deletePolylineJXG();
-            }
-        };
-    }, []);
+    useJSXGraphCleanup({
+        objectRef: polylineJXG,
+        destroy: () => deletePolylineJXG(),
+    });
 
     function createPolylineJXG() {
         if (board === null) {

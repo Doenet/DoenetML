@@ -26,6 +26,7 @@ import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveLineColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
+import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 
 interface VectorSVs extends DraggableGraphicalSVs {
     numericalEndpoints: [number, number][];
@@ -75,15 +76,11 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
 
     useBoardPointerTracking(board, dragState);
 
-    React.useEffect(() => {
-        //On unmount
-        return () => {
-            cancelInitialLabelPlacement.current?.();
-            if (vectorJXG.current !== null) {
-                deleteVectorJXG();
-            }
-        };
-    }, []);
+    useJSXGraphCleanup({
+        objectRef: vectorJXG,
+        destroy: () => deleteVectorJXG(),
+        cancelLabelPlacementRef: cancelInitialLabelPlacement,
+    });
 
     function createVectorJXG() {
         if (board === null) {

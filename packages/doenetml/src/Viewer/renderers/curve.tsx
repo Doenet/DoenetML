@@ -18,6 +18,7 @@ import { resolveLineColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import { syncLabelStrokeColor, syncLayer } from "./utils/jsxgraph";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
+import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 
 interface CurveSVs extends DraggableGraphicalSVs {
     curveType: "function" | "parameterization" | "bezier";
@@ -94,13 +95,10 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
 
     useBoardPointerTracking(board, dragState);
 
-    React.useEffect(() => {
-        return () => {
-            if (curveJXG.current) {
-                deleteCurveJXG();
-            }
-        };
-    }, []);
+    useJSXGraphCleanup({
+        objectRef: curveJXG,
+        destroy: () => deleteCurveJXG(),
+    });
 
     function createCurveJXG() {
         if (board === null) {

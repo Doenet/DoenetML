@@ -37,6 +37,7 @@ import {
 } from "./utils/jsxgraph";
 import { buildFilledShapeAttributes } from "./utils/buildGraphicalAttributes";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
+import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 
 interface CircleSVs extends DraggableGraphicalSVs {
     numericalCenter: [number, number];
@@ -86,14 +87,10 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
 
     useBoardPointerTracking(board, dragState);
 
-    React.useEffect(() => {
-        //On unmount
-        return () => {
-            if (circleJXG.current) {
-                deleteCircleJXG();
-            }
-        };
-    }, []);
+    useJSXGraphCleanup({
+        objectRef: circleJXG,
+        destroy: () => deleteCircleJXG(),
+    });
 
     function createCircleJXG() {
         if (board === null) {

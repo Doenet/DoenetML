@@ -24,6 +24,7 @@ import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveLineColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
+import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 
 interface RaySVs extends DraggableGraphicalSVs {
     numericalEndpoint: [number, number];
@@ -62,14 +63,11 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
 
     useBoardPointerTracking(board, dragState);
 
-    React.useEffect(() => {
-        return () => {
-            cancelInitialLabelPlacement.current?.();
-            if (rayJXG.current !== null) {
-                deleteRayJXG();
-            }
-        };
-    }, []);
+    useJSXGraphCleanup({
+        objectRef: rayJXG,
+        destroy: () => deleteRayJXG(),
+        cancelLabelPlacementRef: cancelInitialLabelPlacement,
+    });
 
     function createRayJXG() {
         if (board === null) {

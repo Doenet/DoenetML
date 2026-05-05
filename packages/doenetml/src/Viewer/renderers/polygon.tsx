@@ -13,6 +13,7 @@ import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveLineColor, resolveFillColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
+import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 import {
     syncLabelStrokeColor,
     syncLayer,
@@ -65,13 +66,10 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
 
     useBoardPointerTracking(board, dragState);
 
-    React.useEffect(() => {
-        return () => {
-            if (polygonJXG.current) {
-                deletePolygonJXG();
-            }
-        };
-    }, []);
+    useJSXGraphCleanup({
+        objectRef: polygonJXG,
+        destroy: () => deletePolygonJXG(),
+    });
 
     function createPolygonJXG() {
         if (board === null) {

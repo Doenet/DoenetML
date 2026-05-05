@@ -24,6 +24,7 @@ import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveLineColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
+import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 
 interface LineSegmentSVs extends DraggableGraphicalSVs {
     numericalEndpoints: [number, number][];
@@ -66,14 +67,11 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
 
     useBoardPointerTracking(board, dragState);
 
-    React.useEffect(() => {
-        return () => {
-            cancelInitialLabelPlacement.current?.();
-            if (lineSegmentJXG.current) {
-                deleteLineSegmentJXG();
-            }
-        };
-    }, []);
+    useJSXGraphCleanup({
+        objectRef: lineSegmentJXG,
+        destroy: () => deleteLineSegmentJXG(),
+        cancelLabelPlacementRef: cancelInitialLabelPlacement,
+    });
 
     function createLineSegmentJXG() {
         if (board === null) {
