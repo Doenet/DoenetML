@@ -23,6 +23,7 @@ import { exceededDragThreshold } from "./utils/dragThreshold";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveLineColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
+import { useDraggableRefs } from "./utils/useDraggableRefs";
 
 interface RaySVs extends DraggableGraphicalSVs {
     numericalEndpoint: [number, number];
@@ -49,15 +50,13 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
     let cancelInitialLabelPlacement = useRef<(() => void) | null>(null);
     let pointCoords = useRef<[number, number][] | null>(null);
 
-    let lastEndpointFromCore = useRef<[number, number] | null>(null);
+    const {
+        lastPositionFromCore: lastEndpointFromCore,
+        fixed,
+        fixLocation,
+    } = useDraggableRefs<[number, number]>(SVs, SVs.numericalEndpoint);
     let lastThroughpointFromCore = useRef<[number, number] | null>(null);
-    let fixed = useRef(false);
-    let fixLocation = useRef(false);
-
-    lastEndpointFromCore.current = SVs.numericalEndpoint;
     lastThroughpointFromCore.current = SVs.numericalThroughpoint;
-    fixed.current = SVs.fixed;
-    fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
 
     const { darkMode } = useContext(DocContext) || {};
 

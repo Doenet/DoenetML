@@ -25,6 +25,7 @@ import { exceededDragThreshold } from "./utils/dragThreshold";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveLineColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
+import { useDraggableRefs } from "./utils/useDraggableRefs";
 
 interface VectorSVs extends DraggableGraphicalSVs {
     numericalEndpoints: [number, number][];
@@ -60,17 +61,13 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
     let previousWithLabel = useRef<boolean | null>(null);
     let cancelInitialLabelPlacement = useRef<(() => void) | null>(null);
 
-    let lastPositionsFromCore = useRef<[number, number][]>(
-        SVs.numericalEndpoints,
-    );
-    let fixed = useRef(false);
-    let fixLocation = useRef(false);
+    const {
+        lastPositionFromCore: lastPositionsFromCore,
+        fixed,
+        fixLocation,
+    } = useDraggableRefs<[number, number][]>(SVs, SVs.numericalEndpoints);
     let headDraggable = useRef(true);
     let tailDraggable = useRef(true);
-
-    lastPositionsFromCore.current = SVs.numericalEndpoints;
-    fixed.current = SVs.fixed;
-    fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
     tailDraggable.current = SVs.tailDraggable && !SVs.fixed && !SVs.fixLocation;
     headDraggable.current = SVs.headDraggable && !SVs.fixed && !SVs.fixLocation;
 
@@ -496,11 +493,11 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
 
             vectorJXG.current?.point1.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                lastPositionsFromCore.current[0],
+                lastPositionsFromCore.current![0],
             );
             vectorJXG.current?.point2.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                lastPositionsFromCore.current[1],
+                lastPositionsFromCore.current![1],
             );
             if (i === 0) {
                 board.updateInfobox(point1JXG.current);

@@ -36,6 +36,7 @@ import {
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
 import { buildFilledShapeAttributes } from "./utils/buildGraphicalAttributes";
+import { useDraggableRefs } from "./utils/useDraggableRefs";
 
 interface CircleSVs extends DraggableGraphicalSVs {
     numericalCenter: [number, number];
@@ -67,21 +68,19 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
     let previousPointLabelPosition = useRef<LabelPosition | null>(null);
     let centerCoords = useRef<[number, number] | null>(null);
 
-    let lastCenterFromCore = useRef<number[] | null>(null);
+    const {
+        lastPositionFromCore: lastCenterFromCore,
+        fixed,
+        fixLocation,
+    } = useDraggableRefs<number[]>(SVs, SVs.numericalCenter);
     let throughAnglesFromCore = useRef<[number, number] | null>(null);
-    let fixed = useRef(false);
-    let fixLocation = useRef(false);
+    throughAnglesFromCore.current = SVs.throughAngles;
 
     // for each coordinate, will be -1 or 1 if moved off graph in that direction
     let displayOffGraphIndicator = useRef(false);
     let offGraphIndicatorOrientation = useRef<[number, number] | null>([0, 0]);
     let offGraphIndicatorCoords = useRef<[number, number] | null>([0, 0]);
     let offGraphIndicatorOffsetAtDown = useRef([0, 0]);
-
-    lastCenterFromCore.current = SVs.numericalCenter;
-    throughAnglesFromCore.current = SVs.throughAngles;
-    fixed.current = SVs.fixed;
-    fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
 
     const { darkMode } = useContext(DocContext) || {};
 

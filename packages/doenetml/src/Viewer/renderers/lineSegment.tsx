@@ -23,6 +23,7 @@ import { exceededDragThreshold } from "./utils/dragThreshold";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveLineColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
+import { useDraggableRefs } from "./utils/useDraggableRefs";
 
 interface LineSegmentSVs extends DraggableGraphicalSVs {
     numericalEndpoints: [number, number][];
@@ -52,14 +53,12 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
     let pointCoords = useRef<any>(null);
     let downOnPoint = useRef<number | null>(null);
 
-    let lastPositionsFromCore = useRef<[number, number][] | null>(null);
-    let fixed = useRef(false);
-    let fixLocation = useRef(false);
+    const {
+        lastPositionFromCore: lastPositionsFromCore,
+        fixed,
+        fixLocation,
+    } = useDraggableRefs<[number, number][]>(SVs, SVs.numericalEndpoints);
     let endpointsFixed = useRef(false);
-
-    lastPositionsFromCore.current = SVs.numericalEndpoints;
-    fixed.current = SVs.fixed;
-    fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
     endpointsFixed.current =
         !SVs.endpointsDraggable || SVs.fixed || SVs.fixLocation;
 
