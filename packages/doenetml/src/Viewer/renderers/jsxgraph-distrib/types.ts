@@ -99,10 +99,16 @@ export interface JXGCircle extends JXGElement {
 }
 
 export interface JXGCurve extends JXGElement {
-    dataX?: number[];
-    dataY?: number[];
+    dataX: number[];
+    dataY: number[];
     minX?(): number;
     maxX?(): number;
+    /** Polyline-style curves expose this point array. */
+    points?: Array<{ scrCoords: number[]; usrCoords: number[] }>;
+    /** Polyline-style curves expose a transformation matrix updated on drag. */
+    transformMat?: number[][];
+    updateTransformMatrix?(): void;
+    updateVisibility?(): void;
 }
 
 export interface JXGText extends JXGElement {
