@@ -9,6 +9,7 @@ import { textRendererStyle } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
 import { ChoiceInputInlineContext } from "./choiceInput";
 import { GraphicalSVs } from "./utils/graphicalSVs";
+import { syncLayer, syncWithLabelToggle } from "./utils/jsxgraph";
 
 interface AngleSVs extends GraphicalSVs {
     numericalPoints: [number, number][];
@@ -180,12 +181,7 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
                 visible: !SVs.hidden,
             });
 
-            let layer = 10 * SVs.layer + LINE_LAYER_OFFSET;
-            let layerChanged = angleJXG.current.visProp.layer !== layer;
-
-            if (layerChanged) {
-                angleJXG.current.setAttribute({ layer });
-            }
+            syncLayer(angleJXG.current, SVs.layer, LINE_LAYER_OFFSET);
 
             if (
                 angleJXG.current.visProp.fillcolor !==
@@ -204,11 +200,11 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
 
             angleJXG.current.name = SVs.labelForGraph;
 
-            let withlabel = SVs.labelForGraph !== "";
-            if (withlabel != previousWithLabel.current) {
-                angleJXG.current.setAttribute({ withlabel: withlabel });
-                previousWithLabel.current = withlabel;
-            }
+            syncWithLabelToggle(
+                angleJXG.current,
+                SVs.labelForGraph,
+                previousWithLabel,
+            );
 
             angleJXG.current.visProp.orthotype = SVs.emphasizeRightAngle
                 ? "square"

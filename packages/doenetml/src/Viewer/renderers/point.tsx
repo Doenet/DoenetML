@@ -22,6 +22,11 @@ import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
 import { exceededDragThreshold } from "./utils/dragThreshold";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveMarkerColor } from "./utils/styleColors";
+import {
+    syncLabelStrokeColor,
+    syncLayer,
+    syncWithLabelToggle,
+} from "./utils/jsxgraph";
 
 interface PointSVs extends DraggableGraphicalSVs {
     numericalXs: [number, number];
@@ -544,12 +549,11 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                 // pointJXG.current.setAttribute({visible: false})
             }
 
-            let layer = 10 * SVs.layer + POINT_LAYER_OFFSET;
-            let layerChanged = pointJXG.current.visProp.layer !== layer;
-
-            if (layerChanged) {
-                pointJXG.current.setAttribute({ layer });
-                shadowPointJXG.current?.setAttribute({ layer });
+            // shadowPoint layer must follow pointJXG when it changes.
+            if (syncLayer(pointJXG.current, SVs.layer, POINT_LAYER_OFFSET)) {
+                shadowPointJXG.current?.setAttribute({
+                    layer: 10 * SVs.layer + POINT_LAYER_OFFSET,
+                });
             }
 
             pointJXG.current.visProp.highlight = !fixLocation.current;
@@ -608,20 +612,16 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
 
             pointJXG.current.name = SVs.labelForGraph;
 
-            let withlabel = SVs.labelForGraph !== "";
-            if (withlabel != previousWithLabel.current) {
-                pointJXG.current.setAttribute({ withlabel: withlabel });
-                previousWithLabel.current = withlabel;
-            }
+            syncWithLabelToggle(
+                pointJXG.current,
+                SVs.labelForGraph,
+                previousWithLabel,
+            );
 
             if (pointJXG.current.hasLabel && pointJXG.current.label) {
                 const label = pointJXG.current.label;
                 label.needsUpdate = true;
-                if (SVs.applyStyleToLabel) {
-                    label.visProp.strokecolor = markerColor;
-                } else {
-                    label.visProp.strokecolor = "var(--canvasText)";
-                }
+                syncLabelStrokeColor(label, SVs.applyStyleToLabel, markerColor);
 
                 let labelPosition = adjustPointLabelPosition(
                     SVs.labelPosition,

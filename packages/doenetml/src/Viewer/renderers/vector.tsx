@@ -12,6 +12,10 @@ import {
     applyLineFamilyLabelPlacement,
     buildLineFamilyLabelAttributes,
     stabilizeInitialLineFamilyLabelPlacement,
+    syncLabelStrokeColor,
+    syncLayer,
+    syncLineStrokeStyle,
+    syncWithLabelToggle,
 } from "./utils/jsxgraph";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
@@ -651,62 +655,38 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
                 }
             }
 
-            let layer = 10 * SVs.layer + LINE_LAYER_OFFSET;
-            let layerChanged = vectorJXG.current.visProp.layer !== layer;
-
-            if (layerChanged) {
-                let pointLayer = 10 * SVs.layer + VERTEX_LAYER_OFFSET;
-                vectorJXG.current.setAttribute({ layer });
+            // Endpoint layers must follow the vector's layer when it changes.
+            if (syncLayer(vectorJXG.current, SVs.layer, LINE_LAYER_OFFSET)) {
+                const pointLayer = 10 * SVs.layer + VERTEX_LAYER_OFFSET;
                 point1JXG.current.setAttribute({ layer: pointLayer });
                 point2JXG.current.setAttribute({ layer: pointLayer });
             }
 
             const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
 
-            if (vectorJXG.current.visProp.strokecolor !== lineColor) {
-                vectorJXG.current.visProp.strokecolor = lineColor;
-                vectorJXG.current.visProp.highlightstrokecolor = lineColor;
-            }
-            if (
-                vectorJXG.current.visProp.strokewidth !==
-                SVs.selectedStyle.lineWidth
-            ) {
-                vectorJXG.current.visProp.strokewidth =
-                    SVs.selectedStyle.lineWidth;
-                vectorJXG.current.visProp.highlightstrokewidth =
-                    SVs.selectedStyle.lineWidth;
-            }
-            if (
-                vectorJXG.current.visProp.strokeopacity !==
-                SVs.selectedStyle.lineOpacity
-            ) {
-                vectorJXG.current.visProp.strokeopacity =
-                    SVs.selectedStyle.lineOpacity;
-                vectorJXG.current.visProp.highlightstrokeopacity =
-                    SVs.selectedStyle.lineOpacity * 0.5;
-            }
-            let newDash = styleToDash(SVs.selectedStyle.lineStyle);
-            if (vectorJXG.current.visProp.dash !== newDash) {
-                vectorJXG.current.visProp.dash = newDash;
-            }
+            syncLineStrokeStyle(vectorJXG.current, {
+                lineColor,
+                lineWidth: SVs.selectedStyle.lineWidth,
+                lineOpacity: SVs.selectedStyle.lineOpacity,
+                dash: styleToDash(SVs.selectedStyle.lineStyle),
+            });
 
             vectorJXG.current.name = SVs.labelForGraph;
 
-            let withlabel = SVs.labelForGraph !== "";
-            if (withlabel != previousWithLabel.current) {
-                vectorJXG.current.setAttribute({ withlabel: withlabel });
-                previousWithLabel.current = withlabel;
-            }
+            syncWithLabelToggle(
+                vectorJXG.current,
+                SVs.labelForGraph,
+                previousWithLabel,
+            );
 
             vectorJXG.current.needsUpdate = true;
             vectorJXG.current.update();
             if (vectorJXG.current.hasLabel && vectorJXG.current.label) {
-                if (SVs.applyStyleToLabel) {
-                    vectorJXG.current.label.visProp.strokecolor = lineColor;
-                } else {
-                    vectorJXG.current.label.visProp.strokecolor =
-                        "var(--canvasText)";
-                }
+                syncLabelStrokeColor(
+                    vectorJXG.current.label,
+                    SVs.applyStyleToLabel,
+                    lineColor,
+                );
 
                 applyLineFamilyLabelPlacement({
                     board,

@@ -12,6 +12,11 @@ import { exceededDragThreshold } from "./utils/dragThreshold";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveLineColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
+import {
+    syncLabelStrokeColor,
+    syncLayer,
+    syncLineStrokeStyle,
+} from "./utils/jsxgraph";
 
 interface PolylineSVs extends DraggableGraphicalSVs {
     numVertices: number;
@@ -494,13 +499,14 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
             polylineJXG.current.visProp.highlight = !fixLocation.current;
             polylineJXG.current.isDraggable = !fixLocation.current;
 
-            let polylineLayer = 10 * SVs.layer + LINE_LAYER_OFFSET;
-            let layerChanged =
-                polylineJXG.current.visProp.layer !== polylineLayer;
             let pointLayer = 10 * SVs.layer + VERTEX_LAYER_OFFSET;
+            let layerChanged = syncLayer(
+                polylineJXG.current,
+                SVs.layer,
+                LINE_LAYER_OFFSET,
+            );
 
             if (layerChanged) {
-                polylineJXG.current.setAttribute({ layer: polylineLayer });
                 jsxPointAttributes.current!.layer = pointLayer;
             }
 
@@ -606,42 +612,18 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
 
             const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
 
-            if (polylineJXG.current.visProp.strokecolor !== lineColor) {
-                polylineJXG.current.visProp.strokecolor = lineColor;
-                polylineJXG.current.visProp.highlightstrokecolor = lineColor;
-            }
-            if (
-                polylineJXG.current.visProp.strokewidth !==
-                SVs.selectedStyle.lineWidth
-            ) {
-                polylineJXG.current.visProp.strokewidth =
-                    SVs.selectedStyle.lineWidth;
-                polylineJXG.current.visProp.highlightstrokewidth =
-                    SVs.selectedStyle.lineWidth;
-            }
-            if (
-                polylineJXG.current.visProp.strokeopacity !==
-                SVs.selectedStyle.lineOpacity
-            ) {
-                polylineJXG.current.visProp.strokeopacity =
-                    SVs.selectedStyle.lineOpacity;
-                polylineJXG.current.visProp.highlightstrokeopacity =
-                    SVs.selectedStyle.lineOpacity * 0.5;
-            }
-            let newDash = styleToDash(SVs.selectedStyle.lineStyle);
-            if (polylineJXG.current.visProp.dash !== newDash) {
-                polylineJXG.current.visProp.dash = newDash;
-            }
+            syncLineStrokeStyle(polylineJXG.current, {
+                lineColor,
+                lineWidth: SVs.selectedStyle.lineWidth,
+                lineOpacity: SVs.selectedStyle.lineOpacity,
+                dash: styleToDash(SVs.selectedStyle.lineStyle),
+            });
 
             polylineJXG.current.name = SVs.labelForGraph;
 
             if (polylineJXG.current.hasLabel && polylineJXG.current.label) {
                 const label = polylineJXG.current.label;
-                if (SVs.applyStyleToLabel) {
-                    label.visProp.strokecolor = lineColor;
-                } else {
-                    label.visProp.strokecolor = "var(--canvasText)";
-                }
+                syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
                 label.needsUpdate = true;
                 label.update();
             }

@@ -727,3 +727,144 @@ export function stabilizeInitialLineFamilyLabelPlacement({
         }
     };
 }
+
+/**
+ * Minimal structural shape for `visProp`-bearing JSXgraph objects whose
+ * attributes the sync helpers below mutate. Using a structural type keeps
+ * these helpers usable from both legacy `JXGObject` consumers and new
+ * per-kind `JXGElement` consumers.
+ */
+type SyncableJXG = {
+    visProp: Record<string, any>;
+    visPropCalc?: Record<string, any>;
+    setAttribute: Function;
+};
+
+/**
+ * Sync visibility on a line-family object, gated by `validCoords`.
+ *
+ * Mirrors the per-renderer pattern of writing both `visProp.visible` and
+ * `visPropCalc.visible`, but only calling `setAttribute({ visible })` when the
+ * value actually changes — `setAttribute` is incredibly slow on point labels,
+ * so it should not run when nothing changed. When `validCoords` is false,
+ * forces both flags off without invoking `setAttribute`.
+ *
+ * Returns whether `visProp.visible` actually changed (callers may piggyback
+ * additional updates on this signal).
+ */
+export function syncLineFamilyVisibility(
+    obj: SyncableJXG,
+    visible: boolean,
+    validCoords: boolean,
+): boolean {
+    if (!validCoords) {
+        obj.visProp.visible = false;
+        if (obj.visPropCalc) {
+            obj.visPropCalc.visible = false;
+        }
+        return false;
+    }
+
+    const changed = obj.visProp.visible !== visible;
+    obj.visProp.visible = visible;
+    if (obj.visPropCalc) {
+        obj.visPropCalc.visible = visible;
+    }
+    if (changed) {
+        obj.setAttribute({ visible });
+    }
+    return changed;
+}
+
+/**
+ * Sync a JSXgraph object's layer attribute. Doenet `SVs.layer` is multiplied
+ * by 10 and added to a per-element-kind offset (see `LINE_LAYER_OFFSET`,
+ * `VERTEX_LAYER_OFFSET`, etc. in `graph.ts`). Returns whether the layer
+ * actually changed, so callers can mirror updates to companion objects
+ * (e.g. endpoint points whose layer must follow the segment's).
+ */
+export function syncLayer(
+    obj: SyncableJXG,
+    svsLayer: number,
+    offset: number,
+): boolean {
+    const layer = 10 * svsLayer + offset;
+    const changed = obj.visProp.layer !== layer;
+    if (changed) {
+        obj.setAttribute({ layer });
+    }
+    return changed;
+}
+
+/**
+ * Sync stroke color/width/opacity/dash on a line-family object.
+ *
+ * Highlight values mirror the base values, with `strokeOpacity` halved on
+ * highlight (matching the convention used across renderers prior to this
+ * helper). `dash` is taken as a precomputed numeric value because some
+ * renderers (e.g. line.tsx) pass an extra `dashed` SV into `styleToDash`.
+ */
+export function syncLineStrokeStyle(
+    obj: SyncableJXG,
+    {
+        lineColor,
+        lineWidth,
+        lineOpacity,
+        dash,
+    }: {
+        lineColor: string;
+        lineWidth: number;
+        lineOpacity: number;
+        dash: number;
+    },
+): void {
+    const vp = obj.visProp;
+    if (vp.strokecolor !== lineColor) {
+        vp.strokecolor = lineColor;
+        vp.highlightstrokecolor = lineColor;
+    }
+    if (vp.strokewidth !== lineWidth) {
+        vp.strokewidth = lineWidth;
+        vp.highlightstrokewidth = lineWidth;
+    }
+    if (vp.strokeopacity !== lineOpacity) {
+        vp.strokeopacity = lineOpacity;
+        vp.highlightstrokeopacity = lineOpacity * 0.5;
+    }
+    if (vp.dash !== dash) {
+        vp.dash = dash;
+    }
+}
+
+/**
+ * Sync the `withlabel` attribute based on whether `labelForGraph` is
+ * non-empty, calling `setAttribute` only when the value actually changes.
+ * `previousWithLabelRef` tracks the last applied value across renders.
+ * Returns the resolved `withlabel` boolean.
+ */
+export function syncWithLabelToggle(
+    obj: SyncableJXG,
+    labelForGraph: string,
+    previousWithLabelRef: MutableRefObject<boolean | null>,
+): boolean {
+    const withlabel = labelForGraph !== "";
+    if (withlabel !== previousWithLabelRef.current) {
+        obj.setAttribute({ withlabel });
+        previousWithLabelRef.current = withlabel;
+    }
+    return withlabel;
+}
+
+/**
+ * Set a label's stroke color: either inherit the line color
+ * (`applyStyleToLabel`) or fall back to `var(--canvasText)`.
+ */
+export function syncLabelStrokeColor(
+    label: { visProp: Record<string, any> },
+    applyStyleToLabel: boolean,
+    lineColor: string,
+): void {
+    label.visProp.strokecolor = applyStyleToLabel
+        ? lineColor
+        : "var(--canvasText)";
+}

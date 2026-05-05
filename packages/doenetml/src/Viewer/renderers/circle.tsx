@@ -29,6 +29,12 @@ import {
     resolveMarkerColor,
 } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
+import {
+    syncLabelStrokeColor,
+    syncLayer,
+    syncLineStrokeStyle,
+    syncWithLabelToggle,
+} from "./utils/jsxgraph";
 
 interface CircleSVs extends DraggableGraphicalSVs {
     numericalCenter: [number, number];
@@ -794,44 +800,19 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             circleJXG.current.visProp.highlight = !fixLocation.current;
             circleJXG.current.isDraggable = !fixLocation.current;
 
-            let layer = 10 * SVs.layer + LINE_LAYER_OFFSET;
-            let layerChanged = circleJXG.current.visProp.layer !== layer;
-
-            if (layerChanged) {
-                circleJXG.current.setAttribute({ layer });
-            }
+            syncLayer(circleJXG.current, SVs.layer, LINE_LAYER_OFFSET);
 
             const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
             const fillColor = SVs.filled
                 ? resolveFillColor(SVs.selectedStyle, darkMode)
                 : "none";
 
-            if (circleJXG.current.visProp.strokecolor !== lineColor) {
-                circleJXG.current.visProp.strokecolor = lineColor;
-                circleJXG.current.visProp.highlightstrokecolor = lineColor;
-            }
-            if (
-                circleJXG.current.visProp.strokeopacity !==
-                SVs.selectedStyle.lineOpacity
-            ) {
-                circleJXG.current.visProp.strokeopacity =
-                    SVs.selectedStyle.lineOpacity;
-                circleJXG.current.visProp.highlightstrokeopacity =
-                    SVs.selectedStyle.lineOpacity * 0.5;
-            }
-            let newDash = styleToDash(SVs.selectedStyle.lineStyle);
-            if (circleJXG.current.visProp.dash !== newDash) {
-                circleJXG.current.visProp.dash = newDash;
-            }
-            if (
-                circleJXG.current.visProp.strokewidth !==
-                SVs.selectedStyle.lineWidth
-            ) {
-                circleJXG.current.visProp.strokewidth =
-                    SVs.selectedStyle.lineWidth;
-                circleJXG.current.visProp.highlightstrokewidth =
-                    SVs.selectedStyle.lineWidth;
-            }
+            syncLineStrokeStyle(circleJXG.current, {
+                lineColor,
+                lineWidth: SVs.selectedStyle.lineWidth,
+                lineOpacity: SVs.selectedStyle.lineOpacity,
+                dash: styleToDash(SVs.selectedStyle.lineStyle),
+            });
 
             if (circleJXG.current.visProp.fillcolor !== fillColor) {
                 circleJXG.current.visProp.fillcolor = fillColor;
@@ -850,22 +831,18 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
 
             circleJXG.current.name = SVs.labelForGraph;
 
-            let withlabel = SVs.labelForGraph !== "";
-            if (withlabel != previousWithLabel.current) {
-                circleJXG.current.setAttribute({ withlabel: withlabel });
-                previousWithLabel.current = withlabel;
-            }
+            const withlabel = syncWithLabelToggle(
+                circleJXG.current,
+                SVs.labelForGraph,
+                previousWithLabel,
+            );
 
             circleJXG.current.needsUpdate = true;
             circleJXG.current.update();
 
             if (circleJXG.current.hasLabel && circleJXG.current.label) {
                 const label = circleJXG.current.label;
-                if (SVs.applyStyleToLabel) {
-                    label.visProp.strokecolor = lineColor;
-                } else {
-                    label.visProp.strokecolor = "var(--canvasText)";
-                }
+                syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
                 label.needsUpdate = true;
                 label.update();
             }
@@ -884,12 +861,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                     offGraphIndicatorCoords.current,
                 );
 
-                let layer = 10 * SVs.layer + POINT_LAYER_OFFSET;
-                let layerChanged = indicatorJXG.current.visProp.layer !== layer;
-
-                if (layerChanged) {
-                    indicatorJXG.current.setAttribute({ layer });
-                }
+                syncLayer(indicatorJXG.current, SVs.layer, POINT_LAYER_OFFSET);
 
                 indicatorJXG.current.visProp.highlight = !fixLocation.current;
                 indicatorJXG.current.visProp.fixed = fixed.current;
@@ -939,11 +911,11 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                 ) {
                     const label = indicatorJXG.current.label;
                     label.needsUpdate = true;
-                    if (SVs.applyStyleToLabel) {
-                        label.visProp.strokecolor = markerColor;
-                    } else {
-                        label.visProp.strokecolor = "var(--canvasText)";
-                    }
+                    syncLabelStrokeColor(
+                        label,
+                        SVs.applyStyleToLabel,
+                        markerColor,
+                    );
 
                     let labelPosition = adjustPointLabelPosition(
                         "upperright",

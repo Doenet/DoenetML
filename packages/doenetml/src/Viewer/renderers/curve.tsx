@@ -16,6 +16,7 @@ import { usePointerDragState } from "./utils/pointerDragState";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
 import { resolveLineColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
+import { syncLabelStrokeColor, syncLayer } from "./utils/jsxgraph";
 
 interface CurveSVs extends DraggableGraphicalSVs {
     curveType: "function" | "parameterization" | "bezier";
@@ -755,21 +756,20 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
             curveJXG.current!.visProp["visible"] = visible;
             curveJXG.current!.visPropCalc["visible"] = visible;
 
-            let curveLayer = 10 * SVs.layer + LINE_LAYER_OFFSET;
-            let layerChanged = curveJXG.current!.visProp.layer !== curveLayer;
             let segmentLayer, throughPointLayer, controlPointLayer;
+            let layerChanged = syncLayer(
+                curveJXG.current!,
+                SVs.layer,
+                LINE_LAYER_OFFSET,
+            );
 
-            if (layerChanged) {
-                curveJXG.current!.setAttribute({ layer: curveLayer });
-                if (SVs.curveType === "bezier") {
-                    segmentLayer = 10 * SVs.layer + VERTEX_LAYER_OFFSET;
-                    throughPointLayer = 10 * SVs.layer + VERTEX_LAYER_OFFSET;
-                    controlPointLayer =
-                        10 * SVs.layer + CONTROL_POINT_LAYER_OFFSET;
-                    segmentAttributes.current!.layer = segmentLayer;
-                    throughPointAttributes.current!.layer = throughPointLayer;
-                    controlPointAttributes.current!.layer = controlPointLayer;
-                }
+            if (layerChanged && SVs.curveType === "bezier") {
+                segmentLayer = 10 * SVs.layer + VERTEX_LAYER_OFFSET;
+                throughPointLayer = 10 * SVs.layer + VERTEX_LAYER_OFFSET;
+                controlPointLayer = 10 * SVs.layer + CONTROL_POINT_LAYER_OFFSET;
+                segmentAttributes.current!.layer = segmentLayer;
+                throughPointAttributes.current!.layer = throughPointLayer;
+                controlPointAttributes.current!.layer = controlPointLayer;
             }
 
             let lineColor =
@@ -863,11 +863,7 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
                 const label = curveJXG.current!.label as any;
                 label.needsUpdate = true;
                 label.visPropCalc.visible = SVs.labelForGraph !== "";
-                if (SVs.applyStyleToLabel) {
-                    label.visProp.strokecolor = lineColor;
-                } else {
-                    label.visProp.strokecolor = "var(canvasText)";
-                }
+                syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
                 label.update();
             }
 

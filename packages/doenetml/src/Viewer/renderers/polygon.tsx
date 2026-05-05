@@ -12,6 +12,11 @@ import { exceededDragThreshold } from "./utils/dragThreshold";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveLineColor, resolveFillColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
+import {
+    syncLabelStrokeColor,
+    syncLayer,
+    syncLineStrokeStyle,
+} from "./utils/jsxgraph";
 
 interface PolygonSVs extends DraggableGraphicalSVs {
     numVertices: number;
@@ -580,16 +585,17 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
             polygonJXG.current.visProp["visible"] = visibleNow;
             polygonJXG.current.visPropCalc["visible"] = visibleNow;
 
-            let polygonLayer = 10 * SVs.layer + LINE_LAYER_OFFSET;
-            let layerChanged =
-                polygonJXG.current.visProp.layer !== polygonLayer;
             let borderLayer: number | undefined;
             let pointLayer: number | undefined;
+            let layerChanged = syncLayer(
+                polygonJXG.current,
+                SVs.layer,
+                LINE_LAYER_OFFSET,
+            );
 
             if (layerChanged) {
                 borderLayer = 10 * SVs.layer + LINE_LAYER_OFFSET;
                 pointLayer = 10 * SVs.layer + VERTEX_LAYER_OFFSET;
-                polygonJXG.current.setAttribute({ layer: polygonLayer });
             }
 
             const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
@@ -601,11 +607,7 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
 
             if (polygonJXG.current.hasLabel && polygonJXG.current.label) {
                 const label = polygonJXG.current.label;
-                if (SVs.applyStyleToLabel) {
-                    label.visProp.strokecolor = lineColor;
-                } else {
-                    label.visProp.strokecolor = "var(--canvasText)";
-                }
+                syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
                 label.needsUpdate = true;
                 label.update();
             }
@@ -639,30 +641,12 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                     border.setAttribute({ layer: borderLayer });
                 }
 
-                if (border.visProp.strokecolor !== lineColor) {
-                    border.visProp.strokecolor = lineColor;
-                    border.visProp.highlightstrokecolor = lineColor;
-                }
-                if (
-                    border.visProp.strokeopacity !==
-                    SVs.selectedStyle.lineOpacity
-                ) {
-                    border.visProp.strokeopacity =
-                        SVs.selectedStyle.lineOpacity;
-                    border.visProp.highlightstrokeopacity =
-                        SVs.selectedStyle.lineOpacity * 0.5;
-                }
-                let newDash = styleToDash(SVs.selectedStyle.lineStyle);
-                if (border.visProp.dash !== newDash) {
-                    border.visProp.dash = newDash;
-                }
-                if (
-                    border.visProp.strokewidth !== SVs.selectedStyle.lineWidth
-                ) {
-                    border.visProp.strokewidth = SVs.selectedStyle.lineWidth;
-                    border.visProp.highlightstrokewidth =
-                        SVs.selectedStyle.lineWidth;
-                }
+                syncLineStrokeStyle(border, {
+                    lineColor,
+                    lineWidth: SVs.selectedStyle.lineWidth,
+                    lineOpacity: SVs.selectedStyle.lineOpacity,
+                    dash: styleToDash(SVs.selectedStyle.lineStyle),
+                });
 
                 border.needsUpdate = true;
                 border.update();

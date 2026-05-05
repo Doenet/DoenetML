@@ -8,6 +8,11 @@ import {
     applyLineFamilyLabelPlacement,
     buildLineFamilyLabelAttributes,
     stabilizeInitialLineFamilyLabelPlacement,
+    syncLabelStrokeColor,
+    syncLayer,
+    syncLineFamilyVisibility,
+    syncLineStrokeStyle,
+    syncWithLabelToggle,
 } from "./utils/jsxgraph";
 import { JXGLine } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
@@ -337,79 +342,36 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
 
             let visible = !SVs.hidden;
 
-            if (validCoords) {
-                let actuallyChangedVisibility =
-                    rayJXG.current.visProp["visible"] !== visible;
-                rayJXG.current.visProp["visible"] = visible;
-                rayJXG.current.visPropCalc["visible"] = visible;
-
-                if (actuallyChangedVisibility) {
-                    // at least for point, this function is incredibly slow, so don't run it if not necessary
-                    // TODO: figure out how to make label disappear right away so don't need to run this function
-                    rayJXG.current.setAttribute({ visible: visible });
-                }
-            } else {
-                rayJXG.current.visProp["visible"] = false;
-                rayJXG.current.visPropCalc["visible"] = false;
-            }
+            syncLineFamilyVisibility(rayJXG.current, visible, validCoords);
 
             rayJXG.current.visProp.fixed = fixed.current;
             rayJXG.current.visProp.highlight = !fixLocation.current;
             rayJXG.current.isDraggable = !fixLocation.current;
 
-            let layer = 10 * SVs.layer + LINE_LAYER_OFFSET;
-            let layerChanged = rayJXG.current.visProp.layer !== layer;
-
-            if (layerChanged) {
-                rayJXG.current.setAttribute({ layer });
-            }
+            syncLayer(rayJXG.current, SVs.layer, LINE_LAYER_OFFSET);
 
             const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
 
-            if (rayJXG.current.visProp.strokecolor !== lineColor) {
-                rayJXG.current.visProp.strokecolor = lineColor;
-                rayJXG.current.visProp.highlightstrokecolor = lineColor;
-            }
-            if (
-                rayJXG.current.visProp.strokewidth !==
-                SVs.selectedStyle.lineWidth
-            ) {
-                rayJXG.current.visProp.strokewidth =
-                    SVs.selectedStyle.lineWidth;
-                rayJXG.current.visProp.highlightstrokewidth =
-                    SVs.selectedStyle.lineWidth;
-            }
-            if (
-                rayJXG.current.visProp.strokeopacity !==
-                SVs.selectedStyle.lineOpacity
-            ) {
-                rayJXG.current.visProp.strokeopacity =
-                    SVs.selectedStyle.lineOpacity;
-                rayJXG.current.visProp.highlightstrokeopacity =
-                    SVs.selectedStyle.lineOpacity * 0.5;
-            }
-            let newDash = styleToDash(SVs.selectedStyle.lineStyle);
-            if (rayJXG.current.visProp.dash !== newDash) {
-                rayJXG.current.visProp.dash = newDash;
-            }
+            syncLineStrokeStyle(rayJXG.current, {
+                lineColor,
+                lineWidth: SVs.selectedStyle.lineWidth,
+                lineOpacity: SVs.selectedStyle.lineOpacity,
+                dash: styleToDash(SVs.selectedStyle.lineStyle),
+            });
 
             rayJXG.current.name = SVs.labelForGraph;
 
-            let withlabel = SVs.labelForGraph !== "";
-            if (withlabel != previousWithLabel.current) {
-                rayJXG.current.setAttribute({ withlabel: withlabel });
-                previousWithLabel.current = withlabel;
-            }
+            syncWithLabelToggle(
+                rayJXG.current,
+                SVs.labelForGraph,
+                previousWithLabel,
+            );
 
             rayJXG.current.needsUpdate = true;
             rayJXG.current.update();
             if (rayJXG.current.hasLabel && rayJXG.current.label) {
                 const label = rayJXG.current.label;
-                if (SVs.applyStyleToLabel) {
-                    label.visProp.strokecolor = lineColor;
-                } else {
-                    label.visProp.strokecolor = "var(--canvasText)";
-                }
+                syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
 
                 applyLineFamilyLabelPlacement({
                     board,

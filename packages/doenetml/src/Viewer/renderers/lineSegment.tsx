@@ -8,6 +8,11 @@ import {
     applyLineFamilyLabelPlacement,
     buildLineFamilyLabelAttributes,
     stabilizeInitialLineFamilyLabelPlacement,
+    syncLabelStrokeColor,
+    syncLayer,
+    syncLineFamilyVisibility,
+    syncLineStrokeStyle,
+    syncWithLabelToggle,
 } from "./utils/jsxgraph";
 import { JXGLine, JXGPoint } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
@@ -606,21 +611,11 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
 
             let visible = !SVs.hidden && validCoords;
 
-            if (validCoords) {
-                let actuallyChangedVisibility =
-                    lineSegmentJXG.current.visProp["visible"] !== visible;
-                lineSegmentJXG.current.visProp["visible"] = visible;
-                lineSegmentJXG.current.visPropCalc["visible"] = visible;
-
-                if (actuallyChangedVisibility) {
-                    // at least for point, this function is incredibly slow, so don't run it if not necessary
-                    // TODO: figure out how to make label disappear right away so don't need to run this function
-                    lineSegmentJXG.current.setAttribute({ visible: visible });
-                }
-            } else {
-                lineSegmentJXG.current.visProp["visible"] = false;
-                lineSegmentJXG.current.visPropCalc["visible"] = false;
-            }
+            syncLineFamilyVisibility(
+                lineSegmentJXG.current,
+                visible,
+                validCoords,
+            );
 
             let endpointsVisible = !endpointsFixed.current && visible;
 
@@ -636,55 +631,31 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
             lineSegmentJXG.current.visProp.highlight = !fixLocation.current;
             lineSegmentJXG.current.isDraggable = !fixLocation.current;
 
-            let layer = 10 * SVs.layer + LINE_LAYER_OFFSET;
-            let layerChanged = lineSegmentJXG.current.visProp.layer !== layer;
-
-            if (layerChanged) {
-                lineSegmentJXG.current.setAttribute({ layer });
-                point1JXG.current.setAttribute({
-                    layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
-                });
-                point2JXG.current.setAttribute({
-                    layer: 10 * SVs.layer + VERTEX_LAYER_OFFSET,
-                });
+            // Endpoint layers must follow the segment's layer when it changes.
+            if (
+                syncLayer(lineSegmentJXG.current, SVs.layer, LINE_LAYER_OFFSET)
+            ) {
+                const vertexLayer = 10 * SVs.layer + VERTEX_LAYER_OFFSET;
+                point1JXG.current.setAttribute({ layer: vertexLayer });
+                point2JXG.current.setAttribute({ layer: vertexLayer });
             }
 
             const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
 
-            if (lineSegmentJXG.current.visProp.strokecolor !== lineColor) {
-                lineSegmentJXG.current.visProp.strokecolor = lineColor;
-                lineSegmentJXG.current.visProp.highlightstrokecolor = lineColor;
-            }
-            if (
-                lineSegmentJXG.current.visProp.strokewidth !==
-                SVs.selectedStyle.lineWidth
-            ) {
-                lineSegmentJXG.current.visProp.strokewidth =
-                    SVs.selectedStyle.lineWidth;
-                lineSegmentJXG.current.visProp.highlightstrokewidth =
-                    SVs.selectedStyle.lineWidth;
-            }
-            if (
-                lineSegmentJXG.current.visProp.strokeopacity !==
-                SVs.selectedStyle.lineOpacity
-            ) {
-                lineSegmentJXG.current.visProp.strokeopacity =
-                    SVs.selectedStyle.lineOpacity;
-                lineSegmentJXG.current.visProp.highlightstrokeopacity =
-                    SVs.selectedStyle.lineOpacity * 0.5;
-            }
-            let newDash = styleToDash(SVs.selectedStyle.lineStyle);
-            if (lineSegmentJXG.current.visProp.dash !== newDash) {
-                lineSegmentJXG.current.visProp.dash = newDash;
-            }
+            syncLineStrokeStyle(lineSegmentJXG.current, {
+                lineColor,
+                lineWidth: SVs.selectedStyle.lineWidth,
+                lineOpacity: SVs.selectedStyle.lineOpacity,
+                dash: styleToDash(SVs.selectedStyle.lineStyle),
+            });
 
             lineSegmentJXG.current.name = SVs.labelForGraph;
 
-            let withlabel = SVs.labelForGraph !== "";
-            if (withlabel != previousWithLabel.current) {
-                lineSegmentJXG.current.setAttribute({ withlabel: withlabel });
-                previousWithLabel.current = withlabel;
-            }
+            syncWithLabelToggle(
+                lineSegmentJXG.current,
+                SVs.labelForGraph,
+                previousWithLabel,
+            );
 
             if (point1JXG.current.highlighted) {
                 board.updateInfobox(point1JXG.current);
@@ -700,11 +671,7 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
             ) {
                 const label = lineSegmentJXG.current.label;
                 label.needsUpdate = true;
-                if (SVs.applyStyleToLabel) {
-                    label.visProp.strokecolor = lineColor;
-                } else {
-                    label.visProp.strokecolor = "var(--canvasText)";
-                }
+                syncLabelStrokeColor(label, SVs.applyStyleToLabel, lineColor);
 
                 applyLineFamilyLabelPlacement({
                     board,
