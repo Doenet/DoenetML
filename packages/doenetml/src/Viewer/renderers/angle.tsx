@@ -4,54 +4,61 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET } from "./graph";
 import { MathJax } from "better-react-mathjax";
-import { JXGObject } from "./jsxgraph-distrib/types";
+import { JXGAngle, JXGPoint } from "./jsxgraph-distrib/types";
 import { textRendererStyle } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
 import { ChoiceInputInlineContext } from "./choiceInput";
+import { GraphicalSVs } from "./utils/graphicalSVs";
+
+interface AngleSVs extends GraphicalSVs {
+    numericalPoints: [number, number][];
+    numericalRadius: number;
+    swapPointOrder: boolean;
+    emphasizeRightAngle: boolean;
+    latexForRenderer: string;
+}
 
 export default React.memo(function Angle(props: UseDoenetRendererProps) {
-    let { id, SVs } = useDoenetRenderer(props);
+    let { id, SVs } = useDoenetRenderer<AngleSVs>(props);
 
     const board = useContext(BoardContext);
     const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
 
-    let point1JXG = useRef(null);
-    let point2JXG = useRef(null);
-    let point3JXG = useRef(null);
-    let angleJXG = useRef<JXGObject | null>(null);
+    let point1JXG = useRef<JXGPoint | null>(null);
+    let point2JXG = useRef<JXGPoint | null>(null);
+    let point3JXG = useRef<JXGPoint | null>(null);
+    let angleJXG = useRef<JXGAngle | null>(null);
     let previousWithLabel = useRef<boolean | null>(null);
 
     const { darkMode } = useContext(DocContext) || {};
 
     useEffect(() => {
-        //On unmount
         return () => {
             deleteGraphicalObject();
         };
     }, []);
 
     function deleteGraphicalObject() {
-        // if angle is defined
         if (point1JXG.current !== null) {
-            board?.removeObject(angleJXG.current);
+            board?.removeObject(angleJXG.current!);
             angleJXG.current = null;
             board?.removeObject(point1JXG.current);
             point1JXG.current = null;
-            board?.removeObject(point2JXG.current);
+            board?.removeObject(point2JXG.current!);
             point2JXG.current = null;
-            board?.removeObject(point3JXG.current);
+            board?.removeObject(point3JXG.current!);
             point3JXG.current = null;
         }
     }
 
-    function createAngleJXG(): JXGObject | null {
+    function createAngleJXG(): JXGAngle | null {
         if (board === null) {
             return null;
         }
 
         if (
             SVs.numericalPoints.length !== 3 ||
-            SVs.numericalPoints.some((x: any[]) => x.length !== 2) ||
+            SVs.numericalPoints.some((x) => x.length !== 2) ||
             !(Number.isFinite(SVs.numericalRadius) && SVs.numericalRadius > 0)
         ) {
             return null;
@@ -132,7 +139,7 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
             angleJXG.current = createAngleJXG();
         } else if (
             SVs.numericalPoints.length !== 3 ||
-            SVs.numericalPoints.some((x: any[]) => x.length !== 2) ||
+            SVs.numericalPoints.some((x) => x.length !== 2) ||
             !(Number.isFinite(SVs.numericalRadius) && SVs.numericalRadius > 0)
         ) {
             deleteGraphicalObject();
@@ -210,7 +217,7 @@ export default React.memo(function Angle(props: UseDoenetRendererProps) {
             angleJXG.current.needsUpdate = true;
             angleJXG.current.update();
 
-            if (angleJXG.current.hasLabel) {
+            if (angleJXG.current.hasLabel && angleJXG.current.label) {
                 angleJXG.current.label.needsUpdate = true;
                 angleJXG.current.label.update();
             }
