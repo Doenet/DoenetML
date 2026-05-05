@@ -126,6 +126,9 @@ export interface JXGAngle extends JXGElement {
 export interface JXGPolygon extends JXGElement {
     vertices: JXGPoint[];
     borders: JXGLine[];
+    addPoints(...points: JXGPoint[]): JXGPolygon;
+    removePoints(...points: JXGPoint[]): JXGPolygon;
+    updateVisibility(): JXGPolygon;
 }
 
 /**
