@@ -278,6 +278,130 @@ lexically, and dropped the trailing `.bind(this)`. No behaviour change.
 auditing the diff can see that the change is intentional and runtime-
 identical.
 
+## 11. `StateVariableDependency.getValue` — `valuesChanged[0][0]` never matches
+
+**Scope.** In `stateVariableDependencies.ts` (the `returnSingleVariableValue`
+branch of `getValue`), the collapse step reads:
+
+```ts
+if (changes.valuesChanged && changes.valuesChanged[0] && changes.valuesChanged[0][0]) {
+    changes.valuesChanged = changes.valuesChanged[0][0];
+}
+```
+
+The inner index `[0]` is numeric, but the populated keys at that level are
+state-variable names (strings like `"value"`), so the inner predicate is
+always falsy and the collapse never fires. Consumers cope because
+`changes.valuesChanged` is then left as the outer object and downstream
+callers tolerate the wider shape. Preserved verbatim from
+`Dependencies.js:4302-4305`.
+
+**Blocker.** Determining the intended shape requires walking the consumers
+that read `changes.valuesChanged` after a `returnSingleVariableValue` call
+to confirm what shape they actually expect.
+
+**Strategy.** Mirror the normalization logic used in `Dependency.getValue`
+(`returnSingleVariableValue` branch in `Dependency.ts`): index by the
+output variable name (`stateVariables[0]` / `nameForOutput`) instead of
+`[0]`. Add a focused test that exercises the collapse path to lock the
+shape down before the change.
+
+## 12. `addUpdateTriggerForMissingComponent` / `deleteUpdateTriggerForMissingComponent` are `async` without awaits
+
+**Scope.** Both helpers on `Dependency` are declared `async` but contain
+no `await` and have no Promise-returning calls. Many call sites invoke
+them without `await` (e.g. `Dependency.deleteFromUpdateTriggers`, plus
+~10 sites in `refResolutionDependencies.ts` and the original JS).
+Preserved verbatim from `Dependencies.js:3696, 3714`.
+
+**Blocker.** Removing `async` is mechanical, but every call site needs
+to be reviewed to confirm none rely on the function returning a Promise
+(e.g. chaining `.then`, passing to `Promise.all`). A grep for
+`await this.addUpdateTriggerForMissingComponent` /
+`.then(` after these calls is sufficient.
+
+**Strategy.**
+
+1. Walk every caller; confirm none use the Promise return value.
+2. Drop `async` from both methods. Return type becomes `void`.
+3. Optional: drop the matching `await` from any call site that had one
+   (TS allows `await` on non-Promises but it adds a needless microtask).
+
+## 13. `delete this.upValuesChanged` — likely typo for `valuesChanged`
+
+**Scope.** `Dependency.initialize` (`Dependency.ts:183`) does
+`delete this.upValuesChanged;` in the no-downstream-variables branch.
+There is no `upValuesChanged` field on `Dependency`; the only related
+field is `valuesChanged` (set in the `else` branch on the next line).
+The `delete` is therefore a no-op. Preserved verbatim from
+`Dependencies.js:2823`.
+
+**Blocker.** Determining whether the intended field is `valuesChanged`
+(in which case the `delete` was meant to undo a previous assignment from
+a re-`initialize` call) or whether the line is just stale dead code
+needs a `git log -p -S upValuesChanged` walk through the JS history.
+
+**Strategy.**
+
+1. Run `git log --all -S 'upValuesChanged'` against the original file
+   to find the commit that introduced the line.
+2. Either rename to `valuesChanged` if that was the intent, or delete
+   the line outright if it has been dead since introduction.
+
+## 14. Dead shadow-source walk in `ChildDependency.determineDownstreamComponents`
+
+**Scope.** `childDependencies.ts:416-434` walks
+`childSource.shadows` / `parentSource.shadows` chains for every entry
+in `activeChildrenMatched` but never reads the resulting `childSource`
+/ `parentSource` after the inner `while`. The loop has no observable
+effect. Preserved verbatim from `Dependencies.js:5440-5455`.
+
+**Blocker.** Risk of removal is non-zero: the loop walks live
+`_components` references and could in theory be relied on for a side
+effect during the walk (none is visible, but the original code may
+have depended on materialising shadow components for downstream
+resolution). A diagnostic counter to confirm the loop body is reached
+in normal documents is the cheap safety check.
+
+**Strategy.**
+
+1. Add a `console.warn` (or `Core.diagnostics` counter) inside the
+   `while` body. Run the targeted test set + a representative document
+   run; confirm the body executes.
+2. Once confirmed reached but observably effect-free, delete the loop.
+   If the body never executes, delete on that basis instead.
+
+## 15. `` `$${referenceText}` `` doubled-dollar risk in ref-resolution diagnostics
+
+**Scope.** `refResolutionDependencies.ts:362-363` and `465` build
+diagnostic messages by template-interpolating `referenceText` with a
+literal `$` prefix:
+
+```ts
+`No referent found for reference: \`$${referenceText}\``
+```
+
+`referenceText` is sourced from `getDoenetMLStringForReference()` which
+takes a `substring(startOffset, endOffset)` over the raw DoenetML. If
+the captured offsets include the leading `$` of a reference like `$x`,
+the message renders as `` `$$x` ``. Preserved verbatim from
+`Dependencies.js:7460-7461, 7563`. The TODO comment at line 357-359
+already flags that these messages duplicate `format_error_message` of
+`ref_resolve.ts`.
+
+**Blocker.** Verifying which side of the boundary the `$` lives on
+needs a small test — render a reference that triggers `NonUniqueReferent`
+or `NoReferent` and inspect the emitted diagnostic text.
+
+**Strategy.** Pick one:
+
+- **Cheap.** Add a test that exercises the diagnostic path; if the
+  output is `$$x`, drop the `$` from the template. If it's `$x`,
+  the code is correct and the comment can be added to clarify.
+- **Right.** Address the TODO at line 357-359: route the formatting
+  through `ref_resolve.ts`'s `format_error_message` so the two
+  message sources can't drift.
+
 ---
 
 ## Notes for whoever picks this up
@@ -285,7 +409,12 @@ identical.
 - **Sequencing.** Items #1, #5, and #6 cluster — fixing #1 unblocks #6
   and lets #5 simplify. Items #3 and #4 are independent and can be done
   per-table / per-method. Item #7 is its own diagnostic-style task. Item
-  #9 follows the wider Core typing initiative.
+  #9 follows the wider Core typing initiative. Items #11–#15 surfaced
+  during PR review as latent issues preserved verbatim from the original
+  `Dependencies.js`; they're independent of the typing work and can be
+  picked up in any order. #12 is the cheapest (mechanical), #14 the
+  smallest behaviour-affecting change, #11 the highest-risk because
+  consumers cope with the current shape.
 - **Items intentionally out of this plan.** Wider `ComponentInstance`
   typing, `Core` lifecycle modelling, and the inverse-definition value
   bag types are tracked in `CORE_REFACTOR_DEFERRED.md`. The dependencies
