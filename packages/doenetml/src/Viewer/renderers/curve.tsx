@@ -38,7 +38,6 @@ interface CurveSVs extends DraggableGraphicalSVs {
     hiddenControls: any[];
     extrapolateBackward: boolean;
     extrapolateForward: boolean;
-    [key: string]: any;
 }
 
 export default React.memo(function Curve(props: UseDoenetRendererProps) {
