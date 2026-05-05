@@ -7,6 +7,7 @@ import { DocContext } from "../DocViewer";
 import {
     applyLineFamilyLabelPlacement,
     buildLineFamilyLabelAttributes,
+    removeJXGEventHandlers,
     stabilizeInitialLineFamilyLabelPlacement,
     syncLabelStrokeColor,
     syncLayer,
@@ -14,6 +15,7 @@ import {
     syncLineStrokeStyle,
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
+import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
 import { JXGLine, JXGPoint } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
@@ -22,6 +24,8 @@ import { exceededDragThreshold } from "./utils/dragThreshold";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveLineColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
+import { useDraggableRefs } from "./utils/useDraggableRefs";
+import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 
 interface LineSegmentSVs extends DraggableGraphicalSVs {
     numericalEndpoints: [number, number][];
@@ -51,14 +55,12 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
     let pointCoords = useRef<any>(null);
     let downOnPoint = useRef<number | null>(null);
 
-    let lastPositionsFromCore = useRef<[number, number][] | null>(null);
-    let fixed = useRef(false);
-    let fixLocation = useRef(false);
+    const {
+        lastPositionFromCore: lastPositionsFromCore,
+        fixed,
+        fixLocation,
+    } = useDraggableRefs<[number, number][]>(SVs, SVs.numericalEndpoints);
     let endpointsFixed = useRef(false);
-
-    lastPositionsFromCore.current = SVs.numericalEndpoints;
-    fixed.current = SVs.fixed;
-    fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
     endpointsFixed.current =
         !SVs.endpointsDraggable || SVs.fixed || SVs.fixLocation;
 
@@ -66,14 +68,11 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
 
     useBoardPointerTracking(board, dragState);
 
-    React.useEffect(() => {
-        return () => {
-            cancelInitialLabelPlacement.current?.();
-            if (lineSegmentJXG.current) {
-                deleteLineSegmentJXG();
-            }
-        };
-    }, []);
+    useJSXGraphCleanup({
+        objectRef: lineSegmentJXG,
+        destroy: () => deleteLineSegmentJXG(),
+        cancelLabelPlacementRef: cancelInitialLabelPlacement,
+    });
 
     function createLineSegmentJXG() {
         if (board === null) {
@@ -92,26 +91,18 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
             return;
         }
 
-        let withlabel = SVs.labelForGraph !== "";
-
         const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
 
         //things to be passed to JSXGraph as attributes
-        var jsxSegmentAttributes: Record<string, any> = {
-            name: SVs.labelForGraph,
-            visible: !SVs.hidden,
-            withlabel,
-            fixed: fixed.current,
-            layer: 10 * SVs.layer + LINE_LAYER_OFFSET,
-            strokeColor: lineColor,
-            strokeOpacity: SVs.selectedStyle.lineOpacity,
-            highlightStrokeColor: lineColor,
-            highlightStrokeOpacity: SVs.selectedStyle.lineOpacity * 0.5,
-            strokeWidth: SVs.selectedStyle.lineWidth,
-            highlightStrokeWidth: SVs.selectedStyle.lineWidth,
-            dash: styleToDash(SVs.selectedStyle.lineStyle),
-            highlight: !fixLocation.current,
-        };
+        var jsxSegmentAttributes: Record<string, any> = buildLineLikeAttributes(
+            {
+                SVs,
+                layerOffset: LINE_LAYER_OFFSET,
+                fixed: fixed.current,
+                fixLocation: fixLocation.current,
+                darkMode,
+            },
+        );
 
         jsxSegmentAttributes.label = buildLineFamilyLabelAttributes({
             labelForGraph: SVs.labelForGraph,
@@ -392,7 +383,7 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
         cancelInitialLabelPlacement.current?.();
         cancelInitialLabelPlacement.current = null;
 
-        if (withlabel && lineSegmentJXG.current.hasLabel) {
+        if (SVs.labelForGraph !== "" && lineSegmentJXG.current.hasLabel) {
             const createdLineSegment = lineSegmentJXG.current;
             cancelInitialLabelPlacement.current =
                 stabilizeInitialLineFamilyLabelPlacement({
@@ -417,7 +408,7 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
                 });
         }
 
-        previousWithLabel.current = withlabel;
+        previousWithLabel.current = SVs.labelForGraph !== "";
 
         return lineSegmentJXG.current;
     }
@@ -510,11 +501,11 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
 
         lineSegmentJXG.current.point1.coords.setCoordinates(
             JXG.COORDS_BY_USER,
-            lastPositionsFromCore.current![0],
+            lastPositionsFromCore.current[0],
         );
         lineSegmentJXG.current.point2.coords.setCoordinates(
             JXG.COORDS_BY_USER,
-            lastPositionsFromCore.current![1],
+            lastPositionsFromCore.current[1],
         );
         if (i == 1) {
             board.updateInfobox(lineSegmentJXG.current.point1);
@@ -527,34 +518,19 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
         cancelInitialLabelPlacement.current?.();
         cancelInitialLabelPlacement.current = null;
         if (lineSegmentJXG.current) {
-            lineSegmentJXG.current.off("drag");
-            lineSegmentJXG.current.off("down");
-            lineSegmentJXG.current.off("hit");
-            lineSegmentJXG.current.off("up");
-            lineSegmentJXG.current.off("keydown");
-            lineSegmentJXG.current.off("keyfocusout");
+            removeJXGEventHandlers(lineSegmentJXG.current);
             board?.removeObject(lineSegmentJXG.current);
             lineSegmentJXG.current = null;
         }
 
         if (point1JXG.current) {
-            point1JXG.current.off("drag");
-            point1JXG.current.off("down");
-            point1JXG.current.off("hit");
-            point1JXG.current.off("up");
-            point1JXG.current.off("keydown");
-            point1JXG.current.off("keyfocusout");
+            removeJXGEventHandlers(point1JXG.current);
             board?.removeObject(point1JXG.current);
             point1JXG.current = null;
         }
 
         if (point2JXG.current) {
-            point2JXG.current.off("drag");
-            point2JXG.current.off("down");
-            point2JXG.current.off("hit");
-            point2JXG.current.off("up");
-            point2JXG.current.off("keydown");
-            point2JXG.current.off("keyfocusout");
+            removeJXGEventHandlers(point2JXG.current);
             board?.removeObject(point2JXG.current);
             point2JXG.current = null;
         }

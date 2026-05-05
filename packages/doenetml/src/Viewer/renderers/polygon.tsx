@@ -12,11 +12,15 @@ import { exceededDragThreshold } from "./utils/dragThreshold";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveLineColor, resolveFillColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
+import { useDraggableRefs } from "./utils/useDraggableRefs";
+import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 import {
+    removeJXGEventHandlers,
     syncLabelStrokeColor,
     syncLayer,
     syncLineStrokeStyle,
 } from "./utils/jsxgraph";
+import { buildBaseAttributes } from "./utils/buildGraphicalAttributes";
 
 interface PolygonSVs extends DraggableGraphicalSVs {
     numVertices: number;
@@ -48,15 +52,13 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
     let previousNumVertices = useRef<number | null>(null);
     let jsxPointAttributes = useRef<Record<string, any> | null>(null);
 
-    let lastPositionsFromCore = useRef<[number, number][] | null>(null);
-    let fixed = useRef(false);
-    let fixLocation = useRef(false);
+    const {
+        lastPositionFromCore: lastPositionsFromCore,
+        fixed,
+        fixLocation,
+    } = useDraggableRefs<[number, number][]>(SVs, SVs.numericalVertices);
     let verticesFixed = useRef(false);
     let vertexIndicesDraggable = useRef<number[]>([]);
-
-    lastPositionsFromCore.current = SVs.numericalVertices;
-    fixed.current = SVs.fixed;
-    fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
     verticesFixed.current =
         !SVs.verticesDraggable || SVs.fixed || SVs.fixLocation;
     vertexIndicesDraggable.current = SVs.vertexIndicesDraggable;
@@ -65,13 +67,10 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
 
     useBoardPointerTracking(board, dragState);
 
-    React.useEffect(() => {
-        return () => {
-            if (polygonJXG.current) {
-                deletePolygonJXG();
-            }
-        };
-    }, []);
+    useJSXGraphCleanup({
+        objectRef: polygonJXG,
+        destroy: () => deletePolygonJXG(),
+    });
 
     function createPolygonJXG() {
         if (board === null) {
@@ -114,18 +113,18 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
         };
 
         let jsxPolygonAttributes: Record<string, any> = {
-            name: SVs.labelForGraph,
-            visible: !SVs.hidden,
-            withLabel: SVs.labelForGraph !== "",
-            fixed: fixed.current,
-            layer: 10 * SVs.layer + LINE_LAYER_OFFSET,
+            ...buildBaseAttributes({
+                SVs,
+                layerOffset: LINE_LAYER_OFFSET,
+                fixed: fixed.current,
+                fixLocation: fixLocation.current,
+            }),
 
             //specific to polygon
             fillColor,
             fillOpacity: SVs.selectedStyle.fillOpacity,
             highlightFillColor: fillColor,
             highlightFillOpacity: SVs.selectedStyle.fillOpacity * 0.5,
-            highlight: !fixLocation.current,
             vertices: jsxPointAttributes.current,
             borders: jsxBorderAttributes,
         };
@@ -195,17 +194,12 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
     function initializePoints(polygon: JXGPolygon) {
         for (let i = 0; i < SVs.numVertices; i++) {
             let vertex = polygon.vertices[i];
-            vertex.off("drag");
+            removeJXGEventHandlers(vertex);
             vertex.on("drag", (e) => dragHandler(i, e));
-            vertex.off("up");
             vertex.on("up", () => upHandler(i));
-            vertex.off("keyfocusout");
             vertex.on("keyfocusout", () => keyFocusOutHandler(i));
-            vertex.off("keydown");
             vertex.on("keydown", (e) => keyDownHandler(i, e));
-            vertex.off("down");
             vertex.on("down", (e) => downHandler(i, e));
-            vertex.off("hit");
             vertex.on("hit", () => hitHandler());
         }
     }
@@ -294,7 +288,7 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                 for (let j = 0; j < SVs.numVertices; j++) {
                     polygonJXG.current.vertices[j].coords.setCoordinates(
                         JXG.COORDS_BY_USER,
-                        [...lastPositionsFromCore.current![j]],
+                        [...lastPositionsFromCore.current[j]],
                     );
                 }
             } else {
@@ -314,7 +308,7 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                 });
                 polygonJXG.current.vertices[i].coords.setCoordinates(
                     JXG.COORDS_BY_USER,
-                    [...lastPositionsFromCore.current![i]],
+                    [...lastPositionsFromCore.current[i]],
                 );
                 board.updateInfobox(polygonJXG.current.vertices[i]);
             }
@@ -522,12 +516,7 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                     i >= SVs.numVertices;
                     i--
                 ) {
-                    polygonJXG.current.vertices[i].off("drag");
-                    polygonJXG.current.vertices[i].off("down");
-                    polygonJXG.current.vertices[i].off("hit");
-                    polygonJXG.current.vertices[i].off("up");
-                    polygonJXG.current.vertices[i].off("keyfocusout");
-                    polygonJXG.current.vertices[i].off("keydown");
+                    removeJXGEventHandlers(polygonJXG.current.vertices[i]);
                     polygonJXG.current.removePoints(
                         polygonJXG.current.vertices[i],
                     );

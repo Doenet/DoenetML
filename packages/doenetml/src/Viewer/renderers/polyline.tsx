@@ -12,11 +12,15 @@ import { exceededDragThreshold } from "./utils/dragThreshold";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveLineColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
+import { useDraggableRefs } from "./utils/useDraggableRefs";
+import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 import {
+    removeJXGEventHandlers,
     syncLabelStrokeColor,
     syncLayer,
     syncLineStrokeStyle,
 } from "./utils/jsxgraph";
+import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
 
 interface PolylineSVs extends DraggableGraphicalSVs {
     numVertices: number;
@@ -47,15 +51,13 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
     let previousNumVertices = useRef<number | null>(null);
     let jsxPointAttributes = useRef<Record<string, any> | null>(null);
 
-    let lastPositionsFromCore = useRef<[number, number][] | null>(null);
-    let fixed = useRef(false);
-    let fixLocation = useRef(false);
+    const {
+        lastPositionFromCore: lastPositionsFromCore,
+        fixed,
+        fixLocation,
+    } = useDraggableRefs<[number, number][]>(SVs, SVs.numericalVertices);
     let verticesFixed = useRef(false);
     let vertexIndicesDraggable = useRef<number[]>([]);
-
-    lastPositionsFromCore.current = SVs.numericalVertices;
-    fixed.current = SVs.fixed;
-    fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
     verticesFixed.current =
         !SVs.verticesDraggable || SVs.fixed || SVs.fixLocation;
     vertexIndicesDraggable.current = SVs.vertexIndicesDraggable;
@@ -64,13 +66,10 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
 
     useBoardPointerTracking(board, dragState);
 
-    React.useEffect(() => {
-        return () => {
-            if (polylineJXG.current) {
-                deletePolylineJXG();
-            }
-        };
-    }, []);
+    useJSXGraphCleanup({
+        objectRef: polylineJXG,
+        destroy: () => deletePolylineJXG(),
+    });
 
     function createPolylineJXG() {
         if (board === null) {
@@ -99,19 +98,14 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
 
         //things to be passed to JSXGraph as attributes
         let jsxPolylineAttributes: Record<string, any> = {
-            name: SVs.labelForGraph,
+            ...buildLineLikeAttributes({
+                SVs,
+                layerOffset: LINE_LAYER_OFFSET,
+                fixed: fixed.current,
+                fixLocation: fixLocation.current,
+                darkMode,
+            }),
             visible: !SVs.hidden && validCoords,
-            withLabel: SVs.labelForGraph !== "",
-            layer: 10 * SVs.layer + LINE_LAYER_OFFSET,
-            fixed: fixed.current,
-            strokeColor: lineColor,
-            strokeOpacity: SVs.selectedStyle.lineOpacity,
-            highlightStrokeColor: lineColor,
-            highlightStrokeOpacity: SVs.selectedStyle.lineOpacity * 0.5,
-            strokeWidth: SVs.selectedStyle.lineWidth,
-            highlightStrokeWidth: SVs.selectedStyle.lineWidth,
-            dash: styleToDash(SVs.selectedStyle.lineStyle),
-            highlight: !fixLocation.current,
             lineCap: "butt",
         };
 
@@ -203,12 +197,7 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
         if (!polylineJXG.current) {
             return;
         }
-        polylineJXG.current.off("drag");
-        polylineJXG.current.off("down");
-        polylineJXG.current.off("hit");
-        polylineJXG.current.off("up");
-        polylineJXG.current.off("keyfocusout");
-        polylineJXG.current.off("keydown");
+        removeJXGEventHandlers(polylineJXG.current);
         board?.removeObject(polylineJXG.current);
         polylineJXG.current = null;
 
@@ -216,12 +205,7 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
             for (let i = 0; i < SVs.numVertices; i++) {
                 let point = pointsJXG.current[i];
                 if (point) {
-                    point.off("drag");
-                    point.off("down");
-                    point.off("hit");
-                    point.off("up");
-                    point.off("keyfocusout");
-                    point.off("keydown");
+                    removeJXGEventHandlers(point);
                     board?.removeObject(point);
                 }
             }
@@ -293,12 +277,12 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
                 for (let j = 0; j < SVs.numVertices; j++) {
                     pointsJXG.current[j].coords.setCoordinates(
                         JXG.COORDS_BY_USER,
-                        [...lastPositionsFromCore.current![j]],
+                        [...lastPositionsFromCore.current[j]],
                     );
                     polylineJXG.current.dataX[j] =
-                        lastPositionsFromCore.current![j][0] - shiftX;
+                        lastPositionsFromCore.current[j][0] - shiftX;
                     polylineJXG.current.dataY[j] =
-                        lastPositionsFromCore.current![j][1] - shiftY;
+                        lastPositionsFromCore.current[j][1] - shiftY;
                 }
             } else {
                 pointCoords.current = {};
@@ -316,7 +300,7 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
                     },
                 });
                 pointsJXG.current[i].coords.setCoordinates(JXG.COORDS_BY_USER, [
-                    ...lastPositionsFromCore.current![i],
+                    ...lastPositionsFromCore.current[i],
                 ]);
                 board.updateInfobox(pointsJXG.current[i]);
             }
@@ -555,12 +539,7 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
                 ) {
                     let pt = pointsJXG.current.pop();
                     if (pt) {
-                        pt.off("drag");
-                        pt.off("down");
-                        pt.off("hit");
-                        pt.off("up");
-                        pt.off("keyfocusout");
-                        pt.off("keydown");
+                        removeJXGEventHandlers(pt);
                         board?.removeObject(pt);
                     }
                 }

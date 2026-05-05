@@ -17,6 +17,8 @@ import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
 import { resolveLineColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import { syncLabelStrokeColor, syncLayer } from "./utils/jsxgraph";
+import { useDraggableRefs } from "./utils/useDraggableRefs";
+import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 
 interface CurveSVs extends DraggableGraphicalSVs {
     curveType: "function" | "parameterization" | "bezier";
@@ -70,23 +72,19 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
     let hitObject = useRef<any>(null);
     let vectorControlDirections = useRef<any[] | null>(null);
     let previousVectorControlDirections = useRef<any[] | null>(null);
-    let fixed = useRef(false);
-    let fixLocation = useRef(false);
+    const {
+        lastPositionFromCore: lastThroughPointPositionsFromCore,
+        fixed,
+        fixLocation,
+    } = useDraggableRefs<[number, number][]>(SVs, SVs.numericalThroughPoints);
     let switchable = useRef(false);
 
     let tpCoords = useRef<any[]>([]);
     let cvCoords = useRef<any[]>([]);
 
-    fixed.current = SVs.fixed;
-    fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
     switchable.current = SVs.switchable && !SVs.fixed;
 
     vectorControlDirections.current = SVs.vectorControlDirections;
-
-    let lastThroughPointPositionsFromCore = useRef<[number, number][] | null>(
-        null,
-    );
-    lastThroughPointPositionsFromCore.current = SVs.numericalThroughPoints;
 
     let lastControlPointPositionsFromCore = useRef<[number, number][][] | null>(
         null,
@@ -97,13 +95,10 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
 
     useBoardPointerTracking(board, dragState);
 
-    React.useEffect(() => {
-        return () => {
-            if (curveJXG.current) {
-                deleteCurveJXG();
-            }
-        };
-    }, []);
+    useJSXGraphCleanup({
+        objectRef: curveJXG,
+        destroy: () => deleteCurveJXG(),
+    });
 
     function createCurveJXG() {
         if (board === null) {
@@ -534,7 +529,7 @@ export default React.memo(function Curve(props: UseDoenetRendererProps) {
 
         throughPointsJXG.current![i].coords.setCoordinates(
             JXG.COORDS_BY_USER,
-            lastThroughPointPositionsFromCore.current![i],
+            lastThroughPointPositionsFromCore.current[i],
         );
         board!.updateInfobox(throughPointsJXG.current![i]);
     }

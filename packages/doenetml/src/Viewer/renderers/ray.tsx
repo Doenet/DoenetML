@@ -7,6 +7,7 @@ import { DocContext } from "../DocViewer";
 import {
     applyLineFamilyLabelPlacement,
     buildLineFamilyLabelAttributes,
+    removeJXGEventHandlers,
     stabilizeInitialLineFamilyLabelPlacement,
     syncLabelStrokeColor,
     syncLayer,
@@ -14,6 +15,7 @@ import {
     syncLineStrokeStyle,
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
+import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
 import { JXGLine } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
@@ -22,6 +24,8 @@ import { exceededDragThreshold } from "./utils/dragThreshold";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveLineColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
+import { useDraggableRefs } from "./utils/useDraggableRefs";
+import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 
 interface RaySVs extends DraggableGraphicalSVs {
     numericalEndpoint: [number, number];
@@ -48,28 +52,23 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
     let cancelInitialLabelPlacement = useRef<(() => void) | null>(null);
     let pointCoords = useRef<[number, number][] | null>(null);
 
-    let lastEndpointFromCore = useRef<[number, number] | null>(null);
+    const {
+        lastPositionFromCore: lastEndpointFromCore,
+        fixed,
+        fixLocation,
+    } = useDraggableRefs<[number, number]>(SVs, SVs.numericalEndpoint);
     let lastThroughpointFromCore = useRef<[number, number] | null>(null);
-    let fixed = useRef(false);
-    let fixLocation = useRef(false);
-
-    lastEndpointFromCore.current = SVs.numericalEndpoint;
     lastThroughpointFromCore.current = SVs.numericalThroughpoint;
-    fixed.current = SVs.fixed;
-    fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
 
     const { darkMode } = useContext(DocContext) || {};
 
     useBoardPointerTracking(board, dragState);
 
-    React.useEffect(() => {
-        return () => {
-            cancelInitialLabelPlacement.current?.();
-            if (rayJXG.current !== null) {
-                deleteRayJXG();
-            }
-        };
-    }, []);
+    useJSXGraphCleanup({
+        objectRef: rayJXG,
+        destroy: () => deleteRayJXG(),
+        cancelLabelPlacementRef: cancelInitialLabelPlacement,
+    });
 
     function createRayJXG() {
         if (board === null) {
@@ -87,19 +86,13 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
 
         //things to be passed to JSXGraph as attributes
         var jsxRayAttributes: Record<string, any> = {
-            name: SVs.labelForGraph,
-            visible: !SVs.hidden,
-            withLabel: SVs.labelForGraph !== "",
-            layer: 10 * SVs.layer + LINE_LAYER_OFFSET,
-            fixed: fixed.current,
-            strokeColor: lineColor,
-            strokeOpacity: SVs.selectedStyle.lineOpacity,
-            highlightStrokeColor: lineColor,
-            highlightStrokeOpacity: SVs.selectedStyle.lineOpacity * 0.5,
-            strokeWidth: SVs.selectedStyle.lineWidth,
-            highlightStrokeWidth: SVs.selectedStyle.lineWidth,
-            dash: styleToDash(SVs.selectedStyle.lineStyle),
-            highlight: !fixLocation.current,
+            ...buildLineLikeAttributes({
+                SVs,
+                layerOffset: LINE_LAYER_OFFSET,
+                fixed: fixed.current,
+                fixLocation: fixLocation.current,
+                darkMode,
+            }),
             straightFirst: false,
         };
 
@@ -298,12 +291,7 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
         if (!rayJXG.current) {
             return;
         }
-        rayJXG.current.off("drag");
-        rayJXG.current.off("down");
-        rayJXG.current.off("hit");
-        rayJXG.current.off("up");
-        rayJXG.current.off("keyfocusout");
-        rayJXG.current.off("keydown");
+        removeJXGEventHandlers(rayJXG.current);
         board?.removeObject(rayJXG.current);
         rayJXG.current = null;
     }

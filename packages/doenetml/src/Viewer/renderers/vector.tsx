@@ -11,12 +11,14 @@ import { ChoiceInputInlineContext } from "./choiceInput";
 import {
     applyLineFamilyLabelPlacement,
     buildLineFamilyLabelAttributes,
+    removeJXGEventHandlers,
     stabilizeInitialLineFamilyLabelPlacement,
     syncLabelStrokeColor,
     syncLayer,
     syncLineStrokeStyle,
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
+import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
@@ -24,6 +26,8 @@ import { exceededDragThreshold } from "./utils/dragThreshold";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveLineColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
+import { useDraggableRefs } from "./utils/useDraggableRefs";
+import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 
 interface VectorSVs extends DraggableGraphicalSVs {
     numericalEndpoints: [number, number][];
@@ -59,17 +63,13 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
     let previousWithLabel = useRef<boolean | null>(null);
     let cancelInitialLabelPlacement = useRef<(() => void) | null>(null);
 
-    let lastPositionsFromCore = useRef<[number, number][]>(
-        SVs.numericalEndpoints,
-    );
-    let fixed = useRef(false);
-    let fixLocation = useRef(false);
+    const {
+        lastPositionFromCore: lastPositionsFromCore,
+        fixed,
+        fixLocation,
+    } = useDraggableRefs<[number, number][]>(SVs, SVs.numericalEndpoints);
     let headDraggable = useRef(true);
     let tailDraggable = useRef(true);
-
-    lastPositionsFromCore.current = SVs.numericalEndpoints;
-    fixed.current = SVs.fixed;
-    fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
     tailDraggable.current = SVs.tailDraggable && !SVs.fixed && !SVs.fixLocation;
     headDraggable.current = SVs.headDraggable && !SVs.fixed && !SVs.fixLocation;
 
@@ -77,15 +77,11 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
 
     useBoardPointerTracking(board, dragState);
 
-    React.useEffect(() => {
-        //On unmount
-        return () => {
-            cancelInitialLabelPlacement.current?.();
-            if (vectorJXG.current !== null) {
-                deleteVectorJXG();
-            }
-        };
-    }, []);
+    useJSXGraphCleanup({
+        objectRef: vectorJXG,
+        destroy: () => deleteVectorJXG(),
+        cancelLabelPlacementRef: cancelInitialLabelPlacement,
+    });
 
     function createVectorJXG() {
         if (board === null) {
@@ -108,19 +104,13 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
 
         //things to be passed to JSXGraph as attributes
         var jsxVectorAttributes: Record<string, any> = {
-            name: SVs.labelForGraph,
-            visible: !SVs.hidden,
-            withLabel: SVs.labelForGraph !== "",
-            fixed: fixed.current,
-            layer: 10 * SVs.layer + LINE_LAYER_OFFSET,
-            strokeColor: lineColor,
-            strokeOpacity: SVs.selectedStyle.lineOpacity,
-            highlightStrokeColor: lineColor,
-            highlightStrokeOpacity: SVs.selectedStyle.lineOpacity * 0.5,
-            strokeWidth: SVs.selectedStyle.lineWidth,
-            highlightStrokeWidth: SVs.selectedStyle.lineWidth,
-            dash: styleToDash(SVs.selectedStyle.lineStyle),
-            highlight: !fixLocation.current,
+            ...buildLineLikeAttributes({
+                SVs,
+                layerOffset: LINE_LAYER_OFFSET,
+                fixed: fixed.current,
+                fixLocation: fixLocation.current,
+                darkMode,
+            }),
             lastArrow: { type: 1, size: 3, highlightSize: 3 },
         };
 
@@ -519,34 +509,19 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
         cancelInitialLabelPlacement.current?.();
         cancelInitialLabelPlacement.current = null;
         if (vectorJXG.current) {
-            vectorJXG.current.off("drag");
-            vectorJXG.current.off("down");
-            vectorJXG.current.off("hit");
-            vectorJXG.current.off("up");
-            vectorJXG.current.off("keyfocusout");
-            vectorJXG.current.off("keydown");
+            removeJXGEventHandlers(vectorJXG.current);
             board?.removeObject(vectorJXG.current);
             vectorJXG.current = null;
         }
 
         if (point1JXG.current) {
-            point1JXG.current.off("drag");
-            point1JXG.current.off("down");
-            point1JXG.current.off("hit");
-            point1JXG.current.off("up");
-            point1JXG.current.off("keyfocusout");
-            point1JXG.current.off("keydown");
+            removeJXGEventHandlers(point1JXG.current);
             board?.removeObject(point1JXG.current);
             point1JXG.current = null;
         }
 
         if (point2JXG.current) {
-            point2JXG.current.off("drag");
-            point2JXG.current.off("down");
-            point2JXG.current.off("hit");
-            point2JXG.current.off("up");
-            point2JXG.current.off("keyfocusout");
-            point2JXG.current.off("keydown");
+            removeJXGEventHandlers(point2JXG.current);
             board?.removeObject(point2JXG.current);
             point2JXG.current = null;
         }

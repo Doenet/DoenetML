@@ -31,6 +31,11 @@ export function buildBaseAttributes({
     };
 }
 
+type LineLikeSVs = Pick<
+    GraphicalSVs,
+    "labelForGraph" | "hidden" | "layer" | "selectedStyle"
+>;
+
 /**
  * Standard JSXgraph attribute object for stroke-only "line-family" elements
  * (line, lineSegment, ray, vector, polyline). Caller adds the `label`
@@ -44,7 +49,7 @@ export function buildLineLikeAttributes({
     darkMode,
     dashed,
 }: {
-    SVs: GraphicalSVs;
+    SVs: LineLikeSVs;
     layerOffset: number;
     fixed: boolean;
     fixLocation: boolean;
@@ -77,7 +82,7 @@ export function buildFilledShapeAttributes({
     darkMode,
     dashed,
 }: {
-    SVs: GraphicalSVs;
+    SVs: LineLikeSVs;
     layerOffset: number;
     fixed: boolean;
     fixLocation: boolean;

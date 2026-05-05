@@ -30,11 +30,15 @@ import {
 } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import {
+    removeJXGEventHandlers,
     syncLabelStrokeColor,
     syncLayer,
     syncLineStrokeStyle,
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
+import { buildFilledShapeAttributes } from "./utils/buildGraphicalAttributes";
+import { useDraggableRefs } from "./utils/useDraggableRefs";
+import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 
 interface CircleSVs extends DraggableGraphicalSVs {
     numericalCenter: [number, number];
@@ -66,10 +70,13 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
     let previousPointLabelPosition = useRef<LabelPosition | null>(null);
     let centerCoords = useRef<[number, number] | null>(null);
 
-    let lastCenterFromCore = useRef<number[] | null>(null);
+    const {
+        lastPositionFromCore: lastCenterFromCore,
+        fixed,
+        fixLocation,
+    } = useDraggableRefs<number[]>(SVs, SVs.numericalCenter);
     let throughAnglesFromCore = useRef<[number, number] | null>(null);
-    let fixed = useRef(false);
-    let fixLocation = useRef(false);
+    throughAnglesFromCore.current = SVs.throughAngles;
 
     // for each coordinate, will be -1 or 1 if moved off graph in that direction
     let displayOffGraphIndicator = useRef(false);
@@ -77,23 +84,14 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
     let offGraphIndicatorCoords = useRef<[number, number] | null>([0, 0]);
     let offGraphIndicatorOffsetAtDown = useRef([0, 0]);
 
-    lastCenterFromCore.current = SVs.numericalCenter;
-    throughAnglesFromCore.current = SVs.throughAngles;
-    fixed.current = SVs.fixed;
-    fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
-
     const { darkMode } = useContext(DocContext) || {};
 
     useBoardPointerTracking(board, dragState);
 
-    React.useEffect(() => {
-        //On unmount
-        return () => {
-            if (circleJXG.current) {
-                deleteCircleJXG();
-            }
-        };
-    }, []);
+    useJSXGraphCleanup({
+        objectRef: circleJXG,
+        destroy: () => deleteCircleJXG(),
+    });
 
     function createCircleJXG() {
         if (board === null) {
@@ -135,32 +133,23 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         }
 
         const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
-        let fillColor = SVs.filled
-            ? resolveFillColor(SVs.selectedStyle, darkMode)
-            : "none";
         const markerColor = resolveMarkerColor(SVs.selectedStyle, darkMode);
 
         let withlabel = SVs.labelForGraph !== "";
 
-        var jsxCircleAttributes: Record<string, any> = {
-            name: SVs.labelForGraph,
-            visible: !SVs.hidden,
-            withlabel,
-            fixed: fixed.current,
-            layer: 10 * SVs.layer + LINE_LAYER_OFFSET,
-            strokeColor: lineColor,
-            strokeOpacity: SVs.selectedStyle.lineOpacity,
-            highlightStrokeColor: lineColor,
-            strokeWidth: SVs.selectedStyle.lineWidth,
-            highlightStrokeWidth: SVs.selectedStyle.lineWidth,
-            highlightStrokeOpacity: SVs.selectedStyle.lineOpacity * 0.5,
-            dash: styleToDash(SVs.selectedStyle.lineStyle),
-            fillColor,
-            fillOpacity: SVs.selectedStyle.fillOpacity,
-            highlightFillColor: fillColor,
-            highlightFillOpacity: SVs.selectedStyle.fillOpacity * 0.5,
-            highlight: !fixLocation.current,
-        };
+        var jsxCircleAttributes: Record<string, any> =
+            buildFilledShapeAttributes({
+                SVs,
+                layerOffset: LINE_LAYER_OFFSET,
+                fixed: fixed.current,
+                fixLocation: fixLocation.current,
+                darkMode,
+            });
+
+        if (!SVs.filled) {
+            jsxCircleAttributes.fillColor = "none";
+            jsxCircleAttributes.highlightFillColor = "none";
+        }
 
         if (SVs.filled) {
             jsxCircleAttributes.hasInnerPoints = true;
@@ -289,7 +278,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
 
             circleJXG.current!.center.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
-                [...lastCenterFromCore.current!],
+                [...lastCenterFromCore.current],
             );
         });
 
@@ -494,21 +483,11 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
         if (!circleJXG.current || !indicatorJXG.current) {
             return;
         }
-        indicatorJXG.current.off("drag");
-        indicatorJXG.current.off("down");
-        indicatorJXG.current.off("up");
-        indicatorJXG.current.off("hit");
-        indicatorJXG.current.off("keyfocusout");
-        indicatorJXG.current.off("keydown");
+        removeJXGEventHandlers(indicatorJXG.current);
         board?.removeObject(indicatorJXG.current);
         indicatorJXG.current = null;
 
-        circleJXG.current.off("drag");
-        circleJXG.current.off("down");
-        circleJXG.current.off("up");
-        circleJXG.current.off("hit");
-        circleJXG.current.off("keyfocusout");
-        circleJXG.current.off("keydown");
+        removeJXGEventHandlers(circleJXG.current);
         board?.removeObject(circleJXG.current);
         circleJXG.current = null;
     }
@@ -528,10 +507,7 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
 
             if (centerOffResults.needIndicator) {
                 // center is off graph
-                if (
-                    !offGraphIndicatorCoords.current ||
-                    !lastCenterFromCore.current
-                ) {
+                if (!offGraphIndicatorCoords.current) {
                     return;
                 }
 
