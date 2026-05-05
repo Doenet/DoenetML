@@ -103,6 +103,11 @@ export interface JXGCurve extends JXGElement {
     dataY: number[];
     minX?(): number;
     maxX?(): number;
+    /** Parametric curves expose X/Y(t) functions. */
+    X?(t?: number): number;
+    Y?(t?: number): number;
+    /** Curves expose updateCurve / updateTransformMatrix on drag. */
+    updateCurve?(): void;
     /** Polyline-style curves expose this point array. */
     points?: Array<{ scrCoords: number[]; usrCoords: number[] }>;
     /** Polyline-style curves expose a transformation matrix updated on drag. */

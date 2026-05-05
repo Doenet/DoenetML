@@ -1,8 +1,8 @@
-// TODO: remove this when revising components
-// @ts-nocheck
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useContext, useRef } from "react";
 import { createFunctionFromDefinition } from "@doenet/utils";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import {
     BoardContext,
     CONTROL_POINT_LAYER_OFFSET,
@@ -10,44 +10,72 @@ import {
     VERTEX_LAYER_OFFSET,
 } from "./graph";
 import { DocContext } from "../DocViewer";
-import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
+import { JXGCurve, JXGLine, JXGPoint } from "./jsxgraph-distrib/types";
+import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
+import { usePointerDragState } from "./utils/pointerDragState";
+import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
+import { resolveLineColor } from "./utils/styleColors";
+import { styleToDash } from "./utils/styleToDash";
 
-export default React.memo(function Curve(props) {
+interface CurveSVs extends DraggableGraphicalSVs {
+    curveType: "function" | "parameterization" | "bezier";
+    fDefinitions: any[];
+    parMin: number;
+    parMax: number;
+    flipFunction: boolean;
+    graphXmin: number;
+    graphXmax: number;
+    graphYmin: number;
+    graphYmax: number;
+    dashed: boolean;
+    switchable: boolean;
+    numericalThroughPoints: [number, number][];
+    numericalControlPoints: [number, number][][];
+    vectorControlDirections: any[];
+    bezierControlsAlwaysVisible: boolean;
+    showCoordsWhenDragging: boolean;
+    hiddenControls: any[];
+    extrapolateBackward: boolean;
+    extrapolateForward: boolean;
+    [key: string]: any;
+}
+
+export default React.memo(function Curve(props: UseDoenetRendererProps) {
     let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
-        useDoenetRenderer(props);
+        useDoenetRenderer<CurveSVs>(props);
 
+    // @ts-ignore
     Curve.ignoreActionsWithoutCore = () => true;
 
     const board = useContext(BoardContext);
 
-    let curveJXG = useRef(null);
-    let throughPointsJXG = useRef(null);
-    let controlPointsJXG = useRef(null);
+    let curveJXG = useRef<JXGCurve | null>(null);
+    let throughPointsJXG = useRef<JXGPoint[] | null>(null);
+    let controlPointsJXG = useRef<JXGPoint[][] | null>(null);
 
-    let previousCurveType = useRef(null);
-    let draggedControlPoint = useRef(null);
-    let draggedThroughPoint = useRef(null);
-    let pointerAtDown = useRef(null);
-    let pointerIsDown = useRef(false);
-    let pointerMovedSinceDown = useRef(false);
-    let previousFlipFunction = useRef(null);
-    let segmentAttributes = useRef(null);
-    let throughPointAttributes = useRef(null);
-    let throughPointAlwaysVisible = useRef(null);
-    let throughPointHoverVisible = useRef(null);
-    let controlPointAttributes = useRef(null);
-    let previousNumberOfPoints = useRef(null);
-    let segmentsJXG = useRef([]);
-    let vectorControlsVisible = useRef(null);
-    let hitObject = useRef(null);
-    let vectorControlDirections = useRef(null);
-    let previousVectorControlDirections = useRef(null);
+    let previousCurveType = useRef<string | null>(null);
+    let draggedControlPoint = useRef<any>(null);
+    let draggedThroughPoint = useRef<number | null>(null);
+    const dragState = usePointerDragState();
+    const { pointerAtDown, pointerIsDown, pointerMovedSinceDown } = dragState;
+    let previousFlipFunction = useRef<boolean | null>(null);
+    let segmentAttributes = useRef<Record<string, any> | null>(null);
+    let throughPointAttributes = useRef<Record<string, any> | null>(null);
+    let throughPointAlwaysVisible = useRef<Record<string, any> | null>(null);
+    let throughPointHoverVisible = useRef<Record<string, any> | null>(null);
+    let controlPointAttributes = useRef<Record<string, any> | null>(null);
+    let previousNumberOfPoints = useRef<number | null>(null);
+    let segmentsJXG = useRef<JXGLine[][]>([]);
+    let vectorControlsVisible = useRef<any>(null);
+    let hitObject = useRef<any>(null);
+    let vectorControlDirections = useRef<any[] | null>(null);
+    let previousVectorControlDirections = useRef<any[] | null>(null);
     let fixed = useRef(false);
     let fixLocation = useRef(false);
     let switchable = useRef(false);
 
-    let tpCoords = useRef([]);
-    let cvCoords = useRef([]);
+    let tpCoords = useRef<any[]>([]);
+    let cvCoords = useRef<any[]>([]);
 
     fixed.current = SVs.fixed;
     fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
@@ -55,33 +83,27 @@ export default React.memo(function Curve(props) {
 
     vectorControlDirections.current = SVs.vectorControlDirections;
 
-    let lastThroughPointPositionsFromCore = useRef(null);
+    let lastThroughPointPositionsFromCore = useRef<[number, number][] | null>(
+        null,
+    );
     lastThroughPointPositionsFromCore.current = SVs.numericalThroughPoints;
 
-    let lastControlPointPositionsFromCore = useRef(null);
+    let lastControlPointPositionsFromCore = useRef<[number, number][][] | null>(
+        null,
+    );
     lastControlPointPositionsFromCore.current = SVs.numericalControlPoints;
 
     const { darkMode } = useContext(DocContext) || {};
 
-    useEffect(() => {
-        //On unmount
+    useBoardPointerTracking(board, dragState);
+
+    React.useEffect(() => {
         return () => {
-            // if point is defined
             if (curveJXG.current) {
                 deleteCurveJXG();
             }
-
-            if (board) {
-                board.off("move", boardMoveHandler);
-            }
         };
     }, []);
-
-    useEffect(() => {
-        if (board) {
-            board.on("move", boardMoveHandler);
-        }
-    }, [board]);
 
     function createCurveJXG() {
         if (board === null) {
@@ -95,12 +117,9 @@ export default React.memo(function Curve(props) {
             return null;
         }
 
-        let lineColor =
-            darkMode === "dark"
-                ? SVs.selectedStyle.lineColorDarkMode
-                : SVs.selectedStyle.lineColor;
+        const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
 
-        var curveAttributes = {
+        var curveAttributes: Record<string, any> = {
             name: SVs.labelForGraph,
             visible: !SVs.hidden,
             withLabel: SVs.labelForGraph !== "",
@@ -182,7 +201,7 @@ export default React.memo(function Curve(props) {
             let f1 = createFunctionFromDefinition(SVs.fDefinitions[0]);
             let f2 = createFunctionFromDefinition(SVs.fDefinitions[1]);
 
-            newCurveJXG = board.create(
+            newCurveJXG = board!.create(
                 "curve",
                 [f1, f2, SVs.parMin, SVs.parMax],
                 curveAttributes,
@@ -190,7 +209,7 @@ export default React.memo(function Curve(props) {
         } else if (SVs.curveType === "bezier") {
             let f1 = createFunctionFromDefinition(SVs.fDefinitions[0]);
             let f2 = createFunctionFromDefinition(SVs.fDefinitions[1]);
-            newCurveJXG = board.create(
+            newCurveJXG = board!.create(
                 "curve",
                 [f1, f2, SVs.parMin, SVs.parMax],
                 curveAttributes,
@@ -202,9 +221,9 @@ export default React.memo(function Curve(props) {
                 let yMax = SVs.graphYmax;
                 let minForF = Math.max(yMin - (yMax - yMin) * 0.1, SVs.parMin);
                 let maxForF = Math.min(yMax + (yMax - yMin) * 0.1, SVs.parMax);
-                newCurveJXG = board.create(
+                newCurveJXG = board!.create(
                     "curve",
-                    [f, (x) => x, minForF, maxForF],
+                    [f, (x: number) => x, minForF, maxForF],
                     curveAttributes,
                 );
             } else {
@@ -212,7 +231,7 @@ export default React.memo(function Curve(props) {
                 let xMax = SVs.graphXmax;
                 let minForF = Math.max(xMin - (xMax - xMin) * 0.1, SVs.parMin);
                 let maxForF = Math.min(xMax + (xMax - xMin) * 0.1, SVs.parMax);
-                newCurveJXG = board.create(
+                newCurveJXG = board!.create(
                     "functiongraph",
                     [f, minForF, maxForF],
                     curveAttributes,
@@ -228,7 +247,7 @@ export default React.memo(function Curve(props) {
 
         newCurveJXG.isDraggable = false;
 
-        newCurveJXG.on("up", function (e) {
+        newCurveJXG.on("up", function (e: any) {
             if (!pointerMovedSinceDown.current && !fixed.current) {
                 if (switchable.current) {
                     callAction({
@@ -243,7 +262,7 @@ export default React.memo(function Curve(props) {
             pointerIsDown.current = false;
         });
 
-        newCurveJXG.on("keydown", function (e) {
+        newCurveJXG.on("keydown", function (e: any) {
             if (e.key === "Enter") {
                 if (switchable.current) {
                     callAction({
@@ -258,9 +277,9 @@ export default React.memo(function Curve(props) {
         });
 
         if (SVs.curveType === "bezier") {
-            board.on("up", upBoard);
+            board!.on("up", upBoard);
 
-            newCurveJXG.on("down", (e) => {
+            newCurveJXG.on("down", (e: any) => {
                 (document.activeElement as HTMLElement | null)?.blur();
 
                 pointerAtDown.current = [e.x, e.y];
@@ -276,7 +295,7 @@ export default React.memo(function Curve(props) {
                 }
             });
 
-            newCurveJXG.on("hit", function (e) {
+            newCurveJXG.on("hit", function (e: any) {
                 downOther();
 
                 callAction({
@@ -341,16 +360,16 @@ export default React.memo(function Curve(props) {
                     showAllControls();
                 }
 
-                board.updateRenderer();
+                board!.updateRenderer();
 
-                previousNumberOfPoints.current =
+                previousNumberOfPoints.current! =
                     SVs.numericalThroughPoints.length;
                 previousVectorControlDirections.current = [
                     ...SVs.vectorControlDirections,
                 ];
             }
         } else {
-            newCurveJXG.on("down", function (e) {
+            newCurveJXG.on("down", function (e: any) {
                 (document.activeElement as HTMLElement | null)?.blur();
 
                 pointerAtDown.current = [e.x, e.y];
@@ -365,7 +384,7 @@ export default React.memo(function Curve(props) {
                 }
             });
 
-            newCurveJXG.on("hit", function (e) {
+            newCurveJXG.on("hit", function (e: any) {
                 callAction({
                     action: actions.curveFocused,
                     args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
@@ -376,25 +395,11 @@ export default React.memo(function Curve(props) {
         return newCurveJXG;
     }
 
-    function boardMoveHandler(e) {
-        if (pointerIsDown.current) {
-            //Protect against very small unintended move
-            if (
-                Math.abs(e.x - pointerAtDown.current[0]) >
-                    POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current[1]) >
-                    POINTER_DRAG_THRESHOLD
-            ) {
-                pointerMovedSinceDown.current = true;
-            }
-        }
-    }
-
     function deleteCurveJXG() {
-        board.off("up", upBoard);
-        curveJXG.current.off("down");
-        curveJXG.current.off("up");
-        curveJXG.current.off("keydown");
+        board!.off("up", upBoard);
+        curveJXG.current!.off("down");
+        curveJXG.current!.off("up");
+        curveJXG.current!.off("keydown");
         board?.removeObject(curveJXG.current);
         curveJXG.current = null;
         deleteControls();
@@ -407,55 +412,55 @@ export default React.memo(function Curve(props) {
 
         for (let i = 0; i < SVs.numericalThroughPoints.length; i++) {
             // middle through points have two controls
-            let tp = board.create(
+            let tp = board!.create(
                 "point",
                 [...SVs.numericalThroughPoints[i]],
                 throughPointAttributes.current,
             );
-            throughPointsJXG.current.push(tp);
-            let cp1 = board.create(
+            throughPointsJXG.current!.push(tp);
+            let cp1 = board!.create(
                 "point",
                 [...SVs.numericalControlPoints[i][0]],
                 controlPointAttributes.current,
             );
-            let cp2 = board.create(
+            let cp2 = board!.create(
                 "point",
                 [...SVs.numericalControlPoints[i][1]],
                 controlPointAttributes.current,
             );
-            controlPointsJXG.current.push([cp1, cp2]);
-            let seg1 = board.create(
+            controlPointsJXG.current!.push([cp1, cp2]);
+            let seg1 = board!.create(
                 "segment",
                 [tp, cp1],
                 segmentAttributes.current,
             );
-            let seg2 = board.create(
+            let seg2 = board!.create(
                 "segment",
                 [tp, cp2],
                 segmentAttributes.current,
             );
-            segmentsJXG.current.push([seg1, seg2]);
-            tp.on("drag", (e) => dragThroughPoint(i));
-            tp.on("down", (e) => downThroughPoint(i, e));
-            tp.on("hit", (e) => downThroughPoint(i, e));
-            tp.on("up", (e) => upThroughPoint(i));
-            tp.on("keyfocusout", (e) => upThroughPoint(i));
-            cp1.on("drag", (e) => dragControlPoint(i, 0));
-            cp2.on("drag", (e) => dragControlPoint(i, 1));
+            segmentsJXG.current!.push([seg1, seg2]);
+            tp.on("drag", (e: any) => dragThroughPoint(i));
+            tp.on("down", (e: any) => downThroughPoint(i, e));
+            tp.on("hit", (e: any) => downThroughPoint(i, e));
+            tp.on("up", (e: any) => upThroughPoint(i));
+            tp.on("keyfocusout", (e: any) => upThroughPoint(i));
+            cp1.on("drag", (e: any) => dragControlPoint(i, 0));
+            cp2.on("drag", (e: any) => dragControlPoint(i, 1));
             cp1.on("down", downOther);
             cp2.on("down", downOther);
             seg1.on("down", downOther);
             seg2.on("down", downOther);
-            cp1.on("up", (e) => upControlPoint(i, 0));
-            cp2.on("up", (e) => upControlPoint(i, 1));
+            cp1.on("up", (e: any) => upControlPoint(i, 0));
+            cp2.on("up", (e: any) => upControlPoint(i, 1));
         }
 
         vectorControlsVisible.current = [];
     }
 
     function deleteControls() {
-        if (segmentsJXG.current.length > 0) {
-            segmentsJXG.current.forEach((x) =>
+        if (segmentsJXG.current!.length > 0) {
+            segmentsJXG.current!.forEach((x) =>
                 x.forEach((y) => {
                     if (y) {
                         y.off("down");
@@ -464,7 +469,7 @@ export default React.memo(function Curve(props) {
                 }),
             );
             segmentsJXG.current = [];
-            controlPointsJXG.current.forEach((x) =>
+            controlPointsJXG.current!.forEach((x) =>
                 x.forEach((y) => {
                     if (y) {
                         y.off("drag");
@@ -475,7 +480,7 @@ export default React.memo(function Curve(props) {
                 }),
             );
             controlPointsJXG.current = [];
-            throughPointsJXG.current.forEach((x) => {
+            throughPointsJXG.current!.forEach((x) => {
                 x.off("drag");
                 x.off("down");
                 x.off("hit");
@@ -487,7 +492,7 @@ export default React.memo(function Curve(props) {
         }
     }
 
-    function downThroughPoint(i, e) {
+    function downThroughPoint(i: number, e: any) {
         (document.activeElement as HTMLElement | null)?.blur();
 
         // console.log(`down through point: ${i}`)
@@ -506,15 +511,15 @@ export default React.memo(function Curve(props) {
 
         makeThroughPointsAlwaysVisible();
         makeVectorControlVisible(i);
-        board.updateRenderer();
+        board!.updateRenderer();
     }
 
-    function dragThroughPoint(i) {
+    function dragThroughPoint(i: number) {
         draggedThroughPoint.current = i;
 
         tpCoords.current[i] = [
-            throughPointsJXG.current[i].X(),
-            throughPointsJXG.current[i].Y(),
+            throughPointsJXG.current![i].X(),
+            throughPointsJXG.current![i].Y(),
         ];
 
         callAction({
@@ -527,14 +532,14 @@ export default React.memo(function Curve(props) {
             },
         });
 
-        throughPointsJXG.current[i].coords.setCoordinates(
+        throughPointsJXG.current![i].coords.setCoordinates(
             JXG.COORDS_BY_USER,
-            lastThroughPointPositionsFromCore.current[i],
+            lastThroughPointPositionsFromCore.current![i],
         );
-        board.updateInfobox(throughPointsJXG.current[i]);
+        board!.updateInfobox(throughPointsJXG.current![i]);
     }
 
-    function upThroughPoint(i) {
+    function upThroughPoint(i: number) {
         // also called when navigate away from point using keyboard
 
         if (draggedThroughPoint.current !== i) {
@@ -550,7 +555,7 @@ export default React.memo(function Curve(props) {
         });
     }
 
-    function dragControlPoint(point, i) {
+    function dragControlPoint(point: any, i: number) {
         // console.log(`drag control point ${point}, ${i}`)
 
         draggedControlPoint.current = point + "_" + i;
@@ -560,10 +565,10 @@ export default React.memo(function Curve(props) {
         }
 
         cvCoords.current[point][i] = [
-            controlPointsJXG.current[point][i].X() -
-                throughPointsJXG.current[point].X(),
-            controlPointsJXG.current[point][i].Y() -
-                throughPointsJXG.current[point].Y(),
+            controlPointsJXG.current![point][i].X() -
+                throughPointsJXG.current![point].X(),
+            controlPointsJXG.current![point][i].Y() -
+                throughPointsJXG.current![point].Y(),
         ];
 
         callAction({
@@ -576,14 +581,14 @@ export default React.memo(function Curve(props) {
             },
         });
 
-        controlPointsJXG.current[point][i].coords.setCoordinates(
+        controlPointsJXG.current![point][i].coords.setCoordinates(
             JXG.COORDS_BY_USER,
-            [...lastControlPointPositionsFromCore.current[point][i]],
+            [...lastControlPointPositionsFromCore.current![point][i]],
         );
-        board.updateInfobox(controlPointsJXG.current[point][i]);
+        board!.updateInfobox(controlPointsJXG.current![point][i]);
     }
 
-    function upControlPoint(point, i) {
+    function upControlPoint(point: any, i: number) {
         // console.log(`up control point ${point}, ${i}`)
 
         if (draggedControlPoint.current !== point + "_" + i) {
@@ -600,7 +605,7 @@ export default React.memo(function Curve(props) {
     }
 
     function makeThroughPointsAlwaysVisible() {
-        for (let point of throughPointsJXG.current) {
+        for (let point of throughPointsJXG.current!) {
             for (let attribute in throughPointAlwaysVisible.current) {
                 point.visProp[attribute] =
                     throughPointAlwaysVisible.current[attribute];
@@ -611,7 +616,7 @@ export default React.memo(function Curve(props) {
     }
 
     function makeThroughPointsHoverVisible() {
-        for (let point of throughPointsJXG.current) {
+        for (let point of throughPointsJXG.current!) {
             for (let attribute in throughPointHoverVisible.current) {
                 point.visProp[attribute] =
                     throughPointHoverVisible.current[attribute];
@@ -622,7 +627,7 @@ export default React.memo(function Curve(props) {
     }
 
     function hideAllControls() {
-        for (let controlPair of controlPointsJXG.current) {
+        for (let controlPair of controlPointsJXG.current!) {
             for (let cp of controlPair) {
                 if (cp) {
                     cp.visProp.visible = false;
@@ -645,7 +650,7 @@ export default React.memo(function Curve(props) {
 
     function showAllControls() {
         for (let ind in controlPointsJXG.current) {
-            makeVectorControlVisible(ind);
+            makeVectorControlVisible(Number(ind));
         }
     }
 
@@ -656,44 +661,44 @@ export default React.memo(function Curve(props) {
         if (hitObject.current !== true && !SVs.bezierControlsAlwaysVisible) {
             makeThroughPointsHoverVisible();
             hideAllControls();
-            board.updateRenderer();
+            board!.updateRenderer();
         }
         hitObject.current = false;
     }
 
-    function makeVectorControlVisible(i) {
+    function makeVectorControlVisible(i: number) {
         if (!SVs.hiddenControls[i]) {
-            if (controlPointsJXG.current[i][0]) {
+            if (controlPointsJXG.current![i][0]) {
                 let isVisible =
                     (i > 0 || SVs.extrapolateBackward) &&
                     ["symmetric", "both", "previous"].includes(
-                        vectorControlDirections.current[i],
+                        vectorControlDirections.current![i],
                     );
-                controlPointsJXG.current[i][0].visProp.visible = isVisible;
-                controlPointsJXG.current[i][0].visPropCalc.visible = isVisible;
-                controlPointsJXG.current[i][0].needsUpdate = true;
-                controlPointsJXG.current[i][0].update();
-                segmentsJXG.current[i][0].visProp.visible = isVisible;
-                segmentsJXG.current[i][0].visPropCalc.visible = isVisible;
-                segmentsJXG.current[i][0].needsUpdate = true;
-                segmentsJXG.current[i][0].update();
+                controlPointsJXG.current![i][0].visProp.visible = isVisible;
+                controlPointsJXG.current![i][0].visPropCalc.visible = isVisible;
+                controlPointsJXG.current![i][0].needsUpdate = true;
+                controlPointsJXG.current![i][0].update();
+                segmentsJXG.current![i][0].visProp.visible = isVisible;
+                segmentsJXG.current![i][0].visPropCalc.visible = isVisible;
+                segmentsJXG.current![i][0].needsUpdate = true;
+                segmentsJXG.current![i][0].update();
             }
 
-            if (controlPointsJXG.current[i][1]) {
+            if (controlPointsJXG.current![i][1]) {
                 let isVisible =
-                    (i < throughPointsJXG.current.length - 1 ||
+                    (i < throughPointsJXG.current!.length - 1 ||
                         SVs.extrapolateForward) &&
                     ["symmetric", "both", "next"].includes(
-                        vectorControlDirections.current[i],
+                        vectorControlDirections.current![i],
                     );
-                controlPointsJXG.current[i][1].visProp.visible = isVisible;
-                controlPointsJXG.current[i][1].visPropCalc.visible = isVisible;
-                controlPointsJXG.current[i][1].needsUpdate = true;
-                controlPointsJXG.current[i][1].update();
-                segmentsJXG.current[i][1].visProp.visible = isVisible;
-                segmentsJXG.current[i][1].visPropCalc.visible = isVisible;
-                segmentsJXG.current[i][1].needsUpdate = true;
-                segmentsJXG.current[i][1].update();
+                controlPointsJXG.current![i][1].visProp.visible = isVisible;
+                controlPointsJXG.current![i][1].visPropCalc.visible = isVisible;
+                controlPointsJXG.current![i][1].needsUpdate = true;
+                controlPointsJXG.current![i][1].update();
+                segmentsJXG.current![i][1].visProp.visible = isVisible;
+                segmentsJXG.current![i][1].visPropCalc.visible = isVisible;
+                segmentsJXG.current![i][1].needsUpdate = true;
+                segmentsJXG.current![i][1].update();
             }
 
             vectorControlsVisible.current[i] = true;
@@ -711,7 +716,7 @@ export default React.memo(function Curve(props) {
         hitObject.current = true;
 
         makeThroughPointsAlwaysVisible();
-        board.updateRenderer();
+        board!.updateRenderer();
     }
 
     if (board) {
@@ -736,34 +741,34 @@ export default React.memo(function Curve(props) {
             curveJXG.current = createCurveJXG();
 
             if (board.updateQuality === board.BOARD_QUALITY_LOW) {
-                board.itemsRenderedLowQuality[id] = curveJXG.current;
+                board.itemsRenderedLowQuality[id] = curveJXG.current as any;
             }
         } else {
             if (board.updateQuality === board.BOARD_QUALITY_LOW) {
-                board.itemsRenderedLowQuality[id] = curveJXG.current;
+                board.itemsRenderedLowQuality[id] = curveJXG.current as any;
             }
 
             let visible = !SVs.hidden;
 
-            curveJXG.current.name = SVs.labelForGraph;
+            curveJXG.current!.name = SVs.labelForGraph;
 
-            curveJXG.current.visProp["visible"] = visible;
-            curveJXG.current.visPropCalc["visible"] = visible;
+            curveJXG.current!.visProp["visible"] = visible;
+            curveJXG.current!.visPropCalc["visible"] = visible;
 
             let curveLayer = 10 * SVs.layer + LINE_LAYER_OFFSET;
-            let layerChanged = curveJXG.current.visProp.layer !== curveLayer;
+            let layerChanged = curveJXG.current!.visProp.layer !== curveLayer;
             let segmentLayer, throughPointLayer, controlPointLayer;
 
             if (layerChanged) {
-                curveJXG.current.setAttribute({ layer: curveLayer });
+                curveJXG.current!.setAttribute({ layer: curveLayer });
                 if (SVs.curveType === "bezier") {
                     segmentLayer = 10 * SVs.layer + VERTEX_LAYER_OFFSET;
                     throughPointLayer = 10 * SVs.layer + VERTEX_LAYER_OFFSET;
                     controlPointLayer =
                         10 * SVs.layer + CONTROL_POINT_LAYER_OFFSET;
-                    segmentAttributes.current.layer = segmentLayer;
-                    throughPointAttributes.current.layer = throughPointLayer;
-                    controlPointAttributes.current.layer = controlPointLayer;
+                    segmentAttributes.current!.layer = segmentLayer;
+                    throughPointAttributes.current!.layer = throughPointLayer;
+                    controlPointAttributes.current!.layer = controlPointLayer;
                 }
             }
 
@@ -772,26 +777,26 @@ export default React.memo(function Curve(props) {
                     ? SVs.selectedStyle.lineColorDarkMode
                     : SVs.selectedStyle.lineColor;
 
-            if (curveJXG.current.visProp.strokecolor !== lineColor) {
-                curveJXG.current.visProp.strokecolor = lineColor;
-                curveJXG.current.visProp.highlightstrokecolor = lineColor;
+            if (curveJXG.current!.visProp.strokecolor !== lineColor) {
+                curveJXG.current!.visProp.strokecolor = lineColor;
+                curveJXG.current!.visProp.highlightstrokecolor = lineColor;
             }
             if (
-                curveJXG.current.visProp.strokeopacity !==
+                curveJXG.current!.visProp.strokeopacity !==
                 SVs.selectedStyle.lineOpacity
             ) {
-                curveJXG.current.visProp.strokeopacity =
+                curveJXG.current!.visProp.strokeopacity =
                     SVs.selectedStyle.lineOpacity;
             }
             let newDash = styleToDash(SVs.selectedStyle.lineStyle, SVs.dashed);
-            if (curveJXG.current.visProp.dash !== newDash) {
-                curveJXG.current.visProp.dash = newDash;
+            if (curveJXG.current!.visProp.dash !== newDash) {
+                curveJXG.current!.visProp.dash = newDash;
             }
             if (
-                curveJXG.current.visProp.strokewidth !==
+                curveJXG.current!.visProp.strokewidth !==
                 SVs.selectedStyle.lineWidth
             ) {
-                curveJXG.current.visProp.strokewidth =
+                curveJXG.current!.visProp.strokewidth =
                     SVs.selectedStyle.lineWidth;
             }
 
@@ -799,28 +804,28 @@ export default React.memo(function Curve(props) {
                 let f1 = createFunctionFromDefinition(SVs.fDefinitions[0]);
                 let f2 = createFunctionFromDefinition(SVs.fDefinitions[1]);
 
-                curveJXG.current.X = f1;
-                curveJXG.current.Y = f2;
-                curveJXG.current.minX = () => SVs.parMin;
-                curveJXG.current.maxX = () => SVs.parMax;
+                curveJXG.current!.X = f1;
+                curveJXG.current!.Y = f2;
+                curveJXG.current!.minX = () => SVs.parMin;
+                curveJXG.current!.maxX = () => SVs.parMax;
             } else if (SVs.curveType === "bezier") {
-                curveJXG.current.X = createFunctionFromDefinition(
+                curveJXG.current!.X = createFunctionFromDefinition(
                     SVs.fDefinitions[0],
                 );
-                curveJXG.current.Y = createFunctionFromDefinition(
+                curveJXG.current!.Y = createFunctionFromDefinition(
                     SVs.fDefinitions[1],
                 );
-                curveJXG.current.minX = () => SVs.parMin;
-                curveJXG.current.maxX = () => SVs.parMax;
+                curveJXG.current!.minX = () => SVs.parMin;
+                curveJXG.current!.maxX = () => SVs.parMax;
 
-                throughPointAttributes.current.showInfoBox =
+                throughPointAttributes.current!.showInfoBox =
                     SVs.showCoordsWhenDragging;
-                controlPointAttributes.current.showInfoBox =
+                controlPointAttributes.current!.showInfoBox =
                     SVs.showCoordsWhenDragging;
             } else {
                 let f = createFunctionFromDefinition(SVs.fDefinitions[0]);
                 if (SVs.flipFunction) {
-                    curveJXG.current.X = f;
+                    curveJXG.current!.X = f;
                     let yMin = SVs.graphYmin;
                     let yMax = SVs.graphYmax;
                     let minForF = Math.max(
@@ -831,10 +836,10 @@ export default React.memo(function Curve(props) {
                         yMax + (yMax - yMin) * 0.1,
                         SVs.parMax,
                     );
-                    curveJXG.current.minX = () => minForF;
-                    curveJXG.current.maxX = () => maxForF;
+                    curveJXG.current!.minX = () => minForF;
+                    curveJXG.current!.maxX = () => maxForF;
                 } else {
-                    curveJXG.current.Y = f;
+                    curveJXG.current!.Y = f;
                     let xMin = SVs.graphXmin;
                     let xMax = SVs.graphXmax;
                     let minForF = Math.max(
@@ -845,30 +850,29 @@ export default React.memo(function Curve(props) {
                         xMax + (xMax - xMin) * 0.1,
                         SVs.parMax,
                     );
-                    curveJXG.current.minX = () => minForF;
-                    curveJXG.current.maxX = () => maxForF;
+                    curveJXG.current!.minX = () => minForF;
+                    curveJXG.current!.maxX = () => maxForF;
                 }
             }
 
-            curveJXG.current.visProp.fixed = fixed.current;
+            curveJXG.current!.visProp.fixed = fixed.current;
 
-            curveJXG.current.needsUpdate = true;
-            curveJXG.current.updateCurve();
-            if (curveJXG.current.hasLabel) {
-                curveJXG.current.label.needsUpdate = true;
-                curveJXG.current.label.visPropCalc.visible =
-                    SVs.labelForGraph !== "";
+            curveJXG.current!.needsUpdate = true;
+            curveJXG.current!.updateCurve!();
+            if (curveJXG.current!.hasLabel && curveJXG.current!.label) {
+                const label = curveJXG.current!.label as any;
+                label.needsUpdate = true;
+                label.visPropCalc.visible = SVs.labelForGraph !== "";
                 if (SVs.applyStyleToLabel) {
-                    curveJXG.current.label.visProp.strokecolor = lineColor;
+                    label.visProp.strokecolor = lineColor;
                 } else {
-                    curveJXG.current.label.visProp.strokecolor =
-                        "var(canvasText)";
+                    label.visProp.strokecolor = "var(canvasText)";
                 }
-                curveJXG.current.label.update();
+                label.update();
             }
 
             if (SVs.curveType !== "bezier") {
-                board.updateRenderer();
+                board!.updateRenderer();
                 return (
                     <>
                         <span id={id} />
@@ -877,10 +881,10 @@ export default React.memo(function Curve(props) {
             }
 
             if (fixLocation.current) {
-                if (segmentsJXG.current.length > 0) {
+                if (segmentsJXG.current!.length > 0) {
                     deleteControls();
                 }
-                board.updateRenderer();
+                board!.updateRenderer();
                 return (
                     <>
                         <span id={id} />
@@ -888,16 +892,16 @@ export default React.memo(function Curve(props) {
                 );
             }
 
-            if (segmentsJXG.current.length === 0) {
+            if (segmentsJXG.current!.length === 0) {
                 createControls();
 
-                previousNumberOfPoints.current =
+                previousNumberOfPoints.current! =
                     SVs.numericalThroughPoints.length;
                 previousVectorControlDirections.current = [
                     ...SVs.vectorControlDirections,
                 ];
 
-                board.updateRenderer();
+                board!.updateRenderer();
                 return (
                     <>
                         <span id={id} />
@@ -908,20 +912,20 @@ export default React.memo(function Curve(props) {
             // add or delete segments and points if number changed
             if (
                 SVs.numericalThroughPoints.length >
-                previousNumberOfPoints.current
+                previousNumberOfPoints.current!
             ) {
                 // add new segments and point
 
-                let iPreviousLast = previousNumberOfPoints.current - 1;
+                let iPreviousLast = previousNumberOfPoints.current! - 1;
 
                 let attributesForNewThroughPoints = Object.assign(
                     {},
                     throughPointAttributes.current,
                 );
                 if (
-                    throughPointsJXG.current[iPreviousLast].visProp
+                    throughPointsJXG.current![iPreviousLast].visProp
                         .fillcolor ===
-                    throughPointAlwaysVisible.current.fillcolor
+                    throughPointAlwaysVisible.current!.fillcolor
                 ) {
                     Object.assign(
                         attributesForNewThroughPoints,
@@ -930,56 +934,56 @@ export default React.memo(function Curve(props) {
                 }
 
                 for (
-                    let i = previousNumberOfPoints.current;
+                    let i = previousNumberOfPoints.current!;
                     i < SVs.numericalThroughPoints.length;
                     i++
                 ) {
                     // add point and its controls
-                    let tp = board.create(
+                    let tp = board!.create(
                         "point",
                         [...SVs.numericalThroughPoints[i]],
                         attributesForNewThroughPoints,
                     );
-                    throughPointsJXG.current.push(tp);
-                    let cp1 = board.create(
+                    throughPointsJXG.current!.push(tp);
+                    let cp1 = board!.create(
                         "point",
                         [...SVs.numericalControlPoints[i][0]],
                         controlPointAttributes.current,
                     );
-                    let cp2 = board.create(
+                    let cp2 = board!.create(
                         "point",
                         [...SVs.numericalControlPoints[i][1]],
                         controlPointAttributes.current,
                     );
-                    controlPointsJXG.current.push([cp1, cp2]);
-                    let seg1 = board.create(
+                    controlPointsJXG.current!.push([cp1, cp2]);
+                    let seg1 = board!.create(
                         "segment",
                         [tp, cp1],
                         segmentAttributes.current,
                     );
-                    let seg2 = board.create(
+                    let seg2 = board!.create(
                         "segment",
                         [tp, cp2],
                         segmentAttributes.current,
                     );
-                    segmentsJXG.current.push([seg1, seg2]);
+                    segmentsJXG.current!.push([seg1, seg2]);
 
                     cp1.visProp.visible = false;
                     seg1.visProp.visible = false;
                     cp2.visProp.visible = false;
                     seg2.visProp.visible = false;
 
-                    tp.on("drag", (e) => dragThroughPoint(i));
-                    tp.on("down", (e) => downThroughPoint(i, e));
-                    tp.on("hit", (e) => downThroughPoint(i, e));
-                    tp.on("up", (e) => upThroughPoint(i));
-                    tp.on("keyfocusout", (e) => upThroughPoint(i));
-                    cp1.on("drag", (e) => dragControlPoint(i, 0));
+                    tp.on("drag", (e: any) => dragThroughPoint(i));
+                    tp.on("down", (e: any) => downThroughPoint(i, e));
+                    tp.on("hit", (e: any) => downThroughPoint(i, e));
+                    tp.on("up", (e: any) => upThroughPoint(i));
+                    tp.on("keyfocusout", (e: any) => upThroughPoint(i));
+                    cp1.on("drag", (e: any) => dragControlPoint(i, 0));
                     cp1.on("down", downOther);
-                    cp1.on("up", (e) => upControlPoint(i, 0));
-                    cp2.on("drag", (e) => dragControlPoint(i, 1));
+                    cp1.on("up", (e: any) => upControlPoint(i, 0));
+                    cp2.on("drag", (e: any) => dragControlPoint(i, 1));
                     cp2.on("down", downOther);
-                    cp2.on("up", (e) => upControlPoint(i, 1));
+                    cp2.on("up", (e: any) => upControlPoint(i, 1));
                     seg1.on("down", downOther);
                     seg2.on("down", downOther);
                 }
@@ -992,38 +996,40 @@ export default React.memo(function Curve(props) {
                 }
             } else if (
                 SVs.numericalThroughPoints.length <
-                previousNumberOfPoints.current
+                previousNumberOfPoints.current!
             ) {
                 // delete old segments and points
 
                 for (
-                    let i = previousNumberOfPoints.current - 1;
+                    let i = previousNumberOfPoints.current! - 1;
                     i >= SVs.numericalThroughPoints.length;
                     i--
                 ) {
-                    segmentsJXG.current[i][0].off("down");
-                    segmentsJXG.current[i][1].off("down");
-                    board?.removeObject(segmentsJXG.current[i][0]);
-                    board?.removeObject(segmentsJXG.current[i][1]);
-                    segmentsJXG.current.pop();
+                    segmentsJXG.current![i][0].off("down");
+                    segmentsJXG.current![i][1].off("down");
+                    board?.removeObject(segmentsJXG.current![i][0]);
+                    board?.removeObject(segmentsJXG.current![i][1]);
+                    segmentsJXG.current!.pop();
 
-                    controlPointsJXG.current[i][0].off("drag");
-                    controlPointsJXG.current[i][0].off("down");
-                    controlPointsJXG.current[i][0].off("up");
-                    controlPointsJXG.current[i][1].off("drag");
-                    controlPointsJXG.current[i][1].off("down");
-                    controlPointsJXG.current[i][1].off("up");
-                    board?.removeObject(controlPointsJXG.current[i][0]);
-                    board?.removeObject(controlPointsJXG.current[i][1]);
-                    controlPointsJXG.current.pop();
+                    controlPointsJXG.current![i][0].off("drag");
+                    controlPointsJXG.current![i][0].off("down");
+                    controlPointsJXG.current![i][0].off("up");
+                    controlPointsJXG.current![i][1].off("drag");
+                    controlPointsJXG.current![i][1].off("down");
+                    controlPointsJXG.current![i][1].off("up");
+                    board?.removeObject(controlPointsJXG.current![i][0]);
+                    board?.removeObject(controlPointsJXG.current![i][1]);
+                    controlPointsJXG.current!.pop();
 
-                    let tp = throughPointsJXG.current.pop();
-                    tp.off("drag");
-                    tp.off("down");
-                    tp.off("up");
-                    tp.off("hit");
-                    tp.off("keyfocusout");
-                    board?.removeObject(tp);
+                    let tp = throughPointsJXG.current!.pop();
+                    if (tp) {
+                        tp.off("drag");
+                        tp.off("down");
+                        tp.off("up");
+                        tp.off("hit");
+                        tp.off("keyfocusout");
+                        board?.removeObject(tp);
+                    }
                 }
 
                 let iNewLast = SVs.numericalThroughPoints.length - 1;
@@ -1035,12 +1041,12 @@ export default React.memo(function Curve(props) {
             // move old points and modify attributes, if needed
             let nOld = Math.min(
                 SVs.numericalThroughPoints.length,
-                previousNumberOfPoints.current,
+                previousNumberOfPoints.current!,
             );
 
             for (let i = 0; i < nOld; i++) {
                 if (
-                    previousVectorControlDirections.current[i] !==
+                    previousVectorControlDirections.current![i] !==
                         SVs.vectorControlDirections[i] &&
                     vectorControlsVisible.current[i]
                 ) {
@@ -1049,57 +1055,57 @@ export default React.memo(function Curve(props) {
                 }
 
                 if (layerChanged) {
-                    throughPointsJXG.current[i].setAttribute({
+                    throughPointsJXG.current![i].setAttribute({
                         layer: throughPointLayer,
                     });
-                    segmentsJXG.current[i][0].setAttribute({
+                    segmentsJXG.current![i][0].setAttribute({
                         layer: segmentLayer,
                     });
-                    controlPointsJXG.current[i][0].setAttribute({
+                    controlPointsJXG.current![i][0].setAttribute({
                         layer: controlPointLayer,
                     });
-                    segmentsJXG.current[i][1].setAttribute({
+                    segmentsJXG.current![i][1].setAttribute({
                         layer: segmentLayer,
                     });
-                    controlPointsJXG.current[i][1].setAttribute({
+                    controlPointsJXG.current![i][1].setAttribute({
                         layer: controlPointLayer,
                     });
                 }
 
-                throughPointsJXG.current[i].coords.setCoordinates(
+                throughPointsJXG.current![i].coords.setCoordinates(
                     JXG.COORDS_BY_USER,
                     [...SVs.numericalThroughPoints[i]],
                 );
 
-                throughPointsJXG.current[i].visProp.showinfobox =
+                throughPointsJXG.current![i].visProp.showinfobox =
                     SVs.showCoordsWhenDragging;
-                throughPointsJXG.current[i].needsUpdate = true;
-                throughPointsJXG.current[i].update();
-                controlPointsJXG.current[i][0].coords.setCoordinates(
+                throughPointsJXG.current![i].needsUpdate = true;
+                throughPointsJXG.current![i].update();
+                controlPointsJXG.current![i][0].coords.setCoordinates(
                     JXG.COORDS_BY_USER,
                     [...SVs.numericalControlPoints[i][0]],
                 );
-                controlPointsJXG.current[i][0].visProp.showinfobox =
+                controlPointsJXG.current![i][0].visProp.showinfobox =
                     SVs.showCoordsWhenDragging;
-                controlPointsJXG.current[i][0].needsUpdate = true;
-                controlPointsJXG.current[i][0].update();
-                segmentsJXG.current[i][0].needsUpdate = true;
-                segmentsJXG.current[i][0].update();
-                controlPointsJXG.current[i][1].coords.setCoordinates(
+                controlPointsJXG.current![i][0].needsUpdate = true;
+                controlPointsJXG.current![i][0].update();
+                segmentsJXG.current![i][0].needsUpdate = true;
+                segmentsJXG.current![i][0].update();
+                controlPointsJXG.current![i][1].coords.setCoordinates(
                     JXG.COORDS_BY_USER,
                     [...SVs.numericalControlPoints[i][1]],
                 );
-                controlPointsJXG.current[i][1].visProp.showinfobox =
+                controlPointsJXG.current![i][1].visProp.showinfobox =
                     SVs.showCoordsWhenDragging;
-                controlPointsJXG.current[i][1].needsUpdate = true;
-                controlPointsJXG.current[i][1].update();
-                segmentsJXG.current[i][1].needsUpdate = true;
-                segmentsJXG.current[i][1].update();
+                controlPointsJXG.current![i][1].needsUpdate = true;
+                controlPointsJXG.current![i][1].update();
+                segmentsJXG.current![i][1].needsUpdate = true;
+                segmentsJXG.current![i][1].update();
             }
 
             for (let i = 0; i < SVs.numericalThroughPoints.length; i++) {
-                throughPointsJXG.current[i].visProp["visible"] = !SVs.hidden;
-                throughPointsJXG.current[i].visPropCalc["visible"] =
+                throughPointsJXG.current![i].visProp["visible"] = !SVs.hidden;
+                throughPointsJXG.current![i].visPropCalc["visible"] =
                     !SVs.hidden;
             }
 
@@ -1107,29 +1113,28 @@ export default React.memo(function Curve(props) {
                 sourceOfUpdate.sourceInformation &&
                 componentIdx in sourceOfUpdate.sourceInformation
             ) {
-                let ind =
-                    sourceOfUpdate.sourceInformation[componentIdx]
-                        .throughPointMoved;
+                const sourceInfo = sourceOfUpdate.sourceInformation[
+                    componentIdx
+                ] as any;
+                let ind = sourceInfo.throughPointMoved;
                 if (ind !== undefined) {
-                    board.updateInfobox(throughPointsJXG.current[ind]);
+                    board!.updateInfobox(throughPointsJXG.current![ind]);
                 } else {
-                    ind =
-                        sourceOfUpdate.sourceInformation[componentIdx]
-                            .controlVectorMoved;
+                    ind = sourceInfo.controlVectorMoved;
                     if (ind !== undefined) {
-                        board.updateInfobox(
-                            controlPointsJXG.current[ind[0]][ind[1]],
+                        board!.updateInfobox(
+                            controlPointsJXG.current![ind[0]][ind[1]],
                         );
                     }
                 }
             }
 
-            previousNumberOfPoints.current = SVs.numericalThroughPoints.length;
+            previousNumberOfPoints.current! = SVs.numericalThroughPoints.length;
             previousVectorControlDirections.current = [
                 ...SVs.vectorControlDirections,
             ];
 
-            board.updateRenderer();
+            board!.updateRenderer();
         }
     }
 
@@ -1140,15 +1145,3 @@ export default React.memo(function Curve(props) {
     // don't think we want to return anything if not in board
     return <span id={id} />;
 });
-
-function styleToDash(style, dash) {
-    if (style === "dashed" || dash) {
-        return 2;
-    } else if (style === "solid") {
-        return 0;
-    } else if (style === "dotted") {
-        return 1;
-    } else {
-        return 0;
-    }
-}
