@@ -20,12 +20,15 @@ import { JXGLine } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
-import { exceededDragThreshold } from "./utils/dragThreshold";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveLineColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
+import {
+    DragCoordinationState,
+    attachLineFamilyDragHandlers,
+} from "./utils/lineFamilyDragHandlers";
 
 interface RaySVs extends DraggableGraphicalSVs {
     numericalEndpoint: [number, number];
@@ -44,9 +47,12 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
     let rayJXG = useRef<JXGLine | null>(null);
 
     const dragState = usePointerDragState();
-    const { pointerAtDown, pointerIsDown, pointerMovedSinceDown, dragged } =
-        dragState;
     let pointsAtDown = useRef<[number[], number[]] | null>(null);
+
+    const dragCoordination: DragCoordinationState<number> = {
+        draggedTag: useRef<number | null>(null),
+        downOnTag: useRef<number | null>(null),
+    };
 
     let previousWithLabel = useRef<boolean | null>(null);
     let cancelInitialLabelPlacement = useRef<(() => void) | null>(null);
@@ -119,141 +125,81 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
         );
         newRayJXG.isDraggable = !fixLocation.current;
 
-        newRayJXG.on("drag", function (e) {
-            if (exceededDragThreshold(e, pointerAtDown.current)) {
-                dragged.current = true;
-
-                pointCoords.current = [];
-
+        attachLineFamilyDragHandlers({
+            jxg: newRayJXG,
+            tag: 0,
+            dragState,
+            coordination: dragCoordination,
+            componentIdx,
+            callAction,
+            fixedRef: fixed,
+            actions: {
+                move: actions.moveRay,
+                focus: actions.rayFocused,
+                click: actions.rayClicked,
+            },
+            snapshot: () =>
+                [
+                    [...newRayJXG.point1.coords.scrCoords],
+                    [...newRayJXG.point2.coords.scrCoords],
+                ] as [number[], number[]],
+            snapshotRef: pointsAtDown,
+            buildTransientMoveArgs: (e, snap) => {
+                const next: [number, number][] = [];
                 if (
                     e.type === "pointermove" &&
-                    pointerAtDown.current &&
-                    pointsAtDown.current
+                    dragState.pointerAtDown.current &&
+                    snap
                 ) {
                     // Compute from pointer delta rather than .X()/.Y() directly
                     // so points don't snap back to attractors on slow drags.
                     for (let i = 0; i < 2; i++) {
-                        pointCoords.current.push(
+                        next.push(
                             pointerEventToUserCoords(
                                 e,
-                                pointerAtDown.current,
-                                pointsAtDown.current[i] as [
-                                    number,
-                                    number,
-                                    number,
-                                ],
+                                dragState.pointerAtDown.current,
+                                snap[i] as [number, number, number],
                                 board,
                             ),
                         );
                     }
                 } else {
-                    pointCoords.current.push([
-                        newRayJXG.point1.X(),
-                        newRayJXG.point1.Y(),
-                    ]);
-                    pointCoords.current.push([
-                        newRayJXG.point2.X(),
-                        newRayJXG.point2.Y(),
-                    ]);
+                    next.push([newRayJXG.point1.X(), newRayJXG.point1.Y()]);
+                    next.push([newRayJXG.point2.X(), newRayJXG.point2.Y()]);
                 }
-
-                callAction({
-                    action: actions.moveRay,
-                    args: {
-                        endpointcoords: pointCoords.current[0],
-                        throughcoords: pointCoords.current[1],
-                        transient: true,
-                        skippable: true,
-                    },
-                });
-            }
-
-            newRayJXG.point1.coords.setCoordinates(
-                JXG.COORDS_BY_USER,
-                lastEndpointFromCore.current,
-            );
-            newRayJXG.point2.coords.setCoordinates(
-                JXG.COORDS_BY_USER,
-                lastThroughpointFromCore.current,
-            );
-        });
-
-        newRayJXG.on("up", function (e) {
-            if (dragged.current) {
-                callAction({
-                    action: actions.moveRay,
-                    args: {
+                pointCoords.current = next;
+                return {
+                    endpointcoords: next[0],
+                    throughcoords: next[1],
+                    transient: true,
+                    skippable: true,
+                };
+            },
+            buildCommitMoveArgs: (_, variant) => {
+                if (variant === "up") {
+                    return {
                         endpointcoords: pointCoords.current?.[0],
                         throughcoords: pointCoords.current?.[1],
-                    },
-                });
-            } else if (!pointerMovedSinceDown.current && !fixed.current) {
-                callAction({
-                    action: actions.rayClicked,
-                    args: { componentIdx },
-                });
-            }
-            pointerIsDown.current = false;
-        });
-
-        newRayJXG.on("keyfocusout", function (e) {
-            if (dragged.current) {
-                callAction({
-                    action: actions.moveRay,
-                    args: {
-                        point1coords: pointCoords.current?.[0],
-                        point2coords: pointCoords.current?.[1],
-                    },
-                });
-                dragged.current = false;
-            }
-        });
-
-        newRayJXG.on("down", function (e) {
-            (document.activeElement as HTMLElement | null)?.blur();
-
-            dragged.current = false;
-            pointerAtDown.current = [e.x, e.y];
-            pointsAtDown.current = [
-                [...newRayJXG.point1.coords.scrCoords],
-                [...newRayJXG.point2.coords.scrCoords],
-            ];
-            pointerIsDown.current = true;
-            pointerMovedSinceDown.current = false;
-            if (!fixed.current) {
-                callAction({
-                    action: actions.rayFocused,
-                    args: { componentIdx },
-                });
-            }
-        });
-
-        newRayJXG.on("hit", function (e) {
-            dragged.current = false;
-            callAction({
-                action: actions.rayFocused,
-                args: { componentIdx },
-            });
-        });
-
-        newRayJXG.on("keydown", function (e) {
-            if (e.key === "Enter") {
-                if (dragged.current) {
-                    callAction({
-                        action: actions.moveRay,
-                        args: {
-                            point1coords: pointCoords.current?.[0],
-                            point2coords: pointCoords.current?.[1],
-                        },
-                    });
-                    dragged.current = false;
+                    };
                 }
-
-                callAction({
-                    action: actions.rayClicked,
-                    args: { componentIdx },
-                });
-            }
+                // keyEnter / keyFocusOut: preserve existing arg names — moveRay
+                // ignores point1coords/point2coords, so the dispatch is currently
+                // a no-op. Left intact pending a separate behavior fix.
+                return {
+                    point1coords: pointCoords.current?.[0],
+                    point2coords: pointCoords.current?.[1],
+                };
+            },
+            onDragApplied: () => {
+                newRayJXG.point1.coords.setCoordinates(
+                    JXG.COORDS_BY_USER,
+                    lastEndpointFromCore.current,
+                );
+                newRayJXG.point2.coords.setCoordinates(
+                    JXG.COORDS_BY_USER,
+                    lastThroughpointFromCore.current,
+                );
+            },
         });
 
         rayJXG.current = newRayJXG;

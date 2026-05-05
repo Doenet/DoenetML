@@ -23,12 +23,15 @@ import { JXGLine } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
-import { exceededDragThreshold } from "./utils/dragThreshold";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveLineColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
+import {
+    DragCoordinationState,
+    attachLineFamilyDragHandlers,
+} from "./utils/lineFamilyDragHandlers";
 
 interface LineSVs extends DraggableGraphicalSVs {
     numericalPoints: [number, number][];
@@ -50,12 +53,15 @@ export default React.memo(function Line(props: UseDoenetRendererProps) {
     let lineJXG = useRef<JXGLine | null>(null);
 
     const dragState = usePointerDragState();
-    const { pointerAtDown, pointerIsDown, pointerMovedSinceDown, dragged } =
-        dragState;
     let pointsAtDown = useRef<[number[], number[]] | null>(null);
     let previousWithLabel = useRef<boolean | null>(null);
     let cancelInitialLabelPlacement = useRef<(() => void) | null>(null);
     let pointCoords = useRef<[number, number][] | null>(null);
+
+    const dragCoordination: DragCoordinationState<number> = {
+        draggedTag: useRef<number | null>(null),
+        downOnTag: useRef<number | null>(null),
+    };
 
     const {
         lastPositionFromCore: lastPositionsFromCore,
@@ -124,160 +130,75 @@ export default React.memo(function Line(props: UseDoenetRendererProps) {
 
         newLineJXG.isDraggable = !fixLocation.current;
 
-        newLineJXG.on("drag", function (e) {
-            if (exceededDragThreshold(e, pointerAtDown.current)) {
-                dragged.current = true;
-            }
+        function buildMoveArgs(): Record<string, any> {
+            return {
+                point1coords: pointCoords.current?.[0],
+                point2coords: pointCoords.current?.[1],
+            };
+        }
 
-            pointCoords.current = [];
-
-            if (
-                e.type === "pointermove" &&
-                pointerAtDown.current &&
-                pointsAtDown.current
-            ) {
-                // Compute from pointer delta rather than .X()/.Y() directly so
-                // points don't snap back to attractors on slow drags.
-                for (let i = 0; i < 2; i++) {
-                    pointCoords.current.push(
-                        pointerEventToUserCoords(
-                            e,
-                            pointerAtDown.current,
-                            pointsAtDown.current[i] as [number, number, number],
-                            board,
-                        ),
-                    );
+        attachLineFamilyDragHandlers({
+            jxg: newLineJXG,
+            tag: 0,
+            dragState,
+            coordination: dragCoordination,
+            componentIdx,
+            callAction,
+            fixedRef: fixed,
+            actions: {
+                move: actions.moveLine,
+                focus: actions.lineFocused,
+                click: actions.lineClicked,
+                clickPrelude: actions.switchLine,
+            },
+            clickPreludeGate: switchable,
+            snapshot: () =>
+                [
+                    [...newLineJXG.point1.coords.scrCoords],
+                    [...newLineJXG.point2.coords.scrCoords],
+                ] as [number[], number[]],
+            snapshotRef: pointsAtDown,
+            buildTransientMoveArgs: (e, snap) => {
+                const next: [number, number][] = [];
+                if (
+                    e.type === "pointermove" &&
+                    dragState.pointerAtDown.current &&
+                    snap
+                ) {
+                    // Compute from pointer delta rather than .X()/.Y() directly so
+                    // points don't snap back to attractors on slow drags.
+                    for (let i = 0; i < 2; i++) {
+                        next.push(
+                            pointerEventToUserCoords(
+                                e,
+                                dragState.pointerAtDown.current,
+                                snap[i] as [number, number, number],
+                                board,
+                            ),
+                        );
+                    }
+                } else {
+                    next.push([newLineJXG.point1.X(), newLineJXG.point1.Y()]);
+                    next.push([newLineJXG.point2.X(), newLineJXG.point2.Y()]);
                 }
-            } else {
-                pointCoords.current.push([
-                    newLineJXG.point1.X(),
-                    newLineJXG.point1.Y(),
-                ]);
-                pointCoords.current.push([
-                    newLineJXG.point2.X(),
-                    newLineJXG.point2.Y(),
-                ]);
-            }
-
-            callAction({
-                action: actions.moveLine,
-                args: {
-                    point1coords: pointCoords.current[0],
-                    point2coords: pointCoords.current[1],
+                pointCoords.current = next;
+                return {
+                    ...buildMoveArgs(),
                     transient: true,
                     skippable: true,
-                },
-            });
-
-            newLineJXG.point1.coords.setCoordinates(
-                JXG.COORDS_BY_USER,
-                lastPositionsFromCore.current[0],
-            );
-            newLineJXG.point2.coords.setCoordinates(
-                JXG.COORDS_BY_USER,
-                lastPositionsFromCore.current[1],
-            );
-        });
-
-        newLineJXG.on("up", function (e) {
-            if (dragged.current) {
-                callAction({
-                    action: actions.moveLine,
-                    args: {
-                        point1coords: pointCoords.current?.[0],
-                        point2coords: pointCoords.current?.[1],
-                    },
-                });
-            } else if (!pointerMovedSinceDown.current && !fixed.current) {
-                if (switchable.current) {
-                    callAction({
-                        action: actions.switchLine,
-                    });
-                    callAction({
-                        action: actions.lineClicked,
-                        args: { componentIdx },
-                    });
-                } else {
-                    callAction({
-                        action: actions.lineClicked,
-                        args: { componentIdx },
-                    });
-                }
-            }
-            pointerIsDown.current = false;
-        });
-
-        newLineJXG.on("keyfocusout", function (e) {
-            if (dragged.current) {
-                callAction({
-                    action: actions.moveLine,
-                    args: {
-                        point1coords: pointCoords.current?.[0],
-                        point2coords: pointCoords.current?.[1],
-                    },
-                });
-                dragged.current = false;
-            }
-        });
-
-        newLineJXG.on("down", function (e) {
-            (document.activeElement as HTMLElement | null)?.blur();
-
-            dragged.current = false;
-            pointerAtDown.current = [e.x, e.y];
-            pointsAtDown.current = [
-                [...newLineJXG.point1.coords.scrCoords],
-                [...newLineJXG.point2.coords.scrCoords],
-            ];
-            pointerIsDown.current = true;
-            pointerMovedSinceDown.current = false;
-            if (!fixed.current) {
-                callAction({
-                    action: actions.lineFocused,
-                    args: { componentIdx },
-                });
-            }
-        });
-
-        newLineJXG.on("hit", function (e) {
-            dragged.current = false;
-            pointsAtDown.current = [
-                [...newLineJXG.point1.coords.scrCoords],
-                [...newLineJXG.point2.coords.scrCoords],
-            ];
-            callAction({
-                action: actions.lineFocused,
-                args: { componentIdx },
-            });
-        });
-
-        newLineJXG.on("keydown", function (e) {
-            if (e.key === "Enter") {
-                if (dragged.current) {
-                    callAction({
-                        action: actions.moveLine,
-                        args: {
-                            point1coords: pointCoords.current?.[0],
-                            point2coords: pointCoords.current?.[1],
-                        },
-                    });
-                    dragged.current = false;
-                }
-                if (switchable.current) {
-                    callAction({
-                        action: actions.switchLine,
-                    });
-                    callAction({
-                        action: actions.lineClicked,
-                        args: { componentIdx },
-                    });
-                } else {
-                    callAction({
-                        action: actions.lineClicked,
-                        args: { componentIdx },
-                    });
-                }
-            }
+                };
+            },
+            buildCommitMoveArgs: () => buildMoveArgs(),
+            onDragApplied: () => {
+                newLineJXG.point1.coords.setCoordinates(
+                    JXG.COORDS_BY_USER,
+                    lastPositionsFromCore.current[0],
+                );
+                newLineJXG.point2.coords.setCoordinates(
+                    JXG.COORDS_BY_USER,
+                    lastPositionsFromCore.current[1],
+                );
+            },
         });
 
         lineJXG.current = newLineJXG;

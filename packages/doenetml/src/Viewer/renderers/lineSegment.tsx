@@ -20,12 +20,15 @@ import { JXGLine, JXGPoint } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
-import { exceededDragThreshold } from "./utils/dragThreshold";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveLineColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
+import {
+    DragCoordinationState,
+    attachLineFamilyDragHandlers,
+} from "./utils/lineFamilyDragHandlers";
 
 interface LineSegmentSVs extends DraggableGraphicalSVs {
     numericalEndpoints: [number, number][];
@@ -47,13 +50,15 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
     let point2JXG = useRef<JXGPoint | null>(null);
 
     const dragState = usePointerDragState();
-    const { pointerAtDown, pointerIsDown, pointerMovedSinceDown } = dragState;
     let pointsAtDown = useRef<[number[], number[]] | null>(null);
-    let draggedPoint = useRef<number | null>(null);
     let previousWithLabel = useRef<boolean | null>(null);
     let cancelInitialLabelPlacement = useRef<(() => void) | null>(null);
     let pointCoords = useRef<any>(null);
-    let downOnPoint = useRef<number | null>(null);
+
+    const dragCoordination: DragCoordinationState<number> = {
+        draggedTag: useRef<number | null>(null),
+        downOnTag: useRef<number | null>(null),
+    };
 
     const {
         lastPositionFromCore: lastPositionsFromCore,
@@ -157,228 +162,144 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
         lineSegmentJXG.current = newSegmentJXG;
         newSegmentJXG.isDraggable = !fixLocation.current;
 
-        newPoint1JXG.on("drag", (e) => onDragHandler(1, e));
-        newPoint2JXG.on("drag", (e) => onDragHandler(2, e));
-        newSegmentJXG.on("drag", (e) => onDragHandler(0, e));
+        const segmentBuildCommit = (): Record<string, any> | null => {
+            if (!pointCoords.current) {
+                return null;
+            }
+            return {
+                point1coords: pointCoords.current[0],
+                point2coords: pointCoords.current[1],
+            };
+        };
 
-        newPoint1JXG.on("up", () => {
-            if (draggedPoint.current === 1) {
-                callAction({
-                    action: actions.moveLineSegment,
-                    args: {
-                        point1coords: pointCoords.current,
-                    },
-                });
-            } else if (!pointerMovedSinceDown.current && !fixed.current) {
-                callAction({
-                    action: actions.lineSegmentClicked,
-                    args: { componentIdx },
-                });
-            }
-            downOnPoint.current = null;
-            pointerIsDown.current = false;
-        });
-        newPoint2JXG.on("up", () => {
-            if (draggedPoint.current === 2) {
-                callAction({
-                    action: actions.moveLineSegment,
-                    args: {
-                        point2coords: pointCoords.current,
-                    },
-                });
-            } else if (!pointerMovedSinceDown.current && !fixed.current) {
-                callAction({
-                    action: actions.lineSegmentClicked,
-                    args: { componentIdx },
-                });
-            }
-            downOnPoint.current = null;
-            pointerIsDown.current = false;
-        });
-        newSegmentJXG.on("up", function (e) {
-            if (draggedPoint.current === 0) {
-                callAction({
-                    action: actions.moveLineSegment,
-                    args: {
-                        point1coords: pointCoords.current[0],
-                        point2coords: pointCoords.current[1],
-                    },
-                });
-            } else if (
-                !pointerMovedSinceDown.current &&
-                downOnPoint.current === null &&
-                !fixed.current
-            ) {
-                // Note: counting on fact that up on line segment will trigger before up on points
-                callAction({
-                    action: actions.lineSegmentClicked,
-                    args: { componentIdx },
-                });
-            }
-            pointerIsDown.current = false;
-        });
-
-        newPoint1JXG.on("keyfocusout", () => {
-            if (draggedPoint.current === 1) {
-                callAction({
-                    action: actions.moveLineSegment,
-                    args: {
-                        point1coords: pointCoords.current,
-                    },
-                });
-            }
-            draggedPoint.current = null;
-        });
-        newPoint2JXG.on("keyfocusout", () => {
-            if (draggedPoint.current === 2) {
-                callAction({
-                    action: actions.moveLineSegment,
-                    args: {
-                        point2coords: pointCoords.current,
-                    },
-                });
-            }
-            draggedPoint.current = null;
-        });
-        newSegmentJXG.on("keyfocusout", function (e) {
-            if (draggedPoint.current === 0) {
-                callAction({
-                    action: actions.moveLineSegment,
-                    args: {
-                        point1coords: pointCoords.current[0],
-                        point2coords: pointCoords.current[1],
-                    },
-                });
-            }
-            draggedPoint.current = null;
-        });
-
-        newPoint1JXG.on("down", (e) => {
-            (document.activeElement as HTMLElement | null)?.blur();
-
-            draggedPoint.current = null;
-            pointerAtDown.current = [e.x, e.y];
-            downOnPoint.current = 1;
-            pointerIsDown.current = true;
-            pointerMovedSinceDown.current = false;
-            if (!endpointsFixed.current) {
-                callAction({
-                    action: actions.lineSegmentFocused,
-                    args: { componentIdx },
-                });
-            }
-        });
-        newPoint1JXG.on("hit", (e) => {
-            draggedPoint.current = null;
-            callAction({
-                action: actions.lineSegmentFocused,
-                args: { componentIdx },
-            });
-        });
-        newPoint2JXG.on("down", (e) => {
-            (document.activeElement as HTMLElement | null)?.blur();
-
-            draggedPoint.current = null;
-            pointerAtDown.current = [e.x, e.y];
-            downOnPoint.current = 2;
-            pointerIsDown.current = true;
-            pointerMovedSinceDown.current = false;
-            if (!endpointsFixed.current) {
-                callAction({
-                    action: actions.lineSegmentFocused,
-                    args: { componentIdx },
-                });
-            }
-        });
-        newPoint2JXG.on("hit", (e) => {
-            draggedPoint.current = null;
-            callAction({
-                action: actions.lineSegmentFocused,
-                args: { componentIdx },
-            });
-        });
-        newSegmentJXG.on("down", function (e) {
-            (document.activeElement as HTMLElement | null)?.blur();
-
-            draggedPoint.current = null;
-            pointerAtDown.current = [e.x, e.y];
-            pointsAtDown.current = [
-                [...point1JXG.current!.coords.scrCoords],
-                [...point2JXG.current!.coords.scrCoords],
-            ];
-            pointerIsDown.current = true;
-            pointerMovedSinceDown.current = false;
-
-            if (downOnPoint.current === null && !fixed.current) {
-                // Note: counting on fact that down on line segment itself will trigger after down on points
-                callAction({
-                    action: actions.lineSegmentFocused,
-                    args: { componentIdx },
-                });
-            }
-        });
-        newSegmentJXG.on("hit", (e) => {
-            draggedPoint.current = null;
-            callAction({
-                action: actions.lineSegmentFocused,
-                args: { componentIdx },
-            });
-        });
-
-        newPoint1JXG.on("keydown", function (e) {
-            if (e.key === "Enter") {
-                if (draggedPoint.current === 1) {
-                    callAction({
-                        action: actions.moveLineSegment,
-                        args: {
-                            point1coords: pointCoords.current,
-                        },
-                    });
+        attachLineFamilyDragHandlers({
+            jxg: newSegmentJXG,
+            tag: 0,
+            dragState,
+            coordination: dragCoordination,
+            componentIdx,
+            callAction,
+            fixedRef: fixed,
+            participatesInDownTag: false,
+            suppressClickWhenDownOnOtherTag: true,
+            suppressFocusOnDownWhenDownOnOtherTag: true,
+            actions: {
+                move: actions.moveLineSegment,
+                focus: actions.lineSegmentFocused,
+                click: actions.lineSegmentClicked,
+            },
+            snapshot: () =>
+                [
+                    [...point1JXG.current!.coords.scrCoords],
+                    [...point2JXG.current!.coords.scrCoords],
+                ] as [number[], number[]],
+            snapshotRef: pointsAtDown,
+            buildTransientMoveArgs: (e, snap) => {
+                const next: [number, number][] = [];
+                if (
+                    e.type === "pointermove" &&
+                    dragState.pointerAtDown.current &&
+                    snap
+                ) {
+                    // Compute from pointer delta rather than .X()/.Y() directly
+                    // so points don't snap back to attractors on slow drags.
+                    for (let j = 0; j < 2; j++) {
+                        next.push(
+                            pointerEventToUserCoords(
+                                e,
+                                dragState.pointerAtDown.current,
+                                snap[j] as [number, number, number],
+                                board,
+                            ),
+                        );
+                    }
+                } else {
+                    next.push([
+                        newSegmentJXG.point1.X(),
+                        newSegmentJXG.point1.Y(),
+                    ]);
+                    next.push([
+                        newSegmentJXG.point2.X(),
+                        newSegmentJXG.point2.Y(),
+                    ]);
                 }
-                draggedPoint.current = null;
-                callAction({
-                    action: actions.lineSegmentClicked,
-                    args: { componentIdx },
-                });
-            }
+                pointCoords.current = next;
+                return {
+                    point1coords: next[0],
+                    point2coords: next[1],
+                    transient: true,
+                    skippable: true,
+                };
+            },
+            buildCommitMoveArgs: () => segmentBuildCommit(),
+            onDragApplied: () => {
+                newSegmentJXG.point1.coords.setCoordinates(
+                    JXG.COORDS_BY_USER,
+                    lastPositionsFromCore.current[0],
+                );
+                newSegmentJXG.point2.coords.setCoordinates(
+                    JXG.COORDS_BY_USER,
+                    lastPositionsFromCore.current[1],
+                );
+            },
         });
 
-        newPoint2JXG.on("keydown", function (e) {
-            if (e.key === "Enter") {
-                if (draggedPoint.current === 2) {
-                    callAction({
-                        action: actions.moveLineSegment,
-                        args: {
-                            point2coords: pointCoords.current,
-                        },
-                    });
-                }
-                draggedPoint.current = null;
-                callAction({
-                    action: actions.lineSegmentClicked,
-                    args: { componentIdx },
-                });
-            }
-        });
+        function attachEndpointHandlers(
+            point: JXGPoint,
+            tagN: 1 | 2,
+            argKey: "point1coords" | "point2coords",
+        ) {
+            attachLineFamilyDragHandlers({
+                jxg: point,
+                tag: tagN,
+                dragState,
+                coordination: dragCoordination,
+                componentIdx,
+                callAction,
+                fixedRef: fixed,
+                shouldDispatchFocusOnDown: () => !endpointsFixed.current,
+                actions: {
+                    move: actions.moveLineSegment,
+                    focus: actions.lineSegmentFocused,
+                    click: actions.lineSegmentClicked,
+                },
+                snapshot: () => null,
+                snapshotRef: { current: null } as any,
+                buildTransientMoveArgs: () => {
+                    const coords: [number, number] = [point.X(), point.Y()];
+                    pointCoords.current = coords;
+                    return {
+                        [argKey]: coords,
+                        transient: true,
+                        skippable: true,
+                        sourceDetails: { endpoint: tagN },
+                    };
+                },
+                buildCommitMoveArgs: () => ({
+                    [argKey]: pointCoords.current,
+                }),
+                onDragApplied: () => {
+                    newSegmentJXG.point1.coords.setCoordinates(
+                        JXG.COORDS_BY_USER,
+                        lastPositionsFromCore.current[0],
+                    );
+                    newSegmentJXG.point2.coords.setCoordinates(
+                        JXG.COORDS_BY_USER,
+                        lastPositionsFromCore.current[1],
+                    );
+                    if (board) {
+                        board.updateInfobox(
+                            tagN === 1
+                                ? newSegmentJXG.point1
+                                : newSegmentJXG.point2,
+                        );
+                    }
+                },
+            });
+        }
 
-        newSegmentJXG.on("keydown", function (e) {
-            if (e.key === "Enter") {
-                if (draggedPoint.current === 0) {
-                    callAction({
-                        action: actions.moveLineSegment,
-                        args: {
-                            point1coords: pointCoords.current[0],
-                            point2coords: pointCoords.current[1],
-                        },
-                    });
-                }
-                draggedPoint.current = null;
-                callAction({
-                    action: actions.lineSegmentClicked,
-                    args: { componentIdx },
-                });
-            }
-        });
+        attachEndpointHandlers(newPoint1JXG, 1, "point1coords");
+        attachEndpointHandlers(newPoint2JXG, 2, "point2coords");
 
         cancelInitialLabelPlacement.current?.();
         cancelInitialLabelPlacement.current = null;
@@ -411,107 +332,6 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
         previousWithLabel.current = SVs.labelForGraph !== "";
 
         return lineSegmentJXG.current;
-    }
-
-    function onDragHandler(
-        i: number,
-        e: { type: string; x: number; y: number },
-    ) {
-        if (lineSegmentJXG.current === null || board === null) {
-            return;
-        }
-
-        if (exceededDragThreshold(e, pointerAtDown.current)) {
-            draggedPoint.current = i;
-
-            if (i == 1) {
-                pointCoords.current = [
-                    lineSegmentJXG.current.point1.X(),
-                    lineSegmentJXG.current.point1.Y(),
-                ];
-                callAction({
-                    action: actions.moveLineSegment,
-                    args: {
-                        point1coords: pointCoords.current,
-                        transient: true,
-                        skippable: true,
-                        sourceDetails: { endpoint: i },
-                    },
-                });
-            } else if (i == 2) {
-                pointCoords.current = [
-                    lineSegmentJXG.current.point2.X(),
-                    lineSegmentJXG.current.point2.Y(),
-                ];
-                callAction({
-                    action: actions.moveLineSegment,
-                    args: {
-                        point2coords: pointCoords.current,
-                        transient: true,
-                        skippable: true,
-                        sourceDetails: { endpoint: i },
-                    },
-                });
-            } else {
-                pointCoords.current = [];
-
-                if (
-                    e.type === "pointermove" &&
-                    pointerAtDown.current &&
-                    pointsAtDown.current
-                ) {
-                    // Compute from pointer delta rather than .X()/.Y() directly
-                    // so points don't snap back to attractors on slow drags.
-                    for (let j = 0; j < 2; j++) {
-                        pointCoords.current.push(
-                            pointerEventToUserCoords(
-                                e,
-                                pointerAtDown.current,
-                                pointsAtDown.current[j] as [
-                                    number,
-                                    number,
-                                    number,
-                                ],
-                                board,
-                            ),
-                        );
-                    }
-                } else {
-                    pointCoords.current.push([
-                        lineSegmentJXG.current.point1.X(),
-                        lineSegmentJXG.current.point1.Y(),
-                    ]);
-                    pointCoords.current.push([
-                        lineSegmentJXG.current.point2.X(),
-                        lineSegmentJXG.current.point2.Y(),
-                    ]);
-                }
-
-                callAction({
-                    action: actions.moveLineSegment,
-                    args: {
-                        point1coords: pointCoords.current[0],
-                        point2coords: pointCoords.current[1],
-                        transient: true,
-                        skippable: true,
-                    },
-                });
-            }
-        }
-
-        lineSegmentJXG.current.point1.coords.setCoordinates(
-            JXG.COORDS_BY_USER,
-            lastPositionsFromCore.current[0],
-        );
-        lineSegmentJXG.current.point2.coords.setCoordinates(
-            JXG.COORDS_BY_USER,
-            lastPositionsFromCore.current[1],
-        );
-        if (i == 1) {
-            board.updateInfobox(lineSegmentJXG.current.point1);
-        } else if (i == 2) {
-            board.updateInfobox(lineSegmentJXG.current.point2);
-        }
     }
 
     function deleteLineSegmentJXG() {
