@@ -14,7 +14,9 @@ interface SummaryStatisticsSVs {
     width?: any;
 }
 
-export default React.memo(function Tabular(props: UseDoenetRendererProps) {
+export default React.memo(function SummaryStatistics(
+    props: UseDoenetRendererProps,
+) {
     let { id, SVs, children, actions, callAction } =
         useDoenetRenderer<SummaryStatisticsSVs>(props);
 

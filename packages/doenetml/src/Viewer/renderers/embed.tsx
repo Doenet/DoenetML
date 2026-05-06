@@ -16,7 +16,7 @@ interface EmbedSVs {
     encodedGeogebraContent?: string;
 }
 
-export default React.memo(function Figure(props: UseDoenetRendererProps) {
+export default React.memo(function Embed(props: UseDoenetRendererProps) {
     let { id, SVs, actions, callAction } = useDoenetRenderer<EmbedSVs>(props);
 
     const ref = useRef<HTMLDivElement | null>(null);

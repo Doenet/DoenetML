@@ -7,7 +7,7 @@ interface MdashSVs {
     hidden: boolean;
 }
 
-export default React.memo(function Ndash(props: UseDoenetRendererProps) {
+export default React.memo(function Mdash(props: UseDoenetRendererProps) {
     let { SVs } = useDoenetRenderer<MdashSVs>(props, false);
 
     if (SVs.hidden) {
