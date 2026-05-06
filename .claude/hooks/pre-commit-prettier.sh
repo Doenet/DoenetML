@@ -23,10 +23,10 @@ cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/null ||
 
 # Only act when the command runs `git commit`. Match `git` followed by
 # optional flags (-x, --long, --long=val, -C path) and then `commit`.
-# This avoids false positives like `git log --grep=commit`.
-# Use POSIX character-class boundaries instead of `\b`; in BRE/ERE without
-# `-P`, `\b` matches a backspace on some greps (e.g., BSD grep on macOS).
-if ! printf '%s' "$cmd" | grep -qE '(^|[^[:alnum:]_])git( +-[^ ]+( +[^ -][^ ]*)?)* +commit($|[^[:alnum:]_])'; then
+# Require `git` to follow a command-start context (beginning of line,
+# whitespace, or a shell separator) so that `git commit` inside quoted
+# arguments like `rg "git commit" file` does not trigger this hook.
+if ! printf '%s' "$cmd" | grep -qE '(^|[[:space:];|&({!])git( +-[^ ]+( +[^ -][^ ]*)?)* +commit($|[^[:alnum:]])'; then
     exit 0
 fi
 
@@ -61,7 +61,8 @@ Prettier found unformatted staged files; commit blocked.
 Fix (mirrors this hook's check; -z + xargs -0 handles spaces in filenames):
   git diff --cached --name-only -z --diff-filter=ACMR | \\
     xargs -0 npx --no-install prettier --write --ignore-unknown
-  git add -u
+  git diff --cached --name-only -z --diff-filter=ACMR | \\
+    xargs -0 git add --
 
 Prettier output:
 $prettier_output
