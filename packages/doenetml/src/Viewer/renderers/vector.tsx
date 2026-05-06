@@ -247,7 +247,12 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
                 headcoords: headcoords.current,
                 tailcoords: tailcoords.current,
             }),
-            onDragApplied: applyDragReset,
+            onDragApplied: () => {
+                if (dragCoordination.draggedTag.current !== 0) {
+                    return;
+                }
+                applyDragReset();
+            },
         });
 
         function attachVectorEndpointHandlers(
@@ -286,6 +291,9 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
                     [argKey]: coordsRef.current,
                 }),
                 onDragApplied: () => {
+                    if (dragCoordination.draggedTag.current !== tagN) {
+                        return;
+                    }
                     applyDragReset();
                     if (board) {
                         board.updateInfobox(point);

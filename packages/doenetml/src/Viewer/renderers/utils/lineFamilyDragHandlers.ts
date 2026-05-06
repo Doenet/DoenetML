@@ -285,6 +285,7 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
     jxg.on("up", function (_e: JXGEvent) {
         if (coordination.draggedTag.current === tag) {
             dispatchCommit("up");
+            coordination.draggedTag.current = null;
         } else if (
             !dragState.pointerMovedSinceDown.current &&
             !fixedRef.current &&
