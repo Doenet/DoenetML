@@ -20,9 +20,32 @@ import { DescriptionPopover } from "./utils/Description";
 import { addValidationStateToShortDescription } from "./utils/description";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
+interface TextInputSVs {
+    [key: string]: any;
+    hidden: boolean;
+    disabled: boolean;
+    fixed: boolean;
+    fixLocation: boolean;
+    draggable: boolean;
+    anchor: any;
+    positionFromAnchor: any;
+    label: string;
+    labelHasLatex: boolean;
+    labelPosition?: string;
+    immediateValue: string;
+    expanded: boolean;
+    width: { size: string; isAbsolute: boolean };
+    height?: { size: string; isAbsolute: boolean };
+    forceFullCheckWorkButton: boolean;
+    justSubmitted: boolean;
+    showCheckWork: boolean;
+    colorCorrectness: boolean;
+    shortDescription?: string;
+}
+
 export default function TextInput(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, ignoreUpdate, callAction } =
-        useDoenetRenderer(props);
+        useDoenetRenderer<TextInputSVs>(props);
 
     let width = sizeToCSS(SVs.width);
     let height = sizeToCSS(SVs.height); // only for TextArea
@@ -36,13 +59,13 @@ export default function TextInput(props: UseDoenetRendererProps) {
     const [rendererValue, setRendererValue] = useState(SVs.immediateValue);
 
     // add ref, because event handler called from jsxgraph doesn't get new value
-    let rendererValueRef = useRef(null);
+    let rendererValueRef = useRef<string | null>(null);
     rendererValueRef.current = rendererValue;
 
-    let valueToRevertTo = useRef(SVs.immediateValue);
+    let valueToRevertTo = useRef<string | null>(SVs.immediateValue);
     let focused = useRef<boolean | null>(null);
 
-    let immediateValueWhenSetState = useRef(null);
+    let immediateValueWhenSetState = useRef<string | null>(null);
 
     let inputJXG = useRef<JXGObject | null>(null);
     let anchorPointJXG = useRef<JXGObject | null>(null);
@@ -121,7 +144,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
             let oldValue = valueToRevertTo.current;
 
             if (oldValue !== rendererValueRef.current) {
-                setRendererValue(oldValue);
+                setRendererValue(oldValue ?? "");
                 immediateValueWhenSetState.current = SVs.immediateValue;
 
                 callAction({
@@ -574,7 +597,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
     );
 
     let input;
-    let label = SVs.label;
+    let label: React.ReactNode = SVs.label;
     const hasLabel =
         typeof SVs.label === "string" ? SVs.label.trim() !== "" : !!SVs.label;
     const labelId = `${id}-input-label`;

@@ -3,8 +3,12 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 
+interface AsListSVs {
+    hidden: boolean;
+}
+
 export default React.memo(function AsList(props: UseDoenetRendererProps) {
-    let { id, SVs, children } = useDoenetRenderer(props);
+    let { id, SVs, children } = useDoenetRenderer<AsListSVs>(props);
 
     if (SVs.hidden) {
         return null;

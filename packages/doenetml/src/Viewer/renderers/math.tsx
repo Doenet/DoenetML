@@ -13,12 +13,29 @@ import {
 import { DocContext } from "../DocViewer";
 import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
 import { ChoiceInputInlineContext } from "./choiceInput";
+import { SelectedStyle } from "./utils/graphicalSVs";
+
+interface MathSVs {
+    [key: string]: any;
+    hidden: boolean;
+    layer: number;
+    fixed: boolean;
+    fixLocation: boolean;
+    draggable: boolean;
+    anchor: any;
+    positionFromAnchor: any;
+    latex: string;
+    renderMode?: string;
+    equationTag?: string;
+    mrowChildRendererIds?: string[];
+    selectedStyle: SelectedStyle;
+}
 
 export default React.memo(function MathComponent(
     props: UseDoenetRendererProps,
 ) {
     let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
-        useDoenetRenderer(props);
+        useDoenetRenderer<MathSVs>(props);
 
     // @ts-ignore
     MathComponent.ignoreActionsWithoutCore = () => true;
@@ -493,8 +510,8 @@ export default React.memo(function MathComponent(
             }
 
             if (mathJXG.current.visProp.strokecolor !== textColor) {
-                mathJXG.current.visProp.strokecolor = textColor;
-                mathJXG.current.visProp.highlightstrokecolor = textColor;
+                mathJXG.current.visProp.strokecolor = textColor!;
+                mathJXG.current.visProp.highlightstrokecolor = textColor!;
             }
             if (mathJXG.current.visProp.cssstyle !== cssStyle) {
                 mathJXG.current.visProp.cssstyle = cssStyle;

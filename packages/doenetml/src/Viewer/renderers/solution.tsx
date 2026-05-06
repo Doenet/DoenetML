@@ -8,8 +8,19 @@ import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { addCommasForCompositeRanges } from "./utils/composites";
 import "./solution.css";
 
+interface SolutionSVs {
+    [key: string]: any;
+    hidden: boolean;
+    _compositeReplacementActiveRange?: any;
+    canBeClosed: boolean;
+    message: string;
+    open: boolean;
+    rendered: boolean;
+    sectionName: string;
+}
+
 export default React.memo(function Solution(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
+    let { id, SVs, children, actions, callAction } = useDoenetRenderer<SolutionSVs>(props);
 
     const ref = useRef(null);
 

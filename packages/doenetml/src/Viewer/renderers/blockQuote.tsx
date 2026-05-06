@@ -5,8 +5,15 @@ import useDoenetRenderer, {
 import { addCommasForCompositeRanges } from "./utils/composites";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 
+interface BlockQuoteSVs {
+    [key: string]: any;
+    hidden: boolean;
+    _compositeReplacementActiveRange?: any;
+    renderInlineForListItem: boolean;
+}
+
 export default React.memo(function Container(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
+    let { id, SVs, children, actions, callAction } = useDoenetRenderer<BlockQuoteSVs>(props);
 
     const ref = useRef(null);
 

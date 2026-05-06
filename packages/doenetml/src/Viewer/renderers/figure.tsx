@@ -5,8 +5,16 @@ import useDoenetRenderer, {
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import Measure from "react-measure";
 
+interface FigureSVs {
+    [key: string]: any;
+    hidden: boolean;
+    captionChildName?: any;
+    figureName: string;
+    suppressFigureNameInCaption: boolean;
+}
+
 export default React.memo(function Figure(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
+    let { id, SVs, children, actions, callAction } = useDoenetRenderer<FigureSVs>(props);
 
     const ref = useRef(null);
 

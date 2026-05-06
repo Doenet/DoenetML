@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useRef, useEffect } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
@@ -10,7 +9,9 @@ import {
 import { faCaretRight as twirlIsClosed } from "@fortawesome/free-solid-svg-icons";
 import { faCaretDown as twirlIsOpen } from "@fortawesome/free-solid-svg-icons";
 
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { addCommasForCompositeRanges } from "./utils/composites";
 import {
@@ -20,8 +21,29 @@ import {
 import { cesc } from "@doenet/utils";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
-export default React.memo(function Section(props) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
+interface SectionSVs {
+    [key: string]: any;
+    hidden: boolean;
+    rendered: boolean;
+    isListItem: boolean;
+    boxed: boolean;
+    collapsible: boolean;
+    open: boolean;
+    title: string;
+    titleChildName?: string;
+    titleColor?: string;
+    titlePrefix?: string;
+    sectionNumber?: string;
+    level: number;
+    containerTag: string;
+    justSubmitted: boolean;
+    firstChildListItemAlignment?: string;
+    firstVisibleChildAdjustedForListItem?: any;
+}
+
+export default React.memo(function Section(props: UseDoenetRendererProps) {
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<SectionSVs>(props);
 
     // List item styling constants
     // When a section is rendered as a list item (SVs.isListItem), the section number
@@ -41,7 +63,7 @@ export default React.memo(function Section(props) {
     const hasTitle = !!SVs.titleChildName || (!!SVs.title && !SVs.isListItem);
 
     // Declare heading variable early (assigned later in the component)
-    let heading = null;
+    let heading: React.ReactNode = null;
 
     const hasAdjustedFirstChildForListItem =
         SVs.firstVisibleChildAdjustedForListItem;
@@ -75,8 +97,10 @@ export default React.memo(function Section(props) {
     };
 
     // Helper function to create heading box styles for boxed sections
-    const getHeadingBoxStyle = (isCollapsible: boolean) => {
-        const baseStyle = {
+    const getHeadingBoxStyle = (
+        isCollapsible: boolean,
+    ): React.CSSProperties => {
+        const baseStyle: React.CSSProperties = {
             padding: BOX_PADDING,
             backgroundColor: SVs.titleColor,
             borderTopLeftRadius: "var(--mainBorderRadius)",
@@ -284,7 +308,7 @@ export default React.memo(function Section(props) {
         for (let [ind, child] of children.entries()) {
             //child might be null or a string
             if (
-                child?.props?.componentInstructions.componentIdx ===
+                (child as any)?.props?.componentInstructions.componentIdx ===
                 SVs.titleChildName
             ) {
                 title = children[ind];
@@ -419,7 +443,7 @@ export default React.memo(function Section(props) {
         while (
             startInd < children.length &&
             typeof children[startInd] === "string" &&
-            children[startInd].trim() === ""
+            (children[startInd] as string).trim() === ""
         ) {
             startInd++;
         }
@@ -489,7 +513,7 @@ export default React.memo(function Section(props) {
                 <div
                     className={headingBoxClassName}
                     style={headingBoxStyle}
-                    tabIndex="0"
+                    tabIndex={0}
                     onKeyPress={(e) => {
                         if (e.key === "Enter") {
                             callAction({
@@ -564,7 +588,7 @@ export default React.memo(function Section(props) {
 
     // Render non-boxed list-item sections with hanging section numbers
     if (SVs.isListItem && !SVs.collapsible && !SVs.boxed) {
-        const containerStyle = {
+        const containerStyle: React.CSSProperties = {
             margin: "12px 0",
             position: "relative",
             marginLeft: LIST_ITEM_INDENT,

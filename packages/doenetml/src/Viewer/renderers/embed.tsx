@@ -1,13 +1,25 @@
-// @ts-nocheck
 import React, { useEffect, useRef } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 
-export default React.memo(function Figure(props) {
-    let { id, SVs, actions, callAction } = useDoenetRenderer(props);
+declare const MathJax: any;
 
-    const ref = useRef(null);
+interface EmbedSVs {
+    [key: string]: any;
+    hidden: boolean;
+    width?: { size: string; isAbsolute: boolean };
+    height?: { size: string; isAbsolute: boolean };
+    geogebra?: string;
+    encodedGeogebraContent?: string;
+}
+
+export default React.memo(function Figure(props: UseDoenetRendererProps) {
+    let { id, SVs, actions, callAction } = useDoenetRenderer<EmbedSVs>(props);
+
+    const ref = useRef<HTMLDivElement | null>(null);
 
     useRecordVisibilityChanges(ref, callAction, actions);
 
@@ -35,7 +47,7 @@ export default React.memo(function Figure(props) {
                     enableShiftDragZoom: true,
                     enableRightClick: true,
                     showToolBarHelp: false,
-                    ggbBase64: doenetSvData.encodedGeogebraContent.trim(),
+                    ggbBase64: doenetSvData.encodedGeogebraContent!.trim(),
                     language: "en",
                     country: "US",
                     isPreloader: false,
@@ -48,7 +60,7 @@ export default React.memo(function Figure(props) {
                     canary: false,
                     allowUpscale: false,
                 };
-                let applet = new window.GGBApplet(parameters, true);
+                let applet = new (window as any).GGBApplet(parameters, true);
                 applet.setHTML5Codebase("/geogebra/HTML5/5.0/web/", "true");
                 applet.inject("container_" + cIdx, "preferhtml5");
             });

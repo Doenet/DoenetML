@@ -1,9 +1,10 @@
-// @ts-nocheck
 import { MathJax } from "better-react-mathjax";
 
 import React, { useContext, useEffect, useRef } from "react";
 import { BoardContext, TEXT_LAYER_OFFSET } from "./graph";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import me from "math-expressions";
 import { textRendererStyle } from "@doenet/utils";
 import {
@@ -12,34 +13,52 @@ import {
 } from "./utils/graph";
 import { DocContext } from "../DocViewer";
 import { ChoiceInputInlineContext } from "./choiceInput";
+import { JXGEvent, JXGPoint, JXGText } from "./jsxgraph-distrib/types";
+import { SelectedStyle } from "./utils/graphicalSVs";
 
-export default React.memo(function NumberComponent(props) {
-    let { componentIdx, id, SVs, actions, sourceOfUpdate, callAction } =
-        useDoenetRenderer(props);
+interface NumberSVs {
+    hidden: boolean;
+    layer: number;
+    fixed: boolean;
+    fixLocation: boolean;
+    draggable: boolean;
+    anchor: any;
+    positionFromAnchor: any;
+    text: string;
+    renderAsMath: boolean;
+    selectedStyle: SelectedStyle;
+}
 
+export default React.memo(function NumberComponent(
+    props: UseDoenetRendererProps,
+) {
+    let { componentIdx, id, SVs, actions, callAction } =
+        useDoenetRenderer<NumberSVs>(props);
+
+    // @ts-ignore
     NumberComponent.ignoreActionsWithoutCore = () => true;
 
-    let numberJXG = useRef(null);
-    let anchorPointJXG = useRef(null);
-    let anchorRel = useRef(null);
+    let numberJXG = useRef<JXGText | null>(null);
+    let anchorPointJXG = useRef<JXGPoint | null>(null);
+    let anchorRel = useRef<[string, string] | null>(null);
 
     const board = useContext(BoardContext);
     const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
 
-    let pointerAtDown = useRef(false);
-    let pointAtDown = useRef(false);
-    let pointerIsDown = useRef(false);
-    let pointerMovedSinceDown = useRef(false);
-    let dragged = useRef(false);
+    let pointerAtDown = useRef<[number, number] | null>(null);
+    let pointAtDown = useRef<number[] | null>(null);
+    let pointerIsDown = useRef<boolean>(false);
+    let pointerMovedSinceDown = useRef<boolean>(false);
+    let dragged = useRef<boolean>(false);
 
-    let calculatedX = useRef(null);
-    let calculatedY = useRef(null);
+    let calculatedX = useRef<number | null>(null);
+    let calculatedY = useRef<number | null>(null);
 
-    let lastPositionFromCore = useRef(null);
-    let previousPositionFromAnchor = useRef(null);
+    let lastPositionFromCore = useRef<number[] | null>(null);
+    let previousPositionFromAnchor = useRef<any>(null);
 
-    let fixed = useRef(false);
-    let fixLocation = useRef(false);
+    let fixed = useRef<boolean>(false);
+    let fixLocation = useRef<boolean>(false);
 
     fixed.current = SVs.fixed;
     fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
@@ -85,7 +104,7 @@ export default React.memo(function NumberComponent(props) {
         }
 
         //things to be passed to JSXGraph as attributes
-        let jsxNumberAttributes = {
+        let jsxNumberAttributes: Record<string, any> = {
             visible: !SVs.hidden,
             fixed: fixed.current,
             layer: 10 * SVs.layer + TEXT_LAYER_OFFSET,
@@ -99,7 +118,7 @@ export default React.memo(function NumberComponent(props) {
             parse: false,
         };
 
-        let newAnchorPointJXG;
+        let newAnchorPointJXG: JXGPoint;
 
         try {
             let anchor = me.fromAst(SVs.anchor);
@@ -118,12 +137,12 @@ export default React.memo(function NumberComponent(props) {
 
             newAnchorPointJXG = board.create("point", anchorCoords, {
                 visible: false,
-            });
+            }) as JXGPoint;
         } catch (e) {
             jsxNumberAttributes["visible"] = false;
             newAnchorPointJXG = board.create("point", [0, 0], {
                 visible: false,
-            });
+            }) as JXGPoint;
         }
 
         jsxNumberAttributes.anchor = newAnchorPointJXG;
@@ -133,16 +152,16 @@ export default React.memo(function NumberComponent(props) {
         );
         jsxNumberAttributes.anchorx = anchorx;
         jsxNumberAttributes.anchory = anchory;
-        anchorRel.current = [anchorx, anchory];
+        anchorRel.current = [anchorx as string, anchory as string];
 
         let newNumberJXG = board.create(
             "text",
             [0, 0, SVs.text],
             jsxNumberAttributes,
-        );
+        ) as JXGText;
         newNumberJXG.isDraggable = !fixLocation.current;
 
-        newNumberJXG.on("down", function (e) {
+        newNumberJXG.on("down", function (e: JXGEvent) {
             (document.activeElement as HTMLElement | null)?.blur();
 
             pointerAtDown.current = [e.x, e.y];
@@ -153,21 +172,21 @@ export default React.memo(function NumberComponent(props) {
             if (!fixed.current) {
                 callAction({
                     action: actions.numberFocused,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                    args: { componentIdx },
                 });
             }
         });
 
-        newNumberJXG.on("hit", function (e) {
+        newNumberJXG.on("hit", function (e: JXGEvent) {
             pointAtDown.current = [...newAnchorPointJXG.coords.scrCoords];
             dragged.current = false;
             callAction({
                 action: actions.numberFocused,
-                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                args: { componentIdx },
             });
         });
 
-        newNumberJXG.on("up", function (e) {
+        newNumberJXG.on("up", function (e: JXGEvent) {
             if (dragged.current) {
                 callAction({
                     action: actions.moveNumber,
@@ -180,13 +199,13 @@ export default React.memo(function NumberComponent(props) {
             } else if (!pointerMovedSinceDown.current && !fixed.current) {
                 callAction({
                     action: actions.numberClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                    args: { componentIdx },
                 });
             }
             pointerIsDown.current = false;
         });
 
-        newNumberJXG.on("keyfocusout", function (e) {
+        newNumberJXG.on("keyfocusout", function (e: JXGEvent) {
             if (dragged.current) {
                 callAction({
                     action: actions.moveNumber,
@@ -199,26 +218,26 @@ export default React.memo(function NumberComponent(props) {
             }
         });
 
-        newNumberJXG.on("drag", function (e) {
+        newNumberJXG.on("drag", function (e: JXGEvent) {
             let viaPointer = e.type === "pointermove";
 
             //Protect against very small unintended drags
             if (
                 !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current[0]) >
+                Math.abs(e.x - pointerAtDown.current![0]) >
                     POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current[1]) >
+                Math.abs(e.y - pointerAtDown.current![1]) >
                     POINTER_DRAG_THRESHOLD
             ) {
                 dragged.current = true;
             }
 
             let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
-            let width = newNumberJXG.size[0] / board.unitX;
-            let height = newNumberJXG.size[1] / board.unitY;
+            let width = newNumberJXG.size![0] / board.unitX;
+            let height = newNumberJXG.size![1] / board.unitY;
 
-            let anchorx = anchorRel.current[0];
-            let anchory = anchorRel.current[1];
+            let anchorx = anchorRel.current![0];
+            let anchory = anchorRel.current![1];
 
             let offsetx = 0;
             if (anchorx === "middle") {
@@ -251,25 +270,25 @@ export default React.memo(function NumberComponent(props) {
                 var o = board.origin.scrCoords;
 
                 calculatedX.current =
-                    (pointAtDown.current[1] +
+                    (pointAtDown.current![1] +
                         e.x -
-                        pointerAtDown.current[0] -
+                        pointerAtDown.current![0] -
                         o[1]) /
                     board.unitX;
 
                 calculatedY.current =
                     (o[2] -
-                        (pointAtDown.current[2] +
+                        (pointAtDown.current![2] +
                             e.y -
-                            pointerAtDown.current[1])) /
+                            pointerAtDown.current![1])) /
                     board.unitY;
             } else {
                 calculatedX.current =
                     newAnchorPointJXG.X() +
-                    newNumberJXG.relativeCoords.usrCoords[1];
+                    newNumberJXG.relativeCoords!.usrCoords[1];
                 calculatedY.current =
                     newAnchorPointJXG.Y() +
-                    newNumberJXG.relativeCoords.usrCoords[2];
+                    newNumberJXG.relativeCoords!.usrCoords[2];
             }
 
             calculatedX.current = Math.min(
@@ -291,7 +310,7 @@ export default React.memo(function NumberComponent(props) {
                 },
             });
 
-            newNumberJXG.relativeCoords.setCoordinates(
+            newNumberJXG.relativeCoords!.setCoordinates(
                 JXG.COORDS_BY_USER,
                 [0, 0],
             );
@@ -301,7 +320,7 @@ export default React.memo(function NumberComponent(props) {
             );
         });
 
-        newNumberJXG.on("keydown", function (e) {
+        newNumberJXG.on("keydown", function (e: JXGEvent) {
             if (e.key === "Enter") {
                 if (dragged.current) {
                     callAction({
@@ -315,7 +334,7 @@ export default React.memo(function NumberComponent(props) {
                 }
                 callAction({
                     action: actions.numberClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                    args: { componentIdx },
                 });
             }
         });
@@ -325,13 +344,13 @@ export default React.memo(function NumberComponent(props) {
         previousPositionFromAnchor.current = SVs.positionFromAnchor;
     }
 
-    function boardMoveHandler(e) {
+    function boardMoveHandler(e: JXGEvent) {
         if (pointerIsDown.current) {
             //Protect against very small unintended move
             if (
-                Math.abs(e.x - pointerAtDown.current[0]) >
+                Math.abs(e.x - pointerAtDown.current![0]) >
                     POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current[1]) >
+                Math.abs(e.y - pointerAtDown.current![1]) >
                     POINTER_DRAG_THRESHOLD
             ) {
                 pointerMovedSinceDown.current = true;
@@ -340,6 +359,7 @@ export default React.memo(function NumberComponent(props) {
     }
 
     function deleteNumberJXG() {
+        if (!numberJXG.current) return;
         numberJXG.current.off("drag");
         numberJXG.current.off("down");
         numberJXG.current.off("hit");
@@ -351,12 +371,12 @@ export default React.memo(function NumberComponent(props) {
     }
 
     if (board) {
-        let anchorCoords;
+        let anchorCoords: number[];
         try {
             let anchor = me.fromAst(SVs.anchor);
             anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant(),
-                anchor.get_component(1).evaluate_to_constant(),
+                anchor.get_component(0).evaluate_to_constant() ?? NaN,
+                anchor.get_component(1).evaluate_to_constant() ?? NaN,
             ];
         } catch (e) {
             anchorCoords = [NaN, NaN];
@@ -367,11 +387,11 @@ export default React.memo(function NumberComponent(props) {
         if (numberJXG.current === null) {
             createNumberJXG();
         } else {
-            numberJXG.current.relativeCoords.setCoordinates(
+            numberJXG.current.relativeCoords!.setCoordinates(
                 JXG.COORDS_BY_USER,
                 [0, 0],
             );
-            anchorPointJXG.current.coords.setCoordinates(
+            anchorPointJXG.current!.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
                 anchorCoords,
             );
@@ -422,8 +442,8 @@ export default React.memo(function NumberComponent(props) {
             }
 
             if (numberJXG.current.visProp.strokecolor !== textColor) {
-                numberJXG.current.visProp.strokecolor = textColor;
-                numberJXG.current.visProp.highlightstrokecolor = textColor;
+                numberJXG.current.visProp.strokecolor = textColor!;
+                numberJXG.current.visProp.highlightstrokecolor = textColor!;
             }
             if (numberJXG.current.visProp.cssstyle !== cssStyle) {
                 numberJXG.current.visProp.cssstyle = cssStyle;
@@ -442,15 +462,15 @@ export default React.memo(function NumberComponent(props) {
                 );
                 numberJXG.current.visProp.anchorx = anchorx;
                 numberJXG.current.visProp.anchory = anchory;
-                anchorRel.current = [anchorx, anchory];
+                anchorRel.current = [anchorx as string, anchory as string];
                 previousPositionFromAnchor.current = SVs.positionFromAnchor;
                 numberJXG.current.fullUpdate();
             } else {
                 numberJXG.current.update();
             }
 
-            anchorPointJXG.current.needsUpdate = true;
-            anchorPointJXG.current.update();
+            anchorPointJXG.current!.needsUpdate = true;
+            anchorPointJXG.current!.update();
             board.updateRenderer();
         }
 
@@ -464,12 +484,12 @@ export default React.memo(function NumberComponent(props) {
     }
 
     let number = SVs.text;
-    if (SVs.renderAsMath) {
+    if ((SVs as any).renderAsMath) {
         number = "\\(" + number + "\\)";
     }
 
     const style = !choiceInputInlineContext.inOption
-        ? textRendererStyle(darkMode, SVs.selectedStyle)
+        ? textRendererStyle(darkMode ?? "light", SVs.selectedStyle)
         : undefined;
 
     return (

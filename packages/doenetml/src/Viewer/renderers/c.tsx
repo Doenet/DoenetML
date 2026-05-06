@@ -4,8 +4,14 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { addCommasForCompositeRanges } from "./utils/composites";
 
+interface CSVs {
+    [key: string]: any;
+    hidden: boolean;
+    _compositeReplacementActiveRange?: any;
+}
+
 export default React.memo(function C(props: UseDoenetRendererProps) {
-    let { id, SVs, children } = useDoenetRenderer(props);
+    let { id, SVs, children } = useDoenetRenderer<CSVs>(props);
 
     if (SVs.hidden) {
         return null;

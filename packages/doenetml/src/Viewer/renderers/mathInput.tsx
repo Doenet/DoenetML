@@ -342,9 +342,29 @@ function getBlurTransitionContext({
     };
 }
 
+interface MathInputSVs {
+    [key: string]: any;
+    hidden: boolean;
+    disabled: boolean;
+    label: string;
+    labelHasLatex: boolean;
+    labelPosition: string;
+    justSubmitted: boolean;
+    forceFullCheckWorkButton: boolean;
+    colorCorrectness: boolean;
+    errorMessageRawRenderer: any;
+    externalLabelRendererIds: any;
+    immediateValueLatex: string;
+    minWidth: any;
+    rawRendererValue: any;
+    shortDescription: string;
+    showCheckWork: boolean;
+    showPreview: boolean;
+}
+
 export default function MathInput(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, ignoreUpdate, callAction } =
-        useDoenetRenderer(props);
+        useDoenetRenderer<MathInputSVs>(props);
 
     // @ts-ignore
     MathInput.baseStateVariable = "rawRendererValue";
@@ -609,7 +629,7 @@ export default function MathInput(props: UseDoenetRendererProps) {
         isPending,
     );
 
-    let label = SVs.label;
+    let label: React.ReactNode = SVs.label;
     const inputKey = `${id}_input`;
     const hasLabel =
         typeof SVs.label === "string" ? SVs.label.trim() !== "" : !!SVs.label;

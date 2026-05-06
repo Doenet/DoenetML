@@ -1,7 +1,20 @@
-// @ts-nocheck
 import React from "react";
 import { sizeToCSS } from "./utils/css";
 import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
+import { GraphSVs } from "./graph";
+
+interface GraphFrameProps {
+    id: string;
+    SVs: GraphSVs;
+    isPrefigureRenderer: boolean;
+    containerRef: React.RefObject<HTMLDivElement | null>;
+    descriptionChild: React.ReactNode | false;
+    hasInteractiveControls: boolean;
+    suppressTopMargin?: boolean;
+    children:
+        | React.ReactNode
+        | ((surfaceStyle: React.CSSProperties) => React.ReactNode);
+}
 
 /**
  * Shared frame for graph-style renderers.
@@ -19,7 +32,7 @@ export default function GraphFrame({
     hasInteractiveControls,
     suppressTopMargin = false,
     children,
-}) {
+}: GraphFrameProps) {
     const contentStyle: React.CSSProperties = {
         width: sizeToCSS(SVs.width),
         aspectRatio: String(SVs.aspectRatio),

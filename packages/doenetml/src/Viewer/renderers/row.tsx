@@ -3,8 +3,15 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 
+interface RowSVs {
+    [key: string]: any;
+    hidden: boolean;
+    left?: any;
+    valign?: any;
+}
+
 export default React.memo(function Row(props: UseDoenetRendererProps) {
-    let { id, SVs, children } = useDoenetRenderer(props);
+    let { id, SVs, children } = useDoenetRenderer<RowSVs>(props);
 
     if (SVs.hidden) {
         return null;

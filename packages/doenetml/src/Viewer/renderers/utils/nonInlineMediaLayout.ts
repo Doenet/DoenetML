@@ -1,10 +1,17 @@
+import type { CSSProperties } from "react";
+
 export function getNonInlineMediaLayoutStyles({
     horizontalAlign,
     mediaWidth,
 }: {
-    horizontalAlign: string;
-    mediaWidth: string;
-}) {
+    horizontalAlign: string | undefined;
+    mediaWidth: string | undefined;
+}): {
+    outerStyle: CSSProperties;
+    innerStyle: CSSProperties;
+    mediaContainerStyle: CSSProperties;
+    mediaColumnStyle: CSSProperties;
+} {
     return {
         outerStyle: {
             display: "flex",

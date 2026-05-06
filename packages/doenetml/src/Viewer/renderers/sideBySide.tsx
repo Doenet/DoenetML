@@ -20,8 +20,18 @@ function isRenderablePanelChild(child: unknown): child is React.ReactElement {
     return typeof child === "object" && "key" in child;
 }
 
+interface SideBySideSVs {
+    [key: string]: any;
+    hidden: boolean;
+    gapWidth?: any;
+    listItemInlineAlignment?: any;
+    margins?: any;
+    numPanels: number;
+    widths?: any;
+}
+
 export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
+    let { id, SVs, children, actions, callAction } = useDoenetRenderer<SideBySideSVs>(props);
     const ref = useRef(null);
 
     useRecordVisibilityChanges(ref, callAction, actions);

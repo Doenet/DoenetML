@@ -1,19 +1,36 @@
-// @ts-nocheck
-import React, { useContext, useEffect, useState, useRef } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import React, { useContext, useEffect, useRef } from "react";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { BoardContext, LINE_LAYER_OFFSET } from "./graph";
 import { createFunctionFromDefinition } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
+import { GraphicalSVs } from "./utils/graphicalSVs";
+import { JXGCurve, JXGElement, JXGPoint } from "./jsxgraph-distrib/types";
 
-export default React.memo(function RegionBetweenCurveXAxis(props) {
-    let { id, SVs } = useDoenetRenderer(props);
+interface RegionBetweenCurveXAxisSVs extends GraphicalSVs {
+    haveFunction: boolean;
+    boundaryValues: number[];
+    fDefinition: any;
+}
 
+type JXGIntegral = JXGElement & {
+    curveLeft: JXGPoint;
+    curveRight: JXGPoint;
+};
+
+export default React.memo(function RegionBetweenCurveXAxis(
+    props: UseDoenetRendererProps,
+) {
+    let { id, SVs } = useDoenetRenderer<RegionBetweenCurveXAxisSVs>(props);
+
+    // @ts-ignore
     RegionBetweenCurveXAxis.ignoreActionsWithoutCore = () => true;
 
     const board = useContext(BoardContext);
 
-    let curveJXG = useRef(null);
-    let integralJXG = useRef(null);
+    let curveJXG = useRef<JXGCurve | null>(null);
+    let integralJXG = useRef<JXGIntegral | null>(null);
 
     const { darkMode } = useContext(DocContext) || {};
 
@@ -27,7 +44,10 @@ export default React.memo(function RegionBetweenCurveXAxis(props) {
         };
     }, []);
 
-    function createRegion() {
+    function createRegion(): JXGIntegral | null {
+        if (board === null) {
+            return null;
+        }
         if (
             !SVs.haveFunction ||
             SVs.boundaryValues.length !== 2 ||
@@ -47,7 +67,7 @@ export default React.memo(function RegionBetweenCurveXAxis(props) {
 
         // TODO: either change behavior or change how label is specified
 
-        let jsxAttributes = {
+        let jsxAttributes: Record<string, any> = {
             name: SVs.labelForGraph,
             visible: !SVs.hidden,
             withLabel: SVs.labelForGraph !== "",
@@ -68,13 +88,15 @@ export default React.memo(function RegionBetweenCurveXAxis(props) {
         };
 
         let f = createFunctionFromDefinition(SVs.fDefinition);
-        curveJXG.current = board.create("functiongraph", f, { visible: false });
+        curveJXG.current = board.create("functiongraph", f, {
+            visible: false,
+        }) as JXGCurve;
 
         return board.create(
             "integral",
             [SVs.boundaryValues, curveJXG.current],
             jsxAttributes,
-        );
+        ) as JXGIntegral;
     }
 
     function deleteRegion() {
@@ -82,8 +104,10 @@ export default React.memo(function RegionBetweenCurveXAxis(props) {
             board?.removeObject(integralJXG.current);
             integralJXG.current = null;
 
-            board?.removeObject(curveJXG.current);
-            curveJXG.current = null;
+            if (curveJXG.current) {
+                board?.removeObject(curveJXG.current);
+                curveJXG.current = null;
+            }
         }
     }
 
@@ -99,7 +123,9 @@ export default React.memo(function RegionBetweenCurveXAxis(props) {
         } else {
             let f = createFunctionFromDefinition(SVs.fDefinition);
 
-            curveJXG.current.Y = f;
+            if (curveJXG.current) {
+                (curveJXG.current as any).Y = f;
+            }
             // Since not drawing curve, do we need to update it?
             // curveJXG.current.needsUpdate = true;
             // curveJXG.current.updateCurve();
@@ -108,7 +134,7 @@ export default React.memo(function RegionBetweenCurveXAxis(props) {
             integralJXG.current.visPropCalc["visible"] = !SVs.hidden;
 
             let [x1, x2] = SVs.boundaryValues;
-            let [y1, y2] = SVs.boundaryValues.map(f);
+            let [y1, y2] = SVs.boundaryValues.map(f as (n: number) => number);
             integralJXG.current.curveLeft.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
                 [x1, y1],

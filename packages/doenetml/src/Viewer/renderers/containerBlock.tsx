@@ -10,8 +10,16 @@ import {
 } from "./utils/checkWork";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
+interface ContainerBlockSVs {
+    [key: string]: any;
+    hidden: boolean;
+    _compositeReplacementActiveRange?: any;
+    justSubmitted: boolean;
+    renderInlineForListItem: boolean;
+}
+
 export default React.memo(function Container(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
+    let { id, SVs, children, actions, callAction } = useDoenetRenderer<ContainerBlockSVs>(props);
 
     const ref = useRef(null);
 

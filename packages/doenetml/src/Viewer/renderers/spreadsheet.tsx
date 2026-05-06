@@ -1,20 +1,42 @@
-// @ts-nocheck
 import React, { useRef } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
+// @ts-ignore
 import { HotTable } from "@handsontable/react";
 import { HyperFormula } from "hyperformula";
 import "handsontable/dist/handsontable.full.css";
 import { sizeToCSS } from "./utils/css";
+// @ts-ignore
 import { registerAllModules } from "handsontable/registry";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
 
+interface SpreadsheetSVs {
+    [key: string]: any;
+    hidden: boolean;
+    disabled: boolean;
+    cells: any[][];
+    columnHeaders: string[] | boolean;
+    rowHeaders: string[] | boolean;
+    width: { size: string; isAbsolute: boolean };
+    height: { size: string; isAbsolute: boolean };
+    fixedRowsTop: number;
+    fixedColumnsLeft: number;
+    hiddenColumns: number[];
+    hiddenRows: number[];
+    renderInlineForListItem?: boolean;
+}
+
 registerAllModules();
 
-export default React.memo(function SpreadsheetRenderer(props) {
-    let { id, SVs, actions, callAction } = useDoenetRenderer(props);
+export default React.memo(function SpreadsheetRenderer(
+    props: UseDoenetRendererProps,
+) {
+    let { id, SVs, actions, callAction } =
+        useDoenetRenderer<SpreadsheetSVs>(props);
 
-    const ref = useRef(null);
+    const ref = useRef<HTMLDivElement | null>(null);
 
     useRecordVisibilityChanges(ref, callAction, actions);
 
@@ -27,7 +49,7 @@ export default React.memo(function SpreadsheetRenderer(props) {
             id={id}
             style={{
                 margin: getBlockMarginWithOptionalTopSuppression({
-                    suppressTopMargin: SVs.renderInlineForListItem,
+                    suppressTopMargin: !!SVs.renderInlineForListItem,
                 }),
             }}
             ref={ref}
@@ -36,12 +58,12 @@ export default React.memo(function SpreadsheetRenderer(props) {
                 // style={{ borderRadius:"var(--mainBorderRadius)", border:"var(--mainBorder)" }}
                 licenseKey="non-commercial-and-evaluation"
                 data={SVs.cells.map((x) => [...x])}
-                colHeaders={SVs.columnHeaders}
-                rowHeaders={SVs.rowHeaders}
+                colHeaders={SVs.columnHeaders as any}
+                rowHeaders={SVs.rowHeaders as any}
                 width={sizeToCSS(SVs.width)}
                 height={sizeToCSS(SVs.height)}
                 // beforeChange={this.actions.onChange}
-                afterChange={(changes, source) =>
+                afterChange={(changes: any, source: any) =>
                     callAction({
                         action: actions.onChange,
                         args: { changes, source },

@@ -170,9 +170,31 @@ function generateTextLabels(
     }
 }
 
+interface SliderSVs {
+    [key: string]: any;
+    hidden: boolean;
+    disabled: boolean;
+    label: string;
+    labelHasLatex: boolean;
+    firstItem: any;
+    from: any;
+    index: number;
+    items: any;
+    lastItem: any;
+    numItems: number;
+    rotateTickLabels: boolean;
+    showControls: boolean;
+    showTicks: boolean;
+    showValue: boolean;
+    step: any;
+    type: string;
+    valueForDisplay: any;
+    width: any;
+}
+
 export default React.memo(function Slider(props: UseDoenetRendererProps) {
     let { id, SVs, actions, ignoreUpdate, rendererName, callAction } =
-        useDoenetRenderer(props);
+        useDoenetRenderer<SliderSVs>(props);
 
     // @ts-ignore
     Slider.baseStateVariable = "index";
