@@ -37,7 +37,7 @@ type DoenetMLFlagsSubset = Partial<DoenetMLFlags>;
  * for processing events from the virtual keyboard.
  */
 export const FocusedMathInputContext = React.createContext<
-    React.MutableRefObject<HTMLElement | null>
+    React.RefObject<HTMLElement | null>
 >({ current: null });
 
 /**

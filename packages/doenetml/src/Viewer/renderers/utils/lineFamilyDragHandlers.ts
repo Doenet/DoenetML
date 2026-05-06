@@ -1,4 +1,4 @@
-import type { MutableRefObject } from "react";
+import type { RefObject } from "react";
 import { JXGElement, JXGEvent } from "../jsxgraph-distrib/types";
 import { exceededDragThreshold } from "./dragThreshold";
 import { PointerDragState } from "./pointerDragState";
@@ -20,8 +20,8 @@ export type CallActionFn = (params: {
  * coordination semantics.
  */
 export interface DragCoordinationState<TTag = number> {
-    draggedTag: MutableRefObject<TTag | null>;
-    downOnTag: MutableRefObject<TTag | null>;
+    draggedTag: RefObject<TTag | null>;
+    downOnTag: RefObject<TTag | null>;
 }
 
 export type CommitVariant = "up" | "keyEnter" | "keyFocusOut";
@@ -42,7 +42,7 @@ export interface AttachDragHandlersConfig<TTag, TSnapshot> {
     callAction: CallActionFn;
 
     /** Whether the whole component is "fixed" (no clicks, no focus). */
-    fixedRef: MutableRefObject<boolean>;
+    fixedRef: RefObject<boolean>;
     /**
      * Optional override for whether `down` should fire `actions.focus`. Used
      * by lineSegment endpoints (gated on `endpointsFixed`, not on `fixed`).
@@ -67,12 +67,12 @@ export interface AttachDragHandlersConfig<TTag, TSnapshot> {
      * whenever `actions.clickPrelude` is set. Pass a ref reading
      * `switchable && !fixed` to mirror the line/point pattern.
      */
-    clickPreludeGate?: MutableRefObject<boolean>;
+    clickPreludeGate?: RefObject<boolean>;
 
     /** Captures any state needed at `down` (e.g., scrCoords snapshot). */
     snapshot: () => TSnapshot;
     /** Where the most recent `snapshot()` result is stored. */
-    snapshotRef: MutableRefObject<TSnapshot | null>;
+    snapshotRef: RefObject<TSnapshot | null>;
 
     /**
      * Build the args for the transient (in-flight) `move` dispatch. Return
