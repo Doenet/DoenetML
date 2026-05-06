@@ -185,7 +185,26 @@ export function EditorViewer({
     const diagnosticsSummaryCallbackRef = useRef(diagnosticsSummaryCallback);
     useEffect(() => {
         diagnosticsSummaryCallbackRef.current = diagnosticsSummaryCallback;
+    }, [diagnosticsSummaryCallback]);
+
+    // Keep the latest counts available to the effect below without making them
+    // dependencies — `initialDiagnostics` defaults to a fresh `[]` per render and
+    // would otherwise refire the effect on every parent re-render (and could
+    // re-introduce a render loop if a consumer stores the summary in state).
+    const latestCountsRef = useRef<DiagnosticsSummary>({
+        warningsCount,
+        errorsCount,
+        infosCount,
+        accessibilityLevel1Count,
+        accessibilityLevel2Count,
     });
+    latestCountsRef.current = {
+        warningsCount,
+        errorsCount,
+        infosCount,
+        accessibilityLevel1Count,
+        accessibilityLevel2Count,
+    };
 
     useEffect(() => {
         // On initial load of the editor, don't call `diagnosticsSummaryCallback`
@@ -196,16 +215,8 @@ export function EditorViewer({
             return;
         }
 
-        diagnosticsSummaryCallbackRef.current?.({
-            warningsCount,
-            errorsCount,
-            infosCount,
-            accessibilityLevel1Count,
-            accessibilityLevel2Count,
-        });
-        // Fire once per `diagnostics`/`initialDiagnostics` change rather than per
-        // count change — the consumer should treat this as an event, not a memoized value.
-    }, [diagnostics, initialDiagnostics, receivedDiagnosticsFromViewer]);
+        diagnosticsSummaryCallbackRef.current?.(latestCountsRef.current);
+    }, [diagnostics, receivedDiagnosticsFromViewer]);
 
     const [responses, setResponses] = useState<
         {

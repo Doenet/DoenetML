@@ -193,6 +193,20 @@ describe(
                     calls[1].accessibilityLevel1Count,
                 );
             });
+
+            // Toggling an unrelated parent control re-renders CypressTest (and
+            // thus EditorViewer) without changing diagnostics. The callback
+            // must not fire — guards against `initialDiagnostics`'s default
+            // `[]` (or an inline-callback identity) refiring the effect.
+            cy.get("#testRunner_toggleControls").click();
+            cy.get("#testRunner_darkMode").click();
+            cy.get("#testRunner_darkMode").click();
+            cy.get("#testRunner_toggleControls").click();
+            cy.wait(200);
+            cy.window().should((win) => {
+                const calls = win.returnDiagnosticsSummaryCallbackCalls();
+                expect(calls).to.have.length(3);
+            });
         });
 
         it("displays accessibility report with WCAG AA Violations section", () => {
