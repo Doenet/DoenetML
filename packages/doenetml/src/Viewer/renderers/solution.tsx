@@ -20,7 +20,8 @@ interface SolutionSVs {
 }
 
 export default React.memo(function Solution(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer<SolutionSVs>(props);
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<SolutionSVs>(props);
 
     const ref = useRef(null);
 

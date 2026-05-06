@@ -14,7 +14,8 @@ interface FigureSVs {
 }
 
 export default React.memo(function Figure(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer<FigureSVs>(props);
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<FigureSVs>(props);
 
     const ref = useRef(null);
 

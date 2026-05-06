@@ -20,7 +20,8 @@ interface PSVs {
 }
 
 export default React.memo(function P(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer<PSVs>(props);
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<PSVs>(props);
 
     const ref = useRef(null);
 

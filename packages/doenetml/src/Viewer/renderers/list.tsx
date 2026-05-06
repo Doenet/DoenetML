@@ -22,7 +22,8 @@ interface ListSVs {
 }
 
 export default React.memo(function List(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer<ListSVs>(props);
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<ListSVs>(props);
 
     const ref = useRef(null);
 

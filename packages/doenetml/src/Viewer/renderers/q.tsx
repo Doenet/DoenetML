@@ -11,7 +11,12 @@ interface QSVs {
 }
 
 export default React.memo(function Q(props: UseDoenetRendererProps) {
-    let { componentIdx: name, id, SVs, children } = useDoenetRenderer<QSVs>(props);
+    let {
+        componentIdx: name,
+        id,
+        SVs,
+        children,
+    } = useDoenetRenderer<QSVs>(props);
 
     if (SVs.hidden) {
         return null;

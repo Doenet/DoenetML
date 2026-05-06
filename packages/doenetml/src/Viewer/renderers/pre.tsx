@@ -15,7 +15,8 @@ interface PreSVs {
 }
 
 export default React.memo(function Pre(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer<PreSVs>(props);
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<PreSVs>(props);
 
     const ref = useRef(null);
 

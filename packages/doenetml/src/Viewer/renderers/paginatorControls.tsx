@@ -18,7 +18,8 @@ interface PaginatorControlsSVs {
 export default React.memo(function PaginatorControls(
     props: UseDoenetRendererProps,
 ) {
-    let { id, SVs, actions, callAction } = useDoenetRenderer<PaginatorControlsSVs>(props, false);
+    let { id, SVs, actions, callAction } =
+        useDoenetRenderer<PaginatorControlsSVs>(props, false);
 
     if (SVs.hidden) {
         return null;

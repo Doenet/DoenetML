@@ -19,7 +19,8 @@ interface ContainerInlineSVs {
 export default React.memo(function ContainerInline(
     props: UseDoenetRendererProps,
 ) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer<ContainerInlineSVs>(props);
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<ContainerInlineSVs>(props);
 
     if (SVs.hidden) {
         return null;

@@ -31,7 +31,8 @@ interface SideBySideSVs {
 }
 
 export default React.memo(function sideBySide(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer<SideBySideSVs>(props);
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<SideBySideSVs>(props);
     const ref = useRef(null);
 
     useRecordVisibilityChanges(ref, callAction, actions);

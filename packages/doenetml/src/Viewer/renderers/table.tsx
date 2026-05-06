@@ -14,7 +14,8 @@ interface TableSVs {
 }
 
 export default React.memo(function Table(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer<TableSVs>(props);
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<TableSVs>(props);
 
     const ref = useRef(null);
 

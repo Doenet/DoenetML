@@ -16,7 +16,8 @@ interface TabularSVs {
 }
 
 export default React.memo(function Tabular(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer<TabularSVs>(props);
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<TabularSVs>(props);
 
     const ref = useRef(null);
 

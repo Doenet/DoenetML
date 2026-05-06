@@ -16,7 +16,8 @@ interface FeedbackSVs {
 }
 
 export default React.memo(function Feedback(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer<FeedbackSVs>(props);
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<FeedbackSVs>(props);
 
     const ref = useRef(null);
 

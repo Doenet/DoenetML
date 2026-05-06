@@ -13,7 +13,8 @@ interface BlockQuoteSVs {
 }
 
 export default React.memo(function Container(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer<BlockQuoteSVs>(props);
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<BlockQuoteSVs>(props);
 
     const ref = useRef(null);
 
