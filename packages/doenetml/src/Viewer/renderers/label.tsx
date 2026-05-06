@@ -173,7 +173,7 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
             if (!fixed.current) {
                 callAction({
                     action: actions.labelFocused,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                    args: { componentIdx },
                 });
             }
         });
@@ -183,7 +183,7 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
             dragged.current = false;
             callAction({
                 action: actions.labelFocused,
-                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                args: { componentIdx },
             });
         });
 
@@ -200,7 +200,7 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
             } else if (!pointerMovedSinceDown.current && !fixed.current) {
                 callAction({
                     action: actions.labelClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                    args: { componentIdx },
                 });
             }
             pointerIsDown.current = false;
@@ -335,7 +335,7 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
                 }
                 callAction({
                     action: actions.labelClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                    args: { componentIdx },
                 });
             }
         });
