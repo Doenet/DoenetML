@@ -173,7 +173,7 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
             if (!fixed.current) {
                 callAction({
                     action: actions.labelFocused,
-                    args: { componentIdx },
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -183,7 +183,7 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
             dragged.current = false;
             callAction({
                 action: actions.labelFocused,
-                args: { componentIdx },
+                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
             });
         });
 
@@ -200,7 +200,7 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
             } else if (!pointerMovedSinceDown.current && !fixed.current) {
                 callAction({
                     action: actions.labelClicked,
-                    args: { componentIdx },
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
             pointerIsDown.current = false;
@@ -259,6 +259,15 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
             let ymaxAdjusted = yMax - 0.04 * (yMax - yMin) - offsety;
 
             if (viaPointer) {
+                // the reason we calculate point position with this algorithm,
+                // rather than using .X() and .Y() directly
+                // is that attributes .X() and .Y() are affected by the
+                // .setCoordinates function called in update().
+                // Due to this dependence, the location of .X() and .Y()
+                // can be affected by constraints of objects that the points depends on,
+                // leading to a different location on up than on drag
+                // (as dragging uses the mouse location)
+                // TODO: find an example where need this this additional complexity
                 var o = board.origin.scrCoords;
 
                 calculatedX.current =
@@ -326,7 +335,7 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
                 }
                 callAction({
                     action: actions.labelClicked,
-                    args: { componentIdx },
+                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
                 });
             }
         });
@@ -416,6 +425,8 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
                 labelJXG.current.visPropCalc["visible"] = visible;
 
                 if (actuallyChangedVisibility) {
+                    // this function is incredibly slow, so don't run it if not necessary
+                    // TODO: figure out how to make label disappear right away so don't need to run this function
                     labelJXG.current.setAttribute({ visible });
                 }
             } else {

@@ -8,7 +8,10 @@
  * regionBetweenCurves) carry an independent `dashed` SV that should force
  * dashed regardless of `selectedStyle.lineStyle`.
  */
-export function styleToDash(style: string, dashed?: boolean): number {
+export function styleToDash(
+    style: string | undefined,
+    dashed?: boolean,
+): number {
     if (style === "dashed" || dashed) {
         return 2;
     }

@@ -11,6 +11,7 @@ import {
     JXGPolygon,
     JXGText,
 } from "./jsxgraph-distrib/types";
+import { styleToDash } from "./utils/styleToDash";
 
 declare const MathJax: any;
 
@@ -340,18 +341,6 @@ export default React.memo(function Legend(props: UseDoenetRendererProps) {
         </>
     );
 });
-
-function styleToDash(style: string | undefined): number {
-    if (style === "dashed") {
-        return 2;
-    } else if (style === "solid") {
-        return 0;
-    } else if (style === "dotted") {
-        return 1;
-    } else {
-        return 0;
-    }
-}
 
 function normalizeStyle(style: string | undefined): string | undefined {
     if (style === "triangle") {
