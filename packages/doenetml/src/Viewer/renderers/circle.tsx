@@ -64,7 +64,6 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
     let indicatorJXG = useRef<JXGPoint | null>(null);
 
     const dragState = usePointerDragState();
-    let centerAtDown = useRef<[number, number, number] | null>(null);
     let radiusAtDown = useRef<number | null>(null);
     let throughAnglesAtDown = useRef<[number, number] | null>(null);
     let previousWithLabel = useRef<boolean | null>(null);
@@ -245,16 +244,17 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             };
         }
 
-        function captureCircleSnapshot() {
+        function captureCircleSnapshot(): [number, number, number] | null {
             if (!circleJXG.current) {
                 return null;
             }
-            centerAtDown.current = [
-                ...circleJXG.current.center.coords.scrCoords,
-            ];
             radiusAtDown.current = circleJXG.current.radius;
             throughAnglesAtDown.current = [...throughAnglesFromCore.current!];
-            return centerAtDown.current;
+            return [...circleJXG.current.center.coords.scrCoords] as [
+                number,
+                number,
+                number,
+            ];
         }
 
         attachLineFamilyDragHandlers({
@@ -271,7 +271,6 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                 click: actions.circleClicked,
             },
             snapshot: captureCircleSnapshot,
-            snapshotRef: centerAtDown,
             dispatchTransientBelowThreshold: true,
             buildTransientMoveArgs: (e, snap) => {
                 let viaPointer = e.type === "pointermove";
@@ -319,7 +318,6 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
                 click: actions.circleClicked,
             },
             snapshot: captureCircleSnapshot,
-            snapshotRef: centerAtDown,
             dispatchTransientBelowThreshold: true,
             buildTransientMoveArgs: () => {
                 centerCoords.current = [

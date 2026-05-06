@@ -55,7 +55,6 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
     let shadowPointJXG = useRef<JXGPoint | null>(null);
 
     const dragState = usePointerDragState();
-    let pointAtDown = useRef<[number, number, number] | null>(null);
     let previousWithLabel = useRef<boolean | null>(null);
     let previousLabelPosition = useRef<LabelPosition | null>(null);
     let calculatedX = useRef<number | null>(null);
@@ -235,7 +234,6 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                         number,
                     ]),
                 ] as [number, number, number],
-            snapshotRef: pointAtDown,
             dispatchTransientBelowThreshold: true,
             buildTransientMoveArgs: (e, snap) => {
                 let viaPointer = e.type === "pointermove";

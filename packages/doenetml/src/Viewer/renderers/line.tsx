@@ -53,7 +53,6 @@ export default React.memo(function Line(props: UseDoenetRendererProps) {
     let lineJXG = useRef<JXGLine | null>(null);
 
     const dragState = usePointerDragState();
-    let pointsAtDown = useRef<[number[], number[]] | null>(null);
     let previousWithLabel = useRef<boolean | null>(null);
     let cancelInitialLabelPlacement = useRef<(() => void) | null>(null);
     let pointCoords = useRef<[number, number][] | null>(null);
@@ -157,7 +156,6 @@ export default React.memo(function Line(props: UseDoenetRendererProps) {
                     [...newLineJXG.point1.coords.scrCoords],
                     [...newLineJXG.point2.coords.scrCoords],
                 ] as [number[], number[]],
-            snapshotRef: pointsAtDown,
             buildTransientMoveArgs: (e, snap) => {
                 const next: [number, number][] = [];
                 if (

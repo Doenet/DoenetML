@@ -48,7 +48,6 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
 
     let pointCoords = useRef<any>(null);
     const dragState = usePointerDragState();
-    let pointsAtDown = useRef<number[][] | null>(null);
     let previousNumVertices = useRef<number | null>(null);
     let jsxPointAttributes = useRef<Record<string, any> | null>(null);
 
@@ -220,7 +219,6 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                 polygon.vertices.map(
                     (x) => [...x.coords.scrCoords] as number[],
                 ),
-            snapshotRef: pointsAtDown,
             buildTransientMoveArgs: (e, snap) => {
                 if (!polygonJXG.current || !board) {
                     return null;
@@ -295,7 +293,6 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
                 click: actions.polygonClicked,
             },
             snapshot: () => null,
-            snapshotRef: { current: null } as any,
             buildTransientMoveArgs: () => {
                 const map: Record<number, [number, number]> = {};
                 map[i] = [vertex.X(), vertex.Y()];
@@ -348,16 +345,10 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
         for (let i = 0; i < SVs.numVertices; i++) {
             let vertex = polygonJXG.current.vertices[i];
             if (vertex) {
-                vertex.off("drag");
-                vertex.off("up");
-                vertex.off("down");
-                vertex.off("hit");
+                removeJXGEventHandlers(vertex);
             }
         }
-        polygonJXG.current.off("drag");
-        polygonJXG.current.off("up");
-        polygonJXG.current.off("down");
-        polygonJXG.current.off("hit");
+        removeJXGEventHandlers(polygonJXG.current);
         board?.removeObject(polygonJXG.current);
         polygonJXG.current = null;
 

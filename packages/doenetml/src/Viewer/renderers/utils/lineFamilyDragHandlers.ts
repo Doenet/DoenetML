@@ -69,10 +69,12 @@ export interface AttachDragHandlersConfig<TTag, TSnapshot> {
      */
     clickPreludeGate?: RefObject<boolean>;
 
-    /** Captures any state needed at `down` (e.g., scrCoords snapshot). */
+    /**
+     * Captures any state needed at `down` (e.g., scrCoords snapshot). The
+     * helper stores the most recent result internally and forwards it to
+     * `buildTransientMoveArgs` / `buildCommitMoveArgs` / `onDragApplied`.
+     */
     snapshot: () => TSnapshot;
-    /** Where the most recent `snapshot()` result is stored. */
-    snapshotRef: RefObject<TSnapshot | null>;
 
     /**
      * Build the args for the transient (in-flight) `move` dispatch. Return
@@ -180,7 +182,6 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
         shouldDispatchFocusOnDown,
         actions,
         snapshot,
-        snapshotRef,
         buildTransientMoveArgs,
         buildCommitMoveArgs,
         dispatchTransientBelowThreshold,
@@ -196,6 +197,7 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
     } = config;
 
     const focusArgs = { componentIdx };
+    let currentSnapshot: TSnapshot | null = null;
 
     function dispatchFocus() {
         if (actions.focus) {
@@ -218,7 +220,7 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
         if (!actions.move) {
             return;
         }
-        const args = buildCommitMoveArgs(snapshotRef.current, variant);
+        const args = buildCommitMoveArgs(currentSnapshot, variant);
         if (!args) {
             return;
         }
@@ -234,7 +236,7 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
             coordination.downOnTag.current = tag;
         }
 
-        snapshotRef.current = snapshot();
+        currentSnapshot = snapshot();
 
         dragState.pointerIsDown.current = true;
         dragState.pointerMovedSinceDown.current = false;
@@ -257,7 +259,7 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
         coordination.draggedTag.current = null;
         // Some renderers (line, circle) re-snapshot on `hit` so a keyboard
         // focus refreshes the captured position. Cheap to do unconditionally.
-        snapshotRef.current = snapshot();
+        currentSnapshot = snapshot();
         dispatchFocus();
         onHitExtra?.();
     });
@@ -273,13 +275,13 @@ export function attachLineFamilyDragHandlers<TTag, TSnapshot>(
         }
 
         if (aboveThreshold || dispatchTransientBelowThreshold) {
-            const args = buildTransientMoveArgs(e, snapshotRef.current);
+            const args = buildTransientMoveArgs(e, currentSnapshot);
             if (args && actions.move) {
                 callAction({ action: actions.move, args });
             }
         }
 
-        onDragApplied?.(snapshotRef.current, e);
+        onDragApplied?.(currentSnapshot, e);
     });
 
     jxg.on("up", function (_e: JXGEvent) {

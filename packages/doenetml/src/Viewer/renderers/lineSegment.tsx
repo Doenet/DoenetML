@@ -50,7 +50,6 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
     let point2JXG = useRef<JXGPoint | null>(null);
 
     const dragState = usePointerDragState();
-    let pointsAtDown = useRef<[number[], number[]] | null>(null);
     let previousWithLabel = useRef<boolean | null>(null);
     let cancelInitialLabelPlacement = useRef<(() => void) | null>(null);
     let pointCoords = useRef<any>(null);
@@ -193,7 +192,6 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
                     [...point1JXG.current!.coords.scrCoords],
                     [...point2JXG.current!.coords.scrCoords],
                 ] as [number[], number[]],
-            snapshotRef: pointsAtDown,
             buildTransientMoveArgs: (e, snap) => {
                 const next: [number, number][] = [];
                 if (
@@ -264,7 +262,6 @@ export default React.memo(function LineSegment(props: UseDoenetRendererProps) {
                     click: actions.lineSegmentClicked,
                 },
                 snapshot: () => null,
-                snapshotRef: { current: null } as any,
                 buildTransientMoveArgs: () => {
                     const coords: [number, number] = [point.X(), point.Y()];
                     pointCoords.current = coords;

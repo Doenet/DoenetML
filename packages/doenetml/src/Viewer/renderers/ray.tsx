@@ -47,7 +47,6 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
     let rayJXG = useRef<JXGLine | null>(null);
 
     const dragState = usePointerDragState();
-    let pointsAtDown = useRef<[number[], number[]] | null>(null);
 
     const dragCoordination: DragCoordinationState<number> = {
         draggedTag: useRef<number | null>(null),
@@ -143,7 +142,6 @@ export default React.memo(function Ray(props: UseDoenetRendererProps) {
                     [...newRayJXG.point1.coords.scrCoords],
                     [...newRayJXG.point2.coords.scrCoords],
                 ] as [number[], number[]],
-            snapshotRef: pointsAtDown,
             buildTransientMoveArgs: (e, snap) => {
                 const next: [number, number][] = [];
                 if (

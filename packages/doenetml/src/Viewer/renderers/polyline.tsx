@@ -47,7 +47,6 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
 
     let pointCoords = useRef<any>(null);
     const dragState = usePointerDragState();
-    let pointsAtDown = useRef<number[][] | null>(null);
     let previousNumVertices = useRef<number | null>(null);
     let jsxPointAttributes = useRef<Record<string, any> | null>(null);
 
@@ -208,7 +207,6 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
             },
             snapshot: () =>
                 polyline.points!.map((x) => [...x.scrCoords] as number[]),
-            snapshotRef: pointsAtDown,
             buildTransientMoveArgs: (e, snap) => {
                 if (!polylineJXG.current || !board) {
                     return null;
@@ -298,7 +296,6 @@ export default React.memo(function Polyline(props: UseDoenetRendererProps) {
                 click: actions.polylineClicked,
             },
             snapshot: () => null,
-            snapshotRef: { current: null } as any,
             buildTransientMoveArgs: () => {
                 const map: Record<number, [number, number]> = {};
                 map[i] = [vertex.X(), vertex.Y()];

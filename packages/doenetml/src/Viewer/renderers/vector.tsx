@@ -55,7 +55,6 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
     let point2JXG = useRef<JXGPoint | null>(null);
 
     const dragState = usePointerDragState();
-    let pointsAtDown = useRef<[number[], number[]] | null>(null);
     let headcoords = useRef<number[] | null>(null);
     let tailcoords = useRef<number[] | null>(null);
 
@@ -210,7 +209,6 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
                     [...newVectorJXG.point1.coords.scrCoords],
                     [...newVectorJXG.point2.coords.scrCoords],
                 ] as [number[], number[]],
-            snapshotRef: pointsAtDown,
             buildTransientMoveArgs: (e, snap) => {
                 const viaPointer = e.type === "pointermove";
                 if (viaPointer && dragState.pointerAtDown.current && snap) {
@@ -277,7 +275,6 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
                     click: actions.vectorClicked,
                 },
                 snapshot: () => null,
-                snapshotRef: { current: null } as any,
                 buildTransientMoveArgs: () => {
                     coordsRef.current = [point.X(), point.Y()];
                     return {
