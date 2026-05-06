@@ -124,7 +124,7 @@ export function CypressTest() {
             string,
             number
         >[] => {
-            return diagnosticsSummaryCallsRef.current;
+            return diagnosticsSummaryCallsRef.current.slice();
         };
         return () => {
             delete (window as any).returnDiagnosticsSummaryCallbackValue;
@@ -607,10 +607,9 @@ export function CypressTest() {
                     nextDiagnosticsSummary: Record<string, number>,
                 ) => {
                     diagnosticsSummaryRef.current = nextDiagnosticsSummary;
-                    diagnosticsSummaryCallsRef.current = [
-                        ...diagnosticsSummaryCallsRef.current,
+                    diagnosticsSummaryCallsRef.current.push(
                         nextDiagnosticsSummary,
-                    ];
+                    );
                 }}
             />
         );
