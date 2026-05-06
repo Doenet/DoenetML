@@ -14,10 +14,10 @@ import { useMemo, useRef } from "react";
  *   event as a click or as the end of a drag.
  */
 export interface PointerDragState {
-    pointerAtDown: React.MutableRefObject<[number, number] | null>;
-    pointerIsDown: React.MutableRefObject<boolean>;
-    pointerMovedSinceDown: React.MutableRefObject<boolean>;
-    dragged: React.MutableRefObject<boolean>;
+    pointerAtDown: React.RefObject<[number, number] | null>;
+    pointerIsDown: React.RefObject<boolean>;
+    pointerMovedSinceDown: React.RefObject<boolean>;
+    dragged: React.RefObject<boolean>;
 }
 
 export function usePointerDragState(): PointerDragState {

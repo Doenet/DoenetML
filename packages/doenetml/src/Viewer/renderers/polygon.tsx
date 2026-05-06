@@ -8,12 +8,15 @@ import { JXGPolygon, JXGPoint } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
-import { exceededDragThreshold } from "./utils/dragThreshold";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveLineColor, resolveFillColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
+import {
+    DragCoordinationState,
+    attachLineFamilyDragHandlers,
+} from "./utils/lineFamilyDragHandlers";
 import {
     removeJXGEventHandlers,
     syncLabelStrokeColor,
@@ -44,13 +47,15 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
     let pointsJXG = useRef<JXGPoint[]>([]);
 
     let pointCoords = useRef<any>(null);
-    let draggedPoint = useRef<number | null>(null);
-    let downOnPoint = useRef<number | null>(null);
     const dragState = usePointerDragState();
-    const { pointerAtDown, pointerIsDown, pointerMovedSinceDown } = dragState;
-    let pointsAtDown = useRef<number[][] | null>(null);
     let previousNumVertices = useRef<number | null>(null);
     let jsxPointAttributes = useRef<Record<string, any> | null>(null);
+
+    // Tag layout: -1 = polygon body; 0..N-1 = vertex at that index.
+    const dragCoordination: DragCoordinationState<number> = {
+        draggedTag: useRef<number | null>(null),
+        downOnTag: useRef<number | null>(null),
+    };
 
     const {
         lastPositionFromCore: lastPositionsFromCore,
@@ -169,13 +174,7 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
 
         initializePoints(newPolygonJXG);
 
-        newPolygonJXG.on("drag", (e) => dragHandler(-1, e));
-        newPolygonJXG.on("up", () => upHandler(-1));
-        newPolygonJXG.on("keyfocusout", () => keyFocusOutHandler(-1));
-        newPolygonJXG.on("keydown", (e) => keyDownHandler(-1, e));
-
-        newPolygonJXG.on("down", (e) => downHandler(-1, e));
-        newPolygonJXG.on("hit", () => hitHandler());
+        attachPolygonBodyDragHandlers(newPolygonJXG);
 
         newPolygonJXG.on("over", () => {
             highlightVertices();
@@ -195,13 +194,148 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
         for (let i = 0; i < SVs.numVertices; i++) {
             let vertex = polygon.vertices[i];
             removeJXGEventHandlers(vertex);
-            vertex.on("drag", (e) => dragHandler(i, e));
-            vertex.on("up", () => upHandler(i));
-            vertex.on("keyfocusout", () => keyFocusOutHandler(i));
-            vertex.on("keydown", (e) => keyDownHandler(i, e));
-            vertex.on("down", (e) => downHandler(i, e));
-            vertex.on("hit", () => hitHandler());
+            attachPolygonVertexDragHandlers(vertex, i);
         }
+    }
+
+    function attachPolygonBodyDragHandlers(polygon: JXGPolygon) {
+        attachLineFamilyDragHandlers({
+            jxg: polygon,
+            tag: -1,
+            dragState,
+            coordination: dragCoordination,
+            componentIdx,
+            callAction,
+            fixedRef: fixed,
+            participatesInDownTag: false,
+            suppressClickWhenDownOnOtherTag: true,
+            suppressFocusOnDownWhenDownOnOtherTag: true,
+            actions: {
+                move: actions.movePolygon,
+                focus: actions.polygonFocused,
+                click: actions.polygonClicked,
+            },
+            snapshot: () =>
+                polygon.vertices.map(
+                    (x) => [...x.coords.scrCoords] as number[],
+                ),
+            buildTransientMoveArgs: (e, snap) => {
+                if (!polygonJXG.current || !board) {
+                    return null;
+                }
+                const next: [number, number][] = [];
+                if (
+                    e.type === "pointermove" &&
+                    dragState.pointerAtDown.current &&
+                    snap
+                ) {
+                    // Compute from pointer delta rather than .X()/.Y() directly
+                    // so points don't snap back to attractors on slow drags.
+                    for (let j = 0; j < polygon.vertices.length - 1; j++) {
+                        next.push(
+                            pointerEventToUserCoords(
+                                e,
+                                dragState.pointerAtDown.current,
+                                snap[j] as [number, number, number],
+                                board,
+                            ),
+                        );
+                    }
+                } else {
+                    for (let j = 0; j < polygon.vertices.length - 1; j++) {
+                        const v = polygon.vertices[j];
+                        next.push([v.X(), v.Y()]);
+                    }
+                }
+                pointCoords.current = next;
+                return {
+                    pointCoords: next,
+                    transient: true,
+                    skippable: true,
+                };
+            },
+            buildCommitMoveArgs: () =>
+                pointCoords.current
+                    ? { pointCoords: pointCoords.current }
+                    : null,
+            onDragApplied: () => {
+                if (
+                    !polygonJXG.current ||
+                    dragCoordination.draggedTag.current !== -1
+                ) {
+                    return;
+                }
+                for (let j = 0; j < SVs.numVertices; j++) {
+                    polygon.vertices[j].coords.setCoordinates(
+                        JXG.COORDS_BY_USER,
+                        [...lastPositionsFromCore.current[j]],
+                    );
+                }
+            },
+            onHitExtra: () => highlightVertices(),
+            onKeyFocusOutExtra: () => unHighlightVertices(),
+        });
+    }
+
+    function attachPolygonVertexDragHandlers(vertex: JXGPoint, i: number) {
+        attachLineFamilyDragHandlers({
+            jxg: vertex,
+            tag: i,
+            dragState,
+            coordination: dragCoordination,
+            componentIdx,
+            callAction,
+            fixedRef: fixed,
+            shouldDispatchFocusOnDown: () => !verticesFixed.current,
+            actions: {
+                move: actions.movePolygon,
+                focus: actions.polygonFocused,
+                click: actions.polygonClicked,
+            },
+            snapshot: () => null,
+            buildTransientMoveArgs: () => {
+                const map: Record<number, [number, number]> = {};
+                map[i] = [vertex.X(), vertex.Y()];
+                pointCoords.current = map;
+                return {
+                    pointCoords: map,
+                    transient: true,
+                    skippable: true,
+                    sourceDetails: { vertex: i },
+                };
+            },
+            buildCommitMoveArgs: (_, variant) => {
+                if (!pointCoords.current) {
+                    return null;
+                }
+                if (variant === "up") {
+                    return {
+                        pointCoords: pointCoords.current,
+                        sourceDetails: { vertex: i },
+                    };
+                }
+                return {
+                    pointCoords: pointCoords.current,
+                    sourceInformation: { vertex: i },
+                };
+            },
+            onDragApplied: () => {
+                if (
+                    !polygonJXG.current ||
+                    !board ||
+                    dragCoordination.draggedTag.current !== i
+                ) {
+                    return;
+                }
+                polygonJXG.current.vertices[i].coords.setCoordinates(
+                    JXG.COORDS_BY_USER,
+                    [...lastPositionsFromCore.current[i]],
+                );
+                board.updateInfobox(polygonJXG.current.vertices[i]);
+            },
+            onHitExtra: () => highlightVertices(),
+            onKeyFocusOutExtra: () => unHighlightVertices(),
+        });
     }
 
     function deletePolygonJXG() {
@@ -211,16 +345,10 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
         for (let i = 0; i < SVs.numVertices; i++) {
             let vertex = polygonJXG.current.vertices[i];
             if (vertex) {
-                vertex.off("drag");
-                vertex.off("up");
-                vertex.off("down");
-                vertex.off("hit");
+                removeJXGEventHandlers(vertex);
             }
         }
-        polygonJXG.current.off("drag");
-        polygonJXG.current.off("up");
-        polygonJXG.current.off("down");
-        polygonJXG.current.off("hit");
+        removeJXGEventHandlers(polygonJXG.current);
         board?.removeObject(polygonJXG.current);
         polygonJXG.current = null;
 
@@ -228,219 +356,6 @@ export default React.memo(function Polygon(props: UseDoenetRendererProps) {
             board?.removeObject(pt);
         }
         pointsJXG.current = [];
-    }
-
-    function dragHandler(i: number, e: { type: string; x: number; y: number }) {
-        if (!polygonJXG.current || board === null) {
-            return;
-        }
-        if (exceededDragThreshold(e, pointerAtDown.current)) {
-            draggedPoint.current = i;
-
-            if (i === -1) {
-                pointCoords.current = [];
-
-                if (
-                    e.type === "pointermove" &&
-                    pointerAtDown.current &&
-                    pointsAtDown.current
-                ) {
-                    // Compute from pointer delta rather than .X()/.Y() directly
-                    // so points don't snap back to attractors on slow drags.
-                    for (
-                        let j = 0;
-                        j < polygonJXG.current.vertices.length - 1;
-                        j++
-                    ) {
-                        pointCoords.current.push(
-                            pointerEventToUserCoords(
-                                e,
-                                pointerAtDown.current,
-                                pointsAtDown.current[j] as [
-                                    number,
-                                    number,
-                                    number,
-                                ],
-                                board,
-                            ),
-                        );
-                    }
-                } else {
-                    for (
-                        let j = 0;
-                        j < polygonJXG.current.vertices.length - 1;
-                        j++
-                    ) {
-                        let vertex = polygonJXG.current.vertices[j];
-                        pointCoords.current.push([vertex.X(), vertex.Y()]);
-                    }
-                }
-
-                callAction({
-                    action: actions.movePolygon,
-                    args: {
-                        pointCoords: pointCoords.current,
-                        transient: true,
-                        skippable: true,
-                    },
-                });
-
-                for (let j = 0; j < SVs.numVertices; j++) {
-                    polygonJXG.current.vertices[j].coords.setCoordinates(
-                        JXG.COORDS_BY_USER,
-                        [...lastPositionsFromCore.current[j]],
-                    );
-                }
-            } else {
-                pointCoords.current = {};
-                pointCoords.current[i] = [
-                    polygonJXG.current.vertices[i].X(),
-                    polygonJXG.current.vertices[i].Y(),
-                ];
-                callAction({
-                    action: actions.movePolygon,
-                    args: {
-                        pointCoords: pointCoords.current,
-                        transient: true,
-                        skippable: true,
-                        sourceDetails: { vertex: i },
-                    },
-                });
-                polygonJXG.current.vertices[i].coords.setCoordinates(
-                    JXG.COORDS_BY_USER,
-                    [...lastPositionsFromCore.current[i]],
-                );
-                board.updateInfobox(polygonJXG.current.vertices[i]);
-            }
-        }
-    }
-
-    function downHandler(i: number, e: { x: number; y: number; type: string }) {
-        (document.activeElement as HTMLElement | null)?.blur();
-
-        draggedPoint.current = null;
-        pointerAtDown.current = [e.x, e.y];
-
-        if (i === -1) {
-            if (downOnPoint.current === null && !fixed.current) {
-                // Note: counting on fact that down on polygon itself will trigger after down on points
-                callAction({
-                    action: actions.polygonFocused,
-                    args: { componentIdx },
-                });
-            }
-            pointsAtDown.current = polygonJXG.current!.vertices.map(
-                (x) => [...x.coords.scrCoords] as number[],
-            );
-        } else {
-            if (!verticesFixed.current) {
-                callAction({
-                    action: actions.polygonFocused,
-                    args: { componentIdx },
-                });
-            }
-            downOnPoint.current = i;
-        }
-
-        pointerIsDown.current = true;
-        pointerMovedSinceDown.current = false;
-    }
-
-    function hitHandler() {
-        highlightVertices();
-        draggedPoint.current = null;
-        callAction({
-            action: actions.polygonFocused,
-            args: { componentIdx },
-        });
-    }
-
-    function upHandler(i: number) {
-        if (draggedPoint.current === i) {
-            if (i === -1) {
-                callAction({
-                    action: actions.movePolygon,
-                    args: {
-                        pointCoords: pointCoords.current,
-                    },
-                });
-            } else {
-                callAction({
-                    action: actions.movePolygon,
-                    args: {
-                        pointCoords: pointCoords.current,
-                        sourceDetails: { vertex: i },
-                    },
-                });
-            }
-        } else if (
-            !pointerMovedSinceDown.current &&
-            (downOnPoint.current === null || i !== -1) &&
-            !fixed.current
-        ) {
-            // Note: counting on fact that up on polygon itself (i===-1) will trigger before up on points
-            callAction({
-                action: actions.polygonClicked,
-                args: { componentIdx },
-            });
-        }
-
-        if (i !== -1) {
-            downOnPoint.current = null;
-        }
-
-        pointerIsDown.current = false;
-    }
-
-    function keyFocusOutHandler(i: number) {
-        unHighlightVertices();
-        if (draggedPoint.current === i) {
-            if (i === -1) {
-                callAction({
-                    action: actions.movePolygon,
-                    args: {
-                        pointCoords: pointCoords.current,
-                    },
-                });
-            } else {
-                callAction({
-                    action: actions.movePolygon,
-                    args: {
-                        pointCoords: pointCoords.current,
-                        sourceInformation: { vertex: i },
-                    },
-                });
-            }
-        }
-        draggedPoint.current = null;
-    }
-
-    function keyDownHandler(i: number, e: { key: string }) {
-        if (e.key === "Enter") {
-            if (draggedPoint.current === i) {
-                if (i === -1) {
-                    callAction({
-                        action: actions.movePolygon,
-                        args: {
-                            pointCoords: pointCoords.current,
-                        },
-                    });
-                } else {
-                    callAction({
-                        action: actions.movePolygon,
-                        args: {
-                            pointCoords: pointCoords.current,
-                            sourceInformation: { vertex: i },
-                        },
-                    });
-                }
-            }
-            draggedPoint.current = null;
-            callAction({
-                action: actions.polygonClicked,
-                args: { componentIdx },
-            });
-        }
     }
 
     function highlightVertices() {

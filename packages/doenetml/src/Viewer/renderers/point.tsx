@@ -19,7 +19,6 @@ import { ChoiceInputInlineContext } from "./choiceInput";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
-import { exceededDragThreshold } from "./utils/dragThreshold";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveMarkerColor } from "./utils/styleColors";
 import {
@@ -28,6 +27,10 @@ import {
     syncLayer,
     syncWithLabelToggle,
 } from "./utils/jsxgraph";
+import {
+    DragCoordinationState,
+    attachLineFamilyDragHandlers,
+} from "./utils/lineFamilyDragHandlers";
 
 interface PointSVs extends DraggableGraphicalSVs {
     numericalXs: [number, number];
@@ -52,13 +55,15 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
     let shadowPointJXG = useRef<JXGPoint | null>(null);
 
     const dragState = usePointerDragState();
-    const { pointerAtDown, pointerIsDown, pointerMovedSinceDown, dragged } =
-        dragState;
-    let pointAtDown = useRef<[number, number, number] | null>(null);
     let previousWithLabel = useRef<boolean | null>(null);
     let previousLabelPosition = useRef<LabelPosition | null>(null);
     let calculatedX = useRef<number | null>(null);
     let calculatedY = useRef<number | null>(null);
+
+    const dragCoordination: DragCoordinationState<number> = {
+        draggedTag: useRef<number | null>(null),
+        downOnTag: useRef<number | null>(null),
+    };
 
     let lastPositionFromCore = useRef<[number, number] | null>(null);
 
@@ -206,105 +211,32 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
             jsxPointAttributes,
         );
 
-        newShadowPointJXG.on("down", function (e: { x: number; y: number }) {
-            (document.activeElement as HTMLElement | null)?.blur();
-
-            pointerAtDown.current = [e.x, e.y];
-            pointAtDown.current = [
-                ...(newShadowPointJXG.coords.scrCoords as [
-                    number,
-                    number,
-                    number,
-                ]),
-            ];
-            dragged.current = false;
-            if (shadowPointJXG.current != null && pointJXG.current != null) {
-                shadowPointJXG.current.visProp.highlightfillopacity =
-                    pointJXG.current.visProp.fillopacity;
-                shadowPointJXG.current.visProp.highlightstrokeopacity =
-                    pointJXG.current.visProp.strokeopacity;
-            }
-            pointerIsDown.current = true;
-            pointerMovedSinceDown.current = false;
-
-            if (!fixed.current) {
-                callAction({
-                    action: actions.pointFocused,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-        });
-
-        newShadowPointJXG.on("hit", function (e: unknown) {
-            dragged.current = false;
-            callAction({
-                action: actions.pointFocused,
-                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-            });
-        });
-
-        newShadowPointJXG.on("up", function (e: unknown) {
-            if (dragged.current) {
-                callAction({
-                    action: actions.movePoint,
-                    args: {
-                        x: calculatedX.current,
-                        y: calculatedY.current,
-                    },
-                });
-                dragged.current = false;
-            } else if (!pointerMovedSinceDown.current && !fixed.current) {
-                if (switchable.current) {
-                    callAction({
-                        action: actions.switchPoint,
-                    });
-                    callAction({
-                        action: actions.pointClicked,
-                        args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                    });
-                } else {
-                    callAction({
-                        action: actions.pointClicked,
-                        args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                    });
-                }
-            }
-            pointerIsDown.current = false;
-
-            if (shadowPointJXG.current != null && pointJXG.current != null) {
-                shadowPointJXG.current.visProp.highlightfillopacity = 0;
-                shadowPointJXG.current.visProp.highlightstrokeopacity = 0;
-            }
-        });
-
-        newShadowPointJXG.on("hit", function (e: unknown) {
-            board.updateInfobox(pointJXG.current);
-        });
-
-        newShadowPointJXG.on("keyfocusout", function (e: unknown) {
-            if (dragged.current) {
-                callAction({
-                    action: actions.movePoint,
-                    args: {
-                        x: calculatedX.current,
-                        y: calculatedY.current,
-                    },
-                });
-                dragged.current = false;
-            }
-        });
-
-        newShadowPointJXG.on(
-            "drag",
-            function (e: { type: string; x: number; y: number }) {
+        attachLineFamilyDragHandlers({
+            jxg: newShadowPointJXG,
+            tag: 0,
+            dragState,
+            coordination: dragCoordination,
+            componentIdx,
+            callAction,
+            fixedRef: fixed,
+            actions: {
+                move: actions.movePoint,
+                focus: actions.pointFocused,
+                click: actions.pointClicked,
+                clickPrelude: actions.switchPoint,
+            },
+            clickPreludeGate: switchable,
+            snapshot: () =>
+                [
+                    ...(newShadowPointJXG.coords.scrCoords as [
+                        number,
+                        number,
+                        number,
+                    ]),
+                ] as [number, number, number],
+            dispatchTransientBelowThreshold: true,
+            buildTransientMoveArgs: (e, snap) => {
                 let viaPointer = e.type === "pointermove";
-
-                if (
-                    pointAtDown.current != null &&
-                    exceededDragThreshold(e, pointerAtDown.current)
-                ) {
-                    dragged.current = true;
-                }
 
                 let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
 
@@ -328,11 +260,7 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                 ymaxAdjusted -= yscale * 0.01;
                 yminAdjusted += yscale * 0.01;
 
-                if (
-                    viaPointer &&
-                    pointAtDown.current &&
-                    pointerAtDown.current
-                ) {
+                if (viaPointer && snap && dragState.pointerAtDown.current) {
                     // Compute from pointer delta rather than .X()/.Y() directly:
                     // .X()/.Y() are affected by setCoordinates calls in update(),
                     // so attractor/constraint dependencies can shift them on
@@ -341,8 +269,8 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                     [calculatedX.current, calculatedY.current] =
                         pointerEventToUserCoords(
                             e,
-                            pointerAtDown.current,
-                            pointAtDown.current,
+                            dragState.pointerAtDown.current,
+                            snap,
                             board,
                         );
                 } else {
@@ -359,16 +287,6 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                     Math.max(yminAdjusted, calculatedY.current || 0),
                 );
 
-                callAction({
-                    action: actions.movePoint,
-                    args: {
-                        x: calculatedX.current,
-                        y: calculatedY.current,
-                        transient: true,
-                        skippable: true,
-                    },
-                });
-
                 let shadowX = Math.min(
                     xmaxAdjusted,
                     Math.max(xminAdjusted, newShadowPointJXG.X()),
@@ -382,42 +300,47 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
                     shadowY,
                 ]);
 
+                return {
+                    x: calculatedX.current,
+                    y: calculatedY.current,
+                    transient: true,
+                    skippable: true,
+                };
+            },
+            buildCommitMoveArgs: () => ({
+                x: calculatedX.current,
+                y: calculatedY.current,
+            }),
+            onDragApplied: () => {
                 newPointJXG.coords.setCoordinates(
                     JXG.COORDS_BY_USER,
                     lastPositionFromCore.current,
                 );
                 board.updateInfobox(newPointJXG);
             },
-        );
-
-        newShadowPointJXG.on("keydown", function (e) {
-            if (e.key === "Enter") {
-                if (dragged.current) {
-                    callAction({
-                        action: actions.movePoint,
-                        args: {
-                            x: calculatedX.current,
-                            y: calculatedY.current,
-                        },
-                    });
-                    dragged.current = false;
+            onDownExtra: () => {
+                if (
+                    shadowPointJXG.current != null &&
+                    pointJXG.current != null
+                ) {
+                    shadowPointJXG.current.visProp.highlightfillopacity =
+                        pointJXG.current.visProp.fillopacity;
+                    shadowPointJXG.current.visProp.highlightstrokeopacity =
+                        pointJXG.current.visProp.strokeopacity;
                 }
-
-                if (switchable.current) {
-                    callAction({
-                        action: actions.switchPoint,
-                    });
-                    callAction({
-                        action: actions.pointClicked,
-                        args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                    });
-                } else {
-                    callAction({
-                        action: actions.pointClicked,
-                        args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                    });
+            },
+            onUpExtra: () => {
+                if (
+                    shadowPointJXG.current != null &&
+                    pointJXG.current != null
+                ) {
+                    shadowPointJXG.current.visProp.highlightfillopacity = 0;
+                    shadowPointJXG.current.visProp.highlightstrokeopacity = 0;
                 }
-            }
+            },
+            onHitExtra: () => {
+                board.updateInfobox(pointJXG.current!);
+            },
         });
 
         pointJXG.current = newPointJXG;
@@ -511,7 +434,7 @@ export default React.memo(function Point(props: UseDoenetRendererProps) {
             let y = lastPositionFromCore.current?.[1];
 
             pointJXG.current.coords.setCoordinates(JXG.COORDS_BY_USER, [x, y]);
-            if (!dragged.current) {
+            if (dragCoordination.draggedTag.current === null) {
                 shadowPointJXG.current?.coords.setCoordinates(
                     JXG.COORDS_BY_USER,
                     [x, y],

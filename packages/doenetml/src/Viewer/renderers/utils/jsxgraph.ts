@@ -1,6 +1,6 @@
 import me from "math-expressions";
 import { cesc } from "@doenet/utils";
-import type { MutableRefObject } from "react";
+import type { RefObject } from "react";
 import { JXGBoard, JXGElement } from "../jsxgraph-distrib/types";
 
 type AxisJXG = JXGElement & {
@@ -13,7 +13,7 @@ type AxisJXG = JXGElement & {
     getLabelAnchor?: () => { scrCoords?: number[] };
 };
 
-type AxisRef = MutableRefObject<AxisJXG | null | undefined>;
+type AxisRef = RefObject<AxisJXG | null | undefined>;
 
 /**
  * Minimal structural shape for the line-like objects these helpers touch.
@@ -111,7 +111,7 @@ export function createYAxis({
     theBoard: JXGBoard;
     SVs: Record<string, any>;
     yaxisRef: AxisRef;
-    previousYaxisWithLabelRef: MutableRefObject<boolean>;
+    previousYaxisWithLabelRef: RefObject<boolean>;
 }): void {
     const yaxisOptions: Record<string, any> = { highlight: false, fixed: true };
     if (SVs.yLabel) {
@@ -208,7 +208,7 @@ export function createXAxis({
     theBoard: JXGBoard;
     SVs: Record<string, any>;
     xaxisRef: AxisRef;
-    previousXaxisWithLabelRef: MutableRefObject<boolean>;
+    previousXaxisWithLabelRef: RefObject<boolean>;
 }): void {
     const xaxisOptions: Record<string, any> = { highlight: false, fixed: true };
     if (SVs.xLabel) {
@@ -845,7 +845,7 @@ export function syncLineStrokeStyle(
 export function syncWithLabelToggle(
     obj: SyncableJXG,
     labelForGraph: string,
-    previousWithLabelRef: MutableRefObject<boolean | null>,
+    previousWithLabelRef: RefObject<boolean | null>,
 ): boolean {
     const withlabel = labelForGraph !== "";
     if (withlabel !== previousWithLabelRef.current) {

@@ -21,8 +21,11 @@ import { JXGCircle, JXGPoint } from "./jsxgraph-distrib/types";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
-import { exceededDragThreshold } from "./utils/dragThreshold";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
+import {
+    DragCoordinationState,
+    attachLineFamilyDragHandlers,
+} from "./utils/lineFamilyDragHandlers";
 import {
     resolveLineColor,
     resolveFillColor,
@@ -61,14 +64,17 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
     let indicatorJXG = useRef<JXGPoint | null>(null);
 
     const dragState = usePointerDragState();
-    const { pointerAtDown, pointerIsDown, pointerMovedSinceDown, dragged } =
-        dragState;
-    let centerAtDown = useRef<[number, number, number] | null>(null);
     let radiusAtDown = useRef<number | null>(null);
     let throughAnglesAtDown = useRef<[number, number] | null>(null);
     let previousWithLabel = useRef<boolean | null>(null);
     let previousPointLabelPosition = useRef<LabelPosition | null>(null);
     let centerCoords = useRef<[number, number] | null>(null);
+
+    // Tag layout: 0 = main circle disk, 1 = off-graph indicator point.
+    const dragCoordination: DragCoordinationState<number> = {
+        draggedTag: useRef<number | null>(null),
+        downOnTag: useRef<number | null>(null),
+    };
 
     const {
         lastPositionFromCore: lastCenterFromCore,
@@ -105,31 +111,6 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
             )
         ) {
             return null;
-        }
-
-        function dispatchMoveCircle(
-            args: Omit<
-                Record<string, any>,
-                "center" | "x" | "y" | "radius" | "throughAngles"
-            > = {},
-        ) {
-            if (
-                !centerCoords.current ||
-                !Number.isFinite(centerCoords.current[0]) ||
-                !Number.isFinite(centerCoords.current[1])
-            ) {
-                return;
-            }
-
-            callAction({
-                action: actions.moveCircle,
-                args: {
-                    center: centerCoords.current,
-                    radius: radiusAtDown.current,
-                    throughAngles: throughAnglesAtDown.current,
-                    ...args,
-                },
-            });
         }
 
         const lineColor = resolveLineColor(SVs.selectedStyle, darkMode);
@@ -248,230 +229,145 @@ export default React.memo(function Circle(props: UseDoenetRendererProps) {
 
         indicatorJXG.current.isDraggable = !fixLocation.current;
 
-        circleJXG.current.on("drag", function (e) {
-            let viaPointer = e.type === "pointermove";
-
-            if (exceededDragThreshold(e, pointerAtDown.current)) {
-                dragged.current = true;
-            }
-
-            if (viaPointer && pointerAtDown.current && centerAtDown.current) {
-                // Compute from pointer delta rather than .X()/.Y() directly so
-                // the center doesn't snap back to an attractor on slow drags.
-                centerCoords.current = pointerEventToUserCoords(
-                    e,
-                    pointerAtDown.current,
-                    centerAtDown.current,
-                    board,
-                );
-            } else {
-                centerCoords.current = [
-                    circleJXG.current!.center.X(),
-                    circleJXG.current!.center.Y(),
-                ];
-            }
-
-            dispatchMoveCircle({
-                transient: true,
-                skippable: true,
-            });
-
-            circleJXG.current!.center.coords.setCoordinates(
-                JXG.COORDS_BY_USER,
-                [...lastCenterFromCore.current],
-            );
-        });
-
-        circleJXG.current.on("up", function (e) {
-            if (dragged.current) {
-                dispatchMoveCircle();
-            } else if (!pointerMovedSinceDown.current && !fixed.current) {
-                callAction({
-                    action: actions.circleClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-            pointerIsDown.current = false;
-        });
-
-        circleJXG.current.on("keyfocusout", function (e) {
-            if (dragged.current) {
-                dispatchMoveCircle();
-                dragged.current = false;
-            }
-            pointerIsDown.current = false;
-        });
-
-        circleJXG.current.on("down", function (e) {
-            (document.activeElement as HTMLElement | null)?.blur();
-
-            dragged.current = false;
-            pointerAtDown.current = [e.x, e.y];
-            centerAtDown.current = [
-                ...circleJXG.current!.center.coords.scrCoords,
-            ];
-            radiusAtDown.current = circleJXG.current!.radius;
-            throughAnglesAtDown.current = [...throughAnglesFromCore.current!];
-            pointerIsDown.current = true;
-            pointerMovedSinceDown.current = false;
-            if (!fixed.current) {
-                callAction({
-                    action: actions.circleFocused,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-        });
-
-        // hit is called by jsxgraph when focused in via keyboard
-        circleJXG.current.on("hit", function (e) {
-            dragged.current = false;
-            centerAtDown.current = [
-                ...circleJXG.current!.center.coords.scrCoords,
-            ];
-            radiusAtDown.current = circleJXG.current!.radius;
-            throughAnglesAtDown.current = [...throughAnglesFromCore.current!];
-            callAction({
-                action: actions.circleFocused,
-                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-            });
-        });
-
-        circleJXG.current.on("keydown", function (e) {
-            if (e.key === "Enter") {
-                if (dragged.current) {
-                    dispatchMoveCircle();
-                    dragged.current = false;
-                }
-                callAction({
-                    action: actions.circleClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-        });
-
-        indicatorJXG.current.on("drag", function (e) {
-            if (exceededDragThreshold(e, pointerAtDown.current)) {
-                dragged.current = true;
-            }
-
-            centerCoords.current = [
-                indicatorJXG.current!.X() +
-                    offGraphIndicatorOffsetAtDown.current[0],
-                indicatorJXG.current!.Y() +
-                    offGraphIndicatorOffsetAtDown.current[1],
-            ];
-
-            dispatchMoveCircle({
-                transient: true,
-                skippable: true,
-            });
-        });
-
-        indicatorJXG.current.on("up", function (e) {
-            if (dragged.current) {
-                dispatchMoveCircle();
-            } else if (!pointerMovedSinceDown.current && !fixed.current) {
-                callAction({
-                    action: actions.circleClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-            pointerIsDown.current = false;
-        });
-
-        indicatorJXG.current.on("keyfocusout", function (e) {
-            if (dragged.current) {
-                dispatchMoveCircle();
-                dragged.current = false;
-            }
-            pointerIsDown.current = false;
-        });
-
-        indicatorJXG.current.on("down", function (e) {
-            (document.activeElement as HTMLElement | null)?.blur();
-
+        function buildCircleCommitArgs() {
             if (
-                !centerAtDown.current ||
-                !offGraphIndicatorOrientation.current ||
-                !radiusAtDown.current ||
-                !circleJXG.current
+                !centerCoords.current ||
+                !Number.isFinite(centerCoords.current[0]) ||
+                !Number.isFinite(centerCoords.current[1])
             ) {
-                return;
+                return null;
             }
-            dragged.current = false;
-            pointerAtDown.current = [e.x, e.y];
-            centerAtDown.current = [
-                ...circleJXG.current.center.coords.scrCoords,
-            ];
+            return {
+                center: centerCoords.current,
+                radius: radiusAtDown.current,
+                throughAngles: throughAnglesAtDown.current,
+            };
+        }
+
+        function captureCircleSnapshot(): [number, number, number] | null {
+            if (!circleJXG.current) {
+                return null;
+            }
             radiusAtDown.current = circleJXG.current.radius;
             throughAnglesAtDown.current = [...throughAnglesFromCore.current!];
-
-            let { flippedX, flippedY } = getEffectiveBoundingBox(board);
-
-            let xSign = flippedX ? -1 : 1;
-            let ySign = flippedY ? -1 : 1;
-
-            if (
-                offGraphIndicatorOrientation.current[0] === 0 ||
-                offGraphIndicatorOrientation.current[1] === 0
-            ) {
-                offGraphIndicatorOffsetAtDown.current = [
-                    xSign *
-                        offGraphIndicatorOrientation.current[0] *
-                        radiusAtDown.current,
-                    ySign *
-                        offGraphIndicatorOrientation.current[1] *
-                        radiusAtDown.current,
-                ];
-            } else {
-                let sqrt2 = Math.sqrt(2);
-                offGraphIndicatorOffsetAtDown.current = [
-                    (xSign / sqrt2) *
-                        offGraphIndicatorOrientation.current[0] *
-                        radiusAtDown.current,
-                    (ySign / sqrt2) *
-                        offGraphIndicatorOrientation.current[1] *
-                        radiusAtDown.current,
-                ];
-            }
-
-            pointerIsDown.current = true;
-            pointerMovedSinceDown.current = false;
-            if (!fixed.current) {
-                callAction({
-                    action: actions.circleFocused,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-        });
-
-        // hit is called by jsxgraph when focused in via keyboard
-        indicatorJXG.current.on("hit", function (e) {
-            dragged.current = false;
-            centerAtDown.current = [
-                ...circleJXG.current!.center.coords.scrCoords,
+            return [...circleJXG.current.center.coords.scrCoords] as [
+                number,
+                number,
+                number,
             ];
-            radiusAtDown.current = circleJXG.current!.radius;
-            throughAnglesAtDown.current = [
-                ...throughAnglesFromCore.current!,
-            ] as [number, number];
-            callAction({
-                action: actions.circleFocused,
-                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-            });
+        }
+
+        attachLineFamilyDragHandlers({
+            jxg: circleJXG.current,
+            tag: 0,
+            dragState,
+            coordination: dragCoordination,
+            componentIdx,
+            callAction,
+            fixedRef: fixed,
+            actions: {
+                move: actions.moveCircle,
+                focus: actions.circleFocused,
+                click: actions.circleClicked,
+            },
+            snapshot: captureCircleSnapshot,
+            dispatchTransientBelowThreshold: true,
+            buildTransientMoveArgs: (e, snap) => {
+                let viaPointer = e.type === "pointermove";
+                if (viaPointer && dragState.pointerAtDown.current && snap) {
+                    // Compute from pointer delta rather than .X()/.Y() directly so
+                    // the center doesn't snap back to an attractor on slow drags.
+                    centerCoords.current = pointerEventToUserCoords(
+                        e,
+                        dragState.pointerAtDown.current,
+                        snap,
+                        board,
+                    );
+                } else {
+                    centerCoords.current = [
+                        circleJXG.current!.center.X(),
+                        circleJXG.current!.center.Y(),
+                    ];
+                }
+                const base = buildCircleCommitArgs();
+                if (!base) {
+                    return null;
+                }
+                return { ...base, transient: true, skippable: true };
+            },
+            buildCommitMoveArgs: () => buildCircleCommitArgs(),
+            onDragApplied: () => {
+                circleJXG.current!.center.coords.setCoordinates(
+                    JXG.COORDS_BY_USER,
+                    [...lastCenterFromCore.current],
+                );
+            },
         });
 
-        indicatorJXG.current.on("keydown", function (e) {
-            if (e.key === "Enter") {
-                if (dragged.current) {
-                    dispatchMoveCircle();
-                    dragged.current = false;
+        attachLineFamilyDragHandlers({
+            jxg: indicatorJXG.current,
+            tag: 1,
+            dragState,
+            coordination: dragCoordination,
+            componentIdx,
+            callAction,
+            fixedRef: fixed,
+            actions: {
+                move: actions.moveCircle,
+                focus: actions.circleFocused,
+                click: actions.circleClicked,
+            },
+            snapshot: captureCircleSnapshot,
+            dispatchTransientBelowThreshold: true,
+            buildTransientMoveArgs: () => {
+                centerCoords.current = [
+                    indicatorJXG.current!.X() +
+                        offGraphIndicatorOffsetAtDown.current[0],
+                    indicatorJXG.current!.Y() +
+                        offGraphIndicatorOffsetAtDown.current[1],
+                ];
+                const base = buildCircleCommitArgs();
+                if (!base) {
+                    return null;
                 }
-                callAction({
-                    action: actions.circleClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
+                return { ...base, transient: true, skippable: true };
+            },
+            buildCommitMoveArgs: () => buildCircleCommitArgs(),
+            onDownExtra: () => {
+                if (
+                    !offGraphIndicatorOrientation.current ||
+                    !radiusAtDown.current
+                ) {
+                    return;
+                }
+                let { flippedX, flippedY } = getEffectiveBoundingBox(board);
+                let xSign = flippedX ? -1 : 1;
+                let ySign = flippedY ? -1 : 1;
+
+                if (
+                    offGraphIndicatorOrientation.current[0] === 0 ||
+                    offGraphIndicatorOrientation.current[1] === 0
+                ) {
+                    offGraphIndicatorOffsetAtDown.current = [
+                        xSign *
+                            offGraphIndicatorOrientation.current[0] *
+                            radiusAtDown.current,
+                        ySign *
+                            offGraphIndicatorOrientation.current[1] *
+                            radiusAtDown.current,
+                    ];
+                } else {
+                    let sqrt2 = Math.sqrt(2);
+                    offGraphIndicatorOffsetAtDown.current = [
+                        (xSign / sqrt2) *
+                            offGraphIndicatorOrientation.current[0] *
+                            radiusAtDown.current,
+                        (ySign / sqrt2) *
+                            offGraphIndicatorOrientation.current[1] *
+                            radiusAtDown.current,
+                    ];
+                }
+            },
         });
 
         previousWithLabel.current = SVs.labelForGraph !== "";

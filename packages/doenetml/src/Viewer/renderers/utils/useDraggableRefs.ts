@@ -1,4 +1,4 @@
-import { useRef, type MutableRefObject } from "react";
+import { useRef, type RefObject } from "react";
 import type { DraggableGraphicalSVs } from "./graphicalSVs";
 
 /**
@@ -20,9 +20,9 @@ export function useDraggableRefs<TPos>(
     SVs: DraggableGraphicalSVs,
     position: TPos,
 ): {
-    lastPositionFromCore: MutableRefObject<TPos>;
-    fixed: MutableRefObject<boolean>;
-    fixLocation: MutableRefObject<boolean>;
+    lastPositionFromCore: RefObject<TPos>;
+    fixed: RefObject<boolean>;
+    fixLocation: RefObject<boolean>;
 } {
     const lastPositionFromCore = useRef(position);
     const fixed = useRef(false);

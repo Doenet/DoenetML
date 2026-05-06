@@ -22,12 +22,15 @@ import { buildLineLikeAttributes } from "./utils/buildGraphicalAttributes";
 import { DraggableGraphicalSVs } from "./utils/graphicalSVs";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
-import { exceededDragThreshold } from "./utils/dragThreshold";
 import { pointerEventToUserCoords } from "./utils/pointerToBoardCoords";
 import { resolveLineColor } from "./utils/styleColors";
 import { styleToDash } from "./utils/styleToDash";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
+import {
+    DragCoordinationState,
+    attachLineFamilyDragHandlers,
+} from "./utils/lineFamilyDragHandlers";
 
 interface VectorSVs extends DraggableGraphicalSVs {
     numericalEndpoints: [number, number][];
@@ -52,13 +55,13 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
     let point2JXG = useRef<JXGPoint | null>(null);
 
     const dragState = usePointerDragState();
-    const { pointerAtDown, pointerIsDown, pointerMovedSinceDown } = dragState;
-    let pointsAtDown = useRef<[number[], number[]] | null>(null);
-    let headBeingDragged = useRef(false);
-    let tailBeingDragged = useRef(false);
-    let downOnPoint = useRef<number | null>(null);
     let headcoords = useRef<number[] | null>(null);
     let tailcoords = useRef<number[] | null>(null);
+
+    const dragCoordination: DragCoordinationState<number> = {
+        draggedTag: useRef<number | null>(null),
+        downOnTag: useRef<number | null>(null),
+    };
 
     let previousWithLabel = useRef<boolean | null>(null);
     let cancelInitialLabelPlacement = useRef<(() => void) | null>(null);
@@ -171,237 +174,145 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
         cancelInitialLabelPlacement.current?.();
         cancelInitialLabelPlacement.current = null;
 
-        newPoint1JXG.on("drag", (e: { x: number; y: number; type: string }) =>
-            onDragHandler(e, 0),
-        );
-        newPoint2JXG.on("drag", (e: { x: number; y: number; type: string }) =>
-            onDragHandler(e, 1),
-        );
-        newVectorJXG.on("drag", (e: { x: number; y: number; type: string }) =>
-            onDragHandler(e, -1),
-        );
+        // Tag layout: 0 = vector body, 1 = tail (point1), 2 = head (point2).
 
-        newPoint1JXG.on("up", (e: unknown) => {
-            if (!headBeingDragged.current && tailBeingDragged.current) {
-                callAction({
-                    action: actions.moveVector,
-                    args: { tailcoords: tailcoords.current },
-                });
-            } else if (!pointerMovedSinceDown.current && !fixed.current) {
-                callAction({
-                    action: actions.vectorClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-            downOnPoint.current = null;
-            pointerIsDown.current = false;
-        });
-        newPoint2JXG.on("up", (e: unknown) => {
-            if (headBeingDragged.current && !tailBeingDragged.current) {
-                callAction({
-                    action: actions.moveVector,
-                    args: { headcoords: headcoords.current },
-                });
-            } else if (!pointerMovedSinceDown.current && !fixed.current) {
-                callAction({
-                    action: actions.vectorClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-            downOnPoint.current = null;
-            pointerIsDown.current = false;
-        });
-        newVectorJXG.on("up", (e: unknown) => {
-            if (headBeingDragged.current && tailBeingDragged.current) {
-                callAction({
-                    action: actions.moveVector,
-                    args: {
-                        headcoords: headcoords.current,
-                        tailcoords: tailcoords.current,
-                    },
-                });
-            } else if (
-                !pointerMovedSinceDown.current &&
-                downOnPoint.current === null &&
-                !fixed.current
-            ) {
-                // Note: counting on fact that up on vector will trigger before up on points
-                callAction({
-                    action: actions.vectorClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-            pointerIsDown.current = false;
-        });
+        function applyDragReset() {
+            vectorJXG.current?.point1.coords.setCoordinates(
+                JXG.COORDS_BY_USER,
+                lastPositionsFromCore.current[0],
+            );
+            vectorJXG.current?.point2.coords.setCoordinates(
+                JXG.COORDS_BY_USER,
+                lastPositionsFromCore.current[1],
+            );
+        }
 
-        newPoint1JXG.on("keyfocusout", (e: unknown) => {
-            if (!headBeingDragged.current && tailBeingDragged.current) {
-                callAction({
-                    action: actions.moveVector,
-                    args: { tailcoords: tailcoords.current },
-                });
-            }
-            headBeingDragged.current = false;
-            tailBeingDragged.current = false;
-        });
-        newPoint2JXG.on("keyfocusout", (e: unknown) => {
-            if (headBeingDragged.current && !tailBeingDragged.current) {
-                callAction({
-                    action: actions.moveVector,
-                    args: { headcoords: headcoords.current },
-                });
-            }
-            headBeingDragged.current = false;
-            tailBeingDragged.current = false;
-        });
-        newVectorJXG.on("keyfocusout", (e: unknown) => {
-            if (headBeingDragged.current && tailBeingDragged.current) {
-                callAction({
-                    action: actions.moveVector,
-                    args: {
-                        headcoords: headcoords.current,
-                        tailcoords: tailcoords.current,
-                    },
-                });
-            }
-            headBeingDragged.current = false;
-            tailBeingDragged.current = false;
-        });
-
-        newPoint1JXG.on("down", function (e) {
-            (document.activeElement as HTMLElement | null)?.blur();
-
-            headBeingDragged.current = false;
-            tailBeingDragged.current = false;
-            pointerAtDown.current = [e.x, e.y];
-            downOnPoint.current = 1;
-            pointerIsDown.current = true;
-            pointerMovedSinceDown.current = false;
-            if (tailDraggable.current) {
-                callAction({
-                    action: actions.vectorFocused,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-        });
-
-        newPoint1JXG.on("hit", function (e) {
-            headBeingDragged.current = false;
-            tailBeingDragged.current = false;
-            callAction({
-                action: actions.vectorFocused,
-                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-            });
-        });
-
-        newPoint2JXG.on("down", function (e) {
-            (document.activeElement as HTMLElement | null)?.blur();
-
-            headBeingDragged.current = false;
-            tailBeingDragged.current = false;
-            pointerAtDown.current = [e.x, e.y];
-            downOnPoint.current = 2;
-            pointerIsDown.current = true;
-            pointerMovedSinceDown.current = false;
-            if (headDraggable.current) {
-                callAction({
-                    action: actions.vectorFocused,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-        });
-
-        newPoint2JXG.on("hit", function (e) {
-            headBeingDragged.current = false;
-            tailBeingDragged.current = false;
-            callAction({
-                action: actions.vectorFocused,
-                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-            });
-        });
-
-        // if drag vector, need to keep track of original point positions
-        // so that they won't get stuck in an attractor
-        newVectorJXG.on("down", function (e) {
-            (document.activeElement as HTMLElement | null)?.blur();
-
-            headBeingDragged.current = false;
-            tailBeingDragged.current = false;
-            pointerAtDown.current = [e.x, e.y];
-            pointsAtDown.current = [
-                [...newVectorJXG.point1.coords.scrCoords],
-                [...newVectorJXG.point2.coords.scrCoords],
-            ];
-            pointerIsDown.current = true;
-            pointerMovedSinceDown.current = false;
-            if (!fixed.current) {
-                callAction({
-                    action: actions.vectorFocused,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-        });
-
-        newVectorJXG.on("hit", function (e: unknown) {
-            headBeingDragged.current = false;
-            tailBeingDragged.current = false;
-            callAction({
-                action: actions.vectorFocused,
-                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-            });
-        });
-
-        newPoint1JXG.on("keydown", (e) => {
-            if (e.key === "Enter") {
-                if (!headBeingDragged.current && tailBeingDragged.current) {
-                    callAction({
-                        action: actions.moveVector,
-                        args: { tailcoords: tailcoords.current },
-                    });
+        attachLineFamilyDragHandlers({
+            jxg: newVectorJXG,
+            tag: 0,
+            dragState,
+            coordination: dragCoordination,
+            componentIdx,
+            callAction,
+            fixedRef: fixed,
+            participatesInDownTag: false,
+            suppressClickWhenDownOnOtherTag: true,
+            // vector body's `down` always dispatches focus, regardless of
+            // whether a child got down first (matches existing behavior).
+            actions: {
+                move: actions.moveVector,
+                focus: actions.vectorFocused,
+                click: actions.vectorClicked,
+            },
+            snapshot: () =>
+                [
+                    [...newVectorJXG.point1.coords.scrCoords],
+                    [...newVectorJXG.point2.coords.scrCoords],
+                ] as [number[], number[]],
+            buildTransientMoveArgs: (e, snap) => {
+                const viaPointer = e.type === "pointermove";
+                if (viaPointer && dragState.pointerAtDown.current && snap) {
+                    tailcoords.current = pointerEventToUserCoords(
+                        e,
+                        dragState.pointerAtDown.current,
+                        snap[0] as [number, number, number],
+                        board,
+                    );
+                    headcoords.current = pointerEventToUserCoords(
+                        e,
+                        dragState.pointerAtDown.current,
+                        snap[1] as [number, number, number],
+                        board,
+                    );
+                } else {
+                    tailcoords.current = [
+                        newVectorJXG.point1.X(),
+                        newVectorJXG.point1.Y(),
+                    ];
+                    headcoords.current = [
+                        newVectorJXG.point2.X(),
+                        newVectorJXG.point2.Y(),
+                    ];
                 }
-                headBeingDragged.current = false;
-                tailBeingDragged.current = false;
-                callAction({
-                    action: actions.vectorClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-        });
-        newPoint2JXG.on("keydown", (e) => {
-            if (e.key === "Enter") {
-                if (headBeingDragged.current && !tailBeingDragged.current) {
-                    callAction({
-                        action: actions.moveVector,
-                        args: { headcoords: headcoords.current },
-                    });
+                return {
+                    headcoords: headcoords.current,
+                    tailcoords: tailcoords.current,
+                    transient: true,
+                    skippable: true,
+                };
+            },
+            buildCommitMoveArgs: () => ({
+                headcoords: headcoords.current,
+                tailcoords: tailcoords.current,
+            }),
+            onDragApplied: () => {
+                if (dragCoordination.draggedTag.current !== 0) {
+                    return;
                 }
-                headBeingDragged.current = false;
-                tailBeingDragged.current = false;
-                callAction({
-                    action: actions.vectorClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
+                applyDragReset();
+            },
         });
-        newVectorJXG.on("keydown", (e) => {
-            if (e.key === "Enter") {
-                if (headBeingDragged.current && tailBeingDragged.current) {
-                    callAction({
-                        action: actions.moveVector,
-                        args: {
-                            headcoords: headcoords.current,
-                            tailcoords: tailcoords.current,
-                        },
-                    });
-                }
-                headBeingDragged.current = false;
-                tailBeingDragged.current = false;
-                callAction({
-                    action: actions.vectorClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
-                });
-            }
-        });
+
+        function attachVectorEndpointHandlers(
+            point: JXGPoint,
+            tagN: 1 | 2,
+            argKey: "tailcoords" | "headcoords",
+            coordsRef: typeof tailcoords,
+            isDraggable: typeof tailDraggable,
+        ) {
+            attachLineFamilyDragHandlers({
+                jxg: point,
+                tag: tagN,
+                dragState,
+                coordination: dragCoordination,
+                componentIdx,
+                callAction,
+                fixedRef: fixed,
+                shouldDispatchFocusOnDown: () => isDraggable.current,
+                actions: {
+                    move: actions.moveVector,
+                    focus: actions.vectorFocused,
+                    click: actions.vectorClicked,
+                },
+                snapshot: () => null,
+                buildTransientMoveArgs: () => {
+                    coordsRef.current = [point.X(), point.Y()];
+                    return {
+                        [argKey]: coordsRef.current,
+                        transient: true,
+                        skippable: true,
+                        sourceDetails: { vertex: tagN - 1 },
+                    };
+                },
+                buildCommitMoveArgs: () => ({
+                    [argKey]: coordsRef.current,
+                }),
+                onDragApplied: () => {
+                    if (dragCoordination.draggedTag.current !== tagN) {
+                        return;
+                    }
+                    applyDragReset();
+                    if (board) {
+                        board.updateInfobox(point);
+                    }
+                },
+            });
+        }
+
+        attachVectorEndpointHandlers(
+            newPoint1JXG,
+            1,
+            "tailcoords",
+            tailcoords,
+            tailDraggable,
+        );
+        attachVectorEndpointHandlers(
+            newPoint2JXG,
+            2,
+            "headcoords",
+            headcoords,
+            headDraggable,
+        );
 
         vectorJXG.current = newVectorJXG;
         point1JXG.current = newPoint1JXG;
@@ -434,77 +345,6 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
         previousWithLabel.current = SVs.labelForGraph !== "";
     }
 
-    function onDragHandler(
-        e: { x: number; y: number; type: string },
-        i: number,
-    ) {
-        if (vectorJXG.current === null || board === null) {
-            return;
-        }
-
-        if (exceededDragThreshold(e, pointerAtDown.current)) {
-            if (i === 0) {
-                tailBeingDragged.current = true;
-            } else if (i === 1) {
-                headBeingDragged.current = true;
-            } else {
-                headBeingDragged.current = true;
-                tailBeingDragged.current = true;
-            }
-
-            let instructions: Record<string, any> = {
-                transient: true,
-                skippable: true,
-            };
-
-            if (headBeingDragged.current) {
-                if (i === -1) {
-                    headcoords.current = calculatePointPosition(e, 1);
-                } else {
-                    headcoords.current = [
-                        vectorJXG.current.point2.X(),
-                        vectorJXG.current.point2.Y(),
-                    ];
-                }
-                instructions.headcoords = headcoords.current;
-            }
-            if (tailBeingDragged.current) {
-                if (i === -1) {
-                    tailcoords.current = calculatePointPosition(e, 0);
-                } else {
-                    tailcoords.current = [
-                        vectorJXG.current.point1.X(),
-                        vectorJXG.current.point1.Y(),
-                    ];
-                }
-                instructions.tailcoords = tailcoords.current;
-            }
-
-            if (i === 0 || i === 1) {
-                instructions.sourceDetails = { vertex: i };
-            }
-
-            callAction({
-                action: actions.moveVector,
-                args: instructions,
-            });
-
-            vectorJXG.current?.point1.coords.setCoordinates(
-                JXG.COORDS_BY_USER,
-                lastPositionsFromCore.current[0],
-            );
-            vectorJXG.current?.point2.coords.setCoordinates(
-                JXG.COORDS_BY_USER,
-                lastPositionsFromCore.current[1],
-            );
-            if (i === 0) {
-                board.updateInfobox(point1JXG.current);
-            } else if (i === 1) {
-                board.updateInfobox(point2JXG.current);
-            }
-        }
-    }
-
     function deleteVectorJXG() {
         cancelInitialLabelPlacement.current?.();
         cancelInitialLabelPlacement.current = null;
@@ -525,34 +365,6 @@ export default React.memo(function Vector(props: UseDoenetRendererProps) {
             board?.removeObject(point2JXG.current);
             point2JXG.current = null;
         }
-    }
-
-    function calculatePointPosition(
-        e: { x: number; y: number; type: string },
-        i: number,
-    ): number[] | null {
-        let viaPointer = e.type === "pointermove";
-
-        if (board === null || vectorJXG.current === null) {
-            return null;
-        }
-
-        if (
-            viaPointer &&
-            pointsAtDown.current !== null &&
-            pointerAtDown.current !== null
-        ) {
-            return pointerEventToUserCoords(
-                e,
-                pointerAtDown.current,
-                pointsAtDown.current[i] as [number, number, number],
-                board,
-            );
-        }
-        if (i == 0) {
-            return [vectorJXG.current.point1.X(), vectorJXG.current.point1.Y()];
-        }
-        return [vectorJXG.current.point2.X(), vectorJXG.current.point2.Y()];
     }
 
     if (board) {

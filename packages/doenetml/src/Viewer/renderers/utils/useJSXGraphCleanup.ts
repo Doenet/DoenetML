@@ -1,4 +1,4 @@
-import { useEffect, type MutableRefObject } from "react";
+import { useEffect, type RefObject } from "react";
 
 /**
  * Run the standard JSXgraph teardown on unmount: cancel any pending initial
@@ -18,9 +18,9 @@ export function useJSXGraphCleanup<T>({
     destroy,
     cancelLabelPlacementRef,
 }: {
-    objectRef: MutableRefObject<T | null>;
+    objectRef: RefObject<T | null>;
     destroy: () => void;
-    cancelLabelPlacementRef?: MutableRefObject<(() => void) | null>;
+    cancelLabelPlacementRef?: RefObject<(() => void) | null>;
 }): void {
     useEffect(() => {
         return () => {
