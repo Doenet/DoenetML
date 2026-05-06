@@ -179,28 +179,13 @@ export function EditorViewer({
         [initialDiagnostics, diagnostics],
     );
 
-    /**
-     * Memoize the diagnosticsSummary object so its reference is stable when
-     * diagnostic counts don't change. This prevents unnecessary re-invocations
-     * of the effect callback and avoids potential render loops if a consumer
-     * stores this object in React state and passes an inline callback.
-     */
-    const diagnosticsSummary = useMemo(
-        () => ({
-            warningsCount,
-            errorsCount,
-            infosCount,
-            accessibilityLevel1Count,
-            accessibilityLevel2Count,
-        }),
-        [
-            warningsCount,
-            errorsCount,
-            infosCount,
-            accessibilityLevel1Count,
-            accessibilityLevel2Count,
-        ],
-    );
+    // Hold the latest `diagnosticsSummaryCallback` in a ref so inline callbacks
+    // (whose identity changes every parent render) don't retrigger the effect below
+    // and cause unbounded recursion when the consumer stores the summary in state.
+    const diagnosticsSummaryCallbackRef = useRef(diagnosticsSummaryCallback);
+    useEffect(() => {
+        diagnosticsSummaryCallbackRef.current = diagnosticsSummaryCallback;
+    });
 
     useEffect(() => {
         // On initial load of the editor, don't call `diagnosticsSummaryCallback`
@@ -211,12 +196,16 @@ export function EditorViewer({
             return;
         }
 
-        diagnosticsSummaryCallback?.(diagnosticsSummary);
-    }, [
-        diagnosticsSummary,
-        receivedDiagnosticsFromViewer,
-        diagnosticsSummaryCallback,
-    ]);
+        diagnosticsSummaryCallbackRef.current?.({
+            warningsCount,
+            errorsCount,
+            infosCount,
+            accessibilityLevel1Count,
+            accessibilityLevel2Count,
+        });
+        // Fire once per `diagnostics`/`initialDiagnostics` change rather than per
+        // count change — the consumer should treat this as an event, not a memoized value.
+    }, [diagnostics, initialDiagnostics, receivedDiagnosticsFromViewer]);
 
     const [responses, setResponses] = useState<
         {

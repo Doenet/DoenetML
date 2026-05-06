@@ -111,6 +111,7 @@ export function CypressTest() {
         testSettings.includeVariantSelector,
     );
     const diagnosticsSummaryRef = useRef<Record<string, number> | null>(null);
+    const diagnosticsSummaryCallsRef = useRef<Record<string, number>[]>([]);
 
     useEffect(() => {
         (window as any).returnDiagnosticsSummaryCallbackValue = (): Record<
@@ -119,14 +120,22 @@ export function CypressTest() {
         > | null => {
             return diagnosticsSummaryRef.current;
         };
+        (window as any).returnDiagnosticsSummaryCallbackCalls = (): Record<
+            string,
+            number
+        >[] => {
+            return diagnosticsSummaryCallsRef.current;
+        };
         return () => {
             delete (window as any).returnDiagnosticsSummaryCallbackValue;
+            delete (window as any).returnDiagnosticsSummaryCallbackCalls;
         };
     }, []);
 
-    // Reset diagnosticsSummaryRef when new DoenetML is posted to avoid stale values
+    // Reset diagnostics tracking when new DoenetML is posted to avoid stale values
     useEffect(() => {
         diagnosticsSummaryRef.current = null;
+        diagnosticsSummaryCallsRef.current = [];
     }, [doenetMLstring]);
 
     const solutionDisplayMode = "button";
@@ -598,6 +607,10 @@ export function CypressTest() {
                     nextDiagnosticsSummary: Record<string, number>,
                 ) => {
                     diagnosticsSummaryRef.current = nextDiagnosticsSummary;
+                    diagnosticsSummaryCallsRef.current = [
+                        ...diagnosticsSummaryCallsRef.current,
+                        nextDiagnosticsSummary,
+                    ];
                 }}
             />
         );
