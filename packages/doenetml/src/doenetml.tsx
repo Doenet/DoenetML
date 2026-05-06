@@ -1,6 +1,12 @@
 import "./DoenetML.css";
 import seedrandom from "seedrandom";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, {
+    useCallback,
+    useEffect,
+    useMemo,
+    useRef,
+    useState,
+} from "react";
 import { DocViewer } from "./Viewer/DocViewer";
 import { MathJaxContext } from "better-react-mathjax";
 import { mathjaxConfig, isErrorRecord, isWarningRecord } from "@doenet/utils";
@@ -27,6 +33,11 @@ export { defaultFlags } from "./flags";
 
 let warnedShowErrorsWarningsDeprecation = false;
 let warnedInitialErrorsWarningsDeprecation = false;
+
+// Module-level constant so the default for `initialDiagnostics` is referentially
+// stable across renders (a parameter default `= []` would create a fresh array
+// each render, refiring every memo/effect downstream that depends on it).
+const EMPTY_INITIAL_DIAGNOSTICS: DiagnosticRecord[] = [];
 
 export const version: string = DOENETML_VERSION;
 
@@ -332,7 +343,7 @@ export function DoenetEditor({
     showErrorsWarnings,
     showResponses = true,
     border = "1px solid",
-    initialDiagnostics = [],
+    initialDiagnostics = EMPTY_INITIAL_DIAGNOSTICS,
     initialErrors,
     initialWarnings,
     fetchExternalDoenetML,
@@ -393,11 +404,18 @@ export function DoenetEditor({
         );
     }
 
-    const normalizedInitialDiagnostics = [
-        ...initialDiagnostics,
-        ...(initialErrors ?? []),
-        ...(initialWarnings ?? []),
-    ];
+    // Memoized so the array reference is stable across re-renders unless one
+    // of the inputs actually changes. Without this, every re-render of
+    // `DoenetEditor` would hand `EditorViewer` a fresh array, refiring its
+    // diagnostics-summary effect on every parent render.
+    const normalizedInitialDiagnostics = useMemo(
+        () => [
+            ...initialDiagnostics,
+            ...(initialErrors ?? []),
+            ...(initialWarnings ?? []),
+        ],
+        [initialDiagnostics, initialErrors, initialWarnings],
+    );
 
     useEffect(() => {
         // Add a YouTube iframe api to the document header if it doesn't exist
