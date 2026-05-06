@@ -30,6 +30,11 @@ import {
     toAdditionalDiagnosticsForLsp,
 } from "./diagnostics";
 
+// Module-level constant so the default for `initialDiagnostics` is referentially
+// stable across renders. A parameter default `= []` would create a fresh array
+// each render, refiring every effect/memo that depends on `initialDiagnostics`.
+const EMPTY_INITIAL_DIAGNOSTICS: DiagnosticRecord[] = [];
+
 /**
  * Combined DoenetML editor/viewer shell with diagnostics, responses, formatting, and variants.
  */
@@ -55,7 +60,7 @@ export function EditorViewer({
     showDiagnostics = true,
     showResponses = true,
     border = "1px solid",
-    initialDiagnostics = [],
+    initialDiagnostics = EMPTY_INITIAL_DIAGNOSTICS,
     fetchExternalDoenetML,
 }: {
     doenetML: string;
@@ -187,25 +192,6 @@ export function EditorViewer({
         diagnosticsSummaryCallbackRef.current = diagnosticsSummaryCallback;
     }, [diagnosticsSummaryCallback]);
 
-    // Keep the latest counts available to the effect below without making them
-    // dependencies — `initialDiagnostics` defaults to a fresh `[]` per render and
-    // would otherwise refire the effect on every parent re-render (and could
-    // re-introduce a render loop if a consumer stores the summary in state).
-    const latestCountsRef = useRef<DiagnosticsSummary>({
-        warningsCount,
-        errorsCount,
-        infosCount,
-        accessibilityLevel1Count,
-        accessibilityLevel2Count,
-    });
-    latestCountsRef.current = {
-        warningsCount,
-        errorsCount,
-        infosCount,
-        accessibilityLevel1Count,
-        accessibilityLevel2Count,
-    };
-
     useEffect(() => {
         // On initial load of the editor, don't call `diagnosticsSummaryCallback`
         // until the viewer has sent diagnostics so avoid sending just the initial diagnostics.
@@ -215,8 +201,16 @@ export function EditorViewer({
             return;
         }
 
-        diagnosticsSummaryCallbackRef.current?.(latestCountsRef.current);
-    }, [diagnostics, receivedDiagnosticsFromViewer]);
+        diagnosticsSummaryCallbackRef.current?.({
+            warningsCount,
+            errorsCount,
+            infosCount,
+            accessibilityLevel1Count,
+            accessibilityLevel2Count,
+        });
+        // Fire once per `diagnostics`/`initialDiagnostics` change rather than per
+        // count change — the consumer should treat this as an event, not a memoized value.
+    }, [diagnostics, initialDiagnostics, receivedDiagnosticsFromViewer]);
 
     const [responses, setResponses] = useState<
         {
