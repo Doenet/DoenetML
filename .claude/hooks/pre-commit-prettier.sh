@@ -35,7 +35,11 @@ cd "$repo_root" || exit 0
 
 # Files Claude is about to commit (added/copied/modified/renamed).
 # Use NUL separation for correctness with filenames containing newlines.
-mapfile -d '' staged_files < <(git diff --cached --name-only -z --diff-filter=ACMR 2>/dev/null)
+# Use while loop instead of mapfile for Bash 3.2+ compatibility.
+staged_files=()
+while IFS= read -r -d '' file; do
+    staged_files+=("$file")
+done < <(git diff --cached --name-only -z --diff-filter=ACMR 2>/dev/null)
 [ ${#staged_files[@]} -eq 0 ] && exit 0
 
 # Run prettier --check; capture both output and status.

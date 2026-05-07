@@ -6,7 +6,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "bash \"${CLAUDE_PROJECT_DIR:-$PWD}/.claude/hooks/pre-commit-prettier.sh\"",
+                        "command": "bash \"$(git rev-parse --show-toplevel 2>/dev/null || echo \"${CLAUDE_PROJECT_DIR:-$PWD}\")/.claude/hooks/pre-commit-prettier.sh\"",
                         "timeout": 30
                     }
                 ]
