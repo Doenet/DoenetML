@@ -123,7 +123,7 @@ describe("Video Tag Tests", { tags: ["@group2"] }, function () {
             // Wait for the new player to finish initializing. recordVideoReady
             // updates duration to the new video's length, so a duration that
             // differs from the pre-switch value is a clean signal that the
-            // new player has handshaked with the iframe and is ready to
+            // new player has completed a handshake with the iframe and is ready to
             // accept play/pause commands. Without this wait, playAction can
             // race with onPlayerReady (which forces state back to "stopped").
             cy.get("#duration").should((el) => {
