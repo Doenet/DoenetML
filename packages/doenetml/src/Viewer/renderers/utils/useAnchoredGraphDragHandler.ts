@@ -5,13 +5,30 @@ import {
     JXGEvent,
     JXGObject,
     JXGPoint,
-    JXGText,
 } from "../jsxgraph-distrib/types";
 import type { CallActionArgs, RendererAction } from "../../useDoenetRenderer";
 import { exceededDragThreshold } from "./dragThreshold";
 import { pointerEventToUserCoords } from "./pointerToBoardCoords";
 import type { PointerDragState } from "./pointerDragState";
 import { LINE_FAMILY_EVENTS, removeJXGEventHandlers } from "./jsxgraph";
+
+/**
+ * Minimum element shape the anchored-graph drag handlers operate on.
+ * `JXGText`, the deprecated `JXGObject`, and the per-renderer `JXGImage`
+ * types all satisfy this structurally. `size` is read only in non-image
+ * mode and is recovered via a localized cast at that branch since the
+ * renderers that pass image-shaped objects don't carry `size` on their
+ * narrow types.
+ */
+type AnchoredGraphJXG = {
+    isDraggable: boolean;
+    relativeCoords: {
+        usrCoords: [number, number, number];
+        setCoordinates: Function;
+    };
+    on(event: string, handler?: (e: JXGEvent) => void, context?: unknown): void;
+    off(event: string, handler?: Function): void;
+};
 
 /**
  * Action names dispatched by the anchored-graph drag controller. Each
@@ -25,15 +42,41 @@ export interface AnchoredGraphActionNames {
     clicked: string;
 }
 
-interface AttachAnchoredGraphDragHandlersParams<
-    TJXG extends JXGText | JXGObject,
-> {
+/**
+ * Image-specific overrides for the drag handler's clamp/offset geometry.
+ *
+ * The four text-on-graph renderers (number/text/label/math) clamp drags
+ * using the JXG element's pixel size (converted via board.unitX/Y) and
+ * derive the per-anchor offset from anchorx/anchory. Image renderers
+ * track their size and offset directly (in user coordinates) because
+ * their aspect-ratio plumbing and rotation transform do the conversion
+ * upstream. When `imageMode` is present, the drag handler:
+ *
+ * - reads size and offset from the provided getters instead of from
+ *   `newJXG.size` / `anchorRel`;
+ * - uses `paddingFraction` (default 0.04 for text; image passes 0.01);
+ * - subtracts the offset in the non-pointer branch (matching image's
+ *   `newAnchorPointJXG.X() - currentOffset[0]` arithmetic);
+ * - calls `relativeCoords.setCoordinates` with the offset rather than
+ *   `[0, 0]`, since image's relativeCoords carry the offset itself.
+ */
+export interface AnchoredGraphImageMode {
+    getCurrentSize: () => [number, number];
+    getCurrentOffset: () => [number, number];
+    paddingFraction?: number;
+}
+
+interface AttachAnchoredGraphDragHandlersParams<TJXG extends AnchoredGraphJXG> {
     board: JXGBoard;
-    /** The JSXgraph text/math element receiving the handlers. */
+    /** The JSXgraph text/math/image element receiving the handlers. */
     newJXG: TJXG;
     /** The hidden anchor point the element is anchored to. */
     newAnchorPoint: JXGPoint | JXGObject;
-    /** Mutable ref tracking the resolved [anchorx, anchory] pair. */
+    /**
+     * Mutable ref tracking the resolved [anchorx, anchory] pair. Only
+     * read in text mode; image mode ignores it (offset comes from
+     * `imageMode.getCurrentOffset`).
+     */
     anchorRel: RefObject<[string, string] | null>;
     /** Pointer state shared with `useBoardPointerTracking`. */
     pointerState: PointerDragState;
@@ -55,6 +98,8 @@ interface AttachAnchoredGraphDragHandlersParams<
     actions: Record<string, RendererAction>;
     callAction: (argObj: CallActionArgs) => void;
     actionNames: AnchoredGraphActionNames;
+    /** Optional image-specific size/offset/padding overrides. */
+    imageMode?: AnchoredGraphImageMode;
 }
 
 /**
@@ -69,9 +114,7 @@ interface AttachAnchoredGraphDragHandlersParams<
  * handlers read/write (`anchorRel`, `pointAtDown`, `calculatedX`,
  * `calculatedY`).
  */
-export function attachAnchoredGraphDragHandlers<
-    TJXG extends JXGText | JXGObject,
->({
+export function attachAnchoredGraphDragHandlers<TJXG extends AnchoredGraphJXG>({
     board,
     newJXG,
     newAnchorPoint,
@@ -87,6 +130,7 @@ export function attachAnchoredGraphDragHandlers<
     actions,
     callAction,
     actionNames,
+    imageMode,
 }: AttachAnchoredGraphDragHandlersParams<TJXG>): void {
     newJXG.isDraggable = !fixLocation.current;
 
@@ -159,29 +203,51 @@ export function attachAnchoredGraphDragHandlers<
         }
 
         const [xMin, yMax, xMax, yMin] = board.getBoundingBox();
-        const width = newJXG.size[0] / board.unitX;
-        const height = newJXG.size[1] / board.unitY;
 
-        const anchorx = anchorRel.current?.[0];
-        const anchory = anchorRel.current?.[1];
-
-        let offsetx = 0;
-        if (anchorx === "middle") {
-            offsetx = -width / 2;
-        } else if (anchorx === "right") {
-            offsetx = -width;
+        let width: number;
+        let height: number;
+        let offsetx: number;
+        let offsety: number;
+        let paddingFraction: number;
+        if (imageMode) {
+            const [imgWidth, imgHeight] = imageMode.getCurrentSize();
+            const [imgOffsetX, imgOffsetY] = imageMode.getCurrentOffset();
+            width = imgWidth;
+            height = imgHeight;
+            offsetx = imgOffsetX;
+            offsety = imgOffsetY;
+            paddingFraction = imageMode.paddingFraction ?? 0.01;
+        } else {
+            // In non-image mode, the caller passes a text-shaped element
+            // whose narrow type carries `size` (JXGText). Recover it via a
+            // local cast so the helper's broader element-shape generic can
+            // also accept image-shaped types that lack `size`.
+            const sized = newJXG as unknown as { size: [number, number] };
+            width = sized.size[0] / board.unitX;
+            height = sized.size[1] / board.unitY;
+            const anchorx = anchorRel.current?.[0];
+            const anchory = anchorRel.current?.[1];
+            offsetx = 0;
+            if (anchorx === "middle") {
+                offsetx = -width / 2;
+            } else if (anchorx === "right") {
+                offsetx = -width;
+            }
+            offsety = 0;
+            if (anchory === "middle") {
+                offsety = -height / 2;
+            } else if (anchory === "top") {
+                offsety = -height;
+            }
+            paddingFraction = 0.04;
         }
-        let offsety = 0;
-        if (anchory === "middle") {
-            offsety = -height / 2;
-        } else if (anchory === "top") {
-            offsety = -height;
-        }
 
-        const xminAdjusted = xMin + 0.04 * (xMax - xMin) - offsetx - width;
-        const xmaxAdjusted = xMax - 0.04 * (xMax - xMin) - offsetx;
-        const yminAdjusted = yMin + 0.04 * (yMax - yMin) - offsety - height;
-        const ymaxAdjusted = yMax - 0.04 * (yMax - yMin) - offsety;
+        const xminAdjusted =
+            xMin + paddingFraction * (xMax - xMin) - offsetx - width;
+        const xmaxAdjusted = xMax - paddingFraction * (xMax - xMin) - offsetx;
+        const yminAdjusted =
+            yMin + paddingFraction * (yMax - yMin) - offsety - height;
+        const ymaxAdjusted = yMax - paddingFraction * (yMax - yMin) - offsety;
 
         const pointAtDownCoords = pointAtDown.current;
         if (viaPointer && pointerAtDown && pointAtDownCoords) {
@@ -204,9 +270,13 @@ export function attachAnchoredGraphDragHandlers<
             calculatedY.current = y;
         } else {
             calculatedX.current =
-                newAnchorPoint.X() + newJXG.relativeCoords.usrCoords[1];
+                newAnchorPoint.X() +
+                newJXG.relativeCoords.usrCoords[1] -
+                (imageMode ? offsetx : 0);
             calculatedY.current =
-                newAnchorPoint.Y() + newJXG.relativeCoords.usrCoords[2];
+                newAnchorPoint.Y() +
+                newJXG.relativeCoords.usrCoords[2] -
+                (imageMode ? offsety : 0);
         }
 
         calculatedX.current = Math.min(
@@ -228,7 +298,10 @@ export function attachAnchoredGraphDragHandlers<
             },
         });
 
-        newJXG.relativeCoords.setCoordinates(JXG.COORDS_BY_USER, [0, 0]);
+        newJXG.relativeCoords.setCoordinates(
+            JXG.COORDS_BY_USER,
+            imageMode ? [offsetx, offsety] : [0, 0],
+        );
         newAnchorPoint.coords.setCoordinates(
             JXG.COORDS_BY_USER,
             lastPositionFromCore.current,
@@ -260,7 +333,7 @@ export function attachAnchoredGraphDragHandlers<
  * `attachAnchoredGraphDragHandlers`. Detaches the standard event handlers
  * and removes the element from the board.
  */
-export function detachAnchoredGraphElement<TJXG extends JXGText | JXGObject>(
+export function detachAnchoredGraphElement<TJXG extends AnchoredGraphJXG>(
     jxgRef: RefObject<TJXG | null>,
     board: JXGBoard | null,
 ): void {

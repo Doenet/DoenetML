@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useContext, useRef } from "react";
+import JXG from "jsxgraph";
 import { BoardContext, IMAGE_LAYER_OFFSET } from "./graph";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
@@ -6,11 +7,18 @@ import useDoenetRenderer, {
 import { sizeToCSS } from "./utils/css";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import me from "math-expressions";
-import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
 import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
 import { getNonInlineMediaLayoutStyles } from "./utils/nonInlineMediaLayout";
 import { NonInlineMediaWrapper } from "./utils/NonInlineMediaWrapper";
-import { JXGElement, JXGEvent, JXGPoint } from "./jsxgraph-distrib/types";
+import { JXGElement, JXGPoint } from "./jsxgraph-distrib/types";
+import { usePointerDragState } from "./utils/pointerDragState";
+import { useDraggableRefs } from "./utils/useDraggableRefs";
+import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
+import {
+    attachAnchoredGraphDragHandlers,
+    detachAnchoredGraphElement,
+} from "./utils/useAnchoredGraphDragHandler";
+import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 
 interface ImageSVs {
     hidden: boolean;
@@ -60,32 +68,33 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
 
     let imageJXG = useRef<JXGImage | null>(null);
     let anchorPointJXG = useRef<JXGPoint | null>(null);
+    let anchorRel = useRef<[string, string] | null>(null);
 
     const board = useContext(BoardContext);
 
-    let pointerAtDown = useRef<[number, number] | null>(null);
+    const pointerState = usePointerDragState();
     let pointAtDown = useRef<number[] | null>(null);
-    let pointerIsDown = useRef<boolean>(false);
-    let pointerMovedSinceDown = useRef<boolean>(false);
-    let dragged = useRef<boolean>(false);
 
     let calculatedX = useRef<number | null>(null);
     let calculatedY = useRef<number | null>(null);
 
-    let lastPositionFromCore = useRef<number[] | null>(null);
     let previousPositionFromAnchor = useRef<any>(null);
-    let currentSize = useRef<[number, number] | null>(null);
-
-    let currentOffset = useRef<[number, number] | null>(null);
+    let currentSize = useRef<[number, number]>([0, 0]);
+    let currentOffset = useRef<[number, number]>([0, 0]);
 
     let rotationTransform = useRef<JXGTransform | null>(null);
     let lastRotate = useRef<number>(SVs.rotate);
 
-    let fixed = useRef<boolean>(false);
-    let fixLocation = useRef<boolean>(false);
+    const { fixed, fixLocation, lastPositionFromCore } = useDraggableRefs<
+        number[] | null
+    >(SVs, null);
 
-    fixed.current = SVs.fixed;
-    fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
+    useBoardPointerTracking(board, pointerState);
+
+    useJSXGraphCleanup({
+        objectRef: imageJXG,
+        destroy: () => detachAnchoredGraphElement(imageJXG, board),
+    });
 
     const urlOrSource = (SVs.cid ? url : SVs.source) || "";
 
@@ -98,26 +107,6 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
             // TODO: need new approach for getting media
         }
     }, []);
-
-    useEffect(() => {
-        //On unmount
-        return () => {
-            // if line is defined
-            if (imageJXG.current !== null) {
-                deleteImageJXG();
-            }
-
-            if (board) {
-                board.off("move", boardMoveHandler);
-            }
-        };
-    }, []);
-
-    useEffect(() => {
-        if (board) {
-            board.on("move", boardMoveHandler);
-        }
-    }, [board]);
 
     function createImageJXG() {
         if (board === null) {
@@ -198,8 +187,6 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
             jsxImageAttributes,
         ) as JXGImage;
 
-        newImageJXG.isDraggable = !fixLocation.current;
-
         // tranformation code copied from jsxgraph documentation:
         // https://jsxgraph.uni-bayreuth.de/wiki/index.php?title=Images#The_JavaScript_code_5
         var tOff = board.create(
@@ -237,175 +224,30 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
         rotationTransform.current = tRot;
         lastRotate.current = SVs.rotate;
 
-        newImageJXG.on("down", function (e: JXGEvent) {
-            (document.activeElement as HTMLElement | null)?.blur();
-
-            pointerAtDown.current = [e.x, e.y];
-            pointAtDown.current = [...newAnchorPointJXG.coords.scrCoords];
-            dragged.current = false;
-            pointerIsDown.current = true;
-            pointerMovedSinceDown.current = false;
-            if (!fixed.current) {
-                callAction({
-                    action: actions.imageFocused,
-                    args: { componentIdx },
-                });
-            }
-        });
-
-        newImageJXG.on("hit", function (e: JXGEvent) {
-            pointAtDown.current = [...newAnchorPointJXG.coords.scrCoords];
-            dragged.current = false;
-            callAction({
-                action: actions.imageFocused,
-                args: { componentIdx },
-            });
-        });
-
-        newImageJXG.on("up", function (e: JXGEvent) {
-            if (dragged.current) {
-                callAction({
-                    action: actions.moveImage,
-                    args: {
-                        x: calculatedX.current,
-                        y: calculatedY.current,
-                    },
-                });
-                dragged.current = false;
-            } else if (!pointerMovedSinceDown.current && !fixed.current) {
-                callAction({
-                    action: actions.imageClicked,
-                    args: { componentIdx },
-                });
-            }
-            pointerIsDown.current = false;
-        });
-
-        newImageJXG.on("keyfocusout", function (e: JXGEvent) {
-            if (dragged.current) {
-                callAction({
-                    action: actions.moveImage,
-                    args: {
-                        x: calculatedX.current,
-                        y: calculatedY.current,
-                    },
-                });
-                dragged.current = false;
-            }
-        });
-
-        newImageJXG.on("drag", function (e: JXGEvent) {
-            let viaPointer = e.type === "pointermove";
-
-            //Protect against very small unintended drags
-            if (
-                !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current![0]) >
-                    POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current![1]) >
-                    POINTER_DRAG_THRESHOLD
-            ) {
-                dragged.current = true;
-            }
-
-            let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
-            let xminAdjusted =
-                xMin +
-                0.01 * (xMax - xMin) -
-                currentOffset.current![0] -
-                currentSize.current![0];
-            let xmaxAdjusted =
-                xMax - 0.01 * (xMax - xMin) - currentOffset.current![0];
-            let yminAdjusted =
-                yMin +
-                0.01 * (yMax - yMin) -
-                currentOffset.current![1] -
-                currentSize.current![1];
-            let ymaxAdjusted =
-                yMax - 0.01 * (yMax - yMin) - currentOffset.current![1];
-
-            if (viaPointer) {
-                // the reason we calculate point position with this algorithm,
-                // rather than using .X() and .Y() directly
-                // is that attributes .X() and .Y() are affected by the
-                // .setCoordinates function called in update().
-                // Due to this dependence, the location of .X() and .Y()
-                // can be affected by constraints of objects that the points depends on,
-                // leading to a different location on up than on drag
-                // (as dragging uses the mouse location)
-                // TODO: find an example where need this this additional complexity
-                var o = board.origin.scrCoords;
-
-                calculatedX.current =
-                    (pointAtDown.current![1] +
-                        e.x -
-                        pointerAtDown.current![0] -
-                        o[1]) /
-                    board.unitX;
-
-                calculatedY.current =
-                    (o[2] -
-                        (pointAtDown.current![2] +
-                            e.y -
-                            pointerAtDown.current![1])) /
-                    board.unitY;
-            } else {
-                calculatedX.current =
-                    newAnchorPointJXG.X() +
-                    newImageJXG.relativeCoords.usrCoords[1] -
-                    currentOffset.current![0];
-                calculatedY.current =
-                    newAnchorPointJXG.Y() +
-                    newImageJXG.relativeCoords.usrCoords[2] -
-                    currentOffset.current![1];
-            }
-
-            calculatedX.current = Math.min(
-                xmaxAdjusted,
-                Math.max(xminAdjusted, calculatedX.current),
-            );
-            calculatedY.current = Math.min(
-                ymaxAdjusted,
-                Math.max(yminAdjusted, calculatedY.current),
-            );
-
-            callAction({
-                action: actions.moveImage,
-                args: {
-                    x: calculatedX.current,
-                    y: calculatedY.current,
-                    transient: true,
-                    skippable: true,
-                },
-            });
-
-            newImageJXG.relativeCoords.setCoordinates(
-                JXG.COORDS_BY_USER,
-                currentOffset.current,
-            );
-            newAnchorPointJXG.coords.setCoordinates(
-                JXG.COORDS_BY_USER,
-                lastPositionFromCore.current,
-            );
-        });
-
-        newImageJXG.on("keydown", function (e: JXGEvent) {
-            if (e.key === "Enter") {
-                if (dragged.current) {
-                    callAction({
-                        action: actions.moveImage,
-                        args: {
-                            x: calculatedX.current,
-                            y: calculatedY.current,
-                        },
-                    });
-                    dragged.current = false;
-                }
-                callAction({
-                    action: actions.imageClicked,
-                    args: { componentIdx },
-                });
-            }
+        attachAnchoredGraphDragHandlers({
+            board,
+            newJXG: newImageJXG,
+            newAnchorPoint: newAnchorPointJXG,
+            anchorRel,
+            pointerState,
+            pointAtDown,
+            calculatedX,
+            calculatedY,
+            fixed,
+            fixLocation,
+            lastPositionFromCore,
+            componentIdx,
+            actions,
+            callAction,
+            actionNames: {
+                move: "moveImage",
+                focused: "imageFocused",
+                clicked: "imageClicked",
+            },
+            imageMode: {
+                getCurrentSize: () => currentSize.current,
+                getCurrentOffset: () => currentOffset.current,
+            },
         });
 
         imageJXG.current = newImageJXG;
@@ -415,32 +257,6 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
 
         // need fullUpdate to get initial rotation in case image was from a blob
         imageJXG.current.fullUpdate();
-    }
-
-    function boardMoveHandler(e: JXGEvent) {
-        if (pointerIsDown.current) {
-            //Protect against very small unintended move
-            if (
-                Math.abs(e.x - pointerAtDown.current![0]) >
-                    POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current![1]) >
-                    POINTER_DRAG_THRESHOLD
-            ) {
-                pointerMovedSinceDown.current = true;
-            }
-        }
-    }
-
-    function deleteImageJXG() {
-        if (!imageJXG.current) return;
-        imageJXG.current.off("drag");
-        imageJXG.current.off("down");
-        imageJXG.current.off("hit");
-        imageJXG.current.off("up");
-        imageJXG.current.off("keyfocusout");
-        imageJXG.current.off("keydown");
-        board?.removeObject(imageJXG.current);
-        imageJXG.current = null;
     }
 
     if (board) {
@@ -463,7 +279,7 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
             }
             createImageJXG();
         } else {
-            anchorPointJXG.current!.coords.setCoordinates(
+            anchorPointJXG.current?.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
                 anchorCoords,
             );
@@ -512,8 +328,8 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
             }
 
             let sizeChanged =
-                width !== currentSize.current![0] ||
-                height !== currentSize.current![1];
+                width !== currentSize.current[0] ||
+                height !== currentSize.current[1];
 
             if (sizeChanged) {
                 imageJXG.current.setSize(width, height);
@@ -521,7 +337,7 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
             }
 
             if (SVs.rotate != lastRotate.current) {
-                rotationTransform.current!.setMatrix(board, "rotate", [
+                rotationTransform.current?.setMatrix(board, "rotate", [
                     SVs.rotate,
                 ]);
                 lastRotate.current = SVs.rotate;
@@ -569,8 +385,10 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
                 imageJXG.current.update();
             }
 
-            anchorPointJXG.current!.needsUpdate = true;
-            anchorPointJXG.current!.update();
+            if (anchorPointJXG.current) {
+                anchorPointJXG.current.needsUpdate = true;
+                anchorPointJXG.current.update();
+            }
             board.updateRenderer();
         }
 
