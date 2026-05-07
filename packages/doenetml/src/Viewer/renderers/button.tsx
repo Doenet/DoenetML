@@ -10,9 +10,8 @@ import {
     getPositionFromAnchorByCoordinate,
     POINTER_DRAG_THRESHOLD,
 } from "./utils/graph";
-import { cesc } from "@doenet/utils";
+import { cesc, type ResolvedStyleDefinition } from "@doenet/utils";
 import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
-import { ResolvedStyleDefinition } from "@doenet/utils";
 
 interface ButtonSVs {
     [key: string]: any;

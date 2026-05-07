@@ -302,11 +302,10 @@ export const DEFAULT_STYLE_VALUES = {
  * encode "no authored value" rather than fabricate a placeholder. Two consumer
  * patterns make this safe:
  *
- *   - **Truthy guards.** Renderers and the derived `backgroundColor`
- *     state-variable definition handle legitimately-optional keys with checks
- *     like `if (backgroundColor) { … }` (math.tsx, text.tsx, label.tsx,
- *     number.tsx; `style.ts:706` for `backgroundColorWord`). `""` is falsy, so
- *     the guard treats it as absent. The guarded color keys are
+ *   - **Truthy guards.** Renderers and `returnTextStyleDescriptionDefinitions`
+ *     handle legitimately-optional keys with checks like
+ *     `if (backgroundColor) { … }`; `""` is falsy, so the guard treats it as
+ *     absent. The guarded color keys are
  *     `backgroundColor`/`backgroundColorDarkMode`, which are intentionally not
  *     in `DEFAULT_STYLE_VALUES` (its absence is what keeps
  *     `addMissingColorWordsToStyleDefinition` from synthesizing a derived

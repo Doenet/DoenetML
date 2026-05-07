@@ -1,4 +1,4 @@
-import { ResolvedStyleDefinition } from "@doenet/utils";
+import type { ResolvedStyleDefinition } from "@doenet/utils";
 import { LabelPosition } from "./graph";
 
 /**

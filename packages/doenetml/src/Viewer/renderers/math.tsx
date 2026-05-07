@@ -11,7 +11,7 @@ import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { DocContext } from "../DocViewer";
 import { JXGObject } from "./jsxgraph-distrib/types";
 import { ChoiceInputInlineContext } from "./choiceInput";
-import { ResolvedStyleDefinition } from "@doenet/utils";
+import type { ResolvedStyleDefinition } from "@doenet/utils";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
