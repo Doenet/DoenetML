@@ -11,6 +11,7 @@ import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
 import { getNonInlineMediaLayoutStyles } from "./utils/nonInlineMediaLayout";
 import { NonInlineMediaWrapper } from "./utils/NonInlineMediaWrapper";
+import { useYouTubeApi } from "./utils/useYouTubeApi";
 import "./video.css";
 
 interface VideoSVs {
@@ -49,29 +50,30 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
 
     useRecordVisibilityChanges(ref, callAction, actions);
 
-    useEffect(() => {
-        if (SVs.youtube) {
-            let cIdx = id;
+    const ytReady = useYouTubeApi();
 
-            // protect against (window as any).YT being undefined,
-            // which could occur if cannot reach youtube
-            if ((window as any).YT) {
-                player.current = new (window as any).YT.Player(cIdx, {
-                    playerVars: {
-                        autoplay: 0,
-                        controls: 1,
-                        modestbranding: 1,
-                        rel: 0,
-                    },
-                    events: {
-                        onReady: onPlayerReady,
-                        onStateChange: onPlayerStateChange,
-                        onPlaybackRateChange: onPlaybackRateChange,
-                    },
-                });
-            }
+    useEffect(() => {
+        if (!SVs.youtube || !ytReady || !window.YT) {
+            return;
         }
-    }, [(window as any).YT]);
+        player.current = new window.YT.Player(id, {
+            playerVars: {
+                autoplay: 0,
+                controls: 1,
+                modestbranding: 1,
+                rel: 0,
+            },
+            events: {
+                onReady: onPlayerReady,
+                onStateChange: onPlayerStateChange,
+                onPlaybackRateChange: onPlaybackRateChange,
+            },
+        });
+        return () => {
+            player.current?.destroy?.();
+            player.current = null;
+        };
+    }, [SVs.youtube, ytReady, id]);
 
     function pollCurrentTime() {
         let currentTime = player.current.getCurrentTime();
