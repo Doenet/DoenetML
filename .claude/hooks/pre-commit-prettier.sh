@@ -26,7 +26,7 @@ cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/null ||
 # Require `git` to be a command token: match only at line start or after
 # a shell command separator (;, &&, ||, |, &, (, {, !), so that `echo git
 # commit` or `rg "git commit" file` do not trigger this hook.
-if ! printf '%s' "$cmd" | grep -qE '(^|;|&&|\|\||[|&({!])[[:space:]]*git( +-[^ ]+( +[^ -][^ ]*)?)* +commit($|[^[:alnum:]])'; then
+if ! printf '%s' "$cmd" | grep -qE '(^|;|&&|\|\||[|&({!])[[:space:]]*git( +-[^ ]+( +[^ -][^ ]*)?)* +commit($|[[:space:]])'; then
     exit 0
 fi
 
@@ -34,15 +34,15 @@ repo_root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 cd "$repo_root" || exit 0
 
 # Files Claude is about to commit (added/copied/modified/renamed).
-staged=$(git diff --cached --name-only --diff-filter=ACMR 2>/dev/null)
-[ -z "$staged" ] && exit 0
+# Use NUL separation for correctness with filenames containing newlines.
+mapfile -d '' staged_files < <(git diff --cached --name-only -z --diff-filter=ACMR 2>/dev/null)
+[ ${#staged_files[@]} -eq 0 ] && exit 0
 
 # Run prettier --check; capture both output and status.
 # Pass files as explicit arguments rather than via xargs so that prettier's
 # exit status (1 = unformatted, 2 = error) is preserved -- xargs would
 # translate 1-125 to 123, which would make the case below treat
 # "unformatted files" as "infrastructure error" and silently allow the commit.
-mapfile -t staged_files <<<"$staged"
 prettier_output=$(
     npx --no-install prettier --check --ignore-unknown -- "${staged_files[@]}" 2>&1
 )
@@ -60,7 +60,7 @@ Prettier found unformatted staged files; commit blocked.
 
 Fix (mirrors this hook's check; -z + xargs -0 handles spaces in filenames):
   git diff --cached --name-only -z --diff-filter=ACMR | \\
-    xargs -0 npx --no-install prettier --write --ignore-unknown
+    xargs -0 npx --no-install prettier --write --ignore-unknown --
   git diff --cached --name-only -z --diff-filter=ACMR | \\
     xargs -0 git add --
 
