@@ -484,7 +484,7 @@ export default React.memo(function NumberComponent(
     }
 
     let number = SVs.text;
-    if ((SVs as any).renderAsMath) {
+    if (SVs.renderAsMath) {
         number = "\\(" + number + "\\)";
     }
 
