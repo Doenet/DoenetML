@@ -34,6 +34,6 @@ jobs:
             - name: Create or update version PR
               uses: changesets/action@v1
               with:
-                  version: npm run version:changesets && npm install --package-lock-only
+                  version: npm run version:changesets
                   title: "chore: version packages"
                   commit: "chore: version packages"
