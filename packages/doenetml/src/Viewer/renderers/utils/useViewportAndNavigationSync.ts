@@ -1,12 +1,7 @@
-import { useEffect, type CSSProperties, type RefObject } from "react";
+import { useEffect, type RefObject } from "react";
 import { addNavigationButtons, removeNavigationButtons } from "./jsxgraph";
 import type { JXGBoard } from "../jsxgraph-distrib/types";
 import type { GraphSVs } from "../graph";
-
-interface PreviousDimensions {
-    width: number;
-    aspectRatio: string | number;
-}
 
 interface UseViewportAndNavigationSyncParams {
     enabled: boolean;
@@ -15,8 +10,6 @@ interface UseViewportAndNavigationSyncParams {
     SVs: GraphSVs;
     ignoreUpdate: boolean;
     showNavigation: boolean;
-    surfaceStyle: CSSProperties;
-    previousDimensionsRef: RefObject<PreviousDimensions>;
     previousBoundingboxRef: RefObject<number[]>;
     settingBoundingBoxRef: RefObject<boolean>;
     previousShowNavigationRef: RefObject<boolean>;
@@ -29,8 +22,6 @@ export default function useViewportAndNavigationSync({
     SVs,
     ignoreUpdate,
     showNavigation,
-    surfaceStyle,
-    previousDimensionsRef,
     previousBoundingboxRef,
     settingBoundingBoxRef,
     previousShowNavigationRef,
@@ -53,22 +44,6 @@ export default function useViewportAndNavigationSync({
         } else if (previousShowNavigationRef.current) {
             removeNavigationButtons({ board, id });
             previousShowNavigationRef.current = false;
-        }
-
-        // Track surface dimensions to preserve existing resize semantics.
-        const currentDimensions: PreviousDimensions = {
-            width: parseFloat(surfaceStyle.width as string),
-            aspectRatio: SVs.aspectRatio,
-        };
-
-        if (
-            (currentDimensions.width !== previousDimensionsRef.current.width ||
-                currentDimensions.aspectRatio !==
-                    previousDimensionsRef.current.aspectRatio) &&
-            Number.isFinite(currentDimensions.width) &&
-            Number.isFinite(currentDimensions.aspectRatio)
-        ) {
-            previousDimensionsRef.current = currentDimensions;
         }
 
         // Apply bounding-box updates only when not ignored and values changed.

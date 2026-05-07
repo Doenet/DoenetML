@@ -1,14 +1,9 @@
-import { useEffect, type CSSProperties, type RefObject } from "react";
+import { useEffect, type RefObject } from "react";
 import useGridAndAxesSync from "./useGridAndAxesSync";
 import useViewportAndNavigationSync from "./useViewportAndNavigationSync";
 import type { AxisJXG } from "./jsxgraph";
 import type { JXGBoard } from "../jsxgraph-distrib/types";
 import type { GraphSVs } from "../graph";
-
-interface PreviousDimensions {
-    width: number;
-    aspectRatio: string | number;
-}
 
 interface UseJSXGraphBoardSyncParams {
     board: JXGBoard | null;
@@ -16,8 +11,6 @@ interface UseJSXGraphBoardSyncParams {
     SVs: GraphSVs;
     ignoreUpdate: boolean;
     showNavigation: boolean;
-    surfaceStyle: CSSProperties;
-    previousDimensionsRef: RefObject<PreviousDimensions>;
     previousBoundingboxRef: RefObject<number[]>;
     xaxisRef: RefObject<AxisJXG | null | undefined>;
     yaxisRef: RefObject<AxisJXG | null | undefined>;
@@ -34,8 +27,6 @@ export default function useJSXGraphBoardSync({
     SVs,
     ignoreUpdate,
     showNavigation,
-    surfaceStyle,
-    previousDimensionsRef,
     previousBoundingboxRef,
     xaxisRef,
     yaxisRef,
@@ -64,8 +55,6 @@ export default function useJSXGraphBoardSync({
         SVs,
         ignoreUpdate,
         showNavigation,
-        surfaceStyle,
-        previousDimensionsRef,
         previousBoundingboxRef,
         settingBoundingBoxRef,
         previousShowNavigationRef,
