@@ -1,4 +1,5 @@
 import React, { useContext, useRef } from "react";
+import JXG from "jsxgraph";
 import { createFunctionFromDefinition } from "@doenet/utils";
 import useDoenetRenderer, {
     UseDoenetRendererProps,

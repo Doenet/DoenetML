@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState, Context } from "react";
-// @ts-ignore
 import JXG from "jsxgraph";
 import {
     addNavigationButtons,
