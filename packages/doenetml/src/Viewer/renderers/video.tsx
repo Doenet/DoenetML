@@ -142,10 +142,14 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
         //     event.target.setPlaybackQuality('hd1080');
         // }
 
+        // Safe: this callback only fires for an initialized YT player, which
+        // requires `window.YT` to be loaded.
+        const PlayerState = window.YT!.PlayerState;
+
         let duration = player.current.getDuration();
 
         switch (event.data) {
-            case (window as any).YT.PlayerState.PLAYING:
+            case PlayerState.PLAYING:
                 if (lastPlayerState.current !== event.data) {
                     let currentTime = player.current.getCurrentTime();
 
@@ -161,10 +165,7 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
                         200,
                     );
 
-                    if (
-                        lastPlayerState.current ===
-                        (window as any).YT.PlayerState.PAUSED
-                    ) {
+                    if (lastPlayerState.current === PlayerState.PAUSED) {
                         let timeSincePaused =
                             currentTime - lastPausedTime.current;
 
@@ -223,7 +224,7 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
 
                 break;
 
-            case (window as any).YT.PlayerState.PAUSED:
+            case PlayerState.PAUSED:
                 // When a user pauses a video, we emit two events:
                 // a watched event summarizing that segment of watching
                 // and a paused event.
@@ -240,7 +241,7 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
                     clearInterval(pollIntervalId.current);
 
                     if (
-                        lastState === (window as any).YT.PlayerState.PLAYING &&
+                        lastState === PlayerState.PLAYING &&
                         pausedTime > (beginTime ?? 0)
                     ) {
                         rates.current[rates.current.length - 1].endingPoint =
@@ -284,7 +285,7 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
 
                 break;
 
-            case (window as any).YT.PlayerState.BUFFERING:
+            case PlayerState.BUFFERING:
                 clearTimeout(pauseTimeoutId.current);
                 let currentTime = player.current.getCurrentTime();
 
@@ -338,7 +339,7 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
 
                 break;
 
-            case (window as any).YT.PlayerState.ENDED:
+            case PlayerState.ENDED:
                 // BADBAD: We're treating ENDED as though it meant the user
                 // completed the video, even thought it
                 // doesn't necessarily mean the learner watched ALL the video
@@ -384,7 +385,7 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
 
                 break;
 
-            case (window as any).YT.PlayerState.UNSTARTED:
+            case PlayerState.UNSTARTED:
                 lastPlayerState.current = event.data;
 
                 break;
@@ -402,19 +403,21 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
     }
 
     if (player.current?.getPlayerState) {
+        // Safe: player exists, so `window.YT` is loaded.
+        const PlayerState = window.YT!.PlayerState;
         let playerState = player.current.getPlayerState();
         if (SVs.state !== lastSVsState.current) {
             if (SVs.state === "playing") {
                 if (
-                    playerState === (window as any).YT.PlayerState.UNSTARTED ||
-                    playerState === (window as any).YT.PlayerState.PAUSED ||
-                    playerState === (window as any).YT.PlayerState.CUED ||
-                    playerState === (window as any).YT.PlayerState.ENDED
+                    playerState === PlayerState.UNSTARTED ||
+                    playerState === PlayerState.PAUSED ||
+                    playerState === PlayerState.CUED ||
+                    playerState === PlayerState.ENDED
                 ) {
                     player.current.playVideo();
                 }
             } else if (SVs.state === "stopped") {
-                if (playerState === (window as any).YT.PlayerState.PLAYING) {
+                if (playerState === PlayerState.PLAYING) {
                     player.current.pauseVideo();
                 }
             }
@@ -435,10 +438,7 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
                 });
             }
             if (time !== Number(lastSetTimeAction.current)) {
-                if (
-                    player.current.getPlayerState() ===
-                    (window as any).YT.PlayerState.CUED
-                ) {
+                if (player.current.getPlayerState() === PlayerState.CUED) {
                     // if cued, seeking will automatically start the video.
                     // Pausing it first doesn't seem to work
                     // so, instead pause it 200 ms after hitting play
