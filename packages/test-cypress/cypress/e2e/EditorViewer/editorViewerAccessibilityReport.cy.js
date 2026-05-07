@@ -155,6 +155,60 @@ describe(
             });
         });
 
+        it("diagnosticsSummaryCallback fires on each diagnostics update, including when counts are unchanged", () => {
+            postDoenetML(`<textInput /><text name="t">hello</text>`);
+
+            cy.get("#t").should("contain.text", "hello");
+
+            // First call: textInput without a label is one level-1 violation.
+            cy.window().should((win) => {
+                const calls = win.returnDiagnosticsSummaryCallbackCalls();
+                expect(calls).to.have.length(1);
+                expect(calls[0].accessibilityLevel1Count).to.eq(1);
+            });
+
+            // Type at the end of the editor and force a viewer update.
+            cy.get(".cm-content").click().type("{ctrl+end}abc", { delay: 10 });
+            cy.get('[data-test="Viewer Update Button"]').click();
+
+            // Second call: same accessibility counts, but the callback must
+            // still fire because diagnostics were re-emitted by the viewer.
+            cy.window().should((win) => {
+                const calls = win.returnDiagnosticsSummaryCallbackCalls();
+                expect(calls).to.have.length(2);
+                expect(calls[1].accessibilityLevel1Count).to.eq(1);
+            });
+
+            // Add a second unlabeled input and update again.
+            cy.get(".cm-content")
+                .click()
+                .type("{ctrl+end}<mathInput />", { delay: 10 });
+            cy.get('[data-test="Viewer Update Button"]').click();
+
+            // Third call: a new violation, so the count goes up.
+            cy.window().should((win) => {
+                const calls = win.returnDiagnosticsSummaryCallbackCalls();
+                expect(calls).to.have.length(3);
+                expect(calls[2].accessibilityLevel1Count).to.be.greaterThan(
+                    calls[1].accessibilityLevel1Count,
+                );
+            });
+
+            // Toggling an unrelated parent control re-renders CypressTest (and
+            // thus EditorViewer) without changing diagnostics. The callback
+            // must not fire — guards against `initialDiagnostics`'s default
+            // `[]` (or an inline-callback identity) refiring the effect.
+            cy.get("#testRunner_toggleControls").click();
+            cy.get("#testRunner_darkMode").click();
+            cy.get("#testRunner_darkMode").click();
+            cy.get("#testRunner_toggleControls").click();
+            cy.wait(200);
+            cy.window().should((win) => {
+                const calls = win.returnDiagnosticsSummaryCallbackCalls();
+                expect(calls).to.have.length(3);
+            });
+        });
+
         it("displays accessibility report with WCAG AA Violations section", () => {
             postDoenetML(`
 <styleDefinition styleNumber="102" textColor="#ff9900" />
