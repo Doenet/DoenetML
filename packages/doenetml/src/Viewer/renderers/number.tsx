@@ -1,6 +1,7 @@
 import { MathJax } from "better-react-mathjax";
 
 import React, { useContext, useRef } from "react";
+import JXG from "jsxgraph";
 import { BoardContext, TEXT_LAYER_OFFSET } from "./graph";
 import useDoenetRenderer, {
     UseDoenetRendererProps,

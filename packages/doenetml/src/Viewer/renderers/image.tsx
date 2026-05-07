@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useContext, useRef } from "react";
+import JXG from "jsxgraph";
 import { BoardContext, IMAGE_LAYER_OFFSET } from "./graph";
 import useDoenetRenderer, {
     UseDoenetRendererProps,

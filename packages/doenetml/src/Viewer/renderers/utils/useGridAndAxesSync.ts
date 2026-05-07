@@ -1,5 +1,4 @@
 import { useEffect, type RefObject } from "react";
-// @ts-ignore
 import JXG from "jsxgraph";
 import {
     applyAxisTickHeights,

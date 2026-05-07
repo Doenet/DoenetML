@@ -1,4 +1,5 @@
 import React, { useEffect, useContext, useRef } from "react";
+import JXG from "jsxgraph";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
