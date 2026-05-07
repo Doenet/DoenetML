@@ -5,6 +5,7 @@ import {
     addNavigationButtons,
     createXAxis,
     createYAxis,
+    type AxisJXG,
 } from "./utils/jsxgraph";
 import useJSXGraphBoardSync from "./utils/useJSXGraphBoardSync";
 import { JXGBoard } from "./jsxgraph-distrib/types";
@@ -37,10 +38,10 @@ export default function JSXGraphRenderer({
     const previousDimensions = useRef<{
         width: number;
         aspectRatio: string | number;
-    } | null>(null);
-    const previousBoundingbox = useRef<number[] | null>(null);
-    const xaxis = useRef<any>(null);
-    const yaxis = useRef<any>(null);
+    }>({ width: 0, aspectRatio: 1 });
+    const previousBoundingbox = useRef<number[]>([0, 0, 0, 0]);
+    const xaxis = useRef<AxisJXG | null | undefined>(null);
+    const yaxis = useRef<AxisJXG | null | undefined>(null);
     const settingBoundingBox = useRef<boolean>(false);
     const boardJustInitialized = useRef<boolean>(false);
 

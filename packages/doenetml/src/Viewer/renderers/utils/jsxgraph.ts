@@ -3,7 +3,7 @@ import { cesc } from "@doenet/utils";
 import type { RefObject } from "react";
 import { JXGBoard, JXGElement } from "../jsxgraph-distrib/types";
 
-type AxisJXG = JXGElement & {
+export type AxisJXG = JXGElement & {
     defaultTicks: {
         getDistanceMajorTicks: () => number;
         visProp: Record<string, any>;
@@ -13,7 +13,7 @@ type AxisJXG = JXGElement & {
     getLabelAnchor?: () => { scrCoords?: number[] };
 };
 
-type AxisRef = RefObject<AxisJXG | null | undefined>;
+export type AxisRef = RefObject<AxisJXG | null | undefined>;
 
 /**
  * Minimal structural shape for the line-like objects these helpers touch.
@@ -53,7 +53,7 @@ export function applyAxisTickHeights({
     displayXAxisTicks = true,
     displayYAxisTicks = true,
 }: {
-    grid: string;
+    grid: unknown;
     xaxisRef: AxisRef;
     yaxisRef: AxisRef;
     displayXAxisTicks?: boolean;
