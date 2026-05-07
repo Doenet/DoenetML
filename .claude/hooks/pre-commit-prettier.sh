@@ -22,10 +22,18 @@ input=$(cat)
 cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/null || true)
 
 # Only act when the command runs `git commit`. Match `git` followed by
-# optional flags (-x, --long, --long=val, -C path) and then `commit`.
-# Require `git` to be the first command or to appear after a separator
-# (not inside a quoted string like `echo '; git commit'`).
-if ! printf '%s' "$cmd" | grep -qE '(^[[:space:]]*|[[:space:]](;|&&|\|\||[|&({!]))[[:space:]]*git( +-[^ ]+( +[^ -][^ ]*)?)* +commit($|[[:space:]])'; then
+# optional flags (-x, --long, --long=val, -C path) and then `commit` as
+# a complete token (so `git commit-tree` and `git log --grep=commit`
+# don't trigger). Anchor `git` to the start of the command or to a shell
+# separator (`;`, `&&`/`&`, `||`/`|`, `(`, `{`, `` ` ``, `!`), with or
+# without surrounding whitespace, so that `cmd;git commit` and
+# `cmd && git commit` both intercept correctly.
+#
+# Known limitation: a regex cannot parse shell quoting, so a string like
+# `echo '; git commit'` will false-positive. False positives only block
+# one Bash call (Claude can retry with CLAUDE_SKIP_PRETTIER=1), so we
+# accept this rather than reaching for a real shell tokenizer.
+if ! printf '%s' "$cmd" | grep -qE '(^|[;&|`({!])[[:space:]]*git( +-[^ ]+( +[^ -][^ ]*)?)* +commit([^a-zA-Z0-9_-]|$)'; then
     exit 0
 fi
 

@@ -6,7 +6,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "bash \"$([ -n \"${CLAUDE_PROJECT_DIR:-}\" ] && echo \"$CLAUDE_PROJECT_DIR\" || git rev-parse --show-toplevel 2>/dev/null || echo \"$PWD\")/.claude/hooks/pre-commit-prettier.sh\"",
+                        "command": "h=\"$([ -n \"${CLAUDE_PROJECT_DIR:-}\" ] && echo \"$CLAUDE_PROJECT_DIR\" || git rev-parse --show-toplevel 2>/dev/null || echo \"$PWD\")/.claude/hooks/pre-commit-prettier.sh\"; [ -x \"$h\" ] || exit 0; bash \"$h\"",
                         "timeout": 30
                     }
                 ]
