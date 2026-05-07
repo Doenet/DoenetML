@@ -12,6 +12,20 @@ import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { MathJax } from "better-react-mathjax";
 import { DescriptionPopover } from "./utils/Description";
 
+interface AnswerSVs {
+    [key: string]: any;
+    hidden: boolean;
+    inline: boolean;
+    label: string;
+    labelHasLatex: boolean;
+    justSubmitted: boolean;
+    forceFullCheckWorkButton: boolean;
+    forceSmallCheckWorkButton: boolean;
+    haveBlockInputChild: boolean;
+    inputChildIndices: any;
+    descriptionChildInd: any;
+}
+
 export default React.memo(function Answer(props: UseDoenetRendererProps) {
     let {
         componentIdx,
@@ -23,7 +37,7 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         children,
         flags,
         callAction,
-    } = useDoenetRenderer(props);
+    } = useDoenetRenderer<AnswerSVs>(props);
 
     const { showAnswerResponseButton, answerResponseCounts } =
         useContext(DocContext) || {};
@@ -42,7 +56,7 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         justSubmitted: SVs.justSubmitted,
     });
 
-    let label = SVs.label;
+    let label: React.ReactNode = SVs.label;
     if (SVs.labelHasLatex) {
         label = (
             <MathJax hideUntilTypeset={"first"} inline dynamic>

@@ -1,20 +1,46 @@
-// @ts-nocheck
 import React, { useRef, useState } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { ActionButton } from "@doenet/ui-components";
 import { ActionButtonGroup } from "@doenet/ui-components";
-import { ToggleButton } from "@doenet/ui-components";
-import { ToggleButtonGroup } from "@doenet/ui-components";
+import { ToggleButton as ToggleButtonUntyped } from "@doenet/ui-components";
+import { ToggleButtonGroup as ToggleButtonGroupUntyped } from "@doenet/ui-components";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import "./subsetOfRealsInput.css";
 
-export default React.memo(function subsetOfReals(props) {
-    let { id, SVs, actions, callAction } = useDoenetRenderer(props, false);
-    let [mode, setMode] = useState("add remove points");
-    let bounds = useRef(null);
-    let pointGrabbed = useRef(null);
+const ToggleButton = ToggleButtonUntyped as any;
+const ToggleButtonGroup = ToggleButtonGroupUntyped as any;
 
-    const ref = useRef(null);
+interface PointDisplayed {
+    value: number;
+    inSubset: boolean;
+}
+
+interface IntervalDisplayed {
+    left: number;
+    right: number;
+    inSubset: boolean;
+}
+
+interface SubsetOfRealsInputSVs {
+    [key: string]: any;
+    hidden: boolean;
+    fixed: boolean;
+    pointsDisplayed: PointDisplayed[];
+    intervalsDisplayed: IntervalDisplayed[];
+}
+
+export default React.memo(function subsetOfReals(
+    props: UseDoenetRendererProps,
+) {
+    let { id, SVs, actions, callAction } =
+        useDoenetRenderer<SubsetOfRealsInputSVs>(props, false);
+    let [mode, setMode] = useState("add remove points");
+    let bounds = useRef<HTMLDivElement | null>(null);
+    let pointGrabbed = useRef<number | null>(null);
+
+    const ref = useRef<HTMLDivElement | null>(null);
 
     useRecordVisibilityChanges(ref, callAction, actions);
 
@@ -22,7 +48,7 @@ export default React.memo(function subsetOfReals(props) {
         return null;
     }
 
-    function handleTogglePoints(val) {
+    function handleTogglePoints(val: number) {
         // setTogglePoints(val);
         if (val === 0) {
             setMode("add remove points");
@@ -98,7 +124,7 @@ export default React.memo(function subsetOfReals(props) {
                 x={x}
                 y="66"
                 textAnchor="middle"
-                class="text-no-select"
+                className="text-no-select"
             >
                 {number}
             </text>,
@@ -191,7 +217,7 @@ export default React.memo(function subsetOfReals(props) {
         );
     }
 
-    function xValueToXPosition(xValue) {
+    function xValueToXPosition(xValue: number) {
         // let minValue = -10;
         // let maxValue = 10;
         // Shift to positive numbers
@@ -207,7 +233,7 @@ export default React.memo(function subsetOfReals(props) {
         return position;
     }
 
-    function xPositionToXValue(xPosition) {
+    function xPositionToXValue(xPosition: number) {
         let relativeX = xPosition - firstHashXPosition;
         let shiftAmount = 10;
         let intervalValueWidth = 1;
@@ -217,8 +243,8 @@ export default React.memo(function subsetOfReals(props) {
         return value;
     }
 
-    async function handleInput(e, inputState) {
-        let mouseLeft = e.clientX - bounds.current.offsetLeft;
+    async function handleInput(e: React.MouseEvent, inputState: string) {
+        let mouseLeft = e.clientX - (bounds.current?.offsetLeft ?? 0);
         let xPosition = xPositionToXValue(mouseLeft);
         let pointHitTolerance = 0.2;
 

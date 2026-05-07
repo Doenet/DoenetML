@@ -1,4 +1,3 @@
-// @ts-nocheck
 import React, { useRef } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
@@ -11,8 +10,18 @@ import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { addCommasForCompositeRanges } from "./utils/composites";
 import "./hint.css";
 
+interface HintSVs {
+    [key: string]: any;
+    showHints: boolean;
+    open: boolean;
+    title: string;
+    titleChildName?: string;
+    _compositeReplacementActiveRange?: any;
+}
+
 export default React.memo(function Hint(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<HintSVs>(props);
 
     const ref = useRef(null);
 
@@ -31,11 +40,8 @@ export default React.memo(function Hint(props: UseDoenetRendererProps) {
         for (let [ind, child] of children.entries()) {
             //child might be null or a string
             if (
-                child &&
-                typeof child === "object" &&
-                "props" in child &&
-                child?.props?.componentInstructions.componentIdx ===
-                    SVs.titleChildName
+                (child as any)?.props?.componentInstructions?.componentIdx ===
+                SVs.titleChildName
             ) {
                 title = children[ind];
                 children.splice(ind, 1); // remove title

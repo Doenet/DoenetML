@@ -1,7 +1,8 @@
-// @ts-nocheck
 import React, { useContext, useEffect, useRef } from "react";
 import { BoardContext, TEXT_LAYER_OFFSET } from "./graph";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { MathJax } from "better-react-mathjax";
 import me from "math-expressions";
 import { textRendererStyle } from "@doenet/utils";
@@ -11,34 +12,52 @@ import {
 } from "./utils/graph";
 import { DocContext } from "../DocViewer";
 import { ChoiceInputInlineContext } from "./choiceInput";
+import { JXGEvent, JXGPoint, JXGText } from "./jsxgraph-distrib/types";
+import { SelectedStyle } from "./utils/graphicalSVs";
 
-export default React.memo(function Label(props) {
-    let { componentIdx, id, SVs, children, actions, callAction } =
-        useDoenetRenderer(props);
+interface LabelSVs {
+    hidden: boolean;
+    layer: number;
+    fixed: boolean;
+    fixLocation: boolean;
+    draggable: boolean;
+    anchor: any;
+    positionFromAnchor: any;
+    value: string;
+    hasLatex: boolean;
+    forTargetRendererId?: string;
+    forTargetIsGroup?: boolean;
+    selectedStyle: SelectedStyle;
+}
 
+export default React.memo(function Label(props: UseDoenetRendererProps) {
+    let { componentIdx, id, SVs, actions, callAction } =
+        useDoenetRenderer<LabelSVs>(props);
+
+    // @ts-ignore
     Label.ignoreActionsWithoutCore = () => true;
 
-    let labelJXG = useRef(null);
-    let anchorPointJXG = useRef(null);
-    let anchorRel = useRef(null);
+    let labelJXG = useRef<JXGText | null>(null);
+    let anchorPointJXG = useRef<JXGPoint | null>(null);
+    let anchorRel = useRef<[string, string] | null>(null);
 
     const board = useContext(BoardContext);
     const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
 
-    let pointerAtDown = useRef(null);
-    let pointAtDown = useRef(null);
-    let pointerIsDown = useRef(false);
-    let pointerMovedSinceDown = useRef(false);
-    let dragged = useRef(false);
+    let pointerAtDown = useRef<[number, number] | null>(null);
+    let pointAtDown = useRef<number[] | null>(null);
+    let pointerIsDown = useRef<boolean>(false);
+    let pointerMovedSinceDown = useRef<boolean>(false);
+    let dragged = useRef<boolean>(false);
 
-    let calculatedX = useRef(null);
-    let calculatedY = useRef(null);
+    let calculatedX = useRef<number | null>(null);
+    let calculatedY = useRef<number | null>(null);
 
-    let lastPositionFromCore = useRef(null);
-    let previousPositionFromAnchor = useRef(null);
+    let lastPositionFromCore = useRef<number[] | null>(null);
+    let previousPositionFromAnchor = useRef<any>(null);
 
-    let fixed = useRef(false);
-    let fixLocation = useRef(false);
+    let fixed = useRef<boolean>(false);
+    let fixLocation = useRef<boolean>(false);
 
     fixed.current = SVs.fixed;
     fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
@@ -84,7 +103,7 @@ export default React.memo(function Label(props) {
         }
 
         //things to be passed to JSXGraph as attributes
-        let jsxLabelAttributes = {
+        let jsxLabelAttributes: Record<string, any> = {
             visible: !SVs.hidden,
             fixed: fixed.current,
             layer: 10 * SVs.layer + TEXT_LAYER_OFFSET,
@@ -99,13 +118,13 @@ export default React.memo(function Label(props) {
             parse: false,
         };
 
-        let newAnchorPointJXG;
+        let newAnchorPointJXG: JXGPoint;
 
         try {
             let anchor = me.fromAst(SVs.anchor);
             let anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant(),
-                anchor.get_component(1).evaluate_to_constant(),
+                anchor.get_component(0).evaluate_to_constant() ?? NaN,
+                anchor.get_component(1).evaluate_to_constant() ?? NaN,
             ];
 
             if (!Number.isFinite(anchorCoords[0])) {
@@ -119,12 +138,12 @@ export default React.memo(function Label(props) {
 
             newAnchorPointJXG = board.create("point", anchorCoords, {
                 visible: false,
-            });
+            }) as JXGPoint;
         } catch (e) {
             jsxLabelAttributes["visible"] = false;
             newAnchorPointJXG = board.create("point", [0, 0], {
                 visible: false,
-            });
+            }) as JXGPoint;
         }
 
         jsxLabelAttributes.anchor = newAnchorPointJXG;
@@ -134,16 +153,16 @@ export default React.memo(function Label(props) {
         );
         jsxLabelAttributes.anchorx = anchorx;
         jsxLabelAttributes.anchory = anchory;
-        anchorRel.current = [anchorx, anchory];
+        anchorRel.current = [anchorx as string, anchory as string];
 
         let newLabelJXG = board.create(
             "text",
             [0, 0, SVs.value],
             jsxLabelAttributes,
-        );
+        ) as JXGText;
         newLabelJXG.isDraggable = !fixLocation.current;
 
-        newLabelJXG.on("down", function (e) {
+        newLabelJXG.on("down", function (e: JXGEvent) {
             (document.activeElement as HTMLElement | null)?.blur();
 
             pointerAtDown.current = [e.x, e.y];
@@ -154,21 +173,21 @@ export default React.memo(function Label(props) {
             if (!fixed.current) {
                 callAction({
                     action: actions.labelFocused,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                    args: { componentIdx },
                 });
             }
         });
 
-        newLabelJXG.on("hit", function (e) {
+        newLabelJXG.on("hit", function (e: JXGEvent) {
             pointAtDown.current = [...newAnchorPointJXG.coords.scrCoords];
             dragged.current = false;
             callAction({
                 action: actions.labelFocused,
-                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                args: { componentIdx },
             });
         });
 
-        newLabelJXG.on("up", function (e) {
+        newLabelJXG.on("up", function (e: JXGEvent) {
             if (dragged.current) {
                 callAction({
                     action: actions.moveLabel,
@@ -181,13 +200,13 @@ export default React.memo(function Label(props) {
             } else if (!pointerMovedSinceDown.current && !fixed.current) {
                 callAction({
                     action: actions.labelClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                    args: { componentIdx },
                 });
             }
             pointerIsDown.current = false;
         });
 
-        newLabelJXG.on("keyfocusout", function (e) {
+        newLabelJXG.on("keyfocusout", function (e: JXGEvent) {
             if (dragged.current) {
                 callAction({
                     action: actions.moveLabel,
@@ -200,26 +219,26 @@ export default React.memo(function Label(props) {
             }
         });
 
-        newLabelJXG.on("drag", function (e) {
+        newLabelJXG.on("drag", function (e: JXGEvent) {
             let viaPointer = e.type === "pointermove";
 
             //Protect against very small unintended drags
             if (
                 !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current[0]) >
+                Math.abs(e.x - pointerAtDown.current![0]) >
                     POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current[1]) >
+                Math.abs(e.y - pointerAtDown.current![1]) >
                     POINTER_DRAG_THRESHOLD
             ) {
                 dragged.current = true;
             }
 
             let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
-            let width = newLabelJXG.size[0] / board.unitX;
-            let height = newLabelJXG.size[1] / board.unitY;
+            let width = newLabelJXG.size![0] / board.unitX;
+            let height = newLabelJXG.size![1] / board.unitY;
 
-            let anchorx = anchorRel.current[0];
-            let anchory = anchorRel.current[1];
+            let anchorx = anchorRel.current![0];
+            let anchory = anchorRel.current![1];
 
             let offsetx = 0;
             if (anchorx === "middle") {
@@ -252,25 +271,25 @@ export default React.memo(function Label(props) {
                 var o = board.origin.scrCoords;
 
                 calculatedX.current =
-                    (pointAtDown.current[1] +
+                    (pointAtDown.current![1] +
                         e.x -
-                        pointerAtDown.current[0] -
+                        pointerAtDown.current![0] -
                         o[1]) /
                     board.unitX;
 
                 calculatedY.current =
                     (o[2] -
-                        (pointAtDown.current[2] +
+                        (pointAtDown.current![2] +
                             e.y -
-                            pointerAtDown.current[1])) /
+                            pointerAtDown.current![1])) /
                     board.unitY;
             } else {
                 calculatedX.current =
                     newAnchorPointJXG.X() +
-                    newLabelJXG.relativeCoords.usrCoords[1];
+                    newLabelJXG.relativeCoords!.usrCoords[1];
                 calculatedY.current =
                     newAnchorPointJXG.Y() +
-                    newLabelJXG.relativeCoords.usrCoords[2];
+                    newLabelJXG.relativeCoords!.usrCoords[2];
             }
 
             calculatedX.current = Math.min(
@@ -292,7 +311,7 @@ export default React.memo(function Label(props) {
                 },
             });
 
-            newLabelJXG.relativeCoords.setCoordinates(
+            newLabelJXG.relativeCoords!.setCoordinates(
                 JXG.COORDS_BY_USER,
                 [0, 0],
             );
@@ -302,7 +321,7 @@ export default React.memo(function Label(props) {
             );
         });
 
-        newLabelJXG.on("keydown", function (e) {
+        newLabelJXG.on("keydown", function (e: JXGEvent) {
             if (e.key === "Enter") {
                 if (dragged.current) {
                     callAction({
@@ -316,7 +335,7 @@ export default React.memo(function Label(props) {
                 }
                 callAction({
                     action: actions.labelClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                    args: { componentIdx },
                 });
             }
         });
@@ -340,13 +359,13 @@ export default React.memo(function Label(props) {
         }
     }
 
-    function boardMoveHandler(e) {
+    function boardMoveHandler(e: JXGEvent) {
         if (pointerIsDown.current) {
             //Protect against very small unintended move
             if (
-                Math.abs(e.x - pointerAtDown.current[0]) >
+                Math.abs(e.x - pointerAtDown.current![0]) >
                     POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current[1]) >
+                Math.abs(e.y - pointerAtDown.current![1]) >
                     POINTER_DRAG_THRESHOLD
             ) {
                 pointerMovedSinceDown.current = true;
@@ -355,6 +374,7 @@ export default React.memo(function Label(props) {
     }
 
     function deleteLabelJXG() {
+        if (!labelJXG.current) return;
         labelJXG.current.off("drag");
         labelJXG.current.off("down");
         labelJXG.current.off("hit");
@@ -366,12 +386,12 @@ export default React.memo(function Label(props) {
     }
 
     if (board) {
-        let anchorCoords;
+        let anchorCoords: number[];
         try {
             let anchor = me.fromAst(SVs.anchor);
             anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant(),
-                anchor.get_component(1).evaluate_to_constant(),
+                anchor.get_component(0).evaluate_to_constant() ?? NaN,
+                anchor.get_component(1).evaluate_to_constant() ?? NaN,
             ];
         } catch (e) {
             anchorCoords = [NaN, NaN];
@@ -382,11 +402,11 @@ export default React.memo(function Label(props) {
         if (labelJXG.current === null) {
             createLabelJXG();
         } else {
-            labelJXG.current.relativeCoords.setCoordinates(
+            labelJXG.current.relativeCoords!.setCoordinates(
                 JXG.COORDS_BY_USER,
                 [0, 0],
             );
-            anchorPointJXG.current.coords.setCoordinates(
+            anchorPointJXG.current!.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
                 anchorCoords,
             );
@@ -437,8 +457,8 @@ export default React.memo(function Label(props) {
             }
 
             if (labelJXG.current.visProp.strokecolor !== textColor) {
-                labelJXG.current.visProp.strokecolor = textColor;
-                labelJXG.current.visProp.highlightstrokecolor = textColor;
+                labelJXG.current.visProp.strokecolor = textColor!;
+                labelJXG.current.visProp.highlightstrokecolor = textColor!;
             }
             if (labelJXG.current.visProp.cssstyle !== cssStyle) {
                 labelJXG.current.visProp.cssstyle = cssStyle;
@@ -457,15 +477,15 @@ export default React.memo(function Label(props) {
                 );
                 labelJXG.current.visProp.anchorx = anchorx;
                 labelJXG.current.visProp.anchory = anchory;
-                anchorRel.current = [anchorx, anchory];
+                anchorRel.current = [anchorx as string, anchory as string];
                 previousPositionFromAnchor.current = SVs.positionFromAnchor;
                 labelJXG.current.fullUpdate();
             } else {
                 labelJXG.current.update();
             }
 
-            anchorPointJXG.current.needsUpdate = true;
-            anchorPointJXG.current.update();
+            anchorPointJXG.current!.needsUpdate = true;
+            anchorPointJXG.current!.update();
             board.updateRenderer();
         }
 
@@ -479,10 +499,10 @@ export default React.memo(function Label(props) {
     }
 
     const style = !choiceInputInlineContext.inOption
-        ? textRendererStyle(darkMode, SVs.selectedStyle)
+        ? textRendererStyle(darkMode ?? "light", SVs.selectedStyle)
         : undefined;
 
-    let label = SVs.value;
+    let label: React.ReactNode = SVs.value;
 
     if (SVs.hasLatex) {
         label = (

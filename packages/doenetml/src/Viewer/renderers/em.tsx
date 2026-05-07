@@ -4,8 +4,14 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { addCommasForCompositeRanges } from "./utils/composites";
 
+interface EmSVs {
+    [key: string]: any;
+    hidden: boolean;
+    _compositeReplacementActiveRange?: any;
+}
+
 export default React.memo(function Em(props: UseDoenetRendererProps) {
-    let { id, SVs, children } = useDoenetRenderer(props);
+    let { id, SVs, children } = useDoenetRenderer<EmSVs>(props);
 
     if (SVs.hidden) {
         return null;

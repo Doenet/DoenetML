@@ -12,6 +12,14 @@ import {
 } from "./utils/checkWork";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
+interface PretzelSVs {
+    [key: string]: any;
+    hidden: boolean;
+    justSubmitted: boolean;
+    maxNumColumns: number;
+    numProblems: number;
+}
+
 export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
     let {
         componentIdx,
@@ -23,7 +31,7 @@ export default React.memo(function Pretzel(props: UseDoenetRendererProps) {
         actions,
         callAction,
         flags,
-    } = useDoenetRenderer(props);
+    } = useDoenetRenderer<PretzelSVs>(props);
 
     const ref = useRef(null);
 

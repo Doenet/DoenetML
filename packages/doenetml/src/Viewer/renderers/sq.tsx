@@ -4,8 +4,14 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { addCommasForCompositeRanges } from "./utils/composites";
 
+interface SqSVs {
+    [key: string]: any;
+    hidden: boolean;
+    _compositeReplacementActiveRange?: any;
+}
+
 export default React.memo(function Sq(props: UseDoenetRendererProps) {
-    let { id, SVs, children } = useDoenetRenderer(props);
+    let { id, SVs, children } = useDoenetRenderer<SqSVs>(props);
 
     if (SVs.hidden) {
         return null;

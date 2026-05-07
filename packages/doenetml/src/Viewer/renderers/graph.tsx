@@ -1,6 +1,7 @@
-// @ts-nocheck
 import React, { useEffect, useRef, useState, createContext } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { JXGBoard } from "./jsxgraph-distrib/types";
 import Prefigure from "./prefigure";
@@ -10,6 +11,44 @@ import JSXGraphRenderer from "./JSXGraphRenderer";
 import { normalizeGraphControlsMode } from "./graphControls/model";
 
 export const BoardContext = createContext<JXGBoard | null>(null);
+
+/**
+ * State variables read by the Graph renderer trio (graph.tsx, GraphFrame.tsx,
+ * JSXGraphRenderer.tsx) plus the inline children (Prefigure,
+ * GraphControlsRoot, axis helpers, useJSXGraphBoardSync). The index signature
+ * keeps it open for the many additional fields consumed by helpers that
+ * accept `Record<string, any>`.
+ */
+export interface GraphSVs {
+    [key: string]: any;
+    hidden: boolean;
+    haveGraphParent: boolean;
+    descriptionChildInd: number;
+    addControls: string;
+    graphicalDescendantsForControls: any[];
+    controlsPosition?: string;
+    renderInlineForListItem?: boolean;
+    effectiveRenderer?: string;
+    renderer?: string;
+    width: { size: string; isAbsolute: boolean };
+    aspectRatio: string | number;
+    displayMode: string;
+    horizontalAlign?: string;
+    showBorder: boolean;
+    shortDescription?: string;
+    decorative: boolean;
+    showNavigation?: boolean;
+    fixAxes?: boolean;
+    xMin: number;
+    yMax: number;
+    xMax: number;
+    yMin: number;
+    grid?: unknown;
+    displayXAxis?: boolean;
+    displayYAxis?: boolean;
+    prefigureXML: string | null;
+    hasAuthorAnnotations: boolean;
+}
 
 type ControlsPosition = "bottom" | "left" | "right" | "top";
 
@@ -34,16 +73,17 @@ function normalizeControlsPosition(value: unknown): ControlsPosition {
     return "left";
 }
 
-export default React.memo(function Graph(props) {
+export default React.memo(function Graph(props: UseDoenetRendererProps) {
     let { id, SVs, children, ignoreUpdate, actions, callAction } =
-        useDoenetRenderer(props);
+        useDoenetRenderer<GraphSVs>(props);
 
+    // @ts-ignore
     Graph.baseStateVariable = "boundingbox";
 
     const graphRenderer = SVs.effectiveRenderer ?? SVs.renderer;
     const isPrefigureRenderer = graphRenderer === "prefigure";
 
-    const containerRef = useRef(null);
+    const containerRef = useRef<HTMLDivElement | null>(null);
     const [availableWidth, setAvailableWidth] = useState<number | null>(null);
 
     useRecordVisibilityChanges(
@@ -66,13 +106,13 @@ export default React.memo(function Graph(props) {
     }, []);
 
     useEffect(() => {
-        const container = containerRef.current as HTMLDivElement | null;
+        const container = containerRef.current;
         if (!container) {
             return;
         }
 
         function updateContainerWidth() {
-            setAvailableWidth(container.clientWidth);
+            setAvailableWidth(container!.clientWidth);
         }
 
         updateContainerWidth();

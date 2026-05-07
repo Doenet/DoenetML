@@ -11,8 +11,17 @@ import {
 } from "./utils/checkWork";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
+interface PSVs {
+    [key: string]: any;
+    hidden: boolean;
+    _compositeReplacementActiveRange?: any;
+    justSubmitted: boolean;
+    renderInlineForListItem: boolean;
+}
+
 export default React.memo(function P(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<PSVs>(props);
 
     const ref = useRef(null);
 

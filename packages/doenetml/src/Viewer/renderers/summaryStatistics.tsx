@@ -5,8 +5,20 @@ import useDoenetRenderer, {
 import { sizeToCSS } from "./utils/css";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 
-export default React.memo(function Tabular(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
+interface SummaryStatisticsSVs {
+    [key: string]: any;
+    hidden: boolean;
+    columnName: string;
+    height?: any;
+    summaryStatistics?: any;
+    width?: any;
+}
+
+export default React.memo(function SummaryStatistics(
+    props: UseDoenetRendererProps,
+) {
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<SummaryStatisticsSVs>(props);
 
     const ref = useRef(null);
 

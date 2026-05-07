@@ -1,53 +1,94 @@
-// @ts-nocheck
 import React, { useEffect, useState, useContext, useRef } from "react";
 import { BoardContext, IMAGE_LAYER_OFFSET } from "./graph";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import me from "math-expressions";
 import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
 import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
 import { getNonInlineMediaLayoutStyles } from "./utils/nonInlineMediaLayout";
+import { JXGElement, JXGEvent, JXGPoint } from "./jsxgraph-distrib/types";
 
-export default React.memo(function Image(props) {
+interface ImageSVs {
+    hidden: boolean;
+    layer: number;
+    fixed: boolean;
+    fixLocation: boolean;
+    draggable: boolean;
+    anchor: any;
+    positionFromAnchor: any;
+    cid?: string;
+    source: string;
+    widthForGraph?: { size: number };
+    aspectRatio?: number;
+    rotate: number;
+    width: { size: string; isAbsolute: boolean };
+    displayMode: string;
+    horizontalAlign?: string;
+    decorative?: boolean;
+    shortDescription?: string;
+    renderInlineForListItem?: boolean;
+}
+
+type JXGImage = JXGElement & {
+    X(): number;
+    Y(): number;
+    W(): number;
+    H(): number;
+    relativeCoords?: {
+        usrCoords: [number, number, number];
+        setCoordinates: Function;
+    };
+    setSize(width: number, height: number): void;
+};
+
+type JXGTransform = JXGElement & {
+    bindTo(target: JXGElement): void;
+    setMatrix(board: any, type: string, params: any[]): void;
+};
+
+export default React.memo(function Image(props: UseDoenetRendererProps) {
     let { componentIdx, id, SVs, children, actions, callAction } =
-        useDoenetRenderer(props, false);
-    let [url, setUrl] = useState(null);
+        useDoenetRenderer<ImageSVs>(props, false);
+    let [url, setUrl] = useState<string | null>(null);
 
+    // @ts-ignore
     Image.ignoreActionsWithoutCore = () => true;
 
-    let imageJXG = useRef(null);
-    let anchorPointJXG = useRef(null);
+    let imageJXG = useRef<JXGImage | null>(null);
+    let anchorPointJXG = useRef<JXGPoint | null>(null);
 
     const board = useContext(BoardContext);
 
-    let pointerAtDown = useRef(null);
-    let pointAtDown = useRef(null);
-    let pointerIsDown = useRef(false);
-    let pointerMovedSinceDown = useRef(false);
-    let dragged = useRef(false);
+    let pointerAtDown = useRef<[number, number] | null>(null);
+    let pointAtDown = useRef<number[] | null>(null);
+    let pointerIsDown = useRef<boolean>(false);
+    let pointerMovedSinceDown = useRef<boolean>(false);
+    let dragged = useRef<boolean>(false);
 
-    let calculatedX = useRef(null);
-    let calculatedY = useRef(null);
+    let calculatedX = useRef<number | null>(null);
+    let calculatedY = useRef<number | null>(null);
 
-    let lastPositionFromCore = useRef(null);
-    let previousPositionFromAnchor = useRef(null);
-    let currentSize = useRef(null);
+    let lastPositionFromCore = useRef<number[] | null>(null);
+    let previousPositionFromAnchor = useRef<any>(null);
+    let currentSize = useRef<[number, number] | null>(null);
 
-    let currentOffset = useRef(null);
+    let currentOffset = useRef<[number, number] | null>(null);
 
-    let rotationTransform = useRef(null);
-    let lastRotate = useRef(SVs.rotate);
+    let rotationTransform = useRef<JXGTransform | null>(null);
+    let lastRotate = useRef<number>(SVs.rotate);
 
-    let fixed = useRef(false);
-    let fixLocation = useRef(false);
+    let fixed = useRef<boolean>(false);
+    let fixLocation = useRef<boolean>(false);
 
     fixed.current = SVs.fixed;
     fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
 
     const urlOrSource = (SVs.cid ? url : SVs.source) || "";
 
-    const ref = useRef(null);
+    const ref = useRef<HTMLDivElement | null>(null);
 
     useRecordVisibilityChanges(ref, callAction, actions);
 
@@ -83,20 +124,20 @@ export default React.memo(function Image(props) {
         }
 
         //things to be passed to JSXGraph as attributes
-        let jsxImageAttributes = {
+        let jsxImageAttributes: Record<string, any> = {
             visible: !SVs.hidden,
             fixed: fixed.current,
             layer: 10 * SVs.layer + IMAGE_LAYER_OFFSET,
             highlight: !fixLocation.current,
         };
 
-        let newAnchorPointJXG;
+        let newAnchorPointJXG: JXGPoint;
 
         try {
             let anchor = me.fromAst(SVs.anchor);
             let anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant(),
-                anchor.get_component(1).evaluate_to_constant(),
+                anchor.get_component(0).evaluate_to_constant() ?? NaN,
+                anchor.get_component(1).evaluate_to_constant() ?? NaN,
             ];
 
             if (!Number.isFinite(anchorCoords[0])) {
@@ -110,12 +151,12 @@ export default React.memo(function Image(props) {
 
             newAnchorPointJXG = board.create("point", anchorCoords, {
                 visible: false,
-            });
+            }) as JXGPoint;
         } catch (e) {
             jsxImageAttributes["visible"] = false;
             newAnchorPointJXG = board.create("point", [0, 0], {
                 visible: false,
-            });
+            }) as JXGPoint;
         }
 
         jsxImageAttributes.anchor = newAnchorPointJXG;
@@ -127,7 +168,7 @@ export default React.memo(function Image(props) {
             height = 0;
         }
 
-        let offset;
+        let offset: [number, number];
         if (SVs.positionFromAnchor === "center") {
             offset = [-width / 2, -height / 2];
         } else if (SVs.positionFromAnchor === "lowerleft") {
@@ -154,7 +195,7 @@ export default React.memo(function Image(props) {
             "image",
             [urlOrSource, offset, [width, height]],
             jsxImageAttributes,
-        );
+        ) as JXGImage;
 
         newImageJXG.isDraggable = !fixLocation.current;
 
@@ -171,7 +212,7 @@ export default React.memo(function Image(props) {
                 },
             ],
             { type: "translate" },
-        );
+        ) as JXGTransform;
         var tOffInverse = board.create(
             "transform",
             [
@@ -183,8 +224,10 @@ export default React.memo(function Image(props) {
                 },
             ],
             { type: "translate" },
-        );
-        var tRot = board.create("transform", [SVs.rotate], { type: "rotate" });
+        ) as JXGTransform;
+        var tRot = board.create("transform", [SVs.rotate], {
+            type: "rotate",
+        }) as JXGTransform;
 
         tOff.bindTo(newImageJXG); // Shift image to origin
         tRot.bindTo(newImageJXG); // Rotate
@@ -193,7 +236,7 @@ export default React.memo(function Image(props) {
         rotationTransform.current = tRot;
         lastRotate.current = SVs.rotate;
 
-        newImageJXG.on("down", function (e) {
+        newImageJXG.on("down", function (e: JXGEvent) {
             (document.activeElement as HTMLElement | null)?.blur();
 
             pointerAtDown.current = [e.x, e.y];
@@ -204,21 +247,21 @@ export default React.memo(function Image(props) {
             if (!fixed.current) {
                 callAction({
                     action: actions.imageFocused,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                    args: { componentIdx },
                 });
             }
         });
 
-        newImageJXG.on("hit", function (e) {
+        newImageJXG.on("hit", function (e: JXGEvent) {
             pointAtDown.current = [...newAnchorPointJXG.coords.scrCoords];
             dragged.current = false;
             callAction({
                 action: actions.imageFocused,
-                args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                args: { componentIdx },
             });
         });
 
-        newImageJXG.on("up", function (e) {
+        newImageJXG.on("up", function (e: JXGEvent) {
             if (dragged.current) {
                 callAction({
                     action: actions.moveImage,
@@ -231,13 +274,13 @@ export default React.memo(function Image(props) {
             } else if (!pointerMovedSinceDown.current && !fixed.current) {
                 callAction({
                     action: actions.imageClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                    args: { componentIdx },
                 });
             }
             pointerIsDown.current = false;
         });
 
-        newImageJXG.on("keyfocusout", function (e) {
+        newImageJXG.on("keyfocusout", function (e: JXGEvent) {
             if (dragged.current) {
                 callAction({
                     action: actions.moveImage,
@@ -250,15 +293,15 @@ export default React.memo(function Image(props) {
             }
         });
 
-        newImageJXG.on("drag", function (e) {
+        newImageJXG.on("drag", function (e: JXGEvent) {
             let viaPointer = e.type === "pointermove";
 
             //Protect against very small unintended drags
             if (
                 !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current[0]) >
+                Math.abs(e.x - pointerAtDown.current![0]) >
                     POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current[1]) >
+                Math.abs(e.y - pointerAtDown.current![1]) >
                     POINTER_DRAG_THRESHOLD
             ) {
                 dragged.current = true;
@@ -268,17 +311,17 @@ export default React.memo(function Image(props) {
             let xminAdjusted =
                 xMin +
                 0.01 * (xMax - xMin) -
-                currentOffset.current[0] -
-                currentSize.current[0];
+                currentOffset.current![0] -
+                currentSize.current![0];
             let xmaxAdjusted =
-                xMax - 0.01 * (xMax - xMin) - currentOffset.current[0];
+                xMax - 0.01 * (xMax - xMin) - currentOffset.current![0];
             let yminAdjusted =
                 yMin +
                 0.01 * (yMax - yMin) -
-                currentOffset.current[1] -
-                currentSize.current[1];
+                currentOffset.current![1] -
+                currentSize.current![1];
             let ymaxAdjusted =
-                yMax - 0.01 * (yMax - yMin) - currentOffset.current[1];
+                yMax - 0.01 * (yMax - yMin) - currentOffset.current![1];
 
             if (viaPointer) {
                 // the reason we calculate point position with this algorithm,
@@ -290,31 +333,30 @@ export default React.memo(function Image(props) {
                 // leading to a different location on up than on drag
                 // (as dragging uses the mouse location)
                 // TODO: find an example where need this this additional complexity
-
                 var o = board.origin.scrCoords;
 
                 calculatedX.current =
-                    (pointAtDown.current[1] +
+                    (pointAtDown.current![1] +
                         e.x -
-                        pointerAtDown.current[0] -
+                        pointerAtDown.current![0] -
                         o[1]) /
                     board.unitX;
 
                 calculatedY.current =
                     (o[2] -
-                        (pointAtDown.current[2] +
+                        (pointAtDown.current![2] +
                             e.y -
-                            pointerAtDown.current[1])) /
+                            pointerAtDown.current![1])) /
                     board.unitY;
             } else {
                 calculatedX.current =
                     newAnchorPointJXG.X() +
-                    newImageJXG.relativeCoords.usrCoords[1] -
-                    currentOffset.current[0];
+                    newImageJXG.relativeCoords!.usrCoords[1] -
+                    currentOffset.current![0];
                 calculatedY.current =
                     newAnchorPointJXG.Y() +
-                    newImageJXG.relativeCoords.usrCoords[2] -
-                    currentOffset.current[1];
+                    newImageJXG.relativeCoords!.usrCoords[2] -
+                    currentOffset.current![1];
             }
 
             calculatedX.current = Math.min(
@@ -336,7 +378,7 @@ export default React.memo(function Image(props) {
                 },
             });
 
-            newImageJXG.relativeCoords.setCoordinates(
+            newImageJXG.relativeCoords!.setCoordinates(
                 JXG.COORDS_BY_USER,
                 currentOffset.current,
             );
@@ -346,7 +388,7 @@ export default React.memo(function Image(props) {
             );
         });
 
-        newImageJXG.on("keydown", function (e) {
+        newImageJXG.on("keydown", function (e: JXGEvent) {
             if (e.key === "Enter") {
                 if (dragged.current) {
                     callAction({
@@ -360,7 +402,7 @@ export default React.memo(function Image(props) {
                 }
                 callAction({
                     action: actions.imageClicked,
-                    args: { componentIdx }, // send componentIdx so get original componentIdx if adapted
+                    args: { componentIdx },
                 });
             }
         });
@@ -374,13 +416,13 @@ export default React.memo(function Image(props) {
         imageJXG.current.fullUpdate();
     }
 
-    function boardMoveHandler(e) {
+    function boardMoveHandler(e: JXGEvent) {
         if (pointerIsDown.current) {
             //Protect against very small unintended move
             if (
-                Math.abs(e.x - pointerAtDown.current[0]) >
+                Math.abs(e.x - pointerAtDown.current![0]) >
                     POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current[1]) >
+                Math.abs(e.y - pointerAtDown.current![1]) >
                     POINTER_DRAG_THRESHOLD
             ) {
                 pointerMovedSinceDown.current = true;
@@ -389,6 +431,7 @@ export default React.memo(function Image(props) {
     }
 
     function deleteImageJXG() {
+        if (!imageJXG.current) return;
         imageJXG.current.off("drag");
         imageJXG.current.off("down");
         imageJXG.current.off("hit");
@@ -400,12 +443,12 @@ export default React.memo(function Image(props) {
     }
 
     if (board) {
-        let anchorCoords;
+        let anchorCoords: number[];
         try {
             let anchor = me.fromAst(SVs.anchor);
             anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant(),
-                anchor.get_component(1).evaluate_to_constant(),
+                anchor.get_component(0).evaluate_to_constant() ?? NaN,
+                anchor.get_component(1).evaluate_to_constant() ?? NaN,
             ];
         } catch (e) {
             anchorCoords = [NaN, NaN];
@@ -419,7 +462,7 @@ export default React.memo(function Image(props) {
             }
             createImageJXG();
         } else {
-            anchorPointJXG.current.coords.setCoordinates(
+            anchorPointJXG.current!.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
                 anchorCoords,
             );
@@ -468,8 +511,8 @@ export default React.memo(function Image(props) {
             }
 
             let sizeChanged =
-                width !== currentSize.current[0] ||
-                height !== currentSize.current[1];
+                width !== currentSize.current![0] ||
+                height !== currentSize.current![1];
 
             if (sizeChanged) {
                 imageJXG.current.setSize(width, height);
@@ -477,7 +520,7 @@ export default React.memo(function Image(props) {
             }
 
             if (SVs.rotate != lastRotate.current) {
-                rotationTransform.current.setMatrix(board, "rotate", [
+                rotationTransform.current!.setMatrix(board, "rotate", [
                     SVs.rotate,
                 ]);
                 lastRotate.current = SVs.rotate;
@@ -487,7 +530,7 @@ export default React.memo(function Image(props) {
                 SVs.positionFromAnchor !== previousPositionFromAnchor.current ||
                 sizeChanged
             ) {
-                let offset;
+                let offset: [number, number];
                 if (SVs.positionFromAnchor === "center") {
                     offset = [-width / 2, -height / 2];
                 } else if (SVs.positionFromAnchor === "lowerleft") {
@@ -509,7 +552,7 @@ export default React.memo(function Image(props) {
                     offset = [-width, -height / 2];
                 }
 
-                imageJXG.current.relativeCoords.setCoordinates(
+                imageJXG.current.relativeCoords!.setCoordinates(
                     JXG.COORDS_BY_USER,
                     offset,
                 );
@@ -518,15 +561,15 @@ export default React.memo(function Image(props) {
                 currentOffset.current = offset;
                 imageJXG.current.fullUpdate();
             } else {
-                imageJXG.current.relativeCoords.setCoordinates(
+                imageJXG.current.relativeCoords!.setCoordinates(
                     JXG.COORDS_BY_USER,
                     currentOffset.current,
                 );
                 imageJXG.current.update();
             }
 
-            anchorPointJXG.current.needsUpdate = true;
-            anchorPointJXG.current.update();
+            anchorPointJXG.current!.needsUpdate = true;
+            anchorPointJXG.current!.update();
             board.updateRenderer();
         }
 
@@ -537,10 +580,10 @@ export default React.memo(function Image(props) {
 
     if (SVs.hidden) return null;
 
-    let outerStyle = {};
-    let innerStyle = {};
-    let mediaContainerStyle = {};
-    let mediaColumnStyle = {};
+    let outerStyle: React.CSSProperties = {};
+    let innerStyle: React.CSSProperties = {};
+    let mediaContainerStyle: React.CSSProperties = {};
+    let mediaColumnStyle: React.CSSProperties = {};
 
     if (SVs.displayMode === "inline") {
         outerStyle = {
@@ -560,12 +603,12 @@ export default React.memo(function Image(props) {
             }));
     }
 
-    let imageStyle = {
+    let imageStyle: React.CSSProperties = {
         maxWidth: "100%",
         width: sizeToCSS(SVs.width),
     };
 
-    if (SVs.aspectRatio > 0) {
+    if ((SVs.aspectRatio ?? 0) > 0) {
         imageStyle.aspectRatio = String(SVs.aspectRatio);
     }
 

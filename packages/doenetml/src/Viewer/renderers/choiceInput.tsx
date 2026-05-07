@@ -37,9 +37,33 @@ export const ChoiceInputInlineContext = createContext<{
     inOption: boolean;
 }>({ isHidden: false, inOption: false });
 
+interface ChoiceInputSVs {
+    [key: string]: any;
+    hidden: boolean;
+    disabled: boolean;
+    inline: boolean;
+    label: string;
+    labelHasLatex: boolean;
+    labelPosition: string;
+    justSubmitted: boolean;
+    forceFullCheckWorkButton: boolean;
+    forceSmallCheckWorkButton: boolean;
+    colorCorrectness: boolean;
+    choiceChildIndices: any;
+    choiceOrder: any;
+    choicesDisabled: any;
+    choicesHidden: any;
+    descriptionChildInd: any;
+    externalLabelRendererIds: any;
+    immediateValue: any;
+    placeHolder: any;
+    renderInlineForListItem: boolean;
+    selectedIndices: any;
+}
+
 export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     let { id, SVs, actions, children, ignoreUpdate, callAction } =
-        useDoenetRenderer(props);
+        useDoenetRenderer<ChoiceInputSVs>(props);
 
     // @ts-ignore
     ChoiceInput.baseStateVariable = "selectedIndices";
@@ -149,7 +173,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
 
     let disabled = SVs.disabled;
 
-    let label = SVs.label;
+    let label: React.ReactNode = SVs.label;
     const hasLabel =
         typeof SVs.label === "string" ? SVs.label.trim() !== "" : !!SVs.label;
     const labelId = `${id}-label`;

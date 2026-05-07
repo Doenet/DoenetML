@@ -11,11 +11,30 @@ import {
 } from "./utils/graph";
 import { cesc } from "@doenet/utils";
 import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
+import { SelectedStyle } from "./utils/graphicalSVs";
+
+interface ButtonSVs {
+    [key: string]: any;
+    hidden: boolean;
+    disabled: boolean;
+    fixed: boolean;
+    fixLocation: boolean;
+    draggable: boolean;
+    anchor: any;
+    positionFromAnchor: any;
+    label: string;
+    labelHasLatex: boolean;
+    clickAction: any;
+    selectedStyle: SelectedStyle;
+}
 
 export default React.memo(function ButtonComponent(
     props: UseDoenetRendererProps,
 ) {
-    let { id, SVs, actions, callAction } = useDoenetRenderer(props, false);
+    let { id, SVs, actions, callAction } = useDoenetRenderer<ButtonSVs>(
+        props,
+        false,
+    );
 
     // @ts-ignore
     ButtonComponent.ignoreActionsWithoutCore = (actionName) =>
@@ -45,7 +64,7 @@ export default React.memo(function ButtonComponent(
 
     let label = SVs.label ? SVs.label : "Button";
 
-    let fillColor: string = SVs.selectedStyle.highContrastColor;
+    let fillColor: string = SVs.selectedStyle.highContrastColor ?? "";
 
     useEffect(() => {
         //On unmount

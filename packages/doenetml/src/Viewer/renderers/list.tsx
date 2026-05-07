@@ -10,8 +10,20 @@ import {
 } from "./utils/checkWork";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
+interface ListSVs {
+    [key: string]: any;
+    hidden: boolean;
+    _compositeReplacementActiveRange?: any;
+    item?: any;
+    justSubmitted: boolean;
+    level: number;
+    marker: string;
+    numbered: boolean;
+}
+
 export default React.memo(function List(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<ListSVs>(props);
 
     const ref = useRef(null);
 

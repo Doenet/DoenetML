@@ -1,19 +1,34 @@
-// @ts-nocheck
-import React, { createRef, useRef } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import React, { useRef } from "react";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
+
+interface OrbitalRowData {
+    orbitalText: string;
+    boxes: string[];
+}
+
+interface OrbitalDiagramSVs {
+    [key: string]: any;
+    hidden: boolean;
+    fixed: boolean;
+    value: OrbitalRowData[];
+}
 
 // border: ${(props) => (props.alert ? '2px solid #C1292E' : '2px solid black')};
 
-export default React.memo(function orbitalDiagram(props) {
-    let { id, SVs, actions, callAction } = useDoenetRenderer(props);
-    // console.log("orbitalDiagramInput SVs ", SVs);
+export default React.memo(function orbitalDiagram(
+    props: UseDoenetRendererProps,
+) {
+    let { id, SVs, actions, callAction } =
+        useDoenetRenderer<OrbitalDiagramSVs>(props);
 
     // use ref for fixed so changed value appears in callbacks
-    let fixed = createRef(SVs.fixed);
+    let fixed = useRef<boolean>(SVs.fixed);
     fixed.current = SVs.fixed;
 
-    const ref = useRef(null);
+    const ref = useRef<HTMLDivElement | null>(null);
 
     useRecordVisibilityChanges(ref, callAction, actions);
 
@@ -25,7 +40,7 @@ export default React.memo(function orbitalDiagram(props) {
 
     let rowsJSX = [];
     for (let [index, row] of Object.entries(rows)) {
-        let rowNumber = rows.length - index - 1;
+        let rowNumber = rows.length - Number(index) - 1;
         rowsJSX.push(
             <OrbitalRow
                 key={`OrbitalRow${rowNumber}`}
@@ -49,6 +64,11 @@ const OrbitalRow = React.memo(function OrbitalRow({
     orbitalText,
     boxes,
     name,
+}: {
+    rowNumber: number;
+    orbitalText: string;
+    boxes: string[];
+    name: string;
 }) {
     let rowStyle = {
         width: "800px",
@@ -79,7 +99,7 @@ const OrbitalRow = React.memo(function OrbitalRow({
         <div
             key={`OrbitalRow${rowNumber}`}
             id={`OrbitalRow${rowNumber}${name}`}
-            tabIndex="-1"
+            tabIndex={-1}
             style={rowStyle}
         >
             {/* <span style={{marginRight:"2px"}}>row {rowNumber + 1}</span> */}
@@ -97,6 +117,10 @@ const OrbitalText = React.memo(function OrbitalText({
     rowNumber,
     orbitalText,
     name,
+}: {
+    rowNumber: number;
+    orbitalText: string;
+    name: string;
 }) {
     return (
         <div
@@ -107,8 +131,6 @@ const OrbitalText = React.memo(function OrbitalText({
                 width: "40px",
                 backgroundColor: "white",
             }}
-            type="text"
-            size="4"
         >
             {orbitalText}
         </div>
@@ -120,6 +142,11 @@ const OrbitalBox = React.memo(function OrbitalBox({
     arrows = "",
     rowNumber,
     name,
+}: {
+    boxNum: string | number;
+    arrows?: string;
+    rowNumber: number;
+    name: string;
 }) {
     const firstUp = (
         <polyline
@@ -204,7 +231,7 @@ const OrbitalBox = React.memo(function OrbitalBox({
         <svg
             key={`orbitalbox${boxNum}`}
             id={`orbitalbox${name}${rowNumber}-${boxNum}`}
-            tabIndex="-1"
+            tabIndex={-1}
             width={boxWidth}
             height="40"
             style={{ margin: "2px" }}

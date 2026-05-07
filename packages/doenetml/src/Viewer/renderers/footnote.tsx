@@ -9,8 +9,15 @@ import {
     Button,
 } from "@ariakit/react";
 
+interface FootnoteSVs {
+    [key: string]: any;
+    hidden: boolean;
+    footnoteTag: string;
+    text: string;
+}
+
 export default React.memo(function Footnote(props: UseDoenetRendererProps) {
-    let { id, SVs } = useDoenetRenderer(props, false);
+    let { id, SVs } = useDoenetRenderer<FootnoteSVs>(props, false);
     let [isVisible, setIsVisible] = useState(false);
 
     if (SVs.hidden) {

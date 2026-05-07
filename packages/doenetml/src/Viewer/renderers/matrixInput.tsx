@@ -1,6 +1,7 @@
-// @ts-nocheck
 import React, { useContext, useRef } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 // import me from 'math-expressions';
 import { ActionButton } from "@doenet/ui-components";
 import { ActionButtonGroup } from "@doenet/ui-components";
@@ -15,8 +16,26 @@ import {
 import { DescriptionPopover } from "./utils/Description";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
-export default React.memo(function MatrixInput(props) {
-    let { id, SVs, actions, children, callAction } = useDoenetRenderer(props);
+interface MatrixInputSVs {
+    [key: string]: any;
+    hidden: boolean;
+    disabled: boolean;
+    label: string;
+    labelHasLatex: boolean;
+    labelPosition?: string;
+    showSizeControls: boolean;
+    numRows: number;
+    numColumns: number;
+    forceFullCheckWorkButton: boolean;
+    justSubmitted: boolean;
+    shortDescription?: string;
+    descriptionChildInd?: number;
+    externalLabelRendererIds?: string[];
+}
+
+export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
+    let { id, SVs, actions, children, callAction } =
+        useDoenetRenderer<MatrixInputSVs>(props);
 
     // need to use a ref for validation state as handlePressEnter
     // does not update to current values
@@ -145,7 +164,7 @@ export default React.memo(function MatrixInput(props) {
         );
     }
 
-    let label = SVs.label;
+    let label: React.ReactNode = SVs.label;
     const hasLabel =
         typeof SVs.label === "string" ? SVs.label.trim() !== "" : !!SVs.label;
     const labelId = `${id}-label`;
@@ -167,7 +186,9 @@ export default React.memo(function MatrixInput(props) {
         .join(" ");
 
     const descriptionChild =
-        SVs.descriptionChildInd !== -1 && children[SVs.descriptionChildInd];
+        SVs.descriptionChildInd !== undefined &&
+        SVs.descriptionChildInd !== -1 &&
+        children[SVs.descriptionChildInd];
 
     let descriptionId: string | undefined = undefined;
     let description: React.ReactNode | null = null;

@@ -6,8 +6,18 @@ import { sizeToCSS } from "./utils/css";
 import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 
+interface TabularSVs {
+    [key: string]: any;
+    hidden: boolean;
+    renderInlineForListItem: boolean;
+    width?: any;
+    height?: any;
+    top?: any;
+}
+
 export default React.memo(function Tabular(props: UseDoenetRendererProps) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<TabularSVs>(props);
 
     const ref = useRef(null);
 

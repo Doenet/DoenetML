@@ -1,5 +1,4 @@
-// @ts-nocheck
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState, Context } from "react";
 // @ts-ignore
 import JXG from "jsxgraph";
 import {
@@ -8,6 +7,20 @@ import {
     createYAxis,
 } from "./utils/jsxgraph";
 import useJSXGraphBoardSync from "./utils/useJSXGraphBoardSync";
+import { JXGBoard } from "./jsxgraph-distrib/types";
+import { GraphSVs } from "./graph";
+import { CallActionArgs, RendererAction } from "../useDoenetRenderer";
+
+interface JSXGraphRendererProps {
+    id: string;
+    SVs: GraphSVs;
+    children: React.ReactNode;
+    ignoreUpdate: boolean;
+    actions: Record<string, RendererAction>;
+    callAction: (argObj: CallActionArgs) => void;
+    BoardContext: Context<JXGBoard | null>;
+    surfaceStyle: React.CSSProperties;
+}
 
 export default function JSXGraphRenderer({
     id,
@@ -18,21 +31,24 @@ export default function JSXGraphRenderer({
     callAction,
     BoardContext,
     surfaceStyle,
-}) {
-    const [board, setBoard] = useState(null);
+}: JSXGraphRendererProps) {
+    const [board, setBoard] = useState<JXGBoard | null>(null);
 
-    const previousDimensions = useRef(null);
-    const previousBoundingbox = useRef(null);
-    const xaxis = useRef(null);
-    const yaxis = useRef(null);
-    const settingBoundingBox = useRef(false);
-    const boardJustInitialized = useRef(false);
+    const previousDimensions = useRef<{
+        width: number;
+        aspectRatio: string | number;
+    } | null>(null);
+    const previousBoundingbox = useRef<number[] | null>(null);
+    const xaxis = useRef<any>(null);
+    const yaxis = useRef<any>(null);
+    const settingBoundingBox = useRef<boolean>(false);
+    const boardJustInitialized = useRef<boolean>(false);
 
-    const previousShowNavigation = useRef(false);
-    const previousXaxisWithLabel = useRef(null);
-    const previousYaxisWithLabel = useRef(null);
+    const previousShowNavigation = useRef<boolean>(false);
+    const previousXaxisWithLabel = useRef<boolean>(false);
+    const previousYaxisWithLabel = useRef<boolean>(false);
 
-    const showNavigation = SVs.showNavigation && !SVs.fixAxes;
+    const showNavigation = Boolean(SVs.showNavigation && !SVs.fixAxes);
 
     useEffect(() => {
         const boundingbox = [SVs.xMin, SVs.yMax, SVs.xMax, SVs.yMin];
@@ -49,7 +65,7 @@ export default function JSXGraphRenderer({
             JXG.Options.grid.gridY = SVs.grid[1];
         }
 
-        const newBoard = window.JXG.JSXGraph.initBoard(id, {
+        const newBoard: JXGBoard = (window as any).JXG.JSXGraph.initBoard(id, {
             boundingbox,
             axis: false,
             showCopyright: false,
@@ -59,7 +75,7 @@ export default function JSXGraphRenderer({
             grid: haveFixedGrid,
         });
 
-        newBoard.itemsRenderedLowQuality = {};
+        (newBoard as any).itemsRenderedLowQuality = {};
 
         newBoard.on("boundingbox", () => {
             if (!settingBoundingBox.current) {
@@ -68,8 +84,8 @@ export default function JSXGraphRenderer({
 
                 const xscale = Math.abs(xMax - xMin);
                 const yscale = Math.abs(yMax - yMin);
-                const diffs = newBoundingbox.map((v, i) =>
-                    Math.abs(v - previousBoundingbox.current[i]),
+                const diffs = newBoundingbox.map((v: number, i: number) =>
+                    Math.abs(v - previousBoundingbox.current![i]),
                 );
                 if (
                     Math.max(
@@ -92,7 +108,7 @@ export default function JSXGraphRenderer({
         setBoard(newBoard);
 
         previousDimensions.current = {
-            width: parseFloat(surfaceStyle.width),
+            width: parseFloat(surfaceStyle.width as string),
             aspectRatio: SVs.aspectRatio,
         };
 
@@ -117,34 +133,40 @@ export default function JSXGraphRenderer({
         boardJustInitialized.current = true;
         previousShowNavigation.current = showNavigation;
 
-        function keyFocusOutListener(evt) {
-            const id_node = evt.target.id;
+        function keyFocusOutListener(evt: FocusEvent) {
+            const id_node = (evt.target as HTMLElement).id;
             if (id_node === "") {
                 return false;
             }
 
             const el_id = id_node.replace(id + "_", "");
-            const el = newBoard.select(el_id);
+            const el = (newBoard as any).select(el_id);
             el.triggerEventHandlers?.(["keyfocusout"], [evt]);
         }
 
-        newBoard.containerObj.addEventListener("focusout", keyFocusOutListener);
+        (newBoard as any).containerObj.addEventListener(
+            "focusout",
+            keyFocusOutListener,
+        );
 
-        function keyDownListener(evt) {
-            const id_node = evt.target.id;
+        function keyDownListener(evt: KeyboardEvent) {
+            const id_node = (evt.target as HTMLElement).id;
             if (id_node === "") {
                 return false;
             }
 
             const el_id = id_node.replace(id + "_", "");
-            const el = newBoard.select(el_id);
+            const el = (newBoard as any).select(el_id);
             el.triggerEventHandlers?.(["keydown"], [evt]);
         }
 
-        newBoard.containerObj.addEventListener("keydown", keyDownListener);
+        (newBoard as any).containerObj.addEventListener(
+            "keydown",
+            keyDownListener,
+        );
 
         return () => {
-            const container = newBoard.containerObj;
+            const container = (newBoard as any).containerObj;
             container?.removeEventListener("focusout", keyFocusOutListener);
             container?.removeEventListener("keydown", keyDownListener);
             newBoard.off("boundingbox");

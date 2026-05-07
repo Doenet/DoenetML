@@ -4,10 +4,22 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { Button } from "@doenet/ui-components";
 
+interface PaginatorControlsSVs {
+    [key: string]: any;
+    hidden: boolean;
+    currentPage: number;
+    disabledDirectly: boolean;
+    nextLabel: string;
+    numPages: number;
+    pageLabel: string;
+    previousLabel: string;
+}
+
 export default React.memo(function PaginatorControls(
     props: UseDoenetRendererProps,
 ) {
-    let { id, SVs, actions, callAction } = useDoenetRenderer(props, false);
+    let { id, SVs, actions, callAction } =
+        useDoenetRenderer<PaginatorControlsSVs>(props, false);
 
     if (SVs.hidden) {
         return null;

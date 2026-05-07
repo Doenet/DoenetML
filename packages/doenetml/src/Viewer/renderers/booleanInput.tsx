@@ -19,9 +19,28 @@ import {
 import { DescriptionPopover } from "./utils/Description";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 
+interface BooleanInputSVs {
+    [key: string]: any;
+    hidden: boolean;
+    disabled: boolean;
+    value: boolean;
+    asToggleButton: boolean;
+    label: string;
+    labelHasLatex: boolean;
+    labelPosition?: string;
+    fixed: boolean;
+    fixLocation: boolean;
+    draggable: boolean;
+    anchor: any;
+    positionFromAnchor: any;
+    forceFullCheckWorkButton: boolean;
+    justSubmitted: boolean;
+    shortDescription?: string;
+}
+
 export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, ignoreUpdate, callAction } =
-        useDoenetRenderer(props);
+        useDoenetRenderer<BooleanInputSVs>(props);
 
     // @ts-ignore
     BooleanInput.baseStateVariable = "value";
@@ -32,10 +51,10 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
     const [rendererValue, setRendererValue] = useState(SVs.value);
 
     // add ref, because event handler called from jsxgraph doesn't get new value
-    let rendererValueRef = useRef(null);
+    let rendererValueRef = useRef<boolean | null>(null);
     rendererValueRef.current = rendererValue;
 
-    let valueWhenSetState = useRef(null);
+    let valueWhenSetState = useRef<boolean | null>(null);
 
     let inputJXG = useRef<JXGObject | null>(null);
     let anchorPointJXG = useRef<JXGObject | null>(null);
@@ -497,7 +516,7 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
     );
 
     let input;
-    let label = SVs.label;
+    let label: React.ReactNode = SVs.label;
     if (SVs.labelHasLatex) {
         label = (
             <MathJax hideUntilTypeset={"first"} inline dynamic>
@@ -535,7 +554,7 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
                 onClick={onChangeHandler}
                 onFocus={() => onFocusChanged(true)}
                 onBlur={() => onFocusChanged(false)}
-                value={label}
+                value={label as any}
                 disabled={disabled}
                 ariaLabel={shortDescription}
             />

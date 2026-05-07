@@ -1,33 +1,50 @@
-// @ts-nocheck
 // youtube player code based on Ximera youtube player
 // https://github.com/XimeraProject/server
 // https://github.com/XimeraProject/server/blob/master/public/javascripts/youtube.js
 
 import React, { useRef, useEffect } from "react";
-import useDoenetRenderer from "../useDoenetRenderer";
+import useDoenetRenderer, {
+    UseDoenetRendererProps,
+} from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
 import { getNonInlineMediaLayoutStyles } from "./utils/nonInlineMediaLayout";
 import "./video.css";
 
-export default React.memo(function Video(props) {
-    let { id, SVs, children, actions, callAction } = useDoenetRenderer(props);
+interface VideoSVs {
+    [key: string]: any;
+    hidden: boolean;
+    width?: { size: string; isAbsolute: boolean };
+    aspectRatio?: number;
+    displayMode: string;
+    horizontalAlign?: string;
+    renderInlineForListItem?: boolean;
+    shortDescription?: string;
+    source?: string;
+    state?: string;
+    time?: number;
+    youtube?: string;
+}
 
-    let player = useRef(null);
-    let postSkipTime = useRef(null);
-    let preSkipTime = useRef(null);
-    let rates = useRef([]);
-    let lastPlayerState = useRef(null);
-    let pauseTimeoutId = useRef(null);
-    let lastPausedTime = useRef(0);
-    let lastPlayedTime = useRef(null);
-    let pollIntervalId = useRef(null);
-    let lastSetTimeAction = useRef(null);
+export default React.memo(function Video(props: UseDoenetRendererProps) {
+    let { id, SVs, children, actions, callAction } =
+        useDoenetRenderer<VideoSVs>(props);
 
-    let lastSVsState = useRef(null);
+    let player = useRef<any>(null);
+    let postSkipTime = useRef<number | null>(null);
+    let preSkipTime = useRef<number | null>(null);
+    let rates = useRef<any[]>([]);
+    let lastPlayerState = useRef<any>(null);
+    let pauseTimeoutId = useRef<any>(null);
+    let lastPausedTime = useRef<number>(0);
+    let lastPlayedTime = useRef<number | null>(null);
+    let pollIntervalId = useRef<any>(null);
+    let lastSetTimeAction = useRef<number | null>(null);
 
-    const ref = useRef(null);
+    let lastSVsState = useRef<any>(null);
+
+    const ref = useRef<HTMLDivElement | null>(null);
 
     useRecordVisibilityChanges(ref, callAction, actions);
 
@@ -35,10 +52,10 @@ export default React.memo(function Video(props) {
         if (SVs.youtube) {
             let cIdx = id;
 
-            // protect against window.YT being undefined,
+            // protect against (window as any).YT being undefined,
             // which could occur if cannot reach youtube
-            if (window.YT) {
-                player.current = new window.YT.Player(cIdx, {
+            if ((window as any).YT) {
+                player.current = new (window as any).YT.Player(cIdx, {
                     playerVars: {
                         autoplay: 0,
                         controls: 1,
@@ -53,7 +70,7 @@ export default React.memo(function Video(props) {
                 });
             }
         }
-    }, [window.YT]);
+    }, [(window as any).YT]);
 
     function pollCurrentTime() {
         let currentTime = player.current.getCurrentTime();
@@ -64,7 +81,7 @@ export default React.memo(function Video(props) {
         if (postSkipTime.current) {
             timeInterval = currentTime - postSkipTime.current;
         } else {
-            timeInterval = currentTime - preSkipTime.current;
+            timeInterval = currentTime - (preSkipTime.current ?? 0);
         }
 
         // We are polling every 200 ms,
@@ -75,7 +92,7 @@ export default React.memo(function Video(props) {
         // to be able to grab the current time to determine
         // the end of the watched segment)
         if (
-            !(preSkipTime.current >= 0) ||
+            !((preSkipTime.current ?? -1) >= 0) ||
             (timeInterval > 0 && timeInterval < 1)
         ) {
             preSkipTime.current = currentTime;
@@ -97,7 +114,7 @@ export default React.memo(function Video(props) {
         }
     }
 
-    function onPlayerReady(event) {
+    function onPlayerReady(event: any) {
         //setPlaybackQuality doesn't seem to work
         // event.target.setPlaybackQuality("hd720");
         // player.current.setPlaybackQuality("hd720");
@@ -110,7 +127,7 @@ export default React.memo(function Video(props) {
         });
     }
 
-    function onPlayerStateChange(event) {
+    function onPlayerStateChange(event: any) {
         //setPlaybackQuality doesn't seem to work
         // if (event.data == YT.PlayerState.BUFFERING) {
         // event.target.setPlaybackQuality('hd720');
@@ -120,7 +137,7 @@ export default React.memo(function Video(props) {
         let duration = player.current.getDuration();
 
         switch (event.data) {
-            case window.YT.PlayerState.PLAYING:
+            case (window as any).YT.PlayerState.PLAYING:
                 if (lastPlayerState.current !== event.data) {
                     let currentTime = player.current.getCurrentTime();
 
@@ -137,7 +154,8 @@ export default React.memo(function Video(props) {
                     );
 
                     if (
-                        lastPlayerState.current === window.YT.PlayerState.PAUSED
+                        lastPlayerState.current ===
+                        (window as any).YT.PlayerState.PAUSED
                     ) {
                         let timeSincePaused =
                             currentTime - lastPausedTime.current;
@@ -197,7 +215,7 @@ export default React.memo(function Video(props) {
 
                 break;
 
-            case window.YT.PlayerState.PAUSED:
+            case (window as any).YT.PlayerState.PAUSED:
                 // When a user pauses a video, we emit two events:
                 // a watched event summarizing that segment of watching
                 // and a paused event.
@@ -214,8 +232,8 @@ export default React.memo(function Video(props) {
                     clearInterval(pollIntervalId.current);
 
                     if (
-                        lastState === window.YT.PlayerState.PLAYING &&
-                        pausedTime > beginTime
+                        lastState === (window as any).YT.PlayerState.PLAYING &&
+                        pausedTime > (beginTime ?? 0)
                     ) {
                         rates.current[rates.current.length - 1].endingPoint =
                             pausedTime;
@@ -258,14 +276,14 @@ export default React.memo(function Video(props) {
 
                 break;
 
-            case window.YT.PlayerState.BUFFERING:
+            case (window as any).YT.PlayerState.BUFFERING:
                 clearTimeout(pauseTimeoutId.current);
                 let currentTime = player.current.getCurrentTime();
 
                 if (lastPlayedTime.current !== null) {
-                    let beginTime = lastPlayedTime.current;
+                    let beginTime: number = lastPlayedTime.current;
 
-                    if (preSkipTime.current > beginTime) {
+                    if ((preSkipTime.current ?? -1) > beginTime) {
                         rates.current[rates.current.length - 1].endingPoint =
                             preSkipTime.current;
 
@@ -286,7 +304,7 @@ export default React.memo(function Video(props) {
                             },
                         });
 
-                        beginTime = preSkipTime.current;
+                        beginTime = preSkipTime.current!;
                     }
 
                     // console.log("BUFFERING recordVideoSkipped", {
@@ -312,7 +330,7 @@ export default React.memo(function Video(props) {
 
                 break;
 
-            case window.YT.PlayerState.ENDED:
+            case (window as any).YT.PlayerState.ENDED:
                 // BADBAD: We're treating ENDED as though it meant the user
                 // completed the video, even thought it
                 // doesn't necessarily mean the learner watched ALL the video
@@ -358,14 +376,14 @@ export default React.memo(function Video(props) {
 
                 break;
 
-            case window.YT.PlayerState.UNSTARTED:
+            case (window as any).YT.PlayerState.UNSTARTED:
                 lastPlayerState.current = event.data;
 
                 break;
         }
     }
 
-    function onPlaybackRateChange(event) {
+    function onPlaybackRateChange(event: any) {
         let currentTime = player.current.getCurrentTime();
 
         rates.current[rates.current.length - 1].endingPoint = currentTime;
@@ -380,15 +398,15 @@ export default React.memo(function Video(props) {
         if (SVs.state !== lastSVsState.current) {
             if (SVs.state === "playing") {
                 if (
-                    playerState === window.YT.PlayerState.UNSTARTED ||
-                    playerState === window.YT.PlayerState.PAUSED ||
-                    playerState === window.YT.PlayerState.CUED ||
-                    playerState === window.YT.PlayerState.ENDED
+                    playerState === (window as any).YT.PlayerState.UNSTARTED ||
+                    playerState === (window as any).YT.PlayerState.PAUSED ||
+                    playerState === (window as any).YT.PlayerState.CUED ||
+                    playerState === (window as any).YT.PlayerState.ENDED
                 ) {
                     player.current.playVideo();
                 }
             } else if (SVs.state === "stopped") {
-                if (playerState === window.YT.PlayerState.PLAYING) {
+                if (playerState === (window as any).YT.PlayerState.PLAYING) {
                     player.current.pauseVideo();
                 }
             }
@@ -396,7 +414,7 @@ export default React.memo(function Video(props) {
         }
 
         if (SVs.time !== Number(lastSetTimeAction.current)) {
-            let time = SVs.time;
+            let time = SVs.time ?? 0;
             let duration = player.current.getDuration();
 
             if (time > duration) {
@@ -411,7 +429,7 @@ export default React.memo(function Video(props) {
             if (time !== Number(lastSetTimeAction.current)) {
                 if (
                     player.current.getPlayerState() ===
-                    window.YT.PlayerState.CUED
+                    (window as any).YT.PlayerState.CUED
                 ) {
                     // if cued, seeking will automatically start the video.
                     // Pausing it first doesn't seem to work
@@ -515,9 +533,8 @@ export default React.memo(function Video(props) {
             >
                 <source
                     src={SVs.source}
-                    type={`video/${SVs.source
-                        .split("/")
-                        .pop()
+                    type={`video/${SVs.source!.split("/")
+                        .pop()!
                         .split(".")
                         .pop()}`}
                 />
@@ -530,7 +547,7 @@ export default React.memo(function Video(props) {
 
     return (
         <div
-            tabIndex="0"
+            tabIndex={0}
             style={
                 SVs.renderInlineForListItem
                     ? { ...outerStyle, marginTop: 0 }

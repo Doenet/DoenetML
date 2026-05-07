@@ -7,9 +7,21 @@ import { sizeToCSS } from "./utils/css";
 import { useInView } from "framer-motion";
 import { EditorViewer } from "../../EditorViewer/EditorViewer";
 
+interface CodeEditorSVs {
+    [key: string]: any;
+    hidden: boolean;
+    readOnly: boolean;
+    showFormatter: boolean;
+    showResults: boolean;
+    resultsLocation: any;
+    immediateValue: string;
+    width: any;
+    height: any;
+}
+
 export default React.memo(function CodeEditor(props: UseDoenetRendererProps) {
     let { id, SVs, actions, ignoreUpdate, callAction, fetchExternalDoenetML } =
-        useDoenetRenderer(props) as any;
+        useDoenetRenderer<CodeEditorSVs>(props) as any;
 
     // @ts-ignore
     CodeEditor.baseStateVariable = "immediateValue";
