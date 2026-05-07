@@ -70,6 +70,11 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
             },
         });
         return () => {
+            // Stop pending timers before tearing down the player so that the
+            // 200ms poll loop and the 250ms pause-finalize timeout don't fire
+            // against a destroyed/null player.current.
+            clearInterval(pollIntervalId.current);
+            clearTimeout(pauseTimeoutId.current);
             player.current?.destroy?.();
             player.current = null;
         };
@@ -512,6 +517,11 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
     if (SVs.youtube) {
         videoTag = (
             <iframe
+                // Force React to unmount/remount the iframe when the YouTube
+                // id changes. The cleanup destroys the old YT.Player (which
+                // also detaches the old iframe from the DOM); the new effect
+                // then binds a fresh player to the freshly mounted iframe.
+                key={SVs.youtube}
                 id={id}
                 style={videoStyle}
                 src={
