@@ -10,6 +10,7 @@ import { sizeToCSS } from "./utils/css";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
 import { getNonInlineMediaLayoutStyles } from "./utils/nonInlineMediaLayout";
+import { NonInlineMediaWrapper } from "./utils/NonInlineMediaWrapper";
 import "./video.css";
 
 interface VideoSVs {
@@ -453,10 +454,10 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
 
     if (SVs.hidden) return null;
 
-    let outerStyle = {};
-    let innerStyle = {};
-    let mediaContainerStyle = {};
-    let mediaColumnStyle = {};
+    let outerStyle: React.CSSProperties = {};
+    let innerStyle: React.CSSProperties = {};
+    let mediaContainerStyle: React.CSSProperties = {};
+    let mediaColumnStyle: React.CSSProperties = {};
 
     if (SVs.displayMode === "inline") {
         outerStyle = {
@@ -546,31 +547,20 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
     }
 
     return (
-        <div
-            tabIndex={0}
-            style={
-                SVs.renderInlineForListItem
-                    ? { ...outerStyle, marginTop: 0 }
-                    : outerStyle
-            }
-            id={`${id}-container`}
-            ref={ref}
-            className="video"
-        >
-            <div style={innerStyle}>
-                {SVs.displayMode === "inline" ? (
-                    videoTag
-                ) : (
-                    <div style={mediaContainerStyle}>{videoTag}</div>
-                )}
-                {SVs.displayMode === "inline" || !description ? (
-                    description
-                ) : (
-                    <div style={mediaContainerStyle}>
-                        <div style={mediaColumnStyle}>{description}</div>
-                    </div>
-                )}
-            </div>
-        </div>
+        <NonInlineMediaWrapper
+            id={id}
+            displayMode={SVs.displayMode}
+            suppressTopMargin={Boolean(SVs.renderInlineForListItem)}
+            layoutStyles={{
+                outerStyle,
+                innerStyle,
+                mediaContainerStyle,
+                mediaColumnStyle,
+            }}
+            media={videoTag}
+            description={description}
+            containerRef={ref}
+            containerAttrs={{ tabIndex: 0, className: "video" }}
+        />
     );
 });
