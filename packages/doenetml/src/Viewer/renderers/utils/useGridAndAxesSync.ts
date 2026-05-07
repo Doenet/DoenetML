@@ -101,6 +101,9 @@ export default function useGridAndAxesSync({
                     drawLabels: SVs.displayXAxisTickLabels,
                 });
                 setMinorTicks(xaxisRef.current);
+                // Invariant: JSXgraph keeps `hasLabel` and `label` in lockstep,
+                // so the second clause only narrows the type — it never gates
+                // out a state that should be reachable.
                 if (xaxisRef.current.hasLabel && xaxisRef.current.label) {
                     let position = "rt";
                     let offset = [5, 10];
@@ -145,6 +148,7 @@ export default function useGridAndAxesSync({
                     drawLabels: SVs.displayYAxisTickLabels,
                 });
                 setMinorTicks(yaxisRef.current);
+                // Invariant: see x-axis above — `hasLabel` ⇒ `label` defined.
                 if (yaxisRef.current.hasLabel && yaxisRef.current.label) {
                     let position = "rt";
                     let offset = [-10, -5];
