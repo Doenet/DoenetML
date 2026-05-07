@@ -2,34 +2,22 @@ import React from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-import { addCommasForCompositeRanges } from "./utils/composites";
+import { MarkupSVsBase, renderMarkupBody } from "./utils/markupRenderer";
 
-interface CSVs {
+interface CSVs extends MarkupSVsBase {
     [key: string]: any;
-    hidden: boolean;
-    _compositeReplacementActiveRange?: any;
 }
 
 export default React.memo(function C(props: UseDoenetRendererProps) {
-    let { id, SVs, children } = useDoenetRenderer<CSVs>(props);
+    const { id, SVs, children } = useDoenetRenderer<CSVs>(props);
 
-    if (SVs.hidden) {
+    const body = renderMarkupBody({ SVs, children });
+    if (body === null) {
         return null;
     }
-
-    if (SVs._compositeReplacementActiveRange) {
-        children = addCommasForCompositeRanges({
-            children,
-            compositeReplacementActiveRange:
-                SVs._compositeReplacementActiveRange,
-            startInd: 0,
-            endInd: children.length - 1,
-        });
-    }
-
     return (
         <code id={id} style={{ margin: "12px 0" }}>
-            {children}
+            {body}
         </code>
     );
 });
