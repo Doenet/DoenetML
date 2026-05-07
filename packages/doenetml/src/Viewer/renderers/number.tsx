@@ -12,7 +12,7 @@ import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { DocContext } from "../DocViewer";
 import { ChoiceInputInlineContext } from "./choiceInput";
 import { JXGPoint, JXGText } from "./jsxgraph-distrib/types";
-import { SelectedStyle } from "./utils/graphicalSVs";
+import { ResolvedStyleDefinition } from "@doenet/utils";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
@@ -32,7 +32,7 @@ interface NumberSVs {
     positionFromAnchor: any;
     text: string;
     renderAsMath: boolean;
-    selectedStyle: SelectedStyle;
+    selectedStyle: ResolvedStyleDefinition;
 }
 
 export default React.memo(function NumberComponent(

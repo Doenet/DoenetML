@@ -1,4 +1,4 @@
-import { SelectedStyle } from "./graphicalSVs";
+import { ResolvedStyleDefinition } from "@doenet/utils";
 
 export type DarkMode = "dark" | "light" | undefined;
 
@@ -12,21 +12,21 @@ export type DarkMode = "dark" | "light" | undefined;
  * palettes, etc.) lives in one place.
  */
 export function resolveLineColor(
-    style: Pick<SelectedStyle, "lineColor" | "lineColorDarkMode">,
+    style: Pick<ResolvedStyleDefinition, "lineColor" | "lineColorDarkMode">,
     darkMode: DarkMode,
 ): string {
     return darkMode === "dark" ? style.lineColorDarkMode : style.lineColor;
 }
 
 export function resolveFillColor(
-    style: Pick<SelectedStyle, "fillColor" | "fillColorDarkMode">,
+    style: Pick<ResolvedStyleDefinition, "fillColor" | "fillColorDarkMode">,
     darkMode: DarkMode,
 ): string {
     return darkMode === "dark" ? style.fillColorDarkMode : style.fillColor;
 }
 
 export function resolveMarkerColor(
-    style: Pick<SelectedStyle, "markerColor" | "markerColorDarkMode">,
+    style: Pick<ResolvedStyleDefinition, "markerColor" | "markerColorDarkMode">,
     darkMode: DarkMode,
 ): string {
     return darkMode === "dark" ? style.markerColorDarkMode : style.markerColor;

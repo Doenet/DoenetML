@@ -1,44 +1,5 @@
+import { ResolvedStyleDefinition } from "@doenet/utils";
 import { LabelPosition } from "./graph";
-
-/**
- * Resolved style values delivered to a renderer.
- *
- * Mirrors the keys produced by `returnSelectedStyleStateVariableDefinition` in
- * `@doenet/utils/style/style.ts`. All values are primitives (the wrapper
- * `{ style }` shape from the worker is unwrapped before reaching the renderer).
- */
-export interface SelectedStyle {
-    lineColor: string;
-    lineColorWord: string;
-    lineColorDarkMode: string;
-    lineColorWordDarkMode: string;
-    lineOpacity: number;
-    lineWidth: number;
-    lineWidthWord: string;
-    lineStyle: string;
-    lineStyleWord: string;
-    markerColor: string;
-    markerColorWord: string;
-    markerColorDarkMode: string;
-    markerColorWordDarkMode: string;
-    markerOpacity: number;
-    markerStyle: string;
-    markerStyleWord: string;
-    markerSize: number;
-    fillColor: string;
-    fillColorWord: string;
-    fillColorDarkMode: string;
-    fillColorWordDarkMode: string;
-    fillOpacity: number;
-    textColor?: string;
-    textColorWord?: string;
-    textColorDarkMode?: string;
-    textColorWordDarkMode?: string;
-    highContrastColor?: string;
-    highContrastColorDarkMode?: string;
-    backgroundColor?: string;
-    backgroundColorDarkMode?: string;
-}
 
 /**
  * Truly universal state-variable shape — present on every JSXgraph-renderable
@@ -51,7 +12,7 @@ export interface GraphicalSVs {
     labelHasLatex: boolean;
     labelPosition: LabelPosition;
     applyStyleToLabel: boolean;
-    selectedStyle: SelectedStyle;
+    selectedStyle: ResolvedStyleDefinition;
 }
 
 /**

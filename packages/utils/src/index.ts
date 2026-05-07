@@ -16,6 +16,7 @@ export * from "./math/rounding";
 export * from "./math/subset-of-reals-operations";
 export * from "./style/colorWords";
 export * from "./style/style";
+export * from "./style/styleDefinitionHelpers";
 export * from "./types/core";
 export * from "./url/url";
 export * from "./version/doenetMLversion";
