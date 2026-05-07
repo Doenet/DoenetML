@@ -131,7 +131,6 @@ const OrbitalText = React.memo(function OrbitalText({
                 width: "40px",
                 backgroundColor: "white",
             }}
-            {...({ type: "text", size: "4" } as any)}
         >
             {orbitalText}
         </div>
