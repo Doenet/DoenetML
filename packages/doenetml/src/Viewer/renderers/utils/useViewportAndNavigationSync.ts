@@ -1,6 +1,26 @@
-// @ts-nocheck
-import { useEffect } from "react";
+import { useEffect, type CSSProperties, type RefObject } from "react";
 import { addNavigationButtons, removeNavigationButtons } from "./jsxgraph";
+import type { JXGBoard } from "../jsxgraph-distrib/types";
+import type { GraphSVs } from "../graph";
+
+interface PreviousDimensions {
+    width: number;
+    aspectRatio: string | number;
+}
+
+interface UseViewportAndNavigationSyncParams {
+    enabled: boolean;
+    board: JXGBoard | null;
+    id: string;
+    SVs: GraphSVs;
+    ignoreUpdate: boolean;
+    showNavigation: boolean;
+    surfaceStyle: CSSProperties;
+    previousDimensionsRef: RefObject<PreviousDimensions>;
+    previousBoundingboxRef: RefObject<number[]>;
+    settingBoundingBoxRef: RefObject<boolean>;
+    previousShowNavigationRef: RefObject<boolean>;
+}
 
 export default function useViewportAndNavigationSync({
     enabled,
@@ -14,7 +34,7 @@ export default function useViewportAndNavigationSync({
     previousBoundingboxRef,
     settingBoundingBoxRef,
     previousShowNavigationRef,
-}) {
+}: UseViewportAndNavigationSyncParams) {
     useEffect(() => {
         if (!enabled || !board) {
             return;
@@ -36,8 +56,8 @@ export default function useViewportAndNavigationSync({
         }
 
         // Track surface dimensions to preserve existing resize semantics.
-        const currentDimensions = {
-            width: parseFloat(surfaceStyle.width),
+        const currentDimensions: PreviousDimensions = {
+            width: parseFloat(surfaceStyle.width as string),
             aspectRatio: SVs.aspectRatio,
         };
 

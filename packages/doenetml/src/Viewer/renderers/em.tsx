@@ -2,30 +2,18 @@ import React from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-import { addCommasForCompositeRanges } from "./utils/composites";
+import { MarkupSVsBase, renderMarkupBody } from "./utils/markupRenderer";
 
-interface EmSVs {
+interface EmSVs extends MarkupSVsBase {
     [key: string]: any;
-    hidden: boolean;
-    _compositeReplacementActiveRange?: any;
 }
 
 export default React.memo(function Em(props: UseDoenetRendererProps) {
-    let { id, SVs, children } = useDoenetRenderer<EmSVs>(props);
+    const { id, SVs, children } = useDoenetRenderer<EmSVs>(props);
 
-    if (SVs.hidden) {
+    const body = renderMarkupBody({ SVs, children });
+    if (body === null) {
         return null;
     }
-
-    if (SVs._compositeReplacementActiveRange) {
-        children = addCommasForCompositeRanges({
-            children,
-            compositeReplacementActiveRange:
-                SVs._compositeReplacementActiveRange,
-            startInd: 0,
-            endInd: children.length - 1,
-        });
-    }
-
-    return <em id={id}>{children}</em>;
+    return <em id={id}>{body}</em>;
 });

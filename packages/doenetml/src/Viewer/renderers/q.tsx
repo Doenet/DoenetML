@@ -2,35 +2,18 @@ import React from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-import { addCommasForCompositeRanges } from "./utils/composites";
+import { MarkupSVsBase, renderMarkupBody } from "./utils/markupRenderer";
 
-interface QSVs {
+interface QSVs extends MarkupSVsBase {
     [key: string]: any;
-    hidden: boolean;
-    _compositeReplacementActiveRange?: any;
 }
 
 export default React.memo(function Q(props: UseDoenetRendererProps) {
-    let {
-        componentIdx: name,
-        id,
-        SVs,
-        children,
-    } = useDoenetRenderer<QSVs>(props);
+    const { SVs, children } = useDoenetRenderer<QSVs>(props);
 
-    if (SVs.hidden) {
+    const body = renderMarkupBody({ SVs, children });
+    if (body === null) {
         return null;
     }
-
-    if (SVs._compositeReplacementActiveRange) {
-        children = addCommasForCompositeRanges({
-            children,
-            compositeReplacementActiveRange:
-                SVs._compositeReplacementActiveRange,
-            startInd: 0,
-            endInd: children.length - 1,
-        });
-    }
-
-    return <>&ldquo;{children}&rdquo;</>;
+    return <>&ldquo;{body}&rdquo;</>;
 });

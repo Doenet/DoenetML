@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useContext, useRef } from "react";
 import { BoardContext, TEXT_LAYER_OFFSET } from "./graph";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
@@ -6,14 +6,19 @@ import useDoenetRenderer, {
 import { MathJax } from "better-react-mathjax";
 import me from "math-expressions";
 import { textRendererStyle } from "@doenet/utils";
-import {
-    getPositionFromAnchorByCoordinate,
-    POINTER_DRAG_THRESHOLD,
-} from "./utils/graph";
+import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { DocContext } from "../DocViewer";
 import { ChoiceInputInlineContext } from "./choiceInput";
-import { JXGEvent, JXGPoint, JXGText } from "./jsxgraph-distrib/types";
+import { JXGPoint, JXGText } from "./jsxgraph-distrib/types";
 import { SelectedStyle } from "./utils/graphicalSVs";
+import { usePointerDragState } from "./utils/pointerDragState";
+import { useDraggableRefs } from "./utils/useDraggableRefs";
+import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
+import {
+    attachAnchoredGraphDragHandlers,
+    detachAnchoredGraphElement,
+} from "./utils/useAnchoredGraphDragHandler";
+import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 
 interface LabelSVs {
     hidden: boolean;
@@ -37,51 +42,31 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
     // @ts-ignore
     Label.ignoreActionsWithoutCore = () => true;
 
-    let labelJXG = useRef<JXGText | null>(null);
-    let anchorPointJXG = useRef<JXGPoint | null>(null);
-    let anchorRel = useRef<[string, string] | null>(null);
+    const labelJXG = useRef<JXGText | null>(null);
+    const anchorPointJXG = useRef<JXGPoint | null>(null);
+    const anchorRel = useRef<[string, string] | null>(null);
 
     const board = useContext(BoardContext);
     const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
 
-    let pointerAtDown = useRef<[number, number] | null>(null);
-    let pointAtDown = useRef<number[] | null>(null);
-    let pointerIsDown = useRef<boolean>(false);
-    let pointerMovedSinceDown = useRef<boolean>(false);
-    let dragged = useRef<boolean>(false);
+    const pointerState = usePointerDragState();
+    const pointAtDown = useRef<number[] | null>(null);
+    const calculatedX = useRef<number | null>(null);
+    const calculatedY = useRef<number | null>(null);
+    const previousPositionFromAnchor = useRef<any>(null);
 
-    let calculatedX = useRef<number | null>(null);
-    let calculatedY = useRef<number | null>(null);
+    const { fixed, fixLocation, lastPositionFromCore } = useDraggableRefs<
+        number[] | null
+    >(SVs, null);
 
-    let lastPositionFromCore = useRef<number[] | null>(null);
-    let previousPositionFromAnchor = useRef<any>(null);
+    useBoardPointerTracking(board, pointerState);
 
-    let fixed = useRef<boolean>(false);
-    let fixLocation = useRef<boolean>(false);
-
-    fixed.current = SVs.fixed;
-    fixLocation.current = !SVs.draggable || SVs.fixLocation || SVs.fixed;
+    useJSXGraphCleanup({
+        objectRef: labelJXG,
+        destroy: () => detachAnchoredGraphElement(labelJXG, board),
+    });
 
     const { darkMode } = useContext(DocContext) || {};
-
-    useEffect(() => {
-        //On unmount
-        return () => {
-            if (labelJXG.current !== null) {
-                deleteLabelJXG();
-            }
-
-            if (board) {
-                board.off("move", boardMoveHandler);
-            }
-        };
-    }, []);
-
-    useEffect(() => {
-        if (board) {
-            board.on("move", boardMoveHandler);
-        }
-    }, [board]);
 
     function createLabelJXG() {
         if (board === null) {
@@ -160,184 +145,27 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
             [0, 0, SVs.value],
             jsxLabelAttributes,
         ) as JXGText;
-        newLabelJXG.isDraggable = !fixLocation.current;
 
-        newLabelJXG.on("down", function (e: JXGEvent) {
-            (document.activeElement as HTMLElement | null)?.blur();
-
-            pointerAtDown.current = [e.x, e.y];
-            pointAtDown.current = [...newAnchorPointJXG.coords.scrCoords];
-            dragged.current = false;
-            pointerIsDown.current = true;
-            pointerMovedSinceDown.current = false;
-            if (!fixed.current) {
-                callAction({
-                    action: actions.labelFocused,
-                    args: { componentIdx },
-                });
-            }
-        });
-
-        newLabelJXG.on("hit", function (e: JXGEvent) {
-            pointAtDown.current = [...newAnchorPointJXG.coords.scrCoords];
-            dragged.current = false;
-            callAction({
-                action: actions.labelFocused,
-                args: { componentIdx },
-            });
-        });
-
-        newLabelJXG.on("up", function (e: JXGEvent) {
-            if (dragged.current) {
-                callAction({
-                    action: actions.moveLabel,
-                    args: {
-                        x: calculatedX.current,
-                        y: calculatedY.current,
-                    },
-                });
-                dragged.current = false;
-            } else if (!pointerMovedSinceDown.current && !fixed.current) {
-                callAction({
-                    action: actions.labelClicked,
-                    args: { componentIdx },
-                });
-            }
-            pointerIsDown.current = false;
-        });
-
-        newLabelJXG.on("keyfocusout", function (e: JXGEvent) {
-            if (dragged.current) {
-                callAction({
-                    action: actions.moveLabel,
-                    args: {
-                        x: calculatedX.current,
-                        y: calculatedY.current,
-                    },
-                });
-                dragged.current = false;
-            }
-        });
-
-        newLabelJXG.on("drag", function (e: JXGEvent) {
-            let viaPointer = e.type === "pointermove";
-
-            //Protect against very small unintended drags
-            if (
-                !viaPointer ||
-                Math.abs(e.x - pointerAtDown.current![0]) >
-                    POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current![1]) >
-                    POINTER_DRAG_THRESHOLD
-            ) {
-                dragged.current = true;
-            }
-
-            let [xMin, yMax, xMax, yMin] = board.getBoundingBox();
-            let width = newLabelJXG.size![0] / board.unitX;
-            let height = newLabelJXG.size![1] / board.unitY;
-
-            let anchorx = anchorRel.current![0];
-            let anchory = anchorRel.current![1];
-
-            let offsetx = 0;
-            if (anchorx === "middle") {
-                offsetx = -width / 2;
-            } else if (anchorx === "right") {
-                offsetx = -width;
-            }
-            let offsety = 0;
-            if (anchory === "middle") {
-                offsety = -height / 2;
-            } else if (anchory === "top") {
-                offsety = -height;
-            }
-
-            let xminAdjusted = xMin + 0.04 * (xMax - xMin) - offsetx - width;
-            let xmaxAdjusted = xMax - 0.04 * (xMax - xMin) - offsetx;
-            let yminAdjusted = yMin + 0.04 * (yMax - yMin) - offsety - height;
-            let ymaxAdjusted = yMax - 0.04 * (yMax - yMin) - offsety;
-
-            if (viaPointer) {
-                // the reason we calculate point position with this algorithm,
-                // rather than using .X() and .Y() directly
-                // is that attributes .X() and .Y() are affected by the
-                // .setCoordinates function called in update().
-                // Due to this dependence, the location of .X() and .Y()
-                // can be affected by constraints of objects that the points depends on,
-                // leading to a different location on up than on drag
-                // (as dragging uses the mouse location)
-                // TODO: find an example where need this this additional complexity
-                var o = board.origin.scrCoords;
-
-                calculatedX.current =
-                    (pointAtDown.current![1] +
-                        e.x -
-                        pointerAtDown.current![0] -
-                        o[1]) /
-                    board.unitX;
-
-                calculatedY.current =
-                    (o[2] -
-                        (pointAtDown.current![2] +
-                            e.y -
-                            pointerAtDown.current![1])) /
-                    board.unitY;
-            } else {
-                calculatedX.current =
-                    newAnchorPointJXG.X() +
-                    newLabelJXG.relativeCoords!.usrCoords[1];
-                calculatedY.current =
-                    newAnchorPointJXG.Y() +
-                    newLabelJXG.relativeCoords!.usrCoords[2];
-            }
-
-            calculatedX.current = Math.min(
-                xmaxAdjusted,
-                Math.max(xminAdjusted, calculatedX.current),
-            );
-            calculatedY.current = Math.min(
-                ymaxAdjusted,
-                Math.max(yminAdjusted, calculatedY.current),
-            );
-
-            callAction({
-                action: actions.moveLabel,
-                args: {
-                    x: calculatedX.current,
-                    y: calculatedY.current,
-                    transient: true,
-                    skippable: true,
-                },
-            });
-
-            newLabelJXG.relativeCoords!.setCoordinates(
-                JXG.COORDS_BY_USER,
-                [0, 0],
-            );
-            newAnchorPointJXG.coords.setCoordinates(
-                JXG.COORDS_BY_USER,
-                lastPositionFromCore.current,
-            );
-        });
-
-        newLabelJXG.on("keydown", function (e: JXGEvent) {
-            if (e.key === "Enter") {
-                if (dragged.current) {
-                    callAction({
-                        action: actions.moveLabel,
-                        args: {
-                            x: calculatedX.current,
-                            y: calculatedY.current,
-                        },
-                    });
-                    dragged.current = false;
-                }
-                callAction({
-                    action: actions.labelClicked,
-                    args: { componentIdx },
-                });
-            }
+        attachAnchoredGraphDragHandlers({
+            board,
+            newJXG: newLabelJXG,
+            newAnchorPoint: newAnchorPointJXG,
+            anchorRel,
+            pointerState,
+            pointAtDown,
+            calculatedX,
+            calculatedY,
+            fixed,
+            fixLocation,
+            lastPositionFromCore,
+            componentIdx,
+            actions,
+            callAction,
+            actionNames: {
+                move: "moveLabel",
+                focused: "labelFocused",
+                clicked: "labelClicked",
+            },
         });
 
         labelJXG.current = newLabelJXG;
@@ -359,32 +187,6 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
         }
     }
 
-    function boardMoveHandler(e: JXGEvent) {
-        if (pointerIsDown.current) {
-            //Protect against very small unintended move
-            if (
-                Math.abs(e.x - pointerAtDown.current![0]) >
-                    POINTER_DRAG_THRESHOLD ||
-                Math.abs(e.y - pointerAtDown.current![1]) >
-                    POINTER_DRAG_THRESHOLD
-            ) {
-                pointerMovedSinceDown.current = true;
-            }
-        }
-    }
-
-    function deleteLabelJXG() {
-        if (!labelJXG.current) return;
-        labelJXG.current.off("drag");
-        labelJXG.current.off("down");
-        labelJXG.current.off("hit");
-        labelJXG.current.off("up");
-        labelJXG.current.off("keyfocusout");
-        labelJXG.current.off("keydown");
-        board?.removeObject(labelJXG.current);
-        labelJXG.current = null;
-    }
-
     if (board) {
         let anchorCoords: number[];
         try {
@@ -402,7 +204,7 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
         if (labelJXG.current === null) {
             createLabelJXG();
         } else {
-            labelJXG.current.relativeCoords!.setCoordinates(
+            labelJXG.current.relativeCoords.setCoordinates(
                 JXG.COORDS_BY_USER,
                 [0, 0],
             );

@@ -9,6 +9,7 @@ import me from "math-expressions";
 import { POINTER_DRAG_THRESHOLD } from "./utils/graph";
 import { DescriptionAsDetails, DescriptionPopover } from "./utils/Description";
 import { getNonInlineMediaLayoutStyles } from "./utils/nonInlineMediaLayout";
+import { NonInlineMediaWrapper } from "./utils/NonInlineMediaWrapper";
 import { JXGElement, JXGEvent, JXGPoint } from "./jsxgraph-distrib/types";
 
 interface ImageSVs {
@@ -37,7 +38,7 @@ type JXGImage = JXGElement & {
     Y(): number;
     W(): number;
     H(): number;
-    relativeCoords?: {
+    relativeCoords: {
         usrCoords: [number, number, number];
         setCoordinates: Function;
     };
@@ -351,11 +352,11 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
             } else {
                 calculatedX.current =
                     newAnchorPointJXG.X() +
-                    newImageJXG.relativeCoords!.usrCoords[1] -
+                    newImageJXG.relativeCoords.usrCoords[1] -
                     currentOffset.current![0];
                 calculatedY.current =
                     newAnchorPointJXG.Y() +
-                    newImageJXG.relativeCoords!.usrCoords[2] -
+                    newImageJXG.relativeCoords.usrCoords[2] -
                     currentOffset.current![1];
             }
 
@@ -378,7 +379,7 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
                 },
             });
 
-            newImageJXG.relativeCoords!.setCoordinates(
+            newImageJXG.relativeCoords.setCoordinates(
                 JXG.COORDS_BY_USER,
                 currentOffset.current,
             );
@@ -552,7 +553,7 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
                     offset = [-width, -height / 2];
                 }
 
-                imageJXG.current.relativeCoords!.setCoordinates(
+                imageJXG.current.relativeCoords.setCoordinates(
                     JXG.COORDS_BY_USER,
                     offset,
                 );
@@ -561,7 +562,7 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
                 currentOffset.current = offset;
                 imageJXG.current.fullUpdate();
             } else {
-                imageJXG.current.relativeCoords!.setCoordinates(
+                imageJXG.current.relativeCoords.setCoordinates(
                     JXG.COORDS_BY_USER,
                     currentOffset.current,
                 );
@@ -643,56 +644,34 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
             );
     }
 
-    return (
-        <div
-            style={
-                SVs.renderInlineForListItem
-                    ? { ...outerStyle, marginTop: 0 }
-                    : outerStyle
-            }
-            ref={ref}
-            id={`${id}-container`}
-        >
-            <div style={innerStyle}>
-                {SVs.displayMode === "inline" ? (
-                    urlOrSource ? (
-                        <img
-                            id={id}
-                            src={urlOrSource}
-                            style={imageStyle}
-                            alt={shortDescription}
-                            aria-details={descriptionId}
-                        />
-                    ) : (
-                        <div id={id} style={imageStyle}>
-                            {SVs.shortDescription}
-                        </div>
-                    )
-                ) : (
-                    <div style={mediaContainerStyle}>
-                        {urlOrSource ? (
-                            <img
-                                id={id}
-                                src={urlOrSource}
-                                style={imageStyle}
-                                alt={shortDescription}
-                                aria-details={descriptionId}
-                            />
-                        ) : (
-                            <div id={id} style={imageStyle}>
-                                {SVs.shortDescription}
-                            </div>
-                        )}
-                    </div>
-                )}
-                {SVs.displayMode === "inline" || !description ? (
-                    description
-                ) : (
-                    <div style={mediaContainerStyle}>
-                        <div style={mediaColumnStyle}>{description}</div>
-                    </div>
-                )}
-            </div>
+    const media = urlOrSource ? (
+        <img
+            id={id}
+            src={urlOrSource}
+            style={imageStyle}
+            alt={shortDescription}
+            aria-details={descriptionId}
+        />
+    ) : (
+        <div id={id} style={imageStyle}>
+            {SVs.shortDescription}
         </div>
+    );
+
+    return (
+        <NonInlineMediaWrapper
+            id={id}
+            displayMode={SVs.displayMode}
+            suppressTopMargin={Boolean(SVs.renderInlineForListItem)}
+            layoutStyles={{
+                outerStyle,
+                innerStyle,
+                mediaContainerStyle,
+                mediaColumnStyle,
+            }}
+            media={media}
+            description={description}
+            containerRef={ref}
+        />
     );
 });

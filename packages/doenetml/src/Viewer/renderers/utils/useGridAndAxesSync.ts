@@ -1,5 +1,4 @@
-// @ts-nocheck
-import { useEffect } from "react";
+import { useEffect, type RefObject } from "react";
 // @ts-ignore
 import JXG from "jsxgraph";
 import {
@@ -7,7 +6,20 @@ import {
     createXAxis,
     createYAxis,
     setMinorTicks,
+    type AxisJXG,
 } from "./jsxgraph";
+import type { JXGBoard } from "../jsxgraph-distrib/types";
+import type { GraphSVs } from "../graph";
+
+interface UseGridAndAxesSyncParams {
+    enabled: boolean;
+    board: JXGBoard | null;
+    SVs: GraphSVs;
+    xaxisRef: RefObject<AxisJXG | null | undefined>;
+    yaxisRef: RefObject<AxisJXG | null | undefined>;
+    previousXaxisWithLabelRef: RefObject<boolean>;
+    previousYaxisWithLabelRef: RefObject<boolean>;
+}
 
 export default function useGridAndAxesSync({
     enabled,
@@ -17,7 +29,7 @@ export default function useGridAndAxesSync({
     yaxisRef,
     previousXaxisWithLabelRef,
     previousYaxisWithLabelRef,
-}) {
+}: UseGridAndAxesSyncParams) {
     useEffect(() => {
         if (!enabled || !board) {
             return;
@@ -89,7 +101,10 @@ export default function useGridAndAxesSync({
                     drawLabels: SVs.displayXAxisTickLabels,
                 });
                 setMinorTicks(xaxisRef.current);
-                if (xaxisRef.current.hasLabel) {
+                // Invariant: JSXgraph keeps `hasLabel` and `label` in lockstep,
+                // so the second clause only narrows the type — it never gates
+                // out a state that should be reachable.
+                if (xaxisRef.current.hasLabel && xaxisRef.current.label) {
                     let position = "rt";
                     let offset = [5, 10];
                     let anchorx = "right";
@@ -133,7 +148,8 @@ export default function useGridAndAxesSync({
                     drawLabels: SVs.displayYAxisTickLabels,
                 });
                 setMinorTicks(yaxisRef.current);
-                if (yaxisRef.current.hasLabel) {
+                // Invariant: see x-axis above — `hasLabel` ⇒ `label` defined.
+                if (yaxisRef.current.hasLabel && yaxisRef.current.label) {
                     let position = "rt";
                     let offset = [-10, -5];
                     let anchorx = "right";
