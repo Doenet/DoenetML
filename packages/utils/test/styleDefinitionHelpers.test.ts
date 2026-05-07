@@ -43,12 +43,13 @@ const expectedKeys: (keyof ResolvedStyleDefinition)[] = [
 ];
 
 describe("resolveStyleDefinition", () => {
-    it("returns every supported key when given empty input", () => {
+    it("returns exactly the supported keys when given empty input", () => {
         const resolved = resolveStyleDefinition({});
 
-        for (const key of expectedKeys) {
-            expect(resolved, `missing key ${key}`).toHaveProperty(key);
-        }
+        // Asserting the exact set (not just `.toHaveProperty` per key) so a new
+        // key added to `ResolvedStyleDefinition` without updating `expectedKeys`
+        // fails this test instead of silently drifting.
+        expect(Object.keys(resolved).sort()).toEqual([...expectedKeys].sort());
     });
 
     it("fills color keys present in DEFAULT_STYLE_VALUES with their default", () => {
