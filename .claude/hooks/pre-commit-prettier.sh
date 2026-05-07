@@ -23,10 +23,10 @@ cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/null ||
 
 # Only act when the command runs `git commit`. Match `git` followed by
 # optional flags (-x, --long, --long=val, -C path) and then `commit`.
-# Require `git` to follow a command-start context (beginning of line,
-# whitespace, or a shell separator) so that `git commit` inside quoted
-# arguments like `rg "git commit" file` does not trigger this hook.
-if ! printf '%s' "$cmd" | grep -qE '(^|[[:space:];|&({!])git( +-[^ ]+( +[^ -][^ ]*)?)* +commit($|[^[:alnum:]])'; then
+# Require `git` to be a command token: match only at line start or after
+# a shell command separator (;, &&, ||, |, &, (, {, !), so that `echo git
+# commit` or `rg "git commit" file` do not trigger this hook.
+if ! printf '%s' "$cmd" | grep -qE '(^|;|&&|\|\||[|&({!])[[:space:]]*git( +-[^ ]+( +[^ -][^ ]*)?)* +commit($|[^[:alnum:]])'; then
     exit 0
 fi
 
@@ -44,7 +44,7 @@ staged=$(git diff --cached --name-only --diff-filter=ACMR 2>/dev/null)
 # "unformatted files" as "infrastructure error" and silently allow the commit.
 mapfile -t staged_files <<<"$staged"
 prettier_output=$(
-    npx --no-install prettier --check --ignore-unknown "${staged_files[@]}" 2>&1
+    npx --no-install prettier --check --ignore-unknown -- "${staged_files[@]}" 2>&1
 )
 prettier_status=$?
 
