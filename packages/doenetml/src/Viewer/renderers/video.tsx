@@ -75,8 +75,20 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
             // against a destroyed/null player.current.
             clearInterval(pollIntervalId.current);
             clearTimeout(pauseTimeoutId.current);
-            player.current?.destroy?.();
+            player.current?.destroy();
             player.current = null;
+            // Reset state tracked across the previous player's lifetime so it
+            // doesn't leak into the next one (e.g. SVs.state="playing" before
+            // a source switch must still trigger playVideo() on the new
+            // player).
+            lastSVsState.current = null;
+            lastPlayerState.current = null;
+            lastSetTimeAction.current = null;
+            preSkipTime.current = null;
+            postSkipTime.current = null;
+            lastPlayedTime.current = null;
+            lastPausedTime.current = 0;
+            rates.current = [];
         };
     }, [SVs.youtube, ytReady, id]);
 
@@ -518,9 +530,10 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
         videoTag = (
             <iframe
                 // Force React to unmount/remount the iframe when the YouTube
-                // id changes. The cleanup destroys the old YT.Player (which
-                // also detaches the old iframe from the DOM); the new effect
-                // then binds a fresh player to the freshly mounted iframe.
+                // id changes. React handles the iframe swap during commit;
+                // the effect's cleanup then destroys the old YT.Player to
+                // release its internal listeners/timers, and the new effect
+                // binds a fresh player to the freshly mounted iframe.
                 key={SVs.youtube}
                 id={id}
                 style={videoStyle}
