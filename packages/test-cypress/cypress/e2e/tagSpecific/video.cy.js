@@ -62,6 +62,166 @@ describe("Video Tag Tests", { tags: ["@group2"] }, function () {
     });
 
     if (!Cypress.env("SKIP_YOUTUBE_TESTS")) {
+        // Shared assertions for the two source-change tests below. Assumes the
+        // doenetML has rendered:
+        //   - <video name="v" youtube="$videoCode" />
+        //   - text/number extends for $v.state, $v.time, $v.duration
+        //   - <callAction>s named playAction/pauseAction
+        //   - a <choiceInput name="videoCode"> whose `firstId` choice is
+        //     already selected (iframe showing the first video) and whose
+        //     `switchChoiceSelector` is the choice input for `secondId`.
+        // Verifies: first video plays/pauses → switch → second video
+        // plays/pauses through the freshly recreated player.
+        function verifyYouTubePlayPauseAndSwitch({
+            firstId,
+            secondId,
+            switchChoiceSelector,
+        }) {
+            // First video is showing.
+            cy.get('iframe[src*="youtube.com"]').should("be.visible");
+            cy.get("#v")
+                .invoke("attr", "src")
+                .then((src) => expect(src.includes(firstId)).eq(true));
+
+            // Wait for the YT player to finish initializing
+            // (recordVideoReady fires onPlayerReady -> state="stopped",
+            // duration set to the video's length).
+            cy.get("#state").should("have.text", "stopped");
+            let preSwitchDuration;
+            cy.get("#duration")
+                .invoke("text")
+                .then((d) => {
+                    expect(d).not.to.eq("");
+                    preSwitchDuration = d;
+                });
+
+            // Verify the first video plays (state -> playing, time advances)
+            // and pauses.
+            cy.log(`play first video (${firstId})`);
+            cy.get("#playAction").click();
+            cy.get("#state").should("have.text", "playing");
+            cy.get("#time").contains("1");
+            cy.get("#time").contains("2");
+
+            cy.log(`pause first video (${firstId})`);
+            cy.get("#pauseAction").click();
+            cy.get("#state").should("have.text", "stopped");
+
+            // Switch the choice input to the second YouTube id.
+            cy.log(`switch to second video (${secondId})`);
+            cy.get(switchChoiceSelector).click();
+
+            // After the source change the iframe must still be in the DOM
+            // with the new src. Bug fixed by `key={SVs.youtube}` on the
+            // iframe so React unmounts/remounts cleanly when the player's
+            // useEffect cleanup destroys the old player.
+            cy.get("#v").should("be.visible");
+            cy.get("#v")
+                .invoke("attr", "src")
+                .then((src) => expect(src.includes(secondId)).eq(true));
+
+            // Wait for the new player to finish initializing. recordVideoReady
+            // updates duration to the new video's length, so a duration that
+            // differs from the pre-switch value is a clean signal that the
+            // new player has completed a handshake with the iframe and is ready to
+            // accept play/pause commands. Without this wait, playAction can
+            // race with onPlayerReady (which forces state back to "stopped").
+            cy.get("#duration").should((el) => {
+                expect(el.text()).not.to.eq(preSwitchDuration);
+            });
+
+            // Verify the second video also plays and pauses through the
+            // freshly created player.
+            cy.log(`play second video (${secondId})`);
+            cy.get("#playAction").click();
+            cy.get("#state").should("have.text", "playing");
+            cy.get("#time").contains("1");
+            cy.get("#time").contains("2");
+
+            cy.log(`pause second video (${secondId})`);
+            cy.get("#pauseAction").click();
+            cy.get("#state").should("have.text", "stopped");
+        }
+
+        it("youtube video reloads when youtube source changes", () => {
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML: `
+  <choiceInput name="videoCode">
+    <label>Video code:</label>
+    <choice preSelect>tJ4ypc5L6uU</choice>
+    <choice>49qilPR8Qpc</choice>
+  </choiceInput>
+
+  <video name="v" youtube="$videoCode" />
+
+  <p>State: <text extend="$v.state" name="state" /></p>
+  <p>Time: <number extend="$v.time" name="time" /></p>
+  <p>Duration: <number extend="$v.duration" name="duration" /></p>
+
+  <callAction target="$v" actionName="playVideo" name="playAction"><label>Play</label></callAction>
+  <callAction target="$v" actionName="pauseVideo" name="pauseAction"><label>Pause</label></callAction>
+  `,
+                    },
+                    "*",
+                );
+            });
+
+            // First choice is preselected, so the first video iframe is
+            // already showing on initial render.
+            verifyYouTubePlayPauseAndSwitch({
+                firstId: "tJ4ypc5L6uU",
+                secondId: "49qilPR8Qpc",
+                switchChoiceSelector: "#videoCode_choice2_input",
+            });
+        });
+
+        it("youtube video initializes when youtube id is set after start", () => {
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML: `
+  <choiceInput name="videoCode">
+    <label>Video code:</label>
+    <choice>tJ4ypc5L6uU</choice>
+    <choice>49qilPR8Qpc</choice>
+  </choiceInput>
+
+  <video name="v" youtube="$videoCode" />
+
+  <p>State: <text extend="$v.state" name="state" /></p>
+  <p>Time: <number extend="$v.time" name="time" /></p>
+  <p>Duration: <number extend="$v.duration" name="duration" /></p>
+
+  <callAction target="$v" actionName="playVideo" name="playAction"><label>Play</label></callAction>
+  <callAction target="$v" actionName="pauseVideo" name="pauseAction"><label>Pause</label></callAction>
+  `,
+                    },
+                    "*",
+                );
+            });
+
+            // No choice is preselected, so SVs.youtube is empty and the
+            // <video> renders a <span id="v"> placeholder rather than an
+            // iframe. Wait for the placeholder span to exist so we know the
+            // viewer has rendered, then assert no YouTube iframe is present.
+            cy.get("#v").should("exist");
+            cy.get('iframe[src*="youtube.com"]').should("not.exist");
+
+            // Select the first video. This is the first time SVs.youtube
+            // gets a real value, so React mounts an iframe in place of the
+            // span and the player effect creates a YT.Player on it.
+            cy.get("#videoCode_choice1_input").click();
+
+            // From here on, behavior should match the source-change test.
+            verifyYouTubePlayPauseAndSwitch({
+                firstId: "tJ4ypc5L6uU",
+                secondId: "49qilPR8Qpc",
+                switchChoiceSelector: "#videoCode_choice2_input",
+            });
+        });
+
         it("actions on youtube video", () => {
             cy.window().then(async (win) => {
                 win.postMessage(
