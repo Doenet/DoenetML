@@ -35,10 +35,6 @@ export default function JSXGraphRenderer({
 }: JSXGraphRendererProps) {
     const [board, setBoard] = useState<JXGBoard | null>(null);
 
-    const previousDimensions = useRef<{
-        width: number;
-        aspectRatio: string | number;
-    }>({ width: 0, aspectRatio: 1 });
     const previousBoundingbox = useRef<number[]>([0, 0, 0, 0]);
     const xaxis = useRef<AxisJXG | null | undefined>(null);
     const yaxis = useRef<AxisJXG | null | undefined>(null);
@@ -107,11 +103,6 @@ export default function JSXGraphRenderer({
         });
 
         setBoard(newBoard);
-
-        previousDimensions.current = {
-            width: parseFloat(surfaceStyle.width as string),
-            aspectRatio: SVs.aspectRatio,
-        };
 
         if (SVs.displayXAxis) {
             createXAxis({
@@ -186,8 +177,6 @@ export default function JSXGraphRenderer({
         SVs,
         ignoreUpdate,
         showNavigation,
-        surfaceStyle,
-        previousDimensionsRef: previousDimensions,
         previousBoundingboxRef: previousBoundingbox,
         xaxisRef: xaxis,
         yaxisRef: yaxis,
