@@ -1,4 +1,6 @@
 import type { RefObject } from "react";
+// @ts-ignore
+import JXG from "jsxgraph";
 import {
     JXGBoard,
     JXGEvent,
