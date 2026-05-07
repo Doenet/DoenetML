@@ -4,13 +4,10 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { ActionButton } from "@doenet/ui-components";
 import { ActionButtonGroup } from "@doenet/ui-components";
-import { ToggleButton as ToggleButtonUntyped } from "@doenet/ui-components";
-import { ToggleButtonGroup as ToggleButtonGroupUntyped } from "@doenet/ui-components";
+import { ToggleButton } from "@doenet/ui-components";
+import { ToggleButtonGroup } from "@doenet/ui-components";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 import "./subsetOfRealsInput.css";
-
-const ToggleButton = ToggleButtonUntyped as any;
-const ToggleButtonGroup = ToggleButtonGroupUntyped as any;
 
 interface PointDisplayed {
     value: number;

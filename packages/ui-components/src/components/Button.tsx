@@ -15,6 +15,7 @@ export function Button(
         valueHasLatex?: boolean;
         disabled?: boolean;
         onClick?: (e: React.MouseEvent<HTMLButtonElement>) => void;
+        onBlur?: (e: React.FocusEvent<HTMLButtonElement>) => void;
         className?: string;
         ariaLabel?: string;
     }>,
@@ -41,6 +42,7 @@ export function Button(
             id={props.id}
             disabled={props.disabled}
             onClick={props.onClick}
+            onBlur={props.onBlur}
             className={classNames(
                 "doenet-button",
                 {

@@ -2,8 +2,7 @@ import React, { useRef } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
-import { Button as ButtonUntyped } from "@doenet/ui-components";
-const Button = ButtonUntyped as any;
+import { Button } from "@doenet/ui-components";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
 
 interface OrbitalRowData {
