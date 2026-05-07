@@ -10,9 +10,8 @@ import {
     getPositionFromAnchorByCoordinate,
     POINTER_DRAG_THRESHOLD,
 } from "./utils/graph";
-import { cesc } from "@doenet/utils";
+import { cesc, type ResolvedStyleDefinition } from "@doenet/utils";
 import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
-import { SelectedStyle } from "./utils/graphicalSVs";
 
 interface ButtonSVs {
     [key: string]: any;
@@ -26,7 +25,7 @@ interface ButtonSVs {
     label: string;
     labelHasLatex: boolean;
     clickAction: any;
-    selectedStyle: SelectedStyle;
+    selectedStyle: ResolvedStyleDefinition;
 }
 
 export default React.memo(function ButtonComponent(
@@ -65,7 +64,7 @@ export default React.memo(function ButtonComponent(
 
     let label = SVs.label ? SVs.label : "Button";
 
-    let fillColor: string = SVs.selectedStyle.highContrastColor ?? "";
+    let fillColor: string = SVs.selectedStyle.highContrastColor;
 
     useEffect(() => {
         //On unmount

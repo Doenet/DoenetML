@@ -11,7 +11,7 @@ import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { DocContext } from "../DocViewer";
 import { JXGObject } from "./jsxgraph-distrib/types";
 import { ChoiceInputInlineContext } from "./choiceInput";
-import { SelectedStyle } from "./utils/graphicalSVs";
+import type { ResolvedStyleDefinition } from "@doenet/utils";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
 import { useBoardPointerTracking } from "./utils/useBoardPointerTracking";
@@ -34,7 +34,7 @@ interface MathSVs {
     renderMode?: string;
     equationTag?: string;
     mrowChildRendererIds?: string[];
-    selectedStyle: SelectedStyle;
+    selectedStyle: ResolvedStyleDefinition;
 }
 
 function getMathDelimiters(SVs: MathSVs): [string, string] {

@@ -1,9 +1,11 @@
 import { colorValueToWord } from "./colorWords";
 import {
+    DEFAULT_STYLE_VALUES,
     getStyleValueNumber,
     getStyleValueString,
     normalizeStyleDefinitionValues,
     normalizeStyleDefinitionsValues,
+    resolveStyleDefinition,
     setStyleValue,
     unwrapStyleDefinition,
     type RawStyleDefinition,
@@ -69,28 +71,7 @@ export let styleAttributes: StyleAttributes = {
  * Color words are intentionally omitted here and injected on demand so there is
  * one source of truth for color values.
  */
-let defaultStyle: RawStyleDefinition = {
-    lineColor: "#648FFF",
-    lineColorDarkMode: "#648FFF",
-    lineOpacity: 0.7,
-    lineWidth: 4,
-    lineWidthWord: "thick",
-    lineStyle: "solid",
-    lineStyleWord: "",
-    markerColor: "#648FFF",
-    markerColorDarkMode: "#648FFF",
-    markerOpacity: 0.7,
-    markerStyle: "circle",
-    markerStyleWord: "point",
-    markerSize: 5,
-    fillColor: "#648FFF",
-    fillColorDarkMode: "#648FFF",
-    fillOpacity: 0.3,
-    textColor: "black",
-    textColorDarkMode: "white",
-    highContrastColor: "#2963FF",
-    highContrastColorDarkMode: "#2963FF",
-};
+let defaultStyle: RawStyleDefinition = { ...DEFAULT_STYLE_VALUES };
 
 const coloredItemsForWords = [
     "line",
@@ -199,28 +180,7 @@ function addMissingChildStyleColorFields(
 function returnDefaultStyleDefinitions(): StyleDefinitions {
     return addMissingColorWordsToStyleDefinitions(
         normalizeStyleDefinitionsValues({
-            1: {
-                lineColor: "#648FFF",
-                lineColorDarkMode: "#648FFF",
-                lineOpacity: 0.7,
-                lineWidth: 4,
-                lineWidthWord: "thick",
-                lineStyle: "solid",
-                lineStyleWord: "",
-                markerColor: "#648FFF",
-                markerColorDarkMode: "#648FFF",
-                markerOpacity: 0.7,
-                markerStyle: "circle",
-                markerStyleWord: "point",
-                markerSize: 5,
-                fillColor: "#648FFF",
-                fillColorDarkMode: "#648FFF",
-                fillOpacity: 0.3,
-                textColor: "black",
-                textColorDarkMode: "white",
-                highContrastColor: "#2963FF",
-                highContrastColorDarkMode: "#2963FF",
-            },
+            1: { ...DEFAULT_STYLE_VALUES },
             2: {
                 lineColor: "#D4042D",
                 lineColorDarkMode: "#D4042D",
@@ -641,7 +601,9 @@ export function returnSelectedStyleStateVariableDefinition(): StateVariableDefin
 
                 return {
                     setValue: {
-                        selectedStyle: unwrapStyleDefinition(selectedStyle),
+                        selectedStyle: resolveStyleDefinition(
+                            unwrapStyleDefinition(selectedStyle),
+                        ),
                     },
                 };
             },

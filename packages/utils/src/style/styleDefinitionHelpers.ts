@@ -62,6 +62,54 @@ export type PrimitiveStyleDefinition = Partial<
     Record<StyleDefinitionKey, StyleDefinitionPrimitive>
 >;
 
+/**
+ * Fully-resolved primitive style definition delivered via the `selectedStyle`
+ * state variable. Every supported key is guaranteed present — unauthored color
+ * and word keys default to `""` so consumers' truthy guards continue to mean
+ * "no authored value". Includes every `*Word` variant because the derived
+ * `textColor` / `backgroundColor` state-variable definitions in `style.ts`
+ * read them off `selectedStyle` to build human-readable descriptions, even
+ * though renderers themselves only consume the color values.
+ */
+export interface ResolvedStyleDefinition {
+    lineColor: string;
+    lineColorWord: string;
+    lineColorDarkMode: string;
+    lineColorWordDarkMode: string;
+    lineOpacity: number;
+    lineWidth: number;
+    lineWidthWord: string;
+    lineStyle: string;
+    lineStyleWord: string;
+    markerColor: string;
+    markerColorWord: string;
+    markerColorDarkMode: string;
+    markerColorWordDarkMode: string;
+    markerOpacity: number;
+    markerStyle: string;
+    markerStyleWord: string;
+    markerSize: number;
+    fillColor: string;
+    fillColorWord: string;
+    fillColorDarkMode: string;
+    fillColorWordDarkMode: string;
+    fillOpacity: number;
+    textColor: string;
+    textColorWord: string;
+    textColorDarkMode: string;
+    textColorWordDarkMode: string;
+    highContrastColor: string;
+    highContrastColorWord: string;
+    highContrastColorDarkMode: string;
+    highContrastColorWordDarkMode: string;
+    backgroundColor: string;
+    backgroundColorWord: string;
+    backgroundColorDarkMode: string;
+    backgroundColorWordDarkMode: string;
+}
+
+export type ResolvedStyleDefinitionKey = keyof ResolvedStyleDefinition;
+
 export type StyleDefinitions = Record<string, StyleDefinition>;
 
 export type RawStyleDefinitions = Record<string, RawStyleDefinition>;
@@ -208,6 +256,114 @@ export function unwrapStyleDefinition(
     }
 
     return unwrappedStyleDefinition;
+}
+
+/**
+ * Default style values shared between the worker-side `defaultStyle` preset and
+ * the renderer-facing `RESOLVED_STYLE_FALLBACKS`. Single source of truth so the
+ * two cannot drift apart.
+ *
+ * `backgroundColor` is intentionally absent: its absence in `defaultStyle` is
+ * load-bearing — `addMissingColorWordsToStyleDefinition` only emits a `*Word`
+ * variant when the corresponding color is truthy, so leaving it out prevents a
+ * background description from being derived for components with no authored
+ * background. The renderer-facing fallbacks override it back to `""` for the
+ * truthy-guard semantics renderers rely on.
+ */
+export const DEFAULT_STYLE_VALUES = {
+    lineOpacity: 0.7,
+    lineWidth: 4,
+    lineWidthWord: "thick",
+    lineStyle: "solid",
+    lineStyleWord: "",
+    markerOpacity: 0.7,
+    markerStyle: "circle",
+    markerStyleWord: "point",
+    markerSize: 5,
+    fillOpacity: 0.3,
+    lineColor: "#648FFF",
+    lineColorDarkMode: "#648FFF",
+    markerColor: "#648FFF",
+    markerColorDarkMode: "#648FFF",
+    fillColor: "#648FFF",
+    fillColorDarkMode: "#648FFF",
+    textColor: "black",
+    textColorDarkMode: "white",
+    highContrastColor: "#2963FF",
+    highContrastColorDarkMode: "#2963FF",
+} as const satisfies Partial<
+    Record<StyleDefinitionKey, StyleDefinitionPrimitive>
+>;
+
+/**
+ * Final-stop fallbacks used when a key is genuinely absent at unwrap time.
+ *
+ * Color/word entries here are `""` — not a valid color or color-word — to
+ * encode "no authored value" rather than fabricate a placeholder. Two consumer
+ * patterns make this safe:
+ *
+ *   - **Truthy guards.** Renderers and `returnTextStyleDescriptionDefinitions`
+ *     handle legitimately-optional keys with checks like
+ *     `if (backgroundColor) { … }`; `""` is falsy, so the guard treats it as
+ *     absent. The guarded color keys are
+ *     `backgroundColor`/`backgroundColorDarkMode`, which are intentionally not
+ *     in `DEFAULT_STYLE_VALUES` (its absence is what keeps
+ *     `addMissingColorWordsToStyleDefinition` from synthesizing a derived
+ *     background color word).
+ *   - **Word variants are derived, not authored.** `lineColorWord`,
+ *     `markerColorWord`, `fillColorWord`, `textColorWord`,
+ *     `highContrastColorWord`, `backgroundColorWord` (and DarkMode pairs) are
+ *     populated by `addMissingColorWordsToStyleDefinition` from their
+ *     corresponding color values. The `""` fallback only surfaces when the
+ *     paired color is itself missing from the authored definition — an edge
+ *     case where neither the color nor its word is meaningful.
+ */
+const RESOLVED_STYLE_FALLBACKS: ResolvedStyleDefinition = {
+    ...DEFAULT_STYLE_VALUES,
+    lineColorWord: "",
+    lineColorWordDarkMode: "",
+    markerColorWord: "",
+    markerColorWordDarkMode: "",
+    fillColorWord: "",
+    fillColorWordDarkMode: "",
+    textColorWord: "",
+    textColorWordDarkMode: "",
+    highContrastColorWord: "",
+    highContrastColorWordDarkMode: "",
+    backgroundColor: "",
+    backgroundColorWord: "",
+    backgroundColorDarkMode: "",
+    backgroundColorWordDarkMode: "",
+};
+
+/**
+ * Fills any missing keys in a primitive style definition with renderer-facing
+ * fallbacks, returning the fully-resolved shape used by the `selectedStyle`
+ * state variable.
+ *
+ * @param styleDef - Primitive (partial) style definition.
+ * @returns Resolved style definition with every supported key present.
+ */
+export function resolveStyleDefinition(
+    styleDef: PrimitiveStyleDefinition,
+): ResolvedStyleDefinition {
+    const resolved: ResolvedStyleDefinition = { ...RESOLVED_STYLE_FALLBACKS };
+
+    const writable = resolved as Record<
+        ResolvedStyleDefinitionKey,
+        StyleDefinitionPrimitive
+    >;
+
+    for (const key of Object.keys(
+        RESOLVED_STYLE_FALLBACKS,
+    ) as ResolvedStyleDefinitionKey[]) {
+        const value = styleDef[key];
+        if (value !== undefined) {
+            writable[key] = value;
+        }
+    }
+
+    return resolved;
 }
 
 /**
