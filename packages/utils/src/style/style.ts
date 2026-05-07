@@ -180,28 +180,7 @@ function addMissingChildStyleColorFields(
 function returnDefaultStyleDefinitions(): StyleDefinitions {
     return addMissingColorWordsToStyleDefinitions(
         normalizeStyleDefinitionsValues({
-            1: {
-                lineColor: "#648FFF",
-                lineColorDarkMode: "#648FFF",
-                lineOpacity: 0.7,
-                lineWidth: 4,
-                lineWidthWord: "thick",
-                lineStyle: "solid",
-                lineStyleWord: "",
-                markerColor: "#648FFF",
-                markerColorDarkMode: "#648FFF",
-                markerOpacity: 0.7,
-                markerStyle: "circle",
-                markerStyleWord: "point",
-                markerSize: 5,
-                fillColor: "#648FFF",
-                fillColorDarkMode: "#648FFF",
-                fillOpacity: 0.3,
-                textColor: "black",
-                textColorDarkMode: "white",
-                highContrastColor: "#2963FF",
-                highContrastColorDarkMode: "#2963FF",
-            },
+            1: { ...DEFAULT_STYLE_VALUES },
             2: {
                 lineColor: "#D4042D",
                 lineColorDarkMode: "#D4042D",
