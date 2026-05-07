@@ -23,10 +23,9 @@ cmd=$(printf '%s' "$input" | jq -r '.tool_input.command // empty' 2>/dev/null ||
 
 # Only act when the command runs `git commit`. Match `git` followed by
 # optional flags (-x, --long, --long=val, -C path) and then `commit`.
-# Require `git` to be a command token: match only at line start or after
-# a shell command separator (;, &&, ||, |, &, (, {, !), so that `echo git
-# commit` or `rg "git commit" file` do not trigger this hook.
-if ! printf '%s' "$cmd" | grep -qE '(^|;|&&|\|\||[|&({!])[[:space:]]*git( +-[^ ]+( +[^ -][^ ]*)?)* +commit($|[[:space:]])'; then
+# Require `git` to be the first command or to appear after a separator
+# (not inside a quoted string like `echo '; git commit'`).
+if ! printf '%s' "$cmd" | grep -qE '(^[[:space:]]*|[[:space:]](;|&&|\|\||[|&({!]))[[:space:]]*git( +-[^ ]+( +[^ -][^ ]*)?)* +commit($|[[:space:]])'; then
     exit 0
 fi
 
