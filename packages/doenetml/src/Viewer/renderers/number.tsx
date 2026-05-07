@@ -189,7 +189,7 @@ export default React.memo(function NumberComponent(
         if (numberJXG.current === null) {
             createNumberJXG();
         } else {
-            numberJXG.current.relativeCoords!.setCoordinates(
+            numberJXG.current.relativeCoords.setCoordinates(
                 JXG.COORDS_BY_USER,
                 [0, 0],
             );

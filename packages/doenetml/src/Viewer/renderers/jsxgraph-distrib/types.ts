@@ -79,11 +79,11 @@ export interface JXGElement {
 export interface JXGPoint extends JXGElement {
     X(): number;
     Y(): number;
-    relativeCoords?: {
+    relativeCoords: {
         usrCoords: [number, number, number];
         setCoordinates: Function;
     };
-    size?: [number, number];
+    size: [number, number];
 }
 
 export interface JXGLine extends JXGElement {
@@ -118,11 +118,11 @@ export interface JXGCurve extends JXGElement {
 
 export interface JXGText extends JXGElement {
     setText(text: string): void;
-    relativeCoords?: {
+    relativeCoords: {
         usrCoords: [number, number, number];
         setCoordinates: Function;
     };
-    size?: [number, number];
+    size: [number, number];
     rendNodeInput?: HTMLInputElement;
     rendNodeLabel?: HTMLElement;
 }

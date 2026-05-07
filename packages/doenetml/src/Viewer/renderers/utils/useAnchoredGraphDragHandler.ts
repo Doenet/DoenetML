@@ -158,8 +158,8 @@ export function attachAnchoredGraphDragHandlers<
         }
 
         const [xMin, yMax, xMax, yMin] = board.getBoundingBox();
-        const width = newJXG.size![0] / board.unitX;
-        const height = newJXG.size![1] / board.unitY;
+        const width = newJXG.size[0] / board.unitX;
+        const height = newJXG.size[1] / board.unitY;
 
         const anchorx = anchorRel.current?.[0];
         const anchory = anchorRel.current?.[1];
@@ -203,9 +203,9 @@ export function attachAnchoredGraphDragHandlers<
             calculatedY.current = y;
         } else {
             calculatedX.current =
-                newAnchorPoint.X() + newJXG.relativeCoords!.usrCoords[1];
+                newAnchorPoint.X() + newJXG.relativeCoords.usrCoords[1];
             calculatedY.current =
-                newAnchorPoint.Y() + newJXG.relativeCoords!.usrCoords[2];
+                newAnchorPoint.Y() + newJXG.relativeCoords.usrCoords[2];
         }
 
         calculatedX.current = Math.min(
@@ -227,7 +227,7 @@ export function attachAnchoredGraphDragHandlers<
             },
         });
 
-        newJXG.relativeCoords!.setCoordinates(JXG.COORDS_BY_USER, [0, 0]);
+        newJXG.relativeCoords.setCoordinates(JXG.COORDS_BY_USER, [0, 0]);
         newAnchorPoint.coords.setCoordinates(
             JXG.COORDS_BY_USER,
             lastPositionFromCore.current,

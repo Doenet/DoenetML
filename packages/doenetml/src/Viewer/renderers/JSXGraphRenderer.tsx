@@ -86,7 +86,7 @@ export default function JSXGraphRenderer({
                 const xscale = Math.abs(xMax - xMin);
                 const yscale = Math.abs(yMax - yMin);
                 const diffs = newBoundingbox.map((v: number, i: number) =>
-                    Math.abs(v - previousBoundingbox.current![i]),
+                    Math.abs(v - previousBoundingbox.current[i]),
                 );
                 if (
                     Math.max(

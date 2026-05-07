@@ -185,7 +185,7 @@ export default React.memo(function Text(props: UseDoenetRendererProps) {
         if (textJXG.current === null) {
             createTextJXG();
         } else {
-            textJXG.current.relativeCoords!.setCoordinates(
+            textJXG.current.relativeCoords.setCoordinates(
                 JXG.COORDS_BY_USER,
                 [0, 0],
             );

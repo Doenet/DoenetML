@@ -38,7 +38,7 @@ type JXGImage = JXGElement & {
     Y(): number;
     W(): number;
     H(): number;
-    relativeCoords?: {
+    relativeCoords: {
         usrCoords: [number, number, number];
         setCoordinates: Function;
     };
@@ -352,11 +352,11 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
             } else {
                 calculatedX.current =
                     newAnchorPointJXG.X() +
-                    newImageJXG.relativeCoords!.usrCoords[1] -
+                    newImageJXG.relativeCoords.usrCoords[1] -
                     currentOffset.current![0];
                 calculatedY.current =
                     newAnchorPointJXG.Y() +
-                    newImageJXG.relativeCoords!.usrCoords[2] -
+                    newImageJXG.relativeCoords.usrCoords[2] -
                     currentOffset.current![1];
             }
 
@@ -379,7 +379,7 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
                 },
             });
 
-            newImageJXG.relativeCoords!.setCoordinates(
+            newImageJXG.relativeCoords.setCoordinates(
                 JXG.COORDS_BY_USER,
                 currentOffset.current,
             );
@@ -553,7 +553,7 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
                     offset = [-width, -height / 2];
                 }
 
-                imageJXG.current.relativeCoords!.setCoordinates(
+                imageJXG.current.relativeCoords.setCoordinates(
                     JXG.COORDS_BY_USER,
                     offset,
                 );
@@ -562,7 +562,7 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
                 currentOffset.current = offset;
                 imageJXG.current.fullUpdate();
             } else {
-                imageJXG.current.relativeCoords!.setCoordinates(
+                imageJXG.current.relativeCoords.setCoordinates(
                     JXG.COORDS_BY_USER,
                     currentOffset.current,
                 );

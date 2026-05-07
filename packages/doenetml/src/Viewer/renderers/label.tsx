@@ -204,7 +204,7 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
         if (labelJXG.current === null) {
             createLabelJXG();
         } else {
-            labelJXG.current.relativeCoords!.setCoordinates(
+            labelJXG.current.relativeCoords.setCoordinates(
                 JXG.COORDS_BY_USER,
                 [0, 0],
             );
