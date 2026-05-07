@@ -68,7 +68,6 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
 
     let imageJXG = useRef<JXGImage | null>(null);
     let anchorPointJXG = useRef<JXGPoint | null>(null);
-    let anchorRel = useRef<[string, string] | null>(null);
 
     const board = useContext(BoardContext);
 
@@ -228,7 +227,6 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
             board,
             newJXG: newImageJXG,
             newAnchorPoint: newAnchorPointJXG,
-            anchorRel,
             pointerState,
             pointAtDown,
             calculatedX,

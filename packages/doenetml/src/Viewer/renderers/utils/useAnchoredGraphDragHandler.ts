@@ -5,6 +5,7 @@ import {
     JXGEvent,
     JXGObject,
     JXGPoint,
+    JXGText,
 } from "../jsxgraph-distrib/types";
 import type { CallActionArgs, RendererAction } from "../../useDoenetRenderer";
 import { exceededDragThreshold } from "./dragThreshold";
@@ -14,11 +15,10 @@ import { LINE_FAMILY_EVENTS, removeJXGEventHandlers } from "./jsxgraph";
 
 /**
  * Minimum element shape the anchored-graph drag handlers operate on.
- * `JXGText`, the deprecated `JXGObject`, and the per-renderer `JXGImage`
- * types all satisfy this structurally. `size` is read only in non-image
- * mode and is recovered via a localized cast at that branch since the
- * renderers that pass image-shaped objects don't carry `size` on their
- * narrow types.
+ * The four text-on-graph renderers pass `JXGText | JXGObject`; the image
+ * renderer passes a per-renderer `JXGImage` shape that lacks `size` but
+ * still satisfies this minimum. `size` is read only in text mode where
+ * the discriminated union narrows `newJXG` back to `JXGText | JXGObject`.
  */
 type AnchoredGraphJXG = {
     isDraggable: boolean;
@@ -66,18 +66,10 @@ export interface AnchoredGraphImageMode {
     paddingFraction?: number;
 }
 
-interface AttachAnchoredGraphDragHandlersParams<TJXG extends AnchoredGraphJXG> {
+interface CommonAttachAnchoredGraphDragHandlersParams {
     board: JXGBoard;
-    /** The JSXgraph text/math/image element receiving the handlers. */
-    newJXG: TJXG;
     /** The hidden anchor point the element is anchored to. */
     newAnchorPoint: JXGPoint | JXGObject;
-    /**
-     * Mutable ref tracking the resolved [anchorx, anchory] pair. Only
-     * read in text mode; image mode ignores it (offset comes from
-     * `imageMode.getCurrentOffset`).
-     */
-    anchorRel: RefObject<[string, string] | null>;
     /** Pointer state shared with `useBoardPointerTracking`. */
     pointerState: PointerDragState;
     /**
@@ -98,40 +90,64 @@ interface AttachAnchoredGraphDragHandlersParams<TJXG extends AnchoredGraphJXG> {
     actions: Record<string, RendererAction>;
     callAction: (argObj: CallActionArgs) => void;
     actionNames: AnchoredGraphActionNames;
-    /** Optional image-specific size/offset/padding overrides. */
-    imageMode?: AnchoredGraphImageMode;
 }
+
+interface TextModeAttachAnchoredGraphDragHandlersParams extends CommonAttachAnchoredGraphDragHandlersParams {
+    /** The JSXgraph text/math element receiving the handlers. */
+    newJXG: JXGText | JXGObject;
+    /** Mutable ref tracking the resolved [anchorx, anchory] pair. */
+    anchorRel: RefObject<[string, string] | null>;
+    imageMode?: undefined;
+}
+
+interface ImageModeAttachAnchoredGraphDragHandlersParams extends CommonAttachAnchoredGraphDragHandlersParams {
+    /** The JSXgraph image element receiving the handlers. */
+    newJXG: AnchoredGraphJXG;
+    /** Image-specific size/offset/padding overrides. */
+    imageMode: AnchoredGraphImageMode;
+    anchorRel?: undefined;
+}
+
+export type AttachAnchoredGraphDragHandlersParams =
+    | TextModeAttachAnchoredGraphDragHandlersParams
+    | ImageModeAttachAnchoredGraphDragHandlersParams;
 
 /**
  * Bind the standard "anchored graph element" drag handlers on a freshly
- * created JSXgraph text/math element. Encapsulates the down → drag → up
- * lifecycle plus keyboard analogues (keyfocusout, keydown Enter) shared
- * across `number`, `text`, `label`, and `math` renderers.
+ * created JSXgraph text/math/image element. Encapsulates the down → drag
+ * → up lifecycle plus keyboard analogues (keyfocusout, keydown Enter)
+ * shared across `number`, `text`, `label`, `math`, and `image` renderers.
+ *
+ * `params` is a discriminated union: callers either provide `anchorRel`
+ * (text mode — clamp geometry derived from `newJXG.size` and anchorx/y)
+ * or `imageMode` (image — clamp geometry supplied via getters). Mixing
+ * the two is a type error.
  *
  * The renderer remains responsible for creating the JXG element and the
  * hidden anchor point, calling `usePointerDragState`, `useDraggableRefs`,
  * and `useBoardPointerTracking` at the top level, and providing refs the
- * handlers read/write (`anchorRel`, `pointAtDown`, `calculatedX`,
- * `calculatedY`).
+ * handlers read/write (`pointAtDown`, `calculatedX`, `calculatedY`).
  */
-export function attachAnchoredGraphDragHandlers<TJXG extends AnchoredGraphJXG>({
-    board,
-    newJXG,
-    newAnchorPoint,
-    anchorRel,
-    pointerState,
-    pointAtDown,
-    calculatedX,
-    calculatedY,
-    fixed,
-    fixLocation,
-    lastPositionFromCore,
-    componentIdx,
-    actions,
-    callAction,
-    actionNames,
-    imageMode,
-}: AttachAnchoredGraphDragHandlersParams<TJXG>): void {
+export function attachAnchoredGraphDragHandlers(
+    params: AttachAnchoredGraphDragHandlersParams,
+): void {
+    const {
+        board,
+        newJXG,
+        newAnchorPoint,
+        pointerState,
+        pointAtDown,
+        calculatedX,
+        calculatedY,
+        fixed,
+        fixLocation,
+        lastPositionFromCore,
+        componentIdx,
+        actions,
+        callAction,
+        actionNames,
+    } = params;
+
     newJXG.isDraggable = !fixLocation.current;
 
     newJXG.on("down", function (e: JXGEvent) {
@@ -209,24 +225,22 @@ export function attachAnchoredGraphDragHandlers<TJXG extends AnchoredGraphJXG>({
         let offsetx: number;
         let offsety: number;
         let paddingFraction: number;
-        if (imageMode) {
-            const [imgWidth, imgHeight] = imageMode.getCurrentSize();
-            const [imgOffsetX, imgOffsetY] = imageMode.getCurrentOffset();
+        if (params.imageMode) {
+            const [imgWidth, imgHeight] = params.imageMode.getCurrentSize();
+            const [imgOffsetX, imgOffsetY] =
+                params.imageMode.getCurrentOffset();
             width = imgWidth;
             height = imgHeight;
             offsetx = imgOffsetX;
             offsety = imgOffsetY;
-            paddingFraction = imageMode.paddingFraction ?? 0.01;
+            paddingFraction = params.imageMode.paddingFraction ?? 0.01;
         } else {
-            // In non-image mode, the caller passes a text-shaped element
-            // whose narrow type carries `size` (JXGText). Recover it via a
-            // local cast so the helper's broader element-shape generic can
-            // also accept image-shaped types that lack `size`.
-            const sized = newJXG as unknown as { size: [number, number] };
-            width = sized.size[0] / board.unitX;
-            height = sized.size[1] / board.unitY;
-            const anchorx = anchorRel.current?.[0];
-            const anchory = anchorRel.current?.[1];
+            // params narrows to text mode here, so params.newJXG carries
+            // `size` from JXGText/JXGObject and params.anchorRel is defined.
+            width = params.newJXG.size[0] / board.unitX;
+            height = params.newJXG.size[1] / board.unitY;
+            const anchorx = params.anchorRel.current?.[0];
+            const anchory = params.anchorRel.current?.[1];
             offsetx = 0;
             if (anchorx === "middle") {
                 offsetx = -width / 2;
@@ -272,11 +286,11 @@ export function attachAnchoredGraphDragHandlers<TJXG extends AnchoredGraphJXG>({
             calculatedX.current =
                 newAnchorPoint.X() +
                 newJXG.relativeCoords.usrCoords[1] -
-                (imageMode ? offsetx : 0);
+                (params.imageMode ? offsetx : 0);
             calculatedY.current =
                 newAnchorPoint.Y() +
                 newJXG.relativeCoords.usrCoords[2] -
-                (imageMode ? offsety : 0);
+                (params.imageMode ? offsety : 0);
         }
 
         calculatedX.current = Math.min(
@@ -300,7 +314,7 @@ export function attachAnchoredGraphDragHandlers<TJXG extends AnchoredGraphJXG>({
 
         newJXG.relativeCoords.setCoordinates(
             JXG.COORDS_BY_USER,
-            imageMode ? [offsetx, offsety] : [0, 0],
+            params.imageMode ? [offsetx, offsety] : [0, 0],
         );
         newAnchorPoint.coords.setCoordinates(
             JXG.COORDS_BY_USER,
