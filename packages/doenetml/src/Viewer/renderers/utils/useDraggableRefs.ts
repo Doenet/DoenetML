@@ -1,5 +1,15 @@
 import { useRef, type RefObject } from "react";
-import type { DraggableGraphicalSVs } from "./graphicalSVs";
+
+/**
+ * Minimum SV shape `useDraggableRefs` reads. Matches the relevant fields on
+ * `DraggableGraphicalSVs` (and other renderer SVs interfaces that carry the
+ * same triple without extending it).
+ */
+type DraggableRefsSVs = {
+    fixed: boolean;
+    fixLocation: boolean;
+    draggable: boolean;
+};
 
 /**
  * Bookkeeping refs that every draggable JSXgraph renderer needs.
@@ -17,7 +27,7 @@ import type { DraggableGraphicalSVs } from "./graphicalSVs";
  * hook only owns the universal triple.
  */
 export function useDraggableRefs<TPos>(
-    SVs: DraggableGraphicalSVs,
+    SVs: DraggableRefsSVs,
     position: TPos,
 ): {
     lastPositionFromCore: RefObject<TPos>;
