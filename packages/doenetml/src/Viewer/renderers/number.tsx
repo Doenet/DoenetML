@@ -194,7 +194,7 @@ export default React.memo(function NumberComponent(
                 JXG.COORDS_BY_USER,
                 [0, 0],
             );
-            anchorPointJXG.current!.coords.setCoordinates(
+            anchorPointJXG.current?.coords.setCoordinates(
                 JXG.COORDS_BY_USER,
                 anchorCoords,
             );
@@ -272,8 +272,10 @@ export default React.memo(function NumberComponent(
                 numberJXG.current.update();
             }
 
-            anchorPointJXG.current!.needsUpdate = true;
-            anchorPointJXG.current!.update();
+            if (anchorPointJXG.current) {
+                anchorPointJXG.current.needsUpdate = true;
+                anchorPointJXG.current.update();
+            }
             board.updateRenderer();
         }
 
