@@ -63,11 +63,13 @@ export type PrimitiveStyleDefinition = Partial<
 >;
 
 /**
- * Fully-resolved primitive style definition delivered to renderers via the
- * `selectedStyle` state variable. Every supported key is guaranteed present —
- * unauthored color keys default to `""` so renderer truthy guards continue to
- * mean "no authored color". Excludes the `*Word` variants for highContrast and
- * background, which are conditionally produced and never read by renderers.
+ * Fully-resolved primitive style definition delivered via the `selectedStyle`
+ * state variable. Every supported key is guaranteed present — unauthored color
+ * and word keys default to `""` so consumers' truthy guards continue to mean
+ * "no authored value". Includes every `*Word` variant because the derived
+ * `textColor` / `backgroundColor` state-variable definitions in `style.ts`
+ * read them off `selectedStyle` to build human-readable descriptions, even
+ * though renderers themselves only consume the color values.
  */
 export interface ResolvedStyleDefinition {
     lineColor: string;
@@ -97,9 +99,13 @@ export interface ResolvedStyleDefinition {
     textColorDarkMode: string;
     textColorWordDarkMode: string;
     highContrastColor: string;
+    highContrastColorWord: string;
     highContrastColorDarkMode: string;
+    highContrastColorWordDarkMode: string;
     backgroundColor: string;
+    backgroundColorWord: string;
     backgroundColorDarkMode: string;
+    backgroundColorWordDarkMode: string;
 }
 
 export type ResolvedStyleDefinitionKey = keyof ResolvedStyleDefinition;
@@ -296,16 +302,19 @@ export const DEFAULT_STYLE_VALUES = {
  * encode "no authored value" rather than fabricate a placeholder. Two consumer
  * patterns make this safe:
  *
- *   - **Truthy guards.** Renderers handle the legitimately-optional keys with
- *     checks like `if (backgroundColor) { … }` (math.tsx, text.tsx, label.tsx,
- *     number.tsx); `""` is falsy, so the guard treats it as absent. The
- *     guarded keys are `backgroundColor`/`backgroundColorDarkMode`, which are
- *     intentionally not in `DEFAULT_STYLE_VALUES` (its absence is what keeps
+ *   - **Truthy guards.** Renderers and the derived `backgroundColor`
+ *     state-variable definition handle legitimately-optional keys with checks
+ *     like `if (backgroundColor) { … }` (math.tsx, text.tsx, label.tsx,
+ *     number.tsx; `style.ts:706` for `backgroundColorWord`). `""` is falsy, so
+ *     the guard treats it as absent. The guarded color keys are
+ *     `backgroundColor`/`backgroundColorDarkMode`, which are intentionally not
+ *     in `DEFAULT_STYLE_VALUES` (its absence is what keeps
  *     `addMissingColorWordsToStyleDefinition` from synthesizing a derived
  *     background color word).
  *   - **Word variants are derived, not authored.** `lineColorWord`,
- *     `markerColorWord`, `fillColorWord`, `textColorWord` (and DarkMode pairs)
- *     are populated by `addMissingColorWordsToStyleDefinition` from their
+ *     `markerColorWord`, `fillColorWord`, `textColorWord`,
+ *     `highContrastColorWord`, `backgroundColorWord` (and DarkMode pairs) are
+ *     populated by `addMissingColorWordsToStyleDefinition` from their
  *     corresponding color values. The `""` fallback only surfaces when the
  *     paired color is itself missing from the authored definition — an edge
  *     case where neither the color nor its word is meaningful.
@@ -320,8 +329,12 @@ const RESOLVED_STYLE_FALLBACKS: ResolvedStyleDefinition = {
     fillColorWordDarkMode: "",
     textColorWord: "",
     textColorWordDarkMode: "",
+    highContrastColorWord: "",
+    highContrastColorWordDarkMode: "",
     backgroundColor: "",
+    backgroundColorWord: "",
     backgroundColorDarkMode: "",
+    backgroundColorWordDarkMode: "",
 };
 
 /**
