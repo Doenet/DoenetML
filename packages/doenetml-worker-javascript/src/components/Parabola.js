@@ -1572,6 +1572,8 @@ export default class Parabola extends Curve {
         stateVariableDefinitions.f = {
             isAlias: true,
             targetVariableName: "f1",
+            description:
+                "The parabola as a function of its parameter (alias to the first component function).",
         };
 
         stateVariableDefinitions.nearestPoint = {

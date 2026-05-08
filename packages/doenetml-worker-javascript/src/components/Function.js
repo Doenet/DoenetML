@@ -921,6 +921,7 @@ export default class Function extends InlineComponent {
         stateVariableDefinitions.variable = {
             isAlias: true,
             targetVariableName: "variable1",
+            description: "The function's first input variable name.",
         };
 
         stateVariableDefinitions.mathChildName = {
@@ -3096,8 +3097,15 @@ export default class Function extends InlineComponent {
                 "minimumValue",
             ],
             schemaSubarrays: {
-                minimumLocations: { numDimensions: 1 },
-                minimumValues: { numDimensions: 1 },
+                minimumLocations: {
+                    numDimensions: 1,
+                    description:
+                        "The x-coordinates of the function's local minima.",
+                },
+                minimumValues: {
+                    numDimensions: 1,
+                    description: "The values of the function's local minima.",
+                },
             },
             returnEntryDimensions: (prefix) => {
                 if (["minimumLocation", "minimumValue"].includes(prefix)) {
@@ -3600,8 +3608,15 @@ export default class Function extends InlineComponent {
                 "maximumValue",
             ],
             schemaSubarrays: {
-                maximumLocations: { numDimensions: 1 },
-                maximumValues: { numDimensions: 1 },
+                maximumLocations: {
+                    numDimensions: 1,
+                    description:
+                        "The x-coordinates of the function's local maxima.",
+                },
+                maximumValues: {
+                    numDimensions: 1,
+                    description: "The values of the function's local maxima.",
+                },
             },
             returnEntryDimensions: (prefix) => {
                 if (["maximumLocation", "maximumValue"].includes(prefix)) {
@@ -4035,8 +4050,15 @@ export default class Function extends InlineComponent {
                 "extremumValue",
             ],
             schemaSubarrays: {
-                extremumLocations: { numDimensions: 1 },
-                extremumValues: { numDimensions: 1 },
+                extremumLocations: {
+                    numDimensions: 1,
+                    description:
+                        "The x-coordinates of the function's local extrema.",
+                },
+                extremumValues: {
+                    numDimensions: 1,
+                    description: "The values of the function's local extrema.",
+                },
             },
             returnEntryDimensions: (prefix) => {
                 if (["extremumLocation", "extremumValue"].includes(prefix)) {

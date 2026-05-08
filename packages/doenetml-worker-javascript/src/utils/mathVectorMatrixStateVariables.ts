@@ -454,8 +454,14 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
         numDimensions: 2,
         entryPrefixes: ["matrixEntry", "row", "column", "rows", "columns"],
         schemaSubarrays: {
-            rows: { numDimensions: 2 },
-            columns: { numDimensions: 2 },
+            rows: {
+                numDimensions: 2,
+                description: "The matrix's entries grouped by row.",
+            },
+            columns: {
+                numDimensions: 2,
+                description: "The matrix's entries grouped by column.",
+            },
         },
         returnEntryDimensions: (prefix: string | undefined) => {
             if (prefix === "matrixEntry") {

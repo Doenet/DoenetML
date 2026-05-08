@@ -323,10 +323,14 @@ export default class ODESystem extends InlineComponent {
         stateVariableDefinitions.rhs = {
             isAlias: true,
             targetVariableName: "rhs1",
+            description:
+                "The right-hand-side expression of the first ODE in the system.",
         };
         stateVariableDefinitions.righthandside = {
             isAlias: true,
             targetVariableName: "rhs1",
+            description:
+                "The right-hand-side expression of the first ODE in the system.",
         };
         stateVariableDefinitions.righthandsides = {
             isAlias: true,
@@ -408,6 +412,8 @@ export default class ODESystem extends InlineComponent {
         stateVariableDefinitions.initialCondition = {
             isAlias: true,
             targetVariableName: "initialCondition1",
+            description:
+                "The initial value of the first dependent variable at the initial independent-variable value.",
         };
 
         stateVariableDefinitions.equationTag = {
@@ -916,6 +922,8 @@ export default class ODESystem extends InlineComponent {
         stateVariableDefinitions.numericalSolution = {
             isAlias: true,
             targetVariableName: "numericalSolution1",
+            description:
+                "Numerical solution function for the first dependent variable, as a function of the independent variable.",
         };
 
         stateVariableDefinitions.numericalSolutionFDefinitions = {

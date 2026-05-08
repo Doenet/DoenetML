@@ -922,7 +922,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -939,7 +939,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -955,17 +955,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -10386,7 +10389,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -10403,7 +10406,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -10419,17 +10422,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -11106,7 +11112,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -11123,7 +11129,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -11139,17 +11145,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -11818,7 +11827,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -11835,7 +11844,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -11851,17 +11860,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -12530,7 +12542,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -12547,7 +12559,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -12563,17 +12575,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -13242,7 +13257,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -13259,7 +13274,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -13275,17 +13290,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -13943,7 +13961,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -13960,7 +13978,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -13976,17 +13994,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -14619,7 +14640,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -14636,7 +14657,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -14652,17 +14673,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -15309,7 +15333,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -15326,7 +15350,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -15342,17 +15366,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -15999,7 +16026,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -16016,7 +16043,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -16032,17 +16059,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -16689,7 +16719,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -16706,7 +16736,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -16722,17 +16752,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -17379,7 +17412,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -17396,7 +17429,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -17412,17 +17445,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -18099,7 +18135,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -18116,7 +18152,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -18132,17 +18168,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -18819,7 +18858,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -18836,7 +18875,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -18852,17 +18891,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -19554,7 +19596,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -19571,7 +19613,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -19587,17 +19629,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -20289,7 +20334,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -20306,7 +20351,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -20322,17 +20367,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -21009,7 +21057,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -21026,7 +21074,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -21042,17 +21090,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -21729,7 +21780,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -21746,7 +21797,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -21762,17 +21813,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -22449,7 +22503,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -22466,7 +22520,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -22482,17 +22536,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -23169,7 +23226,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -23186,7 +23243,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -23202,17 +23259,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -23889,7 +23949,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -23906,7 +23966,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -23922,17 +23982,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -24609,7 +24672,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -24626,7 +24689,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -24642,17 +24705,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -25332,7 +25398,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -25349,7 +25415,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -25365,17 +25431,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -25994,7 +26063,7 @@
                     "name": "minimumLocations",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local minima of the function.",
+                    "description": "The x-coordinates of the function's local minima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -26008,7 +26077,7 @@
                     "name": "minimumValues",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local minima of the function.",
+                    "description": "The values of the function's local minima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -26072,7 +26141,7 @@
                     "name": "maximumLocations",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local maxima of the function.",
+                    "description": "The x-coordinates of the function's local maxima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -26086,7 +26155,7 @@
                     "name": "maximumValues",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local maxima of the function.",
+                    "description": "The values of the function's local maxima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -26150,7 +26219,7 @@
                     "name": "extremumLocations",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local extrema (minima + maxima) of the function.",
+                    "description": "The x-coordinates of the function's local extrema.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -26164,7 +26233,7 @@
                     "name": "extremumValues",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local extrema (minima + maxima) of the function.",
+                    "description": "The values of the function's local extrema.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -26177,7 +26246,8 @@
                 {
                     "name": "variable",
                     "type": "_variableName",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The function's first input variable name."
                 }
             ],
             "top": true,
@@ -26790,7 +26860,7 @@
                     "name": "minimumLocations",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local minima of the function.",
+                    "description": "The x-coordinates of the function's local minima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -26804,7 +26874,7 @@
                     "name": "minimumValues",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local minima of the function.",
+                    "description": "The values of the function's local minima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -26868,7 +26938,7 @@
                     "name": "maximumLocations",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local maxima of the function.",
+                    "description": "The x-coordinates of the function's local maxima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -26882,7 +26952,7 @@
                     "name": "maximumValues",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local maxima of the function.",
+                    "description": "The values of the function's local maxima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -26946,7 +27016,7 @@
                     "name": "extremumLocations",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local extrema (minima + maxima) of the function.",
+                    "description": "The x-coordinates of the function's local extrema.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -26960,7 +27030,7 @@
                     "name": "extremumValues",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local extrema (minima + maxima) of the function.",
+                    "description": "The values of the function's local extrema.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -26973,7 +27043,8 @@
                 {
                     "name": "variable",
                     "type": "_variableName",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The function's first input variable name."
                 }
             ],
             "top": true,
@@ -27572,7 +27643,7 @@
                     "name": "minimumLocations",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local minima of the function.",
+                    "description": "The x-coordinates of the function's local minima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -27586,7 +27657,7 @@
                     "name": "minimumValues",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local minima of the function.",
+                    "description": "The values of the function's local minima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -27650,7 +27721,7 @@
                     "name": "maximumLocations",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local maxima of the function.",
+                    "description": "The x-coordinates of the function's local maxima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -27664,7 +27735,7 @@
                     "name": "maximumValues",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local maxima of the function.",
+                    "description": "The values of the function's local maxima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -27728,7 +27799,7 @@
                     "name": "extremumLocations",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local extrema (minima + maxima) of the function.",
+                    "description": "The x-coordinates of the function's local extrema.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -27742,7 +27813,7 @@
                     "name": "extremumValues",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local extrema (minima + maxima) of the function.",
+                    "description": "The values of the function's local extrema.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -27775,7 +27846,8 @@
                 {
                     "name": "variable",
                     "type": "_variableName",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The function's first input variable name."
                 }
             ],
             "top": true,
@@ -45304,12 +45376,14 @@
                 {
                     "name": "rhs",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The right-hand-side expression of the first ODE in the system."
                 },
                 {
                     "name": "righthandside",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The right-hand-side expression of the first ODE in the system."
                 },
                 {
                     "name": "righthandsides",
@@ -45328,12 +45402,14 @@
                 {
                     "name": "initialCondition",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The initial value of the first dependent variable at the initial independent-variable value."
                 },
                 {
                     "name": "numericalSolution",
                     "type": "function",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Numerical solution function for the first dependent variable, as a function of the independent variable."
                 }
             ],
             "top": true,
@@ -46505,17 +46581,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The first coordinate (x) of the point."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The second coordinate (y) of the point."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The third coordinate (z) of the point."
                 },
                 {
                     "name": "value",
@@ -47806,7 +47885,8 @@
                 {
                     "name": "f",
                     "type": "function",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The first component function of the curve as a function of its parameter."
                 }
             ],
             "top": true,
@@ -49207,7 +49287,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -49224,7 +49304,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -49240,17 +49320,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -54191,7 +54274,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The matrix as a math expression.",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -54208,7 +54291,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The matrix as a math expression.",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -57528,7 +57611,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -57545,7 +57628,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -57561,17 +57644,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -59428,17 +59514,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The first coordinate (x) of the point."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The second coordinate (y) of the point."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The third coordinate (z) of the point."
                 },
                 {
                     "name": "value",
@@ -60070,7 +60159,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -60087,7 +60176,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -60109,17 +60198,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -66006,7 +66098,8 @@
                 {
                     "name": "f",
                     "type": "function",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The first component function of the curve as a function of its parameter."
                 }
             ],
             "top": true,
@@ -67080,17 +67173,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The first component (x) of the vector's displacement."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The second component (y) of the vector's displacement."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The third component (z) of the vector's displacement."
                 }
             ],
             "top": true,
@@ -68396,11 +68492,13 @@
                 },
                 {
                     "name": "currentResponse",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The current (unsubmitted) response value from the answer's first input."
                 },
                 {
                     "name": "submittedResponse",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The first response value from the most recent submission."
                 }
             ],
             "top": true,
@@ -68948,7 +69046,8 @@
                 {
                     "name": "feedback",
                     "type": "feedback",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The first feedback message produced by this award."
                 }
             ],
             "top": true,
@@ -69984,7 +70083,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -70001,7 +70100,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -70017,17 +70116,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -71262,11 +71364,13 @@
                 {
                     "name": "selectedIndex",
                     "type": "number",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The 1-based index of the first currently selected choice."
                 },
                 {
                     "name": "selectedValue",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The text value of the first currently selected choice."
                 },
                 {
                     "name": "values",
@@ -74279,7 +74383,7 @@
                     "name": "minimumLocations",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local minima of the function.",
+                    "description": "The x-coordinates of the function's local minima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -74293,7 +74397,7 @@
                     "name": "minimumValues",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local minima of the function.",
+                    "description": "The values of the function's local minima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -74357,7 +74461,7 @@
                     "name": "maximumLocations",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local maxima of the function.",
+                    "description": "The x-coordinates of the function's local maxima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -74371,7 +74475,7 @@
                     "name": "maximumValues",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local maxima of the function.",
+                    "description": "The values of the function's local maxima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -74435,7 +74539,7 @@
                     "name": "extremumLocations",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local extrema (minima + maxima) of the function.",
+                    "description": "The x-coordinates of the function's local extrema.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -74449,7 +74553,7 @@
                     "name": "extremumValues",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local extrema (minima + maxima) of the function.",
+                    "description": "The values of the function's local extrema.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -74462,7 +74566,8 @@
                 {
                     "name": "variable",
                     "type": "_variableName",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The function's first input variable name."
                 }
             ],
             "top": true,
@@ -74941,7 +75046,7 @@
                     "name": "minimumLocations",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local minima of the function.",
+                    "description": "The x-coordinates of the function's local minima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -74955,7 +75060,7 @@
                     "name": "minimumValues",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local minima of the function.",
+                    "description": "The values of the function's local minima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -75019,7 +75124,7 @@
                     "name": "maximumLocations",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local maxima of the function.",
+                    "description": "The x-coordinates of the function's local maxima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -75033,7 +75138,7 @@
                     "name": "maximumValues",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local maxima of the function.",
+                    "description": "The values of the function's local maxima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -75097,7 +75202,7 @@
                     "name": "extremumLocations",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local extrema (minima + maxima) of the function.",
+                    "description": "The x-coordinates of the function's local extrema.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -75111,7 +75216,7 @@
                     "name": "extremumValues",
                     "type": "number",
                     "isArray": true,
-                    "description": "Local extrema (minima + maxima) of the function.",
+                    "description": "The values of the function's local extrema.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -75124,7 +75229,8 @@
                 {
                     "name": "variable",
                     "type": "_variableName",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The function's first input variable name."
                 }
             ],
             "top": true,
@@ -75750,7 +75856,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -75767,7 +75873,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -75789,17 +75895,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -77082,7 +77191,7 @@
                     "name": "rows",
                     "type": "cell",
                     "isArray": true,
-                    "description": "The raw text contents of all cells.",
+                    "description": "The cells grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -77099,7 +77208,7 @@
                     "name": "columns",
                     "type": "cell",
                     "isArray": true,
-                    "description": "The raw text contents of all cells.",
+                    "description": "The cells grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -77133,7 +77242,7 @@
                     "name": "evaluatedRows",
                     "type": "cell",
                     "isArray": true,
-                    "description": "The evaluated values of all cells.",
+                    "description": "The evaluated cell values grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -77150,7 +77259,7 @@
                     "name": "evaluatedColumns",
                     "type": "cell",
                     "isArray": true,
-                    "description": "The evaluated values of all cells.",
+                    "description": "The evaluated cell values grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -77186,7 +77295,7 @@
                     "name": "pointsInRows",
                     "type": "point",
                     "isArray": true,
-                    "description": "Cells whose values are interpreted as points.",
+                    "description": "Cell-derived points grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -77205,7 +77314,7 @@
                     "name": "pointsInColumns",
                     "type": "point",
                     "isArray": true,
-                    "description": "Cells whose values are interpreted as points.",
+                    "description": "Cell-derived points grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -84505,7 +84614,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -84522,7 +84631,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -84544,17 +84653,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -86523,7 +86635,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -86540,7 +86652,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -86574,17 +86686,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -92914,17 +93029,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The first coordinate (x) of the point."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The second coordinate (y) of the point."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The third coordinate (z) of the point."
                 },
                 {
                     "name": "value",
@@ -93940,7 +94058,8 @@
                 {
                     "name": "variable",
                     "type": "_variableName",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The first variable being solved for."
                 }
             ],
             "top": true,
@@ -94902,7 +95021,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -94919,7 +95038,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -94991,17 +95110,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",
@@ -99595,7 +99717,7 @@
                     "name": "rows",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by row.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -99612,7 +99734,7 @@
                     "name": "columns",
                     "type": "math",
                     "isArray": true,
-                    "description": "The math expression interpreted as a matrix (its entries by row and column).",
+                    "description": "The matrix's entries grouped by column.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -99628,17 +99750,20 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The math expression interpreted as a vector (its components)."
                 },
                 {
                     "name": "numListItems",

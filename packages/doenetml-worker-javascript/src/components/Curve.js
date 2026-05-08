@@ -3039,6 +3039,8 @@ export default class Curve extends GraphicalComponent {
         stateVariableDefinitions.f = {
             isAlias: true,
             targetVariableName: "f1",
+            description:
+                "The first component function of the curve as a function of its parameter.",
         };
 
         stateVariableDefinitions.allXCriticalPoints = {

@@ -1072,16 +1072,19 @@ export default class Point extends GraphicalComponent {
         stateVariableDefinitions.x = {
             isAlias: true,
             targetVariableName: "x1",
+            description: "The first coordinate (x) of the point.",
         };
 
         stateVariableDefinitions.y = {
             isAlias: true,
             targetVariableName: "x2",
+            description: "The second coordinate (y) of the point.",
         };
 
         stateVariableDefinitions.z = {
             isAlias: true,
             targetVariableName: "x3",
+            description: "The third coordinate (z) of the point.",
         };
 
         stateVariableDefinitions.coords = {

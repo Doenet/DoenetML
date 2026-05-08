@@ -126,7 +126,7 @@ export function matchPublicStateVariables({
         let varName = stateVariable;
 
         if (varName in stateVarInfo.aliases) {
-            varName = stateVarInfo.aliases[varName];
+            varName = stateVarInfo.aliases[varName].target;
 
             // check again to see if alias is public
             if (varName in stateVarInfo.stateVariableDescriptions) {
@@ -193,7 +193,7 @@ export function substituteAliases({
         }
         stateVariable =
             stateVariable in stateVarInfo.aliases
-                ? stateVarInfo.aliases[stateVariable]
+                ? stateVarInfo.aliases[stateVariable].target
                 : stateVariable;
         if (isArraySize) {
             stateVariable = "__array_size_" + stateVariable;

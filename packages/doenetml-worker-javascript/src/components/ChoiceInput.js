@@ -1036,6 +1036,8 @@ export default class Choiceinput extends Input {
         stateVariableDefinitions.selectedIndex = {
             isAlias: true,
             targetVariableName: "selectedIndex1",
+            description:
+                "The 1-based index of the first currently selected choice.",
         };
 
         stateVariableDefinitions.selectedValues = {
@@ -1210,6 +1212,8 @@ export default class Choiceinput extends Input {
         stateVariableDefinitions.selectedValue = {
             isAlias: true,
             targetVariableName: "selectedValue1",
+            description:
+                "The text value of the first currently selected choice.",
         };
 
         stateVariableDefinitions.values = {

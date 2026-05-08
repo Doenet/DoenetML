@@ -419,9 +419,11 @@ export class Extrema extends BaseComponent {
             schemaSubarrays: {
                 [extremaClass.componentTypeSingular + "Locations"]: {
                     numDimensions: 1,
+                    description: `The x-coordinates of the ${extremaClass.componentType}.`,
                 },
                 [extremaClass.componentTypeSingular + "Values"]: {
                     numDimensions: 1,
+                    description: `The values of the ${extremaClass.componentType}.`,
                 },
             },
             stateVariablesDeterminingDependencies: ["childIdentities"],

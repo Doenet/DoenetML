@@ -341,8 +341,14 @@ export default class Spreadsheet extends BlockComponent {
                 "columns",
             ],
             schemaSubarrays: {
-                rows: { numDimensions: 2 },
-                columns: { numDimensions: 2 },
+                rows: {
+                    numDimensions: 2,
+                    description: "The cells grouped by row.",
+                },
+                columns: {
+                    numDimensions: 2,
+                    description: "The cells grouped by column.",
+                },
             },
             numDimensions: 2,
             defaultValueByArrayKey: () => "",
@@ -767,8 +773,14 @@ export default class Spreadsheet extends BlockComponent {
                 "evaluatedColumns",
             ],
             schemaSubarrays: {
-                evaluatedRows: { numDimensions: 2 },
-                evaluatedColumns: { numDimensions: 2 },
+                evaluatedRows: {
+                    numDimensions: 2,
+                    description: "The evaluated cell values grouped by row.",
+                },
+                evaluatedColumns: {
+                    numDimensions: 2,
+                    description: "The evaluated cell values grouped by column.",
+                },
             },
             numDimensions: 2,
             stateVariablesDeterminingDependencies: ["cellIndicesByRowCol"],
@@ -1120,8 +1132,14 @@ export default class Spreadsheet extends BlockComponent {
                 "pointsInColumns",
             ],
             schemaSubarrays: {
-                pointsInRows: { numDimensions: 2 },
-                pointsInColumns: { numDimensions: 2 },
+                pointsInRows: {
+                    numDimensions: 2,
+                    description: "Cell-derived points grouped by row.",
+                },
+                pointsInColumns: {
+                    numDimensions: 2,
+                    description: "Cell-derived points grouped by column.",
+                },
             },
             stateVariablesDeterminingDependencies: ["cellIndicesByRowCol"],
             returnArraySizeDependencies: () => ({

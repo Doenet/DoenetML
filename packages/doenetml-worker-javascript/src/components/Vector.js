@@ -1665,16 +1665,22 @@ export default class Vector extends GraphicalComponent {
         stateVariableDefinitions.x = {
             isAlias: true,
             targetVariableName: "x1",
+            description:
+                "The first component (x) of the vector's displacement.",
         };
 
         stateVariableDefinitions.y = {
             isAlias: true,
             targetVariableName: "x2",
+            description:
+                "The second component (y) of the vector's displacement.",
         };
 
         stateVariableDefinitions.z = {
             isAlias: true,
             targetVariableName: "x3",
+            description:
+                "The third component (z) of the vector's displacement.",
         };
 
         stateVariableDefinitions.head = {

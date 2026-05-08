@@ -839,6 +839,7 @@ export default class Award extends BaseComponent {
         stateVariableDefinitions.feedback = {
             isAlias: true,
             targetVariableName: "feedback1",
+            description: "The first feedback message produced by this award.",
         };
 
         return stateVariableDefinitions;

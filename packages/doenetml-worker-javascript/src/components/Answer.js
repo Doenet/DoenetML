@@ -1782,6 +1782,8 @@ export default class Answer extends InlineComponent {
         stateVariableDefinitions.currentResponse = {
             isAlias: true,
             targetVariableName: "currentResponse1",
+            description:
+                "The current (unsubmitted) response value from the answer's first input.",
         };
 
         stateVariableDefinitions.numSubmittedResponses = {
@@ -1960,6 +1962,8 @@ export default class Answer extends InlineComponent {
         stateVariableDefinitions.submittedResponse = {
             isAlias: true,
             targetVariableName: "submittedResponse1",
+            description:
+                "The first response value from the most recent submission.",
         };
 
         stateVariableDefinitions.delegateCheckWork = {

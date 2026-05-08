@@ -2586,8 +2586,14 @@ export class MatrixInput extends Input {
             numDimensions: 2,
             entryPrefixes: ["matrixEntry", "row", "column", "rows", "columns"],
             schemaSubarrays: {
-                columns: { numDimensions: 2 },
-                rows: { numDimensions: 2 },
+                columns: {
+                    numDimensions: 2,
+                    description: "The matrix's entries grouped by column.",
+                },
+                rows: {
+                    numDimensions: 2,
+                    description: "The matrix's entries grouped by row.",
+                },
             },
             returnEntryDimensions: (prefix) => {
                 if (prefix === "matrixEntry") {

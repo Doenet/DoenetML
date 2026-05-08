@@ -177,6 +177,7 @@ export default class SolveEquations extends InlineComponent {
         stateVariableDefinitions.variable = {
             isAlias: true,
             targetVariableName: "variable1",
+            description: "The first variable being solved for.",
         };
 
         stateVariableDefinitions.allSolutions = {

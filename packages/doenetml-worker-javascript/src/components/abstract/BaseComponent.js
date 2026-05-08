@@ -1184,7 +1184,10 @@ export default class BaseComponent {
         for (let varName in stateDef) {
             let theStateDef = stateDef[varName];
             if (theStateDef.isAlias) {
-                aliases[varName] = theStateDef.targetVariableName;
+                aliases[varName] = {
+                    target: theStateDef.targetVariableName,
+                    description: theStateDef.description,
+                };
                 continue;
             }
             if (
