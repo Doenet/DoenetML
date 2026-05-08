@@ -7,7 +7,7 @@ const schema = getSchema();
 reportHelpCoverage(schema.elements);
 console.log(
     "Writing",
-    Object.keys(schema.elements).length,
+    schema.elements.length,
     "schema items to",
     destUrl.pathname,
 );
