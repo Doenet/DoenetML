@@ -1128,12 +1128,14 @@ export default class BaseComponent {
                             public: true,
                             isArray: false,
                             description: attrObj.description,
+                            fromAttribute: attrName === varName,
                         };
                     } else {
                         stateVariableDescriptions[varName] = {
                             public: false,
                             isArray: false,
                             description: attrObj.description,
+                            fromAttribute: attrName === varName,
                         };
                     }
                 }

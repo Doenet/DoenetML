@@ -46,4 +46,21 @@ describe("generated schema help fields", () => {
             numToSelectAttribute?.description,
         );
     });
+
+    it("flags properties auto-created from a same-named attribute with fromAttribute: true", () => {
+        const numToSelectProperty = selectFromSequence.properties.find(
+            (property) => property.name === "numToSelect",
+        );
+        expect(numToSelectProperty?.fromAttribute).toBe(true);
+    });
+
+    it("does not flag explicitly defined state-variable properties with fromAttribute", () => {
+        // `doenetML` is an explicit state variable defined in
+        // returnStateVariableDefinitions(), not auto-derived from an attribute.
+        const doenetML = selectFromSequence.properties.find(
+            (property) => property.name === "doenetML",
+        );
+        expect(doenetML).toBeDefined();
+        expect(doenetML?.fromAttribute).not.toBe(true);
+    });
 });

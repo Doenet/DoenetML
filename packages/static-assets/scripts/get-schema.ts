@@ -93,6 +93,7 @@ type PropertyDescription = {
     numDimensions?: number;
     indexedArrayDescription?: ArrayElementDescription[];
     description?: string;
+    fromAttribute?: boolean;
 };
 
 type ArrayElementDescription = {
@@ -121,6 +122,7 @@ type StateVariableDescription = {
     getArrayKeysFromVarName?: Function;
     arrayVarNameFromPropIndex?: Function;
     description?: string;
+    fromAttribute?: boolean;
 };
 
 type PublicStateVariableDescription = {
@@ -133,6 +135,7 @@ type PublicStateVariableDescription = {
     getArrayKeysFromVarName?: Function;
     arrayVarNameFromPropIndex?: Function;
     description?: string;
+    fromAttribute?: boolean;
 };
 
 type SchemaAttribute = {
@@ -444,7 +447,10 @@ export function getSchema() {
                 properties.push(
                     ...propFromDescription({
                         varName: aliasName,
-                        description: aliasTarget,
+                        // Aliases never inherit `fromAttribute` from their target:
+                        // the alias has a different name and is not itself created
+                        // from a same-named attribute.
+                        description: { ...aliasTarget, fromAttribute: false },
                         arrayEntryPrefixes,
                         includeSchemaSubarrays: false,
                     }),
@@ -605,6 +611,10 @@ function propFromDescription({
                         numDimensions: schemaSubarrayDescription.numDimensions,
                         wrappingComponents:
                             prefixDescription.wrappingComponents,
+                        // Subarray entries have a different name from the
+                        // parent array; they're never themselves created
+                        // directly from a same-named attribute.
+                        fromAttribute: false,
                     },
                     arrayEntryPrefixes,
                 }),
@@ -634,6 +644,10 @@ function singlePropFromDescription({
 
     if (description.description) {
         prop.description = description.description;
+    }
+
+    if (description.fromAttribute) {
+        prop.fromAttribute = true;
     }
 
     if (description.isArray) {

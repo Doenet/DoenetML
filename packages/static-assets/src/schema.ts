@@ -7,6 +7,7 @@ export type SchemaProperty = {
     numDimensions?: number;
     indexedArrayDescription?: unknown[];
     description?: string;
+    fromAttribute?: boolean;
 };
 
 export { doenetSchema };
