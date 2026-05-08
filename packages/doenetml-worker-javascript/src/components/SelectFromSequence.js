@@ -22,7 +22,8 @@ export default class SelectFromSequence extends Sequence {
     static componentType = "selectFromSequence";
 
     static componentDocs = {
-        summary: "Randomly selects values from a numerical or letter sequence.",
+        summary:
+            "Randomly selects values from a sequence of numbers, math expressions, or letters.",
     };
 
     static takesIndex = true;

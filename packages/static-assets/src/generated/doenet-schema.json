@@ -73939,7 +73939,7 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": true,
-            "summary": "Randomly selects values from a numerical or letter sequence."
+            "summary": "Randomly selects values from a sequence of numbers, math expressions, or letters."
         },
         {
             "name": "select",
