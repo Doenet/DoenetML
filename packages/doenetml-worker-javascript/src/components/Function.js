@@ -3512,6 +3512,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.maxima = {
+            description: "Local maxima of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -3549,8 +3550,15 @@ export default class Function extends InlineComponent {
                 "maximumValue",
             ],
             schemaSubarrays: {
-                maximumLocations: { numDimensions: 1 },
-                maximumValues: { numDimensions: 1 },
+                maximumLocations: {
+                    numDimensions: 1,
+                    description:
+                        "The x-coordinates of the function's local maxima.",
+                },
+                maximumValues: {
+                    numDimensions: 1,
+                    description: "The values of the function's local maxima.",
+                },
             },
             returnEntryDimensions: (prefix) => {
                 if (["maximumLocation", "maximumValue"].includes(prefix)) {
