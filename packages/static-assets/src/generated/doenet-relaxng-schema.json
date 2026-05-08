@@ -1405,20 +1405,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -3137,20 +3134,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -3797,20 +3791,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -7068,20 +7059,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -9514,20 +9502,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -10157,20 +10142,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -10800,20 +10782,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -11025,20 +11004,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -11240,20 +11216,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -11885,20 +11858,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -15766,20 +15736,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -16594,20 +16561,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -17420,20 +17384,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -18246,20 +18207,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -19072,20 +19030,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -19886,20 +19841,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -20681,20 +20633,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -21478,20 +21427,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -22280,20 +22226,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -23082,20 +23025,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -23884,20 +23824,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -24712,20 +24649,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -25540,20 +25474,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -26381,20 +26312,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -27222,20 +27150,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -28050,20 +27975,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -28878,20 +28800,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -29706,20 +29625,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -30534,20 +30450,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -31362,20 +31275,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -32190,20 +32100,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -33026,20 +32933,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -33836,20 +33740,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "styleDescription",
@@ -34769,20 +34670,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "styleDescription",
@@ -35690,20 +35588,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "styleDescription",
@@ -36456,20 +36351,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -65110,20 +65002,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "variables",
@@ -66452,20 +66341,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "styleDescription",
@@ -67113,20 +66999,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "styleDescription",
@@ -68288,20 +68171,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "atomicNumber",
@@ -68560,20 +68440,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "atomicNumber",
@@ -68785,20 +68662,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "math",
@@ -69424,20 +69298,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -72525,20 +72396,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -76423,20 +76291,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "text",
@@ -80682,20 +80547,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -83180,20 +83042,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -86263,20 +86122,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "styleDescription",
@@ -86948,20 +86804,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -87692,20 +87545,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "styleDescription",
@@ -94820,20 +94670,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "styleDescription",
@@ -101548,20 +101395,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -102135,20 +101979,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -104122,20 +103963,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "styleDescription",
@@ -104773,20 +104611,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "styleDescription",
@@ -105672,20 +105507,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -118946,20 +118778,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -121370,20 +121199,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -123444,20 +123270,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -124041,20 +123864,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -132115,20 +131935,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "styleDescription",
@@ -135206,20 +135023,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -136551,20 +136365,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "styleDescription",
@@ -140144,20 +139955,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -141214,20 +141022,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -142398,20 +142203,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
@@ -145694,20 +145496,17 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
+                    "isArray": false
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false,
-                    "description": "Human-readable description of this component's text styling (color and any background color)."
+                    "isArray": false
                 },
                 {
                     "name": "anchor",
