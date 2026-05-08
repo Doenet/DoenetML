@@ -29,8 +29,7 @@ export default class ODESystem extends InlineComponent {
             createStateVariable: "independentVariable",
             defaultValue: me.fromAst("t"),
             public: true,
-            description:
-                "The independent variable of the ODE system (defaults to t).",
+            description: "The independent variable of the ODE system.",
         };
 
         attributes.initialIndependentVariableValue = {

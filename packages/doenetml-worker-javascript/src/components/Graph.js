@@ -76,7 +76,7 @@ export default class Graph extends BlockComponent {
         };
 
         attributes.displayMode = {
-            description: 'How to size the graph (e.g. "block", "inline").',
+            description: "How to size the graph.",
             createComponentOfType: "text",
             createStateVariable: "displayMode",
             validValues: ["block", "inline"],

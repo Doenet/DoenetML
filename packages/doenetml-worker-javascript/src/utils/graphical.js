@@ -27,7 +27,7 @@ export function returnAnchorAttributes() {
                 "center",
             ],
             description:
-                'Where this component sits relative to its anchor point (e.g. "center", "upperLeft").',
+                "Where this component sits relative to its anchor point.",
         },
     };
 }

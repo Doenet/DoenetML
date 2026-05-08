@@ -66,7 +66,7 @@ export default class MathComponent extends InlineComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.format = {
-            description: 'Input format (e.g. "text" or "latex").',
+            description: "Input format.",
             createComponentOfType: "text",
             createStateVariable: "format",
             defaultValue: "text",

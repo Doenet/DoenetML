@@ -31,8 +31,7 @@ export default class SubsetOfReals extends MathComponent {
         };
 
         attributes.displayMode = {
-            description:
-                "How the subset is displayed (e.g. as intervals or set notation).",
+            description: "How the subset is displayed.",
             createComponentOfType: "text",
             createStateVariable: "displayMode",
             defaultValue: "intervals",

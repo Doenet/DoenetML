@@ -49,8 +49,7 @@ export default class Video extends BlockComponent {
         };
 
         attributes.displayMode = {
-            description:
-                'How to size the video player (e.g. "block", "inline").',
+            description: "How to size the video player.",
             createComponentOfType: "text",
             createStateVariable: "displayMode",
             toLowerCase: true,

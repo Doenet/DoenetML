@@ -59,8 +59,7 @@ export default class AnimateFromSequence extends BaseComponent {
             ],
             toLowerCase: true,
             public: true,
-            description:
-                "How the animation steps through the sequence: increase, decrease, increase once, decrease once, or oscillate.",
+            description: "How the animation steps through the sequence.",
         };
 
         attributes.animationInterval = {

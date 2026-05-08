@@ -22,7 +22,7 @@ export default class Substitute extends CompositeComponent {
         let attributes = super.createAttributesObject();
 
         attributes.type = {
-            description: "Type of values being substituted (math, text, etc.).",
+            description: "Type of values being substituted.",
             createPrimitiveOfType: "string",
             createStateVariable: "type",
             defaultPrimitiveValue: "math",

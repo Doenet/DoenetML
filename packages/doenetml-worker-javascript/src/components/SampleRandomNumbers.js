@@ -44,8 +44,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         // gaussian: gaussian with prescribed mean and standard deviation
 
         attributes.type = {
-            description:
-                'Distribution type (e.g. "uniform", "discreteUniform", "gaussian").',
+            description: "Distribution from which to sample.",
             createComponentOfType: "text",
             createStateVariable: "type",
             defaultValue: "uniform",

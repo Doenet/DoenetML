@@ -108,7 +108,7 @@ export class MatrixInput extends Input {
             ],
         };
         attributes.format = {
-            description: 'Input format for each cell (e.g. "text" or "latex").',
+            description: "Input format for each cell.",
             createComponentOfType: "text",
             createStateVariable: "format",
             defaultValue: "text",

@@ -195,8 +195,7 @@ export default class Answer extends InlineComponent {
             defaultValue: null,
             toLowerCase: true,
             validValues: ["math", "text", "boolean", "videoWatched"],
-            description:
-                "Type of input the answer expects: math, text, boolean, or videoWatched.",
+            description: "Type of input the answer expects.",
         };
 
         attributes.selectMultiple = {

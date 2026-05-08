@@ -76,7 +76,7 @@ export default class MathInput extends Input {
             public: true,
         };
         attributes.format = {
-            description: 'Input format (e.g. "text" or "latex").',
+            description: "Input format.",
             createComponentOfType: "text",
             createStateVariable: "format",
             defaultValue: "text",

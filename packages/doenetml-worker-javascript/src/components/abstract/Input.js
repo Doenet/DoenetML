@@ -37,8 +37,7 @@ export default class Input extends InlineComponent {
             forRenderer: true,
             toLowerCase: true,
             validValues: ["left", "right"],
-            description:
-                'Position of the label relative to the input: "left" or "right".',
+            description: "Position of the label relative to the input.",
         };
 
         attributes.forAnswer = {

@@ -52,7 +52,7 @@ export default class Image extends BlockComponent {
         };
 
         attributes.displayMode = {
-            description: 'How to size the image (e.g. "block", "inline").',
+            description: "How to size the image.",
             createComponentOfType: "text",
             createStateVariable: "displayMode",
             toLowerCase: true,

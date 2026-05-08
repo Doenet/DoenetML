@@ -39,8 +39,7 @@ export default class Angle extends GraphicalComponent {
             forRenderer: true,
             toLowerCase: true,
             validValues: ["never", "allowed", "always"],
-            description:
-                'How to handle reflex angles: "never" (default), "allowed", or "always".',
+            description: "How to handle reflex angles.",
         };
         attributes.inDegrees = {
             createComponentOfType: "boolean",
