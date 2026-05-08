@@ -521,9 +521,9 @@ export function getSchema() {
 
 /**
  * Print aggregate coverage counts to stdout for schema elements, attributes,
- * and properties with help (`summary`/`description`) authored. Warnings only
- * — never fails the build. Helps track authoring progress as descriptions
- * are backfilled across the ~200+ component classes.
+ * and properties with help (`summary`/`description`) authored. Informational
+ * only — never fails the build. Helps track authoring progress as
+ * descriptions are backfilled across the ~200+ component classes.
  */
 export function reportHelpCoverage(
     elements: ReturnType<typeof getSchema>["elements"],
