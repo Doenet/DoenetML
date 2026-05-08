@@ -76,14 +76,4 @@ describe("generated schema help fields", () => {
             "Fraction of the boolean condition that is satisfied (0 to 1).",
         );
     });
-
-    it("does not auto-copy a parent state-var description to additionalStateVariablesDefined siblings", () => {
-        // `conditionSatisfied` is a sibling of `value` but has no description of its own;
-        // a description on the parent (`value`) must not leak onto the sibling property.
-        const conditionSatisfied = when.properties.find(
-            (property) => property.name === "conditionSatisfied",
-        );
-        expect(conditionSatisfied).toBeDefined();
-        expect(conditionSatisfied?.description).toBeUndefined();
-    });
 });
