@@ -57,8 +57,16 @@ export type ComponentInfoObjects = {
  */
 type StateVariableInfo = {
     stateVariableDescriptions: Record<string, StateVariableDescription>;
-    aliases: Record<string, string>;
+    aliases: Record<string, AliasDescription>;
     arrayEntryPrefixes: Record<string, ArrayEntryPrefixDescription>;
+};
+
+/**
+ * Information about an alias state variable
+ */
+export type AliasDescription = {
+    target: string;
+    description?: string;
 };
 
 /**
@@ -83,6 +91,7 @@ type StateVariableDescription = {
  */
 export type SchemaSubarrayDescription = {
     numDimensions: number;
+    description?: string;
 };
 
 /**

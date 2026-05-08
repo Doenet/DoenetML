@@ -27,7 +27,8 @@ export function determinePropType(
     }
 
     // If `propName` is an alias, replace with its target
-    const varName = publicStateVariableInfo.aliases[propName] ?? propName;
+    const varName =
+        publicStateVariableInfo.aliases[propName]?.target ?? propName;
 
     const stateVarInfo =
         publicStateVariableInfo.stateVariableDescriptions[varName];

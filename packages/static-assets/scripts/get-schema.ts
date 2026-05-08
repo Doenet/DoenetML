@@ -1,4 +1,5 @@
 import {
+    AliasDescription,
     createComponentInfoObjects,
     SchemaSubarrayDescription,
 } from "../../doenetml-worker-javascript/src/utils/componentInfoObjects";
@@ -411,7 +412,7 @@ export function getSchema() {
         }: {
             stateVariableDescriptions: Record<string, StateVariableDescription>;
             arrayEntryPrefixes: Record<string, ArrayEntryPrefixDescription>;
-            aliases: Record<string, string>;
+            aliases: Record<string, AliasDescription>;
         } = componentInfoObjects.publicStateVariableInfo[type];
 
         const publicStateVariableDescriptions =
@@ -440,17 +441,26 @@ export function getSchema() {
         ).sort((a, b) => b.length - a.length);
 
         for (const aliasName in aliases) {
-            const aliasTargetName = aliases[aliasName];
+            const aliasInfo = aliases[aliasName];
+            const aliasTargetName = aliasInfo.target;
             const aliasTarget =
                 publicStateVariableDescriptions[aliasTargetName];
             if (aliasTarget) {
+                // Aliases never inherit `fromAttribute` from their target:
+                // the alias has a different name and is not itself created
+                // from a same-named attribute. The spread carries the target's
+                // description; an alias's own description, when set, overrides.
+                const aliasDescription: PublicStateVariableDescription = {
+                    ...aliasTarget,
+                    fromAttribute: false,
+                };
+                if (aliasInfo.description !== undefined) {
+                    aliasDescription.description = aliasInfo.description;
+                }
                 properties.push(
                     ...propFromDescription({
                         varName: aliasName,
-                        // Aliases never inherit `fromAttribute` from their target:
-                        // the alias has a different name and is not itself created
-                        // from a same-named attribute.
-                        description: { ...aliasTarget, fromAttribute: false },
+                        description: aliasDescription,
                         arrayEntryPrefixes,
                         includeSchemaSubarrays: false,
                     }),
@@ -470,6 +480,12 @@ export function getSchema() {
                                 public: true,
                                 createComponentOfType:
                                     arrayStateVarDescription.createComponentOfType,
+                                // Prefer the alias's own description; fall back to
+                                // the parent array's so something useful surfaces
+                                // even when the alias is undescribed.
+                                description:
+                                    aliasInfo.description ??
+                                    arrayStateVarDescription.description,
                                 isArray: arrayEntry.numDimensions > 0,
                                 numDimensions: arrayEntry.numDimensions,
                                 wrappingComponents:
@@ -615,6 +631,12 @@ function propFromDescription({
                         // parent array; they're never themselves created
                         // directly from a same-named attribute.
                         fromAttribute: false,
+                        // Prefer the subarray's own description; fall back to
+                        // the parent array's so something useful surfaces
+                        // even when the subarray is undescribed.
+                        description:
+                            schemaSubarrayDescription.description ??
+                            description.description,
                     },
                     arrayEntryPrefixes,
                 }),

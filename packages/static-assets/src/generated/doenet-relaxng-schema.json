@@ -33934,6 +33934,7 @@
                     "name": "maxima",
                     "type": "number",
                     "isArray": true,
+                    "description": "Local maxima of the function.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -33951,6 +33952,7 @@
                     "name": "maximumLocations",
                     "type": "number",
                     "isArray": true,
+                    "description": "The x-coordinates of the function's local maxima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -33964,6 +33966,7 @@
                     "name": "maximumValues",
                     "type": "number",
                     "isArray": true,
+                    "description": "The values of the function's local maxima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -34861,6 +34864,7 @@
                     "name": "maxima",
                     "type": "number",
                     "isArray": true,
+                    "description": "Local maxima of the function.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -34878,6 +34882,7 @@
                     "name": "maximumLocations",
                     "type": "number",
                     "isArray": true,
+                    "description": "The x-coordinates of the function's local maxima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -34891,6 +34896,7 @@
                     "name": "maximumValues",
                     "type": "number",
                     "isArray": true,
+                    "description": "The values of the function's local maxima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -35776,6 +35782,7 @@
                     "name": "maxima",
                     "type": "number",
                     "isArray": true,
+                    "description": "Local maxima of the function.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -35793,6 +35800,7 @@
                     "name": "maximumLocations",
                     "type": "number",
                     "isArray": true,
+                    "description": "The x-coordinates of the function's local maxima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -35806,6 +35814,7 @@
                     "name": "maximumValues",
                     "type": "number",
                     "isArray": true,
+                    "description": "The values of the function's local maxima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -66368,6 +66377,7 @@
                     "name": "xs",
                     "type": "math",
                     "isArray": true,
+                    "description": "The point's coordinates as a list.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -66380,7 +66390,8 @@
                 {
                     "name": "coords",
                     "type": "coords",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The point's coordinates as a math expression."
                 },
                 {
                     "name": "latex",
@@ -66395,22 +66406,26 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The first coordinate (x) of the point."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The second coordinate (y) of the point."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The third coordinate (z) of the point."
                 },
                 {
                     "name": "value",
                     "type": "coords",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The point's value as a single math expression."
                 }
             ]
         },
@@ -86143,6 +86158,7 @@
                     "name": "xs",
                     "type": "math",
                     "isArray": true,
+                    "description": "The point's coordinates as a list.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -86155,7 +86171,8 @@
                 {
                     "name": "coords",
                     "type": "coords",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The point's coordinates as a math expression."
                 },
                 {
                     "name": "latex",
@@ -86170,22 +86187,26 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The first coordinate (x) of the point."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The second coordinate (y) of the point."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The third coordinate (z) of the point."
                 },
                 {
                     "name": "value",
                     "type": "coords",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The point's value as a single math expression."
                 }
             ]
         },
@@ -104136,6 +104157,7 @@
                     "name": "maxima",
                     "type": "number",
                     "isArray": true,
+                    "description": "Local maxima of the function.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -104153,6 +104175,7 @@
                     "name": "maximumLocations",
                     "type": "number",
                     "isArray": true,
+                    "description": "The x-coordinates of the function's local maxima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -104166,6 +104189,7 @@
                     "name": "maximumValues",
                     "type": "number",
                     "isArray": true,
+                    "description": "The values of the function's local maxima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -104768,6 +104792,7 @@
                     "name": "maxima",
                     "type": "number",
                     "isArray": true,
+                    "description": "Local maxima of the function.",
                     "numDimensions": 2,
                     "indexedArrayDescription": [
                         {
@@ -104785,6 +104810,7 @@
                     "name": "maximumLocations",
                     "type": "number",
                     "isArray": true,
+                    "description": "The x-coordinates of the function's local maxima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -104798,6 +104824,7 @@
                     "name": "maximumValues",
                     "type": "number",
                     "isArray": true,
+                    "description": "The values of the function's local maxima.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -131944,6 +131971,7 @@
                     "name": "xs",
                     "type": "math",
                     "isArray": true,
+                    "description": "The point's coordinates as a list.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -131956,7 +131984,8 @@
                 {
                     "name": "coords",
                     "type": "coords",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The point's coordinates as a math expression."
                 },
                 {
                     "name": "latex",
@@ -131971,22 +132000,26 @@
                 {
                     "name": "x",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The first coordinate (x) of the point."
                 },
                 {
                     "name": "y",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The second coordinate (y) of the point."
                 },
                 {
                     "name": "z",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The third coordinate (z) of the point."
                 },
                 {
                     "name": "value",
                     "type": "coords",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The point's value as a single math expression."
                 }
             ]
         },

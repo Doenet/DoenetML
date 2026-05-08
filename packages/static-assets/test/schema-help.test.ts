@@ -11,6 +11,8 @@ describe("generated schema help fields", () => {
     const sequence = elementsByName.sequence;
     const selectFromSequence = elementsByName.selectFromSequence;
     const when = elementsByName.when;
+    const point = elementsByName.point;
+    const fn = elementsByName.function;
 
     it("has the piloted components present in the generated schema", () => {
         // Asserted up front so later tests don't fail with confusing
@@ -18,6 +20,8 @@ describe("generated schema help fields", () => {
         expect(sequence).toBeDefined();
         expect(selectFromSequence).toBeDefined();
         expect(when).toBeDefined();
+        expect(point).toBeDefined();
+        expect(fn).toBeDefined();
     });
 
     it("populates element summary from static componentDocs", () => {
@@ -83,5 +87,58 @@ describe("generated schema help fields", () => {
         expect(fractionSatisfied?.description).toBe(
             "Fraction of the boolean condition that is satisfied (0 to 1).",
         );
+    });
+
+    it("uses an alias state variable's own description when set (alias to a regular state variable)", () => {
+        // `value` on <point> is `{ isAlias: true, targetVariableName: "coords",
+        // description: "..." }`. The alias's own description must surface
+        // rather than `coords`'s description.
+        const valueProp = point.properties.find(
+            (property) => property.name === "value",
+        );
+        const coordsProp = point.properties.find(
+            (property) => property.name === "coords",
+        );
+        expect(valueProp?.description).toBe(
+            "The point's value as a single math expression.",
+        );
+        expect(coordsProp?.description).toBe(
+            "The point's coordinates as a math expression.",
+        );
+        expect(valueProp?.description).not.toBe(coordsProp?.description);
+    });
+
+    it("uses an alias state variable's own description when set (alias to an array entry)", () => {
+        // `x` on <point> is `{ isAlias: true, targetVariableName: "x1", description: "..." }`,
+        // pointing at the first entry of the `xs` array. The alias's own
+        // description must surface rather than `xs`'s description.
+        const xProp = point.properties.find(
+            (property) => property.name === "x",
+        );
+        const xsProp = point.properties.find(
+            (property) => property.name === "xs",
+        );
+        expect(xProp?.description).toBe(
+            "The first coordinate (x) of the point.",
+        );
+        expect(xsProp?.description).toBe("The point's coordinates as a list.");
+        expect(xProp?.description).not.toBe(xsProp?.description);
+    });
+
+    it("uses a schema subarray's own description when set", () => {
+        // `<function>`'s `maxima` array exposes a schema subarray
+        // `maximumLocations` with its own description; the subarray's
+        // description must surface rather than the parent array's.
+        const maximumLocations = fn.properties.find(
+            (property) => property.name === "maximumLocations",
+        );
+        const maxima = fn.properties.find(
+            (property) => property.name === "maxima",
+        );
+        expect(maximumLocations?.description).toBe(
+            "The x-coordinates of the function's local maxima.",
+        );
+        expect(maxima?.description).toBe("Local maxima of the function.");
+        expect(maximumLocations?.description).not.toBe(maxima?.description);
     });
 });
