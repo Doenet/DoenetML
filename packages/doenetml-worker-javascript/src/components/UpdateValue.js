@@ -40,6 +40,8 @@ export default class UpdateValue extends InlineComponent {
 
         attributes.target = {
             createReferences: true,
+            description:
+                "Reference to the state variable that will be updated.",
         };
 
         attributes.type = {
@@ -48,10 +50,12 @@ export default class UpdateValue extends InlineComponent {
             defaultPrimitiveValue: "math",
             toLowerCase: true,
             validValues: ["math", "number", "boolean", "text"],
+            description: "Component type used to interpret the new value.",
         };
 
         attributes.newValue = {
             createComponentOfType: "_componentWithSelectableType",
+            description: "New value to assign to the target.",
         };
 
         attributes.draggable = {

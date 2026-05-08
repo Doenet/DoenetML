@@ -36,6 +36,8 @@ export default class StickyGroup extends GraphicalComponent {
 
         attributes.threshold = {
             createComponentOfType: "number",
+            description:
+                "Distance threshold within which group members snap together.",
         };
 
         attributes.angleThreshold = {

@@ -17,6 +17,8 @@ export default class Intersection extends CompositeComponent {
 
         attributes.styleNumber = {
             leaveRaw: true,
+            description:
+                "Style number applied to the resulting intersection components.",
         };
 
         attributes.asList = {

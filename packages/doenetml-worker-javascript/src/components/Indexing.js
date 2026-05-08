@@ -13,6 +13,7 @@ export class H extends TextComponent {
         let attributes = super.createAttributesObject();
         attributes.sortby = {
             createComponentOfType: "text",
+            description: "Property name to sort the indexed values by.",
         };
         return attributes;
     }

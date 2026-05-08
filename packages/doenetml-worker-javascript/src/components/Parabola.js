@@ -25,6 +25,7 @@ export default class Parabola extends Curve {
             isLocation: true,
             createStateVariable: "prescribedVertex",
             defaultValue: null,
+            description: "The vertex of the parabola.",
         };
 
         delete attributes.parMin;

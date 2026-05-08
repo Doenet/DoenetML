@@ -69,6 +69,7 @@ export default class Textinput extends Input {
         };
         attributes.width = {
             createComponentOfType: "componentSize",
+            description: "Display width of the input.",
         };
         attributes.height = {
             description: "Display height of the input.",

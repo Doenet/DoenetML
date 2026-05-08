@@ -59,11 +59,15 @@ export default class NumberComponent extends InlineComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "convertBoolean",
             defaultValue: false,
+            description:
+                "Whether to convert boolean inputs to 1/0 instead of NaN.",
         };
         attributes.valueOnNaN = {
             createPrimitiveOfType: "number",
             createStateVariable: "valueOnNaN",
             defaultValue: NaN,
+            description:
+                "Numeric value to use when the input cannot be parsed.",
         };
 
         attributes.draggable = {

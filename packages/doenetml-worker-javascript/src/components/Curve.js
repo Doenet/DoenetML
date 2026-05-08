@@ -142,9 +142,13 @@ export default class Curve extends GraphicalComponent {
         };
         attributes.parMin = {
             createComponentOfType: "math",
+            description:
+                "Minimum value of the curve's parameter (for parametric curves).",
         };
         attributes.parMax = {
             createComponentOfType: "math",
+            description:
+                "Maximum value of the curve's parameter (for parametric curves).",
         };
 
         attributes.showCoordsWhenDragging = {

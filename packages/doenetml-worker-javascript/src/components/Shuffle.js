@@ -25,6 +25,7 @@ export default class Shuffle extends CompositeComponent {
 
         attributes.type = {
             createPrimitiveOfType: "string",
+            description: "Component type to shuffle children as.",
         };
 
         attributes.asList = {

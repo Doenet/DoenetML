@@ -41,10 +41,12 @@ export default class LineSegment extends GraphicalComponent {
 
         attributes.endpointsDraggable = {
             createComponentOfType: "boolean",
+            description: "Whether the line segment's endpoints can be dragged.",
         };
 
         attributes.endpoints = {
             createComponentOfType: "pointList",
+            description: "The two endpoints of the line segment.",
         };
 
         attributes.addControls = {

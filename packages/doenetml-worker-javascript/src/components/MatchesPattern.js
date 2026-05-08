@@ -16,6 +16,7 @@ export default class MatchesPattern extends BooleanComponent {
 
         attributes.pattern = {
             createComponentOfType: "math",
+            description: "Math expression pattern to match against.",
         };
         attributes.allowImplicitIdentities = {
             description:

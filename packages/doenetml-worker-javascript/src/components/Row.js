@@ -31,15 +31,19 @@ export default class Row extends BaseComponent {
         };
         attributes.halign = {
             createComponentOfType: "text",
+            description: "Default horizontal alignment for cells in this row.",
         };
         attributes.valign = {
             createComponentOfType: "text",
+            description: "Default vertical alignment for cells in this row.",
         };
         attributes.left = {
             createComponentOfType: "text",
+            description: "Border style for the left edge of this row.",
         };
         attributes.bottom = {
             createComponentOfType: "text",
+            description: "Border style for the bottom edge of this row.",
         };
 
         // Workaround for <row> in matrix, which is sugared into <matrixRow>.
@@ -49,6 +53,7 @@ export default class Row extends BaseComponent {
         // especially necessary when we have an editor that can autocomplete attributes.
         attributes.functionSymbols = {
             createComponentOfType: "textList",
+            description: "Symbols treated as function names when parsing.",
         };
         attributes.referencesAreFunctionSymbols = {
             createReferences: true,
@@ -57,9 +62,13 @@ export default class Row extends BaseComponent {
         };
         attributes.splitSymbols = {
             createComponentOfType: "boolean",
+            description:
+                "Whether multi-character symbols are split into a product of variables.",
         };
         attributes.parseScientificNotation = {
             createComponentOfType: "boolean",
+            description:
+                "Whether to parse expressions like 1e3 as scientific notation.",
         };
         return attributes;
     }

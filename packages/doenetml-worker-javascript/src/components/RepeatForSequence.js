@@ -51,16 +51,22 @@ export default class RepeatForSequence extends CompositeComponent {
             createPrimitiveOfType: "string",
             createStateVariable: "valueName",
             defaultValue: null,
+            description:
+                "Name to bind the current item to inside the repeat template.",
         };
 
         attributes.indexName = {
             createPrimitiveOfType: "string",
             createStateVariable: "indexName",
             defaultValue: null,
+            description:
+                "Name to bind the current 1-based index to inside the repeat template.",
         };
 
         attributes.isResponse = {
             leaveRaw: true,
+            description:
+                "Whether the generated repeats should be treated as responses for assessment.",
         };
         attributes.isPotentialResponse = {
             leaveRaw: true,

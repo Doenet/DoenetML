@@ -20,6 +20,7 @@ export default class BestFitLine extends Line {
 
         attributes.data = {
             createComponentOfType: "pointList",
+            description: "The data points to fit a line to.",
         };
 
         return attributes;

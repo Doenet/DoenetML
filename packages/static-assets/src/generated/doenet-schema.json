@@ -6886,6 +6886,7 @@
                 },
                 {
                     "name": "number",
+                    "description": "Whether to attach an equation number to this row.",
                     "values": [
                         "true",
                         "false"
@@ -24967,6 +24968,7 @@
                 },
                 {
                     "name": "type",
+                    "description": "What kind of sub-expression to extract.",
                     "values": [
                         "operand",
                         "function",
@@ -27278,10 +27280,12 @@
                     ]
                 },
                 {
-                    "name": "derivVariables"
+                    "name": "derivVariables",
+                    "description": "Names of variables to differentiate with respect to."
                 },
                 {
-                    "name": "derivVariable"
+                    "name": "derivVariable",
+                    "description": "Name of the variable to differentiate with respect to."
                 }
             ],
             "properties": [
@@ -35058,6 +35062,7 @@
                 },
                 {
                     "name": "postponeRendering",
+                    "description": "Whether to delay rendering this section's contents until expanded.",
                     "values": [
                         "true",
                         "false"
@@ -35073,6 +35078,7 @@
                 },
                 {
                     "name": "startOpen",
+                    "description": "Whether the collapsible section starts in the open state.",
                     "values": [
                         "true",
                         "false"
@@ -36345,6 +36351,7 @@
                 },
                 {
                     "name": "isDistractor",
+                    "description": "Whether this section is a distractor (e.g. a wrong-answer choice for matching).",
                     "values": [
                         "true",
                         "false"
@@ -36981,6 +36988,7 @@
                 },
                 {
                     "name": "isDistractor",
+                    "description": "Whether this section is a distractor (e.g. a wrong-answer choice for matching).",
                     "values": [
                         "true",
                         "false"
@@ -37617,6 +37625,7 @@
                 },
                 {
                     "name": "isDistractor",
+                    "description": "Whether this section is a distractor (e.g. a wrong-answer choice for matching).",
                     "values": [
                         "true",
                         "false"
@@ -38253,6 +38262,7 @@
                 },
                 {
                     "name": "isDistractor",
+                    "description": "Whether this section is a distractor (e.g. a wrong-answer choice for matching).",
                     "values": [
                         "true",
                         "false"
@@ -42659,6 +42669,7 @@
                 },
                 {
                     "name": "postponeRendering",
+                    "description": "Whether to delay rendering this section's contents until expanded.",
                     "values": [
                         "true",
                         "false"
@@ -42674,6 +42685,7 @@
                 },
                 {
                     "name": "startOpen",
+                    "description": "Whether the collapsible section starts in the open state.",
                     "values": [
                         "true",
                         "false"
@@ -44182,13 +44194,16 @@
                     "description": "Label rendered before each list item."
                 },
                 {
-                    "name": "level"
+                    "name": "level",
+                    "description": "Nesting level of this list (1-based)."
                 },
                 {
-                    "name": "marker"
+                    "name": "marker",
+                    "description": "Marker style for list items (e.g. 'disc', 'circle', '1', 'a')."
                 },
                 {
-                    "name": "cols"
+                    "name": "cols",
+                    "description": "Number of columns to lay items out in (currently ignored)."
                 }
             ],
             "properties": [
@@ -44338,13 +44353,16 @@
                     "description": "Label rendered before each list item."
                 },
                 {
-                    "name": "level"
+                    "name": "level",
+                    "description": "Nesting level of this list (1-based)."
                 },
                 {
-                    "name": "marker"
+                    "name": "marker",
+                    "description": "Marker style for list items (e.g. 'disc', 'circle', '1', 'a')."
                 },
                 {
-                    "name": "cols"
+                    "name": "cols",
+                    "description": "Number of columns to lay items out in (currently ignored)."
                 }
             ],
             "properties": [
@@ -47290,10 +47308,12 @@
                     "description": "Points the interpolated curve passes through."
                 },
                 {
-                    "name": "parMin"
+                    "name": "parMin",
+                    "description": "Minimum value of the curve's parameter (for parametric curves)."
                 },
                 {
-                    "name": "parMax"
+                    "name": "parMax",
+                    "description": "Maximum value of the curve's parameter (for parametric curves)."
                 },
                 {
                     "name": "showCoordsWhenDragging",
@@ -49701,10 +49721,12 @@
                     "description": "Create an independent copy of another component by reference. Enter a references a `$name`."
                 },
                 {
-                    "name": "code"
+                    "name": "code",
+                    "description": "Identifier used to reference this feedback definition."
                 },
                 {
-                    "name": "text"
+                    "name": "text",
+                    "description": "Default feedback text for this code."
                 }
             ],
             "properties": [
@@ -51085,7 +51107,8 @@
                     ]
                 },
                 {
-                    "name": "sortby"
+                    "name": "sortby",
+                    "description": "Property name to sort the indexed values by."
                 }
             ],
             "properties": [
@@ -53472,7 +53495,8 @@
                     "description": "Create an independent copy of another component by reference. Enter a references a `$name`."
                 },
                 {
-                    "name": "initialPage"
+                    "name": "initialPage",
+                    "description": "1-based page index shown on first render."
                 }
             ],
             "properties": [
@@ -53632,7 +53656,8 @@
                     "description": "Label format for the current page indicator."
                 },
                 {
-                    "name": "paginator"
+                    "name": "paginator",
+                    "description": "Reference to the <paginator> these controls operate on."
                 }
             ],
             "properties": [
@@ -53915,7 +53940,8 @@
                     ]
                 },
                 {
-                    "name": "minComponentWidth"
+                    "name": "minComponentWidth",
+                    "description": "Minimum rendered width for each cell, in pixels."
                 }
             ],
             "properties": [
@@ -54409,6 +54435,7 @@
                 },
                 {
                     "name": "hide",
+                    "description": "Whether the solution is initially hidden.",
                     "values": [
                         "true",
                         "false"
@@ -54744,6 +54771,7 @@
                 },
                 {
                     "name": "hide",
+                    "description": "Whether the solution is initially hidden.",
                     "values": [
                         "true",
                         "false"
@@ -55138,6 +55166,7 @@
                 },
                 {
                     "name": "showCorrectness",
+                    "description": "Whether to display correctness indicators next to answers.",
                     "values": [
                         "true",
                         "false"
@@ -55145,6 +55174,7 @@
                 },
                 {
                     "name": "colorCorrectness",
+                    "description": "Whether to color answer regions based on correctness.",
                     "values": [
                         "true",
                         "false"
@@ -55152,6 +55182,7 @@
                 },
                 {
                     "name": "forceIndividualAnswerColoring",
+                    "description": "Whether to color individual answer regions even when document-wide check work is enabled.",
                     "values": [
                         "true",
                         "false"
@@ -55170,10 +55201,12 @@
                     "description": "Number of significant digits to display for credit achieved."
                 },
                 {
-                    "name": "xmlns"
+                    "name": "xmlns",
+                    "description": "XML namespace declaration (accepted for compatibility; not used)."
                 },
                 {
-                    "name": "type"
+                    "name": "type",
+                    "description": "Document type identifier."
                 }
             ],
             "properties": [
@@ -57699,6 +57732,7 @@
                 },
                 {
                     "name": "mergeMathLists",
+                    "description": "Whether nested math-list children should be flattened into this list.",
                     "values": [
                         "true",
                         "false"
@@ -57997,6 +58031,7 @@
                 },
                 {
                     "name": "mergeMathLists",
+                    "description": "Whether nested math-list children should be flattened into this list.",
                     "values": [
                         "true",
                         "false"
@@ -58417,10 +58452,12 @@
                     "description": "Maximum number of descendants to collect."
                 },
                 {
-                    "name": "from"
+                    "name": "from",
+                    "description": "Component subtree(s) to collect descendants from."
                 },
                 {
-                    "name": "componentType"
+                    "name": "componentType",
+                    "description": "Component type of descendants to collect."
                 },
                 {
                     "name": "asList",
@@ -58750,7 +58787,8 @@
                     "description": "Create an independent copy of another component by reference. Enter a references a `$name`."
                 },
                 {
-                    "name": "to"
+                    "name": "to",
+                    "description": "Target the reference points to (component reference or URL string)."
                 },
                 {
                     "name": "textType",
@@ -58758,6 +58796,7 @@
                 },
                 {
                     "name": "createButton",
+                    "description": "Whether to render this reference as a clickable button.",
                     "values": [
                         "true",
                         "false"
@@ -60694,13 +60733,15 @@
                 },
                 {
                     "name": "endpointsDraggable",
+                    "description": "Whether the line segment's endpoints can be dragged.",
                     "values": [
                         "true",
                         "false"
                     ]
                 },
                 {
-                    "name": "endpoints"
+                    "name": "endpoints",
+                    "description": "The two endpoints of the line segment."
                 },
                 {
                     "name": "addControls",
@@ -61084,14 +61125,16 @@
                     ]
                 },
                 {
-                    "name": "endpoint"
+                    "name": "endpoint",
+                    "description": "The starting point (endpoint) of the ray."
                 },
                 {
                     "name": "through",
                     "description": "A point the ray passes through (used with endpoint or direction)."
                 },
                 {
-                    "name": "direction"
+                    "name": "direction",
+                    "description": "The direction the ray points in."
                 },
                 {
                     "name": "labelPosition",
@@ -64969,7 +65012,8 @@
                     ]
                 },
                 {
-                    "name": "vertex"
+                    "name": "vertex",
+                    "description": "The vertex of the parabola."
                 }
             ],
             "properties": [
@@ -65494,10 +65538,12 @@
                     "description": "Points the interpolated curve passes through."
                 },
                 {
-                    "name": "parMin"
+                    "name": "parMin",
+                    "description": "Minimum value of the curve's parameter (for parametric curves)."
                 },
                 {
-                    "name": "parMax"
+                    "name": "parMax",
+                    "description": "Maximum value of the curve's parameter (for parametric curves)."
                 },
                 {
                     "name": "showCoordsWhenDragging",
@@ -66641,6 +66687,7 @@
                 },
                 {
                     "name": "headDraggable",
+                    "description": "Whether the vector's head can be dragged.",
                     "values": [
                         "true",
                         "false"
@@ -66648,6 +66695,7 @@
                 },
                 {
                     "name": "tailDraggable",
+                    "description": "Whether the vector's tail can be dragged.",
                     "values": [
                         "true",
                         "false"
@@ -69608,7 +69656,8 @@
                     ]
                 },
                 {
-                    "name": "removeStrings"
+                    "name": "removeStrings",
+                    "description": "Substrings to strip from the input before parsing."
                 },
                 {
                     "name": "minWidth",
@@ -69616,6 +69665,7 @@
                 },
                 {
                     "name": "showPreview",
+                    "description": "Whether to display a preview of the parsed math.",
                     "values": [
                         "true",
                         "false"
@@ -70167,7 +70217,8 @@
                     ]
                 },
                 {
-                    "name": "width"
+                    "name": "width",
+                    "description": "Display width of the input."
                 },
                 {
                     "name": "height",
@@ -70971,14 +71022,16 @@
                     ]
                 },
                 {
-                    "name": "preselectChoice"
+                    "name": "preselectChoice",
+                    "description": "Index of a choice to pre-select on initial render."
                 },
                 {
                     "name": "bindValueTo",
                     "description": "Two-way binding target for the input's value."
                 },
                 {
-                    "name": "placeHolder"
+                    "name": "placeHolder",
+                    "description": "Placeholder text shown when no choice is selected."
                 }
             ],
             "properties": [
@@ -71552,6 +71605,7 @@
                 },
                 {
                     "name": "preSelect",
+                    "description": "Whether this choice is pre-selected on initial render.",
                     "values": [
                         "true",
                         "false"
@@ -71881,13 +71935,15 @@
                 },
                 {
                     "name": "convertBoolean",
+                    "description": "Whether to convert boolean inputs to 1/0 instead of NaN.",
                     "values": [
                         "true",
                         "false"
                     ]
                 },
                 {
-                    "name": "valueOnNaN"
+                    "name": "valueOnNaN",
+                    "description": "Numeric value to use when the input cannot be parsed."
                 },
                 {
                     "name": "draggable",
@@ -72293,13 +72349,15 @@
                 },
                 {
                     "name": "convertBoolean",
+                    "description": "Whether to convert boolean inputs to 1/0 instead of NaN.",
                     "values": [
                         "true",
                         "false"
                     ]
                 },
                 {
-                    "name": "valueOnNaN"
+                    "name": "valueOnNaN",
+                    "description": "Numeric value to use when the input cannot be parsed."
                 },
                 {
                     "name": "draggable",
@@ -73510,7 +73568,8 @@
                     "description": "Create an independent copy of another component by reference. Enter a references a `$name`."
                 },
                 {
-                    "name": "ref"
+                    "name": "ref",
+                    "description": "Reference to the component this annotation is attached to."
                 },
                 {
                     "name": "text",
@@ -76442,6 +76501,7 @@
                 },
                 {
                     "name": "type",
+                    "description": "Type of value the slider produces.",
                     "values": [
                         "number",
                         "text"
@@ -76456,7 +76516,8 @@
                     "description": "Display height of the slider."
                 },
                 {
-                    "name": "initialValue"
+                    "name": "initialValue",
+                    "description": "Initial value of the slider before any user interaction."
                 },
                 {
                     "name": "showControls",
@@ -76817,7 +76878,8 @@
                     "description": "Minimum number of columns displayed."
                 },
                 {
-                    "name": "height"
+                    "name": "height",
+                    "description": "Display height of the spreadsheet."
                 },
                 {
                     "name": "columnHeaders",
@@ -77702,19 +77764,24 @@
                     ]
                 },
                 {
-                    "name": "halign"
+                    "name": "halign",
+                    "description": "Default horizontal alignment for cells in this row."
                 },
                 {
-                    "name": "valign"
+                    "name": "valign",
+                    "description": "Default vertical alignment for cells in this row."
                 },
                 {
-                    "name": "left"
+                    "name": "left",
+                    "description": "Border style for the left edge of this row."
                 },
                 {
-                    "name": "bottom"
+                    "name": "bottom",
+                    "description": "Border style for the bottom edge of this row."
                 },
                 {
-                    "name": "functionSymbols"
+                    "name": "functionSymbols",
+                    "description": "Symbols treated as function names when parsing."
                 },
                 {
                     "name": "referencesAreFunctionSymbols",
@@ -77722,6 +77789,7 @@
                 },
                 {
                     "name": "splitSymbols",
+                    "description": "Whether multi-character symbols are split into a product of variables.",
                     "values": [
                         "true",
                         "false"
@@ -77729,6 +77797,7 @@
                 },
                 {
                     "name": "parseScientificNotation",
+                    "description": "Whether to parse expressions like 1e3 as scientific notation.",
                     "values": [
                         "true",
                         "false"
@@ -77913,7 +77982,8 @@
                     "description": "Column number where this column is placed (1-based)."
                 },
                 {
-                    "name": "functionSymbols"
+                    "name": "functionSymbols",
+                    "description": "Symbols treated as function names when parsing."
                 },
                 {
                     "name": "referencesAreFunctionSymbols",
@@ -77921,6 +77991,7 @@
                 },
                 {
                     "name": "splitSymbols",
+                    "description": "Whether multi-character symbols are split into a product of variables.",
                     "values": [
                         "true",
                         "false"
@@ -77928,6 +77999,7 @@
                 },
                 {
                     "name": "parseScientificNotation",
+                    "description": "Whether to parse expressions like 1e3 as scientific notation.",
                     "values": [
                         "true",
                         "false"
@@ -78693,6 +78765,7 @@
                 },
                 {
                     "name": "suppressTableNameInTitle",
+                    "description": "Whether to omit the auto-generated table name from the title.",
                     "values": [
                         "true",
                         "false"
@@ -78700,6 +78773,7 @@
                 },
                 {
                     "name": "number",
+                    "description": "Whether to display an auto-generated table number.",
                     "values": [
                         "true",
                         "false"
@@ -79056,6 +79130,7 @@
                 },
                 {
                     "name": "suppressFigureNameInCaption",
+                    "description": "Whether to omit the auto-generated figure name from the caption.",
                     "values": [
                         "true",
                         "false"
@@ -79063,6 +79138,7 @@
                 },
                 {
                     "name": "number",
+                    "description": "Whether to display an auto-generated figure number.",
                     "values": [
                         "true",
                         "false"
@@ -80016,7 +80092,8 @@
                     "description": "The style number used to select this component's visual styling from the available style definitions."
                 },
                 {
-                    "name": "isResponse"
+                    "name": "isResponse",
+                    "description": "Whether the generated repeats should be treated as responses for assessment."
                 },
                 {
                     "name": "extend",
@@ -80056,10 +80133,12 @@
                     "description": "Values to exclude from the sequence."
                 },
                 {
-                    "name": "valueName"
+                    "name": "valueName",
+                    "description": "Name to bind the current item to inside the repeat template."
                 },
                 {
-                    "name": "indexName"
+                    "name": "indexName",
+                    "description": "Name to bind the current 1-based index to inside the repeat template."
                 },
                 {
                     "name": "asList",
@@ -81984,7 +82063,8 @@
                     ]
                 },
                 {
-                    "name": "styleNumber"
+                    "name": "styleNumber",
+                    "description": "Style number applied to the resulting intersection components."
                 },
                 {
                     "name": "isResponse",
@@ -83158,7 +83238,8 @@
                     ]
                 },
                 {
-                    "name": "type"
+                    "name": "type",
+                    "description": "Component type to select from."
                 },
                 {
                     "name": "asList",
@@ -83507,7 +83588,8 @@
                     "description": "The style number used to select this component's visual styling from the available style definitions."
                 },
                 {
-                    "name": "isResponse"
+                    "name": "isResponse",
+                    "description": "Whether this group's children should be treated as responses for assessment."
                 },
                 {
                     "name": "extend",
@@ -83680,7 +83762,8 @@
                     "description": "Values to exclude from the sequence."
                 },
                 {
-                    "name": "target"
+                    "name": "target",
+                    "description": "Reference to the state variable that will be animated."
                 },
                 {
                     "name": "animationOn",
@@ -84067,10 +84150,12 @@
                     ]
                 },
                 {
-                    "name": "function"
+                    "name": "function",
+                    "description": "The function to evaluate."
                 },
                 {
-                    "name": "input"
+                    "name": "input",
+                    "description": "Input value(s) at which to evaluate the function."
                 }
             ],
             "properties": [
@@ -85055,7 +85140,8 @@
                     ]
                 },
                 {
-                    "name": "excludeCombinations"
+                    "name": "excludeCombinations",
+                    "description": "Combinations of values that should not be selected together."
                 },
                 {
                     "name": "asList",
@@ -85632,10 +85718,12 @@
                     ]
                 },
                 {
-                    "name": "match"
+                    "name": "match",
+                    "description": "Pattern to match in the source value."
                 },
                 {
-                    "name": "replacement"
+                    "name": "replacement",
+                    "description": "Value to substitute in place of each match."
                 },
                 {
                     "name": "simplify",
@@ -86575,7 +86663,8 @@
                     "description": "Create an independent copy of another component by reference. Enter a references a `$name`."
                 },
                 {
-                    "name": "width"
+                    "name": "width",
+                    "description": "Explicit width of the image (overrides size)."
                 },
                 {
                     "name": "size",
@@ -86902,7 +86991,8 @@
                     "description": "Create an independent copy of another component by reference. Enter a references a `$name`."
                 },
                 {
-                    "name": "width"
+                    "name": "width",
+                    "description": "Explicit width of the video player (overrides size)."
                 },
                 {
                     "name": "size",
@@ -89495,13 +89585,16 @@
                     "description": "Maximum number of words per generated sentence."
                 },
                 {
-                    "name": "generateWords"
+                    "name": "generateWords",
+                    "description": "Number of words of lorem-ipsum to generate."
                 },
                 {
-                    "name": "generateSentences"
+                    "name": "generateSentences",
+                    "description": "Number of sentences of lorem-ipsum to generate."
                 },
                 {
-                    "name": "generateParagraphs"
+                    "name": "generateParagraphs",
+                    "description": "Number of paragraphs of lorem-ipsum to generate."
                 }
             ],
             "properties": [
@@ -89646,10 +89739,12 @@
                     "description": "Create an independent copy of another component by reference. Enter a references a `$name`."
                 },
                 {
-                    "name": "target"
+                    "name": "target",
+                    "description": "Reference to the state variable that will be updated."
                 },
                 {
                     "name": "type",
+                    "description": "Component type used to interpret the new value.",
                     "values": [
                         "math",
                         "number",
@@ -89658,7 +89753,8 @@
                     ]
                 },
                 {
-                    "name": "newValue"
+                    "name": "newValue",
+                    "description": "New value to assign to the target."
                 },
                 {
                     "name": "draggable",
@@ -89914,7 +90010,8 @@
                     "description": "Create an independent copy of another component by reference. Enter a references a `$name`."
                 },
                 {
-                    "name": "target"
+                    "name": "target",
+                    "description": "Reference to the component whose action will be invoked."
                 },
                 {
                     "name": "actionName",
@@ -89976,10 +90073,12 @@
                     "description": "References to components whose focus events should fire this action."
                 },
                 {
-                    "name": "numbers"
+                    "name": "numbers",
+                    "description": "Numeric arguments passed to the invoked action."
                 },
                 {
-                    "name": "number"
+                    "name": "number",
+                    "description": "Numeric argument passed to the invoked action."
                 }
             ],
             "properties": [
@@ -90403,10 +90502,12 @@
                     ]
                 },
                 {
-                    "name": "initialValue"
+                    "name": "initialValue",
+                    "description": "Starting value passed to the function on the first iteration."
                 },
                 {
-                    "name": "function"
+                    "name": "function",
+                    "description": "The function to iterate."
                 },
                 {
                     "name": "displayDigits",
@@ -90870,7 +90971,8 @@
                     ]
                 },
                 {
-                    "name": "isResponse"
+                    "name": "isResponse",
+                    "description": "Whether this group's children should be treated as responses for assessment."
                 },
                 {
                     "name": "extend",
@@ -93140,10 +93242,12 @@
                     "description": "Index of the component to sort by (when sorting vectors)."
                 },
                 {
-                    "name": "sortByProp"
+                    "name": "sortByProp",
+                    "description": "Name of a property to sort by (e.g. \"x\" for sorting points by x-coordinate)."
                 },
                 {
-                    "name": "type"
+                    "name": "type",
+                    "description": "Component type to sort children as."
                 },
                 {
                     "name": "asList",
@@ -93508,7 +93612,8 @@
                     "description": "Create an independent copy of another component by reference. Enter a references a `$name`."
                 },
                 {
-                    "name": "type"
+                    "name": "type",
+                    "description": "Component type to shuffle children as."
                 },
                 {
                     "name": "asList",
@@ -93717,10 +93822,12 @@
                     "description": "Number of points used when searching for solutions numerically."
                 },
                 {
-                    "name": "minVar"
+                    "name": "minVar",
+                    "description": "Lower bound of the variable's search range."
                 },
                 {
-                    "name": "maxVar"
+                    "name": "maxVar",
+                    "description": "Upper bound of the variable's search range."
                 }
             ],
             "properties": [
@@ -95201,12 +95308,14 @@
                 },
                 {
                     "name": "type",
+                    "description": "Type of value being split.",
                     "values": [
                         "text"
                     ]
                 },
                 {
                     "name": "splitBy",
+                    "description": "How to break the input string into pieces.",
                     "values": [
                         "letter",
                         "word",
@@ -95411,7 +95520,8 @@
                     ]
                 },
                 {
-                    "name": "data"
+                    "name": "data",
+                    "description": "The data points to fit a line to."
                 }
             ],
             "properties": [
@@ -95786,7 +95896,8 @@
                     "description": "Boundary values defining the region's left/right edges."
                 },
                 {
-                    "name": "function"
+                    "name": "function",
+                    "description": "The function whose graph bounds the region."
                 }
             ],
             "properties": [
@@ -96669,7 +96780,8 @@
                     "description": "Editor height (e.g. \"500px\")."
                 },
                 {
-                    "name": "viewerRatio"
+                    "name": "viewerRatio",
+                    "description": "Fraction of the editor area allotted to the live viewer."
                 },
                 {
                     "name": "showResults",
@@ -96705,10 +96817,12 @@
                     ]
                 },
                 {
-                    "name": "renderedName"
+                    "name": "renderedName",
+                    "description": "Name to assign to the dynamically-rendered DoenetML output."
                 },
                 {
-                    "name": "staticName"
+                    "name": "staticName",
+                    "description": "Name to assign to the static DoenetML source."
                 }
             ],
             "properties": [
@@ -97105,6 +97219,7 @@
                 },
                 {
                     "name": "restrictDivision",
+                    "description": "Whether to disallow dividing through to match factored forms.",
                     "values": [
                         "true",
                         "false"
@@ -97112,6 +97227,7 @@
                 },
                 {
                     "name": "monomialFactorMustMatch",
+                    "description": "Whether monomial factors must match exactly (implies restrictDivision).",
                     "values": [
                         "true",
                         "false"
@@ -97119,6 +97235,7 @@
                 },
                 {
                     "name": "allowOnlySignDifferences",
+                    "description": "Whether to count factorizations as equivalent when they differ only by sign.",
                     "values": [
                         "true",
                         "false"
@@ -97366,7 +97483,8 @@
                     ]
                 },
                 {
-                    "name": "columnTypes"
+                    "name": "columnTypes",
+                    "description": "Override the inferred type of each column."
                 }
             ],
             "properties": [
@@ -97554,13 +97672,16 @@
                     "description": "Create an independent copy of another component by reference. Enter a references a `$name`."
                 },
                 {
-                    "name": "source"
+                    "name": "source",
+                    "description": "Reference to the data frame to summarize."
                 },
                 {
-                    "name": "column"
+                    "name": "column",
+                    "description": "Name of the column from the source data frame to summarize."
                 },
                 {
-                    "name": "statisticsToDisplay"
+                    "name": "statisticsToDisplay",
+                    "description": "Which summary statistics to display (or \"default\" / \"all\")."
                 },
                 {
                     "name": "byCategoryColumn",
@@ -98628,7 +98749,8 @@
                     ]
                 },
                 {
-                    "name": "pattern"
+                    "name": "pattern",
+                    "description": "Math expression pattern to match against."
                 },
                 {
                     "name": "allowImplicitIdentities",
@@ -100808,7 +100930,8 @@
                     ]
                 },
                 {
-                    "name": "threshold"
+                    "name": "threshold",
+                    "description": "Distance threshold within which group members snap together."
                 },
                 {
                     "name": "angleThreshold",
@@ -101746,6 +101869,7 @@
                 },
                 {
                     "name": "revealAll",
+                    "description": "Whether all cascade entries should be revealed regardless of progress.",
                     "values": [
                         "true",
                         "false"
@@ -101753,6 +101877,7 @@
                 },
                 {
                     "name": "boxAll",
+                    "description": "Whether to draw boxes around all cascade entries regardless of progress.",
                     "values": [
                         "true",
                         "false"

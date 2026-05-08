@@ -23,11 +23,14 @@ export default class Table extends BlockComponent {
             createStateVariable: "suppressTableNameInTitle",
             defaultValue: false,
             forRenderer: true,
+            description:
+                "Whether to omit the auto-generated table name from the title.",
         };
         attributes.number = {
             createComponentOfType: "boolean",
             createStateVariable: "number",
             defaultValue: true,
+            description: "Whether to display an auto-generated table number.",
             forRenderer: true,
         };
 

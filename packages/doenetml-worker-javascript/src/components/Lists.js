@@ -37,6 +37,7 @@ export class Ol extends BlockComponent {
 
         attributes.level = {
             createComponentOfType: "integer",
+            description: "Nesting level of this list (1-based).",
         };
 
         attributes.marker = {
@@ -44,11 +45,15 @@ export class Ol extends BlockComponent {
             createStateVariable: "marker",
             defaultValue: null,
             forRenderer: true,
+            description:
+                "Marker style for list items (e.g. 'disc', 'circle', '1', 'a').",
         };
 
         // Silently ignore this for now
         attributes.cols = {
             createComponentOfType: "number",
+            description:
+                "Number of columns to lay items out in (currently ignored).",
         };
 
         return attributes;

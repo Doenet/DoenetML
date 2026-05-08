@@ -64,6 +64,8 @@ export default class CodeEditor extends BlockComponent {
         // TODO: deprecate this attribute
         attributes.viewerRatio = {
             createComponentOfType: "number",
+            description:
+                "Fraction of the editor area allotted to the live viewer.",
         };
 
         attributes.showResults = {
@@ -112,10 +114,13 @@ export default class CodeEditor extends BlockComponent {
         // rendered DoenetML again
         attributes.renderedName = {
             createPrimitiveOfType: "string",
+            description:
+                "Name to assign to the dynamically-rendered DoenetML output.",
         };
 
         attributes.staticName = {
             createPrimitiveOfType: "string",
+            description: "Name to assign to the static DoenetML source.",
         };
 
         return attributes;

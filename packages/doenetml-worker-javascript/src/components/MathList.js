@@ -57,6 +57,8 @@ export default class MathList extends CompositeComponent {
         };
         attributes.mergeMathLists = {
             createComponentOfType: "boolean",
+            description:
+                "Whether nested math-list children should be flattened into this list.",
         };
 
         attributes.fixed = {

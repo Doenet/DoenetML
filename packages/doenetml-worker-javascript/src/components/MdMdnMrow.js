@@ -319,6 +319,7 @@ export class Mrow extends M {
         let attributes = super.createAttributesObject();
         attributes.number = {
             createComponentOfType: "boolean",
+            description: "Whether to attach an equation number to this row.",
         };
         return attributes;
     }

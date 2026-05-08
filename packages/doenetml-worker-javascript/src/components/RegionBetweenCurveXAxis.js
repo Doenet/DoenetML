@@ -21,6 +21,7 @@ export default class RegionBetweenCurveXAxis extends GraphicalComponent {
 
         attributes.function = {
             createComponentOfType: "function",
+            description: "The function whose graph bounds the region.",
         };
 
         return attributes;

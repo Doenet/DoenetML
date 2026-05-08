@@ -25,6 +25,7 @@ export class Paginator extends BlockComponent {
             createComponentOfType: "integer",
             createStateVariable: "initialPage",
             defaultValue: 1,
+            description: "1-based page index shown on first render.",
         };
         return attributes;
     }
@@ -273,6 +274,8 @@ export class PaginatorControls extends BlockComponent {
         };
         attributes.paginator = {
             createReferences: true,
+            description:
+                "Reference to the <paginator> these controls operate on.",
         };
 
         return attributes;

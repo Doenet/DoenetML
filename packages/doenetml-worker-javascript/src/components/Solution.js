@@ -24,6 +24,7 @@ export class Solution extends BlockComponent {
         let attributes = super.createAttributesObject();
         attributes.hide = {
             createComponentOfType: "boolean",
+            description: "Whether the solution is initially hidden.",
         };
         return attributes;
     }

@@ -91,6 +91,8 @@ export class Aside extends SectioningComponentNumberWithSiblings {
 
         attributes.postponeRendering = {
             createPrimitiveOfType: "boolean",
+            description:
+                "Whether to delay rendering this section's contents until expanded.",
         };
 
         attributes.collapsible = {
@@ -105,6 +107,8 @@ export class Aside extends SectioningComponentNumberWithSiblings {
             createComponentOfType: "boolean",
             createStateVariable: "startOpen",
             defaultValue: false,
+            description:
+                "Whether the collapsible section starts in the open state.",
         };
 
         return attributes;
@@ -204,6 +208,8 @@ export class Problem extends SectioningComponentNumberWithSiblings {
 
         attributes.isDistractor = {
             createPrimitiveOfType: "boolean",
+            description:
+                "Whether this section is a distractor (e.g. a wrong-answer choice for matching).",
         };
 
         return attributes;
@@ -332,6 +338,8 @@ export class Proof extends UnnumberedSectioningComponent {
 
         attributes.postponeRendering = {
             createPrimitiveOfType: "boolean",
+            description:
+                "Whether to delay rendering this section's contents until expanded.",
         };
 
         attributes.collapsible = {
@@ -346,6 +354,8 @@ export class Proof extends UnnumberedSectioningComponent {
             createComponentOfType: "boolean",
             createStateVariable: "startOpen",
             defaultValue: false,
+            description:
+                "Whether the collapsible section starts in the open state.",
         };
 
         return attributes;

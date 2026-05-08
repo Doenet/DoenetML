@@ -135,6 +135,7 @@ export default class MathInput extends Input {
             createComponentOfType: "textList",
             createStateVariable: "removeStrings",
             defaultValue: null,
+            description: "Substrings to strip from the input before parsing.",
         };
         attributes.minWidth = {
             description: "Minimum rendered width of the input.",
@@ -150,6 +151,7 @@ export default class MathInput extends Input {
             createComponentOfType: "boolean",
             createStateVariable: "showPreviewPreliminary",
             defaultValue: false,
+            description: "Whether to display a preview of the parsed math.",
         };
 
         return attributes;

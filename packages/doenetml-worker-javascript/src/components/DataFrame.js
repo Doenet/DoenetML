@@ -33,6 +33,7 @@ export default class DataFrame extends BaseComponent {
             createComponentOfType: "textList",
             createStateVariable: "columnTypesPrelim",
             defaultValue: [],
+            description: "Override the inferred type of each column.",
         };
 
         return attributes;

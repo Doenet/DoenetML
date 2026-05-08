@@ -41,6 +41,7 @@ export default class Select extends CompositeComponent {
         };
         attributes.type = {
             createPrimitiveOfType: "string",
+            description: "Component type to select from.",
         };
 
         attributes.asList = {

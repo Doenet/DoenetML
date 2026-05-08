@@ -24,11 +24,14 @@ export default class Figure extends BlockComponent {
             createStateVariable: "suppressFigureNameInCaption",
             defaultValue: false,
             forRenderer: true,
+            description:
+                "Whether to omit the auto-generated figure name from the caption.",
         };
         attributes.number = {
             createComponentOfType: "boolean",
             createStateVariable: "number",
             defaultValue: true,
+            description: "Whether to display an auto-generated figure number.",
             forRenderer: true,
         };
 

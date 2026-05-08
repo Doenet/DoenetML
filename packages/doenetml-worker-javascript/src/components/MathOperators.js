@@ -1260,6 +1260,7 @@ export class ExtractMath extends MathBaseOperatorOneInput {
                 "numOperands",
                 "recursiveOperands",
             ],
+            description: "What kind of sub-expression to extract.",
         };
         attributes.operandNumber = {
             description: "1-based index of the operand to extract.",

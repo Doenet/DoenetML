@@ -48,6 +48,8 @@ export default class Group extends CompositeComponent {
         };
         attributes.isResponse = {
             leaveRaw: true,
+            description:
+                "Whether this group's children should be treated as responses for assessment.",
         };
         attributes.isPotentialResponse = {
             leaveRaw: true,

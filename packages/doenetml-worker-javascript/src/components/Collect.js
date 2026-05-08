@@ -41,10 +41,12 @@ export default class Collect extends CompositeComponent {
 
         attributes.from = {
             createReferences: true,
+            description: "Component subtree(s) to collect descendants from.",
         };
 
         attributes.componentType = {
             createComponentOfType: "text",
+            description: "Component type of descendants to collect.",
         };
 
         attributes.asList = {

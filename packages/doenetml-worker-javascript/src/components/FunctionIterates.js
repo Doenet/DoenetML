@@ -44,9 +44,12 @@ export default class FunctionIterates extends InlineComponent {
             createComponentOfType: "math",
             createStateVariable: "initialValue",
             defaultValue: me.fromAst("\uff3f"),
+            description:
+                "Starting value passed to the function on the first iteration.",
         };
         attributes.function = {
             createComponentOfType: "function",
+            description: "The function to iterate.",
         };
 
         Object.assign(attributes, returnNumberDisplayAttributes());

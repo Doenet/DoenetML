@@ -15,9 +15,12 @@ export class FeedbackDefinition extends BaseComponent {
         let attributes = super.createAttributesObject();
         attributes.code = {
             createComponentOfType: "text",
+            description:
+                "Identifier used to reference this feedback definition.",
         };
         attributes.text = {
             createComponentOfType: "text",
+            description: "Default feedback text for this code.",
         };
         return attributes;
     }

@@ -40,10 +40,12 @@ export default class Evaluate extends MathComponent {
 
         attributes.function = {
             createComponentOfType: "function",
+            description: "The function to evaluate.",
         };
 
         attributes.input = {
             createComponentOfType: "mathList",
+            description: "Input value(s) at which to evaluate the function.",
         };
 
         attributes.unordered = {

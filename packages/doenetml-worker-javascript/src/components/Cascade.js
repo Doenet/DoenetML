@@ -28,12 +28,16 @@ export default class Cascade extends SectioningComponent {
             createComponentOfType: "boolean",
             createStateVariable: "revealAllPreliminary",
             defaultValue: false,
+            description:
+                "Whether all cascade entries should be revealed regardless of progress.",
         };
 
         attributes.boxAll = {
             createComponentOfType: "boolean",
             createStateVariable: "boxAll",
             defaultValue: false,
+            description:
+                "Whether to draw boxes around all cascade entries regardless of progress.",
         };
 
         return attributes;

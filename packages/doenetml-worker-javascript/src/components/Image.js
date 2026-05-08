@@ -39,6 +39,7 @@ export default class Image extends BlockComponent {
             createComponentOfType: "componentSize",
             createStateVariable: "specifiedWidth",
             defaultValue: null,
+            description: "Explicit width of the image (overrides size).",
         };
         attributes.size = {
             createComponentOfType: "text",

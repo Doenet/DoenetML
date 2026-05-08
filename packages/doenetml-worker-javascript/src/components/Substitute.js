@@ -35,12 +35,14 @@ export default class Substitute extends CompositeComponent {
             createComponentOfType: "_componentWithSelectableType",
             createStateVariable: "match",
             defaultValue: null,
+            description: "Pattern to match in the source value.",
         };
 
         attributes.replacement = {
             createComponentOfType: "_componentWithSelectableType",
             createStateVariable: "replacement",
             defaultValue: null,
+            description: "Value to substitute in place of each match.",
         };
 
         // attributes for math

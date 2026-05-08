@@ -35,6 +35,8 @@ export default class AnimateFromSequence extends BaseComponent {
 
         attributes.target = {
             createReferences: true,
+            description:
+                "Reference to the state variable that will be animated.",
         };
 
         attributes.animationOn = {

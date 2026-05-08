@@ -36,6 +36,7 @@ export default class Video extends BlockComponent {
 
         attributes.width = {
             createComponentOfType: "componentSize",
+            description: "Explicit width of the video player (overrides size).",
         };
         attributes.size = {
             createComponentOfType: "text",

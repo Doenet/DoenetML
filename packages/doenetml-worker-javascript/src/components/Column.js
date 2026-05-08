@@ -27,6 +27,7 @@ export default class Column extends BaseComponent {
         // especially necessary when we have an editor that can autocomplete attributes.
         attributes.functionSymbols = {
             createComponentOfType: "textList",
+            description: "Symbols treated as function names when parsing.",
         };
         attributes.referencesAreFunctionSymbols = {
             createReferences: true,
@@ -35,9 +36,13 @@ export default class Column extends BaseComponent {
         };
         attributes.splitSymbols = {
             createComponentOfType: "boolean",
+            description:
+                "Whether multi-character symbols are split into a product of variables.",
         };
         attributes.parseScientificNotation = {
             createComponentOfType: "boolean",
+            description:
+                "Whether to parse expressions like 1e3 as scientific notation.",
         };
         return attributes;
     }

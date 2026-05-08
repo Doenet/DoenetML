@@ -88,6 +88,7 @@ export default class Choiceinput extends Input {
             createComponentOfType: "number",
             createStateVariable: "preselectChoice",
             defaultValue: null,
+            description: "Index of a choice to pre-select on initial render.",
         };
 
         attributes.bindValueTo = {
@@ -100,6 +101,7 @@ export default class Choiceinput extends Input {
             createStateVariable: "placeHolder",
             defaultValue: "",
             forRenderer: true,
+            description: "Placeholder text shown when no choice is selected.",
         };
 
         return attributes;

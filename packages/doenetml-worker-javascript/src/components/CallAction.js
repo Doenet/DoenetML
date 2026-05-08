@@ -63,6 +63,8 @@ export default class CallAction extends InlineComponent {
 
         attributes.target = {
             createReferences: true,
+            description:
+                "Reference to the component whose action will be invoked.",
         };
 
         attributes.actionName = {
@@ -95,10 +97,12 @@ export default class CallAction extends InlineComponent {
 
         attributes.numbers = {
             createComponentOfType: "numberList",
+            description: "Numeric arguments passed to the invoked action.",
         };
 
         attributes.number = {
             createComponentOfType: "number",
+            description: "Numeric argument passed to the invoked action.",
         };
 
         return attributes;

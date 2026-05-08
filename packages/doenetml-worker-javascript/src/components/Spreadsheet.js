@@ -50,6 +50,7 @@ export default class Spreadsheet extends BlockComponent {
         };
         attributes.height = {
             createComponentOfType: "componentSize",
+            description: "Display height of the spreadsheet.",
         };
 
         attributes.columnHeaders = {

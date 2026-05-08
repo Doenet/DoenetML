@@ -34,6 +34,7 @@ export default class Slider extends BaseComponent {
             defaultValue: "number",
             toLowerCase: true,
             validValues: ["number", "text"],
+            description: "Type of value the slider produces.",
             forRenderer: true,
         };
         attributes.width = {
@@ -56,6 +57,8 @@ export default class Slider extends BaseComponent {
             createComponentOfType: "_componentWithSelectableType",
             createStateVariable: "initialValue",
             defaultValue: null,
+            description:
+                "Initial value of the slider before any user interaction.",
         };
         attributes.showControls = {
             description:

@@ -26,18 +26,23 @@ export default class SummaryStatistics extends BlockComponent {
 
         attributes.source = {
             createTargetComponentNames: true,
+            description: "Reference to the data frame to summarize.",
         };
 
         attributes.column = {
             createComponentOfType: "text",
             createStateVariable: "desiredColumn",
             defaultValue: null,
+            description:
+                "Name of the column from the source data frame to summarize.",
         };
 
         attributes.statisticsToDisplay = {
             createComponentOfType: "textList",
             createStateVariable: "statisticsToDisplayPrelim",
             defaultValue: ["default"],
+            description:
+                'Which summary statistics to display (or "default" / "all").',
         };
 
         // TODO: enable feature where compute summary statistics for each value of a column

@@ -23,6 +23,8 @@ export default class Ref extends InlineComponent {
             // Since we allow more than just references in `to`,
             // we specify `allowStrings` to suppress a warning for non-references.
             allowStrings: true,
+            description:
+                "Target the reference points to (component reference or URL string).",
         };
 
         attributes.textType = {
@@ -37,6 +39,8 @@ export default class Ref extends InlineComponent {
             createStateVariable: "createButton",
             defaultValue: false,
             forRenderer: true,
+            description:
+                "Whether to render this reference as a clickable button.",
         };
         return attributes;
     }

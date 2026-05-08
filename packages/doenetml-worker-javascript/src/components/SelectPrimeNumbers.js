@@ -78,6 +78,8 @@ export default class SelectPrimeNumbers extends CompositeComponent {
         };
         attributes.excludeCombinations = {
             createComponentOfType: "_listOfNumberLists",
+            description:
+                "Combinations of values that should not be selected together.",
         };
 
         attributes.asList = {

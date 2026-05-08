@@ -37,6 +37,7 @@ export default class Ray extends GraphicalComponent {
 
         attributes.endpoint = {
             createComponentOfType: "point",
+            description: "The starting point (endpoint) of the ray.",
         };
         attributes.through = {
             createComponentOfType: "point",
@@ -45,6 +46,7 @@ export default class Ray extends GraphicalComponent {
         };
         attributes.direction = {
             createComponentOfType: "vector",
+            description: "The direction the ray points in.",
         };
 
         attributes.labelPosition = returnLineFamilyLabelPositionAttribute();

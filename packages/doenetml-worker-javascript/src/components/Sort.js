@@ -41,10 +41,13 @@ export default class Sort extends CompositeComponent {
 
         attributes.sortByProp = {
             createPrimitiveOfType: "string",
+            description:
+                'Name of a property to sort by (e.g. "x" for sorting points by x-coordinate).',
         };
 
         attributes.type = {
             createPrimitiveOfType: "string",
+            description: "Component type to sort children as.",
         };
 
         attributes.asList = {

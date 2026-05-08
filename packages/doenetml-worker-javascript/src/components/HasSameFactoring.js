@@ -24,6 +24,8 @@ export default class HasSameFactoring extends BooleanComponent {
             createComponentOfType: "boolean",
             createStateVariable: "restrictDivision",
             defaultValue: false,
+            description:
+                "Whether to disallow dividing through to match factored forms.",
         };
 
         // Note: monomialFactorMustMatch implies restrictDivision
@@ -31,6 +33,8 @@ export default class HasSameFactoring extends BooleanComponent {
             createComponentOfType: "boolean",
             createStateVariable: "monomialFactorMustMatch",
             defaultValue: false,
+            description:
+                "Whether monomial factors must match exactly (implies restrictDivision).",
         };
 
         // Note: allowOnlySignDifferences implies monomialFactorMustMatch and restrictDivision
@@ -38,6 +42,8 @@ export default class HasSameFactoring extends BooleanComponent {
             createComponentOfType: "boolean",
             createStateVariable: "allowOnlySignDifferences",
             defaultValue: false,
+            description:
+                "Whether to count factorizations as equivalent when they differ only by sign.",
         };
 
         return attributes;

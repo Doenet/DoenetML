@@ -38,12 +38,14 @@ export default class SolveEquations extends InlineComponent {
             createComponentOfType: "number",
             createStateVariable: "minVar",
             defaultValue: null,
+            description: "Lower bound of the variable's search range.",
         };
 
         attributes.maxVar = {
             createComponentOfType: "number",
             createStateVariable: "maxVar",
             defaultValue: null,
+            description: "Upper bound of the variable's search range.",
         };
 
         return attributes;

@@ -54,18 +54,21 @@ export default class Lorem extends CompositeComponent {
             createComponentOfType: "number",
             createStateVariable: "generateWords",
             defaultValue: null,
+            description: "Number of words of lorem-ipsum to generate.",
         };
 
         attributes.generateSentences = {
             createComponentOfType: "number",
             createStateVariable: "generateSentences",
             defaultValue: null,
+            description: "Number of sentences of lorem-ipsum to generate.",
         };
 
         attributes.generateParagraphs = {
             createComponentOfType: "number",
             createStateVariable: "generateParagraphs",
             defaultValue: null,
+            description: "Number of paragraphs of lorem-ipsum to generate.",
         };
 
         return attributes;

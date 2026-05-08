@@ -53,9 +53,11 @@ export default class Vector extends GraphicalComponent {
         };
         attributes.headDraggable = {
             createComponentOfType: "boolean",
+            description: "Whether the vector's head can be dragged.",
         };
         attributes.tailDraggable = {
             createComponentOfType: "boolean",
+            description: "Whether the vector's tail can be dragged.",
         };
 
         attributes.x = {

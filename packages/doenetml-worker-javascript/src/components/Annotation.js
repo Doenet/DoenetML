@@ -13,6 +13,8 @@ export default class Annotation extends BaseComponent {
 
         attributes.ref = {
             createReferences: true,
+            description:
+                "Reference to the component this annotation is attached to.",
         };
 
         attributes.text = {

@@ -21,6 +21,7 @@ export default class Split extends CompositeComponent {
             defaultPrimitiveValue: "text",
             toLowerCase: true,
             validValues: ["text"],
+            description: "Type of value being split.",
         };
 
         attributes.splitBy = {
@@ -29,6 +30,7 @@ export default class Split extends CompositeComponent {
             defaultValue: "letter",
             toLowerCase: true,
             validValues: ["letter", "word", "comma"],
+            description: "How to break the input string into pieces.",
         };
 
         attributes.asList = {

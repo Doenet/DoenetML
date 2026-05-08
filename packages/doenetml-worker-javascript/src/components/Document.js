@@ -56,16 +56,22 @@ export default class Document extends BaseComponent {
             createComponentOfType: "boolean",
             createStateVariable: "showCorrectnessPreliminary",
             defaultValue: true,
+            description:
+                "Whether to display correctness indicators next to answers.",
         };
         attributes.colorCorrectness = {
             createComponentOfType: "boolean",
             createStateVariable: "colorCorrectnessPreliminary",
             defaultValue: true,
+            description:
+                "Whether to color answer regions based on correctness.",
         };
         attributes.forceIndividualAnswerColoring = {
             createComponentOfType: "boolean",
             createStateVariable: "forceIndividualAnswerColoring",
             defaultValue: false,
+            description:
+                "Whether to color individual answer regions even when document-wide check work is enabled.",
         };
         attributes.submitLabel = {
             description:
@@ -100,9 +106,12 @@ export default class Document extends BaseComponent {
         // Do we want to do something with these attributes?
         attributes.xmlns = {
             createPrimitiveOfType: "string",
+            description:
+                "XML namespace declaration (accepted for compatibility; not used).",
         };
         attributes.type = {
             createPrimitiveOfType: "string",
+            description: "Document type identifier.",
         };
 
         return attributes;

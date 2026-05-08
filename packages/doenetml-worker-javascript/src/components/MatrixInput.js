@@ -161,6 +161,7 @@ export class MatrixInput extends Input {
             createStateVariable: "minComponentWidth",
             defaultValue: 0,
             clamp: [0, Infinity],
+            description: "Minimum rendered width for each cell, in pixels.",
         };
 
         return attributes;
