@@ -400,6 +400,8 @@ export default class Choiceinput extends Input {
                     shadowingInstructions: {
                         createComponentOfType: "number",
                     },
+                    description:
+                        "The number of choices available in the input.",
                 },
             ],
             returnDependencies: () => ({

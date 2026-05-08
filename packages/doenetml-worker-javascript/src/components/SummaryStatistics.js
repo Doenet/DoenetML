@@ -153,6 +153,8 @@ export default class SummaryStatistics extends BlockComponent {
                         createComponentOfType: "text",
                     },
                     forRenderer: true,
+                    description:
+                        "The name of the data column being summarized.",
                 },
             ],
             returnDependencies({ stateValues }) {

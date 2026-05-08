@@ -66,6 +66,8 @@ export default class Table extends BlockComponent {
                         createComponentOfType: "text",
                     },
                     forRenderer: true,
+                    description:
+                        "The full display name of the table (e.g., 'Table 2').",
                 },
             ],
             mustEvaluate: true, // must evaluate to make sure all counters are accounted for

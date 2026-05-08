@@ -509,6 +509,8 @@ export class SideBySide extends BlockComponent {
                 {
                     variableName: "gapWidth",
                     public: true,
+                    description:
+                        "The gap width between panels as a percentage of the total container width.",
                     shadowingInstructions: {
                         createComponentOfType: "number",
                     },
@@ -1846,7 +1848,8 @@ export class SbsGroup extends BlockComponent {
                 {
                     variableName: "gapWidth",
                     public: true,
-                    description: "All children's widths combined.",
+                    description:
+                        "The gap width between panels as a percentage of the total container width.",
                     shadowingInstructions: {
                         createComponentOfType: "number",
                     },

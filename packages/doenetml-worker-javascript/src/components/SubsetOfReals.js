@@ -242,6 +242,8 @@ export function returnPointsIntervalsFromSubsetStateVariableDefinitions() {
                 shadowingInstructions: {
                     createComponentOfType: "boolean",
                 },
+                description:
+                    "Whether each boundary point of the subset is a closed (included) endpoint.",
             },
         ],
         public: true,

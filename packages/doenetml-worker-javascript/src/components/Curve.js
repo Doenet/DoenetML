@@ -2199,7 +2199,7 @@ export default class Curve extends GraphicalComponent {
                     variableName: "extrapolateBackwardMode",
                     public: true,
                     description:
-                        "Coefficients used when extrapolating before the first through-point.",
+                        "The extrapolation style used before the first through-point (e.g., 'line', 'parabolaHorizontal', 'parabolaVertical').",
                     shadowingInstructions: {
                         createComponentOfType: "text",
                     },
@@ -2492,7 +2492,7 @@ export default class Curve extends GraphicalComponent {
                     variableName: "extrapolateForwardMode",
                     public: true,
                     description:
-                        "Coefficients used when extrapolating beyond the last through-point.",
+                        "The extrapolation style used beyond the last through-point (e.g., 'line', 'parabolaHorizontal', 'parabolaVertical').",
                     shadowingInstructions: {
                         createComponentOfType: "text",
                     },

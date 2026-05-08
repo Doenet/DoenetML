@@ -78,8 +78,7 @@ export default class DataFrame extends BaseComponent {
                 {
                     variableName: "numRows",
                     public: true,
-                    description:
-                        "The full data frame (rows × columns of typed values).",
+                    description: "The number of rows in the data frame.",
                     shadowingInstructions: {
                         createComponentOfType: "integer",
                     },
@@ -87,6 +86,7 @@ export default class DataFrame extends BaseComponent {
                 {
                     variableName: "numColumns",
                     public: true,
+                    description: "The number of columns in the data frame.",
                     shadowingInstructions: {
                         createComponentOfType: "integer",
                     },
@@ -94,6 +94,8 @@ export default class DataFrame extends BaseComponent {
                 {
                     variableName: "columnTypes",
                     public: true,
+                    description:
+                        "The data type of each column in the data frame.",
                     shadowingInstructions: {
                         createComponentOfType: "textList",
                     },
@@ -101,6 +103,7 @@ export default class DataFrame extends BaseComponent {
                 {
                     variableName: "columnNames",
                     public: true,
+                    description: "The name of each column in the data frame.",
                     shadowingInstructions: {
                         createComponentOfType: "textList",
                     },

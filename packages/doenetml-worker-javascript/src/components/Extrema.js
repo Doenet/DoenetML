@@ -209,6 +209,7 @@ export class Extremum extends BaseComponent {
                     },
                     defaultValue: null,
                     hasEssential: true,
+                    description: "The x-coordinate of the extremum.",
                 },
             ],
             returnDependencies: () => ({

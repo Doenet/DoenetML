@@ -432,7 +432,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -574,7 +574,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -628,7 +628,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -719,7 +719,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -1675,7 +1675,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -1743,7 +1743,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -1812,12 +1812,14 @@
                 {
                     "name": "latex",
                     "type": "latex",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The label's content as a LaTeX string."
                 },
                 {
                     "name": "value",
                     "type": "xLabel",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The label's content as a label-typed value."
                 }
             ],
             "top": true,
@@ -2053,7 +2055,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -2121,7 +2123,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -2190,12 +2192,14 @@
                 {
                     "name": "latex",
                     "type": "latex",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The label's content as a LaTeX string."
                 },
                 {
                     "name": "value",
                     "type": "yLabel",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The label's content as a label-typed value."
                 }
             ],
             "top": true,
@@ -3803,7 +3807,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -3878,7 +3882,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -5281,7 +5285,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -5349,7 +5353,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -5649,7 +5653,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -5717,7 +5721,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -6017,7 +6021,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -6085,7 +6089,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -6250,7 +6254,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -6318,7 +6322,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -6471,7 +6475,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -6539,7 +6543,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -6833,7 +6837,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -6908,7 +6912,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -9824,7 +9828,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -9966,7 +9970,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -10036,7 +10040,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -10127,7 +10131,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -10539,7 +10543,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -10681,7 +10685,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -10751,7 +10755,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -10842,7 +10846,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -11254,7 +11258,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -11396,7 +11400,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -11458,7 +11462,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -11549,7 +11553,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -11961,7 +11965,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -12103,7 +12107,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -12165,7 +12169,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -12256,7 +12260,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -12668,7 +12672,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -12810,7 +12814,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -12872,7 +12876,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -12963,7 +12967,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -13375,7 +13379,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -13517,7 +13521,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -13575,7 +13579,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -13666,7 +13670,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -14071,7 +14075,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -14206,7 +14210,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -14260,7 +14264,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -14351,7 +14355,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -14743,7 +14747,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -14885,7 +14889,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -14939,7 +14943,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -15030,7 +15034,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -15428,7 +15432,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -15570,7 +15574,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -15624,7 +15628,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -15715,7 +15719,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -16113,7 +16117,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -16255,7 +16259,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -16309,7 +16313,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -16400,7 +16404,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -16798,7 +16802,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -16940,7 +16944,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -16994,7 +16998,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -17085,7 +17089,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -17483,7 +17487,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -17625,7 +17629,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -17695,7 +17699,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -17786,7 +17790,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -18198,7 +18202,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -18340,7 +18344,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -18410,7 +18414,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -18501,7 +18505,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -18913,7 +18917,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -19055,7 +19059,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -19133,7 +19137,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -19224,7 +19228,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -19643,7 +19647,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -19785,7 +19789,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -19863,7 +19867,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -19954,7 +19958,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -20373,7 +20377,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -20515,7 +20519,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -20585,7 +20589,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -20676,7 +20680,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -21088,7 +21092,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -21230,7 +21234,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -21300,7 +21304,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -21391,7 +21395,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -21803,7 +21807,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -21945,7 +21949,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -22015,7 +22019,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -22106,7 +22110,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -22518,7 +22522,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -22660,7 +22664,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -22730,7 +22734,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -22821,7 +22825,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -23233,7 +23237,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -23375,7 +23379,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -23445,7 +23449,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -23536,7 +23540,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -23948,7 +23952,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -24090,7 +24094,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -24160,7 +24164,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -24251,7 +24255,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -24663,7 +24667,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -24805,7 +24809,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -24877,7 +24881,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -24968,7 +24972,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -27748,7 +27752,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -27823,7 +27827,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -44769,7 +44773,7 @@
                 },
                 {
                     "name": "independentVariable",
-                    "description": "The independent variable of the ODE system (defaults to t)."
+                    "description": "The independent variable of the ODE system."
                 },
                 {
                     "name": "initialIndependentVariableValue",
@@ -44884,7 +44888,7 @@
                     "name": "independentVariable",
                     "type": "_variableName",
                     "isArray": false,
-                    "description": "The independent variable of the ODE system (defaults to t).",
+                    "description": "The independent variable of the ODE system.",
                     "fromAttribute": true
                 },
                 {
@@ -45663,12 +45667,14 @@
                 {
                     "name": "numGradedVertices",
                     "type": "number",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The number of cobweb vertices that were evaluated for correctness."
                 },
                 {
                     "name": "numCorrectVertices",
                     "type": "number",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The number of cobweb vertices placed at correct positions."
                 },
                 {
                     "name": "fractionCorrectVerticesAdjusted",
@@ -45679,7 +45685,8 @@
                 {
                     "name": "numGradedVerticesAdjusted",
                     "type": "number",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The effective number of graded vertices after adjusting for the required minimum number of iterations."
                 },
                 {
                     "name": "numIterateValues",
@@ -46506,7 +46513,7 @@
                 },
                 {
                     "name": "labelPosition",
-                    "description": "Where the label sits along this line/curve (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where the label sits along this line/curve.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -46604,7 +46611,7 @@
                     "name": "labelPosition",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where the label sits along this line/curve (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where the label sits along this line/curve.",
                     "fromAttribute": true
                 },
                 {
@@ -46761,17 +46768,20 @@
                 {
                     "name": "coeff0",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The constant term in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
                 },
                 {
                     "name": "coeffvar1",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The coefficient of the first variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
                 },
                 {
                     "name": "coeffvar2",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The coefficient of the second variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
                 },
                 {
                     "name": "slope",
@@ -47449,13 +47459,13 @@
                     "name": "extrapolateBackwardMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "Coefficients used when extrapolating before the first through-point."
+                    "description": "The extrapolation style used before the first through-point (e.g., 'line', 'parabolaHorizontal', 'parabolaVertical')."
                 },
                 {
                     "name": "extrapolateForwardMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "Coefficients used when extrapolating beyond the last through-point."
+                    "description": "The extrapolation style used beyond the last through-point (e.g., 'line', 'parabolaHorizontal', 'parabolaVertical')."
                 },
                 {
                     "name": "fs",
@@ -48448,7 +48458,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -48590,7 +48600,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -48644,7 +48654,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -48735,7 +48745,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -49971,7 +49981,8 @@
                 {
                     "name": "gapWidth",
                     "type": "number",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The gap width between panels as a percentage of the total container width."
                 },
                 {
                     "name": "widths",
@@ -50176,7 +50187,7 @@
                     "name": "gapWidth",
                     "type": "number",
                     "isArray": false,
-                    "description": "All children's widths combined."
+                    "description": "The gap width between panels as a percentage of the total container width."
                 },
                 {
                     "name": "widths",
@@ -50771,7 +50782,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -50849,7 +50860,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -53498,7 +53509,7 @@
                 },
                 {
                     "name": "labelPosition",
-                    "description": "Position of the label relative to the input: \"left\" or \"right\".",
+                    "description": "Position of the label relative to the input.",
                     "values": [
                         "left",
                         "right"
@@ -53538,7 +53549,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format for each cell (e.g. \"text\" or \"latex\").",
+                    "description": "Input format for each cell.",
                     "values": [
                         "text",
                         "latex"
@@ -53654,7 +53665,7 @@
                     "name": "labelPosition",
                     "type": "text",
                     "isArray": false,
-                    "description": "Position of the label relative to the input: \"left\" or \"right\".",
+                    "description": "Position of the label relative to the input.",
                     "fromAttribute": true
                 },
                 {
@@ -53682,7 +53693,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format for each cell (e.g. \"text\" or \"latex\").",
+                    "description": "Input format for each cell.",
                     "fromAttribute": true
                 },
                 {
@@ -54940,7 +54951,8 @@
                 {
                     "name": "percentCreditAchieved",
                     "type": "number",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Aggregate credit achieved as a percentage (0 to 100) for scored content in the document."
                 },
                 {
                     "name": "title",
@@ -55140,7 +55152,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -55215,7 +55227,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -56683,7 +56695,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -56825,7 +56837,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -56879,7 +56891,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -56970,7 +56982,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -59190,7 +59202,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -59324,7 +59336,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -59378,7 +59390,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -59462,7 +59474,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -59943,7 +59955,7 @@
                 },
                 {
                     "name": "labelPosition",
-                    "description": "Where the label sits along this line/curve (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where the label sits along this line/curve.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -60025,7 +60037,7 @@
                     "name": "labelPosition",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where the label sits along this line/curve (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where the label sits along this line/curve.",
                     "fromAttribute": true
                 },
                 {
@@ -60168,17 +60180,20 @@
                 {
                     "name": "coeff0",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The constant term in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
                 },
                 {
                     "name": "coeffvar1",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The coefficient of the first variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
                 },
                 {
                     "name": "coeffvar2",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The coefficient of the second variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
                 },
                 {
                     "name": "slope",
@@ -60343,7 +60358,7 @@
                 },
                 {
                     "name": "labelPosition",
-                    "description": "Where the label sits along this line/curve (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where the label sits along this line/curve.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -60471,7 +60486,7 @@
                     "name": "labelPosition",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where the label sits along this line/curve (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where the label sits along this line/curve.",
                     "fromAttribute": true
                 },
                 {
@@ -60711,7 +60726,7 @@
                 },
                 {
                     "name": "labelPosition",
-                    "description": "Where the label sits along this line/curve (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where the label sits along this line/curve.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -60821,7 +60836,7 @@
                     "name": "labelPosition",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where the label sits along this line/curve (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where the label sits along this line/curve.",
                     "fromAttribute": true
                 },
                 {
@@ -64768,12 +64783,14 @@
                 {
                     "name": "b",
                     "type": "number",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The linear coefficient in y = a x^2 + b x + c."
                 },
                 {
                     "name": "c",
                     "type": "number",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The constant term in y = a x^2 + b x + c."
                 },
                 {
                     "name": "vertex",
@@ -65410,13 +65427,13 @@
                     "name": "extrapolateBackwardMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "Coefficients used when extrapolating before the first through-point."
+                    "description": "The extrapolation style used before the first through-point (e.g., 'line', 'parabolaHorizontal', 'parabolaVertical')."
                 },
                 {
                     "name": "extrapolateForwardMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "Coefficients used when extrapolating beyond the last through-point."
+                    "description": "The extrapolation style used beyond the last through-point (e.g., 'line', 'parabolaHorizontal', 'parabolaVertical')."
                 },
                 {
                     "name": "fs",
@@ -66234,7 +66251,7 @@
                 },
                 {
                     "name": "labelPosition",
-                    "description": "Where the label sits along this line/curve (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where the label sits along this line/curve.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -66371,7 +66388,7 @@
                     "name": "labelPosition",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where the label sits along this line/curve (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where the label sits along this line/curve.",
                     "fromAttribute": true
                 },
                 {
@@ -66748,7 +66765,7 @@
                 },
                 {
                     "name": "chooseReflexAngle",
-                    "description": "How to handle reflex angles: \"never\" (default), \"allowed\", or \"always\".",
+                    "description": "How to handle reflex angles.",
                     "values": [
                         "never",
                         "allowed",
@@ -66884,7 +66901,7 @@
                     "name": "chooseReflexAngle",
                     "type": "text",
                     "isArray": false,
-                    "description": "How to handle reflex angles: \"never\" (default), \"allowed\", or \"always\".",
+                    "description": "How to handle reflex angles.",
                     "fromAttribute": true
                 },
                 {
@@ -67349,7 +67366,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Type of input the answer expects: math, text, boolean, or videoWatched.",
+                    "description": "Type of input the answer expects.",
                     "values": [
                         "math",
                         "text",
@@ -68870,7 +68887,8 @@
                 {
                     "name": "conditionSatisfied",
                     "type": "boolean",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Whether the condition is currently satisfied; equivalent to value."
                 },
                 {
                     "name": "text",
@@ -69032,7 +69050,7 @@
                 },
                 {
                     "name": "labelPosition",
-                    "description": "Position of the label relative to the input: \"left\" or \"right\".",
+                    "description": "Position of the label relative to the input.",
                     "values": [
                         "left",
                         "right"
@@ -69059,7 +69077,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -69194,7 +69212,7 @@
                     "name": "labelPosition",
                     "type": "text",
                     "isArray": false,
-                    "description": "Position of the label relative to the input: \"left\" or \"right\".",
+                    "description": "Position of the label relative to the input.",
                     "fromAttribute": true
                 },
                 {
@@ -69222,7 +69240,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -69657,7 +69675,7 @@
                 },
                 {
                     "name": "labelPosition",
-                    "description": "Position of the label relative to the input: \"left\" or \"right\".",
+                    "description": "Position of the label relative to the input.",
                     "values": [
                         "left",
                         "right"
@@ -69710,7 +69728,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -69771,7 +69789,7 @@
                     "name": "labelPosition",
                     "type": "text",
                     "isArray": false,
-                    "description": "Position of the label relative to the input: \"left\" or \"right\".",
+                    "description": "Position of the label relative to the input.",
                     "fromAttribute": true
                 },
                 {
@@ -69813,7 +69831,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -70132,7 +70150,7 @@
                 },
                 {
                     "name": "labelPosition",
-                    "description": "Position of the label relative to the input: \"left\" or \"right\".",
+                    "description": "Position of the label relative to the input.",
                     "values": [
                         "left",
                         "right"
@@ -70187,7 +70205,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -70248,7 +70266,7 @@
                     "name": "labelPosition",
                     "type": "text",
                     "isArray": false,
-                    "description": "Position of the label relative to the input: \"left\" or \"right\".",
+                    "description": "Position of the label relative to the input.",
                     "fromAttribute": true
                 },
                 {
@@ -70283,7 +70301,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -70434,7 +70452,7 @@
                 },
                 {
                     "name": "labelPosition",
-                    "description": "Position of the label relative to the input: \"left\" or \"right\".",
+                    "description": "Position of the label relative to the input.",
                     "values": [
                         "left",
                         "right"
@@ -70548,7 +70566,7 @@
                     "name": "labelPosition",
                     "type": "text",
                     "isArray": false,
-                    "description": "Position of the label relative to the input: \"left\" or \"right\".",
+                    "description": "Position of the label relative to the input.",
                     "fromAttribute": true
                 },
                 {
@@ -70643,7 +70661,8 @@
                 {
                     "name": "numChoices",
                     "type": "number",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The number of choices available in the input."
                 },
                 {
                     "name": "choiceTexts",
@@ -71426,7 +71445,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -71501,7 +71520,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -71834,7 +71853,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -71909,7 +71928,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -72254,7 +72273,7 @@
                 },
                 {
                     "name": "displayMode",
-                    "description": "How to size the graph (e.g. \"block\", \"inline\").",
+                    "description": "How to size the graph.",
                     "values": [
                         "block",
                         "inline"
@@ -72502,7 +72521,7 @@
                     "name": "displayMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How to size the graph (e.g. \"block\", \"inline\").",
+                    "description": "How to size the graph.",
                     "fromAttribute": true
                 },
                 {
@@ -74688,7 +74707,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -74822,7 +74841,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -74876,7 +74895,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -74960,7 +74979,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -78238,7 +78257,8 @@
                 {
                     "name": "tableName",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The full display name of the table (e.g., 'Table 2')."
                 },
                 {
                     "name": "title",
@@ -78600,7 +78620,8 @@
                 {
                     "name": "figureName",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The full display name of the figure (e.g., 'Figure 3')."
                 },
                 {
                     "name": "caption",
@@ -83127,7 +83148,7 @@
                 },
                 {
                     "name": "animationMode",
-                    "description": "How the animation steps through the sequence: increase, decrease, increase once, decrease once, or oscillate.",
+                    "description": "How the animation steps through the sequence.",
                     "values": [
                         "increase",
                         "decrease",
@@ -83196,7 +83217,7 @@
                     "name": "animationMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the animation steps through the sequence: increase, decrease, increase once, decrease once, or oscillate.",
+                    "description": "How the animation steps through the sequence.",
                     "fromAttribute": true
                 },
                 {
@@ -83328,7 +83349,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -83471,7 +83492,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -83547,7 +83568,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -83645,7 +83666,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -83976,7 +83997,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Distribution type (e.g. \"uniform\", \"discreteUniform\", \"gaussian\").",
+                    "description": "Distribution from which to sample.",
                     "values": [
                         "uniform",
                         "discreteUniform",
@@ -84071,7 +84092,7 @@
                     "name": "type",
                     "type": "text",
                     "isArray": false,
-                    "description": "Distribution type (e.g. \"uniform\", \"discreteUniform\", \"gaussian\").",
+                    "description": "Distribution from which to sample.",
                     "fromAttribute": true
                 },
                 {
@@ -84102,7 +84123,8 @@
                 {
                     "name": "to",
                     "type": "number",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Upper bound of the sampling range."
                 },
                 {
                     "name": "mean",
@@ -84194,7 +84216,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Distribution type (e.g. \"uniform\", \"discreteUniform\", \"gaussian\").",
+                    "description": "Distribution from which to sample.",
                     "values": [
                         "uniform",
                         "discreteUniform",
@@ -84300,7 +84322,7 @@
                     "name": "type",
                     "type": "text",
                     "isArray": false,
-                    "description": "Distribution type (e.g. \"uniform\", \"discreteUniform\", \"gaussian\").",
+                    "description": "Distribution from which to sample.",
                     "fromAttribute": true
                 },
                 {
@@ -84331,7 +84353,8 @@
                 {
                     "name": "to",
                     "type": "number",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Upper bound of the sampling range."
                 },
                 {
                     "name": "mean",
@@ -85026,7 +85049,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Type of values being substituted (math, text, etc.).",
+                    "description": "Type of values being substituted.",
                     "values": [
                         "math",
                         "text"
@@ -85151,7 +85174,7 @@
                     "name": "type",
                     "type": "text",
                     "isArray": false,
-                    "description": "Type of values being substituted (math, text, etc.).",
+                    "description": "Type of values being substituted.",
                     "fromAttribute": true
                 },
                 {
@@ -85286,7 +85309,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -85428,7 +85451,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -85506,7 +85529,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -85597,7 +85620,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -85988,7 +86011,7 @@
                 },
                 {
                     "name": "displayMode",
-                    "description": "How to size the image (e.g. \"block\", \"inline\").",
+                    "description": "How to size the image.",
                     "values": [
                         "block",
                         "inline"
@@ -86041,7 +86064,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -86099,7 +86122,7 @@
                     "name": "displayMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How to size the image (e.g. \"block\", \"inline\").",
+                    "description": "How to size the image.",
                     "fromAttribute": true
                 },
                 {
@@ -86155,7 +86178,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -86313,7 +86336,7 @@
                 },
                 {
                     "name": "displayMode",
-                    "description": "How to size the video player (e.g. \"block\", \"inline\").",
+                    "description": "How to size the video player.",
                     "values": [
                         "block",
                         "inline"
@@ -86377,7 +86400,7 @@
                     "name": "displayMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How to size the video player (e.g. \"block\", \"inline\").",
+                    "description": "How to size the video player.",
                     "fromAttribute": true
                 },
                 {
@@ -87048,7 +87071,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -87123,7 +87146,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -87454,7 +87477,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -87537,7 +87560,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -89057,7 +89080,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -89162,7 +89185,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -89321,7 +89344,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -89418,7 +89441,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -89550,7 +89573,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -89635,7 +89658,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -93453,6 +93476,7 @@
                     "name": "pointsClosed",
                     "type": "boolean",
                     "isArray": true,
+                    "description": "Whether each boundary point of the subset is a closed (included) endpoint.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -93637,7 +93661,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -93779,7 +93803,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -93797,7 +93821,7 @@
                 },
                 {
                     "name": "displayMode",
-                    "description": "How the subset is displayed (e.g. as intervals or set notation).",
+                    "description": "How the subset is displayed.",
                     "values": [
                         "intervals",
                         "inequalities"
@@ -93844,7 +93868,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -93935,14 +93959,14 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
                     "name": "displayMode",
                     "type": "text",
                     "isArray": false,
-                    "description": "How the subset is displayed (e.g. as intervals or set notation).",
+                    "description": "How the subset is displayed.",
                     "fromAttribute": true
                 },
                 {
@@ -94187,6 +94211,7 @@
                     "name": "pointsClosed",
                     "type": "boolean",
                     "isArray": true,
+                    "description": "Whether each boundary point of the subset is a closed (included) endpoint.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -94734,7 +94759,7 @@
                 },
                 {
                     "name": "labelPosition",
-                    "description": "Where the label sits along this line/curve (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where the label sits along this line/curve.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -94812,7 +94837,7 @@
                     "name": "labelPosition",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where the label sits along this line/curve (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where the label sits along this line/curve.",
                     "fromAttribute": true
                 },
                 {
@@ -94955,17 +94980,20 @@
                 {
                     "name": "coeff0",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The constant term in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
                 },
                 {
                     "name": "coeffvar1",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The coefficient of the first variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
                 },
                 {
                     "name": "coeffvar2",
                     "type": "math",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The coefficient of the second variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0."
                 },
                 {
                     "name": "slope",
@@ -96782,22 +96810,25 @@
                     "name": "numRows",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The full data frame (rows × columns of typed values)."
+                    "description": "The number of rows in the data frame."
                 },
                 {
                     "name": "numColumns",
                     "type": "integer",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The number of columns in the data frame."
                 },
                 {
                     "name": "columnTypes",
                     "type": "textList",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The data type of each column in the data frame."
                 },
                 {
                     "name": "columnNames",
                     "type": "textList",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The name of each column in the data frame."
                 },
                 {
                     "name": "means",
@@ -97033,7 +97064,8 @@
                 {
                     "name": "columnName",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The name of the data column being summarized."
                 },
                 {
                     "name": "count",
@@ -97558,7 +97590,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -97626,7 +97658,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -97695,12 +97727,14 @@
                 {
                     "name": "latex",
                     "type": "latex",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The label's content as a LaTeX string."
                 },
                 {
                     "name": "value",
                     "type": "label",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "The label's content as a label-typed value."
                 }
             ],
             "top": true,
@@ -98289,7 +98323,7 @@
                 },
                 {
                     "name": "format",
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "values": [
                         "text",
                         "latex"
@@ -98431,7 +98465,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -98494,7 +98528,7 @@
                     "name": "format",
                     "type": "text",
                     "isArray": false,
-                    "description": "Input format (e.g. \"text\" or \"latex\").",
+                    "description": "Input format.",
                     "fromAttribute": true
                 },
                 {
@@ -98585,7 +98619,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -99351,7 +99385,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -99426,7 +99460,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {
@@ -101451,7 +101485,7 @@
                 },
                 {
                     "name": "positionFromAnchor",
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "values": [
                         "upperRight",
                         "upperLeft",
@@ -101526,7 +101560,7 @@
                     "name": "positionFromAnchor",
                     "type": "text",
                     "isArray": false,
-                    "description": "Where this component sits relative to its anchor point (e.g. \"center\", \"upperLeft\").",
+                    "description": "Where this component sits relative to its anchor point.",
                     "fromAttribute": true
                 },
                 {

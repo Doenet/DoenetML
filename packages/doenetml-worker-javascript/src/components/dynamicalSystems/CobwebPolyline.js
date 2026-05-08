@@ -773,6 +773,8 @@ export default class CobwebPolyline extends Polyline {
                     shadowingInstructions: {
                         createComponentOfType: "number",
                     },
+                    description:
+                        "The number of cobweb vertices that were evaluated for correctness.",
                 },
                 {
                     variableName: "numCorrectVertices",
@@ -780,6 +782,8 @@ export default class CobwebPolyline extends Polyline {
                     shadowingInstructions: {
                         createComponentOfType: "number",
                     },
+                    description:
+                        "The number of cobweb vertices placed at correct positions.",
                 },
             ],
             returnDependencies: () => ({
@@ -832,6 +836,8 @@ export default class CobwebPolyline extends Polyline {
                     shadowingInstructions: {
                         createComponentOfType: "number",
                     },
+                    description:
+                        "The effective number of graded vertices after adjusting for the required minimum number of iterations.",
                 },
             ],
             returnDependencies: () => ({

@@ -163,6 +163,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     shadowingInstructions: {
                         createComponentOfType: "number",
                     },
+                    description: "Upper bound of the sampling range.",
                 },
                 {
                     variableName: "numDiscreteValues",

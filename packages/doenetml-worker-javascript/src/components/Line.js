@@ -1368,6 +1368,8 @@ export default class Line extends GraphicalComponent {
                         addAttributeComponentsShadowingStateVariables:
                             returnNumberDisplayAttributeComponentShadowing(),
                     },
+                    description:
+                        "The constant term in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0.",
                 },
                 {
                     variableName: "coeffvar1",
@@ -1377,6 +1379,8 @@ export default class Line extends GraphicalComponent {
                         addAttributeComponentsShadowingStateVariables:
                             returnNumberDisplayAttributeComponentShadowing(),
                     },
+                    description:
+                        "The coefficient of the first variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0.",
                 },
                 {
                     variableName: "coeffvar2",
@@ -1386,6 +1390,8 @@ export default class Line extends GraphicalComponent {
                         addAttributeComponentsShadowingStateVariables:
                             returnNumberDisplayAttributeComponentShadowing(),
                     },
+                    description:
+                        "The coefficient of the second variable in the implicit line equation coeff0 + coeffvar1·x + coeffvar2·y = 0.",
                 },
             ],
             returnDependencies: function ({ stateValues }) {

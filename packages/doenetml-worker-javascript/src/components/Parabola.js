@@ -558,6 +558,8 @@ export default class Parabola extends Curve {
                     },
                     hasEssential: true,
                     defaultValue: 0,
+                    description:
+                        "The linear coefficient in y = a x^2 + b x + c.",
                 },
                 {
                     variableName: "c",
@@ -569,6 +571,7 @@ export default class Parabola extends Curve {
                     },
                     hasEssential: true,
                     defaultValue: 0,
+                    description: "The constant term in y = a x^2 + b x + c.",
                 },
                 "realValued",
             ],

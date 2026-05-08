@@ -73,6 +73,8 @@ export default class When extends BooleanComponent {
                     shadowingInstructions: {
                         createComponentOfType: "boolean",
                     },
+                    description:
+                        "Whether the condition is currently satisfied; equivalent to value.",
                 },
             ],
             returnDependencies: () => ({

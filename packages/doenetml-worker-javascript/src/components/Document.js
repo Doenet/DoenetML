@@ -475,6 +475,8 @@ export default class Document extends BaseComponent {
                 {
                     variableName: "percentCreditAchieved",
                     public: true,
+                    description:
+                        "Aggregate credit achieved as a percentage (0 to 100) for scored content in the document.",
                     shadowingInstructions: {
                         createComponentOfType: "number",
                         addAttributeComponentsShadowingStateVariables: {

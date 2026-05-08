@@ -71,6 +71,8 @@ export default class Figure extends BlockComponent {
                         createComponentOfType: "text",
                     },
                     forRenderer: true,
+                    description:
+                        "The full display name of the figure (e.g., 'Figure 3').",
                 },
             ],
             mustEvaluate: true, // must evaluate to make sure all counters are accounted for

@@ -197,6 +197,7 @@ export default class Label extends InlineComponent {
                     shadowingInstructions: {
                         createComponentOfType: "latex",
                     },
+                    description: "The label's content as a LaTeX string.",
                 },
                 {
                     variableName: "value",
@@ -210,6 +211,7 @@ export default class Label extends InlineComponent {
                             },
                         },
                     },
+                    description: "The label's content as a label-typed value.",
                 },
             ],
             returnDependencies: () => ({
