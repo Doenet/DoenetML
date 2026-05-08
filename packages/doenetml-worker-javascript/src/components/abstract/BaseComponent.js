@@ -1134,6 +1134,13 @@ export default class BaseComponent {
                             isArray: false,
                         };
                     }
+                    if (attrName === varName) {
+                        stateVariableDescriptions[varName].fromAttribute = true;
+                    }
+                    if (attrObj.description !== undefined) {
+                        stateVariableDescriptions[varName].description =
+                            attrObj.description;
+                    }
                 }
             }
         }
@@ -1163,6 +1170,10 @@ export default class BaseComponent {
                         public: false,
                         isArray: Boolean(theStateDef.isArray),
                     };
+                }
+                if (theStateDef.description !== undefined) {
+                    stateVariableDescriptions[varName].description =
+                        theStateDef.description;
                 }
                 if (theStateDef.isArray) {
                     stateVariableDescriptions[varName].isArray = true;

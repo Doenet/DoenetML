@@ -10,21 +10,29 @@ export function returnStandardSequenceAttributes() {
             defaultPrimitiveValue: "number",
             toLowerCase: true,
             validValues: ["number", "math", "letters"],
+            description: "The kind of values in the sequence.",
         },
         from: {
             createComponentOfType: "_componentWithSelectableType",
+            description: "The first value in the sequence.",
         },
         to: {
             createComponentOfType: "_componentWithSelectableType",
+            description:
+                "The last value in the sequence. Used together with from to determine length when length is not specified.",
         },
         step: {
             createComponentOfType: "math",
+            description:
+                "The increment between successive values in the sequence.",
         },
         length: {
             createComponentOfType: "integer",
+            description: "The number of values in the sequence.",
         },
         exclude: {
             createComponentOfType: "_componentListWithSelectableType",
+            description: "Values to exclude from the sequence.",
         },
     };
 }
