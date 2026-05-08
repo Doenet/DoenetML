@@ -12,6 +12,14 @@ describe("generated schema help fields", () => {
     const selectFromSequence = elementsByName.selectFromSequence;
     const when = elementsByName.when;
 
+    it("has the piloted components present in the generated schema", () => {
+        // Asserted up front so later tests don't fail with confusing
+        // TypeErrors if a piloted component is renamed or removed.
+        expect(sequence).toBeDefined();
+        expect(selectFromSequence).toBeDefined();
+        expect(when).toBeDefined();
+    });
+
     it("populates element summary from static componentDocs", () => {
         expect(sequence.summary).toBeTruthy();
         expect(selectFromSequence.summary).toBeTruthy();
