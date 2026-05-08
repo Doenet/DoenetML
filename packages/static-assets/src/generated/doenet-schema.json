@@ -61688,7 +61688,8 @@
                 {
                     "name": "fractionSatisfied",
                     "type": "number",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Fraction of the boolean condition that is satisfied (0 to 1)."
                 },
                 {
                     "name": "conditionSatisfied",

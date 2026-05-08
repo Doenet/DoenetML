@@ -56,6 +56,8 @@ export default class When extends BooleanComponent {
                     shadowingInstructions: {
                         createComponentOfType: "number",
                     },
+                    description:
+                        "Fraction of the boolean condition that is satisfied (0 to 1).",
                 },
                 {
                     variableName: "conditionSatisfied",

@@ -10,6 +10,7 @@ describe("generated schema help fields", () => {
 
     const sequence = elementsByName.sequence;
     const selectFromSequence = elementsByName.selectFromSequence;
+    const when = elementsByName.when;
 
     it("populates element summary from static componentDocs", () => {
         expect(sequence.summary).toBeTruthy();
@@ -62,5 +63,27 @@ describe("generated schema help fields", () => {
         );
         expect(doenetML).toBeDefined();
         expect(doenetML?.fromAttribute).not.toBe(true);
+    });
+
+    it("propagates description from an additionalStateVariablesDefined sibling to the schema property", () => {
+        // <when> defines `value` with two siblings via additionalStateVariablesDefined;
+        // a description authored on the sibling object literal must reach the schema.
+        const fractionSatisfied = when.properties.find(
+            (property) => property.name === "fractionSatisfied",
+        );
+        expect(fractionSatisfied).toBeDefined();
+        expect(fractionSatisfied?.description).toBe(
+            "Fraction of the boolean condition that is satisfied (0 to 1).",
+        );
+    });
+
+    it("does not auto-copy a parent state-var description to additionalStateVariablesDefined siblings", () => {
+        // `conditionSatisfied` is a sibling of `value` but has no description of its own;
+        // a description on the parent (`value`) must not leak onto the sibling property.
+        const conditionSatisfied = when.properties.find(
+            (property) => property.name === "conditionSatisfied",
+        );
+        expect(conditionSatisfied).toBeDefined();
+        expect(conditionSatisfied?.description).toBeUndefined();
     });
 });
