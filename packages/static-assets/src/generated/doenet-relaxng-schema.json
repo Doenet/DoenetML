@@ -117119,7 +117119,7 @@
                     "name": "sort",
                     "type": "text",
                     "isArray": false,
-                    "description": "Sort the selected values: unsorted (default), increasing, or decreasing.",
+                    "description": "Whether and how to sort the selected values.",
                     "fromAttribute": true
                 },
                 {

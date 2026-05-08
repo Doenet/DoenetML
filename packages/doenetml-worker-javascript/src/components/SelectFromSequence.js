@@ -55,8 +55,7 @@ export default class SelectFromSequence extends Sequence {
             valueForTrue: "increasing",
             valueForFalse: "unsorted",
             validValues: ["unsorted", "increasing", "decreasing"],
-            description:
-                "Sort the selected values: unsorted (default), increasing, or decreasing.",
+            description: "Whether and how to sort the selected values.",
         };
         attributes.excludeCombinations = {
             createComponentOfType: "_componentListOfListsWithSelectableType",

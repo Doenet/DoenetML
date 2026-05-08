@@ -67782,7 +67782,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Whether the sequence is of numbers, math expressions, or letters.",
+                    "description": "The kind of values in the sequence.",
                     "values": [
                         "number",
                         "math",
@@ -71234,7 +71234,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Whether the sequence is of numbers, math expressions, or letters.",
+                    "description": "The kind of values in the sequence.",
                     "values": [
                         "number",
                         "math",
@@ -73796,7 +73796,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Whether the sequence is of numbers, math expressions, or letters.",
+                    "description": "The kind of values in the sequence.",
                     "values": [
                         "number",
                         "math",
@@ -73844,7 +73844,7 @@
                 },
                 {
                     "name": "sort",
-                    "description": "Sort the selected values: unsorted (default), increasing, or decreasing.",
+                    "description": "Whether and how to sort the selected values.",
                     "values": [
                         "unsorted",
                         "increasing",
@@ -73920,7 +73920,7 @@
                     "name": "sort",
                     "type": "text",
                     "isArray": false,
-                    "description": "Sort the selected values: unsorted (default), increasing, or decreasing.",
+                    "description": "Whether and how to sort the selected values.",
                     "fromAttribute": true
                 },
                 {
@@ -74462,7 +74462,7 @@
                 },
                 {
                     "name": "type",
-                    "description": "Whether the sequence is of numbers, math expressions, or letters.",
+                    "description": "The kind of values in the sequence.",
                     "values": [
                         "number",
                         "math",

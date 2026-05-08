@@ -10,8 +10,7 @@ export function returnStandardSequenceAttributes() {
             defaultPrimitiveValue: "number",
             toLowerCase: true,
             validValues: ["number", "math", "letters"],
-            description:
-                "Whether the sequence is of numbers, math expressions, or letters.",
+            description: "The kind of values in the sequence.",
         },
         from: {
             createComponentOfType: "_componentWithSelectableType",
