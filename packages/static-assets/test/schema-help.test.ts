@@ -100,7 +100,7 @@ describe("generated schema help fields", () => {
             (property) => property.name === "coords",
         );
         expect(valueProp?.description).toBe(
-            "The point's value as a single math expression.",
+            "The point's coordinates as a single math expression.",
         );
         expect(coordsProp?.description).toBe(
             "The point's coordinates as a math expression.",
