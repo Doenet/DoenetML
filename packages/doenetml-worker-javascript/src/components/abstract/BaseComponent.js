@@ -1127,16 +1127,19 @@ export default class BaseComponent {
                             createComponentOfType,
                             public: true,
                             isArray: false,
-                            description: attrObj.description,
-                            fromAttribute: attrName === varName,
                         };
                     } else {
                         stateVariableDescriptions[varName] = {
                             public: false,
                             isArray: false,
-                            description: attrObj.description,
-                            fromAttribute: attrName === varName,
                         };
+                    }
+                    if (attrName === varName) {
+                        stateVariableDescriptions[varName].fromAttribute = true;
+                    }
+                    if (attrObj.description !== undefined) {
+                        stateVariableDescriptions[varName].description =
+                            attrObj.description;
                     }
                 }
             }
@@ -1161,14 +1164,16 @@ export default class BaseComponent {
                                 .createComponentOfType,
                         public: true,
                         isArray: Boolean(theStateDef.isArray),
-                        description: theStateDef.description,
                     };
                 } else {
                     stateVariableDescriptions[varName] = {
                         public: false,
                         isArray: Boolean(theStateDef.isArray),
-                        description: theStateDef.description,
                     };
+                }
+                if (theStateDef.description !== undefined) {
+                    stateVariableDescriptions[varName].description =
+                        theStateDef.description;
                 }
                 if (theStateDef.isArray) {
                     stateVariableDescriptions[varName].isArray = true;
