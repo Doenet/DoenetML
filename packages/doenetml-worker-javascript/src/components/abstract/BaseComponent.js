@@ -1186,8 +1186,10 @@ export default class BaseComponent {
             if (theStateDef.isAlias) {
                 aliases[varName] = {
                     target: theStateDef.targetVariableName,
-                    description: theStateDef.description,
                 };
+                if (theStateDef.description !== undefined) {
+                    aliases[varName].description = theStateDef.description;
+                }
                 continue;
             }
             if (
