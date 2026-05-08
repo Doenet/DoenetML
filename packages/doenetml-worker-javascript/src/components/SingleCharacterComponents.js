@@ -17,7 +17,7 @@ export class NBSP extends SingleCharacterInline {
     static componentDocs = {
         summary: "Renders a non-breaking space character.",
     };
-    static unicodeCharacter = " ";
+    static unicodeCharacter = "\u00a0";
 }
 
 export class Ellipsis extends SingleCharacterInline {
