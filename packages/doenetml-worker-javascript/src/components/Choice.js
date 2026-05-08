@@ -5,6 +5,10 @@ import me from "math-expressions";
 
 export default class Choice extends InlineComponent {
     static componentType = "choice";
+
+    static componentDocs = {
+        summary: "A single choice within a <choiceInput>.",
+    };
     static rendererType = "containerInline";
     static renderChildren = true;
 
@@ -18,23 +22,31 @@ export default class Choice extends InlineComponent {
             defaultValue: 0,
             public: true,
             attributesForCreatedComponent: { convertBoolean: "true" },
+            description:
+                "Fraction of credit (0 to 1) granted when this choice is selected.",
         };
         attributes.feedbackCodes = {
             createComponentOfType: "textList",
             createStateVariable: "feedbackCodes",
             defaultValue: [],
             public: true,
+            description:
+                "Codes that select reusable feedback messages when this choice is selected.",
         };
         attributes.feedbackText = {
             createComponentOfType: "text",
             createStateVariable: "feedbackText",
             defaultValue: null,
             public: true,
+            description:
+                "Custom feedback text shown when this choice is selected.",
         };
         attributes.preSelect = {
             createComponentOfType: "boolean",
             createStateVariable: "preSelect",
             defaultValue: false,
+            description:
+                "Whether this choice is pre-selected on initial render.",
         };
 
         return attributes;
@@ -68,6 +80,7 @@ export default class Choice extends InlineComponent {
         // of the answer, this could lead to the answer's justSubmitted
         // state variable becoming false immediately after submission.
         stateVariableDefinitions.text = {
+            description: "The choice's content as a text string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -106,6 +119,8 @@ export default class Choice extends InlineComponent {
         };
 
         stateVariableDefinitions.math = {
+            description:
+                "The choice's content interpreted as a math expression.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -144,6 +159,7 @@ export default class Choice extends InlineComponent {
         };
 
         stateVariableDefinitions.selected = {
+            description: "Whether this choice is currently selected.",
             defaultValue: false,
             public: true,
             shadowingInstructions: {
@@ -184,6 +200,8 @@ export default class Choice extends InlineComponent {
         };
 
         stateVariableDefinitions.submitted = {
+            description:
+                "Whether this choice was selected at the most recent submission.",
             defaultValue: false,
             hasEssential: true,
             public: true,
@@ -257,6 +275,8 @@ export default class Choice extends InlineComponent {
         };
 
         stateVariableDefinitions.disabled = {
+            description:
+                "Whether this choice is disabled (cannot be selected).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -298,6 +318,8 @@ export default class Choice extends InlineComponent {
         };
 
         stateVariableDefinitions.feedbacks = {
+            description:
+                "Feedback messages shown when this choice is selected.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "feedbacktext",

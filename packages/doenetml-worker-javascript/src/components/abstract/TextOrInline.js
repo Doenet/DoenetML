@@ -21,6 +21,7 @@ export default class TextOrInline extends InlineComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.value = {
+            description: "The combined content of this component's children.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: this.componentType,
@@ -41,6 +42,8 @@ export default class TextOrInline extends InlineComponent {
         };
 
         stateVariableDefinitions.text = {
+            description:
+                "The combined content of this component's children, as a plain text string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

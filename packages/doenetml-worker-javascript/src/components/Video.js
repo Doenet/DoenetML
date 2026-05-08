@@ -26,6 +26,9 @@ export default class Video extends BlockComponent {
     }
     static componentType = "video";
 
+    static componentDocs = {
+        summary: "Embeds a video player.",
+    };
     static renderChildren = true;
 
     static createAttributesObject() {
@@ -33,6 +36,7 @@ export default class Video extends BlockComponent {
 
         attributes.width = {
             createComponentOfType: "componentSize",
+            description: "Explicit width of the video player (overrides size).",
         };
         attributes.size = {
             createComponentOfType: "text",
@@ -40,12 +44,15 @@ export default class Video extends BlockComponent {
             defaultValue: "full",
             toLowerCase: true,
             validValues: sizePossibilities,
+            description: "Named size preset for the video player.",
         };
         attributes.aspectRatio = {
             createComponentOfType: "number",
+            description: "Aspect ratio (width / height) for the video player.",
         };
 
         attributes.displayMode = {
+            description: "How to size the video player.",
             createComponentOfType: "text",
             createStateVariable: "displayMode",
             toLowerCase: true,
@@ -56,6 +63,8 @@ export default class Video extends BlockComponent {
         };
 
         attributes.horizontalAlign = {
+            description:
+                "Horizontal alignment of the video within its container.",
             createComponentOfType: "text",
             createStateVariable: "horizontalAlign",
             toLowerCase: true,
@@ -66,6 +75,7 @@ export default class Video extends BlockComponent {
         };
 
         attributes.youtube = {
+            description: "YouTube video ID to embed.",
             createComponentOfType: "text",
             createStateVariable: "youtube",
             defaultValue: null,
@@ -73,6 +83,7 @@ export default class Video extends BlockComponent {
             forRenderer: true,
         };
         attributes.source = {
+            description: "URL of the video source.",
             createComponentOfType: "text",
             createStateVariable: "source",
             defaultValue: null,
@@ -107,6 +118,7 @@ export default class Video extends BlockComponent {
         );
 
         stateVariableDefinitions.shortDescription = {
+            description: "A short accessibility description of the video.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -169,6 +181,7 @@ export default class Video extends BlockComponent {
         };
 
         stateVariableDefinitions.size = {
+            description: "The size of the video player.",
             public: true,
             defaultValue: "full",
             hasEssential: true,
@@ -243,6 +256,7 @@ export default class Video extends BlockComponent {
         };
 
         stateVariableDefinitions.width = {
+            description: "The display width of the video player.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -267,6 +281,8 @@ export default class Video extends BlockComponent {
         };
 
         stateVariableDefinitions.aspectRatio = {
+            description:
+                "The aspect ratio (width / height) of the video player.",
             public: true,
             forRenderer: true,
             defaultValue: "16 / 9",
@@ -304,6 +320,8 @@ export default class Video extends BlockComponent {
         };
 
         stateVariableDefinitions.state = {
+            description:
+                "The video's current playback state (e.g. playing, paused).",
             hasEssential: true,
             defaultValue: "initializing",
             forRenderer: true,
@@ -336,6 +354,7 @@ export default class Video extends BlockComponent {
         };
 
         stateVariableDefinitions.time = {
+            description: "The current playback time in seconds.",
             hasEssential: true,
             defaultValue: 0,
             forRenderer: true,
@@ -366,6 +385,7 @@ export default class Video extends BlockComponent {
         };
 
         stateVariableDefinitions.duration = {
+            description: "The total duration of the video in seconds.",
             hasEssential: true,
             defaultValue: null,
             public: true,
@@ -407,6 +427,7 @@ export default class Video extends BlockComponent {
         };
 
         stateVariableDefinitions.secondsWatched = {
+            description: "Total seconds the viewer has watched.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -430,6 +451,8 @@ export default class Video extends BlockComponent {
         };
 
         stateVariableDefinitions.fractionWatched = {
+            description:
+                "Fraction of the video the viewer has watched (0 to 1).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

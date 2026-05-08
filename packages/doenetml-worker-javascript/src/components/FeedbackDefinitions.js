@@ -2,6 +2,11 @@ import BaseComponent from "./abstract/BaseComponent";
 
 export class FeedbackDefinition extends BaseComponent {
     static componentType = "feedbackDefinition";
+
+    static componentDocs = {
+        summary:
+            "A reusable feedback definition referenced by other components.",
+    };
     static rendererType = undefined;
 
     static inSchemaOnlyInheritAs = [];
@@ -10,9 +15,12 @@ export class FeedbackDefinition extends BaseComponent {
         let attributes = super.createAttributesObject();
         attributes.code = {
             createComponentOfType: "text",
+            description:
+                "Identifier used to reference this feedback definition.",
         };
         attributes.text = {
             createComponentOfType: "text",
+            description: "Default feedback text for this code.",
         };
         return attributes;
     }
@@ -62,6 +70,10 @@ export class FeedbackDefinition extends BaseComponent {
 
 export class FeedbackDefinitions extends BaseComponent {
     static componentType = "feedbackDefinitions";
+
+    static componentDocs = {
+        summary: "A container of reusable feedback definitions.",
+    };
     static rendererType = undefined;
 
     static excludeFromSchema = [];

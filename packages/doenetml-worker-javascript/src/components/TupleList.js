@@ -4,6 +4,11 @@ import { breakEmbeddedStringsIntoParensPieces } from "./commonsugar/breakstrings
 export default class TupleList extends MathList {
     static componentType = "tupleList";
 
+    static componentDocs = {
+        summary:
+            "A list of math tuples, parsed from parenthesized comma-separated pieces.",
+    };
+
     static includeBlankStringChildren = false;
 
     static returnSugarInstructions() {

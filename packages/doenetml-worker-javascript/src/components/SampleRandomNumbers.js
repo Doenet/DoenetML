@@ -13,6 +13,9 @@ export default class SampleRandomNumbers extends CompositeComponent {
     }
     static componentType = "sampleRandomNumbers";
 
+    static componentDocs = {
+        summary: "Samples random numbers from a distribution.",
+    };
     static takesIndex = true;
 
     static allowInSchemaAsComponent = ["number"];
@@ -28,6 +31,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         let attributes = super.createAttributesObject();
 
         attributes.numSamples = {
+            description: "Number of samples to draw.",
             createComponentOfType: "number",
             createStateVariable: "numSamples",
             defaultValue: 1,
@@ -40,6 +44,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         // gaussian: gaussian with prescribed mean and standard deviation
 
         attributes.type = {
+            description: "Distribution from which to sample.",
             createComponentOfType: "text",
             createStateVariable: "type",
             defaultValue: "uniform",
@@ -52,51 +57,64 @@ export default class SampleRandomNumbers extends CompositeComponent {
             createComponentOfType: "number",
             createStateVariable: "specifiedMean",
             defaultValue: 0,
+            description: "Mean of the sampling distribution (Gaussian).",
         };
 
         attributes.standardDeviation = {
             createComponentOfType: "number",
             createStateVariable: "specifiedStandardDeviation",
             defaultValue: 1,
+            description:
+                "Standard deviation of the sampling distribution (Gaussian).",
         };
 
         attributes.variance = {
             createComponentOfType: "number",
             createStateVariable: "specifiedVariance",
             defaultValue: 1,
+            description: "Variance of the sampling distribution (Gaussian).",
         };
 
         attributes.from = {
             createComponentOfType: "number",
             createStateVariable: "specifiedFrom",
             defaultValue: null,
+            description: "Lower bound of the sampling range.",
         };
 
         attributes.to = {
             createComponentOfType: "number",
             createStateVariable: "specifiedTo",
             defaultValue: null,
+            description: "Upper bound of the sampling range.",
         };
 
         attributes.step = {
             createComponentOfType: "number",
             createStateVariable: "specifiedStep",
             defaultValue: 1,
+            description:
+                "Step size between samples for the discrete-uniform distribution.",
         };
 
         attributes.exclude = {
             createComponentOfType: "numberList",
             createStateVariable: "exclude",
             defaultValue: [],
+            description: "Values to exclude from the sample space.",
         };
 
-        for (let attrName in returnNumberDisplayAttributes()) {
+        const numberDisplayAttrs = returnNumberDisplayAttributes();
+        for (let attrName in numberDisplayAttrs) {
             attributes[attrName] = {
                 leaveRaw: true,
+                description: numberDisplayAttrs[attrName].description,
             };
         }
 
         attributes.variantDeterminesSeed = {
+            description:
+                "Whether the document's variant index determines the random seed.",
             createPrimitiveOfType: "boolean",
             createStateVariable: "variantDeterminesSeed",
             defaultPrimitiveValue: false,
@@ -107,6 +125,8 @@ export default class SampleRandomNumbers extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or each on its own line (false).",
         };
 
         return attributes;
@@ -116,6 +136,8 @@ export default class SampleRandomNumbers extends CompositeComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.step = {
+            description:
+                "Step size between sample values (for discrete distributions).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -142,6 +164,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         stateVariableDefinitions.from = {
+            description: "Lower bound of the sampling range.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -153,6 +176,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     shadowingInstructions: {
                         createComponentOfType: "number",
                     },
+                    description: "Upper bound of the sampling range.",
                 },
                 {
                     variableName: "numDiscreteValues",
@@ -281,6 +305,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         stateVariableDefinitions.mean = {
+            description: "Mean of the sampling distribution.",
             stateVariablesDeterminingDependencies: ["type"],
             public: true,
             shadowingInstructions: {
@@ -356,6 +381,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         stateVariableDefinitions.variance = {
+            description: "Variance of the sampling distribution.",
             stateVariablesDeterminingDependencies: ["type"],
             public: true,
             shadowingInstructions: {
@@ -454,6 +480,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         stateVariableDefinitions.standardDeviation = {
+            description: "Standard deviation of the sampling distribution.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

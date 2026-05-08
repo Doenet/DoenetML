@@ -19,6 +19,8 @@ export default class GraphicalComponent extends BaseComponent {
             defaultValue: false,
             public: true,
             forRenderer: true,
+            description:
+                "Whether to apply this component's selected style to its label.",
         };
         attributes.layer = {
             createComponentOfType: "integer",
@@ -27,6 +29,8 @@ export default class GraphicalComponent extends BaseComponent {
             public: true,
             forRenderer: true,
             attributesForCreatedComponent: { valueOnNaN: "0" },
+            description:
+                "Z-order layer index used to stack graphical components (higher values render on top).",
         };
         return attributes;
     }

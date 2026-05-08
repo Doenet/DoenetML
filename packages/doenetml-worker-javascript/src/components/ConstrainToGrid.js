@@ -4,39 +4,49 @@ import { findFiniteNumericalValue } from "../utils/math";
 export default class ConstrainToGrid extends ConstraintComponent {
     static componentType = "constrainToGrid";
 
+    static componentDocs = {
+        summary:
+            "Constrains a graphical component's position to lie on a grid.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.dx = {
+            description: "Horizontal grid spacing.",
             createComponentOfType: "number",
             createStateVariable: "dx",
             defaultValue: 1,
             public: true,
         };
         attributes.dy = {
+            description: "Vertical grid spacing.",
             createComponentOfType: "number",
             createStateVariable: "dy",
             defaultValue: 1,
             public: true,
         };
         attributes.dz = {
+            description: "Depth-wise grid spacing.",
             createComponentOfType: "number",
             createStateVariable: "dz",
             defaultValue: 1,
             public: true,
         };
         attributes.xoffset = {
+            description: "Horizontal offset of the grid origin.",
             createComponentOfType: "number",
             createStateVariable: "xoffset",
             defaultValue: 0,
             public: true,
         };
         attributes.yoffset = {
+            description: "Vertical offset of the grid origin.",
             createComponentOfType: "number",
             createStateVariable: "yoffset",
             defaultValue: 0,
             public: true,
         };
         attributes.zoffset = {
+            description: "Depth-wise offset of the grid origin.",
             createComponentOfType: "number",
             createStateVariable: "zoffset",
             defaultValue: 0,

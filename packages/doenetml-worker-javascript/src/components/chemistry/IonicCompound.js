@@ -9,19 +9,27 @@ export default class IonicCompound extends InlineComponent {
     static componentType = "ionicCompound";
     static rendererType = "math";
 
+    static componentDocs = {
+        summary:
+            "Forms a balanced ionic compound from constituent ions and renders its chemical formula.",
+    };
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.symbol = {
             createComponentOfType: "text",
+            description: "The chemical symbol of an element in the compound.",
         };
 
         attributes.atomicNumber = {
             createComponentOfType: "integer",
+            description: "The atomic number of an element in the compound.",
         };
 
         attributes.charge = {
             createComponentOfType: "integer",
+            description: "The charge of an ion in the compound.",
         };
 
         return attributes;
@@ -123,6 +131,8 @@ export default class IonicCompound extends InlineComponent {
         };
 
         stateVariableDefinitions.math = {
+            description:
+                "The ionic compound rendered as a math expression of its chemical formula.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -162,6 +172,7 @@ export default class IonicCompound extends InlineComponent {
         };
 
         stateVariableDefinitions.latex = {
+            description: "The ionic compound rendered as a LaTeX string.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -196,6 +207,7 @@ export default class IonicCompound extends InlineComponent {
         };
 
         stateVariableDefinitions.text = {
+            description: "The ionic compound rendered as a plain text string.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {

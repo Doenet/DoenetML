@@ -6,6 +6,9 @@ import { convertUnresolvedAttributesForComponentType } from "../utils/dast/conve
 export default class Group extends CompositeComponent {
     static componentType = "group";
 
+    static componentDocs = {
+        summary: "A logical grouping of components.",
+    };
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
     static treatAsComponentForRecursiveReplacements = true;
@@ -37,6 +40,7 @@ export default class Group extends CompositeComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.rendered = {
+            description: "Whether the group's children are rendered.",
             createComponentOfType: "boolean",
             createStateVariable: "rendered",
             defaultValue: this.renderedDefault,
@@ -44,6 +48,8 @@ export default class Group extends CompositeComponent {
         };
         attributes.isResponse = {
             leaveRaw: true,
+            description:
+                "Whether this group's children should be treated as responses for assessment.",
         };
         attributes.isPotentialResponse = {
             leaveRaw: true,
@@ -51,15 +57,21 @@ export default class Group extends CompositeComponent {
         };
         attributes.createComponentOfType = {
             createPrimitiveOfType: "string",
+            description:
+                "Component type to wrap each child as when expanding the group.",
         };
         attributes.numComponents = {
             createPrimitiveOfType: "number",
+            description:
+                "Number of components to create when expanding (used with createComponentOfType).",
         };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: false,
+            description:
+                "Whether to render the group's children separated by commas (true) or each on its own line (false).",
         };
 
         return attributes;

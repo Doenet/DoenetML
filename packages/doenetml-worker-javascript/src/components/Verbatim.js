@@ -15,6 +15,10 @@ export class Pre extends BlockComponent {
         });
     }
     static componentType = "pre";
+
+    static componentDocs = {
+        summary: "A preformatted block preserving whitespace.",
+    };
     static renderChildren = true;
 
     static includeBlankStringChildren = true;
@@ -85,6 +89,11 @@ export class DisplayDoenetML extends InlineComponent {
     static componentType = "displayDoenetML";
     static rendererType = "text";
 
+    static componentDocs = {
+        summary:
+            "Displays a DoenetML source string verbatim, with syntax-highlighting in renderers that support it.",
+    };
+
     static keepChildrenSerialized({ serializedComponent }) {
         if (serializedComponent.children === undefined) {
             return [];
@@ -131,6 +140,7 @@ export class DisplayDoenetML extends InlineComponent {
         };
 
         stateVariableDefinitions.text = {
+            description: "The verbatim text content.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

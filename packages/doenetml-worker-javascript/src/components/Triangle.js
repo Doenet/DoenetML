@@ -11,6 +11,10 @@ export default class Triangle extends Polygon {
     }
 
     static componentType = "triangle";
+
+    static componentDocs = {
+        summary: "A triangle defined by three vertices.",
+    };
     static rendererType = "polygon";
 
     /**
@@ -166,6 +170,7 @@ export default class Triangle extends Polygon {
             };
 
         stateVariableDefinitions.numVertices = {
+            description: "The number of vertices (always 3 for a triangle).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

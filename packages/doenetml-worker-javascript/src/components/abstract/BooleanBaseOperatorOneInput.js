@@ -19,6 +19,8 @@ export default class BooleanOperatorOneInput extends BooleanComponent {
 
         // create new version of value that applies operator
         stateVariableDefinitions.value = {
+            description:
+                "The boolean result of applying this operator to its single boolean input.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",

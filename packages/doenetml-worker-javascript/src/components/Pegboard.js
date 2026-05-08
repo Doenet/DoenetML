@@ -3,6 +3,11 @@ import GraphicalComponent from "./abstract/GraphicalComponent";
 export default class Pegboard extends GraphicalComponent {
     static componentType = "pegboard";
 
+    static componentDocs = {
+        summary:
+            "Renders a grid of pegs on a graph that other graphical objects can snap to.",
+    };
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
@@ -12,6 +17,7 @@ export default class Pegboard extends GraphicalComponent {
             defaultValue: 1,
             public: true,
             forRenderer: true,
+            description: "Horizontal spacing between pegs.",
         };
 
         attributes.dy = {
@@ -20,6 +26,7 @@ export default class Pegboard extends GraphicalComponent {
             defaultValue: 1,
             public: true,
             forRenderer: true,
+            description: "Vertical spacing between pegs.",
         };
 
         attributes.xoffset = {
@@ -28,6 +35,7 @@ export default class Pegboard extends GraphicalComponent {
             defaultValue: 0,
             public: true,
             forRenderer: true,
+            description: "Horizontal offset of the peg grid origin.",
         };
 
         attributes.yoffset = {
@@ -36,6 +44,7 @@ export default class Pegboard extends GraphicalComponent {
             defaultValue: 0,
             public: true,
             forRenderer: true,
+            description: "Vertical offset of the peg grid origin.",
         };
 
         return attributes;

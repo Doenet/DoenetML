@@ -4,6 +4,11 @@ export default class Endpoint extends Point {
     static componentType = "endpoint";
     static rendererType = "point";
 
+    static componentDocs = {
+        summary:
+            "A point that marks the endpoint of an interval, rendered open or closed.",
+    };
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
@@ -13,6 +18,8 @@ export default class Endpoint extends Point {
             defaultValue: false,
             public: true,
             forRenderer: true,
+            description:
+                "Whether the endpoint is open (excluded) rather than closed (included).",
         };
 
         attributes.switchable = {
@@ -21,6 +28,8 @@ export default class Endpoint extends Point {
             defaultValue: false,
             public: true,
             forRenderer: true,
+            description:
+                "Whether the user can toggle the endpoint between open and closed by clicking it.",
         };
 
         return attributes;

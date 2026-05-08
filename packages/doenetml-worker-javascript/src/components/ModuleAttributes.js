@@ -6,6 +6,9 @@ import { applySugar } from "../utils/dast/sugar";
 export default class ModuleAttributes extends CompositeComponent {
     static componentType = "moduleAttributes";
 
+    static componentDocs = {
+        summary: "Declares attributes accepted by an enclosing <module>.",
+    };
     static keepChildrenSerialized({ serializedComponent }) {
         if (serializedComponent.children === undefined) {
             return [];

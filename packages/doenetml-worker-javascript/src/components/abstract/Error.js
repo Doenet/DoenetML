@@ -14,6 +14,7 @@ export default class ErrorComponent extends BlockComponent {
             defaultValue: "",
             public: true,
             forRenderer: true,
+            description: "The error message describing what went wrong.",
         };
 
         return attributes;
@@ -44,6 +45,8 @@ export default class ErrorComponent extends BlockComponent {
         };
 
         stateVariableDefinitions.rangeMessage = {
+            description:
+                "A message describing where in the source document the error was found.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {

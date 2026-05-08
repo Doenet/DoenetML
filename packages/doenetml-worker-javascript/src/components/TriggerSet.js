@@ -26,6 +26,10 @@ export default class triggerSet extends InlineComponent {
         });
     }
     static componentType = "triggerSet";
+
+    static componentDocs = {
+        summary: "Triggers a set of update actions on demand.",
+    };
     static rendererType = "button";
 
     static createAttributesObject() {
@@ -34,6 +38,8 @@ export default class triggerSet extends InlineComponent {
         // attributes.height = {default: 50};
 
         attributes.draggable = {
+            description:
+                "Whether the trigger set's button can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,

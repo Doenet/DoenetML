@@ -14,6 +14,10 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
         });
     }
     static componentType = "discreteSimulationResultPolyline";
+
+    static componentDocs = {
+        summary: "A polyline of points produced by a discrete simulation.",
+    };
     static rendererType = "polyline";
 
     static excludeFromSchema = true;
@@ -22,6 +26,7 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
         let attributes = super.createAttributesObject();
 
         attributes.draggable = {
+            description: "Whether the result polyline can be dragged.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -48,6 +53,7 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.styleDescription = {
+            description: "A textual description of the polyline's style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -94,6 +100,7 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
         };
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "polyline".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -135,6 +142,7 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
         };
 
         stateVariableDefinitions.numVertices = {
+            description: "Number of vertices in the polyline.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -156,6 +164,7 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
         };
 
         stateVariableDefinitions.numDimensions = {
+            description: "Number of dimensions of each vertex.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -168,6 +177,7 @@ export default class DiscreteSimulationResultPolyline extends GraphicalComponent
         };
 
         stateVariableDefinitions.vertices = {
+            description: "The vertices of the polyline.",
             public: true,
             isLocation: true,
             shadowingInstructions: {

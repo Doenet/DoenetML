@@ -2,6 +2,10 @@ import BaseComponent from "./abstract/BaseComponent";
 
 export default class Row extends BaseComponent {
     static componentType = "row";
+
+    static componentDocs = {
+        summary: "A row within a tabular layout.",
+    };
     static rendererType = "row";
     static renderChildren = true;
 
@@ -11,12 +15,14 @@ export default class Row extends BaseComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.rowNum = {
+            description: "Row number where this row is placed (1-based).",
             createComponentOfType: "text",
             createStateVariable: "rowNum",
             defaultValue: null,
             public: true,
         };
         attributes.header = {
+            description: "Whether this row is a header row.",
             createComponentOfType: "boolean",
             createStateVariable: "header",
             defaultValue: false,
@@ -25,15 +31,19 @@ export default class Row extends BaseComponent {
         };
         attributes.halign = {
             createComponentOfType: "text",
+            description: "Default horizontal alignment for cells in this row.",
         };
         attributes.valign = {
             createComponentOfType: "text",
+            description: "Default vertical alignment for cells in this row.",
         };
         attributes.left = {
             createComponentOfType: "text",
+            description: "Border style for the left edge of this row.",
         };
         attributes.bottom = {
             createComponentOfType: "text",
+            description: "Border style for the bottom edge of this row.",
         };
 
         // Workaround for <row> in matrix, which is sugared into <matrixRow>.
@@ -43,15 +53,22 @@ export default class Row extends BaseComponent {
         // especially necessary when we have an editor that can autocomplete attributes.
         attributes.functionSymbols = {
             createComponentOfType: "textList",
+            description: "Symbols treated as function names when parsing.",
         };
         attributes.referencesAreFunctionSymbols = {
             createReferences: true,
+            description:
+                "References whose names should be treated as function symbols when parsing.",
         };
         attributes.splitSymbols = {
             createComponentOfType: "boolean",
+            description:
+                "Whether multi-character symbols are split into a product of variables.",
         };
         attributes.parseScientificNotation = {
             createComponentOfType: "boolean",
+            description:
+                "Whether to parse expressions like 1e3 as scientific notation.",
         };
         return attributes;
     }
@@ -69,6 +86,7 @@ export default class Row extends BaseComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.halign = {
+            description: "Default horizontal alignment for cells in this row.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -109,6 +127,7 @@ export default class Row extends BaseComponent {
         };
 
         stateVariableDefinitions.valign = {
+            description: "Default vertical alignment for cells in this row.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -148,6 +167,7 @@ export default class Row extends BaseComponent {
         };
 
         stateVariableDefinitions.left = {
+            description: "Border style for the left edge of the row.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -185,6 +205,7 @@ export default class Row extends BaseComponent {
         };
 
         stateVariableDefinitions.bottom = {
+            description: "Border style for the bottom edge of the row.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

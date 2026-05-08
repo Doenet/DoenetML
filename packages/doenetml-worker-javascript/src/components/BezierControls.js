@@ -4,6 +4,11 @@ import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./co
 
 export default class BezierControls extends InlineComponent {
     static componentType = "bezierControls";
+
+    static componentDocs = {
+        summary:
+            "Defines Bezier control vectors at vertices of a polyline or curve.",
+    };
     static rendererType = "containerInline";
 
     static includeBlankStringChildren = true;
@@ -17,6 +22,8 @@ export default class BezierControls extends InlineComponent {
             createStateVariable: "alwaysVisible",
             defaultValue: false,
             public: true,
+            description:
+                "Whether Bezier control handles are always shown (rather than only when the curve is selected).",
         };
 
         return attributes;

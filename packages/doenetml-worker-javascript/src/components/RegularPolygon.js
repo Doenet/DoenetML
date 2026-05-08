@@ -14,6 +14,10 @@ export default class RegularPolygon extends Polygon {
     }
 
     static componentType = "regularPolygon";
+
+    static componentDocs = {
+        summary: "A regular polygon with a given number of sides.",
+    };
     static rendererType = "polygon";
 
     static createAttributesObject() {
@@ -24,16 +28,20 @@ export default class RegularPolygon extends Polygon {
 
         attributes.numVertices = {
             createComponentOfType: "integer",
+            description: "Number of vertices in the regular polygon.",
         };
 
         attributes.numSides = {
             createComponentOfType: "integer",
+            description:
+                "Number of sides in the regular polygon (alias for numVertices).",
         };
 
         // Note: vertices is already an attribute from polygon
 
         attributes.center = {
             createComponentOfType: "point",
+            description: "Center of the regular polygon.",
         };
 
         // if center and vertex or two vertices are specified
@@ -43,9 +51,12 @@ export default class RegularPolygon extends Polygon {
         // If both specified, circumradius is used
         attributes.circumradius = {
             createComponentOfType: "number",
+            description:
+                "Distance from center to a vertex (circumscribed-circle radius).",
         };
         attributes.radius = {
             createComponentOfType: "number",
+            description: "Alias for circumradius.",
         };
 
         // inradius and apothem are the same thing and either attribute can be used
@@ -53,27 +64,34 @@ export default class RegularPolygon extends Polygon {
         // If circumradius is specified, inradius is ignored
         attributes.inradius = {
             createComponentOfType: "number",
+            description:
+                "Distance from center to the midpoint of a side (inscribed-circle radius).",
         };
         attributes.apothem = {
             createComponentOfType: "number",
+            description: "Alias for inradius.",
         };
 
         // if circumradius or inradius is specified, sideLength is ignored
         attributes.sideLength = {
             createComponentOfType: "number",
+            description: "Length of each side of the regular polygon.",
         };
 
         // if circumradius, inradius, or sideLength is specified, perimeter is ignored
         attributes.perimeter = {
             createComponentOfType: "number",
+            description: "Total perimeter of the regular polygon.",
         };
 
         // if circumradius, inradius, sideLength, or perimeter is specified, area is ignored
         attributes.area = {
             createComponentOfType: "number",
+            description: "Total area enclosed by the regular polygon.",
         };
 
         attributes.addControls = {
+            description: "Whether to render interactive control handles.",
             createComponentOfType: "text",
             createStateVariable: "addControls",
             defaultValue: "centerAndRadius",
@@ -120,6 +138,7 @@ export default class RegularPolygon extends Polygon {
 
         // preserveSimilarity is always true for regular polygons
         stateVariableDefinitions.preserveSimilarity = {
+            description: "Whether to preserve similarity when dragging.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -129,6 +148,8 @@ export default class RegularPolygon extends Polygon {
         };
 
         stateVariableDefinitions.numVertices = {
+            description:
+                "The number of vertices (sides) of the regular polygon.",
             isLocation: true,
             hasEssential: true,
             defaultValue: 3,
@@ -216,6 +237,7 @@ export default class RegularPolygon extends Polygon {
         stateVariableDefinitions.numSides = {
             isAlias: true,
             targetVariableName: "numVertices",
+            description: "The number of sides of the regular polygon.",
         };
 
         stateVariableDefinitions.numVerticesSpecified = {
@@ -1622,6 +1644,7 @@ export default class RegularPolygon extends Polygon {
         };
 
         stateVariableDefinitions.center = {
+            description: "The center coordinates of the regular polygon.",
             isLocation: true,
             public: true,
             isArray: true,
@@ -1737,6 +1760,7 @@ export default class RegularPolygon extends Polygon {
         };
 
         stateVariableDefinitions.circumradius = {
+            description: "The radius of the circumscribed circle.",
             isLocation: true,
             public: true,
             shadowingInstructions: {
@@ -1817,9 +1841,12 @@ export default class RegularPolygon extends Polygon {
         stateVariableDefinitions.radius = {
             isAlias: true,
             targetVariableName: "circumradius",
+            description:
+                "Distance from center to a vertex (alias for circumradius).",
         };
 
         stateVariableDefinitions.inradius = {
+            description: "The radius of the inscribed circle.",
             isLocation: true,
             public: true,
             shadowingInstructions: {
@@ -1870,9 +1897,12 @@ export default class RegularPolygon extends Polygon {
         stateVariableDefinitions.apothem = {
             isAlias: true,
             targetVariableName: "inradius",
+            description:
+                "Distance from center to the midpoint of a side (alias for inradius).",
         };
 
         stateVariableDefinitions.sideLength = {
+            description: "The length of each side.",
             isLocation: true,
             public: true,
             shadowingInstructions: {
@@ -1922,6 +1952,7 @@ export default class RegularPolygon extends Polygon {
         };
 
         stateVariableDefinitions.perimeter = {
+            description: "The perimeter of the polygon.",
             isLocation: true,
             public: true,
             shadowingInstructions: {
@@ -1973,6 +2004,7 @@ export default class RegularPolygon extends Polygon {
         };
 
         stateVariableDefinitions.area = {
+            description: "The area enclosed by the polygon.",
             isLocation: true,
             public: true,
             shadowingInstructions: {

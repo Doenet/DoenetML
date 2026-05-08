@@ -9,6 +9,10 @@ import { returnNVariables } from "../utils/math";
 
 export default class SolveEquations extends InlineComponent {
     static componentType = "solveEquations";
+
+    static componentDocs = {
+        summary: "Numerically solves a system of equations.",
+    };
     static rendererType = undefined;
 
     static variableForIndexAsProp = "solutions";
@@ -18,9 +22,12 @@ export default class SolveEquations extends InlineComponent {
 
         attributes.variables = {
             createComponentOfType: "_variableNameList",
+            description: "Names of the variables to solve for.",
         };
 
         attributes.numDiscretizationPoints = {
+            description:
+                "Number of points used when searching for solutions numerically.",
             createComponentOfType: "number",
             createStateVariable: "numDiscretizationPoints",
             defaultValue: 100,
@@ -31,12 +38,14 @@ export default class SolveEquations extends InlineComponent {
             createComponentOfType: "number",
             createStateVariable: "minVar",
             defaultValue: null,
+            description: "Lower bound of the variable's search range.",
         };
 
         attributes.maxVar = {
             createComponentOfType: "number",
             createStateVariable: "maxVar",
             defaultValue: null,
+            description: "Upper bound of the variable's search range.",
         };
 
         return attributes;
@@ -115,6 +124,7 @@ export default class SolveEquations extends InlineComponent {
         );
 
         stateVariableDefinitions.variables = {
+            description: "The variables of the equations.",
             isArray: true,
             public: true,
             shadowingInstructions: {
@@ -167,6 +177,7 @@ export default class SolveEquations extends InlineComponent {
         stateVariableDefinitions.variable = {
             isAlias: true,
             targetVariableName: "variable1",
+            description: "The first variable being solved for.",
         };
 
         stateVariableDefinitions.allSolutions = {
@@ -567,6 +578,7 @@ export default class SolveEquations extends InlineComponent {
         };
 
         stateVariableDefinitions.numSolutions = {
+            description: "The number of numerical solutions found.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -587,6 +599,7 @@ export default class SolveEquations extends InlineComponent {
         };
 
         stateVariableDefinitions.solutions = {
+            description: "The numerical solutions of the equations.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",

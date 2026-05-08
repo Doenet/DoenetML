@@ -4,6 +4,11 @@ import { evaluateLogic } from "../utils/booleanLogic";
 
 export default class When extends BooleanComponent {
     static componentType = "when";
+
+    static componentDocs = {
+        summary:
+            "A condition that triggers an action when its expression becomes true.",
+    };
     static rendererType = undefined;
 
     static inSchemaOnlyInheritAs = [];
@@ -13,6 +18,8 @@ export default class When extends BooleanComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.matchPartial = {
+            description:
+                "Whether to match partial conditions for partial credit.",
             createComponentOfType: "boolean",
             createStateVariable: "matchPartial",
             defaultValue: false,
@@ -45,6 +52,7 @@ export default class When extends BooleanComponent {
 
         // condition satisfied is just an alias to value
         stateVariableDefinitions.value = {
+            description: "Whether the condition is currently true.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -65,6 +73,8 @@ export default class When extends BooleanComponent {
                     shadowingInstructions: {
                         createComponentOfType: "boolean",
                     },
+                    description:
+                        "Whether the condition is currently satisfied; equivalent to value.",
                 },
             ],
             returnDependencies: () => ({

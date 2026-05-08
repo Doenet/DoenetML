@@ -24,6 +24,7 @@ export default class Variable extends MathComponent {
         stateVariableDefinitions.valuePreValidate.essentialVarName = "value";
 
         stateVariableDefinitions.value = {
+            description: "The variable as a math expression.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "_variableName",

@@ -3,6 +3,10 @@ import InlineComponent from "./abstract/InlineComponent";
 
 export default class AsList extends InlineComponent {
     static componentType = "asList";
+
+    static componentDocs = {
+        summary: "Renders its children as a comma-separated list.",
+    };
     static renderChildren = true;
     static canDisplayChildErrors = true;
 
@@ -23,6 +27,8 @@ export default class AsList extends InlineComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.text = {
+            description:
+                "The children rendered as a comma-separated text string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -46,6 +52,8 @@ export default class AsList extends InlineComponent {
         };
 
         stateVariableDefinitions.latex = {
+            description:
+                "The children rendered as a comma-separated LaTeX string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "latex",

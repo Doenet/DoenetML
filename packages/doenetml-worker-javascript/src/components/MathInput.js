@@ -45,6 +45,9 @@ export default class MathInput extends Input {
     }
     static componentType = "mathInput";
 
+    static componentDocs = {
+        summary: "An interactive math input.",
+    };
     static variableForImplicitProp = "value";
     static variableForIndexAsProp = "vector";
 
@@ -53,6 +56,7 @@ export default class MathInput extends Input {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.prefill = {
+            description: "Initial value displayed in the input.",
             createComponentOfType: "math",
             createStateVariable: "prefill",
             defaultValue: me.fromAst("\uff3f"),
@@ -65,12 +69,14 @@ export default class MathInput extends Input {
             ],
         };
         attributes.prefillLatex = {
+            description: "Initial value as a LaTeX string.",
             createComponentOfType: "latex",
             createStateVariable: "prefillLatex",
             defaultValue: "",
             public: true,
         };
         attributes.format = {
+            description: "Input format.",
             createComponentOfType: "text",
             createStateVariable: "format",
             defaultValue: "text",
@@ -79,12 +85,15 @@ export default class MathInput extends Input {
             validValues: ["text", "latex"],
         };
         attributes.functionSymbols = {
+            description: "Symbols treated as function names when parsing.",
             createComponentOfType: "textList",
             createStateVariable: "functionSymbols",
             defaultValue: ["f", "g"],
             public: true,
         };
         attributes.splitSymbols = {
+            description:
+                "Whether multi-character symbols are split into a product of single-character variables.",
             createComponentOfType: "boolean",
             createStateVariable: "splitSymbols",
             defaultValue: true,
@@ -92,6 +101,8 @@ export default class MathInput extends Input {
             fallBackToParentStateVariable: "splitSymbols",
         };
         attributes.parseScientificNotation = {
+            description:
+                "Whether to parse expressions like 1e3 as scientific notation.",
             createComponentOfType: "boolean",
             createStateVariable: "parseScientificNotation",
             defaultValue: false,
@@ -103,14 +114,18 @@ export default class MathInput extends Input {
 
         attributes.bindValueTo = {
             createComponentOfType: "math",
+            description: "Two-way binding target for the input's value.",
         };
         attributes.unionFromU = {
+            description: 'Whether "U" between sets is parsed as union.',
             createComponentOfType: "boolean",
             createStateVariable: "unionFromU",
             defaultValue: false,
             public: true,
         };
         attributes.hideNaN = {
+            description:
+                "Whether to hide NaN values when displaying the input.",
             createComponentOfType: "boolean",
             createStateVariable: "hideNaN",
             defaultValue: true,
@@ -120,8 +135,10 @@ export default class MathInput extends Input {
             createComponentOfType: "textList",
             createStateVariable: "removeStrings",
             defaultValue: null,
+            description: "Substrings to strip from the input before parsing.",
         };
         attributes.minWidth = {
+            description: "Minimum rendered width of the input.",
             createComponentOfType: "integer",
             createStateVariable: "minWidth",
             defaultValue: 50,
@@ -134,6 +151,7 @@ export default class MathInput extends Input {
             createComponentOfType: "boolean",
             createStateVariable: "showPreviewPreliminary",
             defaultValue: false,
+            description: "Whether to display a preview of the parsed math.",
         };
 
         return attributes;
@@ -188,6 +206,7 @@ export default class MathInput extends Input {
         );
 
         stateVariableDefinitions.showPreview = {
+            description: "Whether to display a preview of the parsed math.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -218,6 +237,8 @@ export default class MathInput extends Input {
         };
 
         stateVariableDefinitions.valueChanged = {
+            description:
+                "Whether the saved value has been changed from its initial state.",
             public: true,
             hasEssential: true,
             defaultValue: false,
@@ -244,6 +265,7 @@ export default class MathInput extends Input {
         };
 
         stateVariableDefinitions.value = {
+            description: "The most recently saved math value.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -388,6 +410,8 @@ export default class MathInput extends Input {
         };
 
         stateVariableDefinitions.immediateValueChanged = {
+            description:
+                "Whether the live value differs from its initial state.",
             public: true,
             hasEssential: true,
             defaultValue: false,
@@ -416,6 +440,8 @@ export default class MathInput extends Input {
         };
 
         stateVariableDefinitions.immediateValue = {
+            description:
+                "The current math value being entered (live, before saving).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -568,6 +594,7 @@ export default class MathInput extends Input {
         };
 
         stateVariableDefinitions.text = {
+            description: "The current input as a text string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -642,6 +669,8 @@ export default class MathInput extends Input {
             defaultValue: "",
             provideEssentialValuesInDefinition: true,
             public: true,
+            description:
+                "The raw value used by the renderer (e.g. LaTeX string).",
             shadowingInstructions: {
                 createComponentOfType: "latex",
             },

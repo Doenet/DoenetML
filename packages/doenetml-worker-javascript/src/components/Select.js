@@ -10,6 +10,9 @@ import { createNewComponentIndices } from "../utils/componentIndices";
 export default class Select extends CompositeComponent {
     static componentType = "select";
 
+    static componentDocs = {
+        summary: "Randomly selects components from a list of children.",
+    };
     static takesIndex = true;
 
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
@@ -22,12 +25,15 @@ export default class Select extends CompositeComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.numToSelect = {
+            description: "How many child components to select.",
             createComponentOfType: "integer",
             createStateVariable: "numToSelect",
             defaultValue: 1,
             public: true,
         };
         attributes.withReplacement = {
+            description:
+                "Whether the same child can be selected more than once.",
             createComponentOfType: "boolean",
             createStateVariable: "withReplacement",
             defaultValue: false,
@@ -35,12 +41,15 @@ export default class Select extends CompositeComponent {
         };
         attributes.type = {
             createPrimitiveOfType: "string",
+            description: "Component type to select from.",
         };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or each on its own line (false).",
         };
 
         return attributes;

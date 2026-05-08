@@ -3,6 +3,11 @@ import VectorListComponent from "./VectorList";
 export default class ControlVectors extends VectorListComponent {
     static componentType = "controlVectors";
 
+    static componentDocs = {
+        summary:
+            "Bezier control vectors at a polyline/curve vertex (used inside <bezierControls>).",
+    };
+
     static inSchemaOnlyInheritAs = [];
 
     // don't let it appear in schema as a vector
@@ -18,12 +23,16 @@ export default class ControlVectors extends VectorListComponent {
             public: true,
             toLowerCase: true,
             validValues: ["symmetric", "previous", "next", "both", "none"],
+            description:
+                "Direction in which the control vectors apply at the vertex.",
         };
         attributes.pointNumber = {
             createComponentOfType: "number",
             createStateVariable: "pointNumber",
             defaultValue: null,
             public: true,
+            description:
+                "1-based index of the vertex these control vectors attach to.",
         };
         return attributes;
     }

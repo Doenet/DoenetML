@@ -25,6 +25,11 @@ export default class Curve extends GraphicalComponent {
         });
     }
     static componentType = "curve";
+
+    static componentDocs = {
+        summary:
+            "A curve defined by a function, parametric formulas, or control points.",
+    };
     static rendererType = "curve";
 
     static primaryStateVariableForDefinition = "fShadow";
@@ -33,6 +38,7 @@ export default class Curve extends GraphicalComponent {
         let attributes = super.createAttributesObject();
 
         attributes.draggable = {
+            description: "Whether the curve can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -41,6 +47,7 @@ export default class Curve extends GraphicalComponent {
         };
 
         attributes.labelPosition = {
+            description: "Position of the curve's label relative to the curve.",
             createComponentOfType: "text",
             createStateVariable: "labelPosition",
             defaultValue: "upperRight",
@@ -60,6 +67,8 @@ export default class Curve extends GraphicalComponent {
         };
 
         attributes.flipFunction = {
+            description:
+                "Whether to swap the function and its argument (i.e., reflect across y=x).",
             createComponentOfType: "boolean",
             createStateVariable: "flipFunction",
             defaultValue: false,
@@ -67,18 +76,24 @@ export default class Curve extends GraphicalComponent {
             forRenderer: true,
         };
         attributes.numDiscretizationPoints = {
+            description:
+                "Number of points used when discretizing the curve for rendering.",
             createComponentOfType: "number",
             createStateVariable: "numDiscretizationPoints",
             defaultValue: 1000,
             public: true,
         };
         attributes.periodic = {
+            description:
+                "Whether the curve is treated as periodic when interpolating between control points.",
             createComponentOfType: "boolean",
             createStateVariable: "periodic",
             defaultValue: false,
             public: true,
         };
         attributes.splineTension = {
+            description:
+                "Tension parameter used when fitting a spline through control points.",
             createComponentOfType: "number",
             createStateVariable: "splineTension",
             defaultValue: 0.8,
@@ -86,6 +101,8 @@ export default class Curve extends GraphicalComponent {
             public: true,
         };
         attributes.extrapolateBackward = {
+            description:
+                "Whether to extrapolate the curve before its first defined point.",
             createComponentOfType: "boolean",
             createStateVariable: "extrapolateBackward",
             defaultValue: false,
@@ -93,6 +110,8 @@ export default class Curve extends GraphicalComponent {
             forRenderer: true,
         };
         attributes.extrapolateForward = {
+            description:
+                "Whether to extrapolate the curve beyond its last defined point.",
             createComponentOfType: "boolean",
             createStateVariable: "extrapolateForward",
             defaultValue: false,
@@ -100,6 +119,8 @@ export default class Curve extends GraphicalComponent {
             forRenderer: true,
         };
         attributes.splineForm = {
+            description:
+                "Form of spline used to interpolate between control points.",
             createComponentOfType: "text",
             createStateVariable: "splineForm",
             defaultValue: "centripetal",
@@ -111,19 +132,28 @@ export default class Curve extends GraphicalComponent {
             createComponentOfType: "_variableName",
             createStateVariable: "variableForChild",
             defaultValue: me.fromAst("x"),
+            description:
+                "Name of the curve's parameter or independent variable.",
         };
 
         attributes.through = {
             createComponentOfType: "pointList",
+            description: "Points the interpolated curve passes through.",
         };
         attributes.parMin = {
             createComponentOfType: "math",
+            description:
+                "Minimum value of the curve's parameter (for parametric curves).",
         };
         attributes.parMax = {
             createComponentOfType: "math",
+            description:
+                "Maximum value of the curve's parameter (for parametric curves).",
         };
 
         attributes.showCoordsWhenDragging = {
+            description:
+                "Whether to show coordinate labels while dragging the curve.",
             createComponentOfType: "boolean",
             createStateVariable: "showCoordsWhenDragging",
             defaultValue: true,
@@ -135,6 +165,8 @@ export default class Curve extends GraphicalComponent {
             createComponentOfType: "boolean",
             createStateVariable: "nearestPointAsCurvePrelim",
             defaultValue: false,
+            description:
+                "Whether nearest-point queries should treat this as a curve in the plane rather than a graph y = f(x).",
         };
 
         Object.assign(attributes, returnNumberDisplayAttributes());
@@ -258,6 +290,7 @@ export default class Curve extends GraphicalComponent {
         );
 
         stateVariableDefinitions.styleDescription = {
+            description: "A textual description of the curve's style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -304,6 +337,7 @@ export default class Curve extends GraphicalComponent {
         };
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "curve".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -456,6 +490,7 @@ export default class Curve extends GraphicalComponent {
         };
 
         stateVariableDefinitions.parMax = {
+            description: "Maximum value of the curve's parameter.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
@@ -568,6 +603,7 @@ export default class Curve extends GraphicalComponent {
         };
 
         stateVariableDefinitions.parMin = {
+            description: "Minimum value of the curve's parameter.",
             forRenderer: true,
             isLocation: true,
             public: true,
@@ -720,6 +756,7 @@ export default class Curve extends GraphicalComponent {
         };
 
         stateVariableDefinitions.numDimensions = {
+            description: "Number of dimensions the curve lives in.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -750,6 +787,7 @@ export default class Curve extends GraphicalComponent {
 
         stateVariableDefinitions.throughPoints = {
             public: true,
+            description: "Points the curve is constrained to pass through.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -1049,6 +1087,7 @@ export default class Curve extends GraphicalComponent {
         };
 
         stateVariableDefinitions.vectorControlDirections = {
+            description: "Direction symmetry of each control vector pair.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
@@ -1148,6 +1187,7 @@ export default class Curve extends GraphicalComponent {
         };
 
         stateVariableDefinitions.hiddenControls = {
+            description: "Whether each control vector is currently hidden.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -1247,6 +1287,7 @@ export default class Curve extends GraphicalComponent {
         stateVariableDefinitions.controlVectors = {
             isArray: true,
             public: true,
+            description: "The Bezier control vectors at each through-point.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -1752,6 +1793,8 @@ export default class Curve extends GraphicalComponent {
         stateVariableDefinitions.controlPoints = {
             isArray: true,
             public: true,
+            description:
+                "The Bezier control points (vertex + offset) for each through-point.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -2164,6 +2207,8 @@ export default class Curve extends GraphicalComponent {
                 {
                     variableName: "extrapolateBackwardMode",
                     public: true,
+                    description:
+                        "The extrapolation style used before the first through-point (e.g., 'line', 'parabolaHorizontal', 'parabolaVertical').",
                     shadowingInstructions: {
                         createComponentOfType: "text",
                     },
@@ -2455,6 +2500,8 @@ export default class Curve extends GraphicalComponent {
                 {
                     variableName: "extrapolateForwardMode",
                     public: true,
+                    description:
+                        "The extrapolation style used beyond the last through-point (e.g., 'line', 'parabolaHorizontal', 'parabolaVertical').",
                     shadowingInstructions: {
                         createComponentOfType: "text",
                     },
@@ -2752,6 +2799,8 @@ export default class Curve extends GraphicalComponent {
                 },
             ],
             public: true,
+            description:
+                "The component functions of the curve as functions of its parameter.",
             shadowingInstructions: {
                 createComponentOfType: "function",
                 addStateVariablesShadowingStateVariables: {
@@ -2990,6 +3039,8 @@ export default class Curve extends GraphicalComponent {
         stateVariableDefinitions.f = {
             isAlias: true,
             targetVariableName: "f1",
+            description:
+                "The first component function of the curve as a function of its parameter.",
         };
 
         stateVariableDefinitions.allXCriticalPoints = {
@@ -3085,6 +3136,8 @@ export default class Curve extends GraphicalComponent {
         };
 
         stateVariableDefinitions.numXCriticalPoints = {
+            description:
+                "The number of x-critical points (horizontal tangents) on the curve.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -3106,6 +3159,8 @@ export default class Curve extends GraphicalComponent {
         };
 
         stateVariableDefinitions.xCriticalPoints = {
+            description:
+                "The x-critical points (horizontal tangents) on the curve.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -3346,6 +3401,8 @@ export default class Curve extends GraphicalComponent {
         };
 
         stateVariableDefinitions.numYCriticalPoints = {
+            description:
+                "The number of y-critical points (vertical tangents) on the curve.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -3367,6 +3424,8 @@ export default class Curve extends GraphicalComponent {
         };
 
         stateVariableDefinitions.yCriticalPoints = {
+            description:
+                "The y-critical points (vertical tangents) on the curve.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -3608,6 +3667,8 @@ export default class Curve extends GraphicalComponent {
         };
 
         stateVariableDefinitions.numCurvatureChangePoints = {
+            description:
+                "The number of points where the curve's curvature changes sign.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -3629,6 +3690,8 @@ export default class Curve extends GraphicalComponent {
         };
 
         stateVariableDefinitions.curvatureChangePoints = {
+            description:
+                "Points where the curve's curvature changes sign (inflection points).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

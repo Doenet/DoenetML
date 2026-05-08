@@ -3,6 +3,9 @@ import Group from "./Group";
 export default class PostponeRenderContainer extends Group {
     static componentType = "_postponeRenderContainer";
 
+    static componentDocs = {
+        summary: "Internal container that postpones rendering of its children.",
+    };
     static inSchemaOnlyInheritAs = [];
     static allowInSchemaAsComponent = undefined;
 

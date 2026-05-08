@@ -3,6 +3,10 @@ import ConstraintComponent from "./abstract/ConstraintComponent";
 export default class AttractToAngles extends ConstraintComponent {
     static componentType = "attractToAngles";
 
+    static componentDocs = {
+        summary:
+            "Attracts a graphical component's position to specified angles when nearby.",
+    };
     static excludeFromSchema = true;
 
     static createAttributesObject() {
@@ -12,6 +16,8 @@ export default class AttractToAngles extends ConstraintComponent {
             createStateVariable: "threshold",
             defaultValue: 0.3,
             public: true,
+            description:
+                "Angular distance (radians) within which the angle attracts to a target.",
         };
         return attributes;
     }

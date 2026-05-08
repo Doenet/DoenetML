@@ -15,6 +15,10 @@ import { copyStateFromUnlinkedSource, remapExtendIndices } from "./Repeat";
 export default class RepeatForSequence extends CompositeComponent {
     static componentType = "repeatForSequence";
 
+    static componentDocs = {
+        summary:
+            "Repeats template content for each value in an arithmetic sequence.",
+    };
     static takesIndex = true;
 
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
@@ -47,16 +51,22 @@ export default class RepeatForSequence extends CompositeComponent {
             createPrimitiveOfType: "string",
             createStateVariable: "valueName",
             defaultValue: null,
+            description:
+                "Name to bind the current item to inside the repeat template.",
         };
 
         attributes.indexName = {
             createPrimitiveOfType: "string",
             createStateVariable: "indexName",
             defaultValue: null,
+            description:
+                "Name to bind the current 1-based index to inside the repeat template.",
         };
 
         attributes.isResponse = {
             leaveRaw: true,
+            description:
+                "Whether the generated repeats should be treated as responses for assessment.",
         };
         attributes.isPotentialResponse = {
             leaveRaw: true,
@@ -67,6 +77,8 @@ export default class RepeatForSequence extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or each on its own line (false).",
         };
 
         return attributes;

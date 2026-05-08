@@ -140,6 +140,8 @@ export class ComponentSize extends InlineComponent {
         Object.assign(stateVariableDefinitions, styleDescriptionDefinitions);
 
         stateVariableDefinitions.componentSize = {
+            description:
+                "The size value with its associated unit (absolute pixels or relative percent).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "componentSize",
@@ -407,6 +409,7 @@ export class ComponentSize extends InlineComponent {
         };
 
         stateVariableDefinitions.number = {
+            description: "The numeric portion of the size.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -456,8 +459,12 @@ export class ComponentSize extends InlineComponent {
                 mathVariableName: "math",
                 isPublic: true,
             });
+        stateVariableDefinitions.math.description =
+            "The size as a math expression.";
 
         stateVariableDefinitions.isAbsolute = {
+            description:
+                "Whether the size uses absolute units (pixels) rather than relative units (percent).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -629,6 +636,7 @@ export class ComponentSizeList extends BaseComponent {
         };
 
         stateVariableDefinitions.numComponents = {
+            description: "The number of size values in the list.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -695,6 +703,7 @@ export class ComponentSizeList extends BaseComponent {
         };
 
         stateVariableDefinitions.componentSizes = {
+            description: "The list of component sizes.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "componentSize",
@@ -850,11 +859,13 @@ export class ComponentSizeList extends BaseComponent {
         stateVariableDefinitions.numValues = {
             isAlias: true,
             targetVariableName: "numComponents",
+            description: "The number of component sizes in the list.",
         };
 
         stateVariableDefinitions.values = {
             isAlias: true,
             targetVariableName: "componentSizes",
+            description: "The list's component sizes.",
         };
 
         return stateVariableDefinitions;

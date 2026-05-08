@@ -33,6 +33,10 @@ export default class Point extends GraphicalComponent {
     }
     static componentType = "point";
 
+    static componentDocs = {
+        summary:
+            "A point with coordinates that can be displayed and dragged on a graph.",
+    };
     static canBeInList = true;
 
     // Note: for other components with public point state variables,
@@ -50,6 +54,7 @@ export default class Point extends GraphicalComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.draggable = {
+            description: "Whether the point can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -59,23 +64,29 @@ export default class Point extends GraphicalComponent {
 
         attributes.x = {
             createComponentOfType: "math",
+            description: "The first coordinate (x) of the point.",
         };
         attributes.y = {
             createComponentOfType: "math",
+            description: "The second coordinate (y) of the point.",
         };
         attributes.z = {
             createComponentOfType: "math",
+            description: "The third coordinate (z) of the point.",
         };
         attributes.xs = {
             createComponentOfType: "mathList",
+            description: "The point's coordinates as a list.",
         };
         attributes.coords = {
             createComponentOfType: "coords",
+            description: "The point's coordinates as a single math expression.",
         };
 
         Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.labelPosition = {
+            description: "Position of the point's label.",
             createComponentOfType: "text",
             createStateVariable: "labelPosition",
             defaultValue: "upperRight",
@@ -95,6 +106,7 @@ export default class Point extends GraphicalComponent {
         };
 
         attributes.showCoordsWhenDragging = {
+            description: "Whether to show coordinate labels while dragging.",
             createComponentOfType: "boolean",
             createStateVariable: "showCoordsWhenDragging",
             defaultValue: true,
@@ -103,6 +115,7 @@ export default class Point extends GraphicalComponent {
         };
 
         attributes.addControls = {
+            description: "Whether to render interactive control handles.",
             createComponentOfType: "text",
             createStateVariable: "addControls",
             defaultValue: "both",
@@ -120,6 +133,8 @@ export default class Point extends GraphicalComponent {
 
         attributes.hideOffGraphIndicator = {
             createComponentOfType: "boolean",
+            description:
+                "Whether to suppress the indicator drawn at the edge when the point is off-screen.",
         };
 
         attributes.controlOrder = returnGraphControlOrderAttribute();
@@ -361,6 +376,7 @@ export default class Point extends GraphicalComponent {
         Object.assign(stateVariableDefinitions, styleDescriptionDefinitions);
 
         stateVariableDefinitions.styleDescription = {
+            description: "A textual description of the point's style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -394,6 +410,7 @@ export default class Point extends GraphicalComponent {
         };
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "point".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -450,6 +467,8 @@ export default class Point extends GraphicalComponent {
         };
 
         stateVariableDefinitions.hideOffGraphIndicator = {
+            description:
+                "Whether to suppress the off-graph indicator when out of view.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -527,6 +546,7 @@ export default class Point extends GraphicalComponent {
         };
 
         stateVariableDefinitions.numDimensions = {
+            description: "Number of dimensions of the point.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -653,6 +673,8 @@ export default class Point extends GraphicalComponent {
         stateVariableDefinitions.numDimensionsForConstraints = {
             isAlias: true,
             targetVariableName: "numDimensions",
+            description:
+                "Number of dimensions exposed to constraint computations (alias for numDimensions).",
         };
 
         stateVariableDefinitions.unconstrainedXs = {
@@ -1154,6 +1176,7 @@ export default class Point extends GraphicalComponent {
         };
 
         stateVariableDefinitions.latex = {
+            description: "The point rendered as a LaTeX string.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -1206,7 +1229,7 @@ export default class Point extends GraphicalComponent {
         stateVariableDefinitions.value = {
             isAlias: true,
             targetVariableName: "coords",
-            description: "The point's value as a single math expression.",
+            description: "The point's coordinates as a single math expression.",
         };
 
         stateVariableDefinitions.numericalXs = {

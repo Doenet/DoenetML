@@ -1,6 +1,9 @@
 import type { Position } from "@doenet/parser";
 
-export type StyleAttributes = Record<string, { componentType: string }>;
+export type StyleAttributes = Record<
+    string,
+    { componentType: string; description?: string }
+>;
 
 export type StyleDefinitionPrimitive = string | number;
 

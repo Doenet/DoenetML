@@ -20,6 +20,8 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
     let stateVariableDefinitions: any = {};
 
     stateVariableDefinitions.numDimensions = {
+        description:
+            "The number of dimensions if the math expression is interpreted as a vector or matrix.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "integer",
@@ -60,6 +62,8 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.vector = {
+        description:
+            "The math expression interpreted as a vector (its components).",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "math",
@@ -263,24 +267,34 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
     stateVariableDefinitions.x = {
         isAlias: true,
         targetVariableName: "x1",
+        description:
+            "The first component of the math expression when interpreted as a vector.",
     };
 
     stateVariableDefinitions.y = {
         isAlias: true,
         targetVariableName: "x2",
+        description:
+            "The second component of the math expression when interpreted as a vector.",
     };
 
     stateVariableDefinitions.z = {
         isAlias: true,
         targetVariableName: "x3",
+        description:
+            "The third component of the math expression when interpreted as a vector.",
     };
 
     stateVariableDefinitions.numListItems = {
         isAlias: true,
         targetVariableName: "numDimensions",
+        description:
+            "The number of items when the math expression is interpreted as a list.",
     };
 
     stateVariableDefinitions.list = {
+        description:
+            "The math expression interpreted as a list (its elements).",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "math",
@@ -339,6 +353,8 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.matrixSize = {
+        description:
+            "The size of the math expression as a matrix, as a [numRows, numColumns] list.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "numberList",
@@ -373,6 +389,8 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.numRows = {
+        description:
+            "The number of rows when the math expression is interpreted as a matrix.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "integer",
@@ -395,6 +413,8 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.numColumns = {
+        description:
+            "The number of columns when the math expression is interpreted as a matrix.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "integer",
@@ -417,6 +437,8 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.matrix = {
+        description:
+            "The math expression interpreted as a matrix (its entries by row and column).",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "math",
@@ -440,8 +462,14 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
         numDimensions: 2,
         entryPrefixes: ["matrixEntry", "row", "column", "rows", "columns"],
         schemaSubarrays: {
-            rows: { numDimensions: 2 },
-            columns: { numDimensions: 2 },
+            rows: {
+                numDimensions: 2,
+                description: "The matrix's entries grouped by row.",
+            },
+            columns: {
+                numDimensions: 2,
+                description: "The matrix's entries grouped by column.",
+            },
         },
         returnEntryDimensions: (prefix: string | undefined) => {
             if (prefix === "matrixEntry") {

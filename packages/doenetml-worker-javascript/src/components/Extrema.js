@@ -6,6 +6,10 @@ import {
 
 export class Extremum extends BaseComponent {
     static componentType = "extremum";
+
+    static componentDocs = {
+        summary: "A local extremum (min or max) of a function.",
+    };
     static rendererType = undefined;
     static excludeFromSchema = true;
 
@@ -189,6 +193,7 @@ export class Extremum extends BaseComponent {
         let componentClass = this;
 
         stateVariableDefinitions.value = {
+            description: "Coordinates of the extremum.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -204,6 +209,7 @@ export class Extremum extends BaseComponent {
                     },
                     defaultValue: null,
                     hasEssential: true,
+                    description: "The x-coordinate of the extremum.",
                 },
             ],
             returnDependencies: () => ({
@@ -296,6 +302,10 @@ export class Extremum extends BaseComponent {
 
 export class Extrema extends BaseComponent {
     static componentType = "extrema";
+
+    static componentDocs = {
+        summary: "Computes local extrema of a function.",
+    };
     static rendererType = undefined;
     static componentTypeSingular = "extremum";
     static get componentTypeCapitalized() {
@@ -409,9 +419,11 @@ export class Extrema extends BaseComponent {
             schemaSubarrays: {
                 [extremaClass.componentTypeSingular + "Locations"]: {
                     numDimensions: 1,
+                    description: `The x-coordinates of the ${extremaClass.componentType}.`,
                 },
                 [extremaClass.componentTypeSingular + "Values"]: {
                     numDimensions: 1,
+                    description: `The values of the ${extremaClass.componentType}.`,
                 },
             },
             stateVariablesDeterminingDependencies: ["childIdentities"],

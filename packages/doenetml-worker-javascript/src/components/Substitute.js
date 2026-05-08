@@ -8,6 +8,9 @@ import {
 export default class Substitute extends CompositeComponent {
     static componentType = "substitute";
 
+    static componentDocs = {
+        summary: "Substitutes math expressions into another expression.",
+    };
     static takesIndex = true;
 
     static allowInSchemaAsComponent = ["math", "text"];
@@ -19,6 +22,7 @@ export default class Substitute extends CompositeComponent {
         let attributes = super.createAttributesObject();
 
         attributes.type = {
+            description: "Type of values being substituted.",
             createPrimitiveOfType: "string",
             createStateVariable: "type",
             defaultPrimitiveValue: "math",
@@ -31,17 +35,20 @@ export default class Substitute extends CompositeComponent {
             createComponentOfType: "_componentWithSelectableType",
             createStateVariable: "match",
             defaultValue: null,
+            description: "Pattern to match in the source value.",
         };
 
         attributes.replacement = {
             createComponentOfType: "_componentWithSelectableType",
             createStateVariable: "replacement",
             defaultValue: null,
+            description: "Value to substitute in place of each match.",
         };
 
         // attributes for math
         // let simplify="" or simplify="true" be full simplify
         attributes.simplify = {
+            description: "Level of simplification applied after substitution.",
             createComponentOfType: "text",
             createStateVariable: "simplify",
             defaultValue: "none",
@@ -62,6 +69,8 @@ export default class Substitute extends CompositeComponent {
 
         // attributes for text
         attributes.matchWholeWord = {
+            description:
+                "Whether matching is restricted to whole words (text mode).",
             createComponentOfType: "boolean",
             createStateVariable: "matchWholeWord",
             defaultValue: false,
@@ -69,6 +78,7 @@ export default class Substitute extends CompositeComponent {
         };
 
         attributes.matchCase = {
+            description: "Whether matching is case-sensitive (text mode).",
             createComponentOfType: "boolean",
             createStateVariable: "matchCase",
             defaultValue: false,
@@ -76,6 +86,8 @@ export default class Substitute extends CompositeComponent {
         };
 
         attributes.preserveCase = {
+            description:
+                "Whether the case of the original is preserved when substituting.",
             createComponentOfType: "boolean",
             createStateVariable: "preserveCase",
             defaultValue: false,

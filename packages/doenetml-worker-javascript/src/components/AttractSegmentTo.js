@@ -5,6 +5,9 @@ import me from "math-expressions";
 export default class AttractSegmentTo extends SegmentConstraintComponent {
     static componentType = "attractSegmentTo";
 
+    static componentDocs = {
+        summary: "Attracts a line segment's endpoints to nearby targets.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
@@ -13,10 +16,14 @@ export default class AttractSegmentTo extends SegmentConstraintComponent {
             createStateVariable: "relativeToGraphScales",
             defaultValue: false,
             public: true,
+            description:
+                "Whether the attraction threshold is interpreted relative to the enclosing graph's scales rather than absolute coordinates.",
         };
 
         attributes.threshold = {
             createComponentOfType: "number",
+            description:
+                "Distance within which the segment attracts to a target.",
         };
 
         return attributes;
@@ -35,6 +42,8 @@ export default class AttractSegmentTo extends SegmentConstraintComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.threshold = {
+            description:
+                "Distance within which the segment attracts to a target.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

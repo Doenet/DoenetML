@@ -46,6 +46,9 @@ export default class MathComponent extends InlineComponent {
     }
     static componentType = "math";
 
+    static componentDocs = {
+        summary: "A math expression.",
+    };
     // used when creating new component via adapter or copy prop
     static primaryStateVariableForDefinition = "unnormalizedValue";
 
@@ -63,6 +66,7 @@ export default class MathComponent extends InlineComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.format = {
+            description: "Input format.",
             createComponentOfType: "text",
             createStateVariable: "format",
             defaultValue: "text",
@@ -72,6 +76,7 @@ export default class MathComponent extends InlineComponent {
         };
         // let simplify="" or simplify="true" be full simplify
         attributes.simplify = {
+            description: "Level of simplification applied to the expression.",
             createComponentOfType: "text",
             createStateVariable: "simplify",
             defaultValue: "none",
@@ -88,6 +93,7 @@ export default class MathComponent extends InlineComponent {
             ],
         };
         attributes.expand = {
+            description: "Whether to expand the expression.",
             createComponentOfType: "boolean",
             createStateVariable: "expand",
             defaultValue: false,
@@ -97,6 +103,7 @@ export default class MathComponent extends InlineComponent {
         Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.renderMode = {
+            description: 'How the math is rendered (e.g. "inline", "display").',
             createComponentOfType: "text",
             createStateVariable: "renderMode",
             defaultValue: "inline",
@@ -105,14 +112,20 @@ export default class MathComponent extends InlineComponent {
         };
         attributes.unordered = {
             createComponentOfType: "boolean",
+            description:
+                "Whether tuple- or list-like math expressions should be treated as unordered for comparison.",
         };
         attributes.createVectors = {
+            description:
+                "Whether tuple-like expressions are interpreted as vectors.",
             createComponentOfType: "boolean",
             createStateVariable: "createVectors",
             defaultValue: false,
             public: true,
         };
         attributes.createIntervals = {
+            description:
+                "Whether range expressions are interpreted as intervals.",
             createComponentOfType: "boolean",
             createStateVariable: "createIntervals",
             defaultValue: false,
@@ -120,6 +133,7 @@ export default class MathComponent extends InlineComponent {
         };
 
         attributes.functionSymbols = {
+            description: "Symbols treated as function names when parsing.",
             createComponentOfType: "textList",
             createStateVariable: "functionSymbols",
             defaultValue: ["f", "g"],
@@ -135,9 +149,13 @@ export default class MathComponent extends InlineComponent {
             fallBackToParentStateVariable: "referencesAreFunctionSymbols",
             fallBackToSourceCompositeStateVariable:
                 "referencesAreFunctionSymbols",
+            description:
+                "References whose names should be treated as function symbols when parsing.",
         };
 
         attributes.splitSymbols = {
+            description:
+                "Whether multi-character symbols are split into a product of variables.",
             createComponentOfType: "boolean",
             createStateVariable: "splitSymbols",
             defaultValue: true,
@@ -147,6 +165,8 @@ export default class MathComponent extends InlineComponent {
         };
 
         attributes.parseScientificNotation = {
+            description:
+                "Whether to parse expressions like 1e3 as scientific notation.",
             createComponentOfType: "boolean",
             createStateVariable: "parseScientificNotation",
             defaultValue: false,
@@ -155,6 +175,7 @@ export default class MathComponent extends InlineComponent {
         };
 
         attributes.displayBlanks = {
+            description: "Whether blanks (placeholders) are visibly rendered.",
             createComponentOfType: "boolean",
             createStateVariable: "displayBlanks",
             defaultValue: true,
@@ -162,6 +183,7 @@ export default class MathComponent extends InlineComponent {
         };
 
         attributes.assumptions = {
+            description: "Assumptions applied when simplifying or comparing.",
             createComponentOfType: "math",
             createStateVariable: "assumptions",
             defaultValue: me.fromAst("\uff3f"), // long underscore
@@ -169,6 +191,8 @@ export default class MathComponent extends InlineComponent {
         };
 
         attributes.draggable = {
+            description:
+                "Whether the math component can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -177,6 +201,7 @@ export default class MathComponent extends InlineComponent {
         };
 
         attributes.layer = {
+            description: "Z-order layer index when shown on a graph.",
             createComponentOfType: "number",
             createStateVariable: "layer",
             defaultValue: 0,
@@ -248,6 +273,7 @@ export default class MathComponent extends InlineComponent {
         };
 
         stateVariableDefinitions.unordered = {
+            description: "Whether list-like values are treated as unordered.",
             defaultValue: false,
             public: true,
             shadowingInstructions: {
@@ -591,6 +617,7 @@ export default class MathComponent extends InlineComponent {
         };
 
         stateVariableDefinitions.value = {
+            description: "The math expression value.",
             isLocation: true,
             public: true,
             shadowingInstructions: {
@@ -668,6 +695,8 @@ export default class MathComponent extends InlineComponent {
         };
 
         stateVariableDefinitions.number = {
+            description:
+                "The numeric value of the expression (NaN if not a number).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -701,6 +730,7 @@ export default class MathComponent extends InlineComponent {
 
         // isNumber is true if the value of the math is an actual number
         stateVariableDefinitions.isNumber = {
+            description: "Whether the expression evaluates to a finite number.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -724,6 +754,8 @@ export default class MathComponent extends InlineComponent {
         // isNumeric is true if the value can be evaluated as a number,
         // i.e., if the number state variable is a number
         stateVariableDefinitions.isNumeric = {
+            description:
+                "Whether the expression evaluates to any number (including infinities).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -805,6 +837,7 @@ export default class MathComponent extends InlineComponent {
         };
 
         stateVariableDefinitions.latex = {
+            description: "The expression rendered as a LaTeX string.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -879,6 +912,7 @@ export default class MathComponent extends InlineComponent {
         };
 
         stateVariableDefinitions.text = {
+            description: "The expression rendered as a plain text string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

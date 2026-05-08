@@ -27,6 +27,10 @@ export default class UpdateValue extends InlineComponent {
         });
     }
     static componentType = "updateValue";
+
+    static componentDocs = {
+        summary: "Updates one or more state variables on a target component.",
+    };
     static rendererType = "button";
 
     static createAttributesObject() {
@@ -36,6 +40,8 @@ export default class UpdateValue extends InlineComponent {
 
         attributes.target = {
             createReferences: true,
+            description:
+                "Reference to the state variable that will be updated.",
         };
 
         attributes.type = {
@@ -44,13 +50,16 @@ export default class UpdateValue extends InlineComponent {
             defaultPrimitiveValue: "math",
             toLowerCase: true,
             validValues: ["math", "number", "boolean", "text"],
+            description: "Component type used to interpret the new value.",
         };
 
         attributes.newValue = {
             createComponentOfType: "_componentWithSelectableType",
+            description: "New value to assign to the target.",
         };
 
         attributes.draggable = {
+            description: "Whether the update button can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -71,6 +80,7 @@ export default class UpdateValue extends InlineComponent {
         // for newValue with type==="math"
         // let simplify="" or simplify="true" be full simplify
         attributes.simplify = {
+            description: "Level of simplification applied to the new value.",
             createComponentOfType: "text",
             createStateVariable: "simplify",
             defaultValue: "none",

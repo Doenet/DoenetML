@@ -4,6 +4,8 @@ export function returnAnchorAttributes() {
     return {
         anchor: {
             createComponentOfType: "point",
+            description:
+                "Coordinates of the anchor point used to position this component on a graph.",
         },
         positionFromAnchor: {
             createComponentOfType: "text",
@@ -24,6 +26,8 @@ export function returnAnchorAttributes() {
                 "right",
                 "center",
             ],
+            description:
+                "Where this component sits relative to its anchor point.",
         },
     };
 }
@@ -46,12 +50,16 @@ export function returnGraphControlOrderAttribute() {
         clamp: [0, Infinity],
         public: true,
         forRenderer: true,
+        description:
+            "Slot order for graph controls (1-indexed; 0 means no explicit slot request).",
     };
 }
 
 export function returnAnchorStateVariableDefinition() {
     return {
         anchor: {
+            description:
+                "The coordinates where this component is anchored on the graph.",
             defaultValue: me.fromText("(0,0)").tuples_to_vectors(),
             public: true,
             forRenderer: true,

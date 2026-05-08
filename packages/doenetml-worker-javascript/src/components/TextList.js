@@ -6,6 +6,9 @@ import { convertUnresolvedAttributesForComponentType } from "../utils/dast/conve
 export default class TextList extends CompositeComponent {
     static componentType = "textList";
 
+    static componentDocs = {
+        summary: "A list of texts.",
+    };
     static takesIndex = true;
 
     static stateVariableToEvaluateAfterReplacements =
@@ -31,6 +34,8 @@ export default class TextList extends CompositeComponent {
         let attributes = super.createAttributesObject();
 
         attributes.unordered = {
+            description:
+                "Whether the order of items should be treated as unordered.",
             createComponentOfType: "boolean",
             createStateVariable: "unordered",
             defaultValue: false,
@@ -38,6 +43,7 @@ export default class TextList extends CompositeComponent {
         };
 
         attributes.maxNumber = {
+            description: "Maximum number of items to retain in the list.",
             createComponentOfType: "number",
             createStateVariable: "maxNumber",
             defaultValue: Infinity,
@@ -46,10 +52,14 @@ export default class TextList extends CompositeComponent {
 
         attributes.fixed = {
             leaveRaw: true,
+            description:
+                "Whether this component's value is fixed and cannot be modified.",
         };
 
         attributes.isResponse = {
             leaveRaw: true,
+            description:
+                "Whether this component is treated as a response for the purposes of assessment.",
         };
         attributes.isPotentialResponse = {
             leaveRaw: true,
@@ -60,6 +70,8 @@ export default class TextList extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or each on its own line (false).",
         };
 
         return attributes;
@@ -117,6 +129,7 @@ export default class TextList extends CompositeComponent {
         };
 
         stateVariableDefinitions.numComponents = {
+            description: "The number of items in the text list.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -284,11 +297,13 @@ export default class TextList extends CompositeComponent {
         stateVariableDefinitions.numValues = {
             isAlias: true,
             targetVariableName: "numComponents",
+            description: "The number of text values in the list.",
         };
 
         stateVariableDefinitions.values = {
             isAlias: true,
             targetVariableName: "texts",
+            description: "The list's text values.",
         };
 
         stateVariableDefinitions.readyToExpandWhenResolved = {

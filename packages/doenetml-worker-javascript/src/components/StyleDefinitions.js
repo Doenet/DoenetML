@@ -4,6 +4,11 @@ import { styleAttributes } from "@doenet/utils";
 
 export class StyleDefinition extends BaseComponent {
     static componentType = "styleDefinition";
+
+    static componentDocs = {
+        summary:
+            "A reusable style definition referenced by graphical components.",
+    };
     static rendererType = undefined;
 
     static inSchemaOnlyInheritAs = [];
@@ -16,11 +21,14 @@ export class StyleDefinition extends BaseComponent {
             createStateVariable: "styleNumber",
             defaultValue: 1,
             clamp: [1, Infinity],
+            description:
+                "Index identifying which style this definition applies to.",
         };
 
         for (let styleAttr in styleAttributes) {
             attributes[styleAttr] = {
                 createComponentOfType: styleAttributes[styleAttr].componentType,
+                description: styleAttributes[styleAttr].description,
             };
         }
 
@@ -78,6 +86,10 @@ export class StyleDefinition extends BaseComponent {
 
 export class StyleDefinitions extends BaseComponent {
     static componentType = "styleDefinitions";
+
+    static componentDocs = {
+        summary: "A container of reusable style definitions.",
+    };
     static rendererType = undefined;
 
     static excludeFromSchema = [];

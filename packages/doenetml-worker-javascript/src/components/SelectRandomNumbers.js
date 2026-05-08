@@ -5,6 +5,10 @@ import { convertUnresolvedAttributesForComponentType } from "../utils/dast/conve
 export default class SelectRandomNumbers extends SampleRandomNumbers {
     static componentType = "selectRandomNumbers";
 
+    static componentDocs = {
+        summary:
+            "Selects a fixed (variant-deterministic) set of random numbers that cannot be resampled.",
+    };
     static takesIndex = true;
 
     static allowInSchemaAsComponent = ["number"];
@@ -18,6 +22,7 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         delete attributes.variantDeterminesSeed;
 
         attributes.numToSelect = {
+            description: "How many random numbers to select.",
             createComponentOfType: "integer",
             createStateVariable: "numToSelect",
             defaultValue: 1,

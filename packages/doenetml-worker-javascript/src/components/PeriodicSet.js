@@ -8,12 +8,18 @@ import {
 
 export default class PeriodicSet extends MathComponent {
     static componentType = "periodicSet";
+
+    static componentDocs = {
+        summary: "A periodic set of real numbers.",
+    };
     static rendererType = undefined;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.minIndex = {
+            description:
+                "Smallest period index considered when listing offsets.",
             createComponentOfType: "integer",
             createStateVariable: "minIndex",
             defaultValue: -Infinity,
@@ -21,6 +27,8 @@ export default class PeriodicSet extends MathComponent {
         };
 
         attributes.maxIndex = {
+            description:
+                "Largest period index considered when listing offsets.",
             createComponentOfType: "integer",
             createStateVariable: "maxIndex",
             defaultValue: Infinity,
@@ -28,6 +36,7 @@ export default class PeriodicSet extends MathComponent {
         };
 
         attributes.offsets = {
+            description: "Offsets within one period.",
             createComponentOfType: "mathList",
             createStateVariable: "offsets",
             defaultValue: null,
@@ -35,6 +44,7 @@ export default class PeriodicSet extends MathComponent {
         };
 
         attributes.period = {
+            description: "The period of the set.",
             createComponentOfType: "math",
             createStateVariable: "period",
             defaultValue: null,
@@ -42,12 +52,14 @@ export default class PeriodicSet extends MathComponent {
         };
 
         attributes.minIndexAsList = {
+            description: "Smallest period index when rendered as a list.",
             createComponentOfType: "integer",
             createStateVariable: "minIndexAsList",
             defaultValue: -1,
             public: true,
         };
         attributes.maxIndexAsList = {
+            description: "Largest period index when rendered as a list.",
             createComponentOfType: "integer",
             createStateVariable: "maxIndexAsList",
             defaultValue: 1,
@@ -84,6 +96,7 @@ export default class PeriodicSet extends MathComponent {
         };
 
         stateVariableDefinitions.numOffsets = {
+            description: "The number of distinct offsets within one period.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -161,6 +174,7 @@ export default class PeriodicSet extends MathComponent {
         };
 
         stateVariableDefinitions.redundantOffsets = {
+            description: "Offsets that are redundant given the period.",
             additionalStateVariablesDefined: ["uniqueOffsets"],
             public: true,
             shadowingInstructions: {
@@ -221,6 +235,8 @@ export default class PeriodicSet extends MathComponent {
         };
 
         stateVariableDefinitions.asList = {
+            description:
+                "The periodic set rendered as a list of explicit values.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "mathList",

@@ -6,6 +6,9 @@ import me from "math-expressions";
 export class Sum extends MathBaseOperator {
     static componentType = "sum";
 
+    static componentDocs = {
+        summary: "Sum of all child math/number values.",
+    };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -38,6 +41,9 @@ export class Sum extends MathBaseOperator {
 export class Product extends MathBaseOperator {
     static componentType = "product";
 
+    static componentDocs = {
+        summary: "Product of all child math/number values.",
+    };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -70,15 +76,20 @@ export class Product extends MathBaseOperator {
 export class ClampNumber extends MathBaseOperatorOneInput {
     static componentType = "clampNumber";
 
+    static componentDocs = {
+        summary: "Clamps a number to a specified range.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.lowerValue = {
+            description: "Lower bound used by the operator.",
             createComponentOfType: "number",
             createStateVariable: "lowerValue",
             defaultValue: 0,
             public: true,
         };
         attributes.upperValue = {
+            description: "Upper bound used by the operator.",
             createComponentOfType: "number",
             createStateVariable: "upperValue",
             defaultValue: 1,
@@ -158,6 +169,9 @@ function clamp({ value, lowerValue, upperValue }) {
 export class WrapNumberPeriodic extends MathBaseOperatorOneInput {
     static componentType = "wrapNumberPeriodic";
 
+    static componentDocs = {
+        summary: "Wraps a number into a periodic range.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.lowerValue = {
@@ -165,12 +179,14 @@ export class WrapNumberPeriodic extends MathBaseOperatorOneInput {
             createStateVariable: "lowerValue",
             defaultValue: 0,
             public: true,
+            description: "Lower bound used by the operator.",
         };
         attributes.upperValue = {
             createComponentOfType: "number",
             createStateVariable: "upperValue",
             defaultValue: 1,
             public: true,
+            description: "Upper bound used by the operator.",
         };
         return attributes;
     }
@@ -264,15 +280,22 @@ function makePeriodic({ value, lowerValue, upperValue }) {
 export class Round extends MathBaseOperatorOneInput {
     static componentType = "round";
 
+    static componentDocs = {
+        summary: "Rounds a number to a specified precision.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.numDecimals = {
+            description:
+                "Number of decimal places (for round-style operators).",
             createComponentOfType: "number",
             createStateVariable: "numDecimals",
             defaultValue: 0,
             public: true,
         };
         attributes.numDigits = {
+            description:
+                "Number of significant digits (for round-style operators).",
             createComponentOfType: "number",
             createStateVariable: "numDigits",
             defaultValue: null,
@@ -343,9 +366,13 @@ export class Round extends MathBaseOperatorOneInput {
 export class setSmallToZero extends MathBaseOperatorOneInput {
     static componentType = "setSmallToZero";
 
+    static componentDocs = {
+        summary: "Replaces values with magnitude below a threshold with zero.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.threshold = {
+            description: "Threshold value used by the operator.",
             createComponentOfType: "number",
             createStateVariable: "threshold",
             defaultValue: 1e-14,
@@ -392,6 +419,9 @@ export class setSmallToZero extends MathBaseOperatorOneInput {
 export class ConvertSetToList extends MathBaseOperatorOneInput {
     static componentType = "convertSetToList";
 
+    static componentDocs = {
+        summary: "Converts a math set expression into a list expression.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         delete attributes.unordered;
@@ -451,6 +481,9 @@ export class ConvertSetToList extends MathBaseOperatorOneInput {
 export class Ceil extends MathBaseOperatorOneInput {
     static componentType = "ceil";
 
+    static componentDocs = {
+        summary: "Smallest integer ≥ the input value.",
+    };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -497,6 +530,9 @@ export class Ceil extends MathBaseOperatorOneInput {
 export class Floor extends MathBaseOperatorOneInput {
     static componentType = "floor";
 
+    static componentDocs = {
+        summary: "Largest integer ≤ the input value.",
+    };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -543,6 +579,9 @@ export class Floor extends MathBaseOperatorOneInput {
 export class Abs extends MathBaseOperatorOneInput {
     static componentType = "abs";
 
+    static componentDocs = {
+        summary: "Absolute value of the input.",
+    };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -597,6 +636,10 @@ export class Abs extends MathBaseOperatorOneInput {
 export class Sign extends MathBaseOperatorOneInput {
     static componentType = "sign";
 
+    static componentDocs = {
+        summary: "Sign of the input (-1, 0, or 1).",
+    };
+
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -625,6 +668,9 @@ export class Sign extends MathBaseOperatorOneInput {
 export class Mean extends MathBaseOperator {
     static componentType = "mean";
 
+    static componentDocs = {
+        summary: "Arithmetic mean of the child values.",
+    };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -661,6 +707,9 @@ export class Mean extends MathBaseOperator {
 export class Median extends MathBaseOperator {
     static componentType = "median";
 
+    static componentDocs = {
+        summary: "Median of the child values.",
+    };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -687,9 +736,16 @@ export class Median extends MathBaseOperator {
 export class Variance extends MathBaseOperator {
     static componentType = "variance";
 
+    static componentDocs = {
+        summary:
+            "Variance of the child math/number values (sample variance by default).",
+    };
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.population = {
+            description:
+                "Whether to use the population formula (rather than sample).",
             createComponentOfType: "boolean",
             createStateVariable: "population",
             defaultValue: false,
@@ -786,6 +842,11 @@ function calculateSymbolicVariance(inputs, population) {
 export class StandardDeviation extends Variance {
     static componentType = "standardDeviation";
 
+    static componentDocs = {
+        summary:
+            "Standard deviation of the child math/number values (sample by default).",
+    };
+
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -828,6 +889,10 @@ export class StandardDeviation extends Variance {
 export class Count extends MathBaseOperator {
     static componentType = "count";
 
+    static componentDocs = {
+        summary: "The number of child math/number values.",
+    };
+
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -854,6 +919,9 @@ export class Count extends MathBaseOperator {
 export class Min extends MathBaseOperator {
     static componentType = "min";
 
+    static componentDocs = {
+        summary: "Minimum of the child values.",
+    };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -947,6 +1015,9 @@ export class Min extends MathBaseOperator {
 export class Max extends MathBaseOperator {
     static componentType = "max";
 
+    static componentDocs = {
+        summary: "Maximum of the child values.",
+    };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -1040,6 +1111,9 @@ export class Max extends MathBaseOperator {
 export class Mod extends MathBaseOperator {
     static componentType = "mod";
 
+    static componentDocs = {
+        summary: "Modulo (remainder) of two values.",
+    };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -1082,6 +1156,9 @@ export class Mod extends MathBaseOperator {
 export class Gcd extends MathBaseOperator {
     static componentType = "gcd";
 
+    static componentDocs = {
+        summary: "Greatest common divisor of integer inputs.",
+    };
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
@@ -1120,6 +1197,10 @@ export class Gcd extends MathBaseOperator {
 
 export class Lcm extends MathBaseOperator {
     static componentType = "lcm";
+
+    static componentDocs = {
+        summary: "Least common multiple of integer inputs.",
+    };
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
@@ -1160,6 +1241,11 @@ export class Lcm extends MathBaseOperator {
 export class ExtractMath extends MathBaseOperatorOneInput {
     static componentType = "extractMath";
 
+    static componentDocs = {
+        summary:
+            "Extracts a sub-expression from a math expression by name or index.",
+    };
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.type = {
@@ -1174,14 +1260,17 @@ export class ExtractMath extends MathBaseOperatorOneInput {
                 "numOperands",
                 "recursiveOperands",
             ],
+            description: "What kind of sub-expression to extract.",
         };
         attributes.operandNumber = {
+            description: "1-based index of the operand to extract.",
             createComponentOfType: "number",
             createStateVariable: "operandNumber",
             defaultValue: null,
             public: true,
         };
         attributes.argumentNumber = {
+            description: "1-based index of the argument to extract.",
             createComponentOfType: "number",
             createStateVariable: "argumentNumber",
             defaultValue: null,

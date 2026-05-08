@@ -20,10 +20,14 @@ export default class Ray extends GraphicalComponent {
     }
     static componentType = "ray";
 
+    static componentDocs = {
+        summary: "A ray starting at one point passing through another.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.draggable = {
+            description: "Whether the ray can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -33,12 +37,16 @@ export default class Ray extends GraphicalComponent {
 
         attributes.endpoint = {
             createComponentOfType: "point",
+            description: "The starting point (endpoint) of the ray.",
         };
         attributes.through = {
             createComponentOfType: "point",
+            description:
+                "A point the ray passes through (used with endpoint or direction).",
         };
         attributes.direction = {
             createComponentOfType: "vector",
+            description: "The direction the ray points in.",
         };
 
         attributes.labelPosition = returnLineFamilyLabelPositionAttribute();
@@ -57,6 +65,7 @@ export default class Ray extends GraphicalComponent {
         );
 
         stateVariableDefinitions.styleDescription = {
+            description: "A textual description of the ray's style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -103,6 +112,7 @@ export default class Ray extends GraphicalComponent {
         };
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "ray".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -614,6 +624,7 @@ export default class Ray extends GraphicalComponent {
         };
 
         stateVariableDefinitions.numDimensions = {
+            description: "Number of dimensions the ray lives in.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -723,6 +734,7 @@ export default class Ray extends GraphicalComponent {
 
         stateVariableDefinitions.direction = {
             public: true,
+            description: "The direction vector of the ray.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -982,6 +994,7 @@ export default class Ray extends GraphicalComponent {
 
         stateVariableDefinitions.through = {
             public: true,
+            description: "A point the ray passes through.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -1204,6 +1217,7 @@ export default class Ray extends GraphicalComponent {
 
         stateVariableDefinitions.endpoint = {
             public: true,
+            description: "The starting endpoint of the ray.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",

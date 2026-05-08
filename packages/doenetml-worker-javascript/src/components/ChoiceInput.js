@@ -33,6 +33,9 @@ export default class Choiceinput extends Input {
 
     static componentType = "choiceInput";
 
+    static componentDocs = {
+        summary: "A multiple-choice or checkbox input from a list of choices.",
+    };
     static renderChildren = true;
 
     static variableForImplicitProp = "selectedValues";
@@ -49,6 +52,7 @@ export default class Choiceinput extends Input {
             public: true,
             forRenderer: true,
             fallBackToParentStateVariable: "selectMultiple",
+            description: "Whether multiple choices may be selected.",
         };
         attributes.matchPartial = {
             createComponentOfType: "boolean",
@@ -56,31 +60,40 @@ export default class Choiceinput extends Input {
             defaultValue: false,
             public: true,
             fallBackToParentStateVariable: "matchPartial",
+            description:
+                "Whether to award partial credit when only some correct choices are selected.",
         };
         attributes.inline = {
             createComponentOfType: "boolean",
+            description:
+                "Whether to render the input inline (as a dropdown) rather than as a list of choices.",
         };
         attributes.shuffleOrder = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "shuffleOrder",
             defaultValue: false,
             public: true,
+            description: "Whether to display the choices in randomized order.",
         };
         attributes.preserveLastChoice = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "preserveLastChoice",
             defaultValue: false,
             public: true,
+            description:
+                "Whether the last-rendered choice keeps its position when shuffling.",
         };
 
         attributes.preselectChoice = {
             createComponentOfType: "number",
             createStateVariable: "preselectChoice",
             defaultValue: null,
+            description: "Index of a choice to pre-select on initial render.",
         };
 
         attributes.bindValueTo = {
             createComponentOfType: "text",
+            description: "Two-way binding target for the input's value.",
         };
 
         attributes.placeHolder = {
@@ -88,6 +101,7 @@ export default class Choiceinput extends Input {
             createStateVariable: "placeHolder",
             defaultValue: "",
             forRenderer: true,
+            description: "Placeholder text shown when no choice is selected.",
         };
 
         return attributes;
@@ -126,6 +140,8 @@ export default class Choiceinput extends Input {
         );
 
         stateVariableDefinitions.inline = {
+            description:
+                "Whether the input is rendered inline (as a dropdown).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -189,6 +205,7 @@ export default class Choiceinput extends Input {
         };
 
         stateVariableDefinitions.numChoices = {
+            description: "The total number of available choices.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -386,6 +403,8 @@ export default class Choiceinput extends Input {
                     shadowingInstructions: {
                         createComponentOfType: "number",
                     },
+                    description:
+                        "The number of choices available in the input.",
                 },
             ],
             returnDependencies: () => ({
@@ -414,6 +433,7 @@ export default class Choiceinput extends Input {
         };
 
         stateVariableDefinitions.choiceTexts = {
+            description: "The text contents of all choices in displayed order.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -462,6 +482,8 @@ export default class Choiceinput extends Input {
         };
 
         stateVariableDefinitions.choiceMaths = {
+            description:
+                "The math expressions of all choices in displayed order.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -752,6 +774,8 @@ export default class Choiceinput extends Input {
         };
 
         stateVariableDefinitions.valueChanged = {
+            description:
+                "Whether the input's selection has been changed from its initial state.",
             public: true,
             hasEssential: true,
             defaultValue: false,
@@ -903,6 +927,7 @@ export default class Choiceinput extends Input {
         };
 
         stateVariableDefinitions.selectedIndices = {
+            description: "Indices (1-based) of the currently selected choices.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -1011,9 +1036,12 @@ export default class Choiceinput extends Input {
         stateVariableDefinitions.selectedIndex = {
             isAlias: true,
             targetVariableName: "selectedIndex1",
+            description:
+                "The 1-based index of the first currently selected choice.",
         };
 
         stateVariableDefinitions.selectedValues = {
+            description: "Text values of the currently selected choices.",
             public: true,
             shadowingInstructions: {
                 hasVariableComponentType: true,
@@ -1184,16 +1212,20 @@ export default class Choiceinput extends Input {
         stateVariableDefinitions.selectedValue = {
             isAlias: true,
             targetVariableName: "selectedValue1",
+            description:
+                "The text value of the first currently selected choice.",
         };
 
         stateVariableDefinitions.values = {
             isAlias: true,
             targetVariableName: "selectedValues",
+            description: "The text values of the currently selected choices.",
         };
 
         stateVariableDefinitions.numValues = {
             isAlias: true,
             targetVariableName: "numSelectedIndices",
+            description: "The number of currently selected choices.",
         };
 
         stateVariableDefinitions.childIndicesSelected = {
@@ -1287,6 +1319,8 @@ export default class Choiceinput extends Input {
         stateVariableDefinitions.valueToRecordOnSubmit = {
             isAlias: true,
             targetVariableName: "selectedIndices",
+            description:
+                "Indices of the currently selected choices (recorded when the answer is submitted).",
         };
 
         stateVariableDefinitions.submittedIndices = {
@@ -1349,6 +1383,8 @@ export default class Choiceinput extends Input {
         stateVariableDefinitions.valueRecordedAtSubmit = {
             isAlias: true,
             targetVariableName: "submittedIndices",
+            description:
+                "Indices of the choices selected at the most recent submission.",
         };
 
         stateVariableDefinitions.allFeedbacks = {
@@ -1382,6 +1418,8 @@ export default class Choiceinput extends Input {
         };
 
         stateVariableDefinitions.numFeedbacks = {
+            description:
+                "The number of feedback messages produced by selected choices.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -1403,6 +1441,7 @@ export default class Choiceinput extends Input {
         };
 
         stateVariableDefinitions.feedbacks = {
+            description: "Feedback messages produced by selected choices.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "feedback",

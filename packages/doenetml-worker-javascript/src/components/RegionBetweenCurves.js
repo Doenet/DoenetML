@@ -3,10 +3,14 @@ import GraphicalComponent from "./abstract/GraphicalComponent";
 export default class RegionBetweenCurves extends GraphicalComponent {
     static componentType = "regionBetweenCurves";
 
+    static componentDocs = {
+        summary: "A region bounded between two curves.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.boundaryValues = {
+            description: "Boundary values defining the region's edges.",
             createComponentOfType: "numberList",
             createStateVariable: "boundaryValues",
             defaultValue: [0, 1],
@@ -15,6 +19,8 @@ export default class RegionBetweenCurves extends GraphicalComponent {
         };
 
         attributes.flipFunctions = {
+            description:
+                "Whether to swap the role of x and y for the input functions.",
             createComponentOfType: "boolean",
             createStateVariable: "flipFunctions",
             defaultValue: false,
@@ -39,6 +45,7 @@ export default class RegionBetweenCurves extends GraphicalComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.styleDescription = {
+            description: "A textual description of the region's style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -69,6 +76,7 @@ export default class RegionBetweenCurves extends GraphicalComponent {
         };
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "region".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

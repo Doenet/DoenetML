@@ -20,6 +20,10 @@ export default class Circle extends Curve {
         });
     }
     static componentType = "circle";
+
+    static componentDocs = {
+        summary: "A circle defined by center and radius (or other parameters).",
+    };
     static rendererType = "circle";
     static representsClosedPath = true;
 
@@ -28,15 +32,20 @@ export default class Circle extends Curve {
 
         attributes.through = {
             createComponentOfType: "pointList",
+            description: "Points the circle passes through.",
         };
         attributes.center = {
             createComponentOfType: "point",
+            description: "The circle's center point.",
         };
         attributes.radius = {
             createComponentOfType: "math",
+            description: "The circle's radius.",
         };
 
         attributes.addControls = {
+            description:
+                "Whether to render interactive control handles on the circle.",
             createComponentOfType: "text",
             createStateVariable: "addControls",
             defaultValue: "centerAndRadius",
@@ -49,6 +58,7 @@ export default class Circle extends Curve {
         };
 
         attributes.filled = {
+            description: "Whether to fill the interior of the circle.",
             createComponentOfType: "boolean",
             createStateVariable: "filled",
             defaultValue: false,
@@ -58,6 +68,8 @@ export default class Circle extends Curve {
 
         attributes.hideOffGraphIndicator = {
             createComponentOfType: "boolean",
+            description:
+                "Whether to suppress the indicator drawn at the edge when the component is off-screen.",
         };
 
         attributes.controlOrder = returnGraphControlOrderAttribute();
@@ -83,6 +95,7 @@ export default class Circle extends Curve {
         );
 
         stateVariableDefinitions.styleDescription = {
+            description: "A textual description of the circle's style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -163,6 +176,7 @@ export default class Circle extends Curve {
         };
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "circle".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -245,6 +259,7 @@ export default class Circle extends Curve {
         };
 
         stateVariableDefinitions.borderStyleDescription = {
+            description: "A textual description of the circle's border style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -291,6 +306,7 @@ export default class Circle extends Curve {
         };
 
         stateVariableDefinitions.fillStyleDescription = {
+            description: "A textual description of the circle's fill style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -332,6 +348,8 @@ export default class Circle extends Curve {
         };
 
         stateVariableDefinitions.hideOffGraphIndicator = {
+            description:
+                "Whether to suppress the off-graph indicator when the circle is outside the visible area.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -381,6 +399,8 @@ export default class Circle extends Curve {
         };
 
         stateVariableDefinitions.parMax = {
+            description:
+                "Maximum value of the curve parameter (always 2π for a circle).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -391,6 +411,8 @@ export default class Circle extends Curve {
         };
 
         stateVariableDefinitions.parMin = {
+            description:
+                "Minimum value of the curve parameter (always 0 for a circle).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -435,6 +457,7 @@ export default class Circle extends Curve {
 
         stateVariableDefinitions.throughPoints = {
             public: true,
+            description: "Points the circle is constrained to pass through.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -2121,6 +2144,7 @@ export default class Circle extends Curve {
 
         stateVariableDefinitions.radius = {
             public: true,
+            description: "The radius of the circle.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -2347,6 +2371,7 @@ export default class Circle extends Curve {
         };
 
         stateVariableDefinitions.diameter = {
+            description: "The diameter of the circle.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
@@ -2388,6 +2413,7 @@ export default class Circle extends Curve {
         };
 
         stateVariableDefinitions.circumference = {
+            description: "The circumference of the circle.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -2412,6 +2438,7 @@ export default class Circle extends Curve {
         };
 
         stateVariableDefinitions.area = {
+            description: "The area enclosed by the circle.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -2440,6 +2467,7 @@ export default class Circle extends Curve {
             forRenderer: true,
             isLocation: true,
             public: true,
+            description: "The center coordinates of the circle.",
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:

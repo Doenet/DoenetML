@@ -4,6 +4,9 @@ import { setUpVariantSeedAndRng } from "../utils/variants";
 export default class ConditionalContent extends CompositeComponent {
     static componentType = "conditionalContent";
 
+    static componentDocs = {
+        summary: "Renders content conditionally based on its <case> children.",
+    };
     static allowInSchemaAnywhere = true;
 
     static createsVariants = true;
@@ -19,6 +22,8 @@ export default class ConditionalContent extends CompositeComponent {
         // then its condition attribute will be moved via sugar to a case child.
         attributes.condition = {
             createComponentOfType: "boolean",
+            description:
+                "Convenience for a single-case form: the boolean condition for which the children are rendered.",
         };
 
         return attributes;

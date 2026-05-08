@@ -53,6 +53,10 @@ export class MatrixInput extends Input {
 
     static componentType = "matrixInput";
 
+    static componentDocs = {
+        summary:
+            "An interactive matrix input where each cell accepts a math value.",
+    };
     static variableForImplicitProp = "value";
 
     static processWhenJustUpdatedForNewComponent = true;
@@ -67,15 +71,18 @@ export class MatrixInput extends Input {
             createStateVariable: "numRowsPreliminary",
             defaultValue: 1,
             transformNonFiniteTo: 0,
+            description: "Number of rows in the matrix input.",
         };
         attributes.numColumns = {
             createComponentOfType: "integer",
             createStateVariable: "numColumnsPreliminary",
             defaultValue: 1,
             transformNonFiniteTo: 0,
+            description: "Number of columns in the matrix input.",
         };
 
         attributes.showSizeControls = {
+            description: "Whether to render controls for resizing the matrix.",
             createComponentOfType: "boolean",
             createStateVariable: "showSizeControls",
             defaultValue: true,
@@ -87,9 +94,11 @@ export class MatrixInput extends Input {
             createComponentOfType: "math",
             createStateVariable: "defaultEntry",
             defaultValue: me.fromAst("\uff3f"),
+            description: "Default value used for empty matrix cells.",
         };
 
         attributes.prefill = {
+            description: "Initial matrix value displayed in the input.",
             createComponentOfType: "math",
             createStateVariable: "prefill",
             defaultValue: me.fromAst("\uff3f"),
@@ -102,6 +111,7 @@ export class MatrixInput extends Input {
             ],
         };
         attributes.format = {
+            description: "Input format for each cell.",
             createComponentOfType: "text",
             createStateVariable: "format",
             defaultValue: "text",
@@ -110,18 +120,23 @@ export class MatrixInput extends Input {
             validValues: ["text", "latex"],
         };
         attributes.functionSymbols = {
+            description: "Symbols treated as function names when parsing.",
             createComponentOfType: "textList",
             createStateVariable: "functionSymbols",
             defaultValue: ["f", "g"],
             public: true,
         };
         attributes.splitSymbols = {
+            description:
+                "Whether multi-character symbols are split into a product of variables.",
             createComponentOfType: "boolean",
             createStateVariable: "splitSymbols",
             defaultValue: true,
             public: true,
         };
         attributes.parseScientificNotation = {
+            description:
+                "Whether to parse expressions like 1e3 as scientific notation.",
             createComponentOfType: "boolean",
             createStateVariable: "parseScientificNotation",
             defaultValue: false,
@@ -132,8 +147,10 @@ export class MatrixInput extends Input {
 
         attributes.bindValueTo = {
             createComponentOfType: "math",
+            description: "Two-way binding target for the input's value.",
         };
         attributes.unionFromU = {
+            description: 'Whether "U" between sets is parsed as union.',
             createComponentOfType: "boolean",
             createStateVariable: "unionFromU",
             defaultValue: false,
@@ -144,6 +161,7 @@ export class MatrixInput extends Input {
             createStateVariable: "minComponentWidth",
             defaultValue: 0,
             clamp: [0, Infinity],
+            description: "Minimum rendered width for each cell, in pixels.",
         };
 
         return attributes;
@@ -224,6 +242,8 @@ export class MatrixInput extends Input {
         );
 
         stateVariableDefinitions.valueChanged = {
+            description:
+                "Whether the saved matrix has been changed from its initial state.",
             public: true,
             hasEssential: true,
             defaultValue: false,
@@ -355,6 +375,8 @@ export class MatrixInput extends Input {
         };
 
         stateVariableDefinitions.immediateValueChanged = {
+            description:
+                "Whether the live matrix differs from its initial state.",
             public: true,
             hasEssential: true,
             defaultValue: false,
@@ -492,6 +514,7 @@ export class MatrixInput extends Input {
         };
 
         stateVariableDefinitions.numRows = {
+            description: "The number of rows of the matrix.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -676,6 +699,7 @@ export class MatrixInput extends Input {
         };
 
         stateVariableDefinitions.numColumns = {
+            description: "The number of columns of the matrix.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -2162,6 +2186,7 @@ export class MatrixInput extends Input {
         };
 
         stateVariableDefinitions.value = {
+            description: "The most recently saved matrix value.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -2305,6 +2330,8 @@ export class MatrixInput extends Input {
         };
 
         stateVariableDefinitions.immediateValue = {
+            description:
+                "The current matrix being entered (live, before saving).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -2489,6 +2516,7 @@ export class MatrixInput extends Input {
         };
 
         stateVariableDefinitions.text = {
+            description: "The current matrix as a text string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -2535,6 +2563,7 @@ export class MatrixInput extends Input {
 
         stateVariableDefinitions.matrix = {
             public: true,
+            description: "The matrix as a math expression.",
             shadowingInstructions: {
                 createComponentOfType: "math",
                 addAttributeComponentsShadowingStateVariables:
@@ -2557,8 +2586,14 @@ export class MatrixInput extends Input {
             numDimensions: 2,
             entryPrefixes: ["matrixEntry", "row", "column", "rows", "columns"],
             schemaSubarrays: {
-                columns: { numDimensions: 2 },
-                rows: { numDimensions: 2 },
+                columns: {
+                    numDimensions: 2,
+                    description: "The matrix's entries grouped by column.",
+                },
+                rows: {
+                    numDimensions: 2,
+                    description: "The matrix's entries grouped by row.",
+                },
             },
             returnEntryDimensions: (prefix) => {
                 if (prefix === "matrixEntry") {
@@ -2922,6 +2957,8 @@ export class MatrixInput extends Input {
         };
 
         stateVariableDefinitions.focused = {
+            description:
+                "Whether the matrix input currently has keyboard focus.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -3775,6 +3812,7 @@ export default class MatrixComponentInput extends BaseComponent {
 
         stateVariableDefinitions.text = {
             public: true,
+            description: "The current matrix as a text string.",
             shadowingInstructions: {
                 createComponentOfType: "text",
             },
@@ -3818,6 +3856,7 @@ export default class MatrixComponentInput extends BaseComponent {
 
         // raw value from renderer
         stateVariableDefinitions.rawRendererValue = {
+            description: "The raw value used by the renderer.",
             forRenderer: true,
             hasEssential: true,
             shadowVariable: true,
@@ -4006,6 +4045,8 @@ export default class MatrixComponentInput extends BaseComponent {
             hasEssential: true,
             defaultValue: false,
             public: true,
+            description:
+                "Whether the matrix input currently has keyboard focus.",
             shadowingInstructions: {
                 createComponentOfType: "boolean",
             },

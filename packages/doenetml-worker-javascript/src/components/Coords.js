@@ -4,6 +4,10 @@ export default class Coords extends MathComponent {
     static componentType = "coords";
     static rendererType = "math";
 
+    static componentDocs = {
+        summary: "A math expression treated as a vector of coordinates.",
+    };
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         delete attributes.createVectors;
@@ -14,6 +18,8 @@ export default class Coords extends MathComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.createVectors = {
+            description:
+                "Whether tuple-like expressions render as vectors (always true for <coords>).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",

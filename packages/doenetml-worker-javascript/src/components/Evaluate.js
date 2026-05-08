@@ -11,6 +11,10 @@ import {
 
 export default class Evaluate extends MathComponent {
     static componentType = "evaluate";
+
+    static componentDocs = {
+        summary: "Evaluates a function at a math input.",
+    };
     static rendererType = "math";
 
     // remove variableForImplicitProp so that an evaluate copied into a function
@@ -20,12 +24,14 @@ export default class Evaluate extends MathComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.forceSymbolic = {
+            description: "Whether to force symbolic evaluation.",
             createComponentOfType: "boolean",
             createStateVariable: "forceSymbolic",
             defaultValue: false,
             public: true,
         };
         attributes.forceNumeric = {
+            description: "Whether to force numeric evaluation.",
             createComponentOfType: "boolean",
             createStateVariable: "forceNumeric",
             defaultValue: false,
@@ -34,13 +40,16 @@ export default class Evaluate extends MathComponent {
 
         attributes.function = {
             createComponentOfType: "function",
+            description: "The function to evaluate.",
         };
 
         attributes.input = {
             createComponentOfType: "mathList",
+            description: "Input value(s) at which to evaluate the function.",
         };
 
         attributes.unordered = {
+            description: "Whether to treat the inputs as unordered.",
             createComponentOfType: "boolean",
             createStateVariable: "unordered",
             defaultValue: false,
@@ -164,6 +173,8 @@ export default class Evaluate extends MathComponent {
         };
 
         stateVariableDefinitions.formula = {
+            description:
+                "The function evaluated at the inputs as a math expression.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",

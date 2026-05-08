@@ -2,6 +2,11 @@ import InlineComponent from "./abstract/InlineComponent";
 
 export default class TextListFromString extends InlineComponent {
     static componentType = "textListFromString";
+
+    static componentDocs = {
+        summary:
+            "A list of text strings parsed from a single string by splitting on whitespace.",
+    };
     static rendererType = "asList";
     static renderChildren = true;
 
@@ -50,6 +55,7 @@ export default class TextListFromString extends InlineComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.numComponents = {
+            description: "The number of items in the text list.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -70,6 +76,7 @@ export default class TextListFromString extends InlineComponent {
         };
 
         stateVariableDefinitions.texts = {
+            description: "The list of texts parsed from the input string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -119,14 +126,17 @@ export default class TextListFromString extends InlineComponent {
         stateVariableDefinitions.numValues = {
             isAlias: true,
             targetVariableName: "numComponents",
+            description: "The number of text values in the list.",
         };
 
         stateVariableDefinitions.values = {
             isAlias: true,
             targetVariableName: "texts",
+            description: "The list's text values.",
         };
 
         stateVariableDefinitions.text = {
+            description: "The texts joined as a single text string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

@@ -4,12 +4,16 @@ export function returnScoredSectionAttributes() {
             createComponentOfType: "boolean",
             createStateVariable: "aggregateScoresPreliminary",
             defaultValue: false,
+            description:
+                "Whether to aggregate scores of scored descendants into a section credit-achieved value.",
         },
         weight: {
             createComponentOfType: "number",
             createStateVariable: "weight",
             defaultValue: 1,
             public: true,
+            description:
+                "Relative weight of this section when aggregated by an enclosing scored section.",
         },
 
         sectionWideCheckWork: {
@@ -17,21 +21,29 @@ export function returnScoredSectionAttributes() {
             createStateVariable: "sectionWideCheckWork",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to show a single section-wide check-work button instead of per-answer buttons.",
         },
         showCorrectness: {
             createComponentOfType: "boolean",
             createStateVariable: "showCorrectnessPreliminary",
             defaultValue: false,
+            description:
+                "Whether to display correctness indicators for answers in this section.",
         },
         colorCorrectness: {
             createComponentOfType: "boolean",
             createStateVariable: "colorCorrectnessPreliminary",
             defaultValue: false,
+            description:
+                "Whether to color-code answers in this section based on correctness.",
         },
         forceIndividualAnswerColoring: {
             createComponentOfType: "boolean",
             createStateVariable: "forceIndividualAnswerColoring",
             defaultValue: false,
+            description:
+                "Whether to force per-answer color-correctness even when section-wide check work is enabled.",
         },
         submitLabel: {
             createComponentOfType: "text",
@@ -39,6 +51,8 @@ export function returnScoredSectionAttributes() {
             defaultValue: "Check Work",
             public: true,
             forRenderer: true,
+            description:
+                "Label for the section-wide submit button when correctness is shown.",
         },
         submitLabelNoCorrectness: {
             createComponentOfType: "text",
@@ -46,6 +60,8 @@ export function returnScoredSectionAttributes() {
             defaultValue: "Submit Response",
             public: true,
             forRenderer: true,
+            description:
+                "Label for the section-wide submit button when correctness is not shown.",
         },
 
         displayDigitsForCreditAchieved: {
@@ -53,6 +69,8 @@ export function returnScoredSectionAttributes() {
             createStateVariable: "displayDigitsForCreditAchieved",
             defaultValue: 3,
             public: true,
+            description:
+                "Number of significant digits to display for the section's credit achieved value.",
         },
     };
 }
@@ -215,6 +233,8 @@ export function returnScoredSectionStateVariableDefinition() {
     };
 
     stateVariableDefinitions.aggregateScores = {
+        description:
+            "Whether scores of scored descendants are aggregated into this section's credit value.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "boolean",
@@ -246,6 +266,8 @@ export function returnScoredSectionStateVariableDefinition() {
     };
 
     stateVariableDefinitions.creditAchieved = {
+        description:
+            "Aggregate credit achieved (between 0 and 1) for scored descendants of this section.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "number",
@@ -264,6 +286,8 @@ export function returnScoredSectionStateVariableDefinition() {
         additionalStateVariablesDefined: [
             {
                 variableName: "percentCreditAchieved",
+                description:
+                    "Aggregate credit achieved as a percentage (between 0 and 100).",
                 public: true,
                 shadowingInstructions: {
                     createComponentOfType: "number",

@@ -9,6 +9,10 @@ export default class Figure extends BlockComponent {
         });
     }
     static componentType = "figure";
+
+    static componentDocs = {
+        summary: "A figure container holding graphical content with a caption.",
+    };
     static renderChildren = true;
     static canDisplayChildErrors = true;
 
@@ -20,11 +24,14 @@ export default class Figure extends BlockComponent {
             createStateVariable: "suppressFigureNameInCaption",
             defaultValue: false,
             forRenderer: true,
+            description:
+                "Whether to omit the auto-generated figure name from the caption.",
         };
         attributes.number = {
             createComponentOfType: "boolean",
             createStateVariable: "number",
             defaultValue: true,
+            description: "Whether to display an auto-generated figure number.",
             forRenderer: true,
         };
 
@@ -52,6 +59,7 @@ export default class Figure extends BlockComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.figureEnumeration = {
+            description: "Auto-generated number for this figure.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -66,6 +74,8 @@ export default class Figure extends BlockComponent {
                         createComponentOfType: "text",
                     },
                     forRenderer: true,
+                    description:
+                        "The full display name of the figure (e.g., 'Figure 3').",
                 },
             ],
             mustEvaluate: true, // must evaluate to make sure all counters are accounted for
@@ -118,6 +128,7 @@ export default class Figure extends BlockComponent {
         };
 
         stateVariableDefinitions.caption = {
+            description: "The figure's caption text.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

@@ -3,12 +3,17 @@ import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils
 
 export default class Column extends BaseComponent {
     static componentType = "column";
+
+    static componentDocs = {
+        summary: "A column within a tabular layout.",
+    };
     static rendererType = "containerBlock";
     static renderChildren = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.colNum = {
+            description: "Column number where this column is placed (1-based).",
             createComponentOfType: "text",
             createStateVariable: "colNum",
             defaultValue: null,
@@ -22,15 +27,22 @@ export default class Column extends BaseComponent {
         // especially necessary when we have an editor that can autocomplete attributes.
         attributes.functionSymbols = {
             createComponentOfType: "textList",
+            description: "Symbols treated as function names when parsing.",
         };
         attributes.referencesAreFunctionSymbols = {
             createReferences: true,
+            description:
+                "References whose names should be treated as function symbols when parsing.",
         };
         attributes.splitSymbols = {
             createComponentOfType: "boolean",
+            description:
+                "Whether multi-character symbols are split into a product of variables.",
         };
         attributes.parseScientificNotation = {
             createComponentOfType: "boolean",
+            description:
+                "Whether to parse expressions like 1e3 as scientific notation.",
         };
         return attributes;
     }

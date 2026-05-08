@@ -9,6 +9,10 @@ export default class Ref extends InlineComponent {
         });
     }
     static componentType = "ref";
+
+    static componentDocs = {
+        summary: "A link to a component reference or to a URL.",
+    };
     static renderChildren = true;
 
     static createAttributesObject() {
@@ -19,9 +23,12 @@ export default class Ref extends InlineComponent {
             // Since we allow more than just references in `to`,
             // we specify `allowStrings` to suppress a warning for non-references.
             allowStrings: true,
+            description:
+                "The target that the reference points to (component reference or URL string).",
         };
 
         attributes.textType = {
+            description: "Type of text to use for the reference label.",
             createComponentOfType: "text",
             createStateVariable: "textType",
             defaultValue: "type-global",
@@ -32,6 +39,8 @@ export default class Ref extends InlineComponent {
             createStateVariable: "createButton",
             defaultValue: false,
             forRenderer: true,
+            description:
+                "Whether to render this reference as a clickable button.",
         };
         return attributes;
     }
@@ -143,6 +152,7 @@ export default class Ref extends InlineComponent {
         };
 
         stateVariableDefinitions.url = {
+            description: "The resolved URL of the referenced component.",
             forRenderer: true,
             additionalStateVariablesDefined: [
                 {
@@ -207,6 +217,7 @@ export default class Ref extends InlineComponent {
         };
 
         stateVariableDefinitions.linkText = {
+            description: "The display text used for the link.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -286,6 +297,7 @@ export default class Ref extends InlineComponent {
         stateVariableDefinitions.text = {
             isAlias: true,
             targetVariableName: "linkText",
+            description: "The text used as the link label.",
         };
 
         return stateVariableDefinitions;

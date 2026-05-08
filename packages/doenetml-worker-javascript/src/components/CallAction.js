@@ -27,6 +27,10 @@ export default class CallAction extends InlineComponent {
         });
     }
     static componentType = "callAction";
+
+    static componentDocs = {
+        summary: "Invokes a named action on a target component.",
+    };
     static rendererType = "button";
 
     static keepChildrenSerialized({
@@ -59,6 +63,8 @@ export default class CallAction extends InlineComponent {
 
         attributes.target = {
             createReferences: true,
+            description:
+                "Reference to the component whose action will be invoked.",
         };
 
         attributes.actionName = {
@@ -66,6 +72,8 @@ export default class CallAction extends InlineComponent {
             createStateVariable: "actionName",
             defaultValue: null,
             public: true,
+            description:
+                "Name of the action to invoke on the target component.",
         };
 
         attributes.draggable = {
@@ -74,6 +82,7 @@ export default class CallAction extends InlineComponent {
             defaultValue: true,
             public: true,
             forRenderer: true,
+            description: "Whether the action button can be dragged on a graph.",
         };
 
         Object.assign(attributes, returnLabelAttributes());
@@ -88,10 +97,12 @@ export default class CallAction extends InlineComponent {
 
         attributes.numbers = {
             createComponentOfType: "numberList",
+            description: "Numeric arguments passed to the invoked action.",
         };
 
         attributes.number = {
             createComponentOfType: "number",
+            description: "Numeric argument passed to the invoked action.",
         };
 
         return attributes;

@@ -36,6 +36,9 @@ export default class NumberComponent extends InlineComponent {
     }
     static componentType = "number";
 
+    static componentDocs = {
+        summary: "A numeric value.",
+    };
     static variableForImplicitProp = "value";
     static implicitPropReturnsSameType = true;
 
@@ -45,6 +48,7 @@ export default class NumberComponent extends InlineComponent {
         Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.renderAsMath = {
+            description: "Whether to render the number using math typography.",
             createComponentOfType: "boolean",
             createStateVariable: "renderAsMath",
             defaultValue: false,
@@ -55,14 +59,19 @@ export default class NumberComponent extends InlineComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "convertBoolean",
             defaultValue: false,
+            description:
+                "Whether to convert boolean inputs to 1/0 instead of NaN.",
         };
         attributes.valueOnNaN = {
             createPrimitiveOfType: "number",
             createStateVariable: "valueOnNaN",
             defaultValue: NaN,
+            description:
+                "Numeric value to use when the input cannot be parsed.",
         };
 
         attributes.draggable = {
+            description: "Whether the number can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -71,6 +80,7 @@ export default class NumberComponent extends InlineComponent {
         };
 
         attributes.layer = {
+            description: "Z-order layer index when shown on a graph.",
             createComponentOfType: "number",
             createStateVariable: "layer",
             defaultValue: 0,
@@ -395,6 +405,7 @@ export default class NumberComponent extends InlineComponent {
 
         stateVariableDefinitions.value = {
             public: true,
+            description: "The numeric value.",
             shadowingInstructions: {
                 createComponentOfType: this.componentType,
                 // the reason we create a attribute component from the state variable,
@@ -866,6 +877,7 @@ export default class NumberComponent extends InlineComponent {
         };
 
         stateVariableDefinitions.text = {
+            description: "The number rendered as plain text.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -967,10 +979,14 @@ export default class NumberComponent extends InlineComponent {
                 isPublic: true,
             });
 
+        stateVariableDefinitions.math.description =
+            "The number's value as a math expression.";
+
         stateVariableDefinitions.math.shadowingInstructions.addAttributeComponentsShadowingStateVariables =
             returnNumberDisplayAttributeComponentShadowing();
 
         stateVariableDefinitions.latex = {
+            description: "The number rendered as LaTeX.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "latex",

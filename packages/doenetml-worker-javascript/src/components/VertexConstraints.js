@@ -8,6 +8,11 @@ import {
 
 export default class VertexConstraints extends BaseComponent {
     static componentType = "vertexConstraints";
+
+    static componentDocs = {
+        summary:
+            "A container of constraints applied to polyline/polygon vertices.",
+    };
     static rendererType = undefined;
 
     static returnChildGroups() {

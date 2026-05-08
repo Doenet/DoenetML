@@ -9,6 +9,10 @@ import {
 
 export default class FunctionIterates extends InlineComponent {
     static componentType = "functionIterates";
+
+    static componentDocs = {
+        summary: "List of values produced by iterating a function.",
+    };
     static rendererType = undefined;
 
     static variableForIndexAsProp = "iterates";
@@ -16,18 +20,21 @@ export default class FunctionIterates extends InlineComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.numIterates = {
+            description: "Number of iterations to compute.",
             createComponentOfType: "integer",
             createStateVariable: "numIterates",
             defaultValue: 0,
             public: true,
         };
         attributes.forceSymbolic = {
+            description: "Whether to force symbolic evaluation.",
             createComponentOfType: "boolean",
             createStateVariable: "forceSymbolic",
             defaultValue: false,
             public: true,
         };
         attributes.forceNumeric = {
+            description: "Whether to force numeric evaluation.",
             createComponentOfType: "boolean",
             createStateVariable: "forceNumeric",
             defaultValue: false,
@@ -37,9 +44,12 @@ export default class FunctionIterates extends InlineComponent {
             createComponentOfType: "math",
             createStateVariable: "initialValue",
             defaultValue: me.fromAst("\uff3f"),
+            description:
+                "Starting value passed to the function on the first iteration.",
         };
         attributes.function = {
             createComponentOfType: "function",
+            description: "The function to iterate.",
         };
 
         Object.assign(attributes, returnNumberDisplayAttributes());
@@ -56,6 +66,7 @@ export default class FunctionIterates extends InlineComponent {
         );
 
         stateVariableDefinitions.numDimensions = {
+            description: "Number of dimensions of each iterate.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -109,6 +120,7 @@ export default class FunctionIterates extends InlineComponent {
         };
 
         stateVariableDefinitions.allIterates = {
+            description: "All computed iterates of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "mathList",
@@ -237,6 +249,7 @@ export default class FunctionIterates extends InlineComponent {
         };
 
         stateVariableDefinitions.allIteratesWithInitial = {
+            description: "All iterates including the initial value.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "mathList",
@@ -266,6 +279,7 @@ export default class FunctionIterates extends InlineComponent {
         };
 
         stateVariableDefinitions.iterates = {
+            description: "The list of iterate values.",
             isArray: true,
             public: true,
             shadowingInstructions: {
@@ -305,6 +319,7 @@ export default class FunctionIterates extends InlineComponent {
         };
 
         stateVariableDefinitions.finalIterate = {
+            description: "The last iterate value.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",

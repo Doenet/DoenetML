@@ -5,6 +5,10 @@ import { createNewComponentIndices } from "../utils/componentIndices";
 export default class Collect extends CompositeComponent {
     static componentType = "collect";
 
+    static componentDocs = {
+        summary:
+            "Collects descendants matching a component type from another component.",
+    };
     static takesIndex = true;
 
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
@@ -28,6 +32,7 @@ export default class Collect extends CompositeComponent {
         delete attributes.hide;
 
         attributes.maxNumber = {
+            description: "Maximum number of descendants to collect.",
             createComponentOfType: "number",
             createStateVariable: "maxNumber",
             defaultValue: null,
@@ -36,16 +41,20 @@ export default class Collect extends CompositeComponent {
 
         attributes.from = {
             createReferences: true,
+            description: "Component subtree(s) to collect descendants from.",
         };
 
         attributes.componentType = {
             createComponentOfType: "text",
+            description: "Component type of descendants to collect.",
         };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or each on its own line (false).",
         };
 
         return attributes;

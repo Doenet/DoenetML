@@ -8,6 +8,9 @@ import { createNewComponentIndices } from "../utils/componentIndices";
 export default class Shuffle extends CompositeComponent {
     static componentType = "shuffle";
 
+    static componentDocs = {
+        summary: "Randomly shuffles its children.",
+    };
     static takesIndex = true;
 
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
@@ -22,12 +25,15 @@ export default class Shuffle extends CompositeComponent {
 
         attributes.type = {
             createPrimitiveOfType: "string",
+            description: "Component type to shuffle children as.",
         };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or each on its own line (false).",
         };
 
         return attributes;

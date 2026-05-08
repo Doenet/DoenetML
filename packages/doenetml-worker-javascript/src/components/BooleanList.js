@@ -6,6 +6,9 @@ import { convertUnresolvedAttributesForComponentType } from "../utils/dast/conve
 export default class BooleanList extends CompositeComponent {
     static componentType = "booleanList";
 
+    static componentDocs = {
+        summary: "A list of booleans.",
+    };
     static takesIndex = true;
 
     static stateVariableToEvaluateAfterReplacements =
@@ -34,20 +37,27 @@ export default class BooleanList extends CompositeComponent {
             createStateVariable: "unordered",
             defaultValue: false,
             public: true,
+            description:
+                "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
         };
         attributes.maxNumber = {
             createComponentOfType: "number",
             createStateVariable: "maxNumber",
             defaultValue: Infinity,
             public: true,
+            description: "Maximum number of items to retain in the list.",
         };
 
         attributes.fixed = {
             leaveRaw: true,
+            description:
+                "Whether this component's value is fixed and cannot be modified.",
         };
 
         attributes.isResponse = {
             leaveRaw: true,
+            description:
+                "Whether this component is treated as a response for the purposes of assessment.",
         };
 
         attributes.isPotentialResponse = {
@@ -59,6 +69,8 @@ export default class BooleanList extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or each on its own line (false).",
         };
 
         return attributes;
@@ -115,6 +127,7 @@ export default class BooleanList extends CompositeComponent {
         };
 
         stateVariableDefinitions.numComponents = {
+            description: "The number of items in the boolean list.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -284,11 +297,13 @@ export default class BooleanList extends CompositeComponent {
         stateVariableDefinitions.numValues = {
             isAlias: true,
             targetVariableName: "numComponents",
+            description: "The number of booleans in the list.",
         };
 
         stateVariableDefinitions.values = {
             isAlias: true,
             targetVariableName: "booleans",
+            description: "The list's booleans.",
         };
 
         stateVariableDefinitions.readyToExpandWhenResolved = {

@@ -12,6 +12,9 @@ import { returnUnorderedListStateVariableDefinitions } from "../utils/unorderedL
 export default class VectorListComponent extends CompositeComponent {
     static componentType = "vectorList";
 
+    static componentDocs = {
+        summary: "A list of vectors.",
+    };
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
 
@@ -38,9 +41,12 @@ export default class VectorListComponent extends CompositeComponent {
             createComponentOfType: "boolean",
             createStateVariable: "unorderedPrelim",
             defaultValue: false,
+            description:
+                "Whether the order of vectors in this list should be treated as unordered (e.g. for matching).",
         };
 
         attributes.maxNumber = {
+            description: "Maximum number of vectors to retain in the list.",
             createComponentOfType: "number",
             createStateVariable: "maxNumber",
             defaultValue: Infinity,
@@ -49,10 +55,14 @@ export default class VectorListComponent extends CompositeComponent {
 
         attributes.fixed = {
             leaveRaw: true,
+            description:
+                "Whether this component's value is fixed and cannot be modified.",
         };
 
         attributes.isResponse = {
             leaveRaw: true,
+            description:
+                "Whether this component is treated as a response for the purposes of assessment.",
         };
         attributes.isPotentialResponse = {
             leaveRaw: true,
@@ -63,11 +73,15 @@ export default class VectorListComponent extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or each on its own line (false).",
         };
 
-        for (let attrName in returnNumberDisplayAttributes()) {
+        const numberDisplayAttrs = returnNumberDisplayAttributes();
+        for (let attrName in numberDisplayAttrs) {
             attributes[attrName] = {
                 leaveRaw: true,
+                description: numberDisplayAttrs[attrName].description,
             };
         }
 
@@ -131,6 +145,7 @@ export default class VectorListComponent extends CompositeComponent {
         };
 
         stateVariableDefinitions.numVectors = {
+            description: "The number of vectors in the list.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -488,11 +503,13 @@ export default class VectorListComponent extends CompositeComponent {
         stateVariableDefinitions.numValues = {
             isAlias: true,
             targetVariableName: "numVectors",
+            description: "The number of vectors in the list.",
         };
 
         stateVariableDefinitions.values = {
             isAlias: true,
             targetVariableName: "vectors",
+            description: "The list's vectors.",
         };
 
         stateVariableDefinitions.readyToExpandWhenResolved = {

@@ -12,6 +12,9 @@ import { returnWrapNonLabelsDescriptionsSugarFunction } from "../utils/label";
 export default class Angle extends GraphicalComponent {
     static componentType = "angle";
 
+    static componentDocs = {
+        summary: "An angle defined by three points or a measure.",
+    };
     static canBeInList = true;
 
     static representsClosedPath = true;
@@ -26,6 +29,7 @@ export default class Angle extends GraphicalComponent {
             createStateVariable: "radius",
             defaultValue: me.fromAst(1),
             public: true,
+            description: "Radius of the rendered angle arc.",
         };
         attributes.chooseReflexAngle = {
             createComponentOfType: "text",
@@ -35,6 +39,7 @@ export default class Angle extends GraphicalComponent {
             forRenderer: true,
             toLowerCase: true,
             validValues: ["never", "allowed", "always"],
+            description: "How to handle reflex angles.",
         };
         attributes.inDegrees = {
             createComponentOfType: "boolean",
@@ -42,19 +47,26 @@ export default class Angle extends GraphicalComponent {
             defaultValue: false,
             public: true,
             forRenderer: true,
+            description:
+                "Whether to interpret and display the angle in degrees rather than radians.",
         };
 
         attributes.radians = {
             createComponentOfType: "math",
+            description: "The angle measure in radians.",
         };
         attributes.degrees = {
             createComponentOfType: "math",
+            description: "The angle measure in degrees.",
         };
         attributes.through = {
             createComponentOfType: "pointList",
+            description:
+                "Three points (vertex in the middle) defining the angle.",
         };
         attributes.betweenLines = {
             createComponentOfType: "_lineListComponent",
+            description: "Two lines whose intersection forms the angle.",
         };
 
         Object.assign(attributes, returnNumberDisplayAttributes());
@@ -65,6 +77,8 @@ export default class Angle extends GraphicalComponent {
             defaultValue: true,
             public: true,
             forRenderer: true,
+            description:
+                "Whether to render right angles with the conventional square symbol.",
         };
 
         return attributes;
@@ -496,6 +510,7 @@ export default class Angle extends GraphicalComponent {
         };
 
         stateVariableDefinitions.radians = {
+            description: "The angle measure in radians.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -603,14 +618,17 @@ export default class Angle extends GraphicalComponent {
         stateVariableDefinitions.value = {
             isAlias: true,
             targetVariableName: "radians",
+            description: "The angle measure in radians.",
         };
 
         stateVariableDefinitions.angle = {
             isAlias: true,
             targetVariableName: "radians",
+            description: "The angle measure in radians.",
         };
 
         stateVariableDefinitions.degrees = {
+            description: "The angle measure in degrees.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",

@@ -3,6 +3,9 @@ import BaseComponent from "./abstract/BaseComponent";
 export default class CollaborateGroupSetup extends BaseComponent {
     static componentType = "collaborateGroupSetup";
 
+    static componentDocs = {
+        summary: "Per-group setup for collaboration groups.",
+    };
     static excludeFromSchema = true;
 
     static returnChildLogic(args) {

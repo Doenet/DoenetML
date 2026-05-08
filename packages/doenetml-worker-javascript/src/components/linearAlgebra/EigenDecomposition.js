@@ -10,6 +10,11 @@ export default class EigenDecomposition extends BaseComponent {
     static componentType = "eigenDecomposition";
     static rendererType = undefined;
 
+    static componentDocs = {
+        summary:
+            "Computes the eigenvalues and eigenvectors of a square matrix child.",
+    };
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
@@ -36,9 +41,13 @@ export default class EigenDecomposition extends BaseComponent {
         );
 
         stateVariableDefinitions.decomposition = {
+            description:
+                "The eigendecomposition of the matrix as a list of eigenvalue/eigenvector pairs.",
             additionalStateVariablesDefined: [
                 {
                     variableName: "numEigenvectors",
+                    description:
+                        "The number of eigenvectors found in the decomposition.",
                     public: true,
                     shadowingInstructions: {
                         createComponentOfType: "integer",
@@ -147,6 +156,7 @@ export default class EigenDecomposition extends BaseComponent {
         };
 
         stateVariableDefinitions.eigenvalues = {
+            description: "The eigenvalues of the matrix.",
             isArray: true,
             public: true,
             shadowingInstructions: {
@@ -194,6 +204,8 @@ export default class EigenDecomposition extends BaseComponent {
         };
 
         stateVariableDefinitions.eigenvectors = {
+            description:
+                "The eigenvectors of the matrix, as a 2D array (one column per eigenvalue).",
             isArray: true,
             public: true,
             numDimensions: 2,

@@ -13,6 +13,9 @@ import { returnUnorderedListStateVariableDefinitions } from "../utils/unorderedL
 export default class NumberList extends CompositeComponent {
     static componentType = "numberList";
 
+    static componentDocs = {
+        summary: "A list of numbers.",
+    };
     static takesIndex = true;
 
     static stateVariableToEvaluateAfterReplacements =
@@ -41,9 +44,12 @@ export default class NumberList extends CompositeComponent {
             createComponentOfType: "boolean",
             createStateVariable: "unorderedPrelim",
             defaultValue: false,
+            description:
+                "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
         };
 
         attributes.maxNumber = {
+            description: "Maximum number of items to retain in the list.",
             createComponentOfType: "number",
             createStateVariable: "maxNumber",
             defaultValue: Infinity,
@@ -52,10 +58,14 @@ export default class NumberList extends CompositeComponent {
 
         attributes.fixed = {
             leaveRaw: true,
+            description:
+                "Whether this component's value is fixed and cannot be modified.",
         };
 
         attributes.isResponse = {
             leaveRaw: true,
+            description:
+                "Whether this component is treated as a response for the purposes of assessment.",
         };
         attributes.isPotentialResponse = {
             leaveRaw: true,
@@ -66,11 +76,15 @@ export default class NumberList extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or each on its own line (false).",
         };
 
-        for (let attrName in returnNumberDisplayAttributes()) {
+        const numberDisplayAttrs = returnNumberDisplayAttributes();
+        for (let attrName in numberDisplayAttrs) {
             attributes[attrName] = {
                 leaveRaw: true,
+                description: numberDisplayAttrs[attrName].description,
             };
         }
 
@@ -164,6 +178,7 @@ export default class NumberList extends CompositeComponent {
         };
 
         stateVariableDefinitions.numComponents = {
+            description: "The number of items in the number list.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -546,11 +561,13 @@ export default class NumberList extends CompositeComponent {
         stateVariableDefinitions.numValues = {
             isAlias: true,
             targetVariableName: "numComponents",
+            description: "The number of numbers in the list.",
         };
 
         stateVariableDefinitions.values = {
             isAlias: true,
             targetVariableName: "numbers",
+            description: "The list's numbers.",
         };
 
         stateVariableDefinitions.readyToExpandWhenResolved = {

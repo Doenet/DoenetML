@@ -20,6 +20,10 @@ export default class Document extends BaseComponent {
         });
     }
     static componentType = "document";
+
+    static componentDocs = {
+        summary: "The top-level container for a DoenetML document.",
+    };
     static rendererType = "section";
     static renderChildren = true;
 
@@ -41,6 +45,8 @@ export default class Document extends BaseComponent {
         delete attributes.isPotentialResponse;
 
         attributes.documentWideCheckWork = {
+            description:
+                "Whether to show a single check-work button for the entire document.",
             createComponentOfType: "boolean",
             createStateVariable: "documentWideCheckWork",
             defaultValue: false,
@@ -50,18 +56,26 @@ export default class Document extends BaseComponent {
             createComponentOfType: "boolean",
             createStateVariable: "showCorrectnessPreliminary",
             defaultValue: true,
+            description:
+                "Whether to display correctness indicators next to answers.",
         };
         attributes.colorCorrectness = {
             createComponentOfType: "boolean",
             createStateVariable: "colorCorrectnessPreliminary",
             defaultValue: true,
+            description:
+                "Whether to color answer regions based on correctness.",
         };
         attributes.forceIndividualAnswerColoring = {
             createComponentOfType: "boolean",
             createStateVariable: "forceIndividualAnswerColoring",
             defaultValue: false,
+            description:
+                "Whether to color individual answer regions even when document-wide check work is enabled.",
         };
         attributes.submitLabel = {
+            description:
+                "Label for the submit button when correctness is shown.",
             createComponentOfType: "text",
             createStateVariable: "submitLabel",
             defaultValue: "Check Work",
@@ -69,6 +83,8 @@ export default class Document extends BaseComponent {
             forRenderer: true,
         };
         attributes.submitLabelNoCorrectness = {
+            description:
+                "Label for the submit button when correctness is not shown.",
             createComponentOfType: "text",
             createStateVariable: "submitLabelNoCorrectness",
             defaultValue: "Submit Response",
@@ -77,6 +93,8 @@ export default class Document extends BaseComponent {
         };
 
         attributes.displayDigitsForCreditAchieved = {
+            description:
+                "Number of significant digits to display for credit achieved.",
             createComponentOfType: "integer",
             createStateVariable: "displayDigitsForCreditAchieved",
             defaultValue: 3,
@@ -88,9 +106,12 @@ export default class Document extends BaseComponent {
         // Do we want to do something with these attributes?
         attributes.xmlns = {
             createPrimitiveOfType: "string",
+            description:
+                "XML namespace declaration (accepted for compatibility; not used).",
         };
         attributes.type = {
             createPrimitiveOfType: "string",
+            description: "Document type identifier.",
         };
 
         return attributes;
@@ -173,6 +194,7 @@ export default class Document extends BaseComponent {
         };
 
         stateVariableDefinitions.title = {
+            description: "The document's title.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -200,6 +222,7 @@ export default class Document extends BaseComponent {
         };
 
         stateVariableDefinitions.description = {
+            description: "The document's accessible description.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -441,6 +464,8 @@ export default class Document extends BaseComponent {
         };
 
         stateVariableDefinitions.creditAchieved = {
+            description:
+                "Aggregate credit achieved (0 to 1) for scored content in the document.",
             public: true,
             forRenderer: true,
             defaultValue: 0,
@@ -460,6 +485,8 @@ export default class Document extends BaseComponent {
                 {
                     variableName: "percentCreditAchieved",
                     public: true,
+                    description:
+                        "Aggregate credit achieved as a percentage (0 to 100) for scored content in the document.",
                     shadowingInstructions: {
                         createComponentOfType: "number",
                         addAttributeComponentsShadowingStateVariables: {

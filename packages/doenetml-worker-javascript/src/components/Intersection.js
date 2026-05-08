@@ -4,6 +4,9 @@ import { convertUnresolvedAttributesForComponentType } from "../utils/dast/conve
 export default class Intersection extends CompositeComponent {
     static componentType = "intersection";
 
+    static componentDocs = {
+        summary: "The intersection of subsets or regions.",
+    };
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
     static stateVariableToEvaluateAfterReplacements =
@@ -14,12 +17,16 @@ export default class Intersection extends CompositeComponent {
 
         attributes.styleNumber = {
             leaveRaw: true,
+            description:
+                "Style number applied to the resulting intersection components.",
         };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or each on its own line (false).",
         };
 
         return attributes;

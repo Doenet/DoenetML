@@ -3,6 +3,9 @@ import CompositeComponent from "./abstract/CompositeComponent";
 export default class Split extends CompositeComponent {
     static componentType = "split";
 
+    static componentDocs = {
+        summary: "Splits a string or list into pieces.",
+    };
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
     static stateVariableToEvaluateAfterReplacements =
@@ -18,6 +21,7 @@ export default class Split extends CompositeComponent {
             defaultPrimitiveValue: "text",
             toLowerCase: true,
             validValues: ["text"],
+            description: "Type of value being split.",
         };
 
         attributes.splitBy = {
@@ -26,12 +30,15 @@ export default class Split extends CompositeComponent {
             defaultValue: "letter",
             toLowerCase: true,
             validValues: ["letter", "word", "comma"],
+            description: "How to break the input string into pieces.",
         };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or each on its own line (false).",
         };
 
         return attributes;

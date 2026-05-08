@@ -8,18 +8,24 @@ import me from "math-expressions";
 
 export default class Parabola extends Curve {
     static componentType = "parabola";
+
+    static componentDocs = {
+        summary: "A parabola defined by formula or geometric parameters.",
+    };
     static rendererType = "curve";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.through = {
             createComponentOfType: "pointList",
+            description: "Points the parabola passes through.",
         };
         attributes.vertex = {
             createComponentOfType: "point",
             isLocation: true,
             createStateVariable: "prescribedVertex",
             defaultValue: null,
+            description: "The vertex of the parabola.",
         };
 
         delete attributes.parMin;
@@ -53,6 +59,7 @@ export default class Parabola extends Curve {
             curveStateVariableDefinitions.styleDescription;
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "parabola".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -78,6 +85,7 @@ export default class Parabola extends Curve {
         };
 
         stateVariableDefinitions.parMax = {
+            description: "Maximum value of the parabola's parameter.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -90,6 +98,7 @@ export default class Parabola extends Curve {
         };
 
         stateVariableDefinitions.parMin = {
+            description: "Minimum value of the parabola's parameter.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -155,6 +164,7 @@ export default class Parabola extends Curve {
 
         stateVariableDefinitions.throughPoints = {
             public: true,
+            description: "Points the parabola passes through.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -531,6 +541,8 @@ export default class Parabola extends Curve {
 
         stateVariableDefinitions.a = {
             public: true,
+            description:
+                "The leading coefficient of the parabola (in y = a x^2 + b x + c).",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -548,6 +560,8 @@ export default class Parabola extends Curve {
                     },
                     hasEssential: true,
                     defaultValue: 0,
+                    description:
+                        "The linear coefficient in y = a x^2 + b x + c.",
                 },
                 {
                     variableName: "c",
@@ -559,6 +573,7 @@ export default class Parabola extends Curve {
                     },
                     hasEssential: true,
                     defaultValue: 0,
+                    description: "The constant term in y = a x^2 + b x + c.",
                 },
                 "realValued",
             ],
@@ -1310,6 +1325,7 @@ export default class Parabola extends Curve {
         };
 
         stateVariableDefinitions.vertex = {
+            description: "The vertex coordinates of the parabola.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
@@ -1443,6 +1459,7 @@ export default class Parabola extends Curve {
         };
 
         stateVariableDefinitions.equation = {
+            description: "The parabola's equation as a math expression.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -1555,6 +1572,8 @@ export default class Parabola extends Curve {
         stateVariableDefinitions.f = {
             isAlias: true,
             targetVariableName: "f1",
+            description:
+                "The parabola as a function of its parameter (alias to the first component function).",
         };
 
         stateVariableDefinitions.nearestPoint = {

@@ -23,6 +23,10 @@ export default class Label extends InlineComponent {
         });
     }
     static componentType = "label";
+
+    static componentDocs = {
+        summary: "A text or math label attached to a graphical object.",
+    };
     static rendererType = "label";
 
     static includeBlankStringChildren = true;
@@ -38,13 +42,18 @@ export default class Label extends InlineComponent {
 
         attributes.for = {
             createReferences: true,
+            description:
+                "Reference to the component this label is for (e.g., an input).",
         };
 
         attributes.forObject = {
             createReferences: true,
+            description:
+                "Reference to the graphical object this label is attached to.",
         };
 
         attributes.draggable = {
+            description: "Whether the label can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -53,6 +62,7 @@ export default class Label extends InlineComponent {
         };
 
         attributes.layer = {
+            description: "Z-order layer index when shown on a graph.",
             createComponentOfType: "number",
             createStateVariable: "layer",
             defaultValue: 0,
@@ -111,6 +121,7 @@ export default class Label extends InlineComponent {
         };
 
         stateVariableDefinitions.hasLatex = {
+            description: "Whether the label contains LaTeX content.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -179,6 +190,7 @@ export default class Label extends InlineComponent {
 
         stateVariableDefinitions.text = {
             public: true,
+            description: "The label's text content.",
             shadowingInstructions: {
                 createComponentOfType: "text",
             },
@@ -189,6 +201,7 @@ export default class Label extends InlineComponent {
                     shadowingInstructions: {
                         createComponentOfType: "latex",
                     },
+                    description: "The label's content as a LaTeX string.",
                 },
                 {
                     variableName: "value",
@@ -202,6 +215,7 @@ export default class Label extends InlineComponent {
                             },
                         },
                     },
+                    description: "The label's content as a label-typed value.",
                 },
             ],
             returnDependencies: () => ({
