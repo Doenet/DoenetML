@@ -975,6 +975,9 @@ export default class NumberComponent extends InlineComponent {
                 isPublic: true,
             });
 
+        stateVariableDefinitions.math.description =
+            "The number's value as a math expression.";
+
         stateVariableDefinitions.math.shadowingInstructions.addAttributeComponentsShadowingStateVariables =
             returnNumberDisplayAttributeComponentShadowing();
 

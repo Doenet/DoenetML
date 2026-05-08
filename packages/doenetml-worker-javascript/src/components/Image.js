@@ -46,9 +46,11 @@ export default class Image extends BlockComponent {
             defaultValue: "medium",
             toLowerCase: true,
             validValues: sizePossibilities,
+            description: "Named size preset for the image.",
         };
         attributes.aspectRatio = {
             createComponentOfType: "number",
+            description: "Aspect ratio (width / height) for the image.",
         };
 
         attributes.displayMode = {

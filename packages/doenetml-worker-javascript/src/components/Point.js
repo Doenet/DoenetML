@@ -64,18 +64,23 @@ export default class Point extends GraphicalComponent {
 
         attributes.x = {
             createComponentOfType: "math",
+            description: "The first coordinate (x) of the point.",
         };
         attributes.y = {
             createComponentOfType: "math",
+            description: "The second coordinate (y) of the point.",
         };
         attributes.z = {
             createComponentOfType: "math",
+            description: "The third coordinate (z) of the point.",
         };
         attributes.xs = {
             createComponentOfType: "mathList",
+            description: "The point's coordinates as a list.",
         };
         attributes.coords = {
             createComponentOfType: "coords",
+            description: "The point's coordinates as a single math expression.",
         };
 
         Object.assign(attributes, returnNumberDisplayAttributes());
@@ -128,6 +133,8 @@ export default class Point extends GraphicalComponent {
 
         attributes.hideOffGraphIndicator = {
             createComponentOfType: "boolean",
+            description:
+                "Whether to suppress the indicator drawn at the edge when the point is off-screen.",
         };
 
         attributes.controlOrder = returnGraphControlOrderAttribute();

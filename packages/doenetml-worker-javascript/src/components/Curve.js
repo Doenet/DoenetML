@@ -132,10 +132,13 @@ export default class Curve extends GraphicalComponent {
             createComponentOfType: "_variableName",
             createStateVariable: "variableForChild",
             defaultValue: me.fromAst("x"),
+            description:
+                "Name of the curve's parameter or independent variable.",
         };
 
         attributes.through = {
             createComponentOfType: "pointList",
+            description: "Points the interpolated curve passes through.",
         };
         attributes.parMin = {
             createComponentOfType: "math",
@@ -158,6 +161,8 @@ export default class Curve extends GraphicalComponent {
             createComponentOfType: "boolean",
             createStateVariable: "nearestPointAsCurvePrelim",
             defaultValue: false,
+            description:
+                "Whether nearest-point queries should treat this as a curve in the plane rather than a graph y = f(x).",
         };
 
         Object.assign(attributes, returnNumberDisplayAttributes());

@@ -40,6 +40,8 @@ export default class Ray extends GraphicalComponent {
         };
         attributes.through = {
             createComponentOfType: "point",
+            description:
+                "A point the ray passes through (used with endpoint or direction).",
         };
         attributes.direction = {
             createComponentOfType: "vector",

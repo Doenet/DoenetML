@@ -55,15 +55,21 @@ export default class Group extends CompositeComponent {
         };
         attributes.createComponentOfType = {
             createPrimitiveOfType: "string",
+            description:
+                "Component type to wrap each child as when expanding the group.",
         };
         attributes.numComponents = {
             createPrimitiveOfType: "number",
+            description:
+                "Number of components to create when expanding (used with createComponentOfType).",
         };
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: false,
+            description:
+                "Whether to render the group's children separated by commas (true) or each on its own line (false).",
         };
 
         return attributes;

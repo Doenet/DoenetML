@@ -45,24 +45,29 @@ export default class Graph extends BlockComponent {
             createComponentOfType: "number",
             createStateVariable: "xminPrelim",
             defaultValue: -10,
+            description: "Minimum value displayed on the x axis.",
         };
         attributes.xMax = {
             createComponentOfType: "number",
             createStateVariable: "xmaxPrelim",
             defaultValue: 10,
+            description: "Maximum value displayed on the x axis.",
         };
         attributes.yMin = {
             createComponentOfType: "number",
             createStateVariable: "yminPrelim",
             defaultValue: -10,
+            description: "Minimum value displayed on the y axis.",
         };
         attributes.yMax = {
             createComponentOfType: "number",
             createStateVariable: "ymaxPrelim",
             defaultValue: 10,
+            description: "Maximum value displayed on the y axis.",
         };
         attributes.width = {
             createComponentOfType: "componentSize",
+            description: "Explicit width of the graph (overrides size).",
         };
         attributes.size = {
             createComponentOfType: "text",
@@ -70,9 +75,11 @@ export default class Graph extends BlockComponent {
             defaultValue: "medium",
             toLowerCase: true,
             validValues: sizePossibilities,
+            description: "Named size preset for the graph.",
         };
         attributes.aspectRatio = {
             createComponentOfType: "number",
+            description: "Aspect ratio (width / height) for the graph.",
         };
 
         attributes.displayMode = {
@@ -164,11 +171,13 @@ export default class Graph extends BlockComponent {
             createComponentOfType: "boolean",
             createStateVariable: "displayXAxisTickLabelsPrelim",
             defaultValue: true,
+            description: "Whether to display labels on x-axis ticks.",
         };
         attributes.displayYAxisTickLabels = {
             createComponentOfType: "boolean",
             createStateVariable: "displayYAxisTickLabelsPrelim",
             defaultValue: true,
+            description: "Whether to display labels on y-axis ticks.",
         };
         attributes.xLabelPosition = {
             description: "Position of the x-axis label.",
@@ -228,10 +237,14 @@ export default class Graph extends BlockComponent {
             createComponentOfType: "boolean",
             createStateVariable: "fixAxesPreliminary",
             defaultValue: false,
+            description:
+                "Whether the axis limits are locked (preventing zoom/pan).",
         };
         attributes.grid = {
             createComponentOfType: "text",
             valueForTrue: "medium",
+            description:
+                "Grid density to render on the graph (off, minor, medium, or major).",
         };
 
         Object.assign(attributes, returnNumberDisplayAttributes());

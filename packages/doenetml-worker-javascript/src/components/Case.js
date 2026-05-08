@@ -28,6 +28,8 @@ export default class Case extends BaseComponent {
 
         attributes.condition = {
             createComponentOfType: "boolean",
+            description:
+                "Boolean expression; this case is selected when the condition is true.",
         };
 
         return attributes;

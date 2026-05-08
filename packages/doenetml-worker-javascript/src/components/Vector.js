@@ -60,24 +60,34 @@ export default class Vector extends GraphicalComponent {
 
         attributes.x = {
             createComponentOfType: "math",
+            description:
+                "The first component (x) of the vector's displacement.",
         };
         attributes.y = {
             createComponentOfType: "math",
+            description:
+                "The second component (y) of the vector's displacement.",
         };
         attributes.z = {
             createComponentOfType: "math",
+            description:
+                "The third component (z) of the vector's displacement.",
         };
         attributes.xs = {
             createComponentOfType: "mathList",
+            description: "The vector's displacement components as a list.",
         };
         attributes.displacement = {
             createComponentOfType: "coords",
+            description: "The vector's displacement (head minus tail).",
         };
         attributes.head = {
             createComponentOfType: "point",
+            description: "The head (tip) point of the vector.",
         };
         attributes.tail = {
             createComponentOfType: "point",
+            description: "The tail (base) point of the vector.",
         };
 
         attributes.addControls = {

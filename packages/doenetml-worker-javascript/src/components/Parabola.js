@@ -18,6 +18,7 @@ export default class Parabola extends Curve {
         let attributes = super.createAttributesObject();
         attributes.through = {
             createComponentOfType: "pointList",
+            description: "Points the parabola passes through.",
         };
         attributes.vertex = {
             createComponentOfType: "point",

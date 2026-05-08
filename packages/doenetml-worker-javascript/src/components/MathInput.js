@@ -114,6 +114,7 @@ export default class MathInput extends Input {
 
         attributes.bindValueTo = {
             createComponentOfType: "math",
+            description: "Two-way binding target for the input's value.",
         };
         attributes.unionFromU = {
             description: 'Whether "U" between sets is parsed as union.',

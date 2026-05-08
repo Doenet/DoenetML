@@ -40,6 +40,8 @@ export default class IntervalList extends CompositeComponent {
             createComponentOfType: "boolean",
             createStateVariable: "unorderedPrelim",
             defaultValue: false,
+            description:
+                "Whether the order of intervals in this list should be treated as unordered (e.g. for matching).",
         };
 
         attributes.maxNumber = {
@@ -52,10 +54,14 @@ export default class IntervalList extends CompositeComponent {
 
         attributes.fixed = {
             leaveRaw: true,
+            description:
+                "Whether this component's value is fixed and cannot be modified.",
         };
 
         attributes.isResponse = {
             leaveRaw: true,
+            description:
+                "Whether this component is treated as a response for the purposes of assessment.",
         };
         attributes.isPotentialResponse = {
             leaveRaw: true,
@@ -66,11 +72,15 @@ export default class IntervalList extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or each on its own line (false).",
         };
 
-        for (let attrName in returnNumberDisplayAttributes()) {
+        const numberDisplayAttrs = returnNumberDisplayAttributes();
+        for (let attrName in numberDisplayAttrs) {
             attributes[attrName] = {
                 leaveRaw: true,
+                description: numberDisplayAttrs[attrName].description,
             };
         }
 

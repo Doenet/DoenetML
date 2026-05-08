@@ -5,15 +5,23 @@ export function returnStandardTriggeringAttributes(triggerActionOnChange) {
             createStateVariable: "triggerWhen",
             defaultValue: false,
             triggerActionOnChange,
+            description:
+                "Boolean expression that fires the action whenever it transitions to true.",
         },
         triggerWith: {
             createReferences: true,
+            description:
+                "References to components whose value changes should fire this action.",
         },
         triggerWhenObjectsClicked: {
             createReferences: true,
+            description:
+                "References to components whose click events should fire this action.",
         },
         triggerWhenObjectsFocused: {
             createReferences: true,
+            description:
+                "References to components whose focus events should fire this action.",
         },
     };
 }

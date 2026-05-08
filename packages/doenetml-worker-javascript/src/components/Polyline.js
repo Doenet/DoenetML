@@ -40,10 +40,13 @@ export default class Polyline extends GraphicalComponent {
 
         attributes.verticesDraggable = {
             createComponentOfType: "boolean",
+            description:
+                "Whether individual vertices may be dragged independently.",
         };
 
         attributes.vertices = {
             createComponentOfType: "pointList",
+            description: "The list of vertex points that define the shape.",
         };
 
         attributes.showCoordsWhenDragging = {
@@ -66,6 +69,8 @@ export default class Polyline extends GraphicalComponent {
 
         attributes.preserveSimilarity = {
             createComponentOfType: "boolean",
+            description:
+                "Whether the shape is preserved up to similarity (uniform scaling) under drag.",
         };
 
         // Vertices displayed for rotations when rigid/preserveSimilarity.
@@ -75,6 +80,8 @@ export default class Polyline extends GraphicalComponent {
             createComponentOfType: "numberList",
             createStateVariable: "rotationHandleVertices",
             defaultValue: [1],
+            description:
+                "Vertex indices that should display rotation handles when the shape is rigid or preserves similarity.",
         };
 
         attributes.rotateAround = {
@@ -83,18 +90,23 @@ export default class Polyline extends GraphicalComponent {
             toLowerCase: true,
             validValues: ["centroid", "vertex", "point"],
             defaultValue: "centroid",
+            description: "What point to rotate the shape around.",
         };
 
         attributes.rotationCenter = {
             createComponentOfType: "point",
             createStateVariable: "rotationCenterPrescribed",
             defaultValue: null,
+            description:
+                "The point to rotate around when rotateAround is 'point'.",
         };
 
         attributes.rotationVertex = {
             createComponentOfType: "integer",
             createStateVariable: "rotationVertex",
             defaultValue: 1,
+            description:
+                "The vertex index to rotate around when rotateAround is 'vertex'.",
         };
 
         attributes.allowRotation = {
@@ -115,12 +127,15 @@ export default class Polyline extends GraphicalComponent {
 
         attributes.allowDilation = {
             createComponentOfType: "boolean",
+            description:
+                "Whether the shape can be dilated (scaled) under drag.",
         };
 
         attributes.minShrink = {
             createComponentOfType: "number",
             createStateVariable: "minShrink",
             defaultValue: 0.1,
+            description: "Minimum scaling factor allowed when dilating.",
         };
 
         attributes.allowReflection = {

@@ -32,12 +32,15 @@ export default class Circle extends Curve {
 
         attributes.through = {
             createComponentOfType: "pointList",
+            description: "Points the circle passes through.",
         };
         attributes.center = {
             createComponentOfType: "point",
+            description: "The circle's center point.",
         };
         attributes.radius = {
             createComponentOfType: "math",
+            description: "The circle's radius.",
         };
 
         attributes.addControls = {
@@ -65,6 +68,8 @@ export default class Circle extends Curve {
 
         attributes.hideOffGraphIndicator = {
             createComponentOfType: "boolean",
+            description:
+                "Whether to suppress the indicator drawn at the edge when the component is off-screen.",
         };
 
         attributes.controlOrder = returnGraphControlOrderAttribute();

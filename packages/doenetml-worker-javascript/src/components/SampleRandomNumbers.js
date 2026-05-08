@@ -57,47 +57,58 @@ export default class SampleRandomNumbers extends CompositeComponent {
             createComponentOfType: "number",
             createStateVariable: "specifiedMean",
             defaultValue: 0,
+            description: "Mean of the sampling distribution (Gaussian).",
         };
 
         attributes.standardDeviation = {
             createComponentOfType: "number",
             createStateVariable: "specifiedStandardDeviation",
             defaultValue: 1,
+            description:
+                "Standard deviation of the sampling distribution (Gaussian).",
         };
 
         attributes.variance = {
             createComponentOfType: "number",
             createStateVariable: "specifiedVariance",
             defaultValue: 1,
+            description: "Variance of the sampling distribution (Gaussian).",
         };
 
         attributes.from = {
             createComponentOfType: "number",
             createStateVariable: "specifiedFrom",
             defaultValue: null,
+            description: "Lower bound of the sampling range.",
         };
 
         attributes.to = {
             createComponentOfType: "number",
             createStateVariable: "specifiedTo",
             defaultValue: null,
+            description: "Upper bound of the sampling range.",
         };
 
         attributes.step = {
             createComponentOfType: "number",
             createStateVariable: "specifiedStep",
             defaultValue: 1,
+            description:
+                "Step size between samples for the discrete-uniform distribution.",
         };
 
         attributes.exclude = {
             createComponentOfType: "numberList",
             createStateVariable: "exclude",
             defaultValue: [],
+            description: "Values to exclude from the sample space.",
         };
 
-        for (let attrName in returnNumberDisplayAttributes()) {
+        const numberDisplayAttrs = returnNumberDisplayAttributes();
+        for (let attrName in numberDisplayAttrs) {
             attributes[attrName] = {
                 leaveRaw: true,
+                description: numberDisplayAttrs[attrName].description,
             };
         }
 
@@ -114,6 +125,8 @@ export default class SampleRandomNumbers extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or each on its own line (false).",
         };
 
         return attributes;

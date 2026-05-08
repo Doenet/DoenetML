@@ -21,11 +21,14 @@ export class StyleDefinition extends BaseComponent {
             createStateVariable: "styleNumber",
             defaultValue: 1,
             clamp: [1, Infinity],
+            description:
+                "Index identifying which style this definition applies to.",
         };
 
         for (let styleAttr in styleAttributes) {
             attributes[styleAttr] = {
                 createComponentOfType: styleAttributes[styleAttr].componentType,
+                description: styleAttributes[styleAttr].description,
             };
         }
 

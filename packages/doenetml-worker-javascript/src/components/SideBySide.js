@@ -23,20 +23,25 @@ export class SideBySide extends BlockComponent {
 
         attributes.width = {
             createComponentOfType: "componentSize",
+            description: "Total rendered width of the side-by-side container.",
         };
         attributes.widths = {
             createComponentOfType: "_componentSizeList",
+            description: "List of widths for each panel.",
         };
 
         attributes.margins = {
             createComponentOfType: "_componentSizeList",
+            description: "List of margin widths between panels.",
         };
 
         attributes.valign = {
             createComponentOfType: "text",
+            description: "Default vertical alignment for all panels.",
         };
         attributes.valigns = {
             createComponentOfType: "textList",
+            description: "Per-panel vertical alignment values.",
         };
 
         return attributes;
@@ -1262,20 +1267,25 @@ export class SbsGroup extends BlockComponent {
 
         attributes.width = {
             createComponentOfType: "componentSize",
+            description: "Total rendered width of the side-by-side container.",
         };
         attributes.widths = {
             createComponentOfType: "_componentSizeList",
+            description: "List of widths for each panel.",
         };
 
         attributes.margins = {
             createComponentOfType: "_componentSizeList",
+            description: "List of margin widths between panels.",
         };
 
         attributes.valign = {
             createComponentOfType: "text",
+            description: "Default vertical alignment for all panels.",
         };
         attributes.valigns = {
             createComponentOfType: "textList",
+            description: "Per-panel vertical alignment values.",
         };
 
         return attributes;

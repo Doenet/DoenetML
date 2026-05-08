@@ -92,6 +92,7 @@ export default class Choiceinput extends Input {
 
         attributes.bindValueTo = {
             createComponentOfType: "text",
+            description: "Two-way binding target for the input's value.",
         };
 
         attributes.placeHolder = {

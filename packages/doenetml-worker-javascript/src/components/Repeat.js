@@ -50,24 +50,33 @@ export default class Repeat extends CompositeComponent {
             createPrimitiveOfType: "string",
             createStateVariable: "valueName",
             defaultValue: null,
+            description:
+                "Name to bind the current item to inside the repeat template.",
         };
 
         attributes.indexName = {
             createPrimitiveOfType: "string",
             createStateVariable: "indexName",
             defaultValue: null,
+            description:
+                "Name to bind the current 1-based index to inside the repeat template.",
         };
 
         attributes.for = {
             createComponentOfType: "group",
+            description:
+                "The collection of items to iterate over when generating repeats.",
         };
 
         attributes.type = {
             createPrimitiveOfType: "string",
+            description: "Component type used to wrap each item in the source.",
         };
 
         attributes.isResponse = {
             leaveRaw: true,
+            description:
+                "Whether the generated repeats should be treated as responses for assessment.",
         };
         attributes.isPotentialResponse = {
             leaveRaw: true,
@@ -78,6 +87,8 @@ export default class Repeat extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or each on its own line (false).",
         };
 
         return attributes;

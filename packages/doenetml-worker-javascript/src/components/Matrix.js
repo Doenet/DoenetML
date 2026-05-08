@@ -38,12 +38,16 @@ export default class Matrix extends MathComponent {
             createComponentOfType: "math",
             createStateVariable: "defaultEntry",
             defaultValue: me.fromAst(0),
+            description:
+                "Value used for entries that aren't explicitly specified.",
         };
         attributes.numRows = {
             createComponentOfType: "integer",
+            description: "Number of rows in the matrix.",
         };
         attributes.numColumns = {
             createComponentOfType: "integer",
+            description: "Number of columns in the matrix.",
         };
 
         return attributes;

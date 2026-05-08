@@ -28,16 +28,20 @@ export default class RegularPolygon extends Polygon {
 
         attributes.numVertices = {
             createComponentOfType: "integer",
+            description: "Number of vertices in the regular polygon.",
         };
 
         attributes.numSides = {
             createComponentOfType: "integer",
+            description:
+                "Number of sides in the regular polygon (alias for numVertices).",
         };
 
         // Note: vertices is already an attribute from polygon
 
         attributes.center = {
             createComponentOfType: "point",
+            description: "Center of the regular polygon.",
         };
 
         // if center and vertex or two vertices are specified
@@ -47,9 +51,12 @@ export default class RegularPolygon extends Polygon {
         // If both specified, circumradius is used
         attributes.circumradius = {
             createComponentOfType: "number",
+            description:
+                "Distance from center to a vertex (circumscribed-circle radius).",
         };
         attributes.radius = {
             createComponentOfType: "number",
+            description: "Alias for circumradius.",
         };
 
         // inradius and apothem are the same thing and either attribute can be used
@@ -57,24 +64,30 @@ export default class RegularPolygon extends Polygon {
         // If circumradius is specified, inradius is ignored
         attributes.inradius = {
             createComponentOfType: "number",
+            description:
+                "Distance from center to the midpoint of a side (inscribed-circle radius).",
         };
         attributes.apothem = {
             createComponentOfType: "number",
+            description: "Alias for inradius.",
         };
 
         // if circumradius or inradius is specified, sideLength is ignored
         attributes.sideLength = {
             createComponentOfType: "number",
+            description: "Length of each side of the regular polygon.",
         };
 
         // if circumradius, inradius, or sideLength is specified, perimeter is ignored
         attributes.perimeter = {
             createComponentOfType: "number",
+            description: "Total perimeter of the regular polygon.",
         };
 
         // if circumradius, inradius, sideLength, or perimeter is specified, area is ignored
         attributes.area = {
             createComponentOfType: "number",
+            description: "Total area enclosed by the regular polygon.",
         };
 
         attributes.addControls = {

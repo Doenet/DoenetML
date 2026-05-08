@@ -213,6 +213,7 @@ export default class Document extends BaseComponent {
         };
 
         stateVariableDefinitions.description = {
+            description: "The document's accessible description.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

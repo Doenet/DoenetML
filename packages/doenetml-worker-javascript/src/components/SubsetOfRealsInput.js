@@ -104,6 +104,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
 
         attributes.bindValueTo = {
             createComponentOfType: "subsetOfReals",
+            description: "Two-way binding target for the input's value.",
         };
         return attributes;
     }

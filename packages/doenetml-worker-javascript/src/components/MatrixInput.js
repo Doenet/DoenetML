@@ -71,12 +71,14 @@ export class MatrixInput extends Input {
             createStateVariable: "numRowsPreliminary",
             defaultValue: 1,
             transformNonFiniteTo: 0,
+            description: "Number of rows in the matrix input.",
         };
         attributes.numColumns = {
             createComponentOfType: "integer",
             createStateVariable: "numColumnsPreliminary",
             defaultValue: 1,
             transformNonFiniteTo: 0,
+            description: "Number of columns in the matrix input.",
         };
 
         attributes.showSizeControls = {
@@ -92,6 +94,7 @@ export class MatrixInput extends Input {
             createComponentOfType: "math",
             createStateVariable: "defaultEntry",
             defaultValue: me.fromAst("\uff3f"),
+            description: "Default value used for empty matrix cells.",
         };
 
         attributes.prefill = {
@@ -144,6 +147,7 @@ export class MatrixInput extends Input {
 
         attributes.bindValueTo = {
             createComponentOfType: "math",
+            description: "Two-way binding target for the input's value.",
         };
         attributes.unionFromU = {
             description: 'Whether "U" between sets is parsed as union.',

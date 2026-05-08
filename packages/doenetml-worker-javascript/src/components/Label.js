@@ -42,10 +42,14 @@ export default class Label extends InlineComponent {
 
         attributes.for = {
             createReferences: true,
+            description:
+                "Reference to the component this label is for (e.g., an input).",
         };
 
         attributes.forObject = {
             createReferences: true,
+            description:
+                "Reference to the graphical object this label is attached to.",
         };
 
         attributes.draggable = {

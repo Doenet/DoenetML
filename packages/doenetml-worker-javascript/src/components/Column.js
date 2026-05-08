@@ -30,6 +30,8 @@ export default class Column extends BaseComponent {
         };
         attributes.referencesAreFunctionSymbols = {
             createReferences: true,
+            description:
+                "References whose names should be treated as function symbols when parsing.",
         };
         attributes.splitSymbols = {
             createComponentOfType: "boolean",

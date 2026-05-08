@@ -27,42 +27,146 @@ type StateVariableDefinitions = Record<string, any>;
 
 /** Public style attributes that can be applied to components. */
 export let styleAttributes: StyleAttributes = {
-    lineColor: { componentType: "text" },
-    lineColorWord: { componentType: "text" },
-    lineColorDarkMode: { componentType: "text" },
-    lineColorWordDarkMode: { componentType: "text" },
-    lineOpacity: { componentType: "number" },
-    lineWidth: { componentType: "number" },
-    lineWidthWord: { componentType: "text" },
-    lineStyle: { componentType: "text" }, // solid, dashed, dotted
-    lineStyleWord: { componentType: "text" },
-    markerColor: { componentType: "text" },
-    markerColorWord: { componentType: "text" },
-    markerColorDarkMode: { componentType: "text" },
-    markerColorWordDarkMode: { componentType: "text" },
-    markerOpacity: { componentType: "number" },
-    // marker styles: cross, circle, square, plus, diamond,
-    // triangle (alias for triangleUp), triangleUp, triangleDown, triangleLeft, triangleRight
-    markerStyle: { componentType: "text" },
-    markerStyleWord: { componentType: "text" },
-    markerSize: { componentType: "number" },
-    fillColor: { componentType: "text" },
-    fillColorWord: { componentType: "text" },
-    fillColorDarkMode: { componentType: "text" },
-    fillColorWordDarkMode: { componentType: "text" },
-    fillOpacity: { componentType: "number" },
-    textColor: { componentType: "text" },
-    textColorWord: { componentType: "text" },
-    textColorDarkMode: { componentType: "text" },
-    textColorWordDarkMode: { componentType: "text" },
-    highContrastColor: { componentType: "text" },
-    highContrastColorWord: { componentType: "text" },
-    highContrastColorDarkMode: { componentType: "text" },
-    highContrastColorWordDarkMode: { componentType: "text" },
-    backgroundColor: { componentType: "text" },
-    backgroundColorWord: { componentType: "text" },
-    backgroundColorDarkMode: { componentType: "text" },
-    backgroundColorWordDarkMode: { componentType: "text" },
+    lineColor: {
+        componentType: "text",
+        description: "Color used for line strokes (light mode).",
+    },
+    lineColorWord: {
+        componentType: "text",
+        description: "Human-readable name of the line color (light mode).",
+    },
+    lineColorDarkMode: {
+        componentType: "text",
+        description: "Color used for line strokes (dark mode).",
+    },
+    lineColorWordDarkMode: {
+        componentType: "text",
+        description: "Human-readable name of the line color (dark mode).",
+    },
+    lineOpacity: {
+        componentType: "number",
+        description: "Opacity of line strokes, 0 to 1.",
+    },
+    lineWidth: {
+        componentType: "number",
+        description: "Stroke width for lines, in pixels.",
+    },
+    lineWidthWord: {
+        componentType: "text",
+        description: "Human-readable name of the line width.",
+    },
+    lineStyle: {
+        componentType: "text",
+        description: "Stroke style for lines (e.g. solid, dashed, dotted).",
+    },
+    lineStyleWord: {
+        componentType: "text",
+        description: "Human-readable name of the line style.",
+    },
+    markerColor: {
+        componentType: "text",
+        description: "Color used for markers/points (light mode).",
+    },
+    markerColorWord: {
+        componentType: "text",
+        description: "Human-readable name of the marker color (light mode).",
+    },
+    markerColorDarkMode: {
+        componentType: "text",
+        description: "Color used for markers/points (dark mode).",
+    },
+    markerColorWordDarkMode: {
+        componentType: "text",
+        description: "Human-readable name of the marker color (dark mode).",
+    },
+    markerOpacity: {
+        componentType: "number",
+        description: "Opacity of markers/points, 0 to 1.",
+    },
+    markerStyle: {
+        componentType: "text",
+        description:
+            "Marker shape (e.g. cross, circle, square, plus, diamond, triangle).",
+    },
+    markerStyleWord: {
+        componentType: "text",
+        description: "Human-readable name of the marker style.",
+    },
+    markerSize: {
+        componentType: "number",
+        description: "Marker size in pixels.",
+    },
+    fillColor: {
+        componentType: "text",
+        description: "Fill color used inside closed shapes (light mode).",
+    },
+    fillColorWord: {
+        componentType: "text",
+        description: "Human-readable name of the fill color (light mode).",
+    },
+    fillColorDarkMode: {
+        componentType: "text",
+        description: "Fill color used inside closed shapes (dark mode).",
+    },
+    fillColorWordDarkMode: {
+        componentType: "text",
+        description: "Human-readable name of the fill color (dark mode).",
+    },
+    fillOpacity: {
+        componentType: "number",
+        description: "Opacity of fills, 0 to 1.",
+    },
+    textColor: {
+        componentType: "text",
+        description: "Text color (light mode).",
+    },
+    textColorWord: {
+        componentType: "text",
+        description: "Human-readable name of the text color (light mode).",
+    },
+    textColorDarkMode: {
+        componentType: "text",
+        description: "Text color (dark mode).",
+    },
+    textColorWordDarkMode: {
+        componentType: "text",
+        description: "Human-readable name of the text color (dark mode).",
+    },
+    highContrastColor: {
+        componentType: "text",
+        description: "High-contrast accent color (light mode).",
+    },
+    highContrastColorWord: {
+        componentType: "text",
+        description:
+            "Human-readable name of the high-contrast accent color (light mode).",
+    },
+    highContrastColorDarkMode: {
+        componentType: "text",
+        description: "High-contrast accent color (dark mode).",
+    },
+    highContrastColorWordDarkMode: {
+        componentType: "text",
+        description:
+            "Human-readable name of the high-contrast accent color (dark mode).",
+    },
+    backgroundColor: {
+        componentType: "text",
+        description: "Background color (light mode).",
+    },
+    backgroundColorWord: {
+        componentType: "text",
+        description:
+            "Human-readable name of the background color (light mode).",
+    },
+    backgroundColorDarkMode: {
+        componentType: "text",
+        description: "Background color (dark mode).",
+    },
+    backgroundColorWordDarkMode: {
+        componentType: "text",
+        description: "Human-readable name of the background color (dark mode).",
+    },
 };
 
 /**
@@ -618,6 +722,8 @@ export function returnSelectedStyleStateVariableDefinition(): StateVariableDefin
 export function returnTextStyleDescriptionDefinitions(): StateVariableDefinitions {
     return {
         textColor: {
+            description:
+                "Human-readable name for this component's text color, derived from the active style and theme.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -652,6 +758,8 @@ export function returnTextStyleDescriptionDefinitions(): StateVariableDefinition
         },
 
         backgroundColor: {
+            description:
+                "Human-readable name for this component's background color, derived from the active style and theme.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -691,6 +799,8 @@ export function returnTextStyleDescriptionDefinitions(): StateVariableDefinition
         },
 
         textStyleDescription: {
+            description:
+                "Human-readable description of this component's text styling (color and any background color).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

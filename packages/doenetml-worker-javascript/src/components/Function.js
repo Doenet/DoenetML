@@ -63,6 +63,8 @@ export default class Function extends InlineComponent {
                 "numbersPreserveOrder",
                 "normalizeOrder",
             ],
+            description:
+                "Level of simplification applied to the function's formula.",
         };
         attributes.expand = {
             description: "Whether to expand the function's formula.",
@@ -87,12 +89,16 @@ export default class Function extends InlineComponent {
         };
         attributes.numInputs = {
             createComponentOfType: "integer",
+            description: "Number of input arguments the function accepts.",
         };
         attributes.numOutputs = {
             createComponentOfType: "integer",
+            description: "Number of output values the function produces.",
         };
         attributes.domain = {
             createComponentOfType: "intervalList",
+            description:
+                "Restriction of the function's domain to a list of intervals.",
         };
 
         // include attributes of graphical components
@@ -141,27 +147,39 @@ export default class Function extends InlineComponent {
 
         attributes.minima = {
             createComponentOfType: "extrema",
+            description: "Local minima of an interpolated function.",
         };
         attributes.maxima = {
             createComponentOfType: "extrema",
+            description: "Local maxima of an interpolated function.",
         };
         attributes.extrema = {
             createComponentOfType: "extrema",
+            description:
+                "Local extrema (combined minima and maxima) of an interpolated function.",
         };
         attributes.through = {
             createComponentOfType: "pointList",
+            description:
+                "Points the interpolated function should pass through.",
         };
         attributes.throughSlopes = {
             createComponentOfType: "mathList",
+            description:
+                "Slopes the interpolated function should have at each through-point.",
         };
         attributes.variables = {
             createComponentOfType: "_variableNameList",
+            description: "Names of the function's input variables.",
         };
         attributes.variable = {
             createComponentOfType: "_variableName",
+            description: "Name of the function's single input variable.",
         };
         attributes.symbolic = {
             createComponentOfType: "boolean",
+            description:
+                "Whether the function should be evaluated symbolically rather than numerically.",
         };
 
         Object.assign(attributes, returnNumberDisplayAttributes());
@@ -170,6 +188,8 @@ export default class Function extends InlineComponent {
             createComponentOfType: "boolean",
             createStateVariable: "nearestPointAsCurve",
             defaultValue: false,
+            description:
+                "Whether nearest-point queries should treat the function as a curve in the plane rather than a graph y = f(x).",
         };
 
         return attributes;

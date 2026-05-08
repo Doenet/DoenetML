@@ -45,6 +45,8 @@ export default class MathList extends CompositeComponent {
             createComponentOfType: "boolean",
             createStateVariable: "unorderedPrelim",
             defaultValue: false,
+            description:
+                "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
         };
         attributes.maxNumber = {
             description: "Maximum number of items to retain in the list.",
@@ -59,10 +61,14 @@ export default class MathList extends CompositeComponent {
 
         attributes.fixed = {
             leaveRaw: true,
+            description:
+                "Whether this component's value is fixed and cannot be modified.",
         };
 
         attributes.isResponse = {
             leaveRaw: true,
+            description:
+                "Whether this component is treated as a response for the purposes of assessment.",
         };
         attributes.isPotentialResponse = {
             leaveRaw: true,
@@ -73,11 +79,15 @@ export default class MathList extends CompositeComponent {
             createPrimitiveOfType: "boolean",
             createStateVariable: "asList",
             defaultValue: true,
+            description:
+                "Whether to render the items separated by commas (true) or each on its own line (false).",
         };
 
-        for (let attrName in returnNumberDisplayAttributes()) {
+        const numberDisplayAttrs = returnNumberDisplayAttributes();
+        for (let attrName in numberDisplayAttrs) {
             attributes[attrName] = {
                 leaveRaw: true,
+                description: numberDisplayAttrs[attrName].description,
             };
         }
 
@@ -99,6 +109,8 @@ export default class MathList extends CompositeComponent {
             fallBackToParentStateVariable: "referencesAreFunctionSymbols",
             fallBackToSourceCompositeStateVariable:
                 "referencesAreFunctionSymbols",
+            description:
+                "References whose names should be treated as function symbols when parsing items.",
         };
 
         attributes.splitSymbols = {

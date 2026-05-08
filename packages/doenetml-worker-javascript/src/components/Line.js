@@ -46,22 +46,30 @@ export default class Line extends GraphicalComponent {
 
         attributes.equation = {
             createComponentOfType: "math",
+            description: "Implicit equation defining the line.",
         };
         attributes.through = {
             createComponentOfType: "pointList",
+            description: "Points the line passes through.",
         };
         attributes.slope = {
             createComponentOfType: "number",
+            description: "Slope of the line.",
         };
         attributes.perpendicularTo = {
             createComponentOfType: "_directionComponent",
+            description:
+                "Direction the line should be perpendicular to (e.g. another line or vector).",
         };
         attributes.parallelTo = {
             createComponentOfType: "_directionComponent",
+            description:
+                "Direction the line should be parallel to (e.g. another line or vector).",
         };
 
         attributes.variables = {
             createComponentOfType: "_variableNameList",
+            description: "Names of the variables used in the line equation.",
         };
 
         Object.assign(attributes, returnNumberDisplayAttributes());

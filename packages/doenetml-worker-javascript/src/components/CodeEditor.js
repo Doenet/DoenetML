@@ -41,6 +41,7 @@ export default class CodeEditor extends BlockComponent {
         };
         attributes.bindValueTo = {
             createComponentOfType: "text",
+            description: "Two-way binding target for the input's value.",
         };
 
         attributes.width = {

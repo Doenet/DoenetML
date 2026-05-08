@@ -22,6 +22,7 @@ export default class SolveEquations extends InlineComponent {
 
         attributes.variables = {
             createComponentOfType: "_variableNameList",
+            description: "Names of the variables to solve for.",
         };
 
         attributes.numDiscretizationPoints = {

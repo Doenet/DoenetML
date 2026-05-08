@@ -43,9 +43,11 @@ export default class Video extends BlockComponent {
             defaultValue: "full",
             toLowerCase: true,
             validValues: sizePossibilities,
+            description: "Named size preset for the video player.",
         };
         attributes.aspectRatio = {
             createComponentOfType: "number",
+            description: "Aspect ratio (width / height) for the video player.",
         };
 
         attributes.displayMode = {

@@ -22,6 +22,8 @@ export default class ConditionalContent extends CompositeComponent {
         // then its condition attribute will be moved via sugar to a case child.
         attributes.condition = {
             createComponentOfType: "boolean",
+            description:
+                "Convenience for a single-case form: the boolean condition for which the children are rendered.",
         };
 
         return attributes;

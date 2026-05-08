@@ -28,6 +28,8 @@ export default class SubsetOfReals extends MathComponent {
             createComponentOfType: "_variableName",
             createStateVariable: "variable",
             defaultValue: me.fromAst("x"),
+            description:
+                "Name of the variable used when expressing the subset.",
         };
 
         attributes.displayMode = {
@@ -246,6 +248,7 @@ export function returnPointsIntervalsFromSubsetStateVariableDefinitions() {
                     "Whether each boundary point of the subset is a closed (included) endpoint.",
             },
         ],
+        description: "The boundary points that delimit the subset.",
         public: true,
         isArray: true,
         shadowingInstructions: {
@@ -353,6 +356,7 @@ export function returnPointsIntervalsFromSubsetStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.intervals = {
+        description: "The intervals (non-degenerate components) of the subset.",
         public: true,
         isArray: true,
         shadowingInstructions: {
@@ -386,6 +390,7 @@ export function returnPointsIntervalsFromSubsetStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.isolatedPoints = {
+        description: "The isolated (non-interval) points of the subset.",
         public: true,
         isArray: true,
         shadowingInstructions: {

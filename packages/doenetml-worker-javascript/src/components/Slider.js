@@ -122,6 +122,7 @@ export default class Slider extends BaseComponent {
 
         attributes.bindValueTo = {
             createComponentOfType: "_componentWithSelectableType",
+            description: "Two-way binding target for the input's value.",
         };
 
         return attributes;

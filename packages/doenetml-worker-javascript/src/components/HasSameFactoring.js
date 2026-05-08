@@ -17,6 +17,7 @@ export default class HasSameFactoring extends BooleanComponent {
             createComponentOfType: "_variableName",
             createStateVariable: "variable",
             defaultValue: me.fromAst("x"),
+            description: "Variable used when comparing factored expressions.",
         };
 
         attributes.restrictDivision = {

@@ -112,6 +112,8 @@ export default class MathComponent extends InlineComponent {
         };
         attributes.unordered = {
             createComponentOfType: "boolean",
+            description:
+                "Whether tuple- or list-like math expressions should be treated as unordered for comparison.",
         };
         attributes.createVectors = {
             description:
@@ -147,6 +149,8 @@ export default class MathComponent extends InlineComponent {
             fallBackToParentStateVariable: "referencesAreFunctionSymbols",
             fallBackToSourceCompositeStateVariable:
                 "referencesAreFunctionSymbols",
+            description:
+                "References whose names should be treated as function symbols when parsing.",
         };
 
         attributes.splitSymbols = {

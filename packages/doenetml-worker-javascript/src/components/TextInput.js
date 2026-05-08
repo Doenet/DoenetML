@@ -56,6 +56,7 @@ export default class Textinput extends Input {
         };
         attributes.bindValueTo = {
             createComponentOfType: "text",
+            description: "Two-way binding target for the input's value.",
         };
         attributes.expanded = {
             description: "Whether the input renders as a multi-line text area.",

@@ -43,12 +43,15 @@ export default class Rectangle extends Polygon {
 
         attributes.center = {
             createComponentOfType: "point",
+            description: "The rectangle's center point.",
         };
         attributes.width = {
             createComponentOfType: "number",
+            description: "The rectangle's width.",
         };
         attributes.height = {
             createComponentOfType: "number",
+            description: "The rectangle's height.",
         };
 
         return attributes;

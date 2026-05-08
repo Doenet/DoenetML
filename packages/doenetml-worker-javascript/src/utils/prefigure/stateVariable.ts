@@ -450,6 +450,8 @@ function collectConfiguredDescendants(
  */
 function returnGraphPrefigureXMLStateVariableDefinition() {
     return {
+        description:
+            "The Prefigure-formatted XML rendered for this graph, or null if not using the Prefigure renderer.",
         public: true,
         forRenderer: true,
         stateVariablesDeterminingDependencies: ["effectiveRenderer"],
@@ -591,6 +593,8 @@ function returnGraphPrefigureXMLStateVariableDefinition() {
 
 function returnGraphHasAuthorAnnotationsStateVariableDefinition() {
     return {
+        description:
+            "Whether the graph contains any author-provided <annotations> child.",
         public: true,
         forRenderer: true,
         shadowingInstructions: {
