@@ -21,6 +21,10 @@ import me from "math-expressions";
 export default class SelectFromSequence extends Sequence {
     static componentType = "selectFromSequence";
 
+    static componentDocs = {
+        summary: "Randomly selects values from a numerical or letter sequence.",
+    };
+
     static takesIndex = true;
 
     static createsVariants = true;
@@ -32,12 +36,15 @@ export default class SelectFromSequence extends Sequence {
             createStateVariable: "numToSelect",
             defaultValue: 1,
             public: true,
+            description: "How many values to select from the sequence.",
         };
         attributes.withReplacement = {
             createComponentOfType: "boolean",
             createStateVariable: "withReplacement",
             defaultValue: false,
             public: true,
+            description:
+                "Whether the same value can be selected more than once.",
         };
         attributes.sort = {
             createComponentOfType: "text",
@@ -48,15 +55,21 @@ export default class SelectFromSequence extends Sequence {
             valueForTrue: "increasing",
             valueForFalse: "unsorted",
             validValues: ["unsorted", "increasing", "decreasing"],
+            description:
+                "Sort the selected values: unsorted (default), increasing, or decreasing.",
         };
         attributes.excludeCombinations = {
             createComponentOfType: "_componentListOfListsWithSelectableType",
+            description:
+                "Lists of value combinations to exclude from the selection.",
         };
         attributes.coprime = {
             createComponentOfType: "boolean",
             createStateVariable: "coprime",
             defaultValue: false,
             public: true,
+            description:
+                "Require the selected numbers to be pairwise coprime (numbers only).",
         };
         return attributes;
     }

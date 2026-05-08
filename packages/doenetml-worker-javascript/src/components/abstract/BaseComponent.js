@@ -1127,11 +1127,13 @@ export default class BaseComponent {
                             createComponentOfType,
                             public: true,
                             isArray: false,
+                            description: attrObj.description,
                         };
                     } else {
                         stateVariableDescriptions[varName] = {
                             public: false,
                             isArray: false,
+                            description: attrObj.description,
                         };
                     }
                 }
@@ -1157,11 +1159,13 @@ export default class BaseComponent {
                                 .createComponentOfType,
                         public: true,
                         isArray: Boolean(theStateDef.isArray),
+                        description: theStateDef.description,
                     };
                 } else {
                     stateVariableDescriptions[varName] = {
                         public: false,
                         isArray: Boolean(theStateDef.isArray),
+                        description: theStateDef.description,
                     };
                 }
                 if (theStateDef.isArray) {

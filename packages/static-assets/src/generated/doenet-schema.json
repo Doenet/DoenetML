@@ -65749,6 +65749,7 @@
                 },
                 {
                     "name": "type",
+                    "description": "Whether the sequence is of numbers, math expressions, or letters.",
                     "values": [
                         "number",
                         "math",
@@ -65756,19 +65757,24 @@
                     ]
                 },
                 {
-                    "name": "from"
+                    "name": "from",
+                    "description": "The first value in the sequence."
                 },
                 {
-                    "name": "to"
+                    "name": "to",
+                    "description": "The last value in the sequence. Used together with from to determine length when length is not specified."
                 },
                 {
-                    "name": "step"
+                    "name": "step",
+                    "description": "The increment between successive values in the sequence."
                 },
                 {
-                    "name": "length"
+                    "name": "length",
+                    "description": "The number of values in the sequence."
                 },
                 {
-                    "name": "exclude"
+                    "name": "exclude",
+                    "description": "Values to exclude from the sequence."
                 },
                 {
                     "name": "asList",
@@ -65812,7 +65818,8 @@
             ],
             "top": true,
             "acceptsStringChildren": false,
-            "takesIndex": true
+            "takesIndex": true,
+            "summary": "Generates a sequence of numbers, math expressions, or letters defined by from, to, length, and step."
         },
         {
             "name": "slider",
@@ -69099,6 +69106,7 @@
                 },
                 {
                     "name": "type",
+                    "description": "Whether the sequence is of numbers, math expressions, or letters.",
                     "values": [
                         "number",
                         "math",
@@ -69106,19 +69114,24 @@
                     ]
                 },
                 {
-                    "name": "from"
+                    "name": "from",
+                    "description": "The first value in the sequence."
                 },
                 {
-                    "name": "to"
+                    "name": "to",
+                    "description": "The last value in the sequence. Used together with from to determine length when length is not specified."
                 },
                 {
-                    "name": "step"
+                    "name": "step",
+                    "description": "The increment between successive values in the sequence."
                 },
                 {
-                    "name": "length"
+                    "name": "length",
+                    "description": "The number of values in the sequence."
                 },
                 {
-                    "name": "exclude"
+                    "name": "exclude",
+                    "description": "Values to exclude from the sequence."
                 },
                 {
                     "name": "valueName"
@@ -71559,6 +71572,7 @@
                 },
                 {
                     "name": "type",
+                    "description": "Whether the sequence is of numbers, math expressions, or letters.",
                     "values": [
                         "number",
                         "math",
@@ -71566,19 +71580,24 @@
                     ]
                 },
                 {
-                    "name": "from"
+                    "name": "from",
+                    "description": "The first value in the sequence."
                 },
                 {
-                    "name": "to"
+                    "name": "to",
+                    "description": "The last value in the sequence. Used together with from to determine length when length is not specified."
                 },
                 {
-                    "name": "step"
+                    "name": "step",
+                    "description": "The increment between successive values in the sequence."
                 },
                 {
-                    "name": "length"
+                    "name": "length",
+                    "description": "The number of values in the sequence."
                 },
                 {
-                    "name": "exclude"
+                    "name": "exclude",
+                    "description": "Values to exclude from the sequence."
                 },
                 {
                     "name": "asList",
@@ -71588,10 +71607,12 @@
                     ]
                 },
                 {
-                    "name": "numToSelect"
+                    "name": "numToSelect",
+                    "description": "How many values to select from the sequence."
                 },
                 {
                     "name": "withReplacement",
+                    "description": "Whether the same value can be selected more than once.",
                     "values": [
                         "true",
                         "false"
@@ -71599,6 +71620,7 @@
                 },
                 {
                     "name": "sort",
+                    "description": "Sort the selected values: unsorted (default), increasing, or decreasing.",
                     "values": [
                         "unsorted",
                         "increasing",
@@ -71613,10 +71635,12 @@
                     ]
                 },
                 {
-                    "name": "excludeCombinations"
+                    "name": "excludeCombinations",
+                    "description": "Lists of value combinations to exclude from the selection."
                 },
                 {
                     "name": "coprime",
+                    "description": "Require the selected numbers to be pairwise coprime (numbers only).",
                     "values": [
                         "true",
                         "false"
@@ -71652,22 +71676,26 @@
                 {
                     "name": "numToSelect",
                     "type": "integer",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "How many values to select from the sequence."
                 },
                 {
                     "name": "withReplacement",
                     "type": "boolean",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Whether the same value can be selected more than once."
                 },
                 {
                     "name": "sort",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Sort the selected values: unsorted (default), increasing, or decreasing."
                 },
                 {
                     "name": "coprime",
                     "type": "boolean",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Require the selected numbers to be pairwise coprime (numbers only)."
                 },
                 {
                     "name": "doenetML",
@@ -71677,7 +71705,8 @@
             ],
             "top": true,
             "acceptsStringChildren": false,
-            "takesIndex": true
+            "takesIndex": true,
+            "summary": "Randomly selects values from a numerical or letter sequence."
         },
         {
             "name": "select",
@@ -72188,6 +72217,7 @@
                 },
                 {
                     "name": "type",
+                    "description": "Whether the sequence is of numbers, math expressions, or letters.",
                     "values": [
                         "number",
                         "math",
@@ -72195,19 +72225,24 @@
                     ]
                 },
                 {
-                    "name": "from"
+                    "name": "from",
+                    "description": "The first value in the sequence."
                 },
                 {
-                    "name": "to"
+                    "name": "to",
+                    "description": "The last value in the sequence. Used together with from to determine length when length is not specified."
                 },
                 {
-                    "name": "step"
+                    "name": "step",
+                    "description": "The increment between successive values in the sequence."
                 },
                 {
-                    "name": "length"
+                    "name": "length",
+                    "description": "The number of values in the sequence."
                 },
                 {
-                    "name": "exclude"
+                    "name": "exclude",
+                    "description": "Values to exclude from the sequence."
                 },
                 {
                     "name": "target"

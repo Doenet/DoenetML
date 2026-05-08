@@ -11,6 +11,11 @@ import { convertUnresolvedAttributesForComponentType } from "../utils/dast/conve
 export default class Sequence extends CompositeComponent {
     static componentType = "sequence";
 
+    static componentDocs = {
+        summary:
+            "Generates a sequence of numbers, math expressions, or letters defined by from, to, length, and step.",
+    };
+
     static takesIndex = true;
 
     static stateVariableToEvaluateAfterReplacements =

@@ -17,6 +17,7 @@ type AttributeObject = {
     validValues?: unknown[];
     valueForTrue?: unknown;
     valueForFalse?: unknown;
+    description?: string;
 };
 
 type ComponentClass = {
@@ -75,6 +76,8 @@ type ComponentClass = {
     additionalSchemaChildren?: string[];
     /** If `true` and `additionalSchemaChildren` is set, then those children will not be inherited by subclasses */
     additionalSchemaChildrenDoNotInherit?: boolean;
+    /** Class-level help metadata: a one-sentence summary plus future-extensible fields. */
+    componentDocs?: { summary?: string };
 };
 
 interface ComponentInfoObjects extends ReturnType<
@@ -89,6 +92,7 @@ type PropertyDescription = {
     isArray: boolean;
     numDimensions?: number;
     indexedArrayDescription?: ArrayElementDescription[];
+    description?: string;
 };
 
 type ArrayElementDescription = {
@@ -116,6 +120,7 @@ type StateVariableDescription = {
     wrappingComponents?: WrappingComponentElement[][];
     getArrayKeysFromVarName?: Function;
     arrayVarNameFromPropIndex?: Function;
+    description?: string;
 };
 
 type PublicStateVariableDescription = {
@@ -127,6 +132,7 @@ type PublicStateVariableDescription = {
     wrappingComponents?: WrappingComponentElement[][];
     getArrayKeysFromVarName?: Function;
     arrayVarNameFromPropIndex?: Function;
+    description?: string;
 };
 
 type SchemaAttribute = {
@@ -135,6 +141,8 @@ type SchemaAttribute = {
     values?: unknown[];
     /** Optional author-facing subset used for autocomplete suggestions. */
     autocompleteValues?: unknown[];
+    /** One-sentence description of the attribute, surfaced in editor help and docs. */
+    description?: string;
 };
 
 type SchemaElement = {
@@ -152,6 +160,8 @@ type SchemaElement = {
     acceptsStringChildren: boolean;
     /** Whether descendants are accessible only via index */
     takesIndex: boolean;
+    /** One-sentence summary of the component, surfaced in editor help and docs. */
+    summary?: string;
 };
 
 /**
@@ -352,6 +362,10 @@ export function getSchema() {
                     name: attrName,
                 };
 
+                if (attrDef.description) {
+                    attrSpec.description = attrDef.description;
+                }
+
                 const booleanAliasValues: string[] = [];
                 if (attrDef.valueForTrue !== undefined) {
                     booleanAliasValues.push("true");
@@ -476,7 +490,7 @@ export function getSchema() {
             }
         }
 
-        elements.push({
+        const element: SchemaElement = {
             name: type,
             children,
             attributes,
@@ -486,10 +500,57 @@ export function getSchema() {
                 documentChildrenSet.has(cClass.componentType),
             acceptsStringChildren,
             takesIndex: cClass.takesIndex ?? false,
-        });
+        };
+
+        const summary = cClass.componentDocs?.summary;
+        if (summary) {
+            element.summary = summary;
+        }
+
+        elements.push(element);
     }
 
     return { elements };
+}
+
+/**
+ * Print a coverage summary to stdout listing schema elements, attributes, and
+ * properties that lack help (`summary`/`description`). Warnings only — never
+ * fails the build. Helps track authoring progress as descriptions are
+ * backfilled across the ~200+ component classes.
+ */
+export function reportHelpCoverage(
+    elements: ReturnType<typeof getSchema>["elements"],
+) {
+    let elementsWithSummary = 0;
+    let attributesWithDescription = 0;
+    let propertiesWithDescription = 0;
+    let totalAttributes = 0;
+    let totalProperties = 0;
+
+    for (const element of elements) {
+        if (element.summary) {
+            elementsWithSummary++;
+        }
+        for (const attr of element.attributes) {
+            totalAttributes++;
+            if (attr.description) {
+                attributesWithDescription++;
+            }
+        }
+        for (const prop of element.properties) {
+            totalProperties++;
+            if (prop.description) {
+                propertiesWithDescription++;
+            }
+        }
+    }
+
+    console.log(
+        `Help coverage: ${elementsWithSummary}/${elements.length} elements have summary, ` +
+            `${attributesWithDescription}/${totalAttributes} attributes have description, ` +
+            `${propertiesWithDescription}/${totalProperties} properties have description`,
+    );
 }
 
 function propFromDescription({
@@ -570,6 +631,10 @@ function singlePropFromDescription({
         type: componentType,
         isArray: description.isArray,
     };
+
+    if (description.description) {
+        prop.description = description.description;
+    }
 
     if (description.isArray) {
         const numDimensions = description.numDimensions || 1;

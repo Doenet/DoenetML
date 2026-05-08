@@ -114875,22 +114875,26 @@
                 {
                     "name": "numToSelect",
                     "type": "integer",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "How many values to select from the sequence."
                 },
                 {
                     "name": "withReplacement",
                     "type": "boolean",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Whether the same value can be selected more than once."
                 },
                 {
                     "name": "sort",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Sort the selected values: unsorted (default), increasing, or decreasing."
                 },
                 {
                     "name": "coprime",
                     "type": "boolean",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Require the selected numbers to be pairwise coprime (numbers only)."
                 },
                 {
                     "name": "doenetML",
