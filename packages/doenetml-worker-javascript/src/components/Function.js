@@ -34,6 +34,11 @@ import {
 
 export default class Function extends InlineComponent {
     static componentType = "function";
+
+    static componentDocs = {
+        summary:
+            "A mathematical function, defined by formula or interpolation.",
+    };
     static rendererType = "math";
 
     static primaryStateVariableForDefinition = "numericalfShadow";
@@ -60,18 +65,21 @@ export default class Function extends InlineComponent {
             ],
         };
         attributes.expand = {
+            description: "Whether to expand the function's formula.",
             createComponentOfType: "boolean",
             createStateVariable: "expandSpecified",
             defaultValue: false,
             public: true,
         };
         attributes.xscale = {
+            description: "Scale factor used along the x-axis.",
             createComponentOfType: "number",
             createStateVariable: "xscale",
             defaultValue: 1,
             public: true,
         };
         attributes.yscale = {
+            description: "Scale factor used along the y-axis.",
             createComponentOfType: "number",
             createStateVariable: "yscale",
             defaultValue: 1,
@@ -93,6 +101,7 @@ export default class Function extends InlineComponent {
         Object.assign(attributes, returnLabelAttributes());
 
         attributes.applyStyleToLabel = {
+            description: "Whether to apply the function's style to its label.",
             createComponentOfType: "boolean",
             createStateVariable: "applyStyleToLabel",
             defaultValue: false,
@@ -101,6 +110,7 @@ export default class Function extends InlineComponent {
         };
 
         attributes.labelPosition = {
+            description: "Position of the function's label.",
             createComponentOfType: "text",
             createStateVariable: "labelPosition",
             defaultValue: "upperRight",
@@ -120,6 +130,8 @@ export default class Function extends InlineComponent {
         };
 
         attributes.layer = {
+            description:
+                "Z-order layer index for stacking the function on a graph.",
             createComponentOfType: "number",
             createStateVariable: "layer",
             defaultValue: 0,
@@ -201,6 +213,7 @@ export default class Function extends InlineComponent {
         Object.assign(stateVariableDefinitions, styleDescriptionDefinitions);
 
         stateVariableDefinitions.styleDescription = {
+            description: "A textual description of the function's style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -247,6 +260,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "function".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -304,6 +318,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.numInputs = {
+            description: "Number of input variables of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -365,6 +380,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.numOutputs = {
+            description: "Number of output values of the function.",
             defaultValue: 1,
             hasEssential: true,
             public: true,
@@ -423,6 +439,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.domain = {
+            description: "Domain interval(s) of the function.",
             isArray: true,
             public: true,
             shadowingInstructions: {
@@ -548,6 +565,8 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.simplify = {
+            description:
+                "Level of simplification applied when displaying the formula.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -620,6 +639,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.expand = {
+            description: "Whether to expand the formula.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -709,6 +729,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.symbolic = {
+            description: "Whether the function is treated symbolically.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -762,6 +783,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.variables = {
+            description: "The names of the function's input variables.",
             isArray: true,
             public: true,
             shadowingInstructions: {
@@ -1085,6 +1107,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.formula = {
+            description: "The symbolic formula of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -2726,6 +2749,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.latex = {
+            description: "The function rendered as a LaTeX string.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -2793,6 +2817,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.text = {
+            description: "The function rendered as a plain text string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -2993,6 +3018,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.numMinima = {
+            description: "Number of local minima of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -3012,6 +3038,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.minima = {
+            description: "Local minima of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -3210,6 +3237,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.globalMinimum = {
+            description: "The global minimum of the function (if attained).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -3301,6 +3329,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.globalInfimum = {
+            description: "The global infimum of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -3493,6 +3522,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.numMaxima = {
+            description: "Number of local maxima of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -3512,6 +3542,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.maxima = {
+            description: "Local maxima of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -3710,6 +3741,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.globalMaximum = {
+            description: "The global maximum of the function (if attained).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -3801,6 +3833,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.globalSupremum = {
+            description: "The global supremum of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -3892,6 +3925,8 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.numExtrema = {
+            description:
+                "Number of local extrema (minima + maxima) of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -3942,6 +3977,7 @@ export default class Function extends InlineComponent {
         };
 
         stateVariableDefinitions.extrema = {
+            description: "Local extrema (minima + maxima) of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

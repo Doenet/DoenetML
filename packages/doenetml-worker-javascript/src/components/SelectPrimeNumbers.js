@@ -13,6 +13,9 @@ import CompositeComponent from "./abstract/CompositeComponent";
 export default class SelectPrimeNumbers extends CompositeComponent {
     static componentType = "selectPrimeNumbers";
 
+    static componentDocs = {
+        summary: "Randomly selects prime numbers from a range.",
+    };
     static takesIndex = true;
 
     static allowInSchemaAsComponent = ["integer"];
@@ -23,12 +26,16 @@ export default class SelectPrimeNumbers extends CompositeComponent {
         let attributes = super.createAttributesObject();
 
         attributes.from = {
+            description:
+                "Lower bound (inclusive) of the prime range to select from.",
             createComponentOfType: "integer",
             createStateVariable: "from",
             defaultValue: 2,
             public: true,
         };
         attributes.to = {
+            description:
+                "Upper bound (inclusive) of the prime range to select from.",
             createComponentOfType: "integer",
             createStateVariable: "to",
             defaultValue: 100,
@@ -36,6 +43,7 @@ export default class SelectPrimeNumbers extends CompositeComponent {
         };
 
         attributes.exclude = {
+            description: "Primes to exclude from the selection.",
             createComponentOfType: "numberList",
             createStateVariable: "exclude",
             defaultValue: [],
@@ -43,18 +51,22 @@ export default class SelectPrimeNumbers extends CompositeComponent {
         };
 
         attributes.numToSelect = {
+            description: "How many prime numbers to select.",
             createComponentOfType: "integer",
             createStateVariable: "numToSelect",
             defaultValue: 1,
             public: true,
         };
         attributes.withReplacement = {
+            description:
+                "Whether the same prime can be selected more than once.",
             createComponentOfType: "boolean",
             createStateVariable: "withReplacement",
             defaultValue: false,
             public: true,
         };
         attributes.sort = {
+            description: "Sort order applied to the selected primes.",
             createComponentOfType: "text",
             createStateVariable: "sort",
             defaultValue: "unsorted",

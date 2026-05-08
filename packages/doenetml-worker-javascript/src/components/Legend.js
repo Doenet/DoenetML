@@ -3,10 +3,14 @@ import GraphicalComponent from "./abstract/GraphicalComponent";
 export default class Legend extends GraphicalComponent {
     static componentType = "legend";
 
+    static componentDocs = {
+        summary: "A legend describing the contents of a figure or graph.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.position = {
+            description: "Position of the legend on the graph.",
             createComponentOfType: "text",
             createStateVariable: "position",
             defaultValue: "upperRight",
@@ -17,6 +21,8 @@ export default class Legend extends GraphicalComponent {
         };
 
         attributes.displayClosedSwatches = {
+            description:
+                "Whether to render closed/filled swatches in the legend.",
             createComponentOfType: "boolean",
             createStateVariable: "displayClosedSwatches",
             defaultValue: false,

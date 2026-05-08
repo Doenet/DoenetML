@@ -16,6 +16,10 @@ export class Ol extends BlockComponent {
         });
     }
     static componentType = "ol";
+
+    static componentDocs = {
+        summary: "An ordered list.",
+    };
     static rendererType = "list";
     static renderChildren = true;
     static canDisplayChildErrors = true;
@@ -23,6 +27,7 @@ export class Ol extends BlockComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.label = {
+            description: "Label rendered before each list item.",
             createComponentOfType: "text",
             createStateVariable: "label",
             defaultValue: null,
@@ -128,6 +133,10 @@ export class Ol extends BlockComponent {
 
 export class Ul extends Ol {
     static componentType = "ul";
+
+    static componentDocs = {
+        summary: "An unordered list.",
+    };
     static rendererType = "list";
 
     static returnStateVariableDefinitions() {
@@ -153,6 +162,10 @@ export class Li extends BaseComponent {
         });
     }
     static componentType = "li";
+
+    static componentDocs = {
+        summary: "A list item within <ol>/<ul>.",
+    };
     static rendererType = "list";
     static renderChildren = true;
     static canDisplayChildErrors = true;
@@ -193,6 +206,7 @@ export class Li extends BaseComponent {
         };
 
         stateVariableDefinitions.text = {
+            description: "The list's content rendered as plain text.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

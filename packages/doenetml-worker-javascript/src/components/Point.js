@@ -33,6 +33,10 @@ export default class Point extends GraphicalComponent {
     }
     static componentType = "point";
 
+    static componentDocs = {
+        summary:
+            "A point with coordinates that can be displayed and dragged on a graph.",
+    };
     static canBeInList = true;
 
     // Note: for other components with public point state variables,
@@ -50,6 +54,7 @@ export default class Point extends GraphicalComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.draggable = {
+            description: "Whether the point can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -76,6 +81,7 @@ export default class Point extends GraphicalComponent {
         Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.labelPosition = {
+            description: "Position of the point's label.",
             createComponentOfType: "text",
             createStateVariable: "labelPosition",
             defaultValue: "upperRight",
@@ -95,6 +101,7 @@ export default class Point extends GraphicalComponent {
         };
 
         attributes.showCoordsWhenDragging = {
+            description: "Whether to show coordinate labels while dragging.",
             createComponentOfType: "boolean",
             createStateVariable: "showCoordsWhenDragging",
             defaultValue: true,
@@ -103,6 +110,7 @@ export default class Point extends GraphicalComponent {
         };
 
         attributes.addControls = {
+            description: "Whether to render interactive control handles.",
             createComponentOfType: "text",
             createStateVariable: "addControls",
             defaultValue: "both",
@@ -361,6 +369,7 @@ export default class Point extends GraphicalComponent {
         Object.assign(stateVariableDefinitions, styleDescriptionDefinitions);
 
         stateVariableDefinitions.styleDescription = {
+            description: "A textual description of the point's style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -394,6 +403,7 @@ export default class Point extends GraphicalComponent {
         };
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "point".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -450,6 +460,8 @@ export default class Point extends GraphicalComponent {
         };
 
         stateVariableDefinitions.hideOffGraphIndicator = {
+            description:
+                "Whether to suppress the off-graph indicator when out of view.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -527,6 +539,7 @@ export default class Point extends GraphicalComponent {
         };
 
         stateVariableDefinitions.numDimensions = {
+            description: "Number of dimensions of the point.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -925,6 +938,7 @@ export default class Point extends GraphicalComponent {
         };
 
         stateVariableDefinitions.xs = {
+            description: "The point's coordinates as a list.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
@@ -1064,6 +1078,7 @@ export default class Point extends GraphicalComponent {
         };
 
         stateVariableDefinitions.coords = {
+            description: "The point's coordinates as a math expression.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
@@ -1149,6 +1164,7 @@ export default class Point extends GraphicalComponent {
         };
 
         stateVariableDefinitions.latex = {
+            description: "The point rendered as a LaTeX string.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {

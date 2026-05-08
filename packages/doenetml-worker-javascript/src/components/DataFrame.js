@@ -2,12 +2,17 @@ import BaseComponent from "./abstract/BaseComponent";
 
 export default class DataFrame extends BaseComponent {
     static componentType = "dataFrame";
+
+    static componentDocs = {
+        summary: "A 2D table of typed data values.",
+    };
     static rendererType = undefined;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.source = {
+            description: "URL or identifier of the data source.",
             createComponentOfType: "text",
             createStateVariable: "source",
             required: true, // not implemented yet
@@ -16,6 +21,8 @@ export default class DataFrame extends BaseComponent {
         };
 
         attributes.hasHeader = {
+            description:
+                "Whether the first row of data contains column headers.",
             createComponentOfType: "boolean",
             createStateVariable: "hasHeader",
             defaultValue: true,
@@ -71,6 +78,8 @@ export default class DataFrame extends BaseComponent {
                 {
                     variableName: "numRows",
                     public: true,
+                    description:
+                        "The full data frame (rows × columns of typed values).",
                     shadowingInstructions: {
                         createComponentOfType: "integer",
                     },
@@ -296,6 +305,7 @@ export default class DataFrame extends BaseComponent {
         };
 
         stateVariableDefinitions.means = {
+            description: "Mean of each numeric column in the data frame.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

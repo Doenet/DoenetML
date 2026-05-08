@@ -3,6 +3,10 @@ import { breakStringsAndOthersIntoComponentsByStringCommas } from "./commonsugar
 
 export default class CollaborateGroups extends BaseComponent {
     static componentType = "collaborateGroups";
+
+    static componentDocs = {
+        summary: "Defines collaboration groups for student input.",
+    };
     static rendererType = undefined;
 
     static excludeFromSchema = true;

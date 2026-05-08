@@ -3,6 +3,10 @@ import ConstraintComponent from "./abstract/ConstraintComponent";
 export default class ConstrainToAngles extends ConstraintComponent {
     static componentType = "constrainToAngles";
 
+    static componentDocs = {
+        summary:
+            "Constrains a graphical component's position to specified angles.",
+    };
     static excludeFromSchema = true;
 
     static returnChildLogic(args) {

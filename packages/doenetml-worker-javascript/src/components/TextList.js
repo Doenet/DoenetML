@@ -6,6 +6,9 @@ import { convertUnresolvedAttributesForComponentType } from "../utils/dast/conve
 export default class TextList extends CompositeComponent {
     static componentType = "textList";
 
+    static componentDocs = {
+        summary: "A list of texts.",
+    };
     static takesIndex = true;
 
     static stateVariableToEvaluateAfterReplacements =
@@ -31,6 +34,8 @@ export default class TextList extends CompositeComponent {
         let attributes = super.createAttributesObject();
 
         attributes.unordered = {
+            description:
+                "Whether the order of items should be treated as unordered.",
             createComponentOfType: "boolean",
             createStateVariable: "unordered",
             defaultValue: false,
@@ -38,6 +43,7 @@ export default class TextList extends CompositeComponent {
         };
 
         attributes.maxNumber = {
+            description: "Maximum number of items to retain in the list.",
             createComponentOfType: "number",
             createStateVariable: "maxNumber",
             defaultValue: Infinity,
@@ -117,6 +123,7 @@ export default class TextList extends CompositeComponent {
         };
 
         stateVariableDefinitions.numComponents = {
+            description: "The number of items in the text list.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

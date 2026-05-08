@@ -17,6 +17,10 @@ export default class P extends BlockComponent {
         });
     }
     static componentType = "p";
+
+    static componentDocs = {
+        summary: "A paragraph of inline content.",
+    };
     static renderChildren = true;
 
     static canDisplayChildErrors = true;
@@ -58,6 +62,7 @@ export default class P extends BlockComponent {
         );
 
         stateVariableDefinitions.text = {
+            description: "The paragraph's text content.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

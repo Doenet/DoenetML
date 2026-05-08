@@ -4,10 +4,16 @@ import ConstraintComponent from "./abstract/ConstraintComponent";
 export default class ConstrainTo extends ConstraintComponent {
     static componentType = "constrainTo";
 
+    static componentDocs = {
+        summary:
+            "Constrains a graphical component's position to match another component.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.relativeToGraphScales = {
+            description:
+                "Whether the constraint is interpreted relative to the enclosing graph's scales.",
             createComponentOfType: "boolean",
             createStateVariable: "relativeToGraphScales",
             defaultValue: false,

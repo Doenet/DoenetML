@@ -9,6 +9,10 @@ export default class Ref extends InlineComponent {
         });
     }
     static componentType = "ref";
+
+    static componentDocs = {
+        summary: "References another component by name.",
+    };
     static renderChildren = true;
 
     static createAttributesObject() {
@@ -22,6 +26,7 @@ export default class Ref extends InlineComponent {
         };
 
         attributes.textType = {
+            description: "Type of text to use for the reference label.",
             createComponentOfType: "text",
             createStateVariable: "textType",
             defaultValue: "type-global",
@@ -143,6 +148,7 @@ export default class Ref extends InlineComponent {
         };
 
         stateVariableDefinitions.url = {
+            description: "The resolved URL of the referenced component.",
             forRenderer: true,
             additionalStateVariablesDefined: [
                 {
@@ -207,6 +213,7 @@ export default class Ref extends InlineComponent {
         };
 
         stateVariableDefinitions.linkText = {
+            description: "The display text used for the link.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

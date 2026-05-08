@@ -35,6 +35,9 @@ export default class BooleanInput extends Input {
     }
     static componentType = "booleanInput";
 
+    static componentDocs = {
+        summary: "An interactive boolean (toggle/checkbox) input.",
+    };
     static variableForImplicitProp = "value";
 
     static createAttributesObject() {
@@ -44,6 +47,8 @@ export default class BooleanInput extends Input {
             createStateVariable: "prefill",
             defaultValue: false,
             public: true,
+            description:
+                "The initial value of the input before the student interacts.",
         };
         attributes.asToggleButton = {
             createComponentOfType: "boolean",
@@ -51,9 +56,12 @@ export default class BooleanInput extends Input {
             defaultValue: false,
             forRenderer: true,
             public: true,
+            description:
+                "Whether to render the input as a toggle button rather than a checkbox.",
         };
         attributes.bindValueTo = {
             createComponentOfType: "boolean",
+            description: "Two-way binding target for the input's value.",
         };
 
         attributes.draggable = {
@@ -62,6 +70,8 @@ export default class BooleanInput extends Input {
             defaultValue: true,
             public: true,
             forRenderer: true,
+            description:
+                "Whether the input can be dragged on a graph by its anchor.",
         };
 
         Object.assign(attributes, returnAnchorAttributes());
@@ -114,6 +124,8 @@ export default class BooleanInput extends Input {
         Object.assign(stateVariableDefinitions, anchorDefinition);
 
         stateVariableDefinitions.valueChanged = {
+            description:
+                "Whether the input's value has been changed from its prefill value.",
             public: true,
             hasEssential: true,
             defaultValue: false,
@@ -140,6 +152,7 @@ export default class BooleanInput extends Input {
         };
 
         stateVariableDefinitions.value = {
+            description: "The current boolean value of the input.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -230,6 +243,8 @@ export default class BooleanInput extends Input {
         };
 
         stateVariableDefinitions.text = {
+            description:
+                'The current value rendered as a text string ("true" or "false").',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

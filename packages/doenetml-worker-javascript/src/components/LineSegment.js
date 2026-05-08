@@ -24,10 +24,14 @@ export default class LineSegment extends GraphicalComponent {
     }
     static componentType = "lineSegment";
 
+    static componentDocs = {
+        summary: "A line segment between two endpoints.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.draggable = {
+            description: "Whether the line segment can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -44,6 +48,7 @@ export default class LineSegment extends GraphicalComponent {
         };
 
         attributes.addControls = {
+            description: "Whether to render interactive control handles.",
             createComponentOfType: "text",
             createStateVariable: "addControls",
             defaultValue: "endpoints",
@@ -56,6 +61,7 @@ export default class LineSegment extends GraphicalComponent {
         };
 
         attributes.showCoordsWhenDragging = {
+            description: "Whether to show coordinate labels while dragging.",
             createComponentOfType: "boolean",
             createStateVariable: "showCoordsWhenDragging",
             defaultValue: true,
@@ -82,6 +88,7 @@ export default class LineSegment extends GraphicalComponent {
         Object.assign(stateVariableDefinitions, returnStickyGroupDefinitions());
 
         stateVariableDefinitions.styleDescription = {
+            description: "A textual description of the line segment's style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -128,6 +135,7 @@ export default class LineSegment extends GraphicalComponent {
         };
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including "line segment".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -147,6 +155,7 @@ export default class LineSegment extends GraphicalComponent {
         };
 
         stateVariableDefinitions.endpointsDraggable = {
+            description: "Whether each endpoint can be dragged independently.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -186,6 +195,7 @@ export default class LineSegment extends GraphicalComponent {
         };
 
         stateVariableDefinitions.numDimensions = {
+            description: "Number of dimensions the segment lives in.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -438,6 +448,7 @@ export default class LineSegment extends GraphicalComponent {
 
         stateVariableDefinitions.endpoints = {
             public: true,
+            description: "The endpoints of the line segment.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -793,6 +804,7 @@ export default class LineSegment extends GraphicalComponent {
         };
 
         stateVariableDefinitions.length = {
+            description: "The length of the line segment.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
@@ -1127,6 +1139,7 @@ export default class LineSegment extends GraphicalComponent {
         };
 
         stateVariableDefinitions.slope = {
+            description: "The slope of the line segment (2D only).",
             public: true,
             isLocation: true,
             shadowingInstructions: {

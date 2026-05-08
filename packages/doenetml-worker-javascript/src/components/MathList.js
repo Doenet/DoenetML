@@ -14,6 +14,9 @@ import { returnUnorderedListStateVariableDefinitions } from "../utils/unorderedL
 export default class MathList extends CompositeComponent {
     static componentType = "mathList";
 
+    static componentDocs = {
+        summary: "A list of math expressions.",
+    };
     static takesIndex = true;
 
     static stateVariableToEvaluateAfterReplacements =
@@ -44,6 +47,7 @@ export default class MathList extends CompositeComponent {
             defaultValue: false,
         };
         attributes.maxNumber = {
+            description: "Maximum number of items to retain in the list.",
             createComponentOfType: "number",
             createStateVariable: "maxNumber",
             defaultValue: Infinity,
@@ -78,6 +82,8 @@ export default class MathList extends CompositeComponent {
         }
 
         attributes.functionSymbols = {
+            description:
+                "Symbols treated as function names when parsing items.",
             createComponentOfType: "textList",
             createStateVariable: "functionSymbols",
             defaultValue: ["f", "g"],
@@ -96,6 +102,8 @@ export default class MathList extends CompositeComponent {
         };
 
         attributes.splitSymbols = {
+            description:
+                "Whether multi-character symbols are split into a product of variables.",
             createComponentOfType: "boolean",
             createStateVariable: "splitSymbols",
             defaultValue: true,
@@ -105,6 +113,8 @@ export default class MathList extends CompositeComponent {
         };
 
         attributes.parseScientificNotation = {
+            description:
+                "Whether to parse expressions like 1e3 as scientific notation.",
             createComponentOfType: "boolean",
             createStateVariable: "parseScientificNotation",
             defaultValue: false,
@@ -172,6 +182,8 @@ export default class MathList extends CompositeComponent {
         };
 
         stateVariableDefinitions.mergeMathLists = {
+            description:
+                "Whether nested math lists are merged into the parent list.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -197,6 +209,7 @@ export default class MathList extends CompositeComponent {
         };
 
         stateVariableDefinitions.numComponents = {
+            description: "The number of items in the math list.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

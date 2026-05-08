@@ -8,17 +8,26 @@ nlp.extend(compromise_numbers);
 
 export default class Pluralize extends Text {
     static componentType = "pluralize";
+
+    static componentDocs = {
+        summary:
+            "Renders a word in its singular or plural form based on a count.",
+    };
     static rendererType = "text";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.pluralForm = {
+            description:
+                "Custom plural form to use (overrides automatic pluralization).",
             createComponentOfType: "text",
             createStateVariable: "pluralForm",
             defaultValue: null,
             public: true,
         };
         attributes.basedOnNumber = {
+            description:
+                "Number that determines whether to use the singular or plural form.",
             createComponentOfType: "number",
             createStateVariable: "basedOnNumber",
             defaultValue: null,
@@ -38,6 +47,7 @@ export default class Pluralize extends Text {
         });
 
         stateVariableDefinitions.value = {
+            description: "The selected (singular or plural) word.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -197,6 +207,7 @@ export default class Pluralize extends Text {
         };
 
         stateVariableDefinitions.text = {
+            description: "The selected word as a text string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

@@ -19,6 +19,8 @@ export default class TextBaseOperatorOfMath extends TextComponent {
         let constructor = this;
 
         stateVariableDefinitions.value = {
+            description:
+                "The text result of applying this operator to its child math values.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

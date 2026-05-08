@@ -20,6 +20,10 @@ export default class Document extends BaseComponent {
         });
     }
     static componentType = "document";
+
+    static componentDocs = {
+        summary: "The top-level container for a DoenetML document.",
+    };
     static rendererType = "section";
     static renderChildren = true;
 
@@ -41,6 +45,8 @@ export default class Document extends BaseComponent {
         delete attributes.isPotentialResponse;
 
         attributes.documentWideCheckWork = {
+            description:
+                "Whether to show a single check-work button for the entire document.",
             createComponentOfType: "boolean",
             createStateVariable: "documentWideCheckWork",
             defaultValue: false,
@@ -62,6 +68,8 @@ export default class Document extends BaseComponent {
             defaultValue: false,
         };
         attributes.submitLabel = {
+            description:
+                "Label for the submit button when correctness is shown.",
             createComponentOfType: "text",
             createStateVariable: "submitLabel",
             defaultValue: "Check Work",
@@ -69,6 +77,8 @@ export default class Document extends BaseComponent {
             forRenderer: true,
         };
         attributes.submitLabelNoCorrectness = {
+            description:
+                "Label for the submit button when correctness is not shown.",
             createComponentOfType: "text",
             createStateVariable: "submitLabelNoCorrectness",
             defaultValue: "Submit Response",
@@ -77,6 +87,8 @@ export default class Document extends BaseComponent {
         };
 
         attributes.displayDigitsForCreditAchieved = {
+            description:
+                "Number of significant digits to display for credit achieved.",
             createComponentOfType: "integer",
             createStateVariable: "displayDigitsForCreditAchieved",
             defaultValue: 3,
@@ -173,6 +185,7 @@ export default class Document extends BaseComponent {
         };
 
         stateVariableDefinitions.title = {
+            description: "The document's title.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -441,6 +454,8 @@ export default class Document extends BaseComponent {
         };
 
         stateVariableDefinitions.creditAchieved = {
+            description:
+                "Aggregate credit achieved (0 to 1) for scored content in the document.",
             public: true,
             forRenderer: true,
             defaultValue: 0,

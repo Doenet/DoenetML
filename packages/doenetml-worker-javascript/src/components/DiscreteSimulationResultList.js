@@ -23,6 +23,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.width = {
+            description: "Display width of the results list.",
             createComponentOfType: "componentSize",
             createStateVariable: "width",
             defaultValue: { size: 100, isAbsolute: false },
@@ -30,6 +31,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
             forRenderer: true,
         };
         attributes.minNumRows = {
+            description: "Minimum number of rows to display.",
             createComponentOfType: "number",
             createStateVariable: "minNumRows",
             defaultValue: 1,
@@ -37,6 +39,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
             forRenderer: true,
         };
         attributes.minNumColumns = {
+            description: "Minimum number of columns to display.",
             createComponentOfType: "number",
             createStateVariable: "minNumColumns",
             defaultValue: 1,
@@ -48,6 +51,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
         };
 
         attributes.columnHeaders = {
+            description: "Header labels for the columns.",
             createComponentOfType: "boolean",
             createStateVariable: "columnHeaders",
             defaultValue: true,
@@ -55,6 +59,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
             forRenderer: true,
         };
         attributes.rowHeaders = {
+            description: "Header labels for the rows.",
             createComponentOfType: "boolean",
             createStateVariable: "rowHeaders",
             defaultValue: true,
@@ -62,6 +67,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
             forRenderer: true,
         };
         attributes.fixedRowsTop = {
+            description: "Number of top rows fixed in place when scrolling.",
             createComponentOfType: "integer",
             createStateVariable: "fixedRowsTop",
             defaultValue: 0,
@@ -70,6 +76,8 @@ export default class DiscreteSimulationResultList extends BlockComponent {
             forRenderer: true,
         };
         attributes.fixedColumnsLeft = {
+            description:
+                "Number of left columns fixed in place when scrolling.",
             createComponentOfType: "integer",
             createStateVariable: "fixedColumnsLeft",
             defaultValue: 0,
@@ -78,6 +86,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
             forRenderer: true,
         };
         attributes.hiddenColumns = {
+            description: "Indices of columns to hide.",
             createComponentOfType: "numberList",
             createStateVariable: "hiddenColumns",
             defaultValue: [],
@@ -85,6 +94,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
             forRenderer: true,
         };
         attributes.hiddenRows = {
+            description: "Indices of rows to hide.",
             createComponentOfType: "numberList",
             createStateVariable: "hiddenRows",
             defaultValue: [],
@@ -200,6 +210,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
         };
 
         stateVariableDefinitions.numRows = {
+            description: "Number of rows in the results list.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -225,6 +236,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
         };
 
         stateVariableDefinitions.numColumns = {
+            description: "Number of columns in the results list.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -254,6 +266,7 @@ export default class DiscreteSimulationResultList extends BlockComponent {
         };
 
         stateVariableDefinitions.height = {
+            description: "Display height of the results list.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "componentSize",

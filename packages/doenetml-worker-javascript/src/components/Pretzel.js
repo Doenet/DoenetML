@@ -129,6 +129,11 @@ export default class Pretzel extends BlockScoredComponent {
     }
 
     static componentType = "pretzel";
+
+    static componentDocs = {
+        summary:
+            "A figure for visualizing logical compositions of subsets of the reals.",
+    };
     static renderChildren = true;
 
     static additionalSchemaChildren = ["problem"];
@@ -138,6 +143,8 @@ export default class Pretzel extends BlockScoredComponent {
         const attributes = super.createAttributesObject();
 
         attributes.maxNumColumns = {
+            description:
+                "Maximum number of columns when arranging child problems.",
             createComponentOfType: "integer",
             createStateVariable: "maxNumColumns",
             defaultValue: 2,
@@ -147,6 +154,7 @@ export default class Pretzel extends BlockScoredComponent {
         };
 
         attributes.mode = {
+            description: "Arrangement mode for the child problems.",
             createPrimitiveOfType: "string",
             createStateVariable: "mode",
             defaultValue: "pretzel",
@@ -235,6 +243,7 @@ export default class Pretzel extends BlockScoredComponent {
         };
 
         stateVariableDefinitions.numProblems = {
+            description: "The number of child problems.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -256,6 +265,7 @@ export default class Pretzel extends BlockScoredComponent {
         };
 
         stateVariableDefinitions.currentResponses = {
+            description: "The current responses across all child problems.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -340,6 +350,7 @@ export default class Pretzel extends BlockScoredComponent {
         };
 
         stateVariableDefinitions.numSubmittedResponses = {
+            description: "The number of responses submitted.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -366,6 +377,7 @@ export default class Pretzel extends BlockScoredComponent {
         };
 
         stateVariableDefinitions.submittedResponses = {
+            description: "The most recently submitted responses.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

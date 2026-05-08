@@ -203,6 +203,7 @@ export default class DirectionComponent extends BaseComponent {
         };
 
         stateVariableDefinitions.direction = {
+            description: "The normalized direction as a unit vector.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",

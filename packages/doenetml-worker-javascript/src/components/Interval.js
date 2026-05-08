@@ -4,6 +4,10 @@ export default class Interval extends MathComponent {
     static componentType = "interval";
     static rendererType = "math";
 
+    static componentDocs = {
+        summary: "A math expression treated as an interval of real numbers.",
+    };
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         delete attributes.createIntervals;
@@ -14,6 +18,8 @@ export default class Interval extends MathComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.createIntervals = {
+            description:
+                "Whether this math component renders intervals as intervals (always true for <interval>).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",

@@ -17,9 +17,13 @@ export default class Spreadsheet extends BlockComponent {
     }
     static componentType = "spreadsheet";
 
+    static componentDocs = {
+        summary: "An interactive spreadsheet input.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.width = {
+            description: "Display width of the spreadsheet.",
             createComponentOfType: "componentSize",
             createStateVariable: "width",
             defaultValue: { size: 100, isAbsolute: false },
@@ -27,6 +31,7 @@ export default class Spreadsheet extends BlockComponent {
             forRenderer: true,
         };
         attributes.minNumRows = {
+            description: "Minimum number of rows displayed.",
             createComponentOfType: "number",
             createStateVariable: "minNumRows",
             // defaultValue: 1,
@@ -35,6 +40,7 @@ export default class Spreadsheet extends BlockComponent {
             forRenderer: true,
         };
         attributes.minNumColumns = {
+            description: "Minimum number of columns displayed.",
             createComponentOfType: "number",
             createStateVariable: "minNumColumns",
             // defaultValue: 1,
@@ -47,6 +53,7 @@ export default class Spreadsheet extends BlockComponent {
         };
 
         attributes.columnHeaders = {
+            description: "Header labels for the columns.",
             createComponentOfType: "boolean",
             createStateVariable: "columnHeaders",
             defaultValue: true,
@@ -54,6 +61,7 @@ export default class Spreadsheet extends BlockComponent {
             forRenderer: true,
         };
         attributes.rowHeaders = {
+            description: "Header labels for the rows.",
             createComponentOfType: "boolean",
             createStateVariable: "rowHeaders",
             defaultValue: true,
@@ -61,6 +69,7 @@ export default class Spreadsheet extends BlockComponent {
             forRenderer: true,
         };
         attributes.fixedRowsTop = {
+            description: "Number of top rows fixed in place when scrolling.",
             createComponentOfType: "integer",
             createStateVariable: "fixedRowsTop",
             defaultValue: 0,
@@ -69,6 +78,8 @@ export default class Spreadsheet extends BlockComponent {
             forRenderer: true,
         };
         attributes.fixedColumnsLeft = {
+            description:
+                "Number of left columns fixed in place when scrolling.",
             createComponentOfType: "integer",
             createStateVariable: "fixedColumnsLeft",
             defaultValue: 0,
@@ -77,6 +88,7 @@ export default class Spreadsheet extends BlockComponent {
             forRenderer: true,
         };
         attributes.hiddenColumns = {
+            description: "Indices of columns to hide.",
             createComponentOfType: "numberList",
             createStateVariable: "hiddenColumns",
             defaultValue: [],
@@ -84,6 +96,7 @@ export default class Spreadsheet extends BlockComponent {
             forRenderer: true,
         };
         attributes.hiddenRows = {
+            description: "Indices of rows to hide.",
             createComponentOfType: "numberList",
             createStateVariable: "hiddenRows",
             defaultValue: [],
@@ -160,6 +173,7 @@ export default class Spreadsheet extends BlockComponent {
         };
 
         stateVariableDefinitions.numRows = {
+            description: "The number of rows.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -204,6 +218,7 @@ export default class Spreadsheet extends BlockComponent {
         };
 
         stateVariableDefinitions.numColumns = {
+            description: "The number of columns.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -250,6 +265,7 @@ export default class Spreadsheet extends BlockComponent {
         };
 
         stateVariableDefinitions.height = {
+            description: "Display height of the spreadsheet.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "componentSize",
@@ -297,6 +313,7 @@ export default class Spreadsheet extends BlockComponent {
 
         stateVariableDefinitions.cells = {
             public: true,
+            description: "The raw text contents of all cells.",
             shadowingInstructions: {
                 createComponentOfType: "cell",
                 returnWrappingComponents(prefix) {
@@ -724,6 +741,7 @@ export default class Spreadsheet extends BlockComponent {
         stateVariableDefinitions.evaluatedCells = {
             isArray: true,
             public: true,
+            description: "The evaluated values of all cells.",
             shadowingInstructions: {
                 createComponentOfType: "cell",
                 returnWrappingComponents(prefix) {
@@ -1088,6 +1106,7 @@ export default class Spreadsheet extends BlockComponent {
             isArray: true,
             numDimensions: 2,
             public: true,
+            description: "Cells whose values are interpreted as points.",
             shadowingInstructions: {
                 createComponentOfType: "point",
             },

@@ -14,6 +14,10 @@ export default class RegularPolygon extends Polygon {
     }
 
     static componentType = "regularPolygon";
+
+    static componentDocs = {
+        summary: "A regular polygon with a given number of sides.",
+    };
     static rendererType = "polygon";
 
     static createAttributesObject() {
@@ -74,6 +78,7 @@ export default class RegularPolygon extends Polygon {
         };
 
         attributes.addControls = {
+            description: "Whether to render interactive control handles.",
             createComponentOfType: "text",
             createStateVariable: "addControls",
             defaultValue: "centerAndRadius",
@@ -120,6 +125,7 @@ export default class RegularPolygon extends Polygon {
 
         // preserveSimilarity is always true for regular polygons
         stateVariableDefinitions.preserveSimilarity = {
+            description: "Whether to preserve similarity when dragging.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -129,6 +135,8 @@ export default class RegularPolygon extends Polygon {
         };
 
         stateVariableDefinitions.numVertices = {
+            description:
+                "The number of vertices (sides) of the regular polygon.",
             isLocation: true,
             hasEssential: true,
             defaultValue: 3,
@@ -1622,6 +1630,7 @@ export default class RegularPolygon extends Polygon {
         };
 
         stateVariableDefinitions.center = {
+            description: "The center coordinates of the regular polygon.",
             isLocation: true,
             public: true,
             isArray: true,
@@ -1737,6 +1746,7 @@ export default class RegularPolygon extends Polygon {
         };
 
         stateVariableDefinitions.circumradius = {
+            description: "The radius of the circumscribed circle.",
             isLocation: true,
             public: true,
             shadowingInstructions: {
@@ -1820,6 +1830,7 @@ export default class RegularPolygon extends Polygon {
         };
 
         stateVariableDefinitions.inradius = {
+            description: "The radius of the inscribed circle.",
             isLocation: true,
             public: true,
             shadowingInstructions: {
@@ -1873,6 +1884,7 @@ export default class RegularPolygon extends Polygon {
         };
 
         stateVariableDefinitions.sideLength = {
+            description: "The length of each side.",
             isLocation: true,
             public: true,
             shadowingInstructions: {
@@ -1922,6 +1934,7 @@ export default class RegularPolygon extends Polygon {
         };
 
         stateVariableDefinitions.perimeter = {
+            description: "The perimeter of the polygon.",
             isLocation: true,
             public: true,
             shadowingInstructions: {
@@ -1973,6 +1986,7 @@ export default class RegularPolygon extends Polygon {
         };
 
         stateVariableDefinitions.area = {
+            description: "The area enclosed by the polygon.",
             isLocation: true,
             public: true,
             shadowingInstructions: {

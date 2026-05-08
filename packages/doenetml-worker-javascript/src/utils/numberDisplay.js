@@ -37,6 +37,8 @@ export function returnNumberDisplayStateVariableDefinitions({
     let stateVariableDefinitions = {};
 
     stateVariableDefinitions.displayDigits = {
+        description:
+            "Number of significant digits to display when rendering this number.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "integer",
@@ -57,6 +59,8 @@ export function returnNumberDisplayStateVariableDefinitions({
     };
 
     stateVariableDefinitions.displayDecimals = {
+        description:
+            "Number of decimal places to display when rendering this number.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "integer",
@@ -77,6 +81,7 @@ export function returnNumberDisplayStateVariableDefinitions({
     };
 
     stateVariableDefinitions.displaySmallAsZero = {
+        description: "Threshold below which numbers are displayed as zero.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "number",
@@ -95,6 +100,8 @@ export function returnNumberDisplayStateVariableDefinitions({
     };
 
     stateVariableDefinitions.padZeros = {
+        description:
+            "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "boolean",
@@ -113,6 +120,8 @@ export function returnNumberDisplayStateVariableDefinitions({
     };
 
     stateVariableDefinitions.avoidScientificNotation = {
+        description:
+            "Whether to render numbers in full decimal form rather than scientific notation.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "boolean",
@@ -331,20 +340,29 @@ export function returnNumberDisplayAttributes() {
     return {
         displayDigits: {
             createComponentOfType: "integer",
+            description:
+                "Number of significant digits to display when rendering this number.",
         },
         displayDecimals: {
             createComponentOfType: "integer",
+            description:
+                "Number of decimal places to display when rendering this number.",
         },
         displaySmallAsZero: {
             createComponentOfType: "number",
             valueForTrue: 1e-14,
             valueForFalse: 0,
+            description: "Threshold below which numbers are displayed as zero.",
         },
         padZeros: {
             createComponentOfType: "boolean",
+            description:
+                "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
         },
         avoidScientificNotation: {
             createComponentOfType: "boolean",
+            description:
+                "Whether to render numbers in full decimal form rather than scientific notation.",
         },
     };
 }

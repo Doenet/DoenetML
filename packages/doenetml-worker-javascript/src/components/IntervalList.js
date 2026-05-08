@@ -10,6 +10,10 @@ import { returnUnorderedListStateVariableDefinitions } from "../utils/unorderedL
 
 export default class IntervalList extends CompositeComponent {
     static componentType = "intervalList";
+
+    static componentDocs = {
+        summary: "A list of intervals.",
+    };
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
 
@@ -39,6 +43,7 @@ export default class IntervalList extends CompositeComponent {
         };
 
         attributes.maxNumber = {
+            description: "Maximum number of intervals to retain in the list.",
             createComponentOfType: "number",
             createStateVariable: "maxNumber",
             defaultValue: Infinity,
@@ -150,6 +155,7 @@ export default class IntervalList extends CompositeComponent {
         };
 
         stateVariableDefinitions.numIntervals = {
+            description: "The number of intervals in the list.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

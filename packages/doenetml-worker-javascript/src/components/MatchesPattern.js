@@ -4,6 +4,11 @@ import me from "math-expressions";
 
 export default class MatchesPattern extends BooleanComponent {
     static componentType = "matchesPattern";
+
+    static componentDocs = {
+        summary:
+            "Boolean condition that tests whether input matches a math pattern.",
+    };
     static rendererType = "boolean";
 
     static createAttributesObject() {
@@ -13,36 +18,44 @@ export default class MatchesPattern extends BooleanComponent {
             createComponentOfType: "math",
         };
         attributes.allowImplicitIdentities = {
+            description:
+                "Whether to allow implicit identity transformations when matching.",
             createComponentOfType: "boolean",
             createStateVariable: "allowImplicitIdentities",
             defaultValue: false,
             public: true,
         };
         attributes.allowPermutations = {
+            description:
+                "Whether to allow permutations of operands when matching.",
             createComponentOfType: "boolean",
             createStateVariable: "allowPermutations",
             defaultValue: true,
             public: true,
         };
         attributes.requireNumericMatches = {
+            description: "Whether numeric placeholders must match numbers.",
             createComponentOfType: "boolean",
             createStateVariable: "requireNumericMatches",
             defaultValue: false,
             public: true,
         };
         attributes.requireVariableMatches = {
+            description: "Whether variable placeholders must match variables.",
             createComponentOfType: "boolean",
             createStateVariable: "requireVariableMatches",
             defaultValue: false,
             public: true,
         };
         attributes.excludeMatches = {
+            description: "Patterns whose matches are excluded.",
             createComponentOfType: "mathList",
             createStateVariable: "excludeMatches",
             defaultValue: [],
             public: true,
         };
         attributes.matchExpressionWithBlanks = {
+            description: "Whether to allow expressions with blanks to match.",
             createComponentOfType: "boolean",
             createStateVariable: "matchExpressionWithBlanks",
             defaultValue: false,
@@ -172,6 +185,7 @@ export default class MatchesPattern extends BooleanComponent {
         };
 
         stateVariableDefinitions.value = {
+            description: "Whether the input matches the pattern.",
             additionalStateVariablesDefined: [
                 {
                     variableName: "allPatternMatches",
@@ -309,6 +323,7 @@ export default class MatchesPattern extends BooleanComponent {
         };
 
         stateVariableDefinitions.numMatches = {
+            description: "The number of matches found.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -330,6 +345,7 @@ export default class MatchesPattern extends BooleanComponent {
         };
 
         stateVariableDefinitions.patternMatches = {
+            description: "The list of matched sub-expressions.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",

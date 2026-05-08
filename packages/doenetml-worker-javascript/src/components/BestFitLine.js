@@ -4,6 +4,10 @@ import me from "math-expressions";
 
 export default class BestFitLine extends Line {
     static componentType = "bestFitLine";
+
+    static componentDocs = {
+        summary: "The best-fit line for a set of points.",
+    };
     static rendererType = "line";
 
     static createAttributesObject() {
@@ -32,6 +36,8 @@ export default class BestFitLine extends Line {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.draggable = {
+            description:
+                "Whether the line can be dragged (always false for a best-fit line).",
             shadowingInstructions: {
                 createComponentOfType: "boolean",
             },
@@ -42,6 +48,8 @@ export default class BestFitLine extends Line {
         };
 
         stateVariableDefinitions.numDimensions = {
+            description:
+                "Number of dimensions of the line (always 2 for a best-fit line).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -192,6 +200,7 @@ export default class BestFitLine extends Line {
             };
 
         stateVariableDefinitions.data = {
+            description: "The data points used to compute the best-fit line.",
             public: true,
             isLocation: true,
             shadowingInstructions: {

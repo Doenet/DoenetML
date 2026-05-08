@@ -30,6 +30,8 @@ export function applyConstraintFromComponentConstraints(
 export function returnConstraintGraphInfoDefinitions() {
     return {
         scales: {
+            description:
+                "The graph axis scales (x and y) used when applying this constraint.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -483,6 +485,7 @@ export function returnConstraintDefinitions(
     };
 
     stateVariableDefinitions.constraintUsed = {
+        description: "Whether this constraint was applied to the component.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "boolean",

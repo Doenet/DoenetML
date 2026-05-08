@@ -10,12 +10,17 @@ export default class Tabular extends BlockComponent {
         });
     }
     static componentType = "tabular";
+
+    static componentDocs = {
+        summary: "A simple tabular layout of cells without table semantics.",
+    };
     static rendererType = "tabular";
     static renderChildren = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.width = {
+            description: "Display width of the tabular layout.",
             createComponentOfType: "componentSize",
             createStateVariable: "width",
             defaultValue: { size: 100, isAbsolute: false },
@@ -23,6 +28,7 @@ export default class Tabular extends BlockComponent {
             forRenderer: true,
         };
         attributes.height = {
+            description: "Display height of the tabular layout.",
             createComponentOfType: "componentSize",
             createStateVariable: "height",
             defaultValue: null,
@@ -44,6 +50,7 @@ export default class Tabular extends BlockComponent {
         //   forRenderer: true,
         // };
         attributes.halign = {
+            description: "Default horizontal alignment for cells.",
             createComponentOfType: "text",
             createStateVariable: "halign",
             defaultValue: "left",
@@ -52,6 +59,7 @@ export default class Tabular extends BlockComponent {
             validValues: ["left", "center", "right", "justify"],
         };
         attributes.valign = {
+            description: "Default vertical alignment for cells.",
             createComponentOfType: "text",
             createStateVariable: "valign",
             defaultValue: "middle",
@@ -60,6 +68,7 @@ export default class Tabular extends BlockComponent {
             validValues: ["top", "middle", "bottom"],
         };
         attributes.top = {
+            description: "Border style for the top edge of the layout.",
             createComponentOfType: "text",
             createStateVariable: "top",
             defaultValue: "none",
@@ -69,6 +78,7 @@ export default class Tabular extends BlockComponent {
             forRenderer: true,
         };
         attributes.left = {
+            description: "Border style for the left edge of the layout.",
             createComponentOfType: "text",
             createStateVariable: "left",
             defaultValue: "none",
@@ -77,6 +87,7 @@ export default class Tabular extends BlockComponent {
             validValues: ["none", "minor", "medium", "major"],
         };
         attributes.bottom = {
+            description: "Border style for the bottom edge of the layout.",
             createComponentOfType: "text",
             createStateVariable: "bottom",
             defaultValue: "none",
@@ -85,6 +96,7 @@ export default class Tabular extends BlockComponent {
             validValues: ["none", "minor", "medium", "major"],
         };
         attributes.right = {
+            description: "Border style for the right edge of the layout.",
             createComponentOfType: "text",
             createStateVariable: "right",
             defaultValue: "none",

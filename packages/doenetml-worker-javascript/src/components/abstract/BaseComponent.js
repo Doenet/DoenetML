@@ -334,28 +334,38 @@ export default class BaseComponent {
         return {
             name: {
                 createPrimitiveOfType: "string",
+                description:
+                    "The name used to reference this component from elsewhere in the document.",
             },
             hide: {
                 createComponentOfType: "boolean",
                 createStateVariable: "hide",
                 defaultValue: false,
                 public: true,
+                description:
+                    "Whether to hide this component from the rendered output.",
             },
             disabled: {
                 createComponentOfType: "boolean",
                 createStateVariable: "disabledPreliminary",
                 defaultValue: false,
+                description:
+                    "Whether this component is disabled and cannot be interacted with.",
             },
             fixed: {
                 createComponentOfType: "boolean",
                 createStateVariable: "fixedPreliminary",
                 defaultValue: false,
                 ignoreFixed: true,
+                description:
+                    "Whether this component's value is fixed and cannot be modified.",
             },
             fixLocation: {
                 createComponentOfType: "boolean",
                 createStateVariable: "fixLocationPreliminary",
                 defaultValue: false,
+                description:
+                    "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications).",
             },
             modifyIndirectly: {
                 createComponentOfType: "boolean",
@@ -364,6 +374,8 @@ export default class BaseComponent {
                 public: true,
                 propagateToProps: true,
                 excludeFromSchema: true,
+                description:
+                    "Whether this component can be modified indirectly through a property reference.",
             },
             styleNumber: {
                 createComponentOfType: "integer",
@@ -371,18 +383,24 @@ export default class BaseComponent {
                 defaultValue: 1,
                 public: true,
                 fallBackToParentStateVariable: "styleNumber",
+                description:
+                    "The style number used to select this component's visual styling from the available style definitions.",
             },
             isResponse: {
                 createPrimitiveOfType: "boolean",
                 createStateVariable: "isResponse",
                 defaultValue: false,
                 public: true,
+                description:
+                    "Whether this component is treated as a response for the purposes of assessment.",
             },
             isPotentialResponse: {
                 createPrimitiveOfType: "boolean",
                 createStateVariable: "isPotentialResponse",
                 defaultValue: false,
                 excludeFromSchema: true,
+                description:
+                    "Whether this component is a candidate response that could be marked as a response.",
             },
             permid: {
                 createPrimitiveOfType: "string",
@@ -390,6 +408,8 @@ export default class BaseComponent {
                 defaultValue: "",
                 public: true,
                 excludeFromSchema: true,
+                description:
+                    "A persistent identifier for this component, stable across edits (currently unused but present for compatibility).",
             },
 
             // Adding `extend` and `copy` attributes so they are in the schema for all components.
@@ -397,9 +417,13 @@ export default class BaseComponent {
             // from the dast when references are expanded.
             extend: {
                 createReferences: true,
+                description:
+                    "Extend another component by reference, inheriting its children and attributes. Enter a reference as `$name`.",
             },
             copy: {
                 createReferences: true,
+                description:
+                    "Create an independent copy of another component by reference. Enter a references a `$name`.",
             },
         };
     }
@@ -473,6 +497,8 @@ export default class BaseComponent {
         let stateVariableDefinitions = {};
 
         stateVariableDefinitions.hidden = {
+            description:
+                "Whether this component is hidden from the rendered output.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -563,6 +589,8 @@ export default class BaseComponent {
         };
 
         stateVariableDefinitions.disabled = {
+            description:
+                "Whether this component is disabled and cannot be interacted with.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -682,6 +710,8 @@ export default class BaseComponent {
         // and those state variables change, the fixed component's state variable
         // will change to reflect those new values.
         stateVariableDefinitions.fixed = {
+            description:
+                "Whether this component's value is fixed and cannot be modified.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -824,6 +854,8 @@ export default class BaseComponent {
         // and those state variables change, the location state variable
         // will change to reflect those new values.
         stateVariableDefinitions.fixLocation = {
+            description:
+                "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -967,6 +999,8 @@ export default class BaseComponent {
         };
 
         stateVariableDefinitions.doenetML = {
+            description:
+                "The DoenetML source code that produced this component.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

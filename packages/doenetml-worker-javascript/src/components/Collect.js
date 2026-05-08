@@ -5,6 +5,10 @@ import { createNewComponentIndices } from "../utils/componentIndices";
 export default class Collect extends CompositeComponent {
     static componentType = "collect";
 
+    static componentDocs = {
+        summary:
+            "Collects descendants matching a component type from another component.",
+    };
     static takesIndex = true;
 
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
@@ -28,6 +32,7 @@ export default class Collect extends CompositeComponent {
         delete attributes.hide;
 
         attributes.maxNumber = {
+            description: "Maximum number of descendants to collect.",
             createComponentOfType: "number",
             createStateVariable: "maxNumber",
             defaultValue: null,

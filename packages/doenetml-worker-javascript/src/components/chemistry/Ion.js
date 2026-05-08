@@ -10,6 +10,11 @@ export default class Ion extends InlineComponent {
     static componentType = "ion";
     static rendererType = "math";
 
+    static componentDocs = {
+        summary:
+            "Represents a charged ion specified by element and charge, rendered with its chemical formula.",
+    };
+
     static primaryStateVariableForDefinition = "atomicNumberShadow";
 
     static createAttributesObject() {
@@ -17,14 +22,19 @@ export default class Ion extends InlineComponent {
 
         attributes.symbol = {
             createComponentOfType: "text",
+            description:
+                'The chemical symbol of the element (e.g. "Na", "Cl").',
         };
 
         attributes.atomicNumber = {
             createComponentOfType: "integer",
+            description: "The atomic number of the element.",
         };
 
         attributes.charge = {
             createComponentOfType: "integer",
+            description:
+                "The charge of the ion (positive for cations, negative for anions).",
         };
 
         return attributes;
@@ -125,6 +135,7 @@ export default class Ion extends InlineComponent {
         };
 
         stateVariableDefinitions.atomicNumber = {
+            description: "The atomic number of the element.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -150,6 +161,7 @@ export default class Ion extends InlineComponent {
         };
 
         stateVariableDefinitions.symbol = {
+            description: "The chemical symbol of the element.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -174,6 +186,7 @@ export default class Ion extends InlineComponent {
         };
 
         stateVariableDefinitions.charge = {
+            description: "The charge of the ion.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -210,6 +223,7 @@ export default class Ion extends InlineComponent {
         };
 
         stateVariableDefinitions.name = {
+            description: 'The full name of the ion (e.g. "sodium ion").',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -300,6 +314,8 @@ export default class Ion extends InlineComponent {
         };
 
         stateVariableDefinitions.group = {
+            description:
+                "The group number of the underlying element in the periodic table.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -324,6 +340,8 @@ export default class Ion extends InlineComponent {
         };
 
         stateVariableDefinitions.metalCategory = {
+            description:
+                "The metal category of the underlying element (e.g. alkali metal, transition metal, nonmetal).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -351,6 +369,8 @@ export default class Ion extends InlineComponent {
         };
 
         stateVariableDefinitions.groupName = {
+            description:
+                "The descriptive name of the underlying element's periodic group.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -375,6 +395,8 @@ export default class Ion extends InlineComponent {
         };
 
         stateVariableDefinitions.period = {
+            description:
+                "The period number of the underlying element in the periodic table.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -399,6 +421,8 @@ export default class Ion extends InlineComponent {
         };
 
         stateVariableDefinitions.math = {
+            description:
+                "The ion rendered as a math expression (element symbol with charge).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -447,6 +471,7 @@ export default class Ion extends InlineComponent {
         };
 
         stateVariableDefinitions.latex = {
+            description: "The ion rendered as a LaTeX string.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -487,6 +512,7 @@ export default class Ion extends InlineComponent {
         };
 
         stateVariableDefinitions.text = {
+            description: "The ion rendered as a plain text string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

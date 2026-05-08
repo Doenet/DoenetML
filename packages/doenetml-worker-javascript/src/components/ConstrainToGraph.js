@@ -4,9 +4,15 @@ import { findFiniteNumericalValue } from "../utils/math";
 export default class ConstrainToGraph extends ConstraintComponent {
     static componentType = "constrainToGraph";
 
+    static componentDocs = {
+        summary:
+            "Constrains a graphical component's position to lie within a graph's bounds.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.buffer = {
+            description:
+                "Distance from the graph edge inside which the position is still considered constrained.",
             createComponentOfType: "number",
             createStateVariable: "buffer",
             defaultValue: 0.01,

@@ -3,12 +3,17 @@ import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils
 
 export default class Column extends BaseComponent {
     static componentType = "column";
+
+    static componentDocs = {
+        summary: "A column within a tabular layout.",
+    };
     static rendererType = "containerBlock";
     static renderChildren = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.colNum = {
+            description: "Column number where this column is placed (1-based).",
             createComponentOfType: "text",
             createStateVariable: "colNum",
             defaultValue: null,

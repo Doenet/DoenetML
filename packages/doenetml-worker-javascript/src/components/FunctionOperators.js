@@ -6,16 +6,21 @@ import { returnNVariables } from "../utils/math";
 export class ClampFunction extends FunctionBaseOperator {
     static componentType = "clampFunction";
 
+    static componentDocs = {
+        summary: "A function clamped to a specified output range.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.lowerValue = {
+            description: "Lower bound for the operator's range.",
             createComponentOfType: "number",
             createStateVariable: "lowerValue",
             defaultValue: 0,
             public: true,
         };
         attributes.upperValue = {
+            description: "Upper bound for the operator's range.",
             createComponentOfType: "number",
             createStateVariable: "upperValue",
             defaultValue: 1,
@@ -89,6 +94,9 @@ export class ClampFunction extends FunctionBaseOperator {
 export class WrapFunctionPeriodic extends FunctionBaseOperator {
     static componentType = "wrapFunctionPeriodic";
 
+    static componentDocs = {
+        summary: "A function wrapped into a periodic output range.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.lowerValue = {
@@ -96,12 +104,14 @@ export class WrapFunctionPeriodic extends FunctionBaseOperator {
             createStateVariable: "lowerValue",
             defaultValue: 0,
             public: true,
+            description: "Lower bound for the operator's range.",
         };
         attributes.upperValue = {
             createComponentOfType: "number",
             createStateVariable: "upperValue",
             defaultValue: 1,
             public: true,
+            description: "Upper bound for the operator's range.",
         };
         return attributes;
     }
@@ -170,6 +180,9 @@ export class WrapFunctionPeriodic extends FunctionBaseOperator {
 export class Derivative extends FunctionBaseOperator {
     static componentType = "derivative";
 
+    static componentDocs = {
+        summary: "The derivative of a function.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
@@ -220,6 +233,7 @@ export class Derivative extends FunctionBaseOperator {
         };
 
         stateVariableDefinitions.numInputs = {
+            description: "Number of input variables.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -307,6 +321,7 @@ export class Derivative extends FunctionBaseOperator {
         };
 
         stateVariableDefinitions.variables = {
+            description: "Names of the input variables.",
             isArray: true,
             public: true,
             shadowingInstructions: {
@@ -478,6 +493,7 @@ export class Derivative extends FunctionBaseOperator {
         };
 
         stateVariableDefinitions.numDerivatives = {
+            description: "Number of derivatives applied.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -510,6 +526,8 @@ export class Derivative extends FunctionBaseOperator {
         };
 
         stateVariableDefinitions.derivVariables = {
+            description:
+                "Variables with respect to which derivatives are taken.",
             isArray: true,
             public: true,
             shadowingInstructions: {

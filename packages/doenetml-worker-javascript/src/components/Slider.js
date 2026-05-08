@@ -21,6 +21,9 @@ export default class Slider extends BaseComponent {
     }
     static componentType = "slider";
 
+    static componentDocs = {
+        summary: "An interactive slider input.",
+    };
     static variableForImplicitProp = "value";
 
     static createAttributesObject() {
@@ -34,6 +37,7 @@ export default class Slider extends BaseComponent {
             forRenderer: true,
         };
         attributes.width = {
+            description: "Display width of the slider.",
             createComponentOfType: "componentSize",
             createStateVariable: "width",
             defaultValue: { size: 300, isAbsolute: true },
@@ -41,6 +45,7 @@ export default class Slider extends BaseComponent {
             forRenderer: true,
         };
         attributes.height = {
+            description: "Display height of the slider.",
             createComponentOfType: "componentSize",
             createStateVariable: "height",
             defaultValue: { size: 100, isAbsolute: true },
@@ -53,6 +58,8 @@ export default class Slider extends BaseComponent {
             defaultValue: null,
         };
         attributes.showControls = {
+            description:
+                "Whether to render play/pause controls alongside the slider.",
             createComponentOfType: "boolean",
             createStateVariable: "showControls",
             defaultValue: false,
@@ -60,6 +67,7 @@ export default class Slider extends BaseComponent {
             forRenderer: true,
         };
         attributes.showTicks = {
+            description: "Whether to render tick marks on the slider.",
             createComponentOfType: "boolean",
             createStateVariable: "showTicks",
             defaultValue: true,
@@ -67,6 +75,7 @@ export default class Slider extends BaseComponent {
             forRenderer: true,
         };
         attributes.rotateTickLabels = {
+            description: "Whether to rotate the tick labels.",
             createComponentOfType: "boolean",
             createStateVariable: "rotateTickLabels",
             defaultValue: false,
@@ -74,6 +83,8 @@ export default class Slider extends BaseComponent {
             forRenderer: true,
         };
         attributes.showValue = {
+            description:
+                "Whether to display the current value next to the slider.",
             createComponentOfType: "boolean",
             createStateVariable: "showValue",
             defaultValue: true,
@@ -81,6 +92,7 @@ export default class Slider extends BaseComponent {
             forRenderer: true,
         };
         attributes.from = {
+            description: "Minimum value of the slider's range.",
             createComponentOfType: "number",
             createStateVariable: "from",
             defaultValue: 0,
@@ -88,6 +100,7 @@ export default class Slider extends BaseComponent {
             forRenderer: true,
         };
         attributes.to = {
+            description: "Maximum value of the slider's range.",
             createComponentOfType: "number",
             createStateVariable: "to",
             defaultValue: 10,
@@ -95,6 +108,7 @@ export default class Slider extends BaseComponent {
             forRenderer: true,
         };
         attributes.step = {
+            description: "Increment between successive slider positions.",
             createComponentOfType: "number",
             createStateVariable: "step",
             defaultValue: 1,
@@ -143,6 +157,7 @@ export default class Slider extends BaseComponent {
         );
 
         stateVariableDefinitions.items = {
+            description: "The values the slider can take.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -213,6 +228,7 @@ export default class Slider extends BaseComponent {
         };
 
         stateVariableDefinitions.numItems = {
+            description: "The total number of values.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -513,6 +529,7 @@ export default class Slider extends BaseComponent {
         };
 
         stateVariableDefinitions.value = {
+            description: "The current value of the slider.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {

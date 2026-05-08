@@ -16,6 +16,11 @@ export default class ODESystem extends InlineComponent {
     static componentType = "odeSystem";
     static rendererType = "math";
 
+    static componentDocs = {
+        summary:
+            "A system of first-order ordinary differential equations with initial conditions, rendered as math and numerically integrable.",
+    };
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
@@ -24,6 +29,8 @@ export default class ODESystem extends InlineComponent {
             createStateVariable: "independentVariable",
             defaultValue: me.fromAst("t"),
             public: true,
+            description:
+                "The independent variable of the ODE system (defaults to t).",
         };
 
         attributes.initialIndependentVariableValue = {
@@ -31,6 +38,8 @@ export default class ODESystem extends InlineComponent {
             createStateVariable: "initialIndependentVariableValue",
             defaultValue: me.fromAst(0),
             public: true,
+            description:
+                "The value of the independent variable at which the initial conditions are specified.",
         };
 
         Object.assign(attributes, returnNumberDisplayAttributes());
@@ -41,6 +50,8 @@ export default class ODESystem extends InlineComponent {
             defaultValue: "align",
             public: true,
             forRenderer: true,
+            description:
+                'How to format the rendered system of equations (e.g. "align").',
         };
 
         attributes.chunkSize = {
@@ -48,6 +59,8 @@ export default class ODESystem extends InlineComponent {
             createStateVariable: "chunkSize",
             defaultValue: 10,
             public: true,
+            description:
+                "Step-size chunk used when numerically integrating the system.",
         };
 
         attributes.tolerance = {
@@ -55,6 +68,7 @@ export default class ODESystem extends InlineComponent {
             createStateVariable: "tolerance",
             defaultValue: 1e-6,
             public: true,
+            description: "Numerical tolerance used by the integrator.",
         };
 
         attributes.maxIterations = {
@@ -62,6 +76,8 @@ export default class ODESystem extends InlineComponent {
             createStateVariable: "maxIterations",
             defaultValue: 1000,
             public: true,
+            description:
+                "Maximum number of iterations the integrator may perform.",
         };
 
         attributes.hideInitialCondition = {
@@ -69,14 +85,20 @@ export default class ODESystem extends InlineComponent {
             createStateVariable: "hideInitialCondition",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to hide the initial condition from the rendered output.",
         };
 
         attributes.initialConditions = {
             createComponentOfType: "mathList",
+            description:
+                "The initial values of each dependent variable, in order.",
         };
 
         attributes.variables = {
             createComponentOfType: "_variableNameList",
+            description:
+                "The dependent variables of the system, in the same order as the right-hand sides.",
         };
 
         attributes.number = {
@@ -84,6 +106,8 @@ export default class ODESystem extends InlineComponent {
             createStateVariable: "number",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to display equation numbers next to each equation.",
         };
 
         return attributes;
@@ -154,6 +178,8 @@ export default class ODESystem extends InlineComponent {
         };
 
         stateVariableDefinitions.variables = {
+            description:
+                "The dependent variables of the system, in order matching the right-hand sides.",
             additionalStateVariablesDefined: [
                 {
                     variableName: "validVariables",
@@ -244,6 +270,8 @@ export default class ODESystem extends InlineComponent {
         };
 
         stateVariableDefinitions.rhss = {
+            description:
+                "The right-hand-side expressions of each ODE in the system.",
             isArray: true,
             public: true,
             shadowingInstructions: {
@@ -307,6 +335,8 @@ export default class ODESystem extends InlineComponent {
         };
 
         stateVariableDefinitions.initialConditions = {
+            description:
+                "The initial values of each dependent variable at the initial independent variable value.",
             isArray: true,
             public: true,
             hasEssential: true,
@@ -382,6 +412,8 @@ export default class ODESystem extends InlineComponent {
         };
 
         stateVariableDefinitions.equationTag = {
+            description:
+                "The displayed equation number tag (when equation numbering is enabled).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -417,6 +449,7 @@ export default class ODESystem extends InlineComponent {
         };
 
         stateVariableDefinitions.latex = {
+            description: "The full ODE system rendered as a LaTeX string.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -680,6 +713,8 @@ export default class ODESystem extends InlineComponent {
         };
 
         stateVariableDefinitions.numericalSolutions = {
+            description:
+                "Numerical solution functions for each dependent variable, as functions of the independent variable.",
             isArray: true,
             entryPrefixes: ["numericalSolution"],
             public: true,

@@ -12,6 +12,9 @@ import { returnUnorderedListStateVariableDefinitions } from "../utils/unorderedL
 export default class PointList extends CompositeComponent {
     static componentType = "pointList";
 
+    static componentDocs = {
+        summary: "A list of points.",
+    };
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";
 
@@ -41,6 +44,7 @@ export default class PointList extends CompositeComponent {
         };
 
         attributes.maxNumber = {
+            description: "Maximum number of points to retain in the list.",
             createComponentOfType: "number",
             createStateVariable: "maxNumber",
             defaultValue: Infinity,
@@ -131,6 +135,7 @@ export default class PointList extends CompositeComponent {
         };
 
         stateVariableDefinitions.numPoints = {
+            description: "The number of points in the list.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

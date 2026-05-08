@@ -15,6 +15,10 @@ export default class Polygon extends Polyline {
         });
     }
     static componentType = "polygon";
+
+    static componentDocs = {
+        summary: "A polygon defined by a list of vertices.",
+    };
     static representsClosedPath = true;
 
     get movePolygon() {
@@ -45,6 +49,8 @@ export default class Polygon extends Polyline {
         let attributes = super.createAttributesObject();
 
         attributes.addControls = {
+            description:
+                "Whether to render interactive vertex control handles.",
             createComponentOfType: "text",
             createStateVariable: "addControls",
             defaultValue: "center",
@@ -57,6 +63,7 @@ export default class Polygon extends Polyline {
         };
 
         attributes.filled = {
+            description: "Whether to fill the interior of the polygon.",
             createComponentOfType: "boolean",
             createStateVariable: "filled",
             defaultValue: false,
@@ -73,6 +80,7 @@ export default class Polygon extends Polyline {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.styleDescription = {
+            description: "A textual description of the polygon's style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -153,6 +161,7 @@ export default class Polygon extends Polyline {
         };
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "polygon".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -235,6 +244,7 @@ export default class Polygon extends Polyline {
         };
 
         stateVariableDefinitions.borderStyleDescription = {
+            description: "A textual description of the polygon's border style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -281,6 +291,7 @@ export default class Polygon extends Polyline {
         };
 
         stateVariableDefinitions.fillStyleDescription = {
+            description: "A textual description of the polygon's fill style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -329,6 +340,7 @@ export default class Polygon extends Polyline {
         delete stateVariableDefinitions.length;
 
         stateVariableDefinitions.perimeter = {
+            description: "The perimeter of the polygon.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -356,6 +368,7 @@ export default class Polygon extends Polyline {
         };
 
         stateVariableDefinitions.area = {
+            description: "The area enclosed by the polygon.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

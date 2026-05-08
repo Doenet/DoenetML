@@ -15,6 +15,8 @@ export class ComponentWithSelectableType extends BaseComponent {
         let attributes = super.createAttributesObject();
         attributes.type = {
             createPrimitiveOfType: "string",
+            description:
+                "The data type of the value: number, math, text, letters, or boolean.",
         };
         return attributes;
     }
@@ -132,6 +134,8 @@ export class ComponentWithSelectableType extends BaseComponent {
         };
 
         stateVariableDefinitions.value = {
+            description:
+                "The selected value, with type determined by the type attribute.",
             public: true,
             shadowingInstructions: {
                 hasVariableComponentType: true,
@@ -215,6 +219,8 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
         let attributes = super.createAttributesObject();
         attributes.type = {
             createPrimitiveOfType: "string",
+            description:
+                "The data type of the values: number, math, text, letters, or boolean.",
         };
         return attributes;
     }
@@ -305,6 +311,8 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
         };
 
         stateVariableDefinitions.values = {
+            description:
+                "The list of values, with type determined by the type attribute.",
             public: true,
             isArray: true,
             shadowingInstructions: {
@@ -411,6 +419,8 @@ export class ComponentListOfListsWithSelectableType extends ComponentWithSelecta
         let attributes = super.createAttributesObject();
         attributes.type = {
             createPrimitiveOfType: "string",
+            description:
+                "The data type of the values: number, math, text, letters, or boolean.",
         };
         return attributes;
     }

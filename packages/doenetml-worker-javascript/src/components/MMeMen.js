@@ -23,6 +23,10 @@ export class M extends InlineComponent {
         });
     }
     static componentType = "m";
+
+    static componentDocs = {
+        summary: "Inline math rendered with LaTeX.",
+    };
     static rendererType = "math";
 
     // used when creating new component via adapter or copy prop
@@ -32,6 +36,7 @@ export class M extends InlineComponent {
         let attributes = super.createAttributesObject();
 
         attributes.draggable = {
+            description: "Whether the math display can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -40,6 +45,7 @@ export class M extends InlineComponent {
         };
 
         attributes.layer = {
+            description: "Z-order layer index when shown on a graph.",
             createComponentOfType: "number",
             createStateVariable: "layer",
             defaultValue: 0,
@@ -76,6 +82,7 @@ export class M extends InlineComponent {
         Object.assign(stateVariableDefinitions, anchorDefinition);
 
         stateVariableDefinitions.latex = {
+            description: "The math content rendered as a LaTeX string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "latex",
@@ -184,6 +191,7 @@ export class M extends InlineComponent {
         };
 
         stateVariableDefinitions.text = {
+            description: "The math content rendered as a plain text string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -202,6 +210,7 @@ export class M extends InlineComponent {
         };
 
         stateVariableDefinitions.math = {
+            description: "The math content as a math expression.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -303,6 +312,9 @@ export class M extends InlineComponent {
 export class Me extends M {
     static componentType = "me";
 
+    static componentDocs = {
+        summary: "Display math rendered with LaTeX.",
+    };
     static canBeInList = false;
 
     static returnStateVariableDefinitions() {
@@ -318,6 +330,9 @@ export class Me extends M {
 export class Men extends M {
     static componentType = "men";
 
+    static componentDocs = {
+        summary: "Numbered display math rendered with LaTeX.",
+    };
     static canBeInList = false;
 
     static returnStateVariableDefinitions() {
@@ -328,6 +343,7 @@ export class Men extends M {
         });
 
         stateVariableDefinitions.equationTag = {
+            description: "The equation number (when numbered).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

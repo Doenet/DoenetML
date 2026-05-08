@@ -4,6 +4,11 @@ export default class EquilibriumPoint extends Point {
     static componentType = "equilibriumPoint";
     static rendererType = "point";
 
+    static componentDocs = {
+        summary:
+            "An equilibrium point of a dynamical system, rendered as a filled point if stable or open if unstable.",
+    };
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
@@ -12,6 +17,8 @@ export default class EquilibriumPoint extends Point {
             createStateVariable: "stable",
             defaultValue: true,
             public: true,
+            description:
+                "Whether the equilibrium is stable (rendered filled) or unstable (rendered open).",
         };
 
         attributes.switchable = {
@@ -20,6 +27,8 @@ export default class EquilibriumPoint extends Point {
             defaultValue: false,
             public: true,
             forRenderer: true,
+            description:
+                "Whether the user can toggle the stability of this equilibrium by clicking it.",
         };
 
         return attributes;

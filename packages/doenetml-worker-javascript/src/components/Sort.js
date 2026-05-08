@@ -6,6 +6,9 @@ import { createNewComponentIndices } from "../utils/componentIndices";
 export default class Sort extends CompositeComponent {
     static componentType = "sort";
 
+    static componentDocs = {
+        summary: "Sorts a list according to a comparison function.",
+    };
     static takesIndex = true;
 
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
@@ -17,6 +20,8 @@ export default class Sort extends CompositeComponent {
         let attributes = super.createAttributesObject();
 
         attributes.sortVectorsBy = {
+            description:
+                "Whether to sort vectors by component or by magnitude.",
             createComponentOfType: "text",
             createStateVariable: "sortVectorsBy",
             defaultValue: "displacement",
@@ -26,6 +31,8 @@ export default class Sort extends CompositeComponent {
         };
 
         attributes.sortByComponent = {
+            description:
+                "Index of the component to sort by (when sorting vectors).",
             createComponentOfType: "integer",
             createStateVariable: "sortByComponent",
             defaultValue: "1",

@@ -43,6 +43,8 @@ export class SectioningComponent extends BlockComponent {
             createComponentOfType: "boolean",
             createStateVariable: "boxedPreliminary",
             defaultValue: false,
+            description:
+                "Whether to render this section with a visible box around it.",
         };
 
         attributes.includeAutoName = {
@@ -50,6 +52,8 @@ export class SectioningComponent extends BlockComponent {
             createStateVariable: "includeAutoName",
             defaultValue: false,
             public: true,
+            description:
+                'Whether to include the auto-generated section name (e.g. "Section") in the rendered title.',
         };
 
         attributes.includeAutoNumber = {
@@ -57,6 +61,8 @@ export class SectioningComponent extends BlockComponent {
             createStateVariable: "includeAutoNumber",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to include the auto-generated section number in the rendered title.",
         };
 
         attributes.noAutoTitle = {
@@ -64,6 +70,8 @@ export class SectioningComponent extends BlockComponent {
             createStateVariable: "noAutoTitle",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to suppress the auto-generated title entirely.",
         };
 
         attributes.includeAutoNameIfNoTitle = {
@@ -71,6 +79,8 @@ export class SectioningComponent extends BlockComponent {
             createStateVariable: "includeAutoNameIfNoTitle",
             defaultValue: true,
             public: true,
+            description:
+                "Whether to include the auto-generated name when no explicit title is provided.",
         };
 
         attributes.includeAutoNumberIfNoTitle = {
@@ -78,6 +88,8 @@ export class SectioningComponent extends BlockComponent {
             createStateVariable: "includeAutoNumberIfNoTitle",
             defaultValue: true,
             public: true,
+            description:
+                "Whether to include the auto-generated number when no explicit title is provided.",
         };
 
         attributes.asList = {
@@ -86,32 +98,42 @@ export class SectioningComponent extends BlockComponent {
             defaultValue: false,
             public: true,
             forRenderer: true,
+            description: "Whether to render this section's children as a list.",
         };
 
         attributes.level = {
             createComponentOfType: "integer",
+            description:
+                "The heading level for this section (overrides the default level inferred from nesting).",
         };
 
         attributes.renameTo = {
             createComponentOfType: "text",
+            description:
+                'Override the auto-generated section name (e.g. rename "Section" to a custom label).',
         };
 
         attributes.completedColor = {
             createComponentOfType: "text",
             createStateVariable: "completedColor",
             defaultValue: "var(--lightGreen)",
+            description:
+                "Color used to indicate this section has been completed.",
         };
 
         attributes.inProgressColor = {
             createComponentOfType: "text",
             createStateVariable: "inProgressColor",
             defaultValue: "var(--mainGray)",
+            description: "Color used to indicate this section is in progress.",
         };
 
         attributes.notStartedColor = {
             createComponentOfType: "text",
             createStateVariable: "notStartedColor",
             defaultValue: "var(--mainGray)",
+            description:
+                "Color used to indicate this section has not been started.",
         };
 
         return attributes;
@@ -192,6 +214,8 @@ export class SectioningComponent extends BlockComponent {
         };
 
         stateVariableDefinitions.boxed = {
+            description:
+                "Whether this section is rendered with a visible box around it.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -225,6 +249,7 @@ export class SectioningComponent extends BlockComponent {
             additionalStateVariablesDefined: [
                 {
                     variableName: "sectionNumber",
+                    description: "The displayed number for this section.",
                     public: true,
                     shadowingInstructions: {
                         createComponentOfType: "text",
@@ -681,6 +706,7 @@ export class SectioningComponent extends BlockComponent {
         };
 
         stateVariableDefinitions.title = {
+            description: "The displayed title text for this section.",
             additionalStateVariablesDefined: [
                 {
                     variableName: "titlePrefix",
@@ -971,6 +997,8 @@ export class SectioningComponent extends BlockComponent {
         };
 
         stateVariableDefinitions.open = {
+            description:
+                "Whether this section is currently open (for collapsible sections).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -1303,6 +1331,8 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
             createStateVariable: "includeParentNumber",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to prefix this section's number with the parent section's number.",
         };
 
         return attributes;
@@ -1315,6 +1345,7 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
             additionalStateVariablesDefined: [
                 {
                     variableName: "sectionNumber",
+                    description: "The displayed number for this section.",
                     public: true,
                     shadowingInstructions: {
                         createComponentOfType: "text",
@@ -1395,6 +1426,8 @@ export class UnnumberedSectioningComponent extends SectioningComponent {
             additionalStateVariablesDefined: [
                 {
                     variableName: "sectionNumber",
+                    description:
+                        "The displayed number for this section (always null for unnumbered sections).",
                     public: true,
                     shadowingInstructions: {
                         createComponentOfType: "text",

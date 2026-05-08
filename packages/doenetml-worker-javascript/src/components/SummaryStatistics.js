@@ -17,6 +17,10 @@ export default class SummaryStatistics extends BlockComponent {
     }
     static componentType = "summaryStatistics";
 
+    static componentDocs = {
+        summary:
+            "Summary statistics (mean, median, etc.) for a list of numbers.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
@@ -38,6 +42,8 @@ export default class SummaryStatistics extends BlockComponent {
 
         // TODO: enable feature where compute summary statistics for each value of a column
         attributes.byCategoryColumn = {
+            description:
+                "Column used to group data when computing per-category statistics.",
             createComponentOfType: "text",
             createStateVariable: "byCategoryColumn",
             defaultValue: null,
@@ -58,6 +64,7 @@ export default class SummaryStatistics extends BlockComponent {
         );
 
         stateVariableDefinitions.statisticsToDisplay = {
+            description: "Which summary statistics to display.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "textList",
@@ -136,6 +143,7 @@ export default class SummaryStatistics extends BlockComponent {
         };
 
         stateVariableDefinitions.dataColumn = {
+            description: "The numeric column being summarized.",
             stateVariablesDeterminingDependencies: ["sourceName"],
             additionalStateVariablesDefined: [
                 {
@@ -187,6 +195,7 @@ export default class SummaryStatistics extends BlockComponent {
         };
 
         stateVariableDefinitions.count = {
+            description: "The number of values in the data column.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -208,6 +217,7 @@ export default class SummaryStatistics extends BlockComponent {
         };
 
         stateVariableDefinitions.sum = {
+            description: "The sum of the values.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -231,6 +241,7 @@ export default class SummaryStatistics extends BlockComponent {
         };
 
         stateVariableDefinitions.mean = {
+            description: "The arithmetic mean of the values.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -253,6 +264,7 @@ export default class SummaryStatistics extends BlockComponent {
         };
 
         stateVariableDefinitions.stdev = {
+            description: "The sample standard deviation.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -276,6 +288,7 @@ export default class SummaryStatistics extends BlockComponent {
         };
 
         stateVariableDefinitions.variance = {
+            description: "The sample variance.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -299,6 +312,7 @@ export default class SummaryStatistics extends BlockComponent {
         };
 
         stateVariableDefinitions.stderr = {
+            description: "The standard error of the mean.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -328,6 +342,7 @@ export default class SummaryStatistics extends BlockComponent {
         };
 
         stateVariableDefinitions.minimum = {
+            description: "The minimum value.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -350,6 +365,7 @@ export default class SummaryStatistics extends BlockComponent {
         };
 
         stateVariableDefinitions.maximum = {
+            description: "The maximum value.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -372,6 +388,7 @@ export default class SummaryStatistics extends BlockComponent {
         };
 
         stateVariableDefinitions.median = {
+            description: "The median value.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -394,6 +411,7 @@ export default class SummaryStatistics extends BlockComponent {
         };
 
         stateVariableDefinitions.quartile1 = {
+            description: "The first quartile (25th percentile).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -419,6 +437,7 @@ export default class SummaryStatistics extends BlockComponent {
         };
 
         stateVariableDefinitions.quartile3 = {
+            description: "The third quartile (75th percentile).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -444,6 +463,7 @@ export default class SummaryStatistics extends BlockComponent {
         };
 
         stateVariableDefinitions.range = {
+            description: "The range (maximum − minimum).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

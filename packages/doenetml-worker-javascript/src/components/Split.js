@@ -3,6 +3,9 @@ import CompositeComponent from "./abstract/CompositeComponent";
 export default class Split extends CompositeComponent {
     static componentType = "split";
 
+    static componentDocs = {
+        summary: "Splits a string or list into pieces.",
+    };
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
     static stateVariableToEvaluateAfterReplacements =

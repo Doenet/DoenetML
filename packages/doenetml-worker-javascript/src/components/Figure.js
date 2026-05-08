@@ -9,6 +9,10 @@ export default class Figure extends BlockComponent {
         });
     }
     static componentType = "figure";
+
+    static componentDocs = {
+        summary: "A figure container holding graphical content with a caption.",
+    };
     static renderChildren = true;
     static canDisplayChildErrors = true;
 
@@ -52,6 +56,7 @@ export default class Figure extends BlockComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.figureEnumeration = {
+            description: "Auto-generated number for this figure.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -118,6 +123,7 @@ export default class Figure extends BlockComponent {
         };
 
         stateVariableDefinitions.caption = {
+            description: "The figure's caption text.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

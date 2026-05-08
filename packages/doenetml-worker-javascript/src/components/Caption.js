@@ -13,6 +13,10 @@ export default class Caption extends BlockComponent {
     static rendererType = "containerInline";
     static canDisplayChildErrors = true;
 
+    static componentDocs = {
+        summary: "A caption attached to a figure or table.",
+    };
+
     static renderChildren = true;
 
     static includeBlankStringChildren = true;
@@ -34,6 +38,7 @@ export default class Caption extends BlockComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.text = {
+            description: "The caption rendered as a plain text string.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

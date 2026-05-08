@@ -4,6 +4,10 @@ import me from "math-expressions";
 
 export default class HasSameFactoring extends BooleanComponent {
     static componentType = "hasSameFactoring";
+
+    static componentDocs = {
+        summary: "Boolean condition that tests for equivalent factoring.",
+    };
     static rendererType = "boolean";
 
     static createAttributesObject() {
@@ -55,6 +59,8 @@ export default class HasSameFactoring extends BooleanComponent {
 
         stateVariableDefinitions.value = {
             public: true,
+            description:
+                "Whether the input math expressions share the same factoring.",
             shadowingInstructions: {
                 createComponentOfType: "boolean",
             },

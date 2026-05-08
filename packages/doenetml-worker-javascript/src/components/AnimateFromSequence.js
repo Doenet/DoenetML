@@ -21,6 +21,10 @@ export default class AnimateFromSequence extends BaseComponent {
     }
 
     static componentType = "animateFromSequence";
+
+    static componentDocs = {
+        summary: "Animates a value through a sequence over time.",
+    };
     static rendererType = undefined;
 
     static createAttributesObject() {
@@ -39,6 +43,7 @@ export default class AnimateFromSequence extends BaseComponent {
             defaultValue: false,
             public: true,
             triggerActionOnChange: "changedAnimationOn",
+            description: "Whether the animation is currently playing.",
         };
 
         attributes.animationMode = {
@@ -54,6 +59,8 @@ export default class AnimateFromSequence extends BaseComponent {
             ],
             toLowerCase: true,
             public: true,
+            description:
+                "How the animation steps through the sequence: increase, decrease, increase once, decrease once, or oscillate.",
         };
 
         attributes.animationInterval = {
@@ -61,6 +68,8 @@ export default class AnimateFromSequence extends BaseComponent {
             createStateVariable: "animationInterval",
             defaultValue: 1000,
             public: true,
+            description:
+                "Time in milliseconds between successive animation steps.",
         };
 
         attributes.allowAdjustmentsWhileRunning = {
@@ -68,6 +77,8 @@ export default class AnimateFromSequence extends BaseComponent {
             createStateVariable: "allowAdjustmentsWhileRunning",
             defaultValue: false,
             public: true,
+            description:
+                "Whether sequence parameters can be adjusted while the animation is running.",
         };
 
         return attributes;
@@ -120,6 +131,8 @@ export default class AnimateFromSequence extends BaseComponent {
         };
 
         stateVariableDefinitions.selectedIndex = {
+            description:
+                "Index of the currently selected value in the sequence (1-based).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -156,6 +169,7 @@ export default class AnimateFromSequence extends BaseComponent {
         };
 
         stateVariableDefinitions.value = {
+            description: "The currently selected value of the animation.",
             public: true,
             shadowingInstructions: {
                 hasVariableComponentType: true,
@@ -264,6 +278,8 @@ export default class AnimateFromSequence extends BaseComponent {
         };
 
         stateVariableDefinitions.currentAnimationDirection = {
+            description:
+                'Current direction of the animation ("increase" or "decrease"; flips during oscillation).',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

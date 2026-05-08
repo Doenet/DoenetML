@@ -2,6 +2,10 @@ import BaseComponent from "./abstract/BaseComponent";
 
 export default class Annotation extends BaseComponent {
     static componentType = "annotation";
+
+    static componentDocs = {
+        summary: "An annotation for screen reader navigation of a graph.",
+    };
     static rendererType = undefined;
 
     static createAttributesObject() {
@@ -16,6 +20,7 @@ export default class Annotation extends BaseComponent {
             createStateVariable: "text",
             defaultValue: "",
             public: true,
+            description: "The annotation text read by screen readers.",
         };
 
         attributes.speech = {
@@ -23,6 +28,8 @@ export default class Annotation extends BaseComponent {
             createStateVariable: "speech",
             defaultValue: "",
             public: true,
+            description:
+                "Alternate spoken text used by screen readers (overrides text when set).",
         };
 
         attributes.sonify = {
@@ -30,6 +37,8 @@ export default class Annotation extends BaseComponent {
             createStateVariable: "sonify",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to play a tone when this annotation is focused.",
         };
 
         attributes.circular = {
@@ -37,6 +46,8 @@ export default class Annotation extends BaseComponent {
             createStateVariable: "circular",
             defaultValue: false,
             public: true,
+            description:
+                "Whether navigation through this annotation's children wraps around.",
         };
 
         return attributes;

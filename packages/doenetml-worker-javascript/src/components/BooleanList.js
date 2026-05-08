@@ -6,6 +6,9 @@ import { convertUnresolvedAttributesForComponentType } from "../utils/dast/conve
 export default class BooleanList extends CompositeComponent {
     static componentType = "booleanList";
 
+    static componentDocs = {
+        summary: "A list of booleans.",
+    };
     static takesIndex = true;
 
     static stateVariableToEvaluateAfterReplacements =
@@ -34,12 +37,15 @@ export default class BooleanList extends CompositeComponent {
             createStateVariable: "unordered",
             defaultValue: false,
             public: true,
+            description:
+                "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
         };
         attributes.maxNumber = {
             createComponentOfType: "number",
             createStateVariable: "maxNumber",
             defaultValue: Infinity,
             public: true,
+            description: "Maximum number of items to retain in the list.",
         };
 
         attributes.fixed = {
@@ -115,6 +121,7 @@ export default class BooleanList extends CompositeComponent {
         };
 
         stateVariableDefinitions.numComponents = {
+            description: "The number of items in the boolean list.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

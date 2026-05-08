@@ -3,6 +3,10 @@ import BaseComponent from "./abstract/BaseComponent";
 export default class Markers extends BaseComponent {
     static componentType = "markers";
 
+    static componentDocs = {
+        summary:
+            "A list of text or number markers used by graphical components (e.g. axis tick labels).",
+    };
     static returnChildGroups() {
         return [
             {
@@ -20,6 +24,7 @@ export default class Markers extends BaseComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.markerType = {
+            description: 'The type of markers ("text", "number", or "empty").',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -48,6 +53,7 @@ export default class Markers extends BaseComponent {
         };
 
         stateVariableDefinitions.markers = {
+            description: "The list of marker values.",
             public: true,
             isArray: true,
             shadowingInstructions: {

@@ -13,6 +13,9 @@ export default class DynamicChildren extends CompositeComponent {
 
     static componentType = "_dynamicChildren";
 
+    static componentDocs = {
+        summary: "Internal container for dynamically-generated children.",
+    };
     static treatAsComponentForRecursiveReplacements = true;
 
     static stateVariableToEvaluateAfterReplacements =

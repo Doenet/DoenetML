@@ -27,6 +27,10 @@ export default class UpdateValue extends InlineComponent {
         });
     }
     static componentType = "updateValue";
+
+    static componentDocs = {
+        summary: "Updates one or more state variables on a target component.",
+    };
     static rendererType = "button";
 
     static createAttributesObject() {
@@ -51,6 +55,7 @@ export default class UpdateValue extends InlineComponent {
         };
 
         attributes.draggable = {
+            description: "Whether the update button can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -71,6 +76,7 @@ export default class UpdateValue extends InlineComponent {
         // for newValue with type==="math"
         // let simplify="" or simplify="true" be full simplify
         attributes.simplify = {
+            description: "Level of simplification applied to the new value.",
             createComponentOfType: "text",
             createStateVariable: "simplify",
             defaultValue: "none",

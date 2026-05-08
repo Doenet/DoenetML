@@ -4,6 +4,11 @@ export default class ConsiderAsResponses extends BaseComponent {
     static componentType = "considerAsResponses";
     static rendererType = undefined;
 
+    static componentDocs = {
+        summary:
+            "Marks its children as response components for assessment in an enclosing answer.",
+    };
+
     static inSchemaOnlyInheritAs = [];
 
     static returnChildGroups() {

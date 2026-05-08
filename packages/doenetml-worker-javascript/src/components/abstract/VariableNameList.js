@@ -13,6 +13,7 @@ export default class VariableNameList extends MathList {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.variables = {
+            description: "The list of variable names.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "_variableName",

@@ -19,6 +19,10 @@ import { roundForDisplay } from "../utils/math";
 export default class PiecewiseFunction extends Function {
     static componentType = "piecewiseFunction";
 
+    static componentDocs = {
+        summary:
+            "A function defined piecewise from sub-functions on intervals.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
@@ -66,6 +70,7 @@ export default class PiecewiseFunction extends Function {
         };
 
         stateVariableDefinitions.numInputs = {
+            description: "Number of input variables.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -77,6 +82,7 @@ export default class PiecewiseFunction extends Function {
         };
 
         stateVariableDefinitions.numOutputs = {
+            description: "Number of output values.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -267,6 +273,7 @@ export default class PiecewiseFunction extends Function {
         // until we build in support for piecewise functions into math-expressions,
         // we cannot represent the formula in a math component
         stateVariableDefinitions.formula = {
+            description: "The piecewise formula of the function.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -524,6 +531,7 @@ export default class PiecewiseFunction extends Function {
 
         stateVariableDefinitions.latex = {
             public: true,
+            description: "The piecewise function rendered as a LaTeX string.",
             forRenderer: true,
             shadowingInstructions: {
                 createComponentOfType: "latex",

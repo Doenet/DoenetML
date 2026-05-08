@@ -10,35 +10,47 @@ export function returnStandardAnswerAttributes() {
             createStateVariable: "weight",
             defaultValue: 1,
             public: true,
+            description:
+                "Relative weight of this answer when aggregating credit across multiple answers.",
         },
         handGraded: {
             createPrimitiveOfType: "boolean",
             createStateVariable: "handGraded",
             defaultValue: false,
             public: true,
+            description:
+                "Whether this answer is graded by hand rather than automatically.",
         },
         matchPartial: {
             createComponentOfType: "boolean",
             createStateVariable: "matchPartial",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to award partial credit when the response is partially correct.",
         },
         maxNumAttempts: {
             createComponentOfType: "integer",
             createStateVariable: "maxNumAttempts",
             defaultValue: Infinity,
             public: true,
+            description:
+                "Maximum number of times the response can be submitted.",
         },
         showCorrectness: {
             createComponentOfType: "boolean",
             createStateVariable: "showCorrectnessPreliminary",
             defaultValue: true,
+            description:
+                "Whether to display whether the submitted response is correct.",
         },
         colorCorrectness: {
             createComponentOfType: "boolean",
             createStateVariable: "colorCorrectnessPreliminary",
             defaultValue: true,
             public: true,
+            description:
+                "Whether to color-code the response based on its correctness.",
         },
 
         disableAfterCorrect: {
@@ -46,6 +58,8 @@ export function returnStandardAnswerAttributes() {
             createStateVariable: "disableAfterCorrect",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to disable the answer after a fully correct response has been submitted.",
         },
 
         submitLabel: {
@@ -54,6 +68,8 @@ export function returnStandardAnswerAttributes() {
             defaultValue: "Check Work",
             public: true,
             forRenderer: true,
+            description:
+                "Label for the submit button when correctness is shown.",
         },
 
         submitLabelNoCorrectness: {
@@ -62,6 +78,8 @@ export function returnStandardAnswerAttributes() {
             defaultValue: "Submit Response",
             public: true,
             forRenderer: true,
+            description:
+                "Label for the submit button when correctness is not shown.",
         },
 
         displayDigitsForResponses: {
@@ -69,6 +87,8 @@ export function returnStandardAnswerAttributes() {
             createStateVariable: "displayDigitsForResponses",
             defaultValue: 10,
             public: true,
+            description:
+                "Number of significant digits to display when rendering numeric responses.",
         },
 
         displayDigitsForCreditAchieved: {
@@ -76,6 +96,8 @@ export function returnStandardAnswerAttributes() {
             createStateVariable: "displayDigitsForCreditAchieved",
             defaultValue: 3,
             public: true,
+            description:
+                "Number of significant digits to display for the credit achieved value.",
         },
     };
 }
@@ -179,6 +201,8 @@ export function returnStandardAnswerStateVariableDefinition() {
     };
 
     stateVariableDefinitions.creditAchieved = {
+        description:
+            "The fraction of credit achieved on the most recent submission (between 0 and 1).",
         defaultValue: 0,
         public: true,
         shadowingInstructions: {
@@ -214,6 +238,8 @@ export function returnStandardAnswerStateVariableDefinition() {
     };
 
     stateVariableDefinitions.responseHasBeenSubmitted = {
+        description:
+            "Whether a response has ever been submitted for this answer.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "boolean",
@@ -335,6 +361,8 @@ export function returnStandardAnswerStateVariableDefinition() {
     };
 
     stateVariableDefinitions.justSubmitted = {
+        description:
+            "Whether the most recent submission for this answer has not yet been changed.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "boolean",
@@ -407,6 +435,7 @@ export function returnStandardAnswerStateVariableDefinition() {
     };
 
     stateVariableDefinitions.numSubmissions = {
+        description: "Total number of times a response has been submitted.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "integer",
@@ -452,6 +481,8 @@ export function returnStandardAnswerStateVariableDefinition() {
     };
 
     stateVariableDefinitions.numAttemptsLeft = {
+        description:
+            "Remaining number of submission attempts before the maximum is reached.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "integer",
@@ -515,6 +546,8 @@ export function returnStandardAnswerStateVariableDefinition() {
     };
 
     stateVariableDefinitions.disabled = {
+        description:
+            "Whether this answer is disabled and is no longer accepting submissions.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "boolean",

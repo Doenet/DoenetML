@@ -104,6 +104,8 @@ export default class FunctionOperator extends Function {
         };
 
         stateVariableDefinitions.formula = {
+            description:
+                "The symbolic formula of the function produced by this operator.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",

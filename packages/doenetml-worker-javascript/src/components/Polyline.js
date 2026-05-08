@@ -23,10 +23,14 @@ export default class Polyline extends GraphicalComponent {
     }
     static componentType = "polyline";
 
+    static componentDocs = {
+        summary: "A polyline (open polygon) defined by a list of vertices.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.draggable = {
+            description: "Whether the polyline can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -43,6 +47,7 @@ export default class Polyline extends GraphicalComponent {
         };
 
         attributes.showCoordsWhenDragging = {
+            description: "Whether to show coordinate labels while dragging.",
             createComponentOfType: "boolean",
             createStateVariable: "showCoordsWhenDragging",
             defaultValue: true,
@@ -51,6 +56,8 @@ export default class Polyline extends GraphicalComponent {
         };
 
         attributes.rigid = {
+            description:
+                "Whether the polyline is treated as rigid (preserves shape under drag).",
             createComponentOfType: "boolean",
             createStateVariable: "rigid",
             defaultValue: false,
@@ -91,6 +98,7 @@ export default class Polyline extends GraphicalComponent {
         };
 
         attributes.allowRotation = {
+            description: "Whether the polyline can be rotated under drag.",
             createComponentOfType: "boolean",
             createStateVariable: "allowRotation",
             defaultValue: true,
@@ -98,6 +106,7 @@ export default class Polyline extends GraphicalComponent {
         };
 
         attributes.allowTranslation = {
+            description: "Whether the polyline can be translated under drag.",
             createComponentOfType: "boolean",
             createStateVariable: "allowTranslation",
             defaultValue: true,
@@ -115,6 +124,7 @@ export default class Polyline extends GraphicalComponent {
         };
 
         attributes.allowReflection = {
+            description: "Whether the polyline can be reflected under drag.",
             createComponentOfType: "boolean",
             createStateVariable: "allowReflection",
             defaultValue: true,
@@ -151,6 +161,7 @@ export default class Polyline extends GraphicalComponent {
         Object.assign(stateVariableDefinitions, returnStickyGroupDefinitions());
 
         stateVariableDefinitions.styleDescription = {
+            description: "A textual description of the polyline's style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -197,6 +208,7 @@ export default class Polyline extends GraphicalComponent {
         };
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "polyline".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -216,6 +228,8 @@ export default class Polyline extends GraphicalComponent {
         };
 
         stateVariableDefinitions.preserveSimilarity = {
+            description:
+                "Whether the polyline preserves its shape (up to similarity).",
             public: true,
             hasEssential: true,
             defaultValue: false,
@@ -255,6 +269,7 @@ export default class Polyline extends GraphicalComponent {
         };
 
         stateVariableDefinitions.allowDilation = {
+            description: "Whether the polyline can be dilated under drag.",
             public: true,
             hasEssential: true,
             defaultValue: true,
@@ -292,6 +307,7 @@ export default class Polyline extends GraphicalComponent {
         };
 
         stateVariableDefinitions.verticesDraggable = {
+            description: "Whether each vertex can be dragged independently.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -401,6 +417,7 @@ export default class Polyline extends GraphicalComponent {
         };
 
         stateVariableDefinitions.numVertices = {
+            description: "The number of vertices in the polyline.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -428,6 +445,7 @@ export default class Polyline extends GraphicalComponent {
         };
 
         stateVariableDefinitions.numDimensions = {
+            description: "The number of dimensions the polyline lives in.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -849,6 +867,7 @@ export default class Polyline extends GraphicalComponent {
 
         stateVariableDefinitions.vertices = {
             public: true,
+            description: "The vertices of the polyline.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -1943,6 +1962,7 @@ export default class Polyline extends GraphicalComponent {
         };
 
         stateVariableDefinitions.length = {
+            description: "The total length of the polyline.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -1970,6 +1990,7 @@ export default class Polyline extends GraphicalComponent {
         };
 
         stateVariableDefinitions.center = {
+            description: "The centroid of the polyline's vertices.",
             public: true,
             forRenderer: true,
             isLocation: true,

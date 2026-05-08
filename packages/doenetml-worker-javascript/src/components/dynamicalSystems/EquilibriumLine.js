@@ -4,6 +4,11 @@ export default class EquilibriumLine extends Line {
     static componentType = "equilibriumLine";
     static rendererType = "line";
 
+    static componentDocs = {
+        summary:
+            "An equilibrium line of a dynamical system, rendered solid if stable or dashed if unstable.",
+    };
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
@@ -12,6 +17,8 @@ export default class EquilibriumLine extends Line {
             createStateVariable: "stable",
             defaultValue: true,
             public: true,
+            description:
+                "Whether the equilibrium is stable (rendered solid) or unstable (rendered dashed).",
         };
 
         attributes.switchable = {
@@ -20,6 +27,8 @@ export default class EquilibriumLine extends Line {
             defaultValue: false,
             public: true,
             forRenderer: true,
+            description:
+                "Whether the user can toggle the stability of this equilibrium by clicking it.",
         };
 
         return attributes;

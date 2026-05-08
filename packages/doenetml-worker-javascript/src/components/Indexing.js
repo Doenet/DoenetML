@@ -3,6 +3,10 @@ import TextComponent from "./Text";
 
 export class H extends TextComponent {
     static componentType = "h";
+
+    static componentDocs = {
+        summary: "A heading element.",
+    };
     static rendererType = "text";
 
     static createAttributesObject() {
@@ -16,6 +20,11 @@ export class H extends TextComponent {
 
 export class Idx extends CompositeComponent {
     static componentType = "idx";
+
+    static componentDocs = {
+        summary:
+            "Indexes into the children of a referenced indexable component.",
+    };
 
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 

@@ -13,6 +13,9 @@ export default class SampleRandomNumbers extends CompositeComponent {
     }
     static componentType = "sampleRandomNumbers";
 
+    static componentDocs = {
+        summary: "Samples random numbers from a distribution.",
+    };
     static takesIndex = true;
 
     static allowInSchemaAsComponent = ["number"];
@@ -28,6 +31,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         let attributes = super.createAttributesObject();
 
         attributes.numSamples = {
+            description: "Number of samples to draw.",
             createComponentOfType: "number",
             createStateVariable: "numSamples",
             defaultValue: 1,
@@ -40,6 +44,8 @@ export default class SampleRandomNumbers extends CompositeComponent {
         // gaussian: gaussian with prescribed mean and standard deviation
 
         attributes.type = {
+            description:
+                'Distribution type (e.g. "uniform", "discreteUniform", "gaussian").',
             createComponentOfType: "text",
             createStateVariable: "type",
             defaultValue: "uniform",
@@ -97,6 +103,8 @@ export default class SampleRandomNumbers extends CompositeComponent {
         }
 
         attributes.variantDeterminesSeed = {
+            description:
+                "Whether the document's variant index determines the random seed.",
             createPrimitiveOfType: "boolean",
             createStateVariable: "variantDeterminesSeed",
             defaultPrimitiveValue: false,
@@ -116,6 +124,8 @@ export default class SampleRandomNumbers extends CompositeComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.step = {
+            description:
+                "Step size between sample values (for discrete distributions).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -142,6 +152,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         stateVariableDefinitions.from = {
+            description: "Lower bound of the sampling range.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -281,6 +292,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         stateVariableDefinitions.mean = {
+            description: "Mean of the sampling distribution.",
             stateVariablesDeterminingDependencies: ["type"],
             public: true,
             shadowingInstructions: {
@@ -356,6 +368,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         stateVariableDefinitions.variance = {
+            description: "Variance of the sampling distribution.",
             stateVariablesDeterminingDependencies: ["type"],
             public: true,
             shadowingInstructions: {
@@ -454,6 +467,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         stateVariableDefinitions.standardDeviation = {
+            description: "Standard deviation of the sampling distribution.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

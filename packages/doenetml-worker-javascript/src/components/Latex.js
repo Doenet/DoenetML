@@ -2,6 +2,10 @@ import TextComponent from "./Text";
 
 export default class Latex extends TextComponent {
     static componentType = "latex";
+
+    static componentDocs = {
+        summary: "A snippet of LaTeX rendered as math.",
+    };
     static rendererType = "text";
 
     static createAttributesObject() {

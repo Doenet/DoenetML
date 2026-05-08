@@ -6,6 +6,10 @@ import {
 
 export class Extremum extends BaseComponent {
     static componentType = "extremum";
+
+    static componentDocs = {
+        summary: "A local extremum (min or max) of a function.",
+    };
     static rendererType = undefined;
     static excludeFromSchema = true;
 
@@ -189,6 +193,7 @@ export class Extremum extends BaseComponent {
         let componentClass = this;
 
         stateVariableDefinitions.value = {
+            description: "Coordinates of the extremum.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -296,6 +301,10 @@ export class Extremum extends BaseComponent {
 
 export class Extrema extends BaseComponent {
     static componentType = "extrema";
+
+    static componentDocs = {
+        summary: "Computes local extrema of a function.",
+    };
     static rendererType = undefined;
     static componentTypeSingular = "extremum";
     static get componentTypeCapitalized() {

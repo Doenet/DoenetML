@@ -20,6 +20,8 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
     let stateVariableDefinitions: any = {};
 
     stateVariableDefinitions.numDimensions = {
+        description:
+            "The number of dimensions if the math expression is interpreted as a vector or matrix.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "integer",
@@ -60,6 +62,8 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.vector = {
+        description:
+            "The math expression interpreted as a vector (its components).",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "math",
@@ -281,6 +285,8 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.list = {
+        description:
+            "The math expression interpreted as a list (its elements).",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "math",
@@ -339,6 +345,8 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.matrixSize = {
+        description:
+            "The size of the math expression as a matrix, as a [numRows, numColumns] list.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "numberList",
@@ -373,6 +381,8 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.numRows = {
+        description:
+            "The number of rows when the math expression is interpreted as a matrix.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "integer",
@@ -395,6 +405,8 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.numColumns = {
+        description:
+            "The number of columns when the math expression is interpreted as a matrix.",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "integer",
@@ -417,6 +429,8 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.matrix = {
+        description:
+            "The math expression interpreted as a matrix (its entries by row and column).",
         public: true,
         shadowingInstructions: {
             createComponentOfType: "math",

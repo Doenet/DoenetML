@@ -8,6 +8,8 @@ export function returnLabelAttributes() {
             createStateVariable: "labelIsName",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to use this component's name as its rendered label.",
         },
     };
 }
@@ -267,6 +269,7 @@ export function returnLabelStateVariableDefinitions({
     };
 
     stateVariableDefinitions.label = {
+        description: "The label rendered with this component.",
         forRenderer: true,
         public: true,
         shadowingInstructions: {

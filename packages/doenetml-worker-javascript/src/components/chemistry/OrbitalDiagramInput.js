@@ -21,6 +21,11 @@ export default class OrbitalDiagramInput extends BlockComponent {
 
     static componentType = "orbitalDiagramInput";
 
+    static componentDocs = {
+        summary:
+            "An interactive input where students fill in an orbital diagram by adding boxes, rows, and up/down arrows.",
+    };
+
     static variableForImplicitProp = "value";
 
     static createAttributesObject() {
@@ -29,11 +34,14 @@ export default class OrbitalDiagramInput extends BlockComponent {
             createComponentOfType: "orbitalDiagram",
             createStateVariable: "prefill",
             defaultValue: [],
+            description:
+                "An orbital diagram used to prefill the input before the student begins.",
         };
         attributes.prefillLabel = {
             createComponentOfType: "textList",
             createStateVariable: "prefillLabel",
             defaultValue: [],
+            description: "Text labels to prefill for each orbital row.",
         };
         return attributes;
     }
@@ -42,6 +50,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.value = {
+            description: "The current orbital diagram entered by the student.",
             defaultValue: [{ orbitalText: "", boxes: [] }],
             hasEssential: true,
             forRenderer: true,
@@ -102,6 +111,8 @@ export default class OrbitalDiagramInput extends BlockComponent {
         };
 
         stateVariableDefinitions.rows = {
+            description:
+                "The orbital diagram rows in display order (reversed from the underlying value).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "orbitalDiagram",
@@ -134,6 +145,7 @@ export default class OrbitalDiagramInput extends BlockComponent {
         };
 
         stateVariableDefinitions.numRows = {
+            description: "The number of orbital rows in the diagram.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -150,6 +162,8 @@ export default class OrbitalDiagramInput extends BlockComponent {
         };
 
         stateVariableDefinitions.selectedRowIndex = {
+            description:
+                "Index of the currently selected orbital row (1-based; 0 if none selected).",
             defaultValue: 0,
             hasEssential: true,
             forRenderer: true,
@@ -193,6 +207,8 @@ export default class OrbitalDiagramInput extends BlockComponent {
         };
 
         stateVariableDefinitions.selectedBoxIndex = {
+            description:
+                "Index of the currently selected box within the selected row (1-based; 0 if none selected).",
             defaultValue: 0,
             hasEssential: true,
             forRenderer: true,

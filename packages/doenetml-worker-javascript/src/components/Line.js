@@ -26,12 +26,17 @@ export default class Line extends GraphicalComponent {
         });
     }
     static componentType = "line";
+
+    static componentDocs = {
+        summary: "A line through two points or defined by an equation.",
+    };
     static canBeInList = true;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.draggable = {
+            description: "Whether the line can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -94,6 +99,7 @@ export default class Line extends GraphicalComponent {
         Object.assign(stateVariableDefinitions, styleDescriptionDefinitions);
 
         stateVariableDefinitions.styleDescription = {
+            description: "A textual description of the line's style.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -140,6 +146,7 @@ export default class Line extends GraphicalComponent {
         };
 
         stateVariableDefinitions.styleDescriptionWithNoun = {
+            description: 'Style description including the word "line".',
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -159,6 +166,7 @@ export default class Line extends GraphicalComponent {
         };
 
         stateVariableDefinitions.numDimensions = {
+            description: "Number of dimensions the line lives in.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -392,6 +400,7 @@ export default class Line extends GraphicalComponent {
         };
 
         stateVariableDefinitions.variables = {
+            description: "Variable names used in the line's equation.",
             isArray: true,
             public: true,
             shadowingInstructions: {
@@ -567,6 +576,7 @@ export default class Line extends GraphicalComponent {
 
         stateVariableDefinitions.points = {
             public: true,
+            description: "Two points the line passes through.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -1341,6 +1351,7 @@ export default class Line extends GraphicalComponent {
 
         stateVariableDefinitions.equation = {
             public: true,
+            description: "The line's equation as a math expression.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -1811,6 +1822,7 @@ export default class Line extends GraphicalComponent {
         };
 
         stateVariableDefinitions.slope = {
+            description: "The slope of the line (2D only).",
             public: true,
             isLocation: true,
             shadowingInstructions: {
@@ -1842,6 +1854,7 @@ export default class Line extends GraphicalComponent {
         };
 
         stateVariableDefinitions.xintercept = {
+            description: "The x-intercept of the line.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
@@ -1873,6 +1886,7 @@ export default class Line extends GraphicalComponent {
         };
 
         stateVariableDefinitions.yintercept = {
+            description: "The y-intercept of the line.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
@@ -1924,6 +1938,7 @@ export default class Line extends GraphicalComponent {
         };
 
         stateVariableDefinitions.latex = {
+            description: "The line's equation rendered as LaTeX.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -1973,6 +1988,7 @@ export default class Line extends GraphicalComponent {
         };
 
         stateVariableDefinitions.text = {
+            description: "The line's equation rendered as plain text.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

@@ -22,5 +22,7 @@ export function returnLineFamilyLabelPositionAttribute() {
         forRenderer: true,
         toLowerCase: true,
         validValues: LINE_FAMILY_LABEL_POSITION_VALID_VALUES,
+        description:
+            'Where the label sits along this line/curve (e.g. "center", "upperLeft").',
     };
 }

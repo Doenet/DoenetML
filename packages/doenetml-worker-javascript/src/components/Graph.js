@@ -33,6 +33,10 @@ export default class Graph extends BlockComponent {
         });
     }
     static componentType = "graph";
+
+    static componentDocs = {
+        summary: "A coordinate-axis graph that contains graphical objects.",
+    };
     static renderChildren = true;
 
     static createAttributesObject() {
@@ -72,6 +76,7 @@ export default class Graph extends BlockComponent {
         };
 
         attributes.displayMode = {
+            description: 'How to size the graph (e.g. "block", "inline").',
             createComponentOfType: "text",
             createStateVariable: "displayMode",
             validValues: ["block", "inline"],
@@ -82,6 +87,8 @@ export default class Graph extends BlockComponent {
         };
 
         attributes.horizontalAlign = {
+            description:
+                "Horizontal alignment of the graph within its container.",
             createComponentOfType: "text",
             createStateVariable: "horizontalAlign",
             validValues: ["center", "left", "right"],
@@ -92,12 +99,15 @@ export default class Graph extends BlockComponent {
         };
 
         attributes.identicalAxisScales = {
+            description:
+                "Whether to force the x and y axis scales to be equal.",
             createPrimitiveOfType: "boolean",
             createStateVariable: "identicalAxisScales",
             defaultValue: false,
             public: true,
         };
         attributes.displayXAxis = {
+            description: "Whether to display the x axis.",
             createComponentOfType: "boolean",
             createStateVariable: "displayXAxis",
             defaultValue: true,
@@ -105,6 +115,7 @@ export default class Graph extends BlockComponent {
             forRenderer: true,
         };
         attributes.displayYAxis = {
+            description: "Whether to display the y axis.",
             createComponentOfType: "boolean",
             createStateVariable: "displayYAxis",
             defaultValue: true,
@@ -112,6 +123,7 @@ export default class Graph extends BlockComponent {
             forRenderer: true,
         };
         attributes.addControls = {
+            description: "Whether to render interactive zoom/pan controls.",
             createComponentOfType: "text",
             createStateVariable: "addControls",
             defaultValue: "none",
@@ -123,6 +135,7 @@ export default class Graph extends BlockComponent {
             forRenderer: true,
         };
         attributes.controlsPosition = {
+            description: "Position of the graph controls.",
             createComponentOfType: "text",
             createStateVariable: "controlsPosition",
             defaultValue: "left",
@@ -132,6 +145,7 @@ export default class Graph extends BlockComponent {
             validValues: ["bottom", "left", "right", "top"],
         };
         attributes.displayXAxisTicks = {
+            description: "Whether to display tick marks on the x axis.",
             createComponentOfType: "boolean",
             createStateVariable: "displayXAxisTicks",
             defaultValue: true,
@@ -139,6 +153,7 @@ export default class Graph extends BlockComponent {
             forRenderer: true,
         };
         attributes.displayYAxisTicks = {
+            description: "Whether to display tick marks on the y axis.",
             createComponentOfType: "boolean",
             createStateVariable: "displayYAxisTicks",
             defaultValue: true,
@@ -156,6 +171,7 @@ export default class Graph extends BlockComponent {
             defaultValue: true,
         };
         attributes.xLabelPosition = {
+            description: "Position of the x-axis label.",
             createComponentOfType: "text",
             createStateVariable: "xLabelPosition",
             defaultValue: "right",
@@ -165,6 +181,7 @@ export default class Graph extends BlockComponent {
             validValues: ["right", "left"],
         };
         attributes.xTickScaleFactor = {
+            description: "Scale factor applied to x-axis tick spacing.",
             createComponentOfType: "math",
             createStateVariable: "xTickScaleFactor",
             defaultValue: null,
@@ -172,6 +189,7 @@ export default class Graph extends BlockComponent {
             forRenderer: true,
         };
         attributes.yLabelPosition = {
+            description: "Position of the y-axis label.",
             createComponentOfType: "text",
             createStateVariable: "yLabelPosition",
             defaultValue: "top",
@@ -181,6 +199,7 @@ export default class Graph extends BlockComponent {
             validValues: ["top", "bottom"],
         };
         attributes.yLabelAlignment = {
+            description: "Alignment of the y-axis label.",
             createComponentOfType: "text",
             createStateVariable: "yLabelAlignment",
             defaultValue: "left",
@@ -190,6 +209,7 @@ export default class Graph extends BlockComponent {
             validValues: ["left", "right"],
         };
         attributes.yTickScaleFactor = {
+            description: "Scale factor applied to y-axis tick spacing.",
             createComponentOfType: "math",
             createStateVariable: "yTickScaleFactor",
             defaultValue: null,
@@ -197,6 +217,7 @@ export default class Graph extends BlockComponent {
             forRenderer: true,
         };
         attributes.showNavigation = {
+            description: "Whether to show navigation controls (pan/zoom).",
             createComponentOfType: "boolean",
             createStateVariable: "showNavigation",
             defaultValue: true,
@@ -216,6 +237,7 @@ export default class Graph extends BlockComponent {
         Object.assign(attributes, returnNumberDisplayAttributes());
 
         attributes.showBorder = {
+            description: "Whether to render a border around the graph.",
             createComponentOfType: "boolean",
             createStateVariable: "showBorder",
             defaultValue: true,
@@ -224,6 +246,8 @@ export default class Graph extends BlockComponent {
         };
 
         attributes.hideOffGraphIndicators = {
+            description:
+                "Whether to suppress indicators for objects outside the visible region.",
             createComponentOfType: "boolean",
             createStateVariable: "hideOffGraphIndicators",
             defaultValue: false,
@@ -231,6 +255,8 @@ export default class Graph extends BlockComponent {
         };
 
         attributes.decorative = {
+            description:
+                "Whether the graph is purely decorative (excluded from a11y tree).",
             createPrimitiveOfType: "boolean",
             createStateVariable: "decorative",
             defaultValue: false,
@@ -239,6 +265,7 @@ export default class Graph extends BlockComponent {
         };
 
         attributes.renderer = {
+            description: "Which renderer to use for the graph.",
             createPrimitiveOfType: "string",
             createStateVariable: "renderer",
             validValues: ["doenet", "prefigure"],
@@ -314,6 +341,7 @@ export default class Graph extends BlockComponent {
         );
 
         stateVariableDefinitions.shortDescription = {
+            description: "A short accessibility description of the graph.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -380,6 +408,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.fixAxes = {
+            description: "Whether the visible axes range is locked.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -407,6 +436,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.xLabel = {
+            description: "The x-axis label text.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -487,6 +517,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.yLabel = {
+            description: "The y-axis label text.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -732,6 +763,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.size = {
+            description: "The size of the graph.",
             public: true,
             defaultValue: "medium",
             hasEssential: true,
@@ -806,6 +838,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.width = {
+            description: "The width of the graph.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -855,6 +888,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.aspectRatio = {
+            description: "The aspect ratio (width / height) of the graph.",
             public: true,
             forRenderer: true,
             defaultValue: 1,
@@ -941,6 +975,8 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.effectiveRenderer = {
+            description:
+                "The renderer actually used after resolving fallbacks.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -969,6 +1005,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.displayXAxisTickLabels = {
+            description: "Whether x-axis tick labels are displayed.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -1004,6 +1041,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.displayYAxisTickLabels = {
+            description: "Whether y-axis tick labels are displayed.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -1039,6 +1077,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.xMin = {
+            description: "Minimum x value displayed.",
             stateVariablesDeterminingDependencies: [
                 "identicalAxisScales",
                 "aspectRatioFromAxisScales",
@@ -1184,6 +1223,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.xMax = {
+            description: "Maximum x value displayed.",
             stateVariablesDeterminingDependencies: [
                 "identicalAxisScales",
                 "aspectRatioFromAxisScales",
@@ -1335,6 +1375,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.yMin = {
+            description: "Minimum y value displayed.",
             stateVariablesDeterminingDependencies: [
                 "identicalAxisScales",
                 "aspectRatioFromAxisScales",
@@ -1482,6 +1523,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.yMax = {
+            description: "Maximum y value displayed.",
             stateVariablesDeterminingDependencies: [
                 "identicalAxisScales",
                 "aspectRatioFromAxisScales",
@@ -1668,6 +1710,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.xscale = {
+            description: "Scale used along the x axis (xMax − xMin).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -1694,6 +1737,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.yscale = {
+            description: "Scale used along the y axis (yMax − yMin).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -1771,6 +1815,7 @@ export default class Graph extends BlockComponent {
         };
 
         stateVariableDefinitions.grid = {
+            description: "Grid line spacing on the graph.",
             public: true,
             shadowingInstructions: {
                 hasVariableComponentType: true,

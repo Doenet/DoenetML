@@ -11,6 +11,11 @@ import { returnSimplifyExpandOnCompareWarning } from "../utils/answer";
 
 export default class Award extends BaseComponent {
     static componentType = "award";
+
+    static componentDocs = {
+        summary:
+            "An award rule within an <answer> that grants credit when matched.",
+    };
     static rendererType = undefined;
 
     static includeBlankStringChildren = true;
@@ -27,6 +32,8 @@ export default class Award extends BaseComponent {
             defaultValue: 1,
             public: true,
             attributesForCreatedComponent: { convertBoolean: "true" },
+            description:
+                "Fraction of credit (0 to 1) granted when this award matches.",
         };
         attributes.matchPartial = {
             createComponentOfType: "boolean",
@@ -34,6 +41,8 @@ export default class Award extends BaseComponent {
             defaultValue: false,
             public: true,
             fallBackToParentStateVariable: "matchPartial",
+            description:
+                "Whether to award partial credit when the response is partially correct.",
         };
         attributes.symbolicEquality = {
             createComponentOfType: "boolean",
@@ -41,6 +50,8 @@ export default class Award extends BaseComponent {
             defaultValue: false,
             public: true,
             fallBackToParentStateVariable: "symbolicEquality",
+            description:
+                "Whether comparison uses symbolic equality (rather than numeric evaluation).",
         };
         attributes.expandOnCompare = {
             createComponentOfType: "boolean",
@@ -48,6 +59,8 @@ export default class Award extends BaseComponent {
             defaultValue: false,
             public: true,
             fallBackToParentStateVariable: "expandOnCompare",
+            description:
+                "Whether to expand math expressions before comparing them.",
         };
         attributes.simplifyOnCompare = {
             createComponentOfType: "text",
@@ -65,6 +78,8 @@ export default class Award extends BaseComponent {
             ],
             public: true,
             fallBackToParentStateVariable: "simplifyOnCompare",
+            description:
+                "Level of simplification applied to math expressions before comparing them.",
         };
         attributes.unorderedCompare = {
             createComponentOfType: "boolean",
@@ -72,6 +87,8 @@ export default class Award extends BaseComponent {
             defaultValue: false,
             public: true,
             fallBackToParentStateVariable: "unorderedCompare",
+            description:
+                "Whether order is ignored when comparing list-like responses.",
         };
         attributes.matchByExactPositions = {
             createComponentOfType: "boolean",
@@ -79,6 +96,8 @@ export default class Award extends BaseComponent {
             defaultValue: false,
             public: true,
             fallBackToParentStateVariable: "matchByExactPositions",
+            description:
+                "Whether to match list responses by exact position rather than by content.",
         };
         attributes.allowedErrorInNumbers = {
             createComponentOfType: "number",
@@ -86,6 +105,8 @@ export default class Award extends BaseComponent {
             defaultValue: 0,
             public: true,
             fallBackToParentStateVariable: "allowedErrorInNumbers",
+            description:
+                "Maximum allowed numeric error when comparing numbers (relative or absolute).",
         };
         attributes.includeErrorInNumberExponents = {
             createComponentOfType: "boolean",
@@ -93,6 +114,8 @@ export default class Award extends BaseComponent {
             defaultValue: false,
             public: true,
             fallBackToParentStateVariable: "includeErrorInNumberExponents",
+            description:
+                "Whether the allowed numeric error also applies to numbers in exponents.",
         };
         attributes.allowedErrorIsAbsolute = {
             createComponentOfType: "boolean",
@@ -100,6 +123,8 @@ export default class Award extends BaseComponent {
             defaultValue: false,
             public: true,
             fallBackToParentStateVariable: "allowedErrorIsAbsolute",
+            description:
+                "Whether allowedErrorInNumbers is interpreted as an absolute (rather than relative) tolerance.",
         };
         attributes.numSignErrorsMatched = {
             createComponentOfType: "number",
@@ -107,6 +132,8 @@ export default class Award extends BaseComponent {
             defaultValue: 0,
             public: true,
             fallBackToParentStateVariable: "numSignErrorsMatched",
+            description:
+                "Maximum number of sign errors that still count as a match.",
         };
         attributes.numPeriodicSetMatchesRequired = {
             createComponentOfType: "integer",
@@ -114,6 +141,8 @@ export default class Award extends BaseComponent {
             defaultValue: 3,
             public: true,
             fallBackToParentStateVariable: "numPeriodicSetMatchesRequired",
+            description:
+                "Number of consecutive elements of a periodic set required to count as a match.",
         };
         attributes.caseInsensitiveMatch = {
             createComponentOfType: "boolean",
@@ -121,6 +150,7 @@ export default class Award extends BaseComponent {
             defaultValue: false,
             public: true,
             fallBackToParentStateVariable: "caseInsensitiveMatch",
+            description: "Whether text comparisons ignore letter case.",
         };
         attributes.matchBlanks = {
             createComponentOfType: "boolean",
@@ -128,22 +158,29 @@ export default class Award extends BaseComponent {
             defaultValue: false,
             public: true,
             fallBackToParentStateVariable: "matchBlanks",
+            description:
+                "Whether unfilled blanks in a math expression count as a match.",
         };
         attributes.feedbackCodes = {
             createComponentOfType: "textList",
             createStateVariable: "feedbackCodes",
             defaultValue: [],
             public: true,
+            description:
+                "Codes that select reusable feedback messages when this award matches.",
         };
         attributes.feedbackText = {
             createComponentOfType: "text",
             createStateVariable: "feedbackText",
             defaultValue: null,
             public: true,
+            description: "Custom feedback text shown when this award matches.",
         };
 
         attributes.referencesAreResponses = {
             createReferences: true,
+            description:
+                "References to components whose values should be treated as responses for this award.",
         };
 
         attributes.splitSymbols = {
@@ -152,6 +189,8 @@ export default class Award extends BaseComponent {
             defaultValue: true,
             public: true,
             fallBackToParentStateVariable: "splitSymbols",
+            description:
+                "Whether multi-character symbols should be split into a product of single-character variables when parsing.",
         };
 
         attributes.parseScientificNotation = {
@@ -160,6 +199,8 @@ export default class Award extends BaseComponent {
             defaultValue: false,
             public: true,
             fallBackToParentStateVariable: "parseScientificNotation",
+            description:
+                "Whether to parse expressions like 1e3 as scientific notation.",
         };
 
         return attributes;
@@ -409,6 +450,8 @@ export default class Award extends BaseComponent {
         );
 
         stateVariableDefinitions.creditAchievedIfSubmit = {
+            description:
+                "Credit (0 to 1) this award would grant if submitted with the current response.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -416,6 +459,8 @@ export default class Award extends BaseComponent {
             additionalStateVariablesDefined: [
                 {
                     variableName: "fractionSatisfiedIfSubmit",
+                    description:
+                        "Fraction (0 to 1) by which this award's match condition is currently satisfied.",
                     public: true,
                     shadowingInstructions: {
                         createComponentOfType: "number",
@@ -571,6 +616,8 @@ export default class Award extends BaseComponent {
         };
 
         stateVariableDefinitions.fractionSatisfied = {
+            description:
+                "Fraction (0 to 1) by which this award's match condition was satisfied at last submission.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -604,6 +651,8 @@ export default class Award extends BaseComponent {
         };
 
         stateVariableDefinitions.creditAchieved = {
+            description:
+                "Credit (0 to 1) this award granted at the last submission.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -637,6 +686,8 @@ export default class Award extends BaseComponent {
         };
 
         stateVariableDefinitions.awarded = {
+            description:
+                "Whether this award was matched at the last submission.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -717,6 +768,8 @@ export default class Award extends BaseComponent {
         };
 
         stateVariableDefinitions.numFeedbacks = {
+            description:
+                "The number of feedback messages associated with this award.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -738,6 +791,7 @@ export default class Award extends BaseComponent {
         };
 
         stateVariableDefinitions.feedbacks = {
+            description: "The feedback messages produced by this award.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "feedback",

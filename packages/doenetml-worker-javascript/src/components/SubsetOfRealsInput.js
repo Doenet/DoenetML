@@ -20,11 +20,15 @@ export default class SubsetOfRealsInput extends BlockComponent {
     }
     static componentType = "subsetOfRealsInput";
 
+    static componentDocs = {
+        summary: "An interactive input for entering a subset of real numbers.",
+    };
     static variableForImplicitProp = "subsetValue";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.xMin = {
+            description: "Left endpoint of the visible number line.",
             createComponentOfType: "number",
             createStateVariable: "xMin",
             defaultValue: -10,
@@ -32,6 +36,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
             forRenderer: true,
         };
         attributes.xMax = {
+            description: "Right endpoint of the visible number line.",
             createComponentOfType: "number",
             createStateVariable: "xMax",
             defaultValue: 10,
@@ -39,6 +44,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
             forRenderer: true,
         };
         attributes.width = {
+            description: "Display width of the input.",
             createComponentOfType: "componentSize",
             createStateVariable: "width",
             defaultValue: 800,
@@ -46,6 +52,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
             forRenderer: true,
         };
         attributes.height = {
+            description: "Display height of the input.",
             createComponentOfType: "componentSize",
             createStateVariable: "height",
             defaultValue: 300,
@@ -53,6 +60,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
             forRenderer: true,
         };
         attributes.xlabel = {
+            description: "Label rendered for the x axis.",
             createComponentOfType: "text",
             createStateVariable: "xlabel",
             defaultValue: "",
@@ -63,6 +71,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
         //point type buttons includePointBasedControls
 
         attributes.dx = {
+            description: "Tick spacing along the number line.",
             createComponentOfType: "number",
             createStateVariable: "dx",
             defaultValue: 0.5,
@@ -70,12 +79,14 @@ export default class SubsetOfRealsInput extends BlockComponent {
         };
 
         attributes.variable = {
+            description: "Variable name displayed on the number line.",
             createComponentOfType: "_variableName",
             createStateVariable: "variable",
             defaultValue: me.fromAst("x"),
             public: true,
         };
         attributes.format = {
+            description: "Input format used for parsing entered subsets.",
             createComponentOfType: "text",
             createStateVariable: "format",
             defaultValue: "text",
@@ -84,6 +95,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
             validValues: ["text", "latex"],
         };
         attributes.prefill = {
+            description: "Initial subset displayed in the input.",
             createComponentOfType: "text",
             createStateVariable: "prefill",
             defaultValue: "",
@@ -100,6 +112,7 @@ export default class SubsetOfRealsInput extends BlockComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.subsetValue = {
+            description: "The current subset of the reals entered by the user.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "subsetOfReals",

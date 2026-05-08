@@ -6,6 +6,9 @@ import { convertUnresolvedAttributesForComponentType } from "../utils/dast/conve
 export default class Group extends CompositeComponent {
     static componentType = "group";
 
+    static componentDocs = {
+        summary: "A logical grouping of components.",
+    };
     static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
 
     static treatAsComponentForRecursiveReplacements = true;
@@ -37,6 +40,7 @@ export default class Group extends CompositeComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.rendered = {
+            description: "Whether the group's children are rendered.",
             createComponentOfType: "boolean",
             createStateVariable: "rendered",
             defaultValue: this.renderedDefault,

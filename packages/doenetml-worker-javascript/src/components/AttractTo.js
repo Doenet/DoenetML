@@ -4,6 +4,10 @@ import ConstraintComponent from "./abstract/ConstraintComponent";
 export default class AttractTo extends ConstraintComponent {
     static componentType = "attractTo";
 
+    static componentDocs = {
+        summary:
+            "Attracts a graphical component's position to another component when nearby.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
@@ -12,10 +16,14 @@ export default class AttractTo extends ConstraintComponent {
             createStateVariable: "relativeToGraphScales",
             defaultValue: false,
             public: true,
+            description:
+                "Whether the attraction threshold is interpreted relative to the enclosing graph's scales rather than absolute coordinates.",
         };
 
         attributes.threshold = {
             createComponentOfType: "number",
+            description:
+                "Distance within which the position attracts to a target.",
         };
 
         return attributes;
@@ -34,6 +42,8 @@ export default class AttractTo extends ConstraintComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.threshold = {
+            description:
+                "Distance within which the position attracts to a target.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

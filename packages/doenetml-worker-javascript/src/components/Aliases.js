@@ -12,53 +12,98 @@ import Case from "./Case";
 
 export class Title extends TextOrInline {
     static componentType = "title";
+
+    static componentDocs = {
+        summary: "A title displayed at the top of a section or document.",
+    };
 }
 
 export class RightHandSide extends MathComponent {
     static componentType = "rightHandSide";
+
+    static componentDocs = {
+        summary:
+            "A right-hand-side expression of an equation in an ODE system.",
+    };
     static rendererType = "math";
 }
 
 export class Description extends Div {
     static componentType = "description";
+
+    static componentDocs = {
+        summary: "A description block.",
+    };
     static rendererType = "containerBlock";
 }
 
 export class XLabel extends Label {
     static componentType = "xLabel";
+
+    static componentDocs = {
+        summary: "A label for the x-axis of a graph.",
+    };
     static rendererType = "label";
 }
 
 export class YLabel extends Label {
     static componentType = "yLabel";
+
+    static componentDocs = {
+        summary: "A label for the y-axis of a graph.",
+    };
     static rendererType = "label";
 }
 
 export class MatrixRow extends MathList {
     static componentType = "matrixRow";
+
+    static componentDocs = {
+        summary: "A row of math values within a matrix literal.",
+    };
     static excludeFromSchema = true;
 }
 
 export class MatrixColumn extends MathList {
     static componentType = "matrixColumn";
+
+    static componentDocs = {
+        summary: "A column of math values within a matrix literal.",
+    };
     static excludeFromSchema = true;
 }
 
 export class Statement extends Div {
     static componentType = "statement";
+
+    static componentDocs = {
+        summary: "A theorem-like statement block.",
+    };
 }
 
 export class Introduction extends Div {
     static componentType = "introduction";
+
+    static componentDocs = {
+        summary: "An introductory block displayed at the start of a section.",
+    };
 }
 
 export class Conclusion extends Div {
     static componentType = "conclusion";
+
+    static componentDocs = {
+        summary: "A concluding block displayed at the end of a section.",
+    };
 }
 
 export class Topic extends TextComponent {
     static componentType = "topic";
     static rendererType = "text";
+
+    static componentDocs = {
+        summary: "A topic label rendered as text (e.g. for tagging content).",
+    };
 }
 
 export class RepeatSetup extends Setup {
@@ -71,16 +116,28 @@ export class Placeholder extends Setup {
 
 export class Br extends InlineComponent {
     static componentType = "br";
+
+    static componentDocs = {
+        summary: "A line break.",
+    };
 }
 
 export class Hr extends BlockComponent {
     static componentType = "hr";
+
+    static componentDocs = {
+        summary: "A horizontal rule used to separate content.",
+    };
 }
 
 export class cascadeMessage extends P {
     static componentType = "cascadeMessage";
     static rendererType = "p";
     static inSchemaOnlyInheritAs = [];
+
+    static componentDocs = {
+        summary: "An individual message displayed within a <cascade>.",
+    };
 }
 
 // TODO: Else is never used, as it is sugared into a Case.
@@ -88,4 +145,9 @@ export class cascadeMessage extends P {
 // Consider an approach to add to the schema without creating a component.
 export class Else extends Case {
     static componentType = "else";
+
+    static componentDocs = {
+        summary:
+            "Default branch within a <conditionalContent>; matched when no <case> condition is true.",
+    };
 }

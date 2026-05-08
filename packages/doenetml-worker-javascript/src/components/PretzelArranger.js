@@ -94,6 +94,10 @@ function shuffleProblemOrder({ numProblems, variantRng, mode }) {
 export default class PretzelArranger extends CompositeComponent {
     static componentType = "_pretzelArranger";
 
+    static componentDocs = {
+        summary:
+            "Internal arranger that lays out subset visualizations within <pretzel>.",
+    };
     static createsVariants = true;
 
     static serializeReplacementsForChildren = true;
@@ -146,6 +150,7 @@ export default class PretzelArranger extends CompositeComponent {
         };
 
         stateVariableDefinitions.numProblems = {
+            description: "The number of problems arranged.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",

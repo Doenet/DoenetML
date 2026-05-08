@@ -146,6 +146,8 @@ export function returnUnorderedListStateVariableDefinitions() {
     };
 
     stateVariableDefinitions.unordered = {
+        description:
+            "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
         defaultValue: false,
         hasEssential: true,
         public: true,

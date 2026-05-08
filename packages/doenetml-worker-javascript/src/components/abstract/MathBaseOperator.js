@@ -18,12 +18,16 @@ export default class MathOperator extends MathComponent {
             createStateVariable: "forceSymbolic",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to force the operator to evaluate symbolically rather than numerically.",
         };
         attributes.forceNumeric = {
             createComponentOfType: "boolean",
             createStateVariable: "forceNumeric",
             defaultValue: false,
             public: true,
+            description:
+                "Whether to force the operator to evaluate numerically rather than symbolically.",
         };
         return attributes;
     }

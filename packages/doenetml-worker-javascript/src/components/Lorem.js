@@ -5,6 +5,9 @@ import { setUpVariantSeedAndRng } from "../utils/variants";
 export default class Lorem extends CompositeComponent {
     static componentType = "lorem";
 
+    static componentDocs = {
+        summary: "Generates lorem ipsum placeholder text.",
+    };
     static allowInSchemaAsComponent = ["text", "p"];
 
     static createsVariants = true;
@@ -16,6 +19,7 @@ export default class Lorem extends CompositeComponent {
         let attributes = super.createAttributesObject();
 
         attributes.minSentencesPerParagraph = {
+            description: "Minimum number of sentences per generated paragraph.",
             createComponentOfType: "number",
             createStateVariable: "minSentencesPerParagraph",
             defaultValue: 4,
@@ -23,6 +27,7 @@ export default class Lorem extends CompositeComponent {
         };
 
         attributes.maxSentencesPerParagraph = {
+            description: "Maximum number of sentences per generated paragraph.",
             createComponentOfType: "number",
             createStateVariable: "maxSentencesPerParagraph",
             defaultValue: 8,
@@ -30,6 +35,7 @@ export default class Lorem extends CompositeComponent {
         };
 
         attributes.minWordsPerSentence = {
+            description: "Minimum number of words per generated sentence.",
             createComponentOfType: "number",
             createStateVariable: "minWordsPerSentence",
             defaultValue: 4,
@@ -37,6 +43,7 @@ export default class Lorem extends CompositeComponent {
         };
 
         attributes.maxWordsPerSentence = {
+            description: "Maximum number of words per generated sentence.",
             createComponentOfType: "number",
             createStateVariable: "maxWordsPerSentence",
             defaultValue: 8,

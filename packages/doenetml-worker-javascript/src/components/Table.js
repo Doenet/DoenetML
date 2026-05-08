@@ -9,6 +9,10 @@ export default class Table extends BlockComponent {
         });
     }
     static componentType = "table";
+
+    static componentDocs = {
+        summary: "A table-like container of rows, columns, and cells.",
+    };
     static renderChildren = true;
 
     static createAttributesObject() {
@@ -47,6 +51,7 @@ export default class Table extends BlockComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.tableEnumeration = {
+            description: "Auto-generated number for this table.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -113,6 +118,7 @@ export default class Table extends BlockComponent {
         };
 
         stateVariableDefinitions.title = {
+            description: "The table's title.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",

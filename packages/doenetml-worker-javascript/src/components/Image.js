@@ -27,6 +27,9 @@ export default class Image extends BlockComponent {
     }
     static componentType = "image";
 
+    static componentDocs = {
+        summary: "Displays a static image.",
+    };
     static renderChildren = true;
 
     static createAttributesObject() {
@@ -49,6 +52,7 @@ export default class Image extends BlockComponent {
         };
 
         attributes.displayMode = {
+            description: 'How to size the image (e.g. "block", "inline").',
             createComponentOfType: "text",
             createStateVariable: "displayMode",
             toLowerCase: true,
@@ -59,6 +63,8 @@ export default class Image extends BlockComponent {
         };
 
         attributes.horizontalAlign = {
+            description:
+                "Horizontal alignment of the image within its container.",
             createComponentOfType: "text",
             createStateVariable: "horizontalAlign",
             toLowerCase: true,
@@ -68,6 +74,7 @@ export default class Image extends BlockComponent {
             public: true,
         };
         attributes.decorative = {
+            description: "Whether the image is purely decorative.",
             createPrimitiveOfType: "boolean",
             createStateVariable: "decorative",
             defaultValue: false,
@@ -75,6 +82,7 @@ export default class Image extends BlockComponent {
             forRenderer: true,
         };
         attributes.source = {
+            description: "URL or path of the image source.",
             createComponentOfType: "text",
             createStateVariable: "source",
             defaultValue: "",
@@ -82,6 +90,7 @@ export default class Image extends BlockComponent {
             forRenderer: true,
         };
         attributes.asFileName = {
+            description: "File name to use when downloading the image.",
             createComponentOfType: "text",
             createStateVariable: "asFileName",
             defaultValue: null,
@@ -89,6 +98,7 @@ export default class Image extends BlockComponent {
             forRenderer: true,
         };
         attributes.mimeType = {
+            description: "MIME type of the image.",
             createComponentOfType: "text",
             createStateVariable: "mimeType",
             defaultValue: null,
@@ -97,6 +107,7 @@ export default class Image extends BlockComponent {
         };
 
         attributes.draggable = {
+            description: "Whether the image can be dragged on a graph.",
             createComponentOfType: "boolean",
             createStateVariable: "draggable",
             defaultValue: true,
@@ -105,6 +116,7 @@ export default class Image extends BlockComponent {
         };
 
         attributes.layer = {
+            description: "Z-order layer index when shown on a graph.",
             createComponentOfType: "number",
             createStateVariable: "layer",
             defaultValue: 0,
@@ -115,6 +127,7 @@ export default class Image extends BlockComponent {
         Object.assign(attributes, returnAnchorAttributes());
 
         attributes.rotate = {
+            description: "Rotation angle (radians) applied to the image.",
             createComponentOfType: "number",
             createStateVariable: "rotate",
             defaultValue: 0,
@@ -156,6 +169,7 @@ export default class Image extends BlockComponent {
         Object.assign(stateVariableDefinitions, anchorDefinition);
 
         stateVariableDefinitions.shortDescription = {
+            description: "A short accessibility description of the image.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -222,6 +236,7 @@ export default class Image extends BlockComponent {
         };
 
         stateVariableDefinitions.size = {
+            description: "The size of the image.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "text",
@@ -319,6 +334,7 @@ export default class Image extends BlockComponent {
         };
 
         stateVariableDefinitions.width = {
+            description: "The display width of the image.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -452,6 +468,7 @@ export default class Image extends BlockComponent {
         };
 
         stateVariableDefinitions.aspectRatio = {
+            description: "The aspect ratio (width / height) of the image.",
             public: true,
             forRenderer: true,
             hasEssential: true,

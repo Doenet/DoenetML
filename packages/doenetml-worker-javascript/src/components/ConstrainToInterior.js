@@ -4,10 +4,16 @@ import ConstraintComponent from "./abstract/ConstraintComponent";
 export default class ConstrainToInterior extends ConstraintComponent {
     static componentType = "constrainToInterior";
 
+    static componentDocs = {
+        summary:
+            "Constrains a graphical component's position to lie inside a region.",
+    };
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.relativeToGraphScales = {
+            description:
+                "Whether the constraint is interpreted relative to the enclosing graph's scales.",
             createComponentOfType: "boolean",
             createStateVariable: "relativeToGraphScales",
             defaultValue: false,

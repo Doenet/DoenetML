@@ -25,6 +25,8 @@ export default class Input extends InlineComponent {
             defaultValue: null,
             public: true,
             excludeFromSchema: true,
+            description:
+                "Groups of users that collaborate when working with this input. (Currently ignored.)",
         };
 
         attributes.labelPosition = {
@@ -35,6 +37,8 @@ export default class Input extends InlineComponent {
             forRenderer: true,
             toLowerCase: true,
             validValues: ["left", "right"],
+            description:
+                'Position of the label relative to the input: "left" or "right".',
         };
 
         attributes.forAnswer = {
@@ -760,6 +764,8 @@ export default class Input extends InlineComponent {
         };
 
         stateVariableDefinitions.shortDescription = {
+            description:
+                "A short accessibility description of this input; it is visible to screen readers but not rendered visually.",
             forRenderer: true,
             public: true,
             shadowingInstructions: {
@@ -857,6 +863,7 @@ export default class Input extends InlineComponent {
         };
 
         stateVariableDefinitions.focused = {
+            description: "Whether this input currently has keyboard focus.",
             forRenderer: true,
             hasEssential: true,
             defaultValue: false,

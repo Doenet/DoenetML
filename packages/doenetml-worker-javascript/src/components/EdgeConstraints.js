@@ -7,6 +7,11 @@ import {
 
 export default class EdgeConstraints extends BaseComponent {
     static componentType = "edgeConstraints";
+
+    static componentDocs = {
+        summary:
+            "A container of constraints applied to polyline/polygon edges.",
+    };
     static rendererType = undefined;
 
     static returnChildGroups() {

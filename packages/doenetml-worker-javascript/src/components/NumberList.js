@@ -13,6 +13,9 @@ import { returnUnorderedListStateVariableDefinitions } from "../utils/unorderedL
 export default class NumberList extends CompositeComponent {
     static componentType = "numberList";
 
+    static componentDocs = {
+        summary: "A list of numbers.",
+    };
     static takesIndex = true;
 
     static stateVariableToEvaluateAfterReplacements =
@@ -44,6 +47,7 @@ export default class NumberList extends CompositeComponent {
         };
 
         attributes.maxNumber = {
+            description: "Maximum number of items to retain in the list.",
             createComponentOfType: "number",
             createStateVariable: "maxNumber",
             defaultValue: Infinity,
@@ -164,6 +168,7 @@ export default class NumberList extends CompositeComponent {
         };
 
         stateVariableDefinitions.numComponents = {
+            description: "The number of items in the number list.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

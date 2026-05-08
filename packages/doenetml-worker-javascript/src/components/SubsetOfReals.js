@@ -9,6 +9,11 @@ import me from "math-expressions";
 
 export default class SubsetOfReals extends MathComponent {
     static componentType = "subsetOfReals";
+
+    static componentDocs = {
+        summary:
+            "A subset of the real numbers, defined by intervals and points.",
+    };
     static rendererType = "math";
 
     // used when creating new component via adapter or copy prop
@@ -26,6 +31,8 @@ export default class SubsetOfReals extends MathComponent {
         };
 
         attributes.displayMode = {
+            description:
+                "How the subset is displayed (e.g. as intervals or set notation).",
             createComponentOfType: "text",
             createStateVariable: "displayMode",
             defaultValue: "intervals",

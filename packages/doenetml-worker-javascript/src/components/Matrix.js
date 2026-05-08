@@ -4,6 +4,10 @@ import me from "math-expressions";
 
 export default class Matrix extends MathComponent {
     static componentType = "matrix";
+
+    static componentDocs = {
+        summary: "A matrix of math values.",
+    };
     static rendererType = "math";
 
     // Include children that can be added due to sugar
@@ -156,6 +160,8 @@ export default class Matrix extends MathComponent {
         );
 
         stateVariableDefinitions.unordered = {
+            description:
+                "Whether matrix entries should be treated as unordered.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",

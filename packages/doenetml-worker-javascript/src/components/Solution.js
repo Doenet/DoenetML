@@ -11,6 +11,10 @@ export class Solution extends BlockComponent {
         });
     }
     static componentType = "solution";
+
+    static componentDocs = {
+        summary: "A solution to an exercise, shown on demand.",
+    };
     static rendererType = "solution";
     static renderChildren = true;
 
@@ -37,6 +41,7 @@ export class Solution extends BlockComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         stateVariableDefinitions.hide = {
+            description: "Whether the solution is currently hidden.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -104,6 +109,7 @@ export class Solution extends BlockComponent {
         };
 
         stateVariableDefinitions.open = {
+            description: "Whether the solution is currently open (revealed).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
@@ -341,6 +347,11 @@ export class Solution extends BlockComponent {
 
 export class GivenAnswer extends Solution {
     static componentType = "givenAnswer";
+
+    static componentDocs = {
+        summary:
+            'A solution-style block labeled "Answer" rather than "Solution".',
+    };
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();

@@ -4,6 +4,11 @@ export default class Annotations extends BaseComponent {
     static componentType = "annotations";
     static rendererType = undefined;
 
+    static componentDocs = {
+        summary:
+            "A container of annotation children for screen reader navigation of a graph.",
+    };
+
     static returnChildGroups() {
         return [
             {

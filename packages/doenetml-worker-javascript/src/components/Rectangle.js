@@ -14,12 +14,17 @@ export default class Rectangle extends Polygon {
         });
     }
     static componentType = "rectangle";
+
+    static componentDocs = {
+        summary: "A rectangle defined by corner points.",
+    };
     static rendererType = "polygon";
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
         attributes.addControls = {
+            description: "Whether to render interactive control handles.",
             createComponentOfType: "text",
             createStateVariable: "addControls",
             defaultValue: "centerWidthAndHeight",
@@ -386,6 +391,7 @@ export default class Rectangle extends Polygon {
         };
 
         stateVariableDefinitions.center = {
+            description: "The rectangle's center coordinates.",
             public: true,
             isLocation: true,
             isArray: true,
@@ -496,6 +502,7 @@ export default class Rectangle extends Polygon {
         };
 
         stateVariableDefinitions.width = {
+            description: "The rectangle's width.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
@@ -559,6 +566,7 @@ export default class Rectangle extends Polygon {
         };
 
         stateVariableDefinitions.height = {
+            description: "The rectangle's height.",
             public: true,
             isLocation: true,
             shadowingInstructions: {
@@ -624,6 +632,7 @@ export default class Rectangle extends Polygon {
 
         stateVariableDefinitions.vertices = {
             public: true,
+            description: "The four corner vertices of the rectangle.",
             isLocation: true,
             shadowingInstructions: {
                 createComponentOfType: "math",
@@ -1420,6 +1429,7 @@ export default class Rectangle extends Polygon {
         };
 
         stateVariableDefinitions.numVertices = {
+            description: "The number of vertices (always 4 for a rectangle).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",

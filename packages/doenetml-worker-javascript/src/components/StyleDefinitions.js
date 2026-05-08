@@ -4,6 +4,11 @@ import { styleAttributes } from "@doenet/utils";
 
 export class StyleDefinition extends BaseComponent {
     static componentType = "styleDefinition";
+
+    static componentDocs = {
+        summary:
+            "A reusable style definition referenced by graphical components.",
+    };
     static rendererType = undefined;
 
     static inSchemaOnlyInheritAs = [];
@@ -78,6 +83,10 @@ export class StyleDefinition extends BaseComponent {
 
 export class StyleDefinitions extends BaseComponent {
     static componentType = "styleDefinitions";
+
+    static componentDocs = {
+        summary: "A container of reusable style definitions.",
+    };
     static rendererType = undefined;
 
     static excludeFromSchema = [];
