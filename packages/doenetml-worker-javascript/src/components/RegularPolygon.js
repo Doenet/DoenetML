@@ -237,6 +237,7 @@ export default class RegularPolygon extends Polygon {
         stateVariableDefinitions.numSides = {
             isAlias: true,
             targetVariableName: "numVertices",
+            description: "The number of sides of the regular polygon.",
         };
 
         stateVariableDefinitions.numVerticesSpecified = {
@@ -1840,6 +1841,8 @@ export default class RegularPolygon extends Polygon {
         stateVariableDefinitions.radius = {
             isAlias: true,
             targetVariableName: "circumradius",
+            description:
+                "Distance from center to a vertex (alias for circumradius).",
         };
 
         stateVariableDefinitions.inradius = {
@@ -1894,6 +1897,8 @@ export default class RegularPolygon extends Polygon {
         stateVariableDefinitions.apothem = {
             isAlias: true,
             targetVariableName: "inradius",
+            description:
+                "Distance from center to the midpoint of a side (alias for inradius).",
         };
 
         stateVariableDefinitions.sideLength = {

@@ -956,25 +956,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -10423,25 +10423,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -11146,25 +11146,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -11861,25 +11861,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -12576,25 +12576,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -13291,25 +13291,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -13995,25 +13995,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -14674,25 +14674,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -15367,25 +15367,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -16060,25 +16060,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -16753,25 +16753,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -17446,25 +17446,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -18169,25 +18169,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -18892,25 +18892,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -19630,25 +19630,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -20368,25 +20368,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -21091,25 +21091,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -21814,25 +21814,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -22537,25 +22537,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -23260,25 +23260,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -23983,25 +23983,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -24706,25 +24706,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -25432,25 +25432,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -46015,7 +46015,7 @@
                     "name": "numVertices",
                     "type": "number",
                     "isArray": false,
-                    "description": "Number of points (iterations) currently shown on the cobweb diagram."
+                    "description": "Number of cobweb vertices currently shown (alias for numPoints)."
                 }
             ],
             "top": true,
@@ -46576,7 +46576,7 @@
                     "name": "numDimensionsForConstraints",
                     "type": "number",
                     "isArray": false,
-                    "description": "Number of dimensions of the point."
+                    "description": "Number of dimensions exposed to constraint computations (alias for numDimensions)."
                 },
                 {
                     "name": "x",
@@ -46600,7 +46600,7 @@
                     "name": "value",
                     "type": "coords",
                     "isArray": false,
-                    "description": "The point's coordinates as a math expression."
+                    "description": "The point's coordinates as a single math expression."
                 }
             ],
             "top": true,
@@ -49321,25 +49321,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -56000,7 +56000,7 @@
                     "name": "numValues",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of items in the text list."
+                    "description": "The number of text values in the list."
                 }
             ],
             "top": true,
@@ -56970,7 +56970,7 @@
                     "name": "numValues",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of items in the boolean list."
+                    "description": "The number of booleans in the list."
                 }
             ],
             "top": true,
@@ -57645,25 +57645,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -57962,7 +57962,7 @@
                     "name": "numValues",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of items in the math list."
+                    "description": "The number of math expressions in the list."
                 }
             ],
             "top": true,
@@ -58261,7 +58261,7 @@
                     "name": "numValues",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of items in the math list."
+                    "description": "The number of math expressions in the list."
                 }
             ],
             "top": true,
@@ -58501,7 +58501,7 @@
                     "name": "numValues",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of items in the number list."
+                    "description": "The number of numbers in the list."
                 }
             ],
             "top": true,
@@ -58978,7 +58978,7 @@
                     "name": "text",
                     "type": "text",
                     "isArray": false,
-                    "description": "The display text used for the link."
+                    "description": "The text used as the link label."
                 }
             ],
             "top": true,
@@ -59509,7 +59509,7 @@
                     "name": "numDimensionsForConstraints",
                     "type": "number",
                     "isArray": false,
-                    "description": "Number of dimensions of the point."
+                    "description": "Number of dimensions exposed to constraint computations (alias for numDimensions)."
                 },
                 {
                     "name": "x",
@@ -59533,7 +59533,7 @@
                     "name": "value",
                     "type": "coords",
                     "isArray": false,
-                    "description": "The point's coordinates as a math expression."
+                    "description": "The point's coordinates as a single math expression."
                 }
             ],
             "top": true,
@@ -60199,25 +60199,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -62465,7 +62465,7 @@
                     "name": "numSides",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of vertices in the polyline."
+                    "description": "The number of sides of the polygon."
                 }
             ],
             "top": true,
@@ -63001,7 +63001,7 @@
                     "name": "numSides",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of vertices (always 3 for a triangle)."
+                    "description": "The number of sides of the polygon."
                 }
             ],
             "top": true,
@@ -63565,7 +63565,7 @@
                     "name": "numSides",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of vertices (always 4 for a rectangle)."
+                    "description": "The number of sides of the polygon."
                 }
             ],
             "top": true,
@@ -64155,19 +64155,19 @@
                     "name": "numSides",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of vertices (sides) of the regular polygon."
+                    "description": "The number of sides of the regular polygon."
                 },
                 {
                     "name": "radius",
                     "type": "number",
                     "isArray": false,
-                    "description": "The radius of the circumscribed circle."
+                    "description": "Distance from center to a vertex (alias for circumradius)."
                 },
                 {
                     "name": "apothem",
                     "type": "number",
                     "isArray": false,
-                    "description": "The radius of the inscribed circle."
+                    "description": "Distance from center to the midpoint of a side (alias for inradius)."
                 }
             ],
             "top": true,
@@ -70117,25 +70117,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -71375,7 +71375,7 @@
                 {
                     "name": "values",
                     "isArray": true,
-                    "description": "Text values of the currently selected choices.",
+                    "description": "The text values of the currently selected choices.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -71388,7 +71388,7 @@
                     "name": "valueToRecordOnSubmit",
                     "type": "number",
                     "isArray": true,
-                    "description": "Indices (1-based) of the currently selected choices.",
+                    "description": "Indices of the currently selected choices (recorded when the answer is submitted).",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -75896,25 +75896,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -84654,25 +84654,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -86687,25 +86687,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -93024,7 +93024,7 @@
                     "name": "numDimensionsForConstraints",
                     "type": "number",
                     "isArray": false,
-                    "description": "Number of dimensions of the point."
+                    "description": "Number of dimensions exposed to constraint computations (alias for numDimensions)."
                 },
                 {
                     "name": "x",
@@ -93048,7 +93048,7 @@
                     "name": "value",
                     "type": "coords",
                     "isArray": false,
-                    "description": "The point's coordinates as a math expression."
+                    "description": "The point's coordinates as a single math expression."
                 }
             ],
             "top": true,
@@ -95111,25 +95111,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -99751,25 +99751,25 @@
                     "name": "x",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The first component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "y",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The second component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "z",
                     "type": "math",
                     "isArray": false,
-                    "description": "The math expression interpreted as a vector (its components)."
+                    "description": "The third component of the math expression when interpreted as a vector."
                 },
                 {
                     "name": "numListItems",
                     "type": "integer",
                     "isArray": false,
-                    "description": "The number of dimensions if the math expression is interpreted as a vector or matrix."
+                    "description": "The number of items when the math expression is interpreted as a list."
                 }
             ],
             "top": true,
@@ -100508,7 +100508,7 @@
                     "name": "latex",
                     "type": "latex",
                     "isArray": false,
-                    "description": "The text value."
+                    "description": "The LaTeX content as a string."
                 }
             ],
             "top": true,

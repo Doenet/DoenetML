@@ -673,6 +673,8 @@ export default class Point extends GraphicalComponent {
         stateVariableDefinitions.numDimensionsForConstraints = {
             isAlias: true,
             targetVariableName: "numDimensions",
+            description:
+                "Number of dimensions exposed to constraint computations (alias for numDimensions).",
         };
 
         stateVariableDefinitions.unconstrainedXs = {
@@ -1227,6 +1229,7 @@ export default class Point extends GraphicalComponent {
         stateVariableDefinitions.value = {
             isAlias: true,
             targetVariableName: "coords",
+            description: "The point's coordinates as a single math expression.",
         };
 
         stateVariableDefinitions.numericalXs = {

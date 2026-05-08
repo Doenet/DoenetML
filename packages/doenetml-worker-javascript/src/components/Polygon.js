@@ -335,6 +335,7 @@ export default class Polygon extends Polyline {
         stateVariableDefinitions.numSides = {
             isAlias: true,
             targetVariableName: "numVertices",
+            description: "The number of sides of the polygon.",
         };
 
         delete stateVariableDefinitions.length;

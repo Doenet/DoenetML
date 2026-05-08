@@ -297,11 +297,13 @@ export default class BooleanList extends CompositeComponent {
         stateVariableDefinitions.numValues = {
             isAlias: true,
             targetVariableName: "numComponents",
+            description: "The number of booleans in the list.",
         };
 
         stateVariableDefinitions.values = {
             isAlias: true,
             targetVariableName: "booleans",
+            description: "The list's booleans.",
         };
 
         stateVariableDefinitions.readyToExpandWhenResolved = {

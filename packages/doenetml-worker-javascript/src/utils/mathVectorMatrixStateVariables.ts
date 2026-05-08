@@ -267,21 +267,29 @@ export function returnMathVectorMatrixStateVariableDefinitions() {
     stateVariableDefinitions.x = {
         isAlias: true,
         targetVariableName: "x1",
+        description:
+            "The first component of the math expression when interpreted as a vector.",
     };
 
     stateVariableDefinitions.y = {
         isAlias: true,
         targetVariableName: "x2",
+        description:
+            "The second component of the math expression when interpreted as a vector.",
     };
 
     stateVariableDefinitions.z = {
         isAlias: true,
         targetVariableName: "x3",
+        description:
+            "The third component of the math expression when interpreted as a vector.",
     };
 
     stateVariableDefinitions.numListItems = {
         isAlias: true,
         targetVariableName: "numDimensions",
+        description:
+            "The number of items when the math expression is interpreted as a list.",
     };
 
     stateVariableDefinitions.list = {

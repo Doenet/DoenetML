@@ -297,11 +297,13 @@ export default class TextList extends CompositeComponent {
         stateVariableDefinitions.numValues = {
             isAlias: true,
             targetVariableName: "numComponents",
+            description: "The number of text values in the list.",
         };
 
         stateVariableDefinitions.values = {
             isAlias: true,
             targetVariableName: "texts",
+            description: "The list's text values.",
         };
 
         stateVariableDefinitions.readyToExpandWhenResolved = {

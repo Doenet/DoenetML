@@ -859,11 +859,13 @@ export class ComponentSizeList extends BaseComponent {
         stateVariableDefinitions.numValues = {
             isAlias: true,
             targetVariableName: "numComponents",
+            description: "The number of component sizes in the list.",
         };
 
         stateVariableDefinitions.values = {
             isAlias: true,
             targetVariableName: "componentSizes",
+            description: "The list's component sizes.",
         };
 
         return stateVariableDefinitions;

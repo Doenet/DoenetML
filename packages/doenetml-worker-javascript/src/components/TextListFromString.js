@@ -126,11 +126,13 @@ export default class TextListFromString extends InlineComponent {
         stateVariableDefinitions.numValues = {
             isAlias: true,
             targetVariableName: "numComponents",
+            description: "The number of text values in the list.",
         };
 
         stateVariableDefinitions.values = {
             isAlias: true,
             targetVariableName: "texts",
+            description: "The list's text values.",
         };
 
         stateVariableDefinitions.text = {

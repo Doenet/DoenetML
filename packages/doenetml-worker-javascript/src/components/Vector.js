@@ -2429,6 +2429,8 @@ export default class Vector extends GraphicalComponent {
         stateVariableDefinitions.value = {
             isAlias: true,
             targetVariableName: "displacementCoords",
+            description:
+                "The vector's displacement as a single math expression.",
         };
 
         stateVariableDefinitions.nearestPoint = {

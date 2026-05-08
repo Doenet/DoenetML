@@ -500,11 +500,13 @@ export default class PointList extends CompositeComponent {
         stateVariableDefinitions.numValues = {
             isAlias: true,
             targetVariableName: "numPoints",
+            description: "The number of points in the list.",
         };
 
         stateVariableDefinitions.values = {
             isAlias: true,
             targetVariableName: "points",
+            description: "The list's points.",
         };
 
         stateVariableDefinitions.readyToExpandWhenResolved = {

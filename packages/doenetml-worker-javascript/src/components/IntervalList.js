@@ -381,11 +381,13 @@ export default class IntervalList extends CompositeComponent {
         stateVariableDefinitions.numValues = {
             isAlias: true,
             targetVariableName: "numIntervals",
+            description: "The number of intervals in the list.",
         };
 
         stateVariableDefinitions.values = {
             isAlias: true,
             targetVariableName: "intervals",
+            description: "The list's intervals.",
         };
 
         stateVariableDefinitions.readyToExpandWhenResolved = {

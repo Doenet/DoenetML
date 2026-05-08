@@ -618,11 +618,13 @@ export default class Angle extends GraphicalComponent {
         stateVariableDefinitions.value = {
             isAlias: true,
             targetVariableName: "radians",
+            description: "The angle measure in radians.",
         };
 
         stateVariableDefinitions.angle = {
             isAlias: true,
             targetVariableName: "radians",
+            description: "The angle measure in radians.",
         };
 
         stateVariableDefinitions.degrees = {

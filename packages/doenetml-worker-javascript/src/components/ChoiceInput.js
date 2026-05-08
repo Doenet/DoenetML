@@ -1219,11 +1219,13 @@ export default class Choiceinput extends Input {
         stateVariableDefinitions.values = {
             isAlias: true,
             targetVariableName: "selectedValues",
+            description: "The text values of the currently selected choices.",
         };
 
         stateVariableDefinitions.numValues = {
             isAlias: true,
             targetVariableName: "numSelectedIndices",
+            description: "The number of currently selected choices.",
         };
 
         stateVariableDefinitions.childIndicesSelected = {
@@ -1317,6 +1319,8 @@ export default class Choiceinput extends Input {
         stateVariableDefinitions.valueToRecordOnSubmit = {
             isAlias: true,
             targetVariableName: "selectedIndices",
+            description:
+                "Indices of the currently selected choices (recorded when the answer is submitted).",
         };
 
         stateVariableDefinitions.submittedIndices = {
@@ -1379,6 +1383,8 @@ export default class Choiceinput extends Input {
         stateVariableDefinitions.valueRecordedAtSubmit = {
             isAlias: true,
             targetVariableName: "submittedIndices",
+            description:
+                "Indices of the choices selected at the most recent submission.",
         };
 
         stateVariableDefinitions.allFeedbacks = {

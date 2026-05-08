@@ -568,11 +568,13 @@ export default class MathList extends CompositeComponent {
         stateVariableDefinitions.numValues = {
             isAlias: true,
             targetVariableName: "numComponents",
+            description: "The number of math expressions in the list.",
         };
 
         stateVariableDefinitions.values = {
             isAlias: true,
             targetVariableName: "maths",
+            description: "The list's math expressions.",
         };
 
         stateVariableDefinitions.readyToExpandWhenResolved = {

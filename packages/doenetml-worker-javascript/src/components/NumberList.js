@@ -561,11 +561,13 @@ export default class NumberList extends CompositeComponent {
         stateVariableDefinitions.numValues = {
             isAlias: true,
             targetVariableName: "numComponents",
+            description: "The number of numbers in the list.",
         };
 
         stateVariableDefinitions.values = {
             isAlias: true,
             targetVariableName: "numbers",
+            description: "The list's numbers.",
         };
 
         stateVariableDefinitions.readyToExpandWhenResolved = {

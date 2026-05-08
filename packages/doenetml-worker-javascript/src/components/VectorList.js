@@ -503,11 +503,13 @@ export default class VectorListComponent extends CompositeComponent {
         stateVariableDefinitions.numValues = {
             isAlias: true,
             targetVariableName: "numVectors",
+            description: "The number of vectors in the list.",
         };
 
         stateVariableDefinitions.values = {
             isAlias: true,
             targetVariableName: "vectors",
+            description: "The list's vectors.",
         };
 
         stateVariableDefinitions.readyToExpandWhenResolved = {

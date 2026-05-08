@@ -112,6 +112,7 @@ export default class Latex extends TextComponent {
         stateVariableDefinitions.latex = {
             isAlias: true,
             targetVariableName: "value",
+            description: "The LaTeX content as a string.",
         };
 
         return stateVariableDefinitions;

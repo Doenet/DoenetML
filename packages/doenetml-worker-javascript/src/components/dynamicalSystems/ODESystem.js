@@ -335,6 +335,8 @@ export default class ODESystem extends InlineComponent {
         stateVariableDefinitions.righthandsides = {
             isAlias: true,
             targetVariableName: "rhss",
+            description:
+                "The right-hand-side expressions of each ODE in the system.",
         };
 
         stateVariableDefinitions.initialConditions = {

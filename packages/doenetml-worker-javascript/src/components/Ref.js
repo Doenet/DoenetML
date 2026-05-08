@@ -297,6 +297,7 @@ export default class Ref extends InlineComponent {
         stateVariableDefinitions.text = {
             isAlias: true,
             targetVariableName: "linkText",
+            description: "The text used as the link label.",
         };
 
         return stateVariableDefinitions;

@@ -1847,6 +1847,7 @@ export default class Function extends InlineComponent {
         stateVariableDefinitions.symbolicf = {
             isAlias: true,
             targetVariableName: "symbolicf1",
+            description: "The function's first symbolic output function.",
         };
 
         stateVariableDefinitions.numericalfs = {
@@ -2704,6 +2705,8 @@ export default class Function extends InlineComponent {
         stateVariableDefinitions.fDefinition = {
             isAlias: true,
             targetVariableName: "fDefinition1",
+            description:
+                "Renderer-side definition of the function's first output function.",
         };
 
         stateVariableDefinitions.fs = {
@@ -2767,6 +2770,7 @@ export default class Function extends InlineComponent {
         stateVariableDefinitions.f = {
             isAlias: true,
             targetVariableName: "f1",
+            description: "The function's first output function.",
         };
 
         stateVariableDefinitions.latex = {

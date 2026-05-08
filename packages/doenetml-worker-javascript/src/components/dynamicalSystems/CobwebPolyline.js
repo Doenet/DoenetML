@@ -256,6 +256,8 @@ export default class CobwebPolyline extends Polyline {
         stateVariableDefinitions.numVertices = {
             isAlias: true,
             targetVariableName: "numPoints",
+            description:
+                "Number of cobweb vertices currently shown (alias for numPoints).",
         };
 
         stateVariableDefinitions.numOriginalVertices = {
