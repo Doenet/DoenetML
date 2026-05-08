@@ -11,7 +11,7 @@ export default class Ref extends InlineComponent {
     static componentType = "ref";
 
     static componentDocs = {
-        summary: "References another component by name.",
+        summary: "A link to a component reference or to a URL.",
     };
     static renderChildren = true;
 
@@ -24,7 +24,7 @@ export default class Ref extends InlineComponent {
             // we specify `allowStrings` to suppress a warning for non-references.
             allowStrings: true,
             description:
-                "Target the reference points to (component reference or URL string).",
+                "The target that the reference points to (component reference or URL string).",
         };
 
         attributes.textType = {
