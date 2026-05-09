@@ -278,14 +278,26 @@ function createElementAndSnippetCompletionItems(
     contextElement: DastElement | null = null,
 ): CompletionItem[] {
     const prefixLower = typedPrefix.toLowerCase();
-    const schemaItems = allowedElementNames
+    const parentName = contextElement?.name;
+    const schemaItems: CompletionItem[] = allowedElementNames
         .filter((name) =>
             prefixLower ? name.toLowerCase().startsWith(prefixLower) : true,
         )
-        .map((name) => ({
-            label: name,
-            kind: CompletionItemKind.Property,
-        }));
+        .map((name) => {
+            const item: CompletionItem = {
+                label: name,
+                kind: CompletionItemKind.Property,
+            };
+            const ownEntry = autoCompleter.schemaElementsByName[name];
+            const effectiveEntry = autoCompleter.resolveEffectiveSchemaElement(
+                ownEntry,
+                parentName,
+            );
+            if (effectiveEntry?.summary) {
+                item.documentation = effectiveEntry.summary;
+            }
+            return item;
+        });
 
     const snippets = autoCompleter._getSnippetsForElements(
         new Set(allowedElementNames),
@@ -311,8 +323,22 @@ function createElementAndSnippetCompletionItems(
 }
 
 /**
+ * Per-label override for ref completion `detail` / `documentation`. Values may
+ * be omitted to fall back to the call-site default `detail` and no
+ * documentation.
+ */
+type RefCompletionLabelInfo = {
+    detail?: string;
+    documentation?: string;
+};
+
+/**
  * Build reference-name completion items that replace only the actively typed
  * portion of a `$ref` or `$ref.member` segment.
+ *
+ * `labelInfo`, when provided, supplies per-label `detail`/`documentation` —
+ * for example, replacing the generic "Reference name" with
+ * `"a <math> on line 83"` for bare `$name` items.
  */
 function createReferenceCompletionItems(
     autoCompleter: AutoCompleter,
@@ -321,20 +347,28 @@ function createReferenceCompletionItems(
     endOffset: number,
     detail: string,
     toNewText: (label: string) => string = (label) => label,
+    labelInfo?: Map<string, RefCompletionLabelInfo>,
 ): CompletionItem[] {
-    return labels.map((label) => ({
-        label,
-        kind: CompletionItemKind.Reference,
-        detail,
-        textEdit: {
-            range: createTextEditRange(
-                autoCompleter.sourceObj,
-                startOffset,
-                endOffset,
-            ),
-            newText: toNewText(label),
-        },
-    }));
+    return labels.map((label) => {
+        const info = labelInfo?.get(label);
+        const item: CompletionItem = {
+            label,
+            kind: CompletionItemKind.Reference,
+            detail: info?.detail ?? detail,
+            textEdit: {
+                range: createTextEditRange(
+                    autoCompleter.sourceObj,
+                    startOffset,
+                    endOffset,
+                ),
+                newText: toNewText(label),
+            },
+        };
+        if (info?.documentation) {
+            item.documentation = info.documentation;
+        }
+        return item;
+    });
 }
 
 /**
@@ -397,20 +431,28 @@ function createPropertyCompletionItems(
     endOffset: number,
     componentType: string,
     toNewText: (label: string) => string = (label) => label,
+    propertyDescriptions?: Map<string, string>,
 ): CompletionItem[] {
-    return labels.map((label) => ({
-        label,
-        kind: CompletionItemKind.Property,
-        detail: `Property on ${componentType}`,
-        textEdit: {
-            range: createTextEditRange(
-                autoCompleter.sourceObj,
-                startOffset,
-                endOffset,
-            ),
-            newText: toNewText(label),
-        },
-    }));
+    return labels.map((label) => {
+        const item: CompletionItem = {
+            label,
+            kind: CompletionItemKind.Property,
+            detail: `Property on ${componentType}`,
+            textEdit: {
+                range: createTextEditRange(
+                    autoCompleter.sourceObj,
+                    startOffset,
+                    endOffset,
+                ),
+                newText: toNewText(label),
+            },
+        };
+        const description = propertyDescriptions?.get(label);
+        if (description) {
+            item.documentation = description;
+        }
+        return item;
+    });
 }
 
 /**
@@ -518,6 +560,48 @@ export function getCompletionItems(
                 this.isNameAddressable(offset, name),
         );
 
+        // Resolve each candidate's referent once and reuse the resulting
+        // info for both the base `$name` item and the `$name[]` snippet.
+        // The base item's `detail` becomes "(<math>, line 83)" — parens
+        // and the comma keep the metadata visually separated from the
+        // completion label so "bi" + "a <booleanInput>..." can't read as
+        // one English phrase. `documentation` carries the component-type
+        // summary (alias-aware: a `<row>` inside `<matrix>` gets the
+        // `matrixRow` summary).
+        type ReferentInfo = {
+            takesIndex: boolean;
+            labelInfo: RefCompletionLabelInfo;
+        };
+        const referentInfoByName = new Map<string, ReferentInfo>();
+        for (const name of filteredNames) {
+            const referent = this.sourceObj.getReferentAtOffset(offset, name);
+            if (!referent) continue;
+            const normalized = this.normalizeElementName(referent.name);
+            const ownEntry = this.schemaElementsByName[normalized];
+            const referentParent = this.sourceObj.getParent(referent);
+            const parentName =
+                referentParent && "name" in referentParent
+                    ? referentParent.name
+                    : undefined;
+            const effective = this.resolveEffectiveSchemaElement(
+                ownEntry,
+                parentName,
+            );
+            const line = referent.position?.start.line;
+            const detail =
+                line !== undefined
+                    ? `(<${referent.name}>, line ${line})`
+                    : `(<${referent.name}>)`;
+            const labelInfo: RefCompletionLabelInfo = { detail };
+            if (effective?.summary) {
+                labelInfo.documentation = effective.summary;
+            }
+            referentInfoByName.set(name, {
+                takesIndex: ownEntry?.takesIndex ?? false,
+                labelInfo,
+            });
+        }
+
         const baseItems = createReferenceCompletionItems(
             this,
             filteredNames,
@@ -525,6 +609,12 @@ export function getCompletionItems(
             offset,
             "Reference name",
             toRefNameInsertText,
+            new Map(
+                Array.from(referentInfoByName, ([name, info]) => [
+                    name,
+                    info.labelInfo,
+                ]),
+            ),
         );
 
         // For names that refer to takesIndex elements (repeat, select, …),
@@ -536,18 +626,15 @@ export function getCompletionItems(
             offset,
         );
         for (const name of filteredNames) {
-            const referent = this.sourceObj.getReferentAtOffset(offset, name);
-            if (!referent) continue;
-            const normalized = this.normalizeElementName(referent.name);
-            const schema = this.schemaElementsByName[normalized];
-            if (!schema?.takesIndex) continue;
+            const info = referentInfoByName.get(name);
+            if (!info?.takesIndex) continue;
             const insertText = isParenthesizedContext
                 ? `${name}[]`
                 : `${toRefSegmentInsertText(name)}[]`;
-            baseItems.push({
+            const item: CompletionItem = {
                 label: `${name}[]`,
                 kind: CompletionItemKind.Reference,
-                detail: "Indexed reference",
+                detail: info.labelInfo.detail ?? "Indexed reference",
                 textEdit: {
                     range: replaceRange,
                     newText: insertText,
@@ -557,7 +644,11 @@ export function getCompletionItems(
                         caretOffset: insertText.length - 1,
                     },
                 } satisfies CompletionSnippetCompletionItemData,
-            });
+            };
+            if (info.labelInfo.documentation) {
+                item.documentation = info.labelInfo.documentation;
+            }
+            baseItems.push(item);
         }
 
         return baseItems;
@@ -586,6 +677,19 @@ export function getCompletionItems(
 
         const componentType = this.normalizeElementName(resolvedNode.name);
         const schema = this.schemaElementsByName[componentType];
+        // Alias-aware schema for help/description (e.g. `<row>` inside
+        // `<matrix>` → `matrixRow`). Behavioural fields like `takesIndex` and
+        // `properties` membership still come from the canonical `schema`,
+        // since aliased entries don't carry those.
+        const resolvedParent = this.sourceObj.getParent(resolvedNode);
+        const resolvedParentName =
+            resolvedParent && "name" in resolvedParent
+                ? resolvedParent.name
+                : undefined;
+        const helpSchema = this.resolveEffectiveSchemaElement(
+            schema,
+            resolvedParentName,
+        );
         const takesIndex = schema?.takesIndex ?? false;
         // Read the index flag for the resolved segment — always the
         // second-to-last entry in pathParts (the last entry is always the
@@ -621,6 +725,13 @@ export function getCompletionItems(
                 !descendantNames.has(name),
         );
 
+        const propertyDescriptions = new Map<string, string>();
+        for (const prop of helpSchema?.properties ?? []) {
+            if (prop.description) {
+                propertyDescriptions.set(prop.name, prop.description);
+            }
+        }
+
         return [
             ...createReferenceCompletionItems(
                 this,
@@ -637,6 +748,7 @@ export function getCompletionItems(
                 offset,
                 resolvedNode.name,
                 toRefMemberInsertText,
+                propertyDescriptions,
             ),
         ];
     }
@@ -762,12 +874,37 @@ export function getCompletionItems(
 
     if (cursorPosition === "openTag" || cursorPosition === "attributeName") {
         const elmName = this.normalizeElementName(element.name);
-        const allowedAttributes =
-            this.schemaElementsByName[elmName]?.attributes || [];
-        return allowedAttributes.map((attr) => ({
-            label: attr.name,
-            kind: CompletionItemKind.Enum,
-        }));
+        const ownEntry = this.schemaElementsByName[elmName];
+        const elementParent = this.sourceObj.getParent(element);
+        const elementParentName =
+            elementParent && "name" in elementParent
+                ? elementParent.name
+                : undefined;
+        const helpEntry = this.resolveEffectiveSchemaElement(
+            ownEntry,
+            elementParentName,
+        );
+        // Build a description lookup from the alias-aware help entry so
+        // attributes on `<row>` inside `<matrix>` show `matrixRow`'s docs.
+        const descriptionByAttrName = new Map<string, string>();
+        for (const attr of helpEntry?.attributes ?? []) {
+            if (attr.description) {
+                descriptionByAttrName.set(attr.name, attr.description);
+            }
+        }
+        const allowedAttributes = ownEntry?.attributes || [];
+        return allowedAttributes.map((attr) => {
+            const item: CompletionItem = {
+                label: attr.name,
+                kind: CompletionItemKind.Enum,
+            };
+            const description =
+                descriptionByAttrName.get(attr.name) ?? attr.description;
+            if (description) {
+                item.documentation = description;
+            }
+            return item;
+        });
     }
 
     if (

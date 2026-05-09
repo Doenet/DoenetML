@@ -1149,6 +1149,192 @@ describe("AutoCompleter", () => {
         });
     });
 
+    describe("Schema-derived documentation on completions", () => {
+        const docSchema = {
+            elements: [
+                {
+                    name: "doc",
+                    summary: "Top-level document.",
+                    children: ["matrix", "math", "select"],
+                    attributes: [],
+                    top: true,
+                    acceptsStringChildren: true,
+                },
+                {
+                    name: "math",
+                    summary: "A math expression.",
+                    children: [],
+                    attributes: [
+                        { name: "simplify", description: "Simplify form." },
+                        { name: "noDescAttr" },
+                    ],
+                    properties: [
+                        { name: "value", description: "Math value." },
+                        { name: "noDescProp" },
+                    ],
+                    top: true,
+                    acceptsStringChildren: true,
+                },
+                {
+                    name: "matrix",
+                    summary: "A matrix container.",
+                    children: ["row"],
+                    attributes: [],
+                    top: false,
+                    acceptsStringChildren: false,
+                    childContextHelp: { row: "matrixRow" },
+                },
+                {
+                    name: "row",
+                    summary: "A generic row element.",
+                    children: [],
+                    attributes: [
+                        { name: "color", description: "Generic row color." },
+                    ],
+                    top: false,
+                    acceptsStringChildren: true,
+                },
+                {
+                    name: "select",
+                    summary: "A composite that picks one of several options.",
+                    children: [],
+                    attributes: [],
+                    properties: [],
+                    top: true,
+                    acceptsStringChildren: true,
+                    takesIndex: true,
+                },
+            ],
+            aliasedElements: {
+                matrixRow: {
+                    name: "matrixRow",
+                    summary: "A row inside a matrix.",
+                    attributes: [
+                        {
+                            name: "color",
+                            description: "Color of the matrix row.",
+                        },
+                    ],
+                },
+            },
+        };
+
+        function createDocAutoCompleter(source: string) {
+            const sourceObj = new DoenetSourceObject();
+            sourceObj.setSource(source + " ");
+            const ac = new AutoCompleter(undefined, docSchema.elements, {
+                sourceObj,
+                rustResolverAdapter: {
+                    isNameAddressableFromOffset: () => true,
+                    resolveRefMemberContainerAtOffset: (
+                        offset: number,
+                        pathParts: string[],
+                    ) => {
+                        const lookupParts = pathParts.slice(0, -1);
+                        if (lookupParts.length === 0) {
+                            return {
+                                node: null,
+                                unresolvedPathParts: [],
+                            };
+                        }
+                        const referent = sourceObj.getReferentAtOffset(
+                            offset,
+                            lookupParts[0],
+                        );
+                        if (!referent) {
+                            return {
+                                node: null,
+                                unresolvedPathParts: lookupParts,
+                            };
+                        }
+                        return {
+                            node: referent,
+                            unresolvedPathParts: [],
+                            visibleDescendantNames:
+                                sourceObj.getUniqueDescendantNamesForNode(
+                                    referent,
+                                ),
+                        };
+                    },
+                } as unknown as RustResolverAdapter,
+            });
+            // Also expose the aliased entries for alias-aware help lookup.
+            ac.setSchema(docSchema.elements, docSchema.aliasedElements);
+            return ac;
+        }
+
+        it("Includes summary as documentation on top-level element completions", () => {
+            const source = `<`;
+            const autoCompleter = new AutoCompleter(source, docSchema.elements);
+            const items = autoCompleter.getCompletionItems(source.length);
+            const doc = items.find((i) => i.label === "doc");
+            expect(doc?.documentation).toBe("Top-level document.");
+        });
+
+        it("Includes summary as documentation on child-element completions and applies childContextHelp aliases", () => {
+            const source = `<doc><matrix><`;
+            const autoCompleter = createDocAutoCompleter(source);
+            const items = autoCompleter.getCompletionItems(source.length);
+            const row = items.find((i) => i.label === "row");
+            // Inside <matrix>, the `row` child should pull its summary from
+            // the `matrixRow` alias, not the generic `row` entry.
+            expect(row?.documentation).toBe("A row inside a matrix.");
+        });
+
+        it("Includes attribute description as documentation, alias-aware for child elements", () => {
+            // Plain <math> attribute: own description.
+            {
+                const source = `<doc><math `;
+                const autoCompleter = createDocAutoCompleter(source);
+                const items = autoCompleter.getCompletionItems(source.length);
+                const simplify = items.find((i) => i.label === "simplify");
+                expect(simplify?.documentation).toBe("Simplify form.");
+                const noDesc = items.find((i) => i.label === "noDescAttr");
+                expect(noDesc?.documentation).toBeUndefined();
+            }
+            // <row> inside <matrix>: alias attribute description wins.
+            {
+                const source = `<doc><matrix><row `;
+                const autoCompleter = createDocAutoCompleter(source);
+                const items = autoCompleter.getCompletionItems(source.length);
+                const color = items.find((i) => i.label === "color");
+                expect(color?.documentation).toBe("Color of the matrix row.");
+            }
+        });
+
+        it("Includes property description as documentation on $ref.member completions", () => {
+            const source = `<doc><math name="m">x</math></doc>\n$m.`;
+            const autoCompleter = createDocAutoCompleter(source);
+            const items = autoCompleter.getCompletionItems(source.length);
+            const value = items.find((i) => i.label === "value");
+            expect(value?.documentation).toBe("Math value.");
+            const noDescProp = items.find((i) => i.label === "noDescProp");
+            expect(noDescProp?.documentation).toBeUndefined();
+        });
+
+        it("Sets detail to '(<type>, line N)' and documentation to summary on $name completions", () => {
+            const source = `<doc>\n  <math name="m">x</math>\n</doc>\n$m`;
+            const autoCompleter = createDocAutoCompleter(source);
+            const items = autoCompleter.getCompletionItems(source.length);
+            const m = items.find((i) => i.label === "m");
+            expect(m).toBeDefined();
+            expect(m?.detail).toMatch(/^\(<math>, line \d+\)$/);
+            expect(m?.documentation).toBe("A math expression.");
+        });
+
+        it("Reuses detail/documentation on the $name[] takesIndex variant", () => {
+            const source = `<doc><select name="s" /></doc>\n$s`;
+            const autoCompleter = createDocAutoCompleter(source);
+            const items = autoCompleter.getCompletionItems(source.length);
+            const indexed = items.find((i) => i.label === "s[]");
+            expect(indexed).toBeDefined();
+            expect(indexed?.detail).toMatch(/^\(<select>, line \d+\)$/);
+            expect(indexed?.documentation).toBe(
+                "A composite that picks one of several options.",
+            );
+        });
+    });
+
     describe("Snippet completions", () => {
         it("Includes snippets after top-level `<`", () => {
             let source: string;

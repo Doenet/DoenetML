@@ -13,16 +13,39 @@ import type { RustResolverAdapter } from "./rust-resolver-adapter";
 
 type ElementSchema = {
     name: string;
+    summary?: string;
     top: boolean;
     attributes: {
         name: string;
+        description?: string;
         values?: string[];
         autocompleteValues?: string[];
     }[];
-    properties?: { name: string }[];
+    properties?: { name: string; description?: string }[];
     children: string[];
     acceptsStringChildren: boolean;
     takesIndex?: boolean;
+    /** Map from child component type → key in `aliasedElements` providing
+     *  context-specific help (e.g. `<row>` inside `<matrix>` → `matrixRow`). */
+    childContextHelp?: Record<string, string>;
+};
+
+/**
+ * Help-only payload carrying alias-specific descriptions (e.g. `matrixRow`).
+ * Aliased entries are looked up via a parent element's `childContextHelp` and
+ * are never themselves valid top-level/child elements, so they only carry the
+ * fields used for help/documentation.
+ */
+type AliasedElementSchema = {
+    name: string;
+    summary?: string;
+    attributes: {
+        name: string;
+        description?: string;
+        values?: string[];
+        autocompleteValues?: string[];
+    }[];
+    properties?: { name: string; description?: string }[];
 };
 
 type ProcessedSnippet = {
@@ -112,6 +135,12 @@ export class AutoCompleter {
     schemaAttributesLowerToUpper: Record<string, string> = {};
     schemaTopAllowedElements: string[] = [];
     schemaElementsByName: Record<string, ElementSchema> = {};
+    /**
+     * Aliased schema entries (e.g. `matrixRow`) keyed by their alias name.
+     * Used for context-help lookup via parent `childContextHelp`. These are
+     * not real elements; do not consult them for child/attribute validation.
+     */
+    schemaAliasedElementsByName: Record<string, AliasedElementSchema> = {};
     parentChildMap: Map<string, Set<string>> = new Map();
     nodeAttributeMap: Map<
         string,
@@ -136,7 +165,18 @@ export class AutoCompleter {
         this._rustResolverAdapter = options?.rustResolverAdapter;
         this._getAdditionalRefNamesImpl = options?.getAdditionalRefNames;
         if (schema) {
-            this.setSchema(schema);
+            // When the caller used the default `doenetSchema.elements`, also
+            // load the bundled aliased entries so help/documentation lookup
+            // is alias-aware out of the box. Custom schemas pass their own
+            // alias map via `setAliasedSchemaElements()` if needed.
+            const aliased =
+                schema === doenetSchema.elements
+                    ? (doenetSchema.aliasedElements as Record<
+                          string,
+                          AliasedElementSchema
+                      >)
+                    : undefined;
+            this.setSchema(schema, aliased);
         }
     }
 
@@ -194,11 +234,16 @@ export class AutoCompleter {
     }
 
     /**
-     * Set the schema to be used for auto-completion.
-     * @param schema
+     * Set the schema to be used for auto-completion. Optionally also pass an
+     * `aliasedElements` map (e.g. `doenetSchema.aliasedElements`) so help
+     * lookups can resolve parent-scoped child aliases.
      */
-    setSchema(schema: ElementSchema[]) {
+    setSchema(
+        schema: ElementSchema[],
+        aliasedElements?: Record<string, AliasedElementSchema>,
+    ) {
         this.schema = schema;
+        this.schemaAliasedElementsByName = aliasedElements ?? {};
         this.schemaLowerToUpper = Object.fromEntries(
             this.schema.map((e) => [e.name.toLowerCase(), e.name]),
         );
@@ -264,6 +309,28 @@ export class AutoCompleter {
     _getAllowedChildren(elementName: string): string[] {
         elementName = this.normalizeElementName(elementName);
         return this.schemaElementsByName[elementName]?.children || [];
+    }
+
+    /**
+     * Resolve the schema entry that supplies *help/documentation* for a child
+     * element placed inside `parentName`. When the parent declares a
+     * `childContextHelp` alias for the child (e.g. `<row>` inside `<matrix>`
+     * → `matrixRow`), return the aliased entry; otherwise return the child's
+     * own entry. Mirrors `resolveEffectiveSchemaElement` in
+     * `packages/doenetml/src/EditorViewer/contextHelp/computeContextHelp.ts`
+     * so autocomplete documentation matches the help panel.
+     */
+    resolveEffectiveSchemaElement(
+        ownEntry: ElementSchema | undefined,
+        parentName: string | undefined,
+    ): ElementSchema | AliasedElementSchema | undefined {
+        if (!ownEntry) return undefined;
+        if (!parentName) return ownEntry;
+        const parentEntry =
+            this.schemaElementsByName[this.normalizeElementName(parentName)];
+        const aliasName = parentEntry?.childContextHelp?.[ownEntry.name];
+        if (!aliasName) return ownEntry;
+        return this.schemaAliasedElementsByName[aliasName] ?? ownEntry;
     }
 
     /**
