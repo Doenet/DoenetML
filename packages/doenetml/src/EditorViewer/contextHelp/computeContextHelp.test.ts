@@ -1,22 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { AutoCompleter } from "@doenet/lsp-tools";
-import { doenetSchema } from "@doenet/static-assets/schema";
-import {
-    buildSchemaElementsByName,
-    computeContextHelp,
-} from "./computeContextHelp";
+import { computeContextHelp } from "./computeContextHelp";
 import type { HelpContent } from "./types";
 
-// Use the real, generated schema rather than hand-rolled fixtures so that
-// alias resolution and other cross-element behaviors are exercised against
-// the same data the editor consumes at runtime.
-const SCHEMA_MAP = buildSchemaElementsByName(
-    doenetSchema.elements,
-    doenetSchema.aliasedElements,
-);
-
+// Default `new AutoCompleter(source)` already binds the bundled doenetSchema
+// + aliasedElements, so alias resolution and other cross-element behaviours
+// are exercised against the same data the editor consumes at runtime.
 function helpAt(source: string, offset: number): HelpContent {
-    return computeContextHelp(new AutoCompleter(source), offset, SCHEMA_MAP);
+    return computeContextHelp(new AutoCompleter(source), offset);
 }
 
 describe("computeContextHelp — element help", () => {
