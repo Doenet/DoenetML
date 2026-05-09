@@ -58041,7 +58041,7 @@
                 {
                     "name": "maxNumber",
                     "description": "Maximum number of items to retain in the list.",
-                    "defaultValue": null
+                    "defaultValue": "Infinity"
                 },
                 {
                     "name": "asList",
@@ -59054,7 +59054,7 @@
                 {
                     "name": "maxNumber",
                     "description": "Maximum number of items to retain in the list.",
-                    "defaultValue": null
+                    "defaultValue": "Infinity"
                 },
                 {
                     "name": "asList",
@@ -60004,7 +60004,7 @@
                 {
                     "name": "maxNumber",
                     "description": "Maximum number of items to retain in the list.",
-                    "defaultValue": null
+                    "defaultValue": "Infinity"
                 },
                 {
                     "name": "mergeMathLists",
@@ -60318,7 +60318,7 @@
                 {
                     "name": "maxNumber",
                     "description": "Maximum number of items to retain in the list.",
-                    "defaultValue": null
+                    "defaultValue": "Infinity"
                 },
                 {
                     "name": "mergeMathLists",
@@ -60632,7 +60632,7 @@
                 {
                     "name": "maxNumber",
                     "description": "Maximum number of items to retain in the list.",
-                    "defaultValue": null
+                    "defaultValue": "Infinity"
                 },
                 {
                     "name": "asList",
@@ -69008,7 +69008,7 @@
                 {
                     "name": "maxNumber",
                     "description": "Maximum number of vectors to retain in the list.",
-                    "defaultValue": null
+                    "defaultValue": "Infinity"
                 },
                 {
                     "name": "asList",
@@ -70372,7 +70372,7 @@
                 {
                     "name": "maxNumAttempts",
                     "description": "Maximum number of times the response can be submitted.",
-                    "defaultValue": null
+                    "defaultValue": "Infinity"
                 },
                 {
                     "name": "showCorrectness",
@@ -74794,7 +74794,7 @@
                 {
                     "name": "valueOnNaN",
                     "description": "Numeric value to use when the input cannot be parsed.",
-                    "defaultValue": null
+                    "defaultValue": "NaN"
                 },
                 {
                     "name": "draggable",
@@ -75221,7 +75221,7 @@
                 {
                     "name": "valueOnNaN",
                     "description": "Numeric value to use when the input cannot be parsed.",
-                    "defaultValue": null
+                    "defaultValue": "NaN"
                 },
                 {
                     "name": "draggable",
@@ -89568,12 +89568,12 @@
                 {
                     "name": "minIndex",
                     "description": "Smallest period index considered when listing offsets.",
-                    "defaultValue": null
+                    "defaultValue": "-Infinity"
                 },
                 {
                     "name": "maxIndex",
                     "description": "Largest period index considered when listing offsets.",
-                    "defaultValue": null
+                    "defaultValue": "Infinity"
                 },
                 {
                     "name": "offsets",
@@ -105138,7 +105138,7 @@
                 {
                     "name": "maxNumAttempts",
                     "description": "Maximum number of times the response can be submitted.",
-                    "defaultValue": null
+                    "defaultValue": "Infinity"
                 },
                 {
                     "name": "showCorrectness",
@@ -106687,7 +106687,7 @@
                 {
                     "name": "maxNumber",
                     "description": "Maximum number of points to retain in the list.",
-                    "defaultValue": null
+                    "defaultValue": "Infinity"
                 },
                 {
                     "name": "asList",
@@ -106935,7 +106935,7 @@
                 {
                     "name": "maxNumber",
                     "description": "Maximum number of intervals to retain in the list.",
-                    "defaultValue": null
+                    "defaultValue": "Infinity"
                 },
                 {
                     "name": "asList",
@@ -107183,7 +107183,7 @@
                 {
                     "name": "maxNumber",
                     "description": "Maximum number of vectors to retain in the list.",
-                    "defaultValue": null
+                    "defaultValue": "Infinity"
                 },
                 {
                     "name": "asList",
@@ -107351,7 +107351,7 @@
                 {
                     "name": "maxNumber",
                     "description": "Maximum number of items to retain in the list.",
-                    "defaultValue": null
+                    "defaultValue": "Infinity"
                 },
                 {
                     "name": "mergeMathLists",
@@ -107580,7 +107580,7 @@
                 {
                     "name": "maxNumber",
                     "description": "Maximum number of items to retain in the list.",
-                    "defaultValue": null
+                    "defaultValue": "Infinity"
                 },
                 {
                     "name": "mergeMathLists",

@@ -35,8 +35,23 @@ export function getExistingDocSlugs(): Set<string> {
 }
 
 /**
+ * Encode a `defaultValue` for inclusion in the schema JSON. JSON has no
+ * representation for `Infinity`, `-Infinity`, or `NaN` — `JSON.stringify`
+ * silently rewrites them to `null`, which is indistinguishable from an
+ * explicit `null` default. To preserve the distinction, encode each
+ * non-finite number as a sentinel string before serialization. Help
+ * consumers render strings as-is, so `<booleanList maxNumber>` will
+ * surface as `"Infinity"` instead of being silently dropped as `null`.
+ */
+function encodeDefaultValueForJson(val: unknown): unknown {
+    if (typeof val !== "number" || Number.isFinite(val)) return val;
+    if (Number.isNaN(val)) return "NaN";
+    return val > 0 ? "Infinity" : "-Infinity";
+}
+
+/**
  * The slug declared by a component class (or its default).
- * - undefined `docsSlug` field (or missing) → falls back to the component name.
+ * - undefined `docsSlug` field (or missing) → falls back to the component type.
  * - explicit `null` → intentionally undocumented.
  * - explicit string → override (e.g. `"answer1"` for `<answer>`).
  *
@@ -136,18 +151,19 @@ type ComponentClass = {
         summary?: string;
         /**
          * Reference-page slug for this component, used to link from editor help.
-         * - Undefined → default to the component name (e.g. "abs" → /reference/abs).
+         * - Undefined → default to the component type (e.g. "abs" → /reference/abs).
          * - String → explicit override (e.g. "answer" → /reference/answer1).
          * - null → component is intentionally undocumented; no link is shown.
          */
         docsSlug?: string | null;
         /**
-         * Map from child component name → alias target name. When the editor
-         * shows help for a child whose name is in this map, the help is taken
-         * from the alias target instead. Used to redirect e.g. `<row>` inside
-         * `<matrix>` to the `<matrixRow>` help, mirroring the runtime sugar.
-         * The alias targets may be `excludeFromSchema` components — their help
-         * payloads are emitted in the schema's `aliasedElements` registry.
+         * Map from child component type → alias target component type. When
+         * the editor shows help for a child whose component type is in this
+         * map, the help is taken from the alias target instead. Used to
+         * redirect e.g. `<row>` inside `<matrix>` to the `<matrixRow>` help,
+         * mirroring the runtime sugar. The alias targets may be
+         * `excludeFromSchema` components — their help payloads are emitted in
+         * the schema's `aliasedElements` registry.
          */
         childAliases?: Record<string, string>;
     };
@@ -247,16 +263,18 @@ type SchemaElement = {
     /** One-sentence summary of the component, surfaced in editor help and docs. */
     summary?: string;
     /**
-     * Reference-page slug for this component. When present, editor help can
-     * link to `${docsURL}/reference/${docsSlug}`. `null` means intentionally
-     * undocumented (no link shown). Omitted means the component name is used
-     * as the slug.
+     * Reference-page slug for this component, or `null` when no docs page
+     * exists for it. The generator always emits this field — either a string
+     * (resolved from the `componentDocs.docsSlug` declared on the class, or
+     * the component type when none is declared) or `null` (intentionally
+     * undocumented or no `.mdx` page on disk). Editor help reads this
+     * directly; an absent field would be a bug.
      */
-    docsSlug?: string | null;
+    docsSlug: string | null;
     /**
-     * Map from child component name → alias element name in `aliasedElements`.
-     * When editor help is computed for a child of this element whose name is
-     * in this map, the help is read from the alias instead.
+     * Map from child component type → alias element name in `aliasedElements`.
+     * When editor help is computed for a child of this element whose
+     * component type is in this map, the help is read from the alias instead.
      */
     childContextHelp?: Record<string, string>;
 };
@@ -479,7 +497,9 @@ export function getSchema() {
             const attrSpec: SchemaAttribute = { name: attrName };
             if (attrDef.description) attrSpec.description = attrDef.description;
             if (attrDef.defaultValue !== undefined) {
-                attrSpec.defaultValue = attrDef.defaultValue;
+                attrSpec.defaultValue = encodeDefaultValueForJson(
+                    attrDef.defaultValue,
+                );
             }
 
             const booleanAliasValues: string[] = [];

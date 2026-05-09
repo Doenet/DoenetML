@@ -25,7 +25,7 @@ export type SchemaElementForHelp = {
         isArray: boolean;
         description?: string;
     }[];
-    /** Map from child component name → key in `aliasedElements` providing help. */
+    /** Map from child component type → key in `aliasedElements` providing help. */
     childContextHelp?: Record<string, string>;
 };
 
