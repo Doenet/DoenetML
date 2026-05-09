@@ -40,9 +40,12 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
         cy.window().then((win) => {
             win.postMessage({ doenetML }, "*");
         });
-        cy.get(".doenet-viewer", { timeout: 10000 }).should(
+        // Wait for the editor (not the viewer) to receive the source.
+        // The viewer renders math text via Unicode italics so plain "x"
+        // would not appear there.
+        cy.get(".cm-content", { timeout: 10000 }).should(
             "contain.text",
-            "x",
+            "math",
         );
 
         openHelpTab();
@@ -63,7 +66,10 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
         cy.window().then((win) => {
             win.postMessage({ doenetML }, "*");
         });
-        cy.get(".doenet-viewer", { timeout: 10000 }).should("exist");
+        cy.get(".cm-content", { timeout: 10000 }).should(
+            "contain.text",
+            "draggable",
+        );
 
         openHelpTab();
         // Cursor inside the "draggable" attribute name (offset 10 = mid-word).
@@ -83,7 +89,10 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
         cy.window().then((win) => {
             win.postMessage({ doenetML }, "*");
         });
-        cy.get(".doenet-viewer", { timeout: 10000 }).should("exist");
+        cy.get(".cm-content", { timeout: 10000 }).should(
+            "contain.text",
+            "matrix",
+        );
 
         openHelpTab();
         // Cursor inside the opening tag of the inner <row> (offset 11 = mid
@@ -96,7 +105,9 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
             // Display name stays as the user-authored "row".
             cy.get(".help-element-name").should("contain.text", "row");
             // Summary should mention matrix (matrixRow's docs string).
-            cy.get(".help-description").should("match", /matrix/i);
+            cy.get(".help-description")
+                .invoke("text")
+                .should("match", /matrix/i);
             // Link points to row_matrix, NOT to row (which would 404) or
             // row_table (the tabular row docs).
             cy.get(".help-docs-link")
@@ -110,7 +121,10 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
         cy.window().then((win) => {
             win.postMessage({ doenetML }, "*");
         });
-        cy.get(".doenet-viewer", { timeout: 10000 }).should("exist");
+        cy.get(".cm-content", { timeout: 10000 }).should(
+            "contain.text",
+            "tabular",
+        );
 
         openHelpTab();
         // Cursor inside the opening tag of <row>.
