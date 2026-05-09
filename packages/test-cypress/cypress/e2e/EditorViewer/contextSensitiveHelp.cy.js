@@ -27,10 +27,10 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
      */
     function moveCursorToOffset(offset) {
         cy.get(".cm-content").then(($content) => {
-            // In CodeMirror 6 the contentDOM (`.cm-content`) carries a
-            // `cmView` back-reference whose `editorView` is the public view.
-            // This is the same path `EditorView.findFromDOM` takes.
-            const view = $content[0].cmView?.editorView;
+            // CodeMirror 6 attaches its DocView to the contentDOM via the
+            // `cmView` property. Walking `rootView.view` gets us back to the
+            // public EditorView — this mirrors `EditorView.findFromDOM`.
+            const view = $content[0].cmView?.rootView?.view;
             if (!view) {
                 throw new Error(
                     "Could not locate CodeMirror EditorView from .cm-content",
