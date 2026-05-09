@@ -55,7 +55,7 @@ export class YLabel extends Label {
     static rendererType = "label";
 }
 
-export class additionalSchemaChildren extends MathList {
+export class MatrixRow extends MathList {
     static componentType = "matrixRow";
 
     static componentDocs = {
