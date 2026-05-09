@@ -29,6 +29,9 @@ export type SchemaElementForHelp = {
     childContextHelp?: Record<string, string>;
 };
 
+type SchemaAttribute = SchemaElementForHelp["attributes"][number];
+type SchemaProperty = SchemaElementForHelp["properties"][number];
+
 export type SchemaMap = Record<string, SchemaElementForHelp>;
 
 const NONE: HelpContent = { kind: "none" };
@@ -59,6 +62,41 @@ export function buildSchemaElementsByName(
     return map;
 }
 
+/**
+ * Case-insensitive lookup of a schema element by author-typed name. Schema
+ * keys are canonical case, so the exact-match path is the fast common case;
+ * the linear scan only runs when the author typed a non-canonical case.
+ */
+function findSchemaElement(
+    schemaMap: SchemaMap,
+    name: string,
+): SchemaElementForHelp | undefined {
+    if (Object.prototype.hasOwnProperty.call(schemaMap, name)) {
+        return schemaMap[name];
+    }
+    const lower = name.toLowerCase();
+    for (const key in schemaMap) {
+        if (key.toLowerCase() === lower) return schemaMap[key];
+    }
+    return undefined;
+}
+
+function findSchemaAttribute(
+    el: SchemaElementForHelp,
+    name: string,
+): SchemaAttribute | undefined {
+    const lower = name.toLowerCase();
+    return el.attributes.find((a) => a.name.toLowerCase() === lower);
+}
+
+function findSchemaProperty(
+    el: SchemaElementForHelp,
+    name: string,
+): SchemaProperty | undefined {
+    const lower = name.toLowerCase();
+    return el.properties.find((p) => p.name.toLowerCase() === lower);
+}
+
 export function computeContextHelp(
     completer: AutoCompleter,
     offset: number,
@@ -68,22 +106,19 @@ export function computeContextHelp(
         completer.sourceObj.elementAtOffsetWithContext(offset);
 
     if (node) {
-        const effectiveName = resolveEffectiveElementName(
+        const ownEntry = findSchemaElement(schemaMap, node.name);
+        const effectiveEntry = resolveEffectiveSchemaElement(
             completer,
             schemaMap,
             node,
+            ownEntry,
         );
 
         if (
             cursorPosition === "openTagName" ||
             cursorPosition === "closeTagName"
         ) {
-            return helpForElement(
-                completer,
-                schemaMap,
-                node.name,
-                effectiveName,
-            );
+            return helpForElement(ownEntry, effectiveEntry);
         }
 
         if (
@@ -92,13 +127,7 @@ export function computeContextHelp(
         ) {
             const attr = completer.sourceObj.attributeAtOffset(offset);
             if (!attr) return NONE;
-            return helpForAttribute(
-                completer,
-                schemaMap,
-                node.name,
-                effectiveName,
-                attr.name,
-            );
+            return helpForAttribute(ownEntry, effectiveEntry, attr.name);
         }
     }
 
@@ -111,26 +140,28 @@ export function computeContextHelp(
 }
 
 /**
- * Resolve the schema name to use for help lookup, accounting for parent
- * `childContextHelp` aliases (e.g. `<row>` inside `<matrix>` resolves to
- * `matrixRow`). Returns the effective name even when no alias applies.
+ * Resolve which schema entry to use for help lookup, accounting for parent
+ * `childContextHelp` aliases (e.g. `<row>` inside `<matrix>` resolves to the
+ * `matrixRow` entry). Returns the own entry when no alias applies.
  */
-function resolveEffectiveElementName(
+function resolveEffectiveSchemaElement(
     completer: AutoCompleter,
     schemaMap: SchemaMap,
     node: ElementNode,
-): string {
-    const normalized = completer.normalizeElementName(node.name);
-    if (normalized === "UNKNOWN_NAME") return node.name;
+    ownEntry: SchemaElementForHelp | undefined,
+): SchemaElementForHelp | undefined {
+    if (!ownEntry) return undefined;
 
     const parent = completer.sourceObj.getParent(node);
-    if (!parent || !("name" in parent)) return normalized;
+    if (!parent || !("name" in parent)) return ownEntry;
 
-    const parentNormalized = completer.normalizeElementName(parent.name);
-    if (parentNormalized === "UNKNOWN_NAME") return normalized;
+    const parentEntry = findSchemaElement(schemaMap, parent.name);
+    if (!parentEntry) return ownEntry;
 
-    const alias = schemaMap[parentNormalized]?.childContextHelp?.[normalized];
-    return alias ?? normalized;
+    const aliasName = parentEntry.childContextHelp?.[ownEntry.name];
+    if (aliasName === undefined) return ownEntry;
+
+    return findSchemaElement(schemaMap, aliasName) ?? ownEntry;
 }
 
 const IDENTIFIER_CHAR_REGEX = /[A-Za-z0-9_]/;
@@ -156,47 +187,33 @@ function fullIdentifierAtOffset(
 }
 
 function helpForElement(
-    completer: AutoCompleter,
-    schemaMap: SchemaMap,
-    rawName: string,
-    effectiveName: string,
+    ownEntry: SchemaElementForHelp | undefined,
+    effectiveEntry: SchemaElementForHelp | undefined,
 ): HelpContent {
-    const displayName = completer.normalizeElementName(rawName);
-    if (displayName === "UNKNOWN_NAME") return NONE;
-
-    const schemaEl = schemaMap[effectiveName];
-    if (!schemaEl?.summary) return NONE;
+    if (!ownEntry || !effectiveEntry?.summary) return NONE;
 
     return {
         kind: "element",
-        elementName: displayName,
-        summary: schemaEl.summary,
-        docsSlug: schemaEl.docsSlug,
+        elementName: ownEntry.name,
+        summary: effectiveEntry.summary,
+        docsSlug: effectiveEntry.docsSlug,
     };
 }
 
 function helpForAttribute(
-    completer: AutoCompleter,
-    schemaMap: SchemaMap,
-    rawElementName: string,
-    effectiveElementName: string,
+    ownEntry: SchemaElementForHelp | undefined,
+    effectiveEntry: SchemaElementForHelp | undefined,
     rawAttributeName: string,
 ): HelpContent {
-    const displayElementName = completer.normalizeElementName(rawElementName);
-    if (displayElementName === "UNKNOWN_NAME") return NONE;
+    if (!ownEntry || !effectiveEntry) return NONE;
 
-    const attributeName = completer.normalizeAttributeName(rawAttributeName);
-    if (attributeName === "UNKNOWN_NAME") return NONE;
-
-    const schemaAttr = schemaMap[effectiveElementName]?.attributes.find(
-        (a) => a.name === attributeName,
-    );
+    const schemaAttr = findSchemaAttribute(effectiveEntry, rawAttributeName);
     if (!schemaAttr?.description) return NONE;
 
     return {
         kind: "attribute",
-        elementName: displayElementName,
-        attributeName,
+        elementName: ownEntry.name,
+        attributeName: schemaAttr.name,
         description: schemaAttr.description,
         // Prefer `autocompleteValues` so boolean aliases (e.g. "true"/"false"
         // injected alongside `validValues`) don't pollute the displayed list.
@@ -238,18 +255,15 @@ function helpForPropertyReference(
             : null);
     if (!containerNode) return NONE;
 
-    const elementName = completer.normalizeElementName(containerNode.name);
-    if (elementName === "UNKNOWN_NAME") return NONE;
+    const elementEntry = findSchemaElement(schemaMap, containerNode.name);
+    if (!elementEntry) return NONE;
 
-    const propertyNameLower = propertyName.toLowerCase();
-    const prop = schemaMap[elementName]?.properties.find(
-        (p) => p.name.toLowerCase() === propertyNameLower,
-    );
+    const prop = findSchemaProperty(elementEntry, propertyName);
     if (!prop?.description) return NONE;
 
     const result: HelpContent = {
         kind: "property",
-        elementName,
+        elementName: elementEntry.name,
         propertyName: prop.name,
         description: prop.description,
         isArray: prop.isArray,

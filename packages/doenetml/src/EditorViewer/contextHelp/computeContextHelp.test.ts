@@ -52,6 +52,16 @@ describe("computeContextHelp — element help", () => {
         // Offset 6 is between `>` and `x`.
         expect(helpAt(source, 6).kind).toBe("none");
     });
+
+    it("resolves elements case-insensitively and displays the canonical name", () => {
+        const source = `<MaTh>x</MaTh>`;
+        const help = helpAt(source, 3);
+        expect(help).toMatchObject({
+            kind: "element",
+            elementName: "math",
+            docsSlug: "math",
+        });
+    });
 });
 
 describe("computeContextHelp — attribute help", () => {
@@ -96,6 +106,17 @@ describe("computeContextHelp — attribute help", () => {
         expect(help.allowedValues).toContain("none");
         expect(help.allowedValues).not.toContain("true");
         expect(help.allowedValues).not.toContain("false");
+    });
+
+    it("resolves attributes case-insensitively and displays the canonical name", () => {
+        const source = `<point DrAgGaBlE="true"/>`;
+        const offset = source.indexOf("DrAgGaBlE") + 3;
+        const help = helpAt(source, offset);
+        expect(help).toMatchObject({
+            kind: "attribute",
+            elementName: "point",
+            attributeName: "draggable",
+        });
     });
 });
 
