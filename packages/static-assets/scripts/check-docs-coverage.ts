@@ -60,13 +60,23 @@ function main() {
     const obsoleteAllowlistEntries: string[] = [];
 
     const componentNames = new Set<string>();
+    /** Targets referenced via `componentDocs.childAliases`. Their docsSlugs
+     * appear in editor help (via parent context) so they must also resolve. */
+    const aliasTargets = new Set<string>();
 
     for (const type in allComponentClasses) {
         const cClass = allComponentClasses[type];
-        // Mirror get-schema.ts filtering: skip excluded and underscore-prefixed
-        // (internal/abstract) component types.
-        if (cClass.excludeFromSchema) continue;
         if (type[0] === "_") continue;
+
+        const childAliases = cClass.componentDocs?.childAliases;
+        if (childAliases) {
+            for (const target of Object.values(childAliases)) {
+                aliasTargets.add(target);
+            }
+        }
+
+        // Mirror get-schema.ts filtering for the main schema check.
+        if (cClass.excludeFromSchema) continue;
         componentNames.add(type);
 
         const declared = getDeclaredDocsSlug(cClass.componentDocs, type);
@@ -93,6 +103,23 @@ function main() {
         } else {
             failures.push(type);
         }
+    }
+
+    // Alias targets (e.g. `<matrixRow>` reached only via `<matrix>`'s
+    // `childAliases`) must resolve to a real docs page or be explicitly null.
+    for (const target of aliasTargets) {
+        const cClass = allComponentClasses[target];
+        if (!cClass) {
+            brokenSlugs.push({ name: `(alias target) ${target}`, slug: "" });
+            continue;
+        }
+        const declared = getDeclaredDocsSlug(cClass.componentDocs, target);
+        if (declared === null) continue;
+        if (docsPages.has(declared)) continue;
+        brokenSlugs.push({
+            name: `(alias target) ${target}`,
+            slug: declared,
+        });
     }
 
     for (const name of allowlist) {

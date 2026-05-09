@@ -293,8 +293,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A title displayed at the top of a section or document.",
-            "docsSlug": "title"
+            "docsSlug": "title",
+            "summary": "A title displayed at the top of a section or document."
         },
         {
             "name": "rightHandSide",
@@ -1014,8 +1014,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A right-hand-side expression of an equation in an ODE system.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A right-hand-side expression of an equation in an ODE system."
         },
         {
             "name": "description",
@@ -1503,8 +1503,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A description block.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A description block."
         },
         {
             "name": "xLabel",
@@ -1898,8 +1898,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A label for the x-axis of a graph.",
-            "docsSlug": "xLabel"
+            "docsSlug": "xLabel",
+            "summary": "A label for the x-axis of a graph."
         },
         {
             "name": "yLabel",
@@ -2293,8 +2293,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A label for the y-axis of a graph.",
-            "docsSlug": "yLabel"
+            "docsSlug": "yLabel",
+            "summary": "A label for the y-axis of a graph."
         },
         {
             "name": "statement",
@@ -2782,8 +2782,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A theorem-like statement block.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A theorem-like statement block."
         },
         {
             "name": "introduction",
@@ -3271,8 +3271,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An introductory block displayed at the start of a section.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "An introductory block displayed at the start of a section."
         },
         {
             "name": "conclusion",
@@ -3760,8 +3760,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A concluding block displayed at the end of a section.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A concluding block displayed at the end of a section."
         },
         {
             "name": "topic",
@@ -4174,8 +4174,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A topic label rendered as text (e.g. for tagging content).",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A topic label rendered as text (e.g. for tagging content)."
         },
         {
             "name": "br",
@@ -4314,8 +4314,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A line break.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A line break."
         },
         {
             "name": "hr",
@@ -4454,8 +4454,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A horizontal rule used to separate content.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A horizontal rule used to separate content."
         },
         {
             "name": "cascadeMessage",
@@ -4864,8 +4864,8 @@
             "top": false,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An individual message displayed within a <cascade>.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "An individual message displayed within a <cascade>."
         },
         {
             "name": "else",
@@ -5249,8 +5249,8 @@
             "top": false,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Default branch within a <conditionalContent>; matched when no <case> condition is true.",
-            "docsSlug": "else"
+            "docsSlug": "else",
+            "summary": "Default branch within a <conditionalContent>; matched when no <case> condition is true."
         },
         {
             "name": "m",
@@ -5630,8 +5630,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Inline math rendered with LaTeX.",
-            "docsSlug": "m"
+            "docsSlug": "m",
+            "summary": "Inline math rendered with LaTeX."
         },
         {
             "name": "me",
@@ -6011,8 +6011,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Display math rendered with LaTeX.",
-            "docsSlug": "me"
+            "docsSlug": "me",
+            "summary": "Display math rendered with LaTeX."
         },
         {
             "name": "men",
@@ -6398,8 +6398,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Numbered display math rendered with LaTeX.",
-            "docsSlug": "men"
+            "docsSlug": "men",
+            "summary": "Numbered display math rendered with LaTeX."
         },
         {
             "name": "md",
@@ -6632,8 +6632,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Display math with multiple aligned rows.",
-            "docsSlug": "md"
+            "docsSlug": "md",
+            "summary": "Display math with multiple aligned rows."
         },
         {
             "name": "mdn",
@@ -6866,8 +6866,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Numbered display math with multiple aligned rows.",
-            "docsSlug": "mdn"
+            "docsSlug": "mdn",
+            "summary": "Numbered display math with multiple aligned rows."
         },
         {
             "name": "mrow",
@@ -7261,8 +7261,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A row of math within an aligned display.",
-            "docsSlug": "mrow"
+            "docsSlug": "mrow",
+            "summary": "A row of math within an aligned display."
         },
         {
             "name": "not",
@@ -7708,8 +7708,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Logical negation of a boolean value.",
-            "docsSlug": "not"
+            "docsSlug": "not",
+            "summary": "Logical negation of a boolean value."
         },
         {
             "name": "and",
@@ -8066,8 +8066,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Logical AND: true only when all child boolean values are true.",
-            "docsSlug": "and"
+            "docsSlug": "and",
+            "summary": "Logical AND: true only when all child boolean values are true."
         },
         {
             "name": "or",
@@ -8424,8 +8424,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Logical OR: true when at least one child boolean value is true.",
-            "docsSlug": "or"
+            "docsSlug": "or",
+            "summary": "Logical OR: true when at least one child boolean value is true."
         },
         {
             "name": "xor",
@@ -8782,8 +8782,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Logical exclusive OR: true when exactly one child boolean value is true.",
-            "docsSlug": "xor"
+            "docsSlug": "xor",
+            "summary": "Logical exclusive OR: true when exactly one child boolean value is true."
         },
         {
             "name": "isInteger",
@@ -9207,8 +9207,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "True when the math child evaluates to an integer.",
-            "docsSlug": "isInteger"
+            "docsSlug": "isInteger",
+            "summary": "True when the math child evaluates to an integer."
         },
         {
             "name": "isNumber",
@@ -9632,8 +9632,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "True when the math child evaluates to a finite number.",
-            "docsSlug": "isNumber"
+            "docsSlug": "isNumber",
+            "summary": "True when the math child evaluates to a finite number."
         },
         {
             "name": "isBetween",
@@ -10085,8 +10085,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "True when a math value is between two given bounds.",
-            "docsSlug": "isBetween"
+            "docsSlug": "isBetween",
+            "summary": "True when a math value is between two given bounds."
         },
         {
             "name": "sum",
@@ -10838,8 +10838,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Sum of all child math/number values.",
-            "docsSlug": "sum"
+            "docsSlug": "sum",
+            "summary": "Sum of all child math/number values."
         },
         {
             "name": "product",
@@ -11591,8 +11591,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Product of all child math/number values.",
-            "docsSlug": "product"
+            "docsSlug": "product",
+            "summary": "Product of all child math/number values."
         },
         {
             "name": "clampNumber",
@@ -12336,8 +12336,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Clamps a number to a specified range.",
-            "docsSlug": "clampNumber"
+            "docsSlug": "clampNumber",
+            "summary": "Clamps a number to a specified range."
         },
         {
             "name": "wrapNumberPeriodic",
@@ -13081,8 +13081,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Wraps a number into a periodic range.",
-            "docsSlug": "wrapNumberPeriodic"
+            "docsSlug": "wrapNumberPeriodic",
+            "summary": "Wraps a number into a periodic range."
         },
         {
             "name": "round",
@@ -13826,8 +13826,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Rounds a number to a specified precision.",
-            "docsSlug": "round"
+            "docsSlug": "round",
+            "summary": "Rounds a number to a specified precision."
         },
         {
             "name": "setSmallToZero",
@@ -14559,8 +14559,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Replaces values with magnitude below a threshold with zero.",
-            "docsSlug": "setSmallToZero"
+            "docsSlug": "setSmallToZero",
+            "summary": "Replaces values with magnitude below a threshold with zero."
         },
         {
             "name": "convertSetToList",
@@ -15266,8 +15266,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Converts a math set expression into a list expression.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Converts a math set expression into a list expression."
         },
         {
             "name": "ceil",
@@ -15987,8 +15987,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Smallest integer ≥ the input value.",
-            "docsSlug": "ceil"
+            "docsSlug": "ceil",
+            "summary": "Smallest integer ≥ the input value."
         },
         {
             "name": "floor",
@@ -16708,8 +16708,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Largest integer ≤ the input value.",
-            "docsSlug": "floor"
+            "docsSlug": "floor",
+            "summary": "Largest integer ≤ the input value."
         },
         {
             "name": "abs",
@@ -17429,8 +17429,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Absolute value of the input.",
-            "docsSlug": "abs"
+            "docsSlug": "abs",
+            "summary": "Absolute value of the input."
         },
         {
             "name": "sign",
@@ -18150,8 +18150,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Sign of the input (-1, 0, or 1).",
-            "docsSlug": "sign"
+            "docsSlug": "sign",
+            "summary": "Sign of the input (-1, 0, or 1)."
         },
         {
             "name": "mean",
@@ -18903,8 +18903,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Arithmetic mean of the child values.",
-            "docsSlug": "mean"
+            "docsSlug": "mean",
+            "summary": "Arithmetic mean of the child values."
         },
         {
             "name": "median",
@@ -19656,8 +19656,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Median of the child values.",
-            "docsSlug": "median"
+            "docsSlug": "median",
+            "summary": "Median of the child values."
         },
         {
             "name": "variance",
@@ -20425,8 +20425,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Variance of the child math/number values (sample variance by default).",
-            "docsSlug": "variance"
+            "docsSlug": "variance",
+            "summary": "Variance of the child math/number values (sample variance by default)."
         },
         {
             "name": "standardDeviation",
@@ -21194,8 +21194,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Standard deviation of the child math/number values (sample by default).",
-            "docsSlug": "standardDeviation"
+            "docsSlug": "standardDeviation",
+            "summary": "Standard deviation of the child math/number values (sample by default)."
         },
         {
             "name": "count",
@@ -21947,8 +21947,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "The number of child math/number values.",
-            "docsSlug": "count"
+            "docsSlug": "count",
+            "summary": "The number of child math/number values."
         },
         {
             "name": "min",
@@ -22700,8 +22700,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Minimum of the child values.",
-            "docsSlug": "min"
+            "docsSlug": "min",
+            "summary": "Minimum of the child values."
         },
         {
             "name": "max",
@@ -23453,8 +23453,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Maximum of the child values.",
-            "docsSlug": "max"
+            "docsSlug": "max",
+            "summary": "Maximum of the child values."
         },
         {
             "name": "mod",
@@ -24206,8 +24206,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Modulo (remainder) of two values.",
-            "docsSlug": "mod"
+            "docsSlug": "mod",
+            "summary": "Modulo (remainder) of two values."
         },
         {
             "name": "gcd",
@@ -24959,8 +24959,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Greatest common divisor of integer inputs.",
-            "docsSlug": "gcd"
+            "docsSlug": "gcd",
+            "summary": "Greatest common divisor of integer inputs."
         },
         {
             "name": "lcm",
@@ -25712,8 +25712,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Least common multiple of integer inputs.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Least common multiple of integer inputs."
         },
         {
             "name": "extractMath",
@@ -26469,8 +26469,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Extracts a sub-expression from a math expression by name or index.",
-            "docsSlug": "extractMath"
+            "docsSlug": "extractMath",
+            "summary": "Extracts a sub-expression from a math expression by name or index."
         },
         {
             "name": "clampFunction",
@@ -27284,8 +27284,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A function clamped to a specified output range.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A function clamped to a specified output range."
         },
         {
             "name": "wrapFunctionPeriodic",
@@ -28099,8 +28099,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A function wrapped into a periodic output range.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A function wrapped into a periodic output range."
         },
         {
             "name": "derivative",
@@ -28918,8 +28918,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "The derivative of a function.",
-            "docsSlug": "derivative"
+            "docsSlug": "derivative",
+            "summary": "The derivative of a function."
         },
         {
             "name": "extractMathOperator",
@@ -29318,8 +29318,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Returns the top-level operator of a math expression as text (e.g. \"+\", \"vector\").",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Returns the top-level operator of a math expression as text (e.g. \"+\", \"vector\")."
         },
         {
             "name": "em",
@@ -29608,8 +29608,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Emphasized inline text (italic by default).",
-            "docsSlug": "em"
+            "docsSlug": "em",
+            "summary": "Emphasized inline text (italic by default)."
         },
         {
             "name": "alert",
@@ -29898,8 +29898,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Inline text styled as an alert.",
-            "docsSlug": "alert"
+            "docsSlug": "alert",
+            "summary": "Inline text styled as an alert."
         },
         {
             "name": "q",
@@ -30188,8 +30188,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Inline double-quoted text.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Inline double-quoted text."
         },
         {
             "name": "sq",
@@ -30478,8 +30478,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Inline single-quoted text.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Inline single-quoted text."
         },
         {
             "name": "term",
@@ -30768,8 +30768,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An inline term, styled distinctively.",
-            "docsSlug": "term"
+            "docsSlug": "term",
+            "summary": "An inline term, styled distinctively."
         },
         {
             "name": "c",
@@ -31058,8 +31058,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Inline code text.",
-            "docsSlug": "c"
+            "docsSlug": "c",
+            "summary": "Inline code text."
         },
         {
             "name": "tag",
@@ -31348,8 +31348,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Renders an XML/HTML tag-like inline.",
-            "docsSlug": "tag"
+            "docsSlug": "tag",
+            "summary": "Renders an XML/HTML tag-like inline."
         },
         {
             "name": "tage",
@@ -31638,8 +31638,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Renders an empty XML/HTML tag-like inline.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Renders an empty XML/HTML tag-like inline."
         },
         {
             "name": "tagc",
@@ -31928,8 +31928,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Renders a closing XML/HTML tag-like inline.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Renders a closing XML/HTML tag-like inline."
         },
         {
             "name": "attr",
@@ -32218,8 +32218,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Renders an attribute name as an inline.",
-            "docsSlug": "attr"
+            "docsSlug": "attr",
+            "summary": "Renders an attribute name as an inline."
         },
         {
             "name": "ndash",
@@ -32364,8 +32364,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Renders an en-dash (–) character.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Renders an en-dash (–) character."
         },
         {
             "name": "mdash",
@@ -32510,8 +32510,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Renders an em-dash (—) character.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Renders an em-dash (—) character."
         },
         {
             "name": "nbsp",
@@ -32656,8 +32656,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Renders a non-breaking space character.",
-            "docsSlug": "nbsp"
+            "docsSlug": "nbsp",
+            "summary": "Renders a non-breaking space character."
         },
         {
             "name": "ellipsis",
@@ -32802,8 +32802,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Renders a horizontal ellipsis (…) character.",
-            "docsSlug": "ellipsis"
+            "docsSlug": "ellipsis",
+            "summary": "Renders a horizontal ellipsis (…) character."
         },
         {
             "name": "lq",
@@ -32948,8 +32948,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Renders a left double quotation mark (“).",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Renders a left double quotation mark (“)."
         },
         {
             "name": "rq",
@@ -33094,8 +33094,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Renders a right double quotation mark (”).",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Renders a right double quotation mark (”)."
         },
         {
             "name": "lsq",
@@ -33240,8 +33240,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Renders a left single quotation mark (‘).",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Renders a left single quotation mark (‘)."
         },
         {
             "name": "rsq",
@@ -33386,8 +33386,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Renders a right single quotation mark (’).",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Renders a right single quotation mark (’)."
         },
         {
             "name": "section",
@@ -34042,8 +34042,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A numbered section of a document, with title and content.",
-            "docsSlug": "section"
+            "docsSlug": "section",
+            "summary": "A numbered section of a document, with title and content."
         },
         {
             "name": "subsection",
@@ -34698,8 +34698,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A numbered subsection, nested within a section.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A numbered subsection, nested within a section."
         },
         {
             "name": "subsubsection",
@@ -35354,8 +35354,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A numbered subsubsection, nested within a subsection.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A numbered subsubsection, nested within a subsection."
         },
         {
             "name": "paragraphs",
@@ -36010,8 +36010,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A numbered subsection of paragraphs (rendered at heading level 4).",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A numbered subsection of paragraphs (rendered at heading level 4)."
         },
         {
             "name": "aside",
@@ -36699,8 +36699,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An aside note set off from the main flow of the document.",
-            "docsSlug": "aside"
+            "docsSlug": "aside",
+            "summary": "An aside note set off from the main flow of the document."
         },
         {
             "name": "objectives",
@@ -37355,8 +37355,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A section listing learning objectives.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A section listing learning objectives."
         },
         {
             "name": "problem",
@@ -38019,8 +38019,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A scored problem section.",
-            "docsSlug": "problem"
+            "docsSlug": "problem",
+            "summary": "A scored problem section."
         },
         {
             "name": "exercise",
@@ -38683,8 +38683,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A scored exercise section.",
-            "docsSlug": "exercise"
+            "docsSlug": "exercise",
+            "summary": "A scored exercise section."
         },
         {
             "name": "question",
@@ -39347,8 +39347,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A scored question section.",
-            "docsSlug": "question"
+            "docsSlug": "question",
+            "summary": "A scored question section."
         },
         {
             "name": "activity",
@@ -40011,8 +40011,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A scored activity section.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A scored activity section."
         },
         {
             "name": "example",
@@ -40667,8 +40667,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An example section.",
-            "docsSlug": "example"
+            "docsSlug": "example",
+            "summary": "An example section."
         },
         {
             "name": "definition",
@@ -41323,8 +41323,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A definition.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A definition."
         },
         {
             "name": "note",
@@ -41979,8 +41979,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A note section, set off from the main flow of the document.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A note section, set off from the main flow of the document."
         },
         {
             "name": "theorem",
@@ -42635,8 +42635,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A theorem statement.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A theorem statement."
         },
         {
             "name": "part",
@@ -43291,8 +43291,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A numbered subsection-style block (a part of an exercise or problem).",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A numbered subsection-style block (a part of an exercise or problem)."
         },
         {
             "name": "task",
@@ -43947,8 +43947,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A numbered task (alias for <part>).",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A numbered task (alias for <part>)."
         },
         {
             "name": "proof",
@@ -44624,8 +44624,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A proof section.",
-            "docsSlug": "proof"
+            "docsSlug": "proof",
+            "summary": "A proof section."
         },
         {
             "name": "problems",
@@ -45268,8 +45268,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A section grouping problems, displayed as a list by default.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A section grouping problems, displayed as a list by default."
         },
         {
             "name": "exercises",
@@ -45912,8 +45912,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A section grouping exercises (alias for <problems>).",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A section grouping exercises (alias for <problems>)."
         },
         {
             "name": "ol",
@@ -46080,8 +46080,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "An ordered list.",
-            "docsSlug": "ol"
+            "docsSlug": "ol",
+            "summary": "An ordered list."
         },
         {
             "name": "ul",
@@ -46248,8 +46248,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "An unordered list.",
-            "docsSlug": "ul"
+            "docsSlug": "ul",
+            "summary": "An unordered list."
         },
         {
             "name": "li",
@@ -46743,8 +46743,8 @@
             "top": false,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A list item within <ol>/<ul>.",
-            "docsSlug": "li"
+            "docsSlug": "li",
+            "summary": "A list item within <ol>/<ul>."
         },
         {
             "name": "odeSystem",
@@ -47186,8 +47186,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A system of first-order ordinary differential equations with initial conditions, rendered as math and numerically integrable.",
-            "docsSlug": "odeSystem"
+            "docsSlug": "odeSystem",
+            "summary": "A system of first-order ordinary differential equations with initial conditions, rendered as math and numerically integrable."
         },
         {
             "name": "cobwebPolyline",
@@ -47823,8 +47823,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "An interactive cobweb diagram for visualizing iteration of a one-variable function.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "An interactive cobweb diagram for visualizing iteration of a one-variable function."
         },
         {
             "name": "equilibriumPoint",
@@ -48425,8 +48425,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An equilibrium point of a dynamical system, rendered as a filled point if stable or open if unstable.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "An equilibrium point of a dynamical system, rendered as a filled point if stable or open if unstable."
         },
         {
             "name": "equilibriumLine",
@@ -48974,8 +48974,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An equilibrium line of a dynamical system, rendered solid if stable or dashed if unstable.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "An equilibrium line of a dynamical system, rendered solid if stable or dashed if unstable."
         },
         {
             "name": "equilibriumCurve",
@@ -49752,8 +49752,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An equilibrium curve of a dynamical system, rendered solid if stable or dashed if unstable.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "An equilibrium curve of a dynamical system, rendered solid if stable or dashed if unstable."
         },
         {
             "name": "atom",
@@ -50102,8 +50102,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Represents a chemical element by symbol or atomic number, exposing its periodic-table properties.",
-            "docsSlug": "atom"
+            "docsSlug": "atom",
+            "summary": "Represents a chemical element by symbol or atomic number, exposing its periodic-table properties."
         },
         {
             "name": "ion",
@@ -50341,8 +50341,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Represents a charged ion specified by element and charge, rendered with its chemical formula.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Represents a charged ion specified by element and charge, rendered with its chemical formula."
         },
         {
             "name": "ionicCompound",
@@ -50533,8 +50533,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Forms a balanced ionic compound from constituent ions and renders its chemical formula.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Forms a balanced ionic compound from constituent ions and renders its chemical formula."
         },
         {
             "name": "electronConfiguration",
@@ -51254,8 +51254,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Renders an electron configuration math expression with proper subscript and superscript formatting.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Renders an electron configuration math expression with proper subscript and superscript formatting."
         },
         {
             "name": "orbitalDiagram",
@@ -51487,8 +51487,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Renders an orbital diagram showing electrons in atomic orbitals as up/down arrows in boxes.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Renders an orbital diagram showing electrons in atomic orbitals as up/down arrows in boxes."
         },
         {
             "name": "orbitalDiagramInput",
@@ -51667,8 +51667,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "An interactive input where students fill in an orbital diagram by adding boxes, rows, and up/down arrows.",
-            "docsSlug": "orbitalDiagramInput"
+            "docsSlug": "orbitalDiagramInput",
+            "summary": "An interactive input where students fill in an orbital diagram by adding boxes, rows, and up/down arrows."
         },
         {
             "name": "feedbackDefinition",
@@ -51815,8 +51815,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A reusable feedback definition referenced by other components.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A reusable feedback definition referenced by other components."
         },
         {
             "name": "styleDefinition",
@@ -52084,8 +52084,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A reusable style definition referenced by graphical components.",
-            "docsSlug": "styleDefinition"
+            "docsSlug": "styleDefinition",
+            "summary": "A reusable style definition referenced by graphical components."
         },
         {
             "name": "sideBySide",
@@ -52366,8 +52366,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Lays children out side-by-side.",
-            "docsSlug": "sideBySide"
+            "docsSlug": "sideBySide",
+            "summary": "Lays children out side-by-side."
         },
         {
             "name": "sbsGroup",
@@ -52583,8 +52583,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A group of <sideBySide> components that share alignment and spacing.",
-            "docsSlug": "sbsGroup"
+            "docsSlug": "sbsGroup",
+            "summary": "A group of <sideBySide> components that share alignment and spacing."
         },
         {
             "name": "stack",
@@ -52954,8 +52954,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A vertical stack layout for arranging children.",
-            "docsSlug": "stack"
+            "docsSlug": "stack",
+            "summary": "A vertical stack layout for arranging children."
         },
         {
             "name": "h",
@@ -53372,8 +53372,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A heading element.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A heading element."
         },
         {
             "name": "idx",
@@ -53565,8 +53565,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Indexes into the children of a referenced indexable component.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Indexes into the children of a referenced indexable component."
         },
         {
             "name": "div",
@@ -54054,8 +54054,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A generic block-level container.",
-            "docsSlug": "div"
+            "docsSlug": "div",
+            "summary": "A generic block-level container."
         },
         {
             "name": "span",
@@ -54543,8 +54543,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A generic inline container.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A generic inline container."
         },
         {
             "name": "pre",
@@ -54914,8 +54914,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A preformatted block preserving whitespace.",
-            "docsSlug": "pre"
+            "docsSlug": "pre",
+            "summary": "A preformatted block preserving whitespace."
         },
         {
             "name": "displayDoenetML",
@@ -55309,8 +55309,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Displays a DoenetML source string verbatim, with syntax-highlighting in renderers that support it.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Displays a DoenetML source string verbatim, with syntax-highlighting in renderers that support it."
         },
         {
             "name": "paginator",
@@ -55697,8 +55697,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A multi-page container with navigation controls.",
-            "docsSlug": "paginator"
+            "docsSlug": "paginator",
+            "summary": "A multi-page container with navigation controls."
         },
         {
             "name": "paginatorControls",
@@ -55883,8 +55883,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Previous/next page controls referencing a paginator elsewhere in the document.",
-            "docsSlug": "paginatorControls"
+            "docsSlug": "paginatorControls",
+            "summary": "Previous/next page controls referencing a paginator elsewhere in the document."
         },
         {
             "name": "matrixInput",
@@ -56380,8 +56380,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "An interactive matrix input where each cell accepts a math value.",
-            "docsSlug": "matrixInput"
+            "docsSlug": "matrixInput",
+            "summary": "An interactive matrix input where each cell accepts a math value."
         },
         {
             "name": "solution",
@@ -56722,8 +56722,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A solution to an exercise, shown on demand.",
-            "docsSlug": "solution"
+            "docsSlug": "solution",
+            "summary": "A solution to an exercise, shown on demand."
         },
         {
             "name": "givenAnswer",
@@ -57064,8 +57064,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A solution-style block labeled \"Answer\" rather than \"Solution\".",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A solution-style block labeled \"Answer\" rather than \"Solution\"."
         },
         {
             "name": "document",
@@ -57479,8 +57479,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "The top-level container for a DoenetML document.",
-            "docsSlug": "document"
+            "docsSlug": "document",
+            "summary": "The top-level container for a DoenetML document."
         },
         {
             "name": "text",
@@ -57893,8 +57893,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A text string.",
-            "docsSlug": "text"
+            "docsSlug": "text",
+            "summary": "A text string."
         },
         {
             "name": "textList",
@@ -58118,8 +58118,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "A list of texts.",
-            "docsSlug": "textList"
+            "docsSlug": "textList",
+            "summary": "A list of texts."
         },
         {
             "name": "p",
@@ -58528,8 +58528,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A paragraph of inline content.",
-            "docsSlug": "p"
+            "docsSlug": "p",
+            "summary": "A paragraph of inline content."
         },
         {
             "name": "boolean",
@@ -58969,8 +58969,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A boolean value.",
-            "docsSlug": "boolean"
+            "docsSlug": "boolean",
+            "summary": "A boolean value."
         },
         {
             "name": "booleanList",
@@ -59131,8 +59131,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "A list of booleans.",
-            "docsSlug": "booleanList"
+            "docsSlug": "booleanList",
+            "summary": "A list of booleans."
         },
         {
             "name": "math",
@@ -59852,8 +59852,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A math expression.",
-            "docsSlug": "math"
+            "docsSlug": "math",
+            "summary": "A math expression."
         },
         {
             "name": "mathList",
@@ -60166,8 +60166,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "A list of math expressions.",
-            "docsSlug": "mathList"
+            "docsSlug": "mathList",
+            "summary": "A list of math expressions."
         },
         {
             "name": "tupleList",
@@ -60480,8 +60480,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "A list of math tuples, parsed from parenthesized comma-separated pieces.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A list of math tuples, parsed from parenthesized comma-separated pieces."
         },
         {
             "name": "numberList",
@@ -60728,8 +60728,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "A list of numbers.",
-            "docsSlug": "numberList"
+            "docsSlug": "numberList",
+            "summary": "A list of numbers."
         },
         {
             "name": "collect",
@@ -60804,8 +60804,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": true,
-            "summary": "Collects descendants matching a component type from another component.",
-            "docsSlug": "collect"
+            "docsSlug": "collect",
+            "summary": "Collects descendants matching a component type from another component."
         },
         {
             "name": "ref",
@@ -61218,8 +61218,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A link to a component reference or to a URL.",
-            "docsSlug": "ref"
+            "docsSlug": "ref",
+            "summary": "A link to a component reference or to a URL."
         },
         {
             "name": "point",
@@ -61788,8 +61788,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A point with coordinates that can be displayed and dragged on a graph.",
-            "docsSlug": "point"
+            "docsSlug": "point",
+            "summary": "A point with coordinates that can be displayed and dragged on a graph."
         },
         {
             "name": "coords",
@@ -62499,8 +62499,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A math expression treated as a vector of coordinates.",
-            "docsSlug": "coords"
+            "docsSlug": "coords",
+            "summary": "A math expression treated as a vector of coordinates."
         },
         {
             "name": "line",
@@ -63016,8 +63016,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A line through two points or defined by an equation.",
-            "docsSlug": "line"
+            "docsSlug": "line",
+            "summary": "A line through two points or defined by an equation."
         },
         {
             "name": "lineSegment",
@@ -63424,8 +63424,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A line segment between two endpoints.",
-            "docsSlug": "lineSegment"
+            "docsSlug": "lineSegment",
+            "summary": "A line segment between two endpoints."
         },
         {
             "name": "ray",
@@ -63785,8 +63785,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A ray starting at one point passing through another.",
-            "docsSlug": "ray"
+            "docsSlug": "ray",
+            "summary": "A ray starting at one point passing through another."
         },
         {
             "name": "polyline",
@@ -64273,8 +64273,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A polyline (open polygon) defined by a list of vertices.",
-            "docsSlug": "polyline"
+            "docsSlug": "polyline",
+            "summary": "A polyline (open polygon) defined by a list of vertices."
         },
         {
             "name": "polygon",
@@ -64835,8 +64835,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A polygon defined by a list of vertices.",
-            "docsSlug": "polygon"
+            "docsSlug": "polygon",
+            "summary": "A polygon defined by a list of vertices."
         },
         {
             "name": "triangle",
@@ -65397,8 +65397,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A triangle defined by three vertices.",
-            "docsSlug": "triangle"
+            "docsSlug": "triangle",
+            "summary": "A triangle defined by three vertices."
         },
         {
             "name": "rectangle",
@@ -65987,8 +65987,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A rectangle defined by corner points.",
-            "docsSlug": "rectangle"
+            "docsSlug": "rectangle",
+            "summary": "A rectangle defined by corner points."
         },
         {
             "name": "regularPolygon",
@@ -66615,8 +66615,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A regular polygon with a given number of sides.",
-            "docsSlug": "regularPolygon"
+            "docsSlug": "regularPolygon",
+            "summary": "A regular polygon with a given number of sides."
         },
         {
             "name": "circle",
@@ -67285,8 +67285,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A circle defined by center and radius (or other parameters).",
-            "docsSlug": "circle"
+            "docsSlug": "circle",
+            "summary": "A circle defined by center and radius (or other parameters)."
         },
         {
             "name": "parabola",
@@ -67872,8 +67872,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A parabola defined by formula or geometric parameters.",
-            "docsSlug": "parabola"
+            "docsSlug": "parabola",
+            "summary": "A parabola defined by formula or geometric parameters."
         },
         {
             "name": "curve",
@@ -68618,8 +68618,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A curve defined by a function, parametric formulas, or control points.",
-            "docsSlug": "curve"
+            "docsSlug": "curve",
+            "summary": "A curve defined by a function, parametric formulas, or control points."
         },
         {
             "name": "bezierControls",
@@ -68856,8 +68856,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Defines Bezier control vectors at vertices of a polyline or curve.",
-            "docsSlug": "bezierControls"
+            "docsSlug": "bezierControls",
+            "summary": "Defines Bezier control vectors at vertices of a polyline or curve."
         },
         {
             "name": "controlVectors",
@@ -69135,8 +69135,8 @@
             "top": false,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Bezier control vectors at a polyline/curve vertex (used inside <bezierControls>).",
-            "docsSlug": "controlVectors"
+            "docsSlug": "controlVectors",
+            "summary": "Bezier control vectors at a polyline/curve vertex (used inside <bezierControls>)."
         },
         {
             "name": "vector",
@@ -69739,8 +69739,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A geometric vector with tail and head.",
-            "docsSlug": "vector"
+            "docsSlug": "vector",
+            "summary": "A geometric vector with tail and head."
         },
         {
             "name": "angle",
@@ -70175,8 +70175,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An angle defined by three points or a measure.",
-            "docsSlug": "angle"
+            "docsSlug": "angle",
+            "summary": "An angle defined by three points or a measure."
         },
         {
             "name": "answer",
@@ -71114,8 +71114,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "An assessable answer that compares student input against awards.",
-            "docsSlug": "answer1"
+            "docsSlug": "answer1",
+            "summary": "An assessable answer that compares student input against awards."
         },
         {
             "name": "award",
@@ -71688,8 +71688,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An award rule within an <answer> that grants credit when matched.",
-            "docsSlug": "award"
+            "docsSlug": "award",
+            "summary": "An award rule within an <answer> that grants credit when matched."
         },
         {
             "name": "when",
@@ -72157,8 +72157,8 @@
             "top": false,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A condition that triggers an action when its expression becomes true.",
-            "docsSlug": "when"
+            "docsSlug": "when",
+            "summary": "A condition that triggers an action when its expression becomes true."
         },
         {
             "name": "mathInput",
@@ -72822,8 +72822,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An interactive math input.",
-            "docsSlug": "mathInput"
+            "docsSlug": "mathInput",
+            "summary": "An interactive math input."
         },
         {
             "name": "textInput",
@@ -73298,8 +73298,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An interactive text input.",
-            "docsSlug": "textInput"
+            "docsSlug": "textInput",
+            "summary": "An interactive text input."
         },
         {
             "name": "booleanInput",
@@ -73704,8 +73704,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An interactive boolean (toggle/checkbox) input.",
-            "docsSlug": "booleanInput"
+            "docsSlug": "booleanInput",
+            "summary": "An interactive boolean (toggle/checkbox) input."
         },
         {
             "name": "choiceInput",
@@ -74128,8 +74128,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A multiple-choice or checkbox input from a list of choices.",
-            "docsSlug": "choiceInput"
+            "docsSlug": "choiceInput",
+            "summary": "A multiple-choice or checkbox input from a list of choices."
         },
         {
             "name": "choice",
@@ -74580,8 +74580,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A single choice within a <choiceInput>.",
-            "docsSlug": "choice"
+            "docsSlug": "choice",
+            "summary": "A single choice within a <choiceInput>."
         },
         {
             "name": "number",
@@ -75007,8 +75007,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A numeric value.",
-            "docsSlug": "number"
+            "docsSlug": "number",
+            "summary": "A numeric value."
         },
         {
             "name": "integer",
@@ -75440,8 +75440,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An integer value.",
-            "docsSlug": "integer"
+            "docsSlug": "integer",
+            "summary": "An integer value."
         },
         {
             "name": "graph",
@@ -76267,8 +76267,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A coordinate-axis graph that contains graphical objects.",
-            "docsSlug": "graph"
+            "docsSlug": "graph",
+            "summary": "A coordinate-axis graph that contains graphical objects."
         },
         {
             "name": "annotations",
@@ -76410,8 +76410,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A container of annotation children for screen reader navigation of a graph.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A container of annotation children for screen reader navigation of a graph."
         },
         {
             "name": "annotation",
@@ -76613,8 +76613,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "An annotation for screen reader navigation of a graph.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "An annotation for screen reader navigation of a graph."
         },
         {
             "name": "function",
@@ -77404,8 +77404,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A mathematical function, defined by formula or interpolation.",
-            "docsSlug": "function"
+            "docsSlug": "function",
+            "summary": "A mathematical function, defined by formula or interpolation."
         },
         {
             "name": "piecewiseFunction",
@@ -78083,8 +78083,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A function defined piecewise from sub-functions on intervals.",
-            "docsSlug": "piecewiseFunction"
+            "docsSlug": "piecewiseFunction",
+            "summary": "A function defined piecewise from sub-functions on intervals."
         },
         {
             "name": "interval",
@@ -78794,8 +78794,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A math expression treated as an interval of real numbers.",
-            "docsSlug": "interval"
+            "docsSlug": "interval",
+            "summary": "A math expression treated as an interval of real numbers."
         },
         {
             "name": "option",
@@ -79189,8 +79189,8 @@
             "top": false,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A single option within a select-style input.",
-            "docsSlug": "option"
+            "docsSlug": "option",
+            "summary": "A single option within a select-style input."
         },
         {
             "name": "sequence",
@@ -79358,8 +79358,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": true,
-            "summary": "Generates a sequence of numbers, math expressions, or letters defined by from, to, length, and step.",
-            "docsSlug": "sequence"
+            "docsSlug": "sequence",
+            "summary": "Generates a sequence of numbers, math expressions, or letters defined by from, to, length, and step."
         },
         {
             "name": "slider",
@@ -79820,8 +79820,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "An interactive slider input.",
-            "docsSlug": "slider"
+            "docsSlug": "slider",
+            "summary": "An interactive slider input."
         },
         {
             "name": "spreadsheet",
@@ -80267,8 +80267,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "An interactive spreadsheet input.",
-            "docsSlug": "spreadsheet"
+            "docsSlug": "spreadsheet",
+            "summary": "An interactive spreadsheet input."
         },
         {
             "name": "cell",
@@ -80740,8 +80740,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A single cell within a table or tabular layout.",
-            "docsSlug": "cell"
+            "docsSlug": "cell",
+            "summary": "A single cell within a table or tabular layout."
         },
         {
             "name": "row",
@@ -80975,8 +80975,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A row within a tabular layout.",
-            "docsSlug": "row_matrix"
+            "docsSlug": "row_table",
+            "summary": "A row within a tabular layout."
         },
         {
             "name": "column",
@@ -81154,8 +81154,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A column within a tabular layout.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A column within a tabular layout."
         },
         {
             "name": "cellBlock",
@@ -81324,8 +81324,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A block of cells, rows, and columns inside a <table> with a starting row/column.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A block of cells, rows, and columns inside a <table> with a starting row/column."
         },
         {
             "name": "tabular",
@@ -81601,8 +81601,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A simple tabular layout of cells without table semantics.",
-            "docsSlug": "tabular"
+            "docsSlug": "tabular",
+            "summary": "A simple tabular layout of cells without table semantics."
         },
         {
             "name": "table",
@@ -81975,8 +81975,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A table-like container of rows, columns, and cells.",
-            "docsSlug": "table"
+            "docsSlug": "table",
+            "summary": "A table-like container of rows, columns, and cells."
         },
         {
             "name": "figure",
@@ -82349,8 +82349,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A figure container holding graphical content with a caption.",
-            "docsSlug": "figure"
+            "docsSlug": "figure",
+            "summary": "A figure container holding graphical content with a caption."
         },
         {
             "name": "markers",
@@ -82584,8 +82584,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A list of text or number markers used by graphical components (e.g. axis tick labels).",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A list of text or number markers used by graphical components (e.g. axis tick labels)."
         },
         {
             "name": "repeat",
@@ -82946,8 +82946,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "Repeats template content for each item in a source.",
-            "docsSlug": "repeat"
+            "docsSlug": "repeat",
+            "summary": "Repeats template content for each item in a source."
         },
         {
             "name": "repeatForSequence",
@@ -83329,8 +83329,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "Repeats template content for each value in an arithmetic sequence.",
-            "docsSlug": "repeatForSequence"
+            "docsSlug": "repeatForSequence",
+            "summary": "Repeats template content for each value in an arithmetic sequence."
         },
         {
             "name": "pegboard",
@@ -83572,8 +83572,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Renders a grid of pegs on a graph that other graphical objects can snap to.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Renders a grid of pegs on a graph that other graphical objects can snap to."
         },
         {
             "name": "constrainToGrid",
@@ -83784,8 +83784,8 @@
             "top": false,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Constrains a graphical component's position to lie on a grid.",
-            "docsSlug": "constrainToGrid"
+            "docsSlug": "constrainToGrid",
+            "summary": "Constrains a graphical component's position to lie on a grid."
         },
         {
             "name": "constrainToGraph",
@@ -83936,8 +83936,8 @@
             "top": false,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Constrains a graphical component's position to lie within a graph's bounds.",
-            "docsSlug": "constrainToGraph"
+            "docsSlug": "constrainToGraph",
+            "summary": "Constrains a graphical component's position to lie within a graph's bounds."
         },
         {
             "name": "attractToGrid",
@@ -84200,8 +84200,8 @@
             "top": false,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Attracts a graphical component's position to grid lines when nearby.",
-            "docsSlug": "attractToGrid"
+            "docsSlug": "attractToGrid",
+            "summary": "Attracts a graphical component's position to grid lines when nearby."
         },
         {
             "name": "constrainTo",
@@ -84439,8 +84439,8 @@
             "top": false,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Constrains a graphical component's position to match another component.",
-            "docsSlug": "constrainTo"
+            "docsSlug": "constrainTo",
+            "summary": "Constrains a graphical component's position to match another component."
         },
         {
             "name": "attractTo",
@@ -84688,8 +84688,8 @@
             "top": false,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Attracts a graphical component's position to another component when nearby.",
-            "docsSlug": "attractTo"
+            "docsSlug": "attractTo",
+            "summary": "Attracts a graphical component's position to another component when nearby."
         },
         {
             "name": "constraintUnion",
@@ -84838,8 +84838,8 @@
             "top": false,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A constraint that is satisfied if any of its child constraints are satisfied.",
-            "docsSlug": "constraintUnion"
+            "docsSlug": "constraintUnion",
+            "summary": "A constraint that is satisfied if any of its child constraints are satisfied."
         },
         {
             "name": "attractToConstraint",
@@ -85000,8 +85000,8 @@
             "top": false,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Attracts a graphical component's position to a constraint location.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Attracts a graphical component's position to a constraint location."
         },
         {
             "name": "constrainToInterior",
@@ -85239,8 +85239,8 @@
             "top": false,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Constrains a graphical component's position to lie inside a region.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Constrains a graphical component's position to lie inside a region."
         },
         {
             "name": "intersection",
@@ -85369,8 +85369,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "The intersection of subsets or regions.",
-            "docsSlug": "intersection"
+            "docsSlug": "intersection",
+            "summary": "The intersection of subsets or regions."
         },
         {
             "name": "conditionalContent",
@@ -85726,8 +85726,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Renders content conditionally based on its <case> children.",
-            "docsSlug": "conditionalContent"
+            "docsSlug": "conditionalContent",
+            "summary": "Renders content conditionally based on its <case> children."
         },
         {
             "name": "asList",
@@ -86022,8 +86022,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Renders its children as a comma-separated list.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Renders its children as a comma-separated list."
         },
         {
             "name": "variantControl",
@@ -86190,8 +86190,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Configures how variants are generated for the enclosing document or section.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Configures how variants are generated for the enclosing document or section."
         },
         {
             "name": "selectFromSequence",
@@ -86431,8 +86431,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": true,
-            "summary": "Randomly selects values from a sequence of numbers, math expressions, or letters.",
-            "docsSlug": "selectFromSequence"
+            "docsSlug": "selectFromSequence",
+            "summary": "Randomly selects values from a sequence of numbers, math expressions, or letters."
         },
         {
             "name": "select",
@@ -86591,8 +86591,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "Randomly selects components from a list of children.",
-            "docsSlug": "select"
+            "docsSlug": "select",
+            "summary": "Randomly selects components from a list of children."
         },
         {
             "name": "group",
@@ -86959,8 +86959,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A logical grouping of components.",
-            "docsSlug": "group"
+            "docsSlug": "group",
+            "summary": "A logical grouping of components."
         },
         {
             "name": "animateFromSequence",
@@ -87212,8 +87212,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Animates a value through a sequence over time.",
-            "docsSlug": "animateFromSequence"
+            "docsSlug": "animateFromSequence",
+            "summary": "Animates a value through a sequence over time."
         },
         {
             "name": "evaluate",
@@ -87900,8 +87900,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Evaluates a function at a math input.",
-            "docsSlug": "evaluate"
+            "docsSlug": "evaluate",
+            "summary": "Evaluates a function at a math input."
         },
         {
             "name": "selectRandomNumbers",
@@ -88145,8 +88145,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": true,
-            "summary": "Selects a fixed (variant-deterministic) set of random numbers that cannot be resampled.",
-            "docsSlug": "selectRandomNumbers"
+            "docsSlug": "selectRandomNumbers",
+            "summary": "Selects a fixed (variant-deterministic) set of random numbers that cannot be resampled."
         },
         {
             "name": "sampleRandomNumbers",
@@ -88405,8 +88405,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": true,
-            "summary": "Samples random numbers from a distribution.",
-            "docsSlug": "sampleRandomNumbers"
+            "docsSlug": "sampleRandomNumbers",
+            "summary": "Samples random numbers from a distribution."
         },
         {
             "name": "selectPrimeNumbers",
@@ -88622,8 +88622,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": true,
-            "summary": "Randomly selects prime numbers from a range.",
-            "docsSlug": "selectPrimeNumbers"
+            "docsSlug": "selectPrimeNumbers",
+            "summary": "Randomly selects prime numbers from a range."
         },
         {
             "name": "samplePrimeNumbers",
@@ -88810,8 +88810,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": true,
-            "summary": "Samples random prime numbers.",
-            "docsSlug": "samplePrimeNumbers"
+            "docsSlug": "samplePrimeNumbers",
+            "summary": "Samples random prime numbers."
         },
         {
             "name": "substitute",
@@ -89316,8 +89316,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "Substitutes math expressions into another expression.",
-            "docsSlug": "substitute"
+            "docsSlug": "substitute",
+            "summary": "Substitutes math expressions into another expression."
         },
         {
             "name": "periodicSet",
@@ -90040,8 +90040,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A periodic set of real numbers.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A periodic set of real numbers."
         },
         {
             "name": "image",
@@ -90387,8 +90387,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Displays a static image.",
-            "docsSlug": "image"
+            "docsSlug": "image",
+            "summary": "Displays a static image."
         },
         {
             "name": "video",
@@ -90662,8 +90662,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Embeds a video player.",
-            "docsSlug": "video"
+            "docsSlug": "video",
+            "summary": "Embeds a video player."
         },
         {
             "name": "hint",
@@ -91045,8 +91045,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Hint shown on demand to help with an exercise.",
-            "docsSlug": "hint"
+            "docsSlug": "hint",
+            "summary": "Hint shown on demand to help with an exercise."
         },
         {
             "name": "intComma",
@@ -91465,8 +91465,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Renders a numeric value with thousands separators (e.g. 1,000,000).",
-            "docsSlug": "intComma"
+            "docsSlug": "intComma",
+            "summary": "Renders a numeric value with thousands separators (e.g. 1,000,000)."
         },
         {
             "name": "pluralize",
@@ -91909,8 +91909,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Renders a word in its singular or plural form based on a count.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Renders a word in its singular or plural form based on a count."
         },
         {
             "name": "feedback",
@@ -92276,8 +92276,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Targeted feedback shown when conditions are met after an answer is submitted.",
-            "docsSlug": "feedback"
+            "docsSlug": "feedback",
+            "summary": "Targeted feedback shown when conditions are met after an answer is submitted."
         },
         {
             "name": "considerAsResponses",
@@ -92647,8 +92647,8 @@
             "top": false,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Marks its children as response components for assessment in an enclosing answer.",
-            "docsSlug": "considerAsResponses"
+            "docsSlug": "considerAsResponses",
+            "summary": "Marks its children as response components for assessment in an enclosing answer."
         },
         {
             "name": "case",
@@ -93032,8 +93032,8 @@
             "top": false,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A single conditional branch within <conditionalContent>.",
-            "docsSlug": "case"
+            "docsSlug": "case",
+            "summary": "A single conditional branch within <conditionalContent>."
         },
         {
             "name": "lorem",
@@ -93211,8 +93211,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Generates lorem ipsum placeholder text.",
-            "docsSlug": "lorem"
+            "docsSlug": "lorem",
+            "summary": "Generates lorem ipsum placeholder text."
         },
         {
             "name": "updateValue",
@@ -93494,8 +93494,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Updates one or more state variables on a target component.",
-            "docsSlug": "updateValue"
+            "docsSlug": "updateValue",
+            "summary": "Updates one or more state variables on a target component."
         },
         {
             "name": "callAction",
@@ -93755,8 +93755,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Invokes a named action on a target component.",
-            "docsSlug": "callAction"
+            "docsSlug": "callAction",
+            "summary": "Invokes a named action on a target component."
         },
         {
             "name": "triggerSet",
@@ -93994,8 +93994,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Triggers a set of update actions on demand.",
-            "docsSlug": "triggerSet"
+            "docsSlug": "triggerSet",
+            "summary": "Triggers a set of update actions on demand."
         },
         {
             "name": "functionIterates",
@@ -94286,8 +94286,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "List of values produced by iterating a function.",
-            "docsSlug": "functionIterates"
+            "docsSlug": "functionIterates",
+            "summary": "List of values produced by iterating a function."
         },
         {
             "name": "module",
@@ -94642,8 +94642,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A reusable group with parameterized attributes; can be referenced or extended elsewhere.",
-            "docsSlug": "module"
+            "docsSlug": "module",
+            "summary": "A reusable group with parameterized attributes; can be referenced or extended elsewhere."
         },
         {
             "name": "moduleAttributes",
@@ -94989,8 +94989,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Declares attributes accepted by an enclosing <module>.",
-            "docsSlug": "moduleAttributes"
+            "docsSlug": "moduleAttributes",
+            "summary": "Declares attributes accepted by an enclosing <module>."
         },
         {
             "name": "setup",
@@ -95338,8 +95338,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Container for components used for setup but not rendered.",
-            "docsSlug": "setup"
+            "docsSlug": "setup",
+            "summary": "Container for components used for setup but not rendered."
         },
         {
             "name": "footnote",
@@ -95634,8 +95634,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Inline footnote whose body is shown on demand and is auto-numbered in the document.",
-            "docsSlug": "footnote"
+            "docsSlug": "footnote",
+            "summary": "Inline footnote whose body is shown on demand and is auto-numbered in the document."
         },
         {
             "name": "caption",
@@ -95978,8 +95978,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A caption attached to a figure or table.",
-            "docsSlug": "caption"
+            "docsSlug": "caption",
+            "summary": "A caption attached to a figure or table."
         },
         {
             "name": "endpoint",
@@ -96580,8 +96580,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A point that marks the endpoint of an interval, rendered open or closed.",
-            "docsSlug": "endpoint"
+            "docsSlug": "endpoint",
+            "summary": "A point that marks the endpoint of an interval, rendered open or closed."
         },
         {
             "name": "sort",
@@ -96972,8 +96972,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "Sorts a list according to a comparison function.",
-            "docsSlug": "sort"
+            "docsSlug": "sort",
+            "summary": "Sorts a list according to a comparison function."
         },
         {
             "name": "shuffle",
@@ -97332,8 +97332,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "Randomly shuffles its children.",
-            "docsSlug": "shuffle"
+            "docsSlug": "shuffle",
+            "summary": "Randomly shuffles its children."
         },
         {
             "name": "solveEquations",
@@ -97619,8 +97619,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Numerically solves a system of equations.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Numerically solves a system of equations."
         },
         {
             "name": "subsetOfRealsInput",
@@ -97940,8 +97940,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "An interactive input for entering a subset of real numbers.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "An interactive input for entering a subset of real numbers."
         },
         {
             "name": "subsetOfReals",
@@ -98741,8 +98741,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A subset of the real numbers, defined by intervals and points.",
-            "docsSlug": "subsetOfReals"
+            "docsSlug": "subsetOfReals",
+            "summary": "A subset of the real numbers, defined by intervals and points."
         },
         {
             "name": "split",
@@ -99114,8 +99114,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Splits a string or list into pieces.",
-            "docsSlug": "split"
+            "docsSlug": "split",
+            "summary": "Splits a string or list into pieces."
         },
         {
             "name": "bestFitLine",
@@ -99552,8 +99552,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "The best-fit line for a set of points.",
-            "docsSlug": "bestFitLine"
+            "docsSlug": "bestFitLine",
+            "summary": "The best-fit line for a set of points."
         },
         {
             "name": "regionBetweenCurveXAxis",
@@ -99778,8 +99778,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A region bounded between a curve and the x-axis.",
-            "docsSlug": "regionBetweenCurveXAxis"
+            "docsSlug": "regionBetweenCurveXAxis",
+            "summary": "A region bounded between a curve and the x-axis."
         },
         {
             "name": "regionBetweenCurves",
@@ -100021,8 +100021,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A region bounded between two curves.",
-            "docsSlug": "regionBetweenCurves"
+            "docsSlug": "regionBetweenCurves",
+            "summary": "A region bounded between two curves."
         },
         {
             "name": "regionHalfPlane",
@@ -100260,8 +100260,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A half-plane region bounded by a line.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A half-plane region bounded by a line."
         },
         {
             "name": "codeEditor",
@@ -100784,8 +100784,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An interactive code editor.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "An interactive code editor."
         },
         {
             "name": "hasSameFactoring",
@@ -101244,8 +101244,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Boolean condition that tests for equivalent factoring.",
-            "docsSlug": "hasSameFactoring"
+            "docsSlug": "hasSameFactoring",
+            "summary": "Boolean condition that tests for equivalent factoring."
         },
         {
             "name": "dataFrame",
@@ -101454,8 +101454,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A 2D table of typed data values.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A 2D table of typed data values."
         },
         {
             "name": "summaryStatistics",
@@ -101764,8 +101764,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Summary statistics (mean, median, etc.) for a list of numbers.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Summary statistics (mean, median, etc.) for a list of numbers."
         },
         {
             "name": "legend",
@@ -101993,8 +101993,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A legend describing the contents of a figure or graph.",
-            "docsSlug": "legend"
+            "docsSlug": "legend",
+            "summary": "A legend describing the contents of a figure or graph."
         },
         {
             "name": "label",
@@ -102388,8 +102388,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A text or math label attached to a graphical object.",
-            "docsSlug": "label"
+            "docsSlug": "label",
+            "summary": "A text or math label attached to a graphical object."
         },
         {
             "name": "matchesPattern",
@@ -102929,8 +102929,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Boolean condition that tests whether input matches a math pattern.",
-            "docsSlug": "matchesPattern"
+            "docsSlug": "matchesPattern",
+            "summary": "Boolean condition that tests whether input matches a math pattern."
         },
         {
             "name": "matrix",
@@ -103589,8 +103589,12 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
+            "docsSlug": "matrix",
             "summary": "A matrix of math values.",
-            "docsSlug": "matrix"
+            "childContextHelp": {
+                "row": "matrixRow",
+                "column": "matrixColumn"
+            }
         },
         {
             "name": "eigenDecomposition",
@@ -103906,8 +103910,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Computes the eigenvalues and eigenvectors of a square matrix child.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Computes the eigenvalues and eigenvectors of a square matrix child."
         },
         {
             "name": "latex",
@@ -104346,8 +104350,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A snippet of LaTeX rendered as math.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A snippet of LaTeX rendered as math."
         },
         {
             "name": "blockQuote",
@@ -104717,8 +104721,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A block-level quotation containing arbitrary content.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A block-level quotation containing arbitrary content."
         },
         {
             "name": "stickyGroup",
@@ -105037,8 +105041,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Constrains group members to attract to each other when nearby.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Constrains group members to attract to each other when nearby."
         },
         {
             "name": "pretzel",
@@ -105427,8 +105431,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A figure for visualizing logical compositions of subsets of the reals.",
-            "docsSlug": "pretzel"
+            "docsSlug": "pretzel",
+            "summary": "A figure for visualizing logical compositions of subsets of the reals."
         },
         {
             "name": "cascade",
@@ -106111,8 +106115,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Conditional cascade for showing content step-by-step.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "Conditional cascade for showing content step-by-step."
         },
         {
             "name": "shortDescription",
@@ -106531,8 +106535,8 @@
             "top": false,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A short accessibility description for an enclosing component.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A short accessibility description for an enclosing component."
         },
         {
             "name": "pointList",
@@ -106779,8 +106783,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A list of points.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A list of points."
         },
         {
             "name": "intervalList",
@@ -107027,8 +107031,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A list of intervals.",
-            "docsSlug": "intervalList"
+            "docsSlug": "intervalList",
+            "summary": "A list of intervals."
         },
         {
             "name": "vectorList",
@@ -107275,8 +107279,468 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A list of vectors.",
-            "docsSlug": null
+            "docsSlug": null,
+            "summary": "A list of vectors."
         }
-    ]
+    ],
+    "aliasedElements": {
+        "matrixRow": {
+            "name": "matrixRow",
+            "attributes": [
+                {
+                    "name": "name",
+                    "description": "The name used to reference this component from elsewhere in the document."
+                },
+                {
+                    "name": "hide",
+                    "description": "Whether to hide this component from the rendered output.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "disabled",
+                    "description": "Whether this component is disabled and cannot be interacted with.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixed",
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications).",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "styleNumber",
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "defaultValue": 1
+                },
+                {
+                    "name": "isResponse",
+                    "description": "Whether this component is treated as a response for the purposes of assessment."
+                },
+                {
+                    "name": "extend",
+                    "description": "Extend another component by reference, inheriting its children and attributes. Enter a reference as `$name`."
+                },
+                {
+                    "name": "copy",
+                    "description": "Create an independent copy of another component by reference. Enter a references a `$name`."
+                },
+                {
+                    "name": "unordered",
+                    "description": "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "maxNumber",
+                    "description": "Maximum number of items to retain in the list.",
+                    "defaultValue": null
+                },
+                {
+                    "name": "mergeMathLists",
+                    "description": "Whether nested math-list children should be flattened into this list.",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or each on its own line (false).",
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "displayDigits",
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "functionSymbols",
+                    "description": "Symbols treated as function names when parsing items.",
+                    "defaultValue": [
+                        "f",
+                        "g"
+                    ]
+                },
+                {
+                    "name": "referencesAreFunctionSymbols",
+                    "description": "References whose names should be treated as function symbols when parsing items.",
+                    "defaultValue": []
+                },
+                {
+                    "name": "splitSymbols",
+                    "description": "Whether multi-character symbols are split into a product of variables.",
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "parseScientificNotation",
+                    "description": "Whether to parse expressions like 1e3 as scientific notation.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component can be modified indirectly through a property reference.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "A persistent identifier for this component, stable across edits (currently unused but present for compatibility).",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "maxNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Maximum number of items to retain in the list.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "functionSymbols",
+                    "type": "textList",
+                    "isArray": false,
+                    "description": "Symbols treated as function names when parsing items.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "splitSymbols",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether multi-character symbols are split into a product of variables.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "parseScientificNotation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to parse expressions like 1e3 as scientific notation.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "unordered",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the order of items in this list should be treated as unordered (e.g. for matching)."
+                },
+                {
+                    "name": "mergeMathLists",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether nested math lists are merged into the parent list."
+                },
+                {
+                    "name": "numComponents",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The number of items in the math list."
+                },
+                {
+                    "name": "numValues",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The number of math expressions in the list."
+                }
+            ],
+            "docsSlug": "row_matrix",
+            "summary": "A row of math values within a matrix literal."
+        },
+        "matrixColumn": {
+            "name": "matrixColumn",
+            "attributes": [
+                {
+                    "name": "name",
+                    "description": "The name used to reference this component from elsewhere in the document."
+                },
+                {
+                    "name": "hide",
+                    "description": "Whether to hide this component from the rendered output.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "disabled",
+                    "description": "Whether this component is disabled and cannot be interacted with.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "fixed",
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications).",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "styleNumber",
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "defaultValue": 1
+                },
+                {
+                    "name": "isResponse",
+                    "description": "Whether this component is treated as a response for the purposes of assessment."
+                },
+                {
+                    "name": "extend",
+                    "description": "Extend another component by reference, inheriting its children and attributes. Enter a reference as `$name`."
+                },
+                {
+                    "name": "copy",
+                    "description": "Create an independent copy of another component by reference. Enter a references a `$name`."
+                },
+                {
+                    "name": "unordered",
+                    "description": "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "maxNumber",
+                    "description": "Maximum number of items to retain in the list.",
+                    "defaultValue": null
+                },
+                {
+                    "name": "mergeMathLists",
+                    "description": "Whether nested math-list children should be flattened into this list.",
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or each on its own line (false).",
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "displayDigits",
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
+                    "name": "functionSymbols",
+                    "description": "Symbols treated as function names when parsing items.",
+                    "defaultValue": [
+                        "f",
+                        "g"
+                    ]
+                },
+                {
+                    "name": "referencesAreFunctionSymbols",
+                    "description": "References whose names should be treated as function symbols when parsing items.",
+                    "defaultValue": []
+                },
+                {
+                    "name": "splitSymbols",
+                    "description": "Whether multi-character symbols are split into a product of variables.",
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                },
+                {
+                    "name": "parseScientificNotation",
+                    "description": "Whether to parse expressions like 1e3 as scientific notation.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ]
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "modifyIndirectly",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component can be modified indirectly through a property reference.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "permid",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "A persistent identifier for this component, stable across edits (currently unused but present for compatibility).",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "maxNumber",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Maximum number of items to retain in the list.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "functionSymbols",
+                    "type": "textList",
+                    "isArray": false,
+                    "description": "Symbols treated as function names when parsing items.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "splitSymbols",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether multi-character symbols are split into a product of variables.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "parseScientificNotation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to parse expressions like 1e3 as scientific notation.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "unordered",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the order of items in this list should be treated as unordered (e.g. for matching)."
+                },
+                {
+                    "name": "mergeMathLists",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether nested math lists are merged into the parent list."
+                },
+                {
+                    "name": "numComponents",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The number of items in the math list."
+                },
+                {
+                    "name": "numValues",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The number of math expressions in the list."
+                }
+            ],
+            "docsSlug": "matrix",
+            "summary": "A column of math values within a matrix literal."
+        }
+    }
 }

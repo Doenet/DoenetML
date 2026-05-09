@@ -60,6 +60,7 @@ export class MatrixRow extends MathList {
 
     static componentDocs = {
         summary: "A row of math values within a matrix literal.",
+        docsSlug: "row_matrix",
     };
     static excludeFromSchema = true;
 }
@@ -69,6 +70,7 @@ export class MatrixColumn extends MathList {
 
     static componentDocs = {
         summary: "A column of math values within a matrix literal.",
+        docsSlug: "matrix",
     };
     static excludeFromSchema = true;
 }

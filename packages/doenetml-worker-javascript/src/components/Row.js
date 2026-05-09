@@ -5,7 +5,7 @@ export default class Row extends BaseComponent {
 
     static componentDocs = {
         summary: "A row within a tabular layout.",
-        docsSlug: "row_matrix",
+        docsSlug: "row_table",
     };
     static rendererType = "row";
     static renderChildren = true;

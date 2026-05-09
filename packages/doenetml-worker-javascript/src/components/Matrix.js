@@ -7,6 +7,11 @@ export default class Matrix extends MathComponent {
 
     static componentDocs = {
         summary: "A matrix of math values.",
+        // `<row>` and `<column>` children are sugared to `<matrixRow>` and
+        // `<matrixColumn>` at runtime. Editor help follows the same indirection
+        // so authors see the matrix-aware description rather than the tabular
+        // <row> / unrelated <column> ones.
+        childAliases: { row: "matrixRow", column: "matrixColumn" },
     };
     static rendererType = "math";
 

@@ -4,7 +4,7 @@ import { HelpContent } from "./types";
 export type SchemaElementForHelp = {
     name: string;
     summary?: string;
-    docsSlug?: string | null;
+    docsSlug: string | null;
     attributes: {
         name: string;
         description?: string;
@@ -18,6 +18,8 @@ export type SchemaElementForHelp = {
         isArray: boolean;
         description?: string;
     }[];
+    /** Map from child component name → key in `aliasedElements` providing help. */
+    childContextHelp?: Record<string, string>;
 };
 
 export type SchemaMap = Record<string, SchemaElementForHelp>;
@@ -26,10 +28,19 @@ const NONE: HelpContent = { kind: "none" };
 
 export function buildSchemaElementsByName(
     elements: readonly SchemaElementForHelp[],
+    aliasedElements?: Readonly<Record<string, SchemaElementForHelp>>,
 ): SchemaMap {
     const map: SchemaMap = {};
     for (const el of elements) {
         map[el.name] = el;
+    }
+    if (aliasedElements) {
+        for (const name in aliasedElements) {
+            // Aliased entries are looked up via parent `childContextHelp` only;
+            // placing them in the same map lets the lookup helper reuse one
+            // path. Real elements always take precedence.
+            if (!map[name]) map[name] = aliasedElements[name];
+        }
     }
     return map;
 }
@@ -43,11 +54,22 @@ export function computeContextHelp(
         completer.sourceObj.elementAtOffsetWithContext(offset);
 
     if (node) {
+        const effectiveName = resolveEffectiveElementName(
+            completer,
+            schemaMap,
+            node,
+        );
+
         if (
             cursorPosition === "openTagName" ||
             cursorPosition === "closeTagName"
         ) {
-            return helpForElement(completer, schemaMap, node.name);
+            return helpForElement(
+                completer,
+                schemaMap,
+                node.name,
+                effectiveName,
+            );
         }
 
         if (
@@ -56,7 +78,13 @@ export function computeContextHelp(
         ) {
             const attr = completer.sourceObj.attributeAtOffset(offset);
             if (!attr) return NONE;
-            return helpForAttribute(completer, schemaMap, node.name, attr.name);
+            return helpForAttribute(
+                completer,
+                schemaMap,
+                node.name,
+                effectiveName,
+                attr.name,
+            );
         }
     }
 
@@ -66,6 +94,29 @@ export function computeContextHelp(
     }
 
     return NONE;
+}
+
+/**
+ * Resolve the schema name to use for help lookup, accounting for parent
+ * `childContextHelp` aliases (e.g. `<row>` inside `<matrix>` resolves to
+ * `matrixRow`). Returns the effective name even when no alias applies.
+ */
+function resolveEffectiveElementName(
+    completer: AutoCompleter,
+    schemaMap: SchemaMap,
+    node: { name: string },
+): string {
+    const normalized = completer.normalizeElementName(node.name);
+    if (normalized === "UNKNOWN_NAME") return node.name;
+
+    const parent = completer.sourceObj.getParent(node as any);
+    if (!parent || !("name" in parent)) return normalized;
+
+    const parentNormalized = completer.normalizeElementName(parent.name);
+    if (parentNormalized === "UNKNOWN_NAME") return normalized;
+
+    const alias = schemaMap[parentNormalized]?.childContextHelp?.[normalized];
+    return alias ?? normalized;
 }
 
 const IDENTIFIER_CHAR_REGEX = /[A-Za-z0-9_]/;
@@ -94,23 +145,19 @@ function helpForElement(
     completer: AutoCompleter,
     schemaMap: SchemaMap,
     rawName: string,
+    effectiveName: string,
 ): HelpContent {
-    const elementName = completer.normalizeElementName(rawName);
-    if (elementName === "UNKNOWN_NAME") return NONE;
+    const displayName = completer.normalizeElementName(rawName);
+    if (displayName === "UNKNOWN_NAME") return NONE;
 
-    const schemaEl = schemaMap[elementName];
+    const schemaEl = schemaMap[effectiveName];
     if (!schemaEl?.summary) return NONE;
-
-    // `docsSlug` is undefined only for old/cached schema JSON missing the
-    // field; treat that as "default to the component name" for resilience.
-    const docsSlug =
-        schemaEl.docsSlug === undefined ? elementName : schemaEl.docsSlug;
 
     return {
         kind: "element",
-        elementName,
+        elementName: displayName,
         summary: schemaEl.summary,
-        docsSlug,
+        docsSlug: schemaEl.docsSlug,
     };
 }
 
@@ -118,22 +165,23 @@ function helpForAttribute(
     completer: AutoCompleter,
     schemaMap: SchemaMap,
     rawElementName: string,
+    effectiveElementName: string,
     rawAttributeName: string,
 ): HelpContent {
-    const elementName = completer.normalizeElementName(rawElementName);
-    if (elementName === "UNKNOWN_NAME") return NONE;
+    const displayElementName = completer.normalizeElementName(rawElementName);
+    if (displayElementName === "UNKNOWN_NAME") return NONE;
 
     const attributeName = completer.normalizeAttributeName(rawAttributeName);
     if (attributeName === "UNKNOWN_NAME") return NONE;
 
-    const schemaAttr = schemaMap[elementName]?.attributes.find(
+    const schemaAttr = schemaMap[effectiveElementName]?.attributes.find(
         (a) => a.name === attributeName,
     );
     if (!schemaAttr?.description) return NONE;
 
     return {
         kind: "attribute",
-        elementName,
+        elementName: displayElementName,
         attributeName,
         description: schemaAttr.description,
         // Prefer `autocompleteValues` so boolean aliases (e.g. "true"/"false"

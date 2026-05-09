@@ -38,7 +38,10 @@ import {
 import type { HelpContent } from "./contextHelp/types";
 import { EditorSelection } from "@codemirror/state";
 
-const SCHEMA_MAP = buildSchemaElementsByName(doenetSchema.elements);
+const SCHEMA_MAP = buildSchemaElementsByName(
+    doenetSchema.elements,
+    doenetSchema.aliasedElements,
+);
 const HELP_NONE: HelpContent = { kind: "none" };
 
 // Module-level constant so the default for `initialDiagnostics` is referentially
