@@ -43,10 +43,17 @@ export function buildSchemaElementsByName(
     }
     if (aliasedElements) {
         for (const name in aliasedElements) {
-            // Aliased entries are looked up via parent `childContextHelp` only;
+            // Aliased entries are looked up via parent `childContextHelp`;
             // placing them in the same map lets the lookup helper reuse one
-            // path. Real elements always take precedence.
-            if (!map[name]) map[name] = aliasedElements[name];
+            // path. Real elements MUST win on collision: an aliased payload
+            // only carries the help-relevant fields (name, summary, docsSlug,
+            // attributes, properties) — letting one clobber a full schema
+            // entry would silently drop `children`, `top`,
+            // `acceptsStringChildren`, and `takesIndex`. Today the names are
+            // disjoint by construction (alias targets are excludeFromSchema),
+            // but this guard preserves the invariant if that ever changes.
+            if (map[name]) continue;
+            map[name] = aliasedElements[name];
         }
     }
     return map;
