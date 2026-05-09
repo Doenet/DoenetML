@@ -55,11 +55,11 @@ export class YLabel extends Label {
     static rendererType = "label";
 }
 
-export class MatrixRow extends MathList {
+export class additionalSchemaChildren extends MathList {
     static componentType = "matrixRow";
 
     static componentDocs = {
-        summary: "A row of math values within a matrix literal.",
+        summary: "A list of math values defining the row a matrix.",
         docsSlug: "row_matrix",
     };
     static excludeFromSchema = true;
@@ -69,7 +69,7 @@ export class MatrixColumn extends MathList {
     static componentType = "matrixColumn";
 
     static componentDocs = {
-        summary: "A column of math values within a matrix literal.",
+        summary: "A list of math values defining the column of a matrix.",
         docsSlug: "matrix",
     };
     static excludeFromSchema = true;

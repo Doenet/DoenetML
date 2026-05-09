@@ -107511,7 +107511,7 @@
                 }
             ],
             "docsSlug": "row_matrix",
-            "summary": "A row of math values within a matrix literal."
+            "summary": "A list of math values defining the row a matrix."
         },
         "matrixColumn": {
             "name": "matrixColumn",
@@ -107740,7 +107740,7 @@
                 }
             ],
             "docsSlug": "matrix",
-            "summary": "A column of math values within a matrix literal."
+            "summary": "A list of math values defining the column of a matrix."
         }
     }
 }
