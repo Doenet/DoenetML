@@ -36,9 +36,13 @@ export function getExistingDocSlugs(): Set<string> {
 
 /**
  * The slug declared by a component class (or its default).
- * - undefined `docsSlug` field → falls back to the component name.
+ * - undefined `docsSlug` field (or missing) → falls back to the component name.
  * - explicit `null` → intentionally undocumented.
  * - explicit string → override (e.g. `"answer1"` for `<answer>`).
+ *
+ * Explicit `undefined` (e.g. `{ ...other, docsSlug: undefined }` from a spread)
+ * is treated the same as a missing field — only `null` reserves the
+ * "intentionally undocumented" semantics.
  *
  * This is the *declared* value; whether the page actually exists is a
  * separate concern (see `getExistingDocSlugs`).
@@ -47,9 +51,9 @@ export function getDeclaredDocsSlug(
     componentDocs: { docsSlug?: string | null } | undefined,
     componentType: string,
 ): string | null {
-    if (componentDocs && "docsSlug" in componentDocs) {
-        return componentDocs.docsSlug ?? null;
-    }
+    const slug = componentDocs?.docsSlug;
+    if (slug === null) return null;
+    if (typeof slug === "string") return slug;
     return componentType;
 }
 

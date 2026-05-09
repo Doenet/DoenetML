@@ -62,7 +62,7 @@ export function ContextHelpPanel({
                         </span>
                     </div>
                     <p className="help-description">{description}</p>
-                    {defaultValue !== undefined && defaultValue !== null && (
+                    {defaultValue !== undefined && (
                         <div className="help-detail">
                             <span className="help-detail-label">Default:</span>
                             <div className="help-values-list">
@@ -121,6 +121,12 @@ export function ContextHelpPanel({
 }
 
 function formatValue(val: unknown): string {
+    // `null` is a meaningful default for many attributes (e.g. <slider>
+    // initialValue) — display it as a human-readable "(none)" rather than
+    // the JSON-stringified literal.
+    if (val === null) {
+        return "(none)";
+    }
     if (Array.isArray(val)) {
         return val.map((v) => formatValue(v)).join(", ");
     }

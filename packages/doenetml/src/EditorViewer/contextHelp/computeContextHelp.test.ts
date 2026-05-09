@@ -118,6 +118,20 @@ describe("computeContextHelp — attribute help", () => {
             attributeName: "draggable",
         });
     });
+
+    it("preserves an explicit null defaultValue (so the panel can show '(none)')", () => {
+        // <slider initialValue> declares `defaultValue: null` to mean
+        // "no initial value" — the help pipeline must surface that
+        // through to the panel rather than dropping it.
+        const source = `<slider initialValue="3"/>`;
+        const offset = source.indexOf("initialValue") + 3;
+        const help = helpAt(source, offset);
+        if (help.kind !== "attribute") {
+            expect.fail(`expected attribute help, got ${help.kind}`);
+            return;
+        }
+        expect(help.defaultValue).toBeNull();
+    });
 });
 
 describe("computeContextHelp — property reference (refMember)", () => {
@@ -155,6 +169,15 @@ describe("computeContextHelp — property reference (refMember)", () => {
 
     it("returns none when the referent name doesn't match any element", () => {
         const source = `<math>x</math>\n$nonexistent.coords`;
+        expect(helpAt(source, source.length).kind).toBe("none");
+    });
+
+    it("returns none for multi-part chains under the JS fallback", () => {
+        // Without a Rust resolver adapter, the JS fallback can only
+        // resolve `$ref.prop`. For longer chains it would otherwise
+        // look up the cursor identifier as a property of the root,
+        // producing wrong help. Tracked in #1086.
+        const source = `<math name="m">x</math>\n$m.foo.displayDecimals`;
         expect(helpAt(source, source.length).kind).toBe("none");
     });
 });
