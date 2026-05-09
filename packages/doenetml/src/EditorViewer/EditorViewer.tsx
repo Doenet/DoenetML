@@ -29,6 +29,17 @@ import {
     mergeDiagnosticsByType,
     toAdditionalDiagnosticsForLsp,
 } from "./diagnostics";
+import { AutoCompleter } from "@doenet/lsp-tools";
+import { doenetSchema } from "@doenet/static-assets/schema";
+import {
+    buildSchemaElementsByName,
+    computeContextHelp,
+} from "./contextHelp/computeContextHelp";
+import type { HelpContent } from "./contextHelp/types";
+import { EditorSelection } from "@codemirror/state";
+
+const SCHEMA_MAP = buildSchemaElementsByName(doenetSchema.elements);
+const HELP_NONE: HelpContent = { kind: "none" };
 
 // Module-level constant so the default for `initialDiagnostics` is referentially
 // stable across renders. A parameter default `= []` would create a fresh array
@@ -146,6 +157,28 @@ export function EditorViewer({
     const [receivedDiagnosticsFromViewer, setReceivedDiagnosticsFromViewer] =
         useState(false);
     const [showInfoAnnotations, setShowInfoAnnotations] = useState(false);
+
+    const completerRef = useRef(new AutoCompleter(initialDoenetML));
+    const [helpContent, setHelpContent] = useState<HelpContent>(HELP_NONE);
+    const cursorDebounceTimer = useRef<number | null>(null);
+
+    const tabStore = useTabStore({
+        defaultSelectedId: showDiagnostics ? "errors" : "responses",
+    });
+    const selectedTabId = tabStore.useState("selectedId");
+    const isAccessibilityReportOpen =
+        infoPanelIsOpen && selectedTabId === "accessibility";
+
+    /** Opens accessibility diagnostics, or closes the panel if already focused there. */
+    function toggleAccessibilityReport() {
+        if (infoPanelIsOpen && selectedTabId === "accessibility") {
+            setInfoPanelIsOpen(false);
+            return;
+        }
+
+        tabStore.setSelectedId("accessibility");
+        setInfoPanelIsOpen(true);
+    }
 
     /** Receives diagnostics from DocViewer and stores them for panel/LSP sync. */
     function setDiagnosticsCallback(newDiagnostics: DiagnosticRecord[]) {
@@ -284,6 +317,8 @@ export function EditorViewer({
     useEffect(() => {
         editorDoenetMLRef.current = initialDoenetML;
         setEditorDoenetML(initialDoenetML);
+        completerRef.current.setSource(initialDoenetML);
+        setHelpContent(HELP_NONE);
     }, [initialDoenetML]);
 
     // call documentStructure callback followed by doenetmlChangeCallback
@@ -301,6 +336,7 @@ export function EditorViewer({
         (value: string) => {
             if (editorDoenetMLRef.current !== value) {
                 editorDoenetMLRef.current = value;
+                completerRef.current.setSource(value);
 
                 if (!codeChangedRef.current) {
                     setCodeChanged(true);
@@ -343,6 +379,16 @@ export function EditorViewer({
         lastReportedDoenetML,
         editorDoenetMLRef,
     ]);
+
+    const onCursorChange = useCallback((selection: EditorSelection) => {
+        const offset = selection.main.head;
+        window.clearTimeout(cursorDebounceTimer.current ?? undefined);
+        cursorDebounceTimer.current = window.setTimeout(() => {
+            setHelpContent(
+                computeContextHelp(completerRef.current, offset, SCHEMA_MAP),
+            );
+        }, 150);
+    }, []);
 
     useEffect(() => {
         const handleEditorKeyDown = (event: KeyboardEvent) => {
@@ -405,26 +451,11 @@ export function EditorViewer({
                     doenetmlChangeCallback?.(editorDoenetMLRef.current);
                 }
             }
+            if (cursorDebounceTimer.current !== null) {
+                window.clearTimeout(cursorDebounceTimer.current);
+            }
         };
     }, []);
-
-    const tabStore = useTabStore({
-        defaultSelectedId: showDiagnostics ? "errors" : "responses",
-    });
-    const selectedTabId = tabStore.useState("selectedId");
-    const isAccessibilityReportOpen =
-        infoPanelIsOpen && selectedTabId === "accessibility";
-
-    /** Opens accessibility diagnostics, or closes the panel if already focused there. */
-    function toggleAccessibilityReport() {
-        if (infoPanelIsOpen && selectedTabId === "accessibility") {
-            setInfoPanelIsOpen(false);
-            return;
-        }
-
-        tabStore.setSelectedId("accessibility");
-        setInfoPanelIsOpen(true);
-    }
 
     const codeMirror = (
         <CodeMirror
@@ -432,6 +463,7 @@ export function EditorViewer({
             readOnly={readOnly}
             onBlur={onBlur}
             onChange={onEditorChange}
+            onCursorChange={onCursorChange}
             languageServerRef={lspRef}
         />
     );
@@ -454,6 +486,7 @@ export function EditorViewer({
                         showResponses={showResponses}
                         showInfoAnnotations={showInfoAnnotations}
                         setShowInfoAnnotations={setShowInfoAnnotations}
+                        helpContent={helpContent}
                     />
                 }
                 alwaysVisiblePanel={
@@ -468,6 +501,7 @@ export function EditorViewer({
                         setIsOpen={setInfoPanelIsOpen}
                         showDiagnostics={showDiagnostics}
                         showResponses={showResponses}
+                        helpContent={helpContent}
                     />
                 }
                 isOpen={infoPanelIsOpen}

@@ -14,6 +14,7 @@ import {
     BsExclamationTriangleFill,
     BsInfoCircle,
     BsInfoCircleFill,
+    BsQuestionCircle,
     BsX,
     BsXOctagon,
     BsXOctagonFill,
@@ -27,6 +28,8 @@ import {
     WarningRecord,
 } from "@doenet/utils";
 import { renderDiagnosticMarkdownHtml } from "@doenet/utils/diagnostics/renderDiagnosticMarkdownHtml";
+import type { HelpContent } from "./contextHelp/types";
+import { ContextHelpPanel } from "./contextHelp/ContextHelpPanel";
 
 type SubmittedResponse = {
     answerId: string;
@@ -172,7 +175,7 @@ function AnnotationToggle({
     );
 }
 
-/** Tab trigger with icon + count badge used by diagnostics and responses tabs. */
+/** Tab trigger with icon + optional count badge used by diagnostics and responses tabs. */
 function TabTrigger({
     id,
     icon,
@@ -183,20 +186,22 @@ function TabTrigger({
     id: string;
     icon: ReactElement;
     label: string;
-    count: number;
+    count?: number;
     iconClassName?: string;
 }) {
     return (
         <Tab
             id={id}
             title={label}
-            aria-label={`${label}: ${count}`}
+            aria-label={count === undefined ? label : `${label}: ${count}`}
             className="diagnostic-tab-trigger"
         >
             <span className={classNames("diagnostic-tab-icon", iconClassName)}>
                 {icon}
             </span>
-            <span className="diagnostic-tab-count">{count}</span>
+            {count !== undefined && (
+                <span className="diagnostic-tab-count">{count}</span>
+            )}
         </Tab>
     );
 }
@@ -215,6 +220,7 @@ export function DiagnosticsResponseTabstrip({
     submittedResponses,
     setIsOpen,
     showResponses,
+    helpContent,
 }: {
     store: TabStore;
 
@@ -227,6 +233,7 @@ export function DiagnosticsResponseTabstrip({
     setIsOpen: (arg: boolean) => void;
     showDiagnostics?: boolean;
     showResponses?: boolean;
+    helpContent?: HelpContent;
 }) {
     const hasLevel1Accessibility = accessibility.some(
         (diagnostic) => diagnostic.level === 1,
@@ -344,6 +351,13 @@ export function DiagnosticsResponseTabstrip({
                         count={submittedResponses.length}
                     />
                 )}
+                {helpContent && (
+                    <TabTrigger
+                        id="help"
+                        icon={<BsQuestionCircle />}
+                        label="Context-sensitive help"
+                    />
+                )}
                 {isOpen ? (
                     <Button
                         title="Close panel"
@@ -378,6 +392,7 @@ export function DiagnosticsResponseTabContents({
     showResponses = true,
     showInfoAnnotations,
     setShowInfoAnnotations,
+    helpContent,
 }: {
     store: TabStore;
     warnings: WarningRecord[];
@@ -391,6 +406,7 @@ export function DiagnosticsResponseTabContents({
     showResponses?: boolean;
     showInfoAnnotations: boolean;
     setShowInfoAnnotations: (checked: boolean) => void;
+    helpContent?: HelpContent;
 }) {
     const panels = useRef<HTMLDivElement>(null);
     const lastScrolledToBottom = useRef(true);
@@ -611,6 +627,15 @@ export function DiagnosticsResponseTabContents({
                                         </table>
                                     </div>
                                 )}
+                            </TabPanel>
+                        )}
+                        {helpContent && (
+                            <TabPanel
+                                store={store}
+                                tabId="help"
+                                className="diagnostic-panel"
+                            >
+                                <ContextHelpPanel content={helpContent} />
                             </TabPanel>
                         )}
                     </div>

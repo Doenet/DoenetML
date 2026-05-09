@@ -147,6 +147,8 @@ type SchemaAttribute = {
     autocompleteValues?: unknown[];
     /** One-sentence description of the attribute, surfaced in editor help and docs. */
     description?: string;
+    /** Default value for the attribute (if defined). */
+    defaultValue?: unknown;
 };
 
 type SchemaElement = {
@@ -368,6 +370,10 @@ export function getSchema() {
 
                 if (attrDef.description) {
                     attrSpec.description = attrDef.description;
+                }
+
+                if (attrDef.defaultValue !== undefined) {
+                    attrSpec.defaultValue = attrDef.defaultValue;
                 }
 
                 const booleanAliasValues: string[] = [];
