@@ -26,7 +26,7 @@ export type HelpContent =
       }
     /**
      * Cursor is on a `$a.b.c…` chain that the JS-only resolver can't follow.
-     * Issue #1087 tracks adding multi-part support; until then, surface a
+     * Issue #1086 tracks adding multi-part support; until then, surface a
      * placeholder rather than silently rendering the empty state.
      */
     | { kind: "unsupportedRefChain" };

@@ -166,6 +166,14 @@ export function EditorViewer({
     const completerRef = useRef(new AutoCompleter(initialDoenetML));
     const [helpContent, setHelpContent] = useState<HelpContent>(HELP_NONE);
     const cursorDebounceTimer = useRef<number | undefined>(undefined);
+    // Tracks the last cursor offset reported by CodeMirror, so the help
+    // compute can be deferred until the help tab is actually visible
+    // (and then re-run for the up-to-date cursor position when it opens).
+    const lastCursorOffsetRef = useRef<number | null>(null);
+    // Mirror of `infoPanelIsOpen && selectedTabId === "help"` accessible from
+    // the stable `onCursorChange` callback without re-binding it on every
+    // visibility change.
+    const helpIsVisibleRef = useRef(false);
 
     const tabStore = useTabStore({
         defaultSelectedId: showDiagnostics ? "errors" : "responses",
@@ -391,13 +399,35 @@ export function EditorViewer({
 
     const onCursorChange = useCallback((selection: EditorSelection) => {
         const offset = selection.main.head;
+        lastCursorOffsetRef.current = offset;
         window.clearTimeout(cursorDebounceTimer.current);
+        // Skip the parse/schema walk when no one's looking — the help-becoming-
+        // visible effect below will compute on demand for the current cursor.
+        if (!helpIsVisibleRef.current) return;
         cursorDebounceTimer.current = window.setTimeout(() => {
             setHelpContent(
                 computeContextHelp(completerRef.current, offset, SCHEMA_MAP),
             );
         }, 150);
     }, []);
+
+    // Track help-tab visibility and (a) keep the ref synced for onCursorChange,
+    // (b) compute help immediately when the tab becomes visible so the user
+    // doesn't see a stale/empty panel, (c) reset to NONE when it hides so the
+    // panel doesn't flash old content on next open.
+    useEffect(() => {
+        const visible = infoPanelIsOpen && selectedTabId === "help";
+        helpIsVisibleRef.current = visible;
+        if (!visible) {
+            setHelpContent(HELP_NONE);
+            return;
+        }
+        const offset = lastCursorOffsetRef.current;
+        if (offset == null) return;
+        setHelpContent(
+            computeContextHelp(completerRef.current, offset, SCHEMA_MAP),
+        );
+    }, [infoPanelIsOpen, selectedTabId]);
 
     useEffect(() => {
         const handleEditorKeyDown = (event: KeyboardEvent) => {

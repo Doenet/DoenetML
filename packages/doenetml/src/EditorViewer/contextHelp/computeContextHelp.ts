@@ -259,7 +259,7 @@ function helpForPropertyReference(
     // to length-2 chains because the JS path resolves only `pathParts[0]`
     // and would otherwise look up the cursor identifier as a property of
     // the root referent, producing wrong help for `$a.b.c`. Multi-part
-    // resolution is tracked in #1087.
+    // resolution is tracked in #1086.
     let containerNode = resolved.node;
     if (!containerNode) {
         if (ctx.pathParts.length === 2) {

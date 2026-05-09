@@ -178,7 +178,7 @@ describe("computeContextHelp — property reference (refMember)", () => {
         // resolve `$ref.prop`. For longer chains it would otherwise
         // look up the cursor identifier as a property of the root,
         // producing wrong help — so we surface a placeholder instead.
-        // Tracked in #1087.
+        // Tracked in #1086.
         const source = `<math name="m">x</math>\n$m.foo.displayDecimals`;
         expect(helpAt(source, source.length).kind).toBe("unsupportedRefChain");
     });

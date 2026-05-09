@@ -43,7 +43,10 @@ function main() {
             {
                 componentType: string;
                 excludeFromSchema?: boolean;
-                componentDocs?: { docsSlug?: string | null };
+                componentDocs?: {
+                    docsSlug?: string | null;
+                    childAliases?: Record<string, string>;
+                };
             }
         >;
 
