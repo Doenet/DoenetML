@@ -324,6 +324,10 @@ export function EditorViewer({
         editorDoenetMLRef.current = initialDoenetML;
         setEditorDoenetML(initialDoenetML);
         completerRef.current.setSource(initialDoenetML);
+        // Cancel any in-flight cursor debounce so a pending callback
+        // can't fire `computeContextHelp` with a stale offset against
+        // the new source.
+        window.clearTimeout(cursorDebounceTimer.current);
         setHelpContent(HELP_NONE);
     }, [initialDoenetML]);
 

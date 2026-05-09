@@ -347,7 +347,7 @@ export function DoenetEditor({
     initialErrors,
     initialWarnings,
     fetchExternalDoenetML,
-    docsURL = "https://docs.doenet.org",
+    docsURL,
 }: {
     doenetML: string;
     activityId?: string;

@@ -23,7 +23,13 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
      */
     function moveCursorToOffset(offset) {
         cy.get(".cm-content").click();
-        cy.get(".cm-activeLine").type("{ctrl+home}");
+        // CodeMirror's "go to document start" binding differs by platform:
+        // Cmd-Up on Mac, Ctrl-Home elsewhere.
+        if (Cypress.platform === "darwin") {
+            cy.get(".cm-activeLine").type("{cmd+upArrow}");
+        } else {
+            cy.get(".cm-activeLine").type("{ctrl+home}");
+        }
         if (offset > 0) {
             cy.get(".cm-activeLine").type("{rightArrow}".repeat(offset));
         }

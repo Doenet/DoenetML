@@ -11,4 +11,4 @@ console.log(
     "schema items to",
     destUrl.pathname,
 );
-await fs.writeFile(destUrl.pathname, JSON.stringify(schema, null, 4));
+await fs.writeFile(destUrl.pathname, JSON.stringify(schema, null, 4) + "\n");
