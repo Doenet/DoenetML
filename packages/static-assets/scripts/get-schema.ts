@@ -1,8 +1,76 @@
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
     AliasDescription,
     createComponentInfoObjects,
     SchemaSubarrayDescription,
 } from "../../doenetml-worker-javascript/src/utils/componentInfoObjects";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const REFERENCE_DOCS_DIR = path.resolve(
+    __dirname,
+    "../../docs-nextra/pages/reference",
+);
+
+/**
+ * Resolved set of doc slugs that have an actual `.mdx` page on disk.
+ * Computed lazily so this module can be imported without filesystem access
+ * (e.g., in environments where the docs package is absent).
+ */
+let _existingDocSlugs: Set<string> | null = null;
+export function getExistingDocSlugs(): Set<string> {
+    if (_existingDocSlugs !== null) return _existingDocSlugs;
+    try {
+        _existingDocSlugs = new Set(
+            fs
+                .readdirSync(REFERENCE_DOCS_DIR)
+                .filter((f) => f.endsWith(".mdx"))
+                .map((f) => f.slice(0, -".mdx".length)),
+        );
+    } catch {
+        _existingDocSlugs = new Set();
+    }
+    return _existingDocSlugs;
+}
+
+/**
+ * Encode a `defaultValue` for inclusion in the schema JSON. JSON has no
+ * representation for `Infinity`, `-Infinity`, or `NaN` — `JSON.stringify`
+ * silently rewrites them to `null`, which is indistinguishable from an
+ * explicit `null` default. To preserve the distinction, encode each
+ * non-finite number as a sentinel string before serialization. Help
+ * consumers render strings as-is, so `<booleanList maxNumber>` will
+ * surface as `"Infinity"` instead of being silently dropped as `null`.
+ */
+function encodeDefaultValueForJson(val: unknown): unknown {
+    if (typeof val !== "number" || Number.isFinite(val)) return val;
+    if (Number.isNaN(val)) return "NaN";
+    return val > 0 ? "Infinity" : "-Infinity";
+}
+
+/**
+ * The slug declared by a component class (or its default).
+ * - undefined `docsSlug` field (or missing) → falls back to the component type.
+ * - explicit `null` → intentionally undocumented.
+ * - explicit string → override (e.g. `"answer1"` for `<answer>`).
+ *
+ * Explicit `undefined` (e.g. `{ ...other, docsSlug: undefined }` from a spread)
+ * is treated the same as a missing field — only `null` reserves the
+ * "intentionally undocumented" semantics.
+ *
+ * This is the *declared* value; whether the page actually exists is a
+ * separate concern (see `getExistingDocSlugs`).
+ */
+export function getDeclaredDocsSlug(
+    componentDocs: { docsSlug?: string | null } | undefined,
+    componentType: string,
+): string | null {
+    const slug = componentDocs?.docsSlug;
+    if (slug === null) return null;
+    if (typeof slug === "string") return slug;
+    return componentType;
+}
 
 // Create schema of DoenetML by extracting component, attributes and children
 // from component classes.
@@ -77,8 +145,28 @@ type ComponentClass = {
     additionalSchemaChildren?: string[];
     /** If `true` and `additionalSchemaChildren` is set, then those children will not be inherited by subclasses */
     additionalSchemaChildrenDoNotInherit?: boolean;
-    /** Class-level help metadata: a one-sentence summary plus future-extensible fields. */
-    componentDocs?: { summary?: string };
+    /** Class-level help metadata. */
+    componentDocs?: {
+        /** A one-sentence summary of the component. */
+        summary?: string;
+        /**
+         * Reference-page slug for this component, used to link from editor help.
+         * - Undefined → default to the component type (e.g. "abs" → /reference/abs).
+         * - String → explicit override (e.g. "answer" → /reference/answer1).
+         * - null → component is intentionally undocumented; no link is shown.
+         */
+        docsSlug?: string | null;
+        /**
+         * Map from child component type → alias target component type. When
+         * the editor shows help for a child whose component type is in this
+         * map, the help is taken from the alias target instead. Used to
+         * redirect e.g. `<row>` inside `<matrix>` to the `<matrixRow>` help,
+         * mirroring the runtime sugar. The alias targets may be
+         * `excludeFromSchema` components — their help payloads are emitted in
+         * the schema's `aliasedElements` registry.
+         */
+        childAliases?: Record<string, string>;
+    };
 };
 
 interface ComponentInfoObjects extends ReturnType<
@@ -89,7 +177,10 @@ interface ComponentInfoObjects extends ReturnType<
 
 type PropertyDescription = {
     name: string;
-    type: string;
+    /** Component type the property resolves to. Optional because some
+     * public state variables (mainly array slots) don't declare a
+     * `createComponentOfType`. */
+    type?: string;
     isArray: boolean;
     numDimensions?: number;
     indexedArrayDescription?: ArrayElementDescription[];
@@ -98,7 +189,10 @@ type PropertyDescription = {
 };
 
 type ArrayElementDescription = {
-    type: string;
+    /** Component type at this dimension. Optional for the same reason as
+     * `PropertyDescription.type`: an unwrapped array slot whose parent
+     * state variable lacks `createComponentOfType` has no type. */
+    type?: string;
     isArray: boolean;
     numDimensions?: number;
 };
@@ -147,6 +241,8 @@ type SchemaAttribute = {
     autocompleteValues?: unknown[];
     /** One-sentence description of the attribute, surfaced in editor help and docs. */
     description?: string;
+    /** Default value for the attribute (if defined). */
+    defaultValue?: unknown;
 };
 
 type SchemaElement = {
@@ -166,6 +262,34 @@ type SchemaElement = {
     takesIndex: boolean;
     /** One-sentence summary of the component, surfaced in editor help and docs. */
     summary?: string;
+    /**
+     * Reference-page slug for this component, or `null` when no docs page
+     * exists for it. The generator always emits this field — either a string
+     * (resolved from the `componentDocs.docsSlug` declared on the class, or
+     * the component type when none is declared) or `null` (intentionally
+     * undocumented or no `.mdx` page on disk). Editor help reads this
+     * directly; an absent field would be a bug.
+     */
+    docsSlug: string | null;
+    /**
+     * Map from child component type → alias element name in `aliasedElements`.
+     * When editor help is computed for a child of this element whose
+     * component type is in this map, the help is read from the alias instead.
+     */
+    childContextHelp?: Record<string, string>;
+};
+
+/**
+ * Help payload for an alias-only component (e.g. one with
+ * `excludeFromSchema = true` but referenced via `childAliases`). Mirrors the
+ * help-relevant fields of `SchemaElement`.
+ */
+type AliasedSchemaElement = {
+    name: string;
+    summary?: string;
+    docsSlug: string | null;
+    attributes: SchemaAttribute[];
+    properties: PropertyDescription[];
 };
 
 /**
@@ -196,7 +320,13 @@ type SchemaElement = {
 export function getSchema() {
     const componentInfoObjects =
         createComponentInfoObjects() as ComponentInfoObjects;
-    let componentClasses = componentInfoObjects.allComponentClasses;
+    // Work on a shallow copy so the schema filtering doesn't mutate the
+    // shared registry (`publicStateVariableInfo` reads classes lazily from
+    // it, so deletions break later property lookups for excluded classes
+    // referenced via `childAliases`).
+    let componentClasses = { ...componentInfoObjects.allComponentClasses };
+    const allClassesIncludingExcluded =
+        componentInfoObjects.allComponentClasses;
 
     // If a component class has the static variable excludeFromSchema set,
     // then we ignore it completely.
@@ -347,64 +477,82 @@ export function getSchema() {
 
     const documentChildrenSet = new Set(documentChildren);
 
-    const elements: SchemaElement[] = [];
-
-    for (const type in componentClasses) {
+    /**
+     * Extract attributes, properties, summary, and docsSlug for a class.
+     * Used for both regular schema elements and alias-target help payloads.
+     */
+    function buildHelpPayloadForClass(
+        type: string,
+        cClass: ComponentClass,
+    ): Pick<
+        SchemaElement,
+        "attributes" | "properties" | "summary" | "docsSlug"
+    > {
         const attributes: SchemaAttribute[] = [];
-
-        const cClass = componentClasses[type];
-
         const attrObj = cClass.createAttributesObject();
-
         for (const attrName in attrObj) {
             const attrDef = attrObj[attrName];
+            if (attrDef.excludeFromSchema) continue;
 
-            // one can add a excludeFromSchema to an attribute definition
-            // to keep it from showing up in the schema
-            if (!attrDef.excludeFromSchema) {
-                const attrSpec: SchemaAttribute = {
-                    name: attrName,
-                };
-
-                if (attrDef.description) {
-                    attrSpec.description = attrDef.description;
-                }
-
-                const booleanAliasValues: string[] = [];
-                if (attrDef.valueForTrue !== undefined) {
-                    booleanAliasValues.push("true");
-                }
-                if (attrDef.valueForFalse !== undefined) {
-                    booleanAliasValues.push("false");
-                }
-
-                if (attrDef.validValues) {
-                    if (booleanAliasValues.length > 0) {
-                        // Keep validation permissive for boolean aliases while
-                        // preserving author-facing enum suggestions in autocomplete.
-                        attrSpec.values = [
-                            ...new Set([
-                                ...attrDef.validValues,
-                                ...booleanAliasValues,
-                            ]),
-                        ];
-                        attrSpec.autocompleteValues = attrDef.validValues;
-                    } else {
-                        attrSpec.values = attrDef.validValues;
-                    }
-                } else if (
-                    attrDef.createPrimitiveOfType === "boolean" ||
-                    attrDef.createComponentOfType === "boolean"
-                ) {
-                    attrSpec.values = ["true", "false"];
-                }
-
-                attributes.push(attrSpec);
+            const attrSpec: SchemaAttribute = { name: attrName };
+            if (attrDef.description) attrSpec.description = attrDef.description;
+            if (attrDef.defaultValue !== undefined) {
+                attrSpec.defaultValue = encodeDefaultValueForJson(
+                    attrDef.defaultValue,
+                );
             }
+
+            const booleanAliasValues: string[] = [];
+            if (attrDef.valueForTrue !== undefined)
+                booleanAliasValues.push("true");
+            if (attrDef.valueForFalse !== undefined)
+                booleanAliasValues.push("false");
+
+            if (attrDef.validValues) {
+                if (booleanAliasValues.length > 0) {
+                    attrSpec.values = [
+                        ...new Set([
+                            ...attrDef.validValues,
+                            ...booleanAliasValues,
+                        ]),
+                    ];
+                    attrSpec.autocompleteValues = attrDef.validValues;
+                } else {
+                    attrSpec.values = attrDef.validValues;
+                }
+            } else if (
+                attrDef.createPrimitiveOfType === "boolean" ||
+                attrDef.createComponentOfType === "boolean"
+            ) {
+                attrSpec.values = ["true", "false"];
+            }
+
+            attributes.push(attrSpec);
         }
 
-        const { children, acceptsStringChildren } = determineChildren(cClass);
+        const properties = buildPropertiesForType(type);
 
+        const out: Pick<
+            SchemaElement,
+            "attributes" | "properties" | "summary" | "docsSlug"
+        > = {
+            attributes,
+            properties,
+            docsSlug: null,
+        };
+        const summary = cClass.componentDocs?.summary;
+        if (summary) out.summary = summary;
+
+        const declaredSlug = getDeclaredDocsSlug(cClass.componentDocs, type);
+        if (declaredSlug !== null && getExistingDocSlugs().has(declaredSlug)) {
+            out.docsSlug = declaredSlug;
+        }
+        return out;
+    }
+
+    function buildPropertiesForType(type: string): PropertyDescription[] {
+        const info = componentInfoObjects.publicStateVariableInfo[type];
+        if (!info) return [];
         const {
             stateVariableDescriptions,
             arrayEntryPrefixes,
@@ -413,7 +561,7 @@ export function getSchema() {
             stateVariableDescriptions: Record<string, StateVariableDescription>;
             arrayEntryPrefixes: Record<string, ArrayEntryPrefixDescription>;
             aliases: Record<string, AliasDescription>;
-        } = componentInfoObjects.publicStateVariableInfo[type];
+        } = info;
 
         const publicStateVariableDescriptions =
             stateVariableDescriptions as Record<
@@ -425,7 +573,6 @@ export function getSchema() {
 
         for (const varName in publicStateVariableDescriptions) {
             const description = publicStateVariableDescriptions[varName];
-
             properties.push(
                 ...propFromDescription({
                     varName,
@@ -446,10 +593,6 @@ export function getSchema() {
             const aliasTarget =
                 publicStateVariableDescriptions[aliasTargetName];
             if (aliasTarget) {
-                // Aliases never inherit `fromAttribute` from their target:
-                // the alias has a different name and is not itself created
-                // from a same-named attribute. The spread carries the target's
-                // description; an alias's own description, when set, overrides.
                 const aliasDescription: PublicStateVariableDescription = {
                     ...aliasTarget,
                     fromAttribute: false,
@@ -480,9 +623,6 @@ export function getSchema() {
                                 public: true,
                                 createComponentOfType:
                                     arrayStateVarDescription.createComponentOfType,
-                                // Prefer the alias's own description; fall back to
-                                // the parent array's so something useful surfaces
-                                // even when the alias is undescribed.
                                 description:
                                     aliasInfo.description ??
                                     arrayStateVarDescription.description,
@@ -505,34 +645,74 @@ export function getSchema() {
                                 includeSchemaSubarrays: false,
                             }),
                         );
-
                         break;
                     }
                 }
             }
         }
 
+        return properties;
+    }
+
+    const elements: SchemaElement[] = [];
+
+    for (const type in componentClasses) {
+        const cClass = componentClasses[type];
+
+        const helpPayload = buildHelpPayloadForClass(type, cClass);
+        const { children, acceptsStringChildren } = determineChildren(cClass);
+
         const element: SchemaElement = {
             name: type,
             children,
-            attributes,
-            properties,
+            attributes: helpPayload.attributes,
+            properties: helpPayload.properties,
             top:
                 cClass.componentType === "document" ||
                 documentChildrenSet.has(cClass.componentType),
             acceptsStringChildren,
             takesIndex: cClass.takesIndex ?? false,
+            docsSlug: helpPayload.docsSlug,
         };
-
-        const summary = cClass.componentDocs?.summary;
-        if (summary) {
-            element.summary = summary;
-        }
+        if (helpPayload.summary) element.summary = helpPayload.summary;
 
         elements.push(element);
     }
 
-    return { elements };
+    // Resolve `childAliases`: for each parent that declares them, populate
+    // `childContextHelp` and emit help payloads for any alias targets that
+    // are excluded from the main schema.
+    const aliasedElements: Record<string, AliasedSchemaElement> = {};
+    for (const el of elements) {
+        const cClass = allClassesIncludingExcluded[el.name];
+        const childAliases = cClass?.componentDocs?.childAliases;
+        if (!childAliases) continue;
+
+        el.childContextHelp = { ...childAliases };
+
+        for (const targetName of Object.values(childAliases)) {
+            if (
+                aliasedElements[targetName] ||
+                elements.some((e) => e.name === targetName)
+            ) {
+                continue; // already emitted
+            }
+            const targetClass = allClassesIncludingExcluded[targetName];
+            if (!targetClass) continue;
+            const payload = buildHelpPayloadForClass(targetName, targetClass);
+            aliasedElements[targetName] = {
+                name: targetName,
+                attributes: payload.attributes,
+                properties: payload.properties,
+                docsSlug: payload.docsSlug,
+                ...(payload.summary !== undefined && {
+                    summary: payload.summary,
+                }),
+            };
+        }
+    }
+
+    return { elements, aliasedElements };
 }
 
 /**
@@ -658,11 +838,14 @@ function singlePropFromDescription({
 }): PropertyDescription {
     const componentType = description.createComponentOfType;
 
-    const prop: PropertyDescription = {
-        name: varName,
-        type: componentType,
-        isArray: description.isArray,
-    };
+    const prop: PropertyDescription =
+        componentType !== undefined
+            ? {
+                  name: varName,
+                  type: componentType,
+                  isArray: description.isArray,
+              }
+            : { name: varName, isArray: description.isArray };
 
     if (description.description) {
         prop.description = description.description;
@@ -741,7 +924,7 @@ function singlePropFromDescription({
 function createArrayElementDescription(
     wrappingComponents: WrappingComponentElement[][],
     numDimensions: number,
-    componentType: string,
+    componentType: string | undefined,
 ): ArrayElementDescription {
     if (wrappingComponents.length === numDimensions) {
         // the last dimension of the array is wrapped,
@@ -772,11 +955,9 @@ function createArrayElementDescription(
         };
     } else {
         // array is not wrapped
-        return {
-            isArray: true,
-            type: componentType,
-            numDimensions,
-        };
+        return componentType !== undefined
+            ? { isArray: true, type: componentType, numDimensions }
+            : { isArray: true, numDimensions };
     }
 }
 

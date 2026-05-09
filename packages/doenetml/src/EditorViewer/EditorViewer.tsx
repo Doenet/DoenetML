@@ -29,6 +29,20 @@ import {
     mergeDiagnosticsByType,
     toAdditionalDiagnosticsForLsp,
 } from "./diagnostics";
+import { AutoCompleter } from "@doenet/lsp-tools";
+import { doenetSchema } from "@doenet/static-assets/schema";
+import {
+    buildSchemaElementsByName,
+    computeContextHelp,
+} from "./contextHelp/computeContextHelp";
+import type { HelpContent } from "./contextHelp/types";
+import { EditorSelection } from "@codemirror/state";
+
+const SCHEMA_MAP = buildSchemaElementsByName(
+    doenetSchema.elements,
+    doenetSchema.aliasedElements,
+);
+const HELP_NONE: HelpContent = { kind: "none" };
 
 // Module-level constant so the default for `initialDiagnostics` is referentially
 // stable across renders. A parameter default `= []` would create a fresh array
@@ -62,6 +76,7 @@ export function EditorViewer({
     border = "1px solid",
     initialDiagnostics = EMPTY_INITIAL_DIAGNOSTICS,
     fetchExternalDoenetML,
+    docsURL = "https://docs.doenet.org",
 }: {
     doenetML: string;
     activityId?: string;
@@ -88,6 +103,7 @@ export function EditorViewer({
     border?: string;
     initialDiagnostics?: DiagnosticRecord[];
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
+    docsURL?: string;
 }) {
     //Win, Mac or Linux
     let platform = "Linux";
@@ -146,6 +162,36 @@ export function EditorViewer({
     const [receivedDiagnosticsFromViewer, setReceivedDiagnosticsFromViewer] =
         useState(false);
     const [showInfoAnnotations, setShowInfoAnnotations] = useState(false);
+
+    const completerRef = useRef(new AutoCompleter(initialDoenetML));
+    const [helpContent, setHelpContent] = useState<HelpContent>(HELP_NONE);
+    const cursorDebounceTimer = useRef<number | undefined>(undefined);
+    // Tracks the last cursor offset reported by CodeMirror, so the help
+    // compute can be deferred until the help tab is actually visible
+    // (and then re-run for the up-to-date cursor position when it opens).
+    const lastCursorOffsetRef = useRef<number | null>(null);
+    // Mirror of `infoPanelIsOpen && selectedTabId === "help"` accessible from
+    // the stable `onCursorChange` callback without re-binding it on every
+    // visibility change.
+    const helpIsVisibleRef = useRef(false);
+
+    const tabStore = useTabStore({
+        defaultSelectedId: showDiagnostics ? "errors" : "responses",
+    });
+    const selectedTabId = tabStore.useState("selectedId");
+    const isAccessibilityReportOpen =
+        infoPanelIsOpen && selectedTabId === "accessibility";
+
+    /** Opens accessibility diagnostics, or closes the panel if already focused there. */
+    function toggleAccessibilityReport() {
+        if (infoPanelIsOpen && selectedTabId === "accessibility") {
+            setInfoPanelIsOpen(false);
+            return;
+        }
+
+        tabStore.setSelectedId("accessibility");
+        setInfoPanelIsOpen(true);
+    }
 
     /** Receives diagnostics from DocViewer and stores them for panel/LSP sync. */
     function setDiagnosticsCallback(newDiagnostics: DiagnosticRecord[]) {
@@ -284,6 +330,12 @@ export function EditorViewer({
     useEffect(() => {
         editorDoenetMLRef.current = initialDoenetML;
         setEditorDoenetML(initialDoenetML);
+        completerRef.current.setSource(initialDoenetML);
+        // Cancel any in-flight cursor debounce so a pending callback
+        // can't fire `computeContextHelp` with a stale offset against
+        // the new source.
+        window.clearTimeout(cursorDebounceTimer.current);
+        setHelpContent(HELP_NONE);
     }, [initialDoenetML]);
 
     // call documentStructure callback followed by doenetmlChangeCallback
@@ -301,6 +353,7 @@ export function EditorViewer({
         (value: string) => {
             if (editorDoenetMLRef.current !== value) {
                 editorDoenetMLRef.current = value;
+                completerRef.current.setSource(value);
 
                 if (!codeChangedRef.current) {
                     setCodeChanged(true);
@@ -343,6 +396,43 @@ export function EditorViewer({
         lastReportedDoenetML,
         editorDoenetMLRef,
     ]);
+
+    const onCursorChange = useCallback((selection: EditorSelection) => {
+        const offset = selection.main.head;
+        lastCursorOffsetRef.current = offset;
+        window.clearTimeout(cursorDebounceTimer.current);
+        // Skip the parse/schema walk when no one's looking — the help-becoming-
+        // visible effect below will compute on demand for the current cursor.
+        if (!helpIsVisibleRef.current) return;
+        cursorDebounceTimer.current = window.setTimeout(() => {
+            setHelpContent(
+                computeContextHelp(completerRef.current, offset, SCHEMA_MAP),
+            );
+        }, 150);
+    }, []);
+
+    // Track help-tab visibility and (a) keep the ref synced for onCursorChange,
+    // (b) compute help immediately when the tab becomes visible so the user
+    // doesn't see a stale/empty panel, (c) reset to NONE when it hides so the
+    // panel doesn't flash old content on next open.
+    useEffect(() => {
+        const visible = infoPanelIsOpen && selectedTabId === "help";
+        helpIsVisibleRef.current = visible;
+        if (!visible) {
+            // Cancel any in-flight debounced compute scheduled while help was
+            // visible — otherwise it would fire after we set HELP_NONE here
+            // and repopulate state for an invisible panel (flashing on next
+            // open).
+            window.clearTimeout(cursorDebounceTimer.current);
+            setHelpContent(HELP_NONE);
+            return;
+        }
+        const offset = lastCursorOffsetRef.current;
+        if (offset == null) return;
+        setHelpContent(
+            computeContextHelp(completerRef.current, offset, SCHEMA_MAP),
+        );
+    }, [infoPanelIsOpen, selectedTabId]);
 
     useEffect(() => {
         const handleEditorKeyDown = (event: KeyboardEvent) => {
@@ -405,26 +495,11 @@ export function EditorViewer({
                     doenetmlChangeCallback?.(editorDoenetMLRef.current);
                 }
             }
+            // Cancel pending help-debounce so its callback can't fire
+            // setHelpContent on the unmounted component.
+            window.clearTimeout(cursorDebounceTimer.current);
         };
     }, []);
-
-    const tabStore = useTabStore({
-        defaultSelectedId: showDiagnostics ? "errors" : "responses",
-    });
-    const selectedTabId = tabStore.useState("selectedId");
-    const isAccessibilityReportOpen =
-        infoPanelIsOpen && selectedTabId === "accessibility";
-
-    /** Opens accessibility diagnostics, or closes the panel if already focused there. */
-    function toggleAccessibilityReport() {
-        if (infoPanelIsOpen && selectedTabId === "accessibility") {
-            setInfoPanelIsOpen(false);
-            return;
-        }
-
-        tabStore.setSelectedId("accessibility");
-        setInfoPanelIsOpen(true);
-    }
 
     const codeMirror = (
         <CodeMirror
@@ -432,6 +507,7 @@ export function EditorViewer({
             readOnly={readOnly}
             onBlur={onBlur}
             onChange={onEditorChange}
+            onCursorChange={onCursorChange}
             languageServerRef={lspRef}
         />
     );
@@ -454,6 +530,8 @@ export function EditorViewer({
                         showResponses={showResponses}
                         showInfoAnnotations={showInfoAnnotations}
                         setShowInfoAnnotations={setShowInfoAnnotations}
+                        helpContent={helpContent}
+                        docsURL={docsURL}
                     />
                 }
                 alwaysVisiblePanel={
