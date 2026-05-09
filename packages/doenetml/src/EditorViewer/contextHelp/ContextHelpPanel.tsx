@@ -29,14 +29,16 @@ export function ContextHelpPanel({
                         </span>
                     </div>
                     <p className="help-description">{content.summary}</p>
-                    <a
-                        className="help-docs-link"
-                        href={`${docsURL}/reference/${content.elementName}`}
-                        target="_blank"
-                        rel="noreferrer noopener"
-                    >
-                        Reference page →
-                    </a>
+                    {content.docsSlug && (
+                        <a
+                            className="help-docs-link"
+                            href={`${docsURL}/reference/${content.docsSlug}`}
+                            target="_blank"
+                            rel="noreferrer noopener"
+                        >
+                            Reference page →
+                        </a>
+                    )}
                 </div>
             );
 

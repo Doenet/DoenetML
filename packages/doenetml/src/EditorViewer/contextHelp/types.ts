@@ -1,6 +1,12 @@
 export type HelpContent =
     | { kind: "none" }
-    | { kind: "element"; elementName: string; summary: string }
+    | {
+          kind: "element";
+          elementName: string;
+          summary: string;
+          /** Reference-page slug; null when intentionally undocumented. */
+          docsSlug: string | null;
+      }
     | {
           kind: "attribute";
           elementName: string;

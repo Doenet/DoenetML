@@ -24,6 +24,7 @@ export default class Answer extends InlineComponent {
     static componentDocs = {
         summary:
             "An assessable answer that compares student input against awards.",
+        docsSlug: "answer1",
     };
     // Include children that can be added due to sugar
     static additionalSchemaChildren = [

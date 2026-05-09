@@ -4,6 +4,7 @@ import { HelpContent } from "./types";
 export type SchemaElementForHelp = {
     name: string;
     summary?: string;
+    docsSlug?: string | null;
     attributes: {
         name: string;
         description?: string;
@@ -97,10 +98,20 @@ function helpForElement(
     const elementName = completer.normalizeElementName(rawName);
     if (elementName === "UNKNOWN_NAME") return NONE;
 
-    const summary = schemaMap[elementName]?.summary;
-    if (!summary) return NONE;
+    const schemaEl = schemaMap[elementName];
+    if (!schemaEl?.summary) return NONE;
 
-    return { kind: "element", elementName, summary };
+    // `docsSlug` is undefined only for old/cached schema JSON missing the
+    // field; treat that as "default to the component name" for resilience.
+    const docsSlug =
+        schemaEl.docsSlug === undefined ? elementName : schemaEl.docsSlug;
+
+    return {
+        kind: "element",
+        elementName,
+        summary: schemaEl.summary,
+        docsSlug,
+    };
 }
 
 function helpForAttribute(

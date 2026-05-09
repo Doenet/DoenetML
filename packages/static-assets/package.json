@@ -40,7 +40,8 @@
         "test": "vitest",
         "build": "wireit",
         "build:assets": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-entity-map.ts && vite-node ./scripts/generate-completion-snippets.ts && vite-node ./scripts/generate-math-assets.ts",
-        "build:schema": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-relaxng-schema.ts && vite-node ./scripts/generate-entity-map.ts"
+        "build:schema": "vite-node ./scripts/generate-schema.ts && vite-node ./scripts/generate-relaxng-schema.ts && vite-node ./scripts/generate-entity-map.ts",
+        "check:docs-coverage": "vite-node ./scripts/check-docs-coverage.ts"
     },
     "wireit": {
         "build": {

@@ -1,8 +1,57 @@
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 import {
     AliasDescription,
     createComponentInfoObjects,
     SchemaSubarrayDescription,
 } from "../../doenetml-worker-javascript/src/utils/componentInfoObjects";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const REFERENCE_DOCS_DIR = path.resolve(
+    __dirname,
+    "../../docs-nextra/pages/reference",
+);
+
+/**
+ * Resolved set of doc slugs that have an actual `.mdx` page on disk.
+ * Computed lazily so this module can be imported without filesystem access
+ * (e.g., in environments where the docs package is absent).
+ */
+let _existingDocSlugs: Set<string> | null = null;
+export function getExistingDocSlugs(): Set<string> {
+    if (_existingDocSlugs !== null) return _existingDocSlugs;
+    try {
+        _existingDocSlugs = new Set(
+            fs
+                .readdirSync(REFERENCE_DOCS_DIR)
+                .filter((f) => f.endsWith(".mdx"))
+                .map((f) => f.slice(0, -".mdx".length)),
+        );
+    } catch {
+        _existingDocSlugs = new Set();
+    }
+    return _existingDocSlugs;
+}
+
+/**
+ * The slug declared by a component class (or its default).
+ * - undefined `docsSlug` field → falls back to the component name.
+ * - explicit `null` → intentionally undocumented.
+ * - explicit string → override (e.g. `"answer1"` for `<answer>`).
+ *
+ * This is the *declared* value; whether the page actually exists is a
+ * separate concern (see `getExistingDocSlugs`).
+ */
+export function getDeclaredDocsSlug(
+    componentDocs: { docsSlug?: string | null } | undefined,
+    componentType: string,
+): string | null {
+    if (componentDocs && "docsSlug" in componentDocs) {
+        return componentDocs.docsSlug ?? null;
+    }
+    return componentType;
+}
 
 // Create schema of DoenetML by extracting component, attributes and children
 // from component classes.
@@ -77,8 +126,18 @@ type ComponentClass = {
     additionalSchemaChildren?: string[];
     /** If `true` and `additionalSchemaChildren` is set, then those children will not be inherited by subclasses */
     additionalSchemaChildrenDoNotInherit?: boolean;
-    /** Class-level help metadata: a one-sentence summary plus future-extensible fields. */
-    componentDocs?: { summary?: string };
+    /** Class-level help metadata. */
+    componentDocs?: {
+        /** A one-sentence summary of the component. */
+        summary?: string;
+        /**
+         * Reference-page slug for this component, used to link from editor help.
+         * - Undefined → default to the component name (e.g. "abs" → /reference/abs).
+         * - String → explicit override (e.g. "answer" → /reference/answer1).
+         * - null → component is intentionally undocumented; no link is shown.
+         */
+        docsSlug?: string | null;
+    };
 };
 
 interface ComponentInfoObjects extends ReturnType<
@@ -168,6 +227,13 @@ type SchemaElement = {
     takesIndex: boolean;
     /** One-sentence summary of the component, surfaced in editor help and docs. */
     summary?: string;
+    /**
+     * Reference-page slug for this component. When present, editor help can
+     * link to `${docsURL}/reference/${docsSlug}`. `null` means intentionally
+     * undocumented (no link shown). Omitted means the component name is used
+     * as the slug.
+     */
+    docsSlug?: string | null;
 };
 
 /**
@@ -533,6 +599,16 @@ export function getSchema() {
         const summary = cClass.componentDocs?.summary;
         if (summary) {
             element.summary = summary;
+        }
+
+        // After resolving the declared slug, verify a corresponding .mdx page
+        // exists so editor help never produces a 404-ing link. Components
+        // without a real page emit `null` and the help UI skips the link.
+        const declaredSlug = getDeclaredDocsSlug(cClass.componentDocs, type);
+        if (declaredSlug !== null && getExistingDocSlugs().has(declaredSlug)) {
+            element.docsSlug = declaredSlug;
+        } else {
+            element.docsSlug = null;
         }
 
         elements.push(element);

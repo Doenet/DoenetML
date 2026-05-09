@@ -293,7 +293,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A title displayed at the top of a section or document."
+            "summary": "A title displayed at the top of a section or document.",
+            "docsSlug": "title"
         },
         {
             "name": "rightHandSide",
@@ -790,17 +791,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -1010,7 +1014,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A right-hand-side expression of an equation in an ODE system."
+            "summary": "A right-hand-side expression of an equation in an ODE system.",
+            "docsSlug": null
         },
         {
             "name": "description",
@@ -1498,7 +1503,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A description block."
+            "summary": "A description block.",
+            "docsSlug": null
         },
         {
             "name": "xLabel",
@@ -1843,17 +1849,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -1889,7 +1898,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A label for the x-axis of a graph."
+            "summary": "A label for the x-axis of a graph.",
+            "docsSlug": "xLabel"
         },
         {
             "name": "yLabel",
@@ -2234,17 +2244,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -2280,7 +2293,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A label for the y-axis of a graph."
+            "summary": "A label for the y-axis of a graph.",
+            "docsSlug": "yLabel"
         },
         {
             "name": "statement",
@@ -2768,7 +2782,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A theorem-like statement block."
+            "summary": "A theorem-like statement block.",
+            "docsSlug": null
         },
         {
             "name": "introduction",
@@ -3256,7 +3271,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An introductory block displayed at the start of a section."
+            "summary": "An introductory block displayed at the start of a section.",
+            "docsSlug": null
         },
         {
             "name": "conclusion",
@@ -3744,7 +3760,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A concluding block displayed at the end of a section."
+            "summary": "A concluding block displayed at the end of a section.",
+            "docsSlug": null
         },
         {
             "name": "topic",
@@ -4048,17 +4065,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -4154,7 +4174,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A topic label rendered as text (e.g. for tagging content)."
+            "summary": "A topic label rendered as text (e.g. for tagging content).",
+            "docsSlug": null
         },
         {
             "name": "br",
@@ -4293,7 +4314,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A line break."
+            "summary": "A line break.",
+            "docsSlug": null
         },
         {
             "name": "hr",
@@ -4432,7 +4454,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A horizontal rule used to separate content."
+            "summary": "A horizontal rule used to separate content.",
+            "docsSlug": null
         },
         {
             "name": "cascadeMessage",
@@ -4841,7 +4864,8 @@
             "top": false,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An individual message displayed within a <cascade>."
+            "summary": "An individual message displayed within a <cascade>.",
+            "docsSlug": null
         },
         {
             "name": "else",
@@ -5225,7 +5249,8 @@
             "top": false,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Default branch within a <conditionalContent>; matched when no <case> condition is true."
+            "summary": "Default branch within a <conditionalContent>; matched when no <case> condition is true.",
+            "docsSlug": "else"
         },
         {
             "name": "m",
@@ -5562,17 +5587,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -5602,7 +5630,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Inline math rendered with LaTeX."
+            "summary": "Inline math rendered with LaTeX.",
+            "docsSlug": "m"
         },
         {
             "name": "me",
@@ -5939,17 +5968,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -5979,7 +6011,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Display math rendered with LaTeX."
+            "summary": "Display math rendered with LaTeX.",
+            "docsSlug": "me"
         },
         {
             "name": "men",
@@ -6316,17 +6349,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -6362,7 +6398,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Numbered display math rendered with LaTeX."
+            "summary": "Numbered display math rendered with LaTeX.",
+            "docsSlug": "men"
         },
         {
             "name": "md",
@@ -6558,17 +6595,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -6592,7 +6632,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Display math with multiple aligned rows."
+            "summary": "Display math with multiple aligned rows.",
+            "docsSlug": "md"
         },
         {
             "name": "mdn",
@@ -6788,17 +6829,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -6822,7 +6866,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Numbered display math with multiple aligned rows."
+            "summary": "Numbered display math with multiple aligned rows.",
+            "docsSlug": "mdn"
         },
         {
             "name": "mrow",
@@ -7167,17 +7212,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -7213,7 +7261,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A row of math within an aligned display."
+            "summary": "A row of math within an aligned display.",
+            "docsSlug": "mrow"
         },
         {
             "name": "not",
@@ -7659,7 +7708,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Logical negation of a boolean value."
+            "summary": "Logical negation of a boolean value.",
+            "docsSlug": "not"
         },
         {
             "name": "and",
@@ -8016,7 +8066,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Logical AND: true only when all child boolean values are true."
+            "summary": "Logical AND: true only when all child boolean values are true.",
+            "docsSlug": "and"
         },
         {
             "name": "or",
@@ -8373,7 +8424,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Logical OR: true when at least one child boolean value is true."
+            "summary": "Logical OR: true when at least one child boolean value is true.",
+            "docsSlug": "or"
         },
         {
             "name": "xor",
@@ -8730,7 +8782,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Logical exclusive OR: true when exactly one child boolean value is true."
+            "summary": "Logical exclusive OR: true when exactly one child boolean value is true.",
+            "docsSlug": "xor"
         },
         {
             "name": "isInteger",
@@ -9154,7 +9207,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "True when the math child evaluates to an integer."
+            "summary": "True when the math child evaluates to an integer.",
+            "docsSlug": "isInteger"
         },
         {
             "name": "isNumber",
@@ -9578,7 +9632,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "True when the math child evaluates to a finite number."
+            "summary": "True when the math child evaluates to a finite number.",
+            "docsSlug": "isNumber"
         },
         {
             "name": "isBetween",
@@ -10030,7 +10085,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "True when a math value is between two given bounds."
+            "summary": "True when a math value is between two given bounds.",
+            "docsSlug": "isBetween"
         },
         {
             "name": "sum",
@@ -10559,17 +10615,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -10779,7 +10838,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Sum of all child math/number values."
+            "summary": "Sum of all child math/number values.",
+            "docsSlug": "sum"
         },
         {
             "name": "product",
@@ -11308,17 +11368,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -11528,7 +11591,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Product of all child math/number values."
+            "summary": "Product of all child math/number values.",
+            "docsSlug": "product"
         },
         {
             "name": "clampNumber",
@@ -12049,17 +12113,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -12269,7 +12336,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Clamps a number to a specified range."
+            "summary": "Clamps a number to a specified range.",
+            "docsSlug": "clampNumber"
         },
         {
             "name": "wrapNumberPeriodic",
@@ -12790,17 +12858,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -13010,7 +13081,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Wraps a number into a periodic range."
+            "summary": "Wraps a number into a periodic range.",
+            "docsSlug": "wrapNumberPeriodic"
         },
         {
             "name": "round",
@@ -13531,17 +13603,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -13751,7 +13826,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Rounds a number to a specified precision."
+            "summary": "Rounds a number to a specified precision.",
+            "docsSlug": "round"
         },
         {
             "name": "setSmallToZero",
@@ -14260,17 +14336,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -14480,7 +14559,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Replaces values with magnitude below a threshold with zero."
+            "summary": "Replaces values with magnitude below a threshold with zero.",
+            "docsSlug": "setSmallToZero"
         },
         {
             "name": "convertSetToList",
@@ -14969,17 +15049,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -15183,7 +15266,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Converts a math set expression into a list expression."
+            "summary": "Converts a math set expression into a list expression.",
+            "docsSlug": null
         },
         {
             "name": "ceil",
@@ -15680,17 +15764,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -15900,7 +15987,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Smallest integer ≥ the input value."
+            "summary": "Smallest integer ≥ the input value.",
+            "docsSlug": "ceil"
         },
         {
             "name": "floor",
@@ -16397,17 +16485,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -16617,7 +16708,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Largest integer ≤ the input value."
+            "summary": "Largest integer ≤ the input value.",
+            "docsSlug": "floor"
         },
         {
             "name": "abs",
@@ -17114,17 +17206,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -17334,7 +17429,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Absolute value of the input."
+            "summary": "Absolute value of the input.",
+            "docsSlug": "abs"
         },
         {
             "name": "sign",
@@ -17831,17 +17927,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -18051,7 +18150,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Sign of the input (-1, 0, or 1)."
+            "summary": "Sign of the input (-1, 0, or 1).",
+            "docsSlug": "sign"
         },
         {
             "name": "mean",
@@ -18580,17 +18680,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -18800,7 +18903,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Arithmetic mean of the child values."
+            "summary": "Arithmetic mean of the child values.",
+            "docsSlug": "mean"
         },
         {
             "name": "median",
@@ -19329,17 +19433,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -19549,7 +19656,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Median of the child values."
+            "summary": "Median of the child values.",
+            "docsSlug": "median"
         },
         {
             "name": "variance",
@@ -20094,17 +20202,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -20314,7 +20425,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Variance of the child math/number values (sample variance by default)."
+            "summary": "Variance of the child math/number values (sample variance by default).",
+            "docsSlug": "variance"
         },
         {
             "name": "standardDeviation",
@@ -20859,17 +20971,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -21079,7 +21194,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Standard deviation of the child math/number values (sample by default)."
+            "summary": "Standard deviation of the child math/number values (sample by default).",
+            "docsSlug": "standardDeviation"
         },
         {
             "name": "count",
@@ -21608,17 +21724,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -21828,7 +21947,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "The number of child math/number values."
+            "summary": "The number of child math/number values.",
+            "docsSlug": "count"
         },
         {
             "name": "min",
@@ -22357,17 +22477,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -22577,7 +22700,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Minimum of the child values."
+            "summary": "Minimum of the child values.",
+            "docsSlug": "min"
         },
         {
             "name": "max",
@@ -23106,17 +23230,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -23326,7 +23453,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Maximum of the child values."
+            "summary": "Maximum of the child values.",
+            "docsSlug": "max"
         },
         {
             "name": "mod",
@@ -23855,17 +23983,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -24075,7 +24206,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Modulo (remainder) of two values."
+            "summary": "Modulo (remainder) of two values.",
+            "docsSlug": "mod"
         },
         {
             "name": "gcd",
@@ -24604,17 +24736,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -24824,7 +24959,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Greatest common divisor of integer inputs."
+            "summary": "Greatest common divisor of integer inputs.",
+            "docsSlug": "gcd"
         },
         {
             "name": "lcm",
@@ -25353,17 +25489,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -25573,7 +25712,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Least common multiple of integer inputs."
+            "summary": "Least common multiple of integer inputs.",
+            "docsSlug": null
         },
         {
             "name": "extractMath",
@@ -26106,17 +26246,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -26326,7 +26469,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Extracts a sub-expression from a math expression by name or index."
+            "summary": "Extracts a sub-expression from a math expression by name or index.",
+            "docsSlug": "extractMath"
         },
         {
             "name": "clampFunction",
@@ -26789,17 +26933,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "styleDescription",
@@ -27137,7 +27284,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A function clamped to a specified output range."
+            "summary": "A function clamped to a specified output range.",
+            "docsSlug": null
         },
         {
             "name": "wrapFunctionPeriodic",
@@ -27600,17 +27748,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "styleDescription",
@@ -27948,7 +28099,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A function wrapped into a periodic output range."
+            "summary": "A function wrapped into a periodic output range.",
+            "docsSlug": null
         },
         {
             "name": "derivative",
@@ -28395,17 +28547,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "styleDescription",
@@ -28763,7 +28918,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "The derivative of a function."
+            "summary": "The derivative of a function.",
+            "docsSlug": "derivative"
         },
         {
             "name": "extractMathOperator",
@@ -29053,17 +29209,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -29159,7 +29318,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Returns the top-level operator of a math expression as text (e.g. \"+\", \"vector\")."
+            "summary": "Returns the top-level operator of a math expression as text (e.g. \"+\", \"vector\").",
+            "docsSlug": null
         },
         {
             "name": "em",
@@ -29448,7 +29608,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Emphasized inline text (italic by default)."
+            "summary": "Emphasized inline text (italic by default).",
+            "docsSlug": "em"
         },
         {
             "name": "alert",
@@ -29737,7 +29898,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Inline text styled as an alert."
+            "summary": "Inline text styled as an alert.",
+            "docsSlug": "alert"
         },
         {
             "name": "q",
@@ -30026,7 +30188,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Inline double-quoted text."
+            "summary": "Inline double-quoted text.",
+            "docsSlug": null
         },
         {
             "name": "sq",
@@ -30315,7 +30478,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Inline single-quoted text."
+            "summary": "Inline single-quoted text.",
+            "docsSlug": null
         },
         {
             "name": "term",
@@ -30604,7 +30768,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An inline term, styled distinctively."
+            "summary": "An inline term, styled distinctively.",
+            "docsSlug": "term"
         },
         {
             "name": "c",
@@ -30893,7 +31058,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Inline code text."
+            "summary": "Inline code text.",
+            "docsSlug": "c"
         },
         {
             "name": "tag",
@@ -31182,7 +31348,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Renders an XML/HTML tag-like inline."
+            "summary": "Renders an XML/HTML tag-like inline.",
+            "docsSlug": "tag"
         },
         {
             "name": "tage",
@@ -31471,7 +31638,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Renders an empty XML/HTML tag-like inline."
+            "summary": "Renders an empty XML/HTML tag-like inline.",
+            "docsSlug": null
         },
         {
             "name": "tagc",
@@ -31760,7 +31928,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Renders a closing XML/HTML tag-like inline."
+            "summary": "Renders a closing XML/HTML tag-like inline.",
+            "docsSlug": null
         },
         {
             "name": "attr",
@@ -32049,7 +32218,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Renders an attribute name as an inline."
+            "summary": "Renders an attribute name as an inline.",
+            "docsSlug": "attr"
         },
         {
             "name": "ndash",
@@ -32194,7 +32364,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Renders an en-dash (–) character."
+            "summary": "Renders an en-dash (–) character.",
+            "docsSlug": null
         },
         {
             "name": "mdash",
@@ -32339,7 +32510,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Renders an em-dash (—) character."
+            "summary": "Renders an em-dash (—) character.",
+            "docsSlug": null
         },
         {
             "name": "nbsp",
@@ -32484,7 +32656,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Renders a non-breaking space character."
+            "summary": "Renders a non-breaking space character.",
+            "docsSlug": "nbsp"
         },
         {
             "name": "ellipsis",
@@ -32629,7 +32802,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Renders a horizontal ellipsis (…) character."
+            "summary": "Renders a horizontal ellipsis (…) character.",
+            "docsSlug": "ellipsis"
         },
         {
             "name": "lq",
@@ -32774,7 +32948,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Renders a left double quotation mark (“)."
+            "summary": "Renders a left double quotation mark (“).",
+            "docsSlug": null
         },
         {
             "name": "rq",
@@ -32919,7 +33094,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Renders a right double quotation mark (”)."
+            "summary": "Renders a right double quotation mark (”).",
+            "docsSlug": null
         },
         {
             "name": "lsq",
@@ -33064,7 +33240,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Renders a left single quotation mark (‘)."
+            "summary": "Renders a left single quotation mark (‘).",
+            "docsSlug": null
         },
         {
             "name": "rsq",
@@ -33209,7 +33386,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Renders a right single quotation mark (’)."
+            "summary": "Renders a right single quotation mark (’).",
+            "docsSlug": null
         },
         {
             "name": "section",
@@ -33864,7 +34042,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A numbered section of a document, with title and content."
+            "summary": "A numbered section of a document, with title and content.",
+            "docsSlug": "section"
         },
         {
             "name": "subsection",
@@ -34519,7 +34698,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A numbered subsection, nested within a section."
+            "summary": "A numbered subsection, nested within a section.",
+            "docsSlug": null
         },
         {
             "name": "subsubsection",
@@ -35174,7 +35354,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A numbered subsubsection, nested within a subsection."
+            "summary": "A numbered subsubsection, nested within a subsection.",
+            "docsSlug": null
         },
         {
             "name": "paragraphs",
@@ -35829,7 +36010,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A numbered subsection of paragraphs (rendered at heading level 4)."
+            "summary": "A numbered subsection of paragraphs (rendered at heading level 4).",
+            "docsSlug": null
         },
         {
             "name": "aside",
@@ -36517,7 +36699,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An aside note set off from the main flow of the document."
+            "summary": "An aside note set off from the main flow of the document.",
+            "docsSlug": "aside"
         },
         {
             "name": "objectives",
@@ -37172,7 +37355,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A section listing learning objectives."
+            "summary": "A section listing learning objectives.",
+            "docsSlug": null
         },
         {
             "name": "problem",
@@ -37835,7 +38019,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A scored problem section."
+            "summary": "A scored problem section.",
+            "docsSlug": "problem"
         },
         {
             "name": "exercise",
@@ -38498,7 +38683,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A scored exercise section."
+            "summary": "A scored exercise section.",
+            "docsSlug": "exercise"
         },
         {
             "name": "question",
@@ -39161,7 +39347,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A scored question section."
+            "summary": "A scored question section.",
+            "docsSlug": "question"
         },
         {
             "name": "activity",
@@ -39824,7 +40011,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A scored activity section."
+            "summary": "A scored activity section.",
+            "docsSlug": null
         },
         {
             "name": "example",
@@ -40479,7 +40667,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An example section."
+            "summary": "An example section.",
+            "docsSlug": "example"
         },
         {
             "name": "definition",
@@ -41134,7 +41323,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A definition."
+            "summary": "A definition.",
+            "docsSlug": null
         },
         {
             "name": "note",
@@ -41789,7 +41979,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A note section, set off from the main flow of the document."
+            "summary": "A note section, set off from the main flow of the document.",
+            "docsSlug": null
         },
         {
             "name": "theorem",
@@ -42444,7 +42635,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A theorem statement."
+            "summary": "A theorem statement.",
+            "docsSlug": null
         },
         {
             "name": "part",
@@ -43099,7 +43291,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A numbered subsection-style block (a part of an exercise or problem)."
+            "summary": "A numbered subsection-style block (a part of an exercise or problem).",
+            "docsSlug": null
         },
         {
             "name": "task",
@@ -43754,7 +43947,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A numbered task (alias for <part>)."
+            "summary": "A numbered task (alias for <part>).",
+            "docsSlug": null
         },
         {
             "name": "proof",
@@ -44430,7 +44624,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A proof section."
+            "summary": "A proof section.",
+            "docsSlug": "proof"
         },
         {
             "name": "problems",
@@ -45073,7 +45268,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A section grouping problems, displayed as a list by default."
+            "summary": "A section grouping problems, displayed as a list by default.",
+            "docsSlug": null
         },
         {
             "name": "exercises",
@@ -45716,7 +45912,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A section grouping exercises (alias for <problems>)."
+            "summary": "A section grouping exercises (alias for <problems>).",
+            "docsSlug": null
         },
         {
             "name": "ol",
@@ -45883,7 +46080,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "An ordered list."
+            "summary": "An ordered list.",
+            "docsSlug": "ol"
         },
         {
             "name": "ul",
@@ -46050,7 +46248,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "An unordered list."
+            "summary": "An unordered list.",
+            "docsSlug": "ul"
         },
         {
             "name": "li",
@@ -46544,7 +46743,8 @@
             "top": false,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A list item within <ol>/<ul>."
+            "summary": "A list item within <ol>/<ul>.",
+            "docsSlug": "li"
         },
         {
             "name": "odeSystem",
@@ -46861,17 +47061,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "variables",
@@ -46983,7 +47186,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A system of first-order ordinary differential equations with initial conditions, rendered as math and numerically integrable."
+            "summary": "A system of first-order ordinary differential equations with initial conditions, rendered as math and numerically integrable.",
+            "docsSlug": "odeSystem"
         },
         {
             "name": "cobwebPolyline",
@@ -47619,7 +47823,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "An interactive cobweb diagram for visualizing iteration of a one-variable function."
+            "summary": "An interactive cobweb diagram for visualizing iteration of a one-variable function.",
+            "docsSlug": null
         },
         {
             "name": "equilibriumPoint",
@@ -48121,17 +48326,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "styleDescription",
@@ -48217,7 +48425,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An equilibrium point of a dynamical system, rendered as a filled point if stable or open if unstable."
+            "summary": "An equilibrium point of a dynamical system, rendered as a filled point if stable or open if unstable.",
+            "docsSlug": null
         },
         {
             "name": "equilibriumLine",
@@ -48642,17 +48851,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "styleDescription",
@@ -48762,7 +48974,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An equilibrium line of a dynamical system, rendered solid if stable or dashed if unstable."
+            "summary": "An equilibrium line of a dynamical system, rendered solid if stable or dashed if unstable.",
+            "docsSlug": null
         },
         {
             "name": "equilibriumCurve",
@@ -49539,7 +49752,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An equilibrium curve of a dynamical system, rendered solid if stable or dashed if unstable."
+            "summary": "An equilibrium curve of a dynamical system, rendered solid if stable or dashed if unstable.",
+            "docsSlug": null
         },
         {
             "name": "atom",
@@ -49743,17 +49957,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "atomicNumber",
@@ -49885,7 +50102,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Represents a chemical element by symbol or atomic number, exposing its periodic-table properties."
+            "summary": "Represents a chemical element by symbol or atomic number, exposing its periodic-table properties.",
+            "docsSlug": "atom"
         },
         {
             "name": "ion",
@@ -50038,17 +50256,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "atomicNumber",
@@ -50120,7 +50341,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Represents a charged ion specified by element and charge, rendered with its chemical formula."
+            "summary": "Represents a charged ion specified by element and charge, rendered with its chemical formula.",
+            "docsSlug": null
         },
         {
             "name": "ionicCompound",
@@ -50274,17 +50496,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "math",
@@ -50308,7 +50533,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Forms a balanced ionic compound from constituent ions and renders its chemical formula."
+            "summary": "Forms a balanced ionic compound from constituent ions and renders its chemical formula.",
+            "docsSlug": null
         },
         {
             "name": "electronConfiguration",
@@ -50805,17 +51031,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -51025,7 +51254,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Renders an electron configuration math expression with proper subscript and superscript formatting."
+            "summary": "Renders an electron configuration math expression with proper subscript and superscript formatting.",
+            "docsSlug": null
         },
         {
             "name": "orbitalDiagram",
@@ -51257,7 +51487,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Renders an orbital diagram showing electrons in atomic orbitals as up/down arrows in boxes."
+            "summary": "Renders an orbital diagram showing electrons in atomic orbitals as up/down arrows in boxes.",
+            "docsSlug": null
         },
         {
             "name": "orbitalDiagramInput",
@@ -51436,7 +51667,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "An interactive input where students fill in an orbital diagram by adding boxes, rows, and up/down arrows."
+            "summary": "An interactive input where students fill in an orbital diagram by adding boxes, rows, and up/down arrows.",
+            "docsSlug": "orbitalDiagramInput"
         },
         {
             "name": "feedbackDefinition",
@@ -51583,7 +51815,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A reusable feedback definition referenced by other components."
+            "summary": "A reusable feedback definition referenced by other components.",
+            "docsSlug": null
         },
         {
             "name": "styleDefinition",
@@ -51652,106 +51885,140 @@
                     "description": "Create an independent copy of another component by reference. Enter a references a `$name`."
                 },
                 {
-                    "name": "lineColor"
+                    "name": "lineColor",
+                    "description": "Color used for line strokes (light mode)."
                 },
                 {
-                    "name": "lineColorWord"
+                    "name": "lineColorWord",
+                    "description": "Human-readable name of the line color (light mode)."
                 },
                 {
-                    "name": "lineColorDarkMode"
+                    "name": "lineColorDarkMode",
+                    "description": "Color used for line strokes (dark mode)."
                 },
                 {
-                    "name": "lineColorWordDarkMode"
+                    "name": "lineColorWordDarkMode",
+                    "description": "Human-readable name of the line color (dark mode)."
                 },
                 {
-                    "name": "lineOpacity"
+                    "name": "lineOpacity",
+                    "description": "Opacity of line strokes, 0 to 1."
                 },
                 {
-                    "name": "lineWidth"
+                    "name": "lineWidth",
+                    "description": "Stroke width for lines, in pixels."
                 },
                 {
-                    "name": "lineWidthWord"
+                    "name": "lineWidthWord",
+                    "description": "Human-readable name of the line width."
                 },
                 {
-                    "name": "lineStyle"
+                    "name": "lineStyle",
+                    "description": "Stroke style for lines (e.g. solid, dashed, dotted)."
                 },
                 {
-                    "name": "lineStyleWord"
+                    "name": "lineStyleWord",
+                    "description": "Human-readable name of the line style."
                 },
                 {
-                    "name": "markerColor"
+                    "name": "markerColor",
+                    "description": "Color used for markers/points (light mode)."
                 },
                 {
-                    "name": "markerColorWord"
+                    "name": "markerColorWord",
+                    "description": "Human-readable name of the marker color (light mode)."
                 },
                 {
-                    "name": "markerColorDarkMode"
+                    "name": "markerColorDarkMode",
+                    "description": "Color used for markers/points (dark mode)."
                 },
                 {
-                    "name": "markerColorWordDarkMode"
+                    "name": "markerColorWordDarkMode",
+                    "description": "Human-readable name of the marker color (dark mode)."
                 },
                 {
-                    "name": "markerOpacity"
+                    "name": "markerOpacity",
+                    "description": "Opacity of markers/points, 0 to 1."
                 },
                 {
-                    "name": "markerStyle"
+                    "name": "markerStyle",
+                    "description": "Marker shape (e.g. cross, circle, square, plus, diamond, triangle)."
                 },
                 {
-                    "name": "markerStyleWord"
+                    "name": "markerStyleWord",
+                    "description": "Human-readable name of the marker style."
                 },
                 {
-                    "name": "markerSize"
+                    "name": "markerSize",
+                    "description": "Marker size in pixels."
                 },
                 {
-                    "name": "fillColor"
+                    "name": "fillColor",
+                    "description": "Fill color used inside closed shapes (light mode)."
                 },
                 {
-                    "name": "fillColorWord"
+                    "name": "fillColorWord",
+                    "description": "Human-readable name of the fill color (light mode)."
                 },
                 {
-                    "name": "fillColorDarkMode"
+                    "name": "fillColorDarkMode",
+                    "description": "Fill color used inside closed shapes (dark mode)."
                 },
                 {
-                    "name": "fillColorWordDarkMode"
+                    "name": "fillColorWordDarkMode",
+                    "description": "Human-readable name of the fill color (dark mode)."
                 },
                 {
-                    "name": "fillOpacity"
+                    "name": "fillOpacity",
+                    "description": "Opacity of fills, 0 to 1."
                 },
                 {
-                    "name": "textColor"
+                    "name": "textColor",
+                    "description": "Text color (light mode)."
                 },
                 {
-                    "name": "textColorWord"
+                    "name": "textColorWord",
+                    "description": "Human-readable name of the text color (light mode)."
                 },
                 {
-                    "name": "textColorDarkMode"
+                    "name": "textColorDarkMode",
+                    "description": "Text color (dark mode)."
                 },
                 {
-                    "name": "textColorWordDarkMode"
+                    "name": "textColorWordDarkMode",
+                    "description": "Human-readable name of the text color (dark mode)."
                 },
                 {
-                    "name": "highContrastColor"
+                    "name": "highContrastColor",
+                    "description": "High-contrast accent color (light mode)."
                 },
                 {
-                    "name": "highContrastColorWord"
+                    "name": "highContrastColorWord",
+                    "description": "Human-readable name of the high-contrast accent color (light mode)."
                 },
                 {
-                    "name": "highContrastColorDarkMode"
+                    "name": "highContrastColorDarkMode",
+                    "description": "High-contrast accent color (dark mode)."
                 },
                 {
-                    "name": "highContrastColorWordDarkMode"
+                    "name": "highContrastColorWordDarkMode",
+                    "description": "Human-readable name of the high-contrast accent color (dark mode)."
                 },
                 {
-                    "name": "backgroundColor"
+                    "name": "backgroundColor",
+                    "description": "Background color (light mode)."
                 },
                 {
-                    "name": "backgroundColorWord"
+                    "name": "backgroundColorWord",
+                    "description": "Human-readable name of the background color (light mode)."
                 },
                 {
-                    "name": "backgroundColorDarkMode"
+                    "name": "backgroundColorDarkMode",
+                    "description": "Background color (dark mode)."
                 },
                 {
-                    "name": "backgroundColorWordDarkMode"
+                    "name": "backgroundColorWordDarkMode",
+                    "description": "Human-readable name of the background color (dark mode)."
                 }
             ],
             "properties": [
@@ -51817,7 +52084,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A reusable style definition referenced by graphical components."
+            "summary": "A reusable style definition referenced by graphical components.",
+            "docsSlug": "styleDefinition"
         },
         {
             "name": "sideBySide",
@@ -52098,7 +52366,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Lays children out side-by-side."
+            "summary": "Lays children out side-by-side.",
+            "docsSlug": "sideBySide"
         },
         {
             "name": "sbsGroup",
@@ -52314,7 +52583,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A group of <sideBySide> components that share alignment and spacing."
+            "summary": "A group of <sideBySide> components that share alignment and spacing.",
+            "docsSlug": "sbsGroup"
         },
         {
             "name": "stack",
@@ -52684,7 +52954,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A vertical stack layout for arranging children."
+            "summary": "A vertical stack layout for arranging children.",
+            "docsSlug": "stack"
         },
         {
             "name": "h",
@@ -52992,17 +53263,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -53098,7 +53372,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A heading element."
+            "summary": "A heading element.",
+            "docsSlug": null
         },
         {
             "name": "idx",
@@ -53290,7 +53565,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Indexes into the children of a referenced indexable component."
+            "summary": "Indexes into the children of a referenced indexable component.",
+            "docsSlug": null
         },
         {
             "name": "div",
@@ -53778,7 +54054,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A generic block-level container."
+            "summary": "A generic block-level container.",
+            "docsSlug": "div"
         },
         {
             "name": "span",
@@ -54266,7 +54543,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A generic inline container."
+            "summary": "A generic inline container.",
+            "docsSlug": null
         },
         {
             "name": "pre",
@@ -54636,7 +54914,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A preformatted block preserving whitespace."
+            "summary": "A preformatted block preserving whitespace.",
+            "docsSlug": "pre"
         },
         {
             "name": "displayDoenetML",
@@ -55005,17 +55284,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "text",
@@ -55027,7 +55309,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Displays a DoenetML source string verbatim, with syntax-highlighting in renderers that support it."
+            "summary": "Displays a DoenetML source string verbatim, with syntax-highlighting in renderers that support it.",
+            "docsSlug": null
         },
         {
             "name": "paginator",
@@ -55414,7 +55697,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A multi-page container with navigation controls."
+            "summary": "A multi-page container with navigation controls.",
+            "docsSlug": "paginator"
         },
         {
             "name": "paginatorControls",
@@ -55599,7 +55883,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Previous/next page controls referencing a paginator elsewhere in the document."
+            "summary": "Previous/next page controls referencing a paginator elsewhere in the document.",
+            "docsSlug": "paginatorControls"
         },
         {
             "name": "matrixInput",
@@ -56095,7 +56380,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "An interactive matrix input where each cell accepts a math value."
+            "summary": "An interactive matrix input where each cell accepts a math value.",
+            "docsSlug": "matrixInput"
         },
         {
             "name": "solution",
@@ -56436,7 +56722,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A solution to an exercise, shown on demand."
+            "summary": "A solution to an exercise, shown on demand.",
+            "docsSlug": "solution"
         },
         {
             "name": "givenAnswer",
@@ -56777,7 +57064,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A solution-style block labeled \"Answer\" rather than \"Solution\"."
+            "summary": "A solution-style block labeled \"Answer\" rather than \"Solution\".",
+            "docsSlug": null
         },
         {
             "name": "document",
@@ -57191,7 +57479,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "The top-level container for a DoenetML document."
+            "summary": "The top-level container for a DoenetML document.",
+            "docsSlug": "document"
         },
         {
             "name": "text",
@@ -57495,17 +57784,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -57601,7 +57893,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A text string."
+            "summary": "A text string.",
+            "docsSlug": "text"
         },
         {
             "name": "textList",
@@ -57825,7 +58118,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "A list of texts."
+            "summary": "A list of texts.",
+            "docsSlug": "textList"
         },
         {
             "name": "p",
@@ -58234,7 +58528,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A paragraph of inline content."
+            "summary": "A paragraph of inline content.",
+            "docsSlug": "p"
         },
         {
             "name": "boolean",
@@ -58674,7 +58969,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A boolean value."
+            "summary": "A boolean value.",
+            "docsSlug": "boolean"
         },
         {
             "name": "booleanList",
@@ -58835,7 +59131,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "A list of booleans."
+            "summary": "A list of booleans.",
+            "docsSlug": "booleanList"
         },
         {
             "name": "math",
@@ -59332,17 +59629,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -59552,7 +59852,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A math expression."
+            "summary": "A math expression.",
+            "docsSlug": "math"
         },
         {
             "name": "mathList",
@@ -59865,7 +60166,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "A list of math expressions."
+            "summary": "A list of math expressions.",
+            "docsSlug": "mathList"
         },
         {
             "name": "tupleList",
@@ -60178,7 +60480,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "A list of math tuples, parsed from parenthesized comma-separated pieces."
+            "summary": "A list of math tuples, parsed from parenthesized comma-separated pieces.",
+            "docsSlug": null
         },
         {
             "name": "numberList",
@@ -60425,7 +60728,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "A list of numbers."
+            "summary": "A list of numbers.",
+            "docsSlug": "numberList"
         },
         {
             "name": "collect",
@@ -60500,7 +60804,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": true,
-            "summary": "Collects descendants matching a component type from another component."
+            "summary": "Collects descendants matching a component type from another component.",
+            "docsSlug": "collect"
         },
         {
             "name": "ref",
@@ -60913,7 +61218,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A link to a component reference or to a URL."
+            "summary": "A link to a component reference or to a URL.",
+            "docsSlug": "ref"
         },
         {
             "name": "point",
@@ -61383,17 +61689,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "styleDescription",
@@ -61479,7 +61788,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A point with coordinates that can be displayed and dragged on a graph."
+            "summary": "A point with coordinates that can be displayed and dragged on a graph.",
+            "docsSlug": "point"
         },
         {
             "name": "coords",
@@ -61960,17 +62270,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -62186,7 +62499,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A math expression treated as a vector of coordinates."
+            "summary": "A math expression treated as a vector of coordinates.",
+            "docsSlug": "coords"
         },
         {
             "name": "line",
@@ -62579,17 +62893,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "styleDescription",
@@ -62699,7 +63016,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A line through two points or defined by an equation."
+            "summary": "A line through two points or defined by an equation.",
+            "docsSlug": "line"
         },
         {
             "name": "lineSegment",
@@ -63106,7 +63424,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A line segment between two endpoints."
+            "summary": "A line segment between two endpoints.",
+            "docsSlug": "lineSegment"
         },
         {
             "name": "ray",
@@ -63466,7 +63785,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A ray starting at one point passing through another."
+            "summary": "A ray starting at one point passing through another.",
+            "docsSlug": "ray"
         },
         {
             "name": "polyline",
@@ -63953,7 +64273,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A polyline (open polygon) defined by a list of vertices."
+            "summary": "A polyline (open polygon) defined by a list of vertices.",
+            "docsSlug": "polyline"
         },
         {
             "name": "polygon",
@@ -64514,7 +64835,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A polygon defined by a list of vertices."
+            "summary": "A polygon defined by a list of vertices.",
+            "docsSlug": "polygon"
         },
         {
             "name": "triangle",
@@ -65075,7 +65397,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A triangle defined by three vertices."
+            "summary": "A triangle defined by three vertices.",
+            "docsSlug": "triangle"
         },
         {
             "name": "rectangle",
@@ -65664,7 +65987,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A rectangle defined by corner points."
+            "summary": "A rectangle defined by corner points.",
+            "docsSlug": "rectangle"
         },
         {
             "name": "regularPolygon",
@@ -66291,7 +66615,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A regular polygon with a given number of sides."
+            "summary": "A regular polygon with a given number of sides.",
+            "docsSlug": "regularPolygon"
         },
         {
             "name": "circle",
@@ -66960,7 +67285,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A circle defined by center and radius (or other parameters)."
+            "summary": "A circle defined by center and radius (or other parameters).",
+            "docsSlug": "circle"
         },
         {
             "name": "parabola",
@@ -67546,7 +67872,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A parabola defined by formula or geometric parameters."
+            "summary": "A parabola defined by formula or geometric parameters.",
+            "docsSlug": "parabola"
         },
         {
             "name": "curve",
@@ -68291,7 +68618,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A curve defined by a function, parametric formulas, or control points."
+            "summary": "A curve defined by a function, parametric formulas, or control points.",
+            "docsSlug": "curve"
         },
         {
             "name": "bezierControls",
@@ -68528,7 +68856,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Defines Bezier control vectors at vertices of a polyline or curve."
+            "summary": "Defines Bezier control vectors at vertices of a polyline or curve.",
+            "docsSlug": "bezierControls"
         },
         {
             "name": "controlVectors",
@@ -68806,7 +69135,8 @@
             "top": false,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Bezier control vectors at a polyline/curve vertex (used inside <bezierControls>)."
+            "summary": "Bezier control vectors at a polyline/curve vertex (used inside <bezierControls>).",
+            "docsSlug": "controlVectors"
         },
         {
             "name": "vector",
@@ -69291,17 +69621,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "styleDescription",
@@ -69406,7 +69739,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A geometric vector with tail and head."
+            "summary": "A geometric vector with tail and head.",
+            "docsSlug": "vector"
         },
         {
             "name": "angle",
@@ -69841,7 +70175,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An angle defined by three points or a measure."
+            "summary": "An angle defined by three points or a measure.",
+            "docsSlug": "angle"
         },
         {
             "name": "answer",
@@ -70779,7 +71114,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "An assessable answer that compares student input against awards."
+            "summary": "An assessable answer that compares student input against awards.",
+            "docsSlug": "answer1"
         },
         {
             "name": "award",
@@ -71352,7 +71688,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An award rule within an <answer> that grants credit when matched."
+            "summary": "An award rule within an <answer> that grants credit when matched.",
+            "docsSlug": "award"
         },
         {
             "name": "when",
@@ -71820,7 +72157,8 @@
             "top": false,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A condition that triggers an action when its expression becomes true."
+            "summary": "A condition that triggers an action when its expression becomes true.",
+            "docsSlug": "when"
         },
         {
             "name": "mathInput",
@@ -72484,7 +72822,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An interactive math input."
+            "summary": "An interactive math input.",
+            "docsSlug": "mathInput"
         },
         {
             "name": "textInput",
@@ -72959,7 +73298,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An interactive text input."
+            "summary": "An interactive text input.",
+            "docsSlug": "textInput"
         },
         {
             "name": "booleanInput",
@@ -73364,7 +73704,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An interactive boolean (toggle/checkbox) input."
+            "summary": "An interactive boolean (toggle/checkbox) input.",
+            "docsSlug": "booleanInput"
         },
         {
             "name": "choiceInput",
@@ -73787,7 +74128,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A multiple-choice or checkbox input from a list of choices."
+            "summary": "A multiple-choice or checkbox input from a list of choices.",
+            "docsSlug": "choiceInput"
         },
         {
             "name": "choice",
@@ -74238,7 +74580,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A single choice within a <choiceInput>."
+            "summary": "A single choice within a <choiceInput>.",
+            "docsSlug": "choice"
         },
         {
             "name": "number",
@@ -74585,17 +74928,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -74661,7 +75007,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A numeric value."
+            "summary": "A numeric value.",
+            "docsSlug": "number"
         },
         {
             "name": "integer",
@@ -75008,17 +75355,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -75090,7 +75440,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An integer value."
+            "summary": "An integer value.",
+            "docsSlug": "integer"
         },
         {
             "name": "graph",
@@ -75916,7 +76267,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A coordinate-axis graph that contains graphical objects."
+            "summary": "A coordinate-axis graph that contains graphical objects.",
+            "docsSlug": "graph"
         },
         {
             "name": "annotations",
@@ -76058,7 +76410,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A container of annotation children for screen reader navigation of a graph."
+            "summary": "A container of annotation children for screen reader navigation of a graph.",
+            "docsSlug": null
         },
         {
             "name": "annotation",
@@ -76260,7 +76613,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "An annotation for screen reader navigation of a graph."
+            "summary": "An annotation for screen reader navigation of a graph.",
+            "docsSlug": null
         },
         {
             "name": "function",
@@ -76699,17 +77053,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "styleDescription",
@@ -77047,7 +77404,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A mathematical function, defined by formula or interpolation."
+            "summary": "A mathematical function, defined by formula or interpolation.",
+            "docsSlug": "function"
         },
         {
             "name": "piecewiseFunction",
@@ -77388,17 +77746,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "styleDescription",
@@ -77722,7 +78083,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A function defined piecewise from sub-functions on intervals."
+            "summary": "A function defined piecewise from sub-functions on intervals.",
+            "docsSlug": "piecewiseFunction"
         },
         {
             "name": "interval",
@@ -78203,17 +78565,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -78429,7 +78794,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A math expression treated as an interval of real numbers."
+            "summary": "A math expression treated as an interval of real numbers.",
+            "docsSlug": "interval"
         },
         {
             "name": "option",
@@ -78823,7 +79189,8 @@
             "top": false,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A single option within a select-style input."
+            "summary": "A single option within a select-style input.",
+            "docsSlug": "option"
         },
         {
             "name": "sequence",
@@ -78991,7 +79358,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": true,
-            "summary": "Generates a sequence of numbers, math expressions, or letters defined by from, to, length, and step."
+            "summary": "Generates a sequence of numbers, math expressions, or letters defined by from, to, length, and step.",
+            "docsSlug": "sequence"
         },
         {
             "name": "slider",
@@ -79452,7 +79820,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "An interactive slider input."
+            "summary": "An interactive slider input.",
+            "docsSlug": "slider"
         },
         {
             "name": "spreadsheet",
@@ -79898,7 +80267,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "An interactive spreadsheet input."
+            "summary": "An interactive spreadsheet input.",
+            "docsSlug": "spreadsheet"
         },
         {
             "name": "cell",
@@ -80370,7 +80740,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A single cell within a table or tabular layout."
+            "summary": "A single cell within a table or tabular layout.",
+            "docsSlug": "cell"
         },
         {
             "name": "row",
@@ -80604,7 +80975,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A row within a tabular layout."
+            "summary": "A row within a tabular layout.",
+            "docsSlug": "row_matrix"
         },
         {
             "name": "column",
@@ -80782,7 +81154,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A column within a tabular layout."
+            "summary": "A column within a tabular layout.",
+            "docsSlug": null
         },
         {
             "name": "cellBlock",
@@ -80951,7 +81324,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A block of cells, rows, and columns inside a <table> with a starting row/column."
+            "summary": "A block of cells, rows, and columns inside a <table> with a starting row/column.",
+            "docsSlug": null
         },
         {
             "name": "tabular",
@@ -81227,7 +81601,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A simple tabular layout of cells without table semantics."
+            "summary": "A simple tabular layout of cells without table semantics.",
+            "docsSlug": "tabular"
         },
         {
             "name": "table",
@@ -81600,7 +81975,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A table-like container of rows, columns, and cells."
+            "summary": "A table-like container of rows, columns, and cells.",
+            "docsSlug": "table"
         },
         {
             "name": "figure",
@@ -81973,7 +82349,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A figure container holding graphical content with a caption."
+            "summary": "A figure container holding graphical content with a caption.",
+            "docsSlug": "figure"
         },
         {
             "name": "markers",
@@ -82207,7 +82584,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A list of text or number markers used by graphical components (e.g. axis tick labels)."
+            "summary": "A list of text or number markers used by graphical components (e.g. axis tick labels).",
+            "docsSlug": null
         },
         {
             "name": "repeat",
@@ -82568,7 +82946,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "Repeats template content for each item in a source."
+            "summary": "Repeats template content for each item in a source.",
+            "docsSlug": "repeat"
         },
         {
             "name": "repeatForSequence",
@@ -82950,7 +83329,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "Repeats template content for each value in an arithmetic sequence."
+            "summary": "Repeats template content for each value in an arithmetic sequence.",
+            "docsSlug": "repeatForSequence"
         },
         {
             "name": "pegboard",
@@ -83192,7 +83572,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Renders a grid of pegs on a graph that other graphical objects can snap to."
+            "summary": "Renders a grid of pegs on a graph that other graphical objects can snap to.",
+            "docsSlug": null
         },
         {
             "name": "constrainToGrid",
@@ -83403,7 +83784,8 @@
             "top": false,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Constrains a graphical component's position to lie on a grid."
+            "summary": "Constrains a graphical component's position to lie on a grid.",
+            "docsSlug": "constrainToGrid"
         },
         {
             "name": "constrainToGraph",
@@ -83554,7 +83936,8 @@
             "top": false,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Constrains a graphical component's position to lie within a graph's bounds."
+            "summary": "Constrains a graphical component's position to lie within a graph's bounds.",
+            "docsSlug": "constrainToGraph"
         },
         {
             "name": "attractToGrid",
@@ -83817,7 +84200,8 @@
             "top": false,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Attracts a graphical component's position to grid lines when nearby."
+            "summary": "Attracts a graphical component's position to grid lines when nearby.",
+            "docsSlug": "attractToGrid"
         },
         {
             "name": "constrainTo",
@@ -84055,7 +84439,8 @@
             "top": false,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Constrains a graphical component's position to match another component."
+            "summary": "Constrains a graphical component's position to match another component.",
+            "docsSlug": "constrainTo"
         },
         {
             "name": "attractTo",
@@ -84303,7 +84688,8 @@
             "top": false,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Attracts a graphical component's position to another component when nearby."
+            "summary": "Attracts a graphical component's position to another component when nearby.",
+            "docsSlug": "attractTo"
         },
         {
             "name": "constraintUnion",
@@ -84452,7 +84838,8 @@
             "top": false,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A constraint that is satisfied if any of its child constraints are satisfied."
+            "summary": "A constraint that is satisfied if any of its child constraints are satisfied.",
+            "docsSlug": "constraintUnion"
         },
         {
             "name": "attractToConstraint",
@@ -84613,7 +85000,8 @@
             "top": false,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Attracts a graphical component's position to a constraint location."
+            "summary": "Attracts a graphical component's position to a constraint location.",
+            "docsSlug": null
         },
         {
             "name": "constrainToInterior",
@@ -84851,7 +85239,8 @@
             "top": false,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Constrains a graphical component's position to lie inside a region."
+            "summary": "Constrains a graphical component's position to lie inside a region.",
+            "docsSlug": null
         },
         {
             "name": "intersection",
@@ -84980,7 +85369,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "The intersection of subsets or regions."
+            "summary": "The intersection of subsets or regions.",
+            "docsSlug": "intersection"
         },
         {
             "name": "conditionalContent",
@@ -85336,7 +85726,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Renders content conditionally based on its <case> children."
+            "summary": "Renders content conditionally based on its <case> children.",
+            "docsSlug": "conditionalContent"
         },
         {
             "name": "asList",
@@ -85631,7 +86022,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Renders its children as a comma-separated list."
+            "summary": "Renders its children as a comma-separated list.",
+            "docsSlug": null
         },
         {
             "name": "variantControl",
@@ -85798,7 +86190,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Configures how variants are generated for the enclosing document or section."
+            "summary": "Configures how variants are generated for the enclosing document or section.",
+            "docsSlug": null
         },
         {
             "name": "selectFromSequence",
@@ -86038,7 +86431,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": true,
-            "summary": "Randomly selects values from a sequence of numbers, math expressions, or letters."
+            "summary": "Randomly selects values from a sequence of numbers, math expressions, or letters.",
+            "docsSlug": "selectFromSequence"
         },
         {
             "name": "select",
@@ -86197,7 +86591,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "Randomly selects components from a list of children."
+            "summary": "Randomly selects components from a list of children.",
+            "docsSlug": "select"
         },
         {
             "name": "group",
@@ -86564,7 +86959,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A logical grouping of components."
+            "summary": "A logical grouping of components.",
+            "docsSlug": "group"
         },
         {
             "name": "animateFromSequence",
@@ -86816,7 +87212,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Animates a value through a sequence over time."
+            "summary": "Animates a value through a sequence over time.",
+            "docsSlug": "animateFromSequence"
         },
         {
             "name": "evaluate",
@@ -87280,17 +87677,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -87500,7 +87900,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Evaluates a function at a math input."
+            "summary": "Evaluates a function at a math input.",
+            "docsSlug": "evaluate"
         },
         {
             "name": "selectRandomNumbers",
@@ -87744,7 +88145,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": true,
-            "summary": "Selects a fixed (variant-deterministic) set of random numbers that cannot be resampled."
+            "summary": "Selects a fixed (variant-deterministic) set of random numbers that cannot be resampled.",
+            "docsSlug": "selectRandomNumbers"
         },
         {
             "name": "sampleRandomNumbers",
@@ -88003,7 +88405,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": true,
-            "summary": "Samples random numbers from a distribution."
+            "summary": "Samples random numbers from a distribution.",
+            "docsSlug": "sampleRandomNumbers"
         },
         {
             "name": "selectPrimeNumbers",
@@ -88219,7 +88622,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": true,
-            "summary": "Randomly selects prime numbers from a range."
+            "summary": "Randomly selects prime numbers from a range.",
+            "docsSlug": "selectPrimeNumbers"
         },
         {
             "name": "samplePrimeNumbers",
@@ -88406,7 +88810,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": true,
-            "summary": "Samples random prime numbers."
+            "summary": "Samples random prime numbers.",
+            "docsSlug": "samplePrimeNumbers"
         },
         {
             "name": "substitute",
@@ -88911,7 +89316,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "Substitutes math expressions into another expression."
+            "summary": "Substitutes math expressions into another expression.",
+            "docsSlug": "substitute"
         },
         {
             "name": "periodicSet",
@@ -89399,17 +89805,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -89631,7 +90040,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A periodic set of real numbers."
+            "summary": "A periodic set of real numbers.",
+            "docsSlug": null
         },
         {
             "name": "image",
@@ -89977,7 +90387,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Displays a static image."
+            "summary": "Displays a static image.",
+            "docsSlug": "image"
         },
         {
             "name": "video",
@@ -90251,7 +90662,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Embeds a video player."
+            "summary": "Embeds a video player.",
+            "docsSlug": "video"
         },
         {
             "name": "hint",
@@ -90633,7 +91045,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Hint shown on demand to help with an exercise."
+            "summary": "Hint shown on demand to help with an exercise.",
+            "docsSlug": "hint"
         },
         {
             "name": "intComma",
@@ -90937,17 +91350,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -91049,7 +91465,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Renders a numeric value with thousands separators (e.g. 1,000,000)."
+            "summary": "Renders a numeric value with thousands separators (e.g. 1,000,000).",
+            "docsSlug": "intComma"
         },
         {
             "name": "pluralize",
@@ -91377,17 +91794,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -91489,7 +91909,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Renders a word in its singular or plural form based on a count."
+            "summary": "Renders a word in its singular or plural form based on a count.",
+            "docsSlug": null
         },
         {
             "name": "feedback",
@@ -91855,7 +92276,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Targeted feedback shown when conditions are met after an answer is submitted."
+            "summary": "Targeted feedback shown when conditions are met after an answer is submitted.",
+            "docsSlug": "feedback"
         },
         {
             "name": "considerAsResponses",
@@ -92225,7 +92647,8 @@
             "top": false,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Marks its children as response components for assessment in an enclosing answer."
+            "summary": "Marks its children as response components for assessment in an enclosing answer.",
+            "docsSlug": "considerAsResponses"
         },
         {
             "name": "case",
@@ -92609,7 +93032,8 @@
             "top": false,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A single conditional branch within <conditionalContent>."
+            "summary": "A single conditional branch within <conditionalContent>.",
+            "docsSlug": "case"
         },
         {
             "name": "lorem",
@@ -92787,7 +93211,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Generates lorem ipsum placeholder text."
+            "summary": "Generates lorem ipsum placeholder text.",
+            "docsSlug": "lorem"
         },
         {
             "name": "updateValue",
@@ -93069,7 +93494,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Updates one or more state variables on a target component."
+            "summary": "Updates one or more state variables on a target component.",
+            "docsSlug": "updateValue"
         },
         {
             "name": "callAction",
@@ -93329,7 +93755,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Invokes a named action on a target component."
+            "summary": "Invokes a named action on a target component.",
+            "docsSlug": "callAction"
         },
         {
             "name": "triggerSet",
@@ -93567,7 +93994,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Triggers a set of update actions on demand."
+            "summary": "Triggers a set of update actions on demand.",
+            "docsSlug": "triggerSet"
         },
         {
             "name": "functionIterates",
@@ -93858,7 +94286,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "List of values produced by iterating a function."
+            "summary": "List of values produced by iterating a function.",
+            "docsSlug": "functionIterates"
         },
         {
             "name": "module",
@@ -94213,7 +94642,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A reusable group with parameterized attributes; can be referenced or extended elsewhere."
+            "summary": "A reusable group with parameterized attributes; can be referenced or extended elsewhere.",
+            "docsSlug": "module"
         },
         {
             "name": "moduleAttributes",
@@ -94559,7 +94989,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Declares attributes accepted by an enclosing <module>."
+            "summary": "Declares attributes accepted by an enclosing <module>.",
+            "docsSlug": "moduleAttributes"
         },
         {
             "name": "setup",
@@ -94907,7 +95338,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Container for components used for setup but not rendered."
+            "summary": "Container for components used for setup but not rendered.",
+            "docsSlug": "setup"
         },
         {
             "name": "footnote",
@@ -95202,7 +95634,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Inline footnote whose body is shown on demand and is auto-numbered in the document."
+            "summary": "Inline footnote whose body is shown on demand and is auto-numbered in the document.",
+            "docsSlug": "footnote"
         },
         {
             "name": "caption",
@@ -95545,7 +95978,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A caption attached to a figure or table."
+            "summary": "A caption attached to a figure or table.",
+            "docsSlug": "caption"
         },
         {
             "name": "endpoint",
@@ -96047,17 +96481,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "styleDescription",
@@ -96143,7 +96580,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A point that marks the endpoint of an interval, rendered open or closed."
+            "summary": "A point that marks the endpoint of an interval, rendered open or closed.",
+            "docsSlug": "endpoint"
         },
         {
             "name": "sort",
@@ -96534,7 +96972,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "Sorts a list according to a comparison function."
+            "summary": "Sorts a list according to a comparison function.",
+            "docsSlug": "sort"
         },
         {
             "name": "shuffle",
@@ -96893,7 +97332,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": true,
-            "summary": "Randomly shuffles its children."
+            "summary": "Randomly shuffles its children.",
+            "docsSlug": "shuffle"
         },
         {
             "name": "solveEquations",
@@ -97179,7 +97619,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Numerically solves a system of equations."
+            "summary": "Numerically solves a system of equations.",
+            "docsSlug": null
         },
         {
             "name": "subsetOfRealsInput",
@@ -97499,7 +97940,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "An interactive input for entering a subset of real numbers."
+            "summary": "An interactive input for entering a subset of real numbers.",
+            "docsSlug": null
         },
         {
             "name": "subsetOfReals",
@@ -98020,17 +98462,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -98296,7 +98741,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A subset of the real numbers, defined by intervals and points."
+            "summary": "A subset of the real numbers, defined by intervals and points.",
+            "docsSlug": "subsetOfReals"
         },
         {
             "name": "split",
@@ -98668,7 +99114,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Splits a string or list into pieces."
+            "summary": "Splits a string or list into pieces.",
+            "docsSlug": "split"
         },
         {
             "name": "bestFitLine",
@@ -98958,17 +99405,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "styleDescription",
@@ -99102,7 +99552,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "The best-fit line for a set of points."
+            "summary": "The best-fit line for a set of points.",
+            "docsSlug": "bestFitLine"
         },
         {
             "name": "regionBetweenCurveXAxis",
@@ -99327,7 +99778,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A region bounded between a curve and the x-axis."
+            "summary": "A region bounded between a curve and the x-axis.",
+            "docsSlug": "regionBetweenCurveXAxis"
         },
         {
             "name": "regionBetweenCurves",
@@ -99569,7 +100021,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A region bounded between two curves."
+            "summary": "A region bounded between two curves.",
+            "docsSlug": "regionBetweenCurves"
         },
         {
             "name": "regionHalfPlane",
@@ -99807,7 +100260,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A half-plane region bounded by a line."
+            "summary": "A half-plane region bounded by a line.",
+            "docsSlug": null
         },
         {
             "name": "codeEditor",
@@ -100330,7 +100784,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "An interactive code editor."
+            "summary": "An interactive code editor.",
+            "docsSlug": null
         },
         {
             "name": "hasSameFactoring",
@@ -100789,7 +101244,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Boolean condition that tests for equivalent factoring."
+            "summary": "Boolean condition that tests for equivalent factoring.",
+            "docsSlug": "hasSameFactoring"
         },
         {
             "name": "dataFrame",
@@ -100998,7 +101454,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A 2D table of typed data values."
+            "summary": "A 2D table of typed data values.",
+            "docsSlug": null
         },
         {
             "name": "summaryStatistics",
@@ -101307,7 +101764,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Summary statistics (mean, median, etc.) for a list of numbers."
+            "summary": "Summary statistics (mean, median, etc.) for a list of numbers.",
+            "docsSlug": null
         },
         {
             "name": "legend",
@@ -101535,7 +101993,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A legend describing the contents of a figure or graph."
+            "summary": "A legend describing the contents of a figure or graph.",
+            "docsSlug": "legend"
         },
         {
             "name": "label",
@@ -101880,17 +102339,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -101926,7 +102388,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A text or math label attached to a graphical object."
+            "summary": "A text or math label attached to a graphical object.",
+            "docsSlug": "label"
         },
         {
             "name": "matchesPattern",
@@ -102466,7 +102929,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Boolean condition that tests whether input matches a math pattern."
+            "summary": "Boolean condition that tests whether input matches a math pattern.",
+            "docsSlug": "matchesPattern"
         },
         {
             "name": "matrix",
@@ -102902,17 +103366,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -103122,7 +103589,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A matrix of math values."
+            "summary": "A matrix of math values.",
+            "docsSlug": "matrix"
         },
         {
             "name": "eigenDecomposition",
@@ -103438,7 +103906,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Computes the eigenvalues and eigenvectors of a square matrix child."
+            "summary": "Computes the eigenvalues and eigenvectors of a square matrix child.",
+            "docsSlug": null
         },
         {
             "name": "latex",
@@ -103762,17 +104231,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -103874,7 +104346,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A snippet of LaTeX rendered as math."
+            "summary": "A snippet of LaTeX rendered as math.",
+            "docsSlug": null
         },
         {
             "name": "blockQuote",
@@ -104244,7 +104717,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A block-level quotation containing arbitrary content."
+            "summary": "A block-level quotation containing arbitrary content.",
+            "docsSlug": null
         },
         {
             "name": "stickyGroup",
@@ -104563,7 +105037,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "Constrains group members to attract to each other when nearby."
+            "summary": "Constrains group members to attract to each other when nearby.",
+            "docsSlug": null
         },
         {
             "name": "pretzel",
@@ -104952,7 +105427,8 @@
             "top": true,
             "acceptsStringChildren": false,
             "takesIndex": false,
-            "summary": "A figure for visualizing logical compositions of subsets of the reals."
+            "summary": "A figure for visualizing logical compositions of subsets of the reals.",
+            "docsSlug": "pretzel"
         },
         {
             "name": "cascade",
@@ -105635,7 +106111,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "Conditional cascade for showing content step-by-step."
+            "summary": "Conditional cascade for showing content step-by-step.",
+            "docsSlug": null
         },
         {
             "name": "shortDescription",
@@ -105939,17 +106416,20 @@
                 {
                     "name": "textColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's text color, derived from the active style and theme."
                 },
                 {
                     "name": "backgroundColor",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable name for this component's background color, derived from the active style and theme."
                 },
                 {
                     "name": "textStyleDescription",
                     "type": "text",
-                    "isArray": false
+                    "isArray": false,
+                    "description": "Human-readable description of this component's text styling (color and any background color)."
                 },
                 {
                     "name": "anchor",
@@ -106051,7 +106531,8 @@
             "top": false,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A short accessibility description for an enclosing component."
+            "summary": "A short accessibility description for an enclosing component.",
+            "docsSlug": null
         },
         {
             "name": "pointList",
@@ -106298,7 +106779,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A list of points."
+            "summary": "A list of points.",
+            "docsSlug": null
         },
         {
             "name": "intervalList",
@@ -106545,7 +107027,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A list of intervals."
+            "summary": "A list of intervals.",
+            "docsSlug": "intervalList"
         },
         {
             "name": "vectorList",
@@ -106792,7 +107275,8 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "summary": "A list of vectors."
+            "summary": "A list of vectors.",
+            "docsSlug": null
         }
     ]
 }

@@ -337,3 +337,23 @@ jobs:
 
             - name: Prettier Check
               run: npx prettier . --check --ignore-path ./.prettierignore --ignore-path ./.prettierignoreci
+
+    check-docs-coverage:
+        name: Check Reference Docs Coverage
+        runs-on: ubuntu-latest
+
+        strategy:
+            matrix:
+                node-version: [24.x]
+
+        steps:
+            - uses: actions/checkout@v3
+            - name: Use Node.js ${{ matrix.node-version }}
+              uses: actions/setup-node@v4
+              with:
+                  node-version: ${{ matrix.node-version }}
+                  cache: "npm"
+            - run: npm ci
+
+            - name: Verify schema components map to /reference/<slug> pages
+              run: npm run check:docs-coverage -w packages/static-assets
