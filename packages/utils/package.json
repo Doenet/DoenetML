@@ -16,6 +16,9 @@
         },
         "./diagnostics/renderDiagnosticMarkdownHtml": {
             "import": "./dist/diagnosticMarkdown.js"
+        },
+        "./markdown/parseInlineMarkdown": {
+            "import": "./dist/parseInlineMarkdown.js"
         }
     },
     "scripts": {

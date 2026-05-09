@@ -1,32 +1,26 @@
 import React from "react";
+import { parseInlineMarkdown } from "@doenet/utils/markdown/parseInlineMarkdown";
 import { HelpContent } from "./types";
 import "./context-help-panel.css";
 
 /**
- * Render schema description text with inline-code spans for backtick-quoted
- * fragments (e.g. `` `<answer>` `` becomes a `<code>` element). Schema text
- * uses backticks for component/attribute names so the same string can be
- * surfaced in autocomplete (rendered as markdown by LSP clients) and here.
- *
- * Only inline code is supported — that's all the schema currently uses.
- * Unmatched trailing backticks are emitted as literal text.
+ * Render schema description text, mapping the shared inline-markdown tokens
+ * to React elements. The schema uses `` `code` ``, `**strong**`, and
+ * `*em*`; anything else is emitted as literal text.
  */
 function renderInlineMarkdown(text: string): React.ReactNode[] {
-    const parts: React.ReactNode[] = [];
-    const re = /`([^`]+)`/g;
-    let lastIndex = 0;
-    let match: RegExpExecArray | null;
-    while ((match = re.exec(text)) !== null) {
-        if (match.index > lastIndex) {
-            parts.push(text.slice(lastIndex, match.index));
+    return parseInlineMarkdown(text).map((token, i) => {
+        switch (token.kind) {
+            case "text":
+                return token.text;
+            case "code":
+                return <code key={i}>{token.text}</code>;
+            case "strong":
+                return <strong key={i}>{token.text}</strong>;
+            case "em":
+                return <em key={i}>{token.text}</em>;
         }
-        parts.push(<code key={parts.length}>{match[1]}</code>);
-        lastIndex = match.index + match[0].length;
-    }
-    if (lastIndex < text.length) {
-        parts.push(text.slice(lastIndex));
-    }
-    return parts;
+    });
 }
 
 export function ContextHelpPanel({

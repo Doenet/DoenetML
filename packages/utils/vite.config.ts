@@ -13,6 +13,7 @@ export default defineConfig({
                 index: "./src/index.ts",
                 diagnosticMarkdown:
                     "./src/diagnostics/renderDiagnosticMarkdownHtml.ts",
+                parseInlineMarkdown: "./src/markdown/parseInlineMarkdown.ts",
             },
             formats: ["es"],
         },

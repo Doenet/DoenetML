@@ -64,6 +64,7 @@ import {
     type WordToken,
 } from "./reopen-latch";
 import { renderDiagnosticMarkdownHtml } from "@doenet/utils/diagnostics/renderDiagnosticMarkdownHtml";
+import { parseInlineMarkdown } from "@doenet/utils/markdown/parseInlineMarkdown";
 import type {
     MarkupContent,
     MarkedString,
@@ -886,26 +887,18 @@ function isMarkdown(
 }
 
 /**
- * Append `text` to `parent` with backtick-quoted fragments wrapped in
- * `<code>` elements. Unmatched trailing backticks are emitted as literal
- * text.
+ * Append `text` to `parent`, mapping the shared inline-markdown tokens
+ * (`` `code` ``, `**strong**`, `*em*`) to their HTML element equivalents.
+ * Anything else is emitted as a literal text node.
  */
 function appendInlineMarkdown(parent: HTMLElement, text: string) {
-    const re = /`([^`]+)`/g;
-    let lastIndex = 0;
-    let m: RegExpExecArray | null;
-    while ((m = re.exec(text)) !== null) {
-        if (m.index > lastIndex) {
-            parent.appendChild(
-                document.createTextNode(text.slice(lastIndex, m.index)),
-            );
+    for (const token of parseInlineMarkdown(text)) {
+        if (token.kind === "text") {
+            parent.appendChild(document.createTextNode(token.text));
+        } else {
+            const el = document.createElement(token.kind);
+            el.textContent = token.text;
+            parent.appendChild(el);
         }
-        const code = document.createElement("code");
-        code.textContent = m[1];
-        parent.appendChild(code);
-        lastIndex = m.index + m[0].length;
-    }
-    if (lastIndex < text.length) {
-        parent.appendChild(document.createTextNode(text.slice(lastIndex)));
     }
 }
