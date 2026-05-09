@@ -5,7 +5,7 @@ export default class ControlVectors extends VectorListComponent {
 
     static componentDocs = {
         summary:
-            "Bezier control vectors at a polyline/curve vertex (used inside <bezierControls>).",
+            "Bezier control vectors at a polyline/curve vertex (used inside `<bezierControls>`).",
     };
 
     static inSchemaOnlyInheritAs = [];

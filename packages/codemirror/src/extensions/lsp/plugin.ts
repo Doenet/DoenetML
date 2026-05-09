@@ -372,7 +372,7 @@ export class LSPPlugin implements PluginValue {
                     filterText: filterText ?? label,
                 };
                 if (documentation) {
-                    completion.info = formatContents(documentation);
+                    completion.info = renderDocumentation(documentation);
                 }
                 // Store range info if present for custom apply logic later
                 if (textEdit && "range" in textEdit) {
@@ -848,5 +848,64 @@ function formatContents(
         return contents;
     } else {
         return contents.value;
+    }
+}
+
+/**
+ * Build the `info` payload for an autocomplete entry. When the LSP supplied
+ * markdown content, render inline backticks as `<code>` (the only markdown
+ * the schema currently uses). Plaintext content is returned as-is so
+ * CodeMirror renders it via its default text path.
+ */
+function renderDocumentation(
+    contents: MarkupContent | MarkedString | MarkedString[],
+): string | (() => Node) {
+    const text = formatContents(contents);
+    if (!isMarkdown(contents)) {
+        return text;
+    }
+    return () => {
+        const div = document.createElement("div");
+        appendInlineMarkdown(div, text);
+        return div;
+    };
+}
+
+function isMarkdown(
+    contents: MarkupContent | MarkedString | MarkedString[],
+): boolean {
+    if (Array.isArray(contents)) {
+        return contents.some((c) => isMarkdown(c));
+    }
+    if (typeof contents === "string") {
+        return false;
+    }
+    // `MarkupContent` always has `kind`; `MarkedString`'s object form has
+    // `language`, not `kind`. So this discriminates correctly.
+    return "kind" in contents && contents.kind === "markdown";
+}
+
+/**
+ * Append `text` to `parent` with backtick-quoted fragments wrapped in
+ * `<code>` elements. Unmatched trailing backticks are emitted as literal
+ * text.
+ */
+function appendInlineMarkdown(parent: HTMLElement, text: string) {
+    const re = /`([^`]+)`/g;
+    let lastIndex = 0;
+    let m: RegExpExecArray | null;
+    while ((m = re.exec(text)) !== null) {
+        if (m.index > lastIndex) {
+            parent.appendChild(
+                document.createTextNode(text.slice(lastIndex, m.index)),
+            );
+        }
+        const code = document.createElement("code");
+        code.textContent = m[1];
+        parent.appendChild(code);
+        lastIndex = m.index + m[0].length;
+    }
+    if (lastIndex < text.length) {
+        parent.appendChild(document.createTextNode(text.slice(lastIndex)));
     }
 }

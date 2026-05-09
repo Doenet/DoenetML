@@ -19,7 +19,7 @@ export default class Coords extends MathComponent {
 
         stateVariableDefinitions.createVectors = {
             description:
-                "Whether tuple-like expressions render as vectors (always true for <coords>).",
+                "Whether tuple-like expressions render as vectors (always true for `<coords>`).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",

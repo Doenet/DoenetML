@@ -1,7 +1,11 @@
 import { DoenetSourceObject, RowCol } from "../../doenet-source-object";
 import type { CompletionContext } from "./get-completion-context";
-import type { CompletionItem, Range } from "vscode-languageserver/browser";
-import { CompletionItemKind } from "vscode-languageserver/browser";
+import type {
+    CompletionItem,
+    MarkupContent,
+    Range,
+} from "vscode-languageserver/browser";
+import { CompletionItemKind, MarkupKind } from "vscode-languageserver/browser";
 import type {
     CompletionSnippetCompletionItemData,
     CompletionSnippetCursor,
@@ -14,6 +18,27 @@ import { generateAnnotationSkeletonSnippet } from "./generate-annotation-skeleto
 // Keep these aligned with parser grammar in `packages/parser/src/macros/macros.peggy`:
 // - SimpleIdent = [a-zA-Z_][a-zA-Z0-9_]*
 const SIMPLE_IDENTIFIER_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+/**
+ * Wrap schema description text as markdown so LSP clients render inline code
+ * (e.g. `` `<answer>` ``) as code rather than literal backticks. Schema text
+ * already uses markdown conventions; we just need to advertise it.
+ */
+function asMarkdown(text: string): MarkupContent {
+    return { kind: MarkupKind.Markdown, value: text };
+}
+
+/**
+ * Get the name of the parent of `node`, or `undefined` when the parent is the
+ * document root (no `name` field).
+ */
+function getParentName(
+    autoCompleter: AutoCompleter,
+    node: DastElement,
+): string | undefined {
+    const parent = autoCompleter.sourceObj.getParent(node);
+    return parent && "name" in parent ? parent.name : undefined;
+}
 
 /**
  * Create an LSP Range from source offset positions.
@@ -294,7 +319,7 @@ function createElementAndSnippetCompletionItems(
                 parentName,
             );
             if (effectiveEntry?.summary) {
-                item.documentation = effectiveEntry.summary;
+                item.documentation = asMarkdown(effectiveEntry.summary);
             }
             return item;
         });
@@ -338,7 +363,7 @@ type RefCompletionLabelInfo = {
  *
  * `labelInfo`, when provided, supplies per-label `detail`/`documentation` —
  * for example, replacing the generic "Reference name" with
- * `"a <math> on line 83"` for bare `$name` items.
+ * `"(<math>, line 83)"` for bare `$name` items.
  */
 function createReferenceCompletionItems(
     autoCompleter: AutoCompleter,
@@ -365,7 +390,7 @@ function createReferenceCompletionItems(
             },
         };
         if (info?.documentation) {
-            item.documentation = info.documentation;
+            item.documentation = asMarkdown(info.documentation);
         }
         return item;
     });
@@ -449,7 +474,7 @@ function createPropertyCompletionItems(
         };
         const description = propertyDescriptions?.get(label);
         if (description) {
-            item.documentation = description;
+            item.documentation = asMarkdown(description);
         }
         return item;
     });
@@ -578,14 +603,9 @@ export function getCompletionItems(
             if (!referent) continue;
             const normalized = this.normalizeElementName(referent.name);
             const ownEntry = this.schemaElementsByName[normalized];
-            const referentParent = this.sourceObj.getParent(referent);
-            const parentName =
-                referentParent && "name" in referentParent
-                    ? referentParent.name
-                    : undefined;
             const effective = this.resolveEffectiveSchemaElement(
                 ownEntry,
-                parentName,
+                getParentName(this, referent),
             );
             const line = referent.position?.start.line;
             const detail =
@@ -646,7 +666,7 @@ export function getCompletionItems(
                 } satisfies CompletionSnippetCompletionItemData,
             };
             if (info.labelInfo.documentation) {
-                item.documentation = info.labelInfo.documentation;
+                item.documentation = asMarkdown(info.labelInfo.documentation);
             }
             baseItems.push(item);
         }
@@ -681,14 +701,9 @@ export function getCompletionItems(
         // `<matrix>` → `matrixRow`). Behavioural fields like `takesIndex` and
         // `properties` membership still come from the canonical `schema`,
         // since aliased entries don't carry those.
-        const resolvedParent = this.sourceObj.getParent(resolvedNode);
-        const resolvedParentName =
-            resolvedParent && "name" in resolvedParent
-                ? resolvedParent.name
-                : undefined;
         const helpSchema = this.resolveEffectiveSchemaElement(
             schema,
-            resolvedParentName,
+            getParentName(this, resolvedNode),
         );
         const takesIndex = schema?.takesIndex ?? false;
         // Read the index flag for the resolved segment — always the
@@ -875,14 +890,9 @@ export function getCompletionItems(
     if (cursorPosition === "openTag" || cursorPosition === "attributeName") {
         const elmName = this.normalizeElementName(element.name);
         const ownEntry = this.schemaElementsByName[elmName];
-        const elementParent = this.sourceObj.getParent(element);
-        const elementParentName =
-            elementParent && "name" in elementParent
-                ? elementParent.name
-                : undefined;
         const helpEntry = this.resolveEffectiveSchemaElement(
             ownEntry,
-            elementParentName,
+            getParentName(this, element),
         );
         // Build a description lookup from the alias-aware help entry so
         // attributes on `<row>` inside `<matrix>` show `matrixRow`'s docs.
@@ -901,7 +911,7 @@ export function getCompletionItems(
             const description =
                 descriptionByAttrName.get(attr.name) ?? attr.description;
             if (description) {
-                item.documentation = description;
+                item.documentation = asMarkdown(description);
             }
             return item;
         });

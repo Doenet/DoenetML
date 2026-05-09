@@ -14,7 +14,7 @@ export default class Award extends BaseComponent {
 
     static componentDocs = {
         summary:
-            "An award rule within an <answer> that grants credit when matched.",
+            "An award rule within an `<answer>` that grants credit when matched.",
     };
     static rendererType = undefined;
 

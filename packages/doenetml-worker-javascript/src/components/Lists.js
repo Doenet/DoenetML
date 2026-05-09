@@ -169,7 +169,7 @@ export class Li extends BaseComponent {
     static componentType = "li";
 
     static componentDocs = {
-        summary: "A list item within <ol>/<ul>.",
+        summary: "A list item within `<ol>` / `<ul>`.",
     };
     static rendererType = "list";
     static renderChildren = true;

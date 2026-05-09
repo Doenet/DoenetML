@@ -594,7 +594,7 @@ function returnGraphPrefigureXMLStateVariableDefinition() {
 function returnGraphHasAuthorAnnotationsStateVariableDefinition() {
     return {
         description:
-            "Whether the graph contains any author-provided <annotations> child.",
+            "Whether the graph contains any author-provided `<annotations>` child.",
         public: true,
         forRenderer: true,
         shadowingInstructions: {

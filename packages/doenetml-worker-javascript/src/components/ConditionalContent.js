@@ -5,7 +5,8 @@ export default class ConditionalContent extends CompositeComponent {
     static componentType = "conditionalContent";
 
     static componentDocs = {
-        summary: "Renders content conditionally based on its <case> children.",
+        summary:
+            "Renders content conditionally based on its `<case>` children.",
     };
     static allowInSchemaAnywhere = true;
 

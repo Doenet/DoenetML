@@ -1268,7 +1268,10 @@ describe("AutoCompleter", () => {
             const autoCompleter = new AutoCompleter(source, docSchema.elements);
             const items = autoCompleter.getCompletionItems(source.length);
             const doc = items.find((i) => i.label === "doc");
-            expect(doc?.documentation).toBe("Top-level document.");
+            expect(doc?.documentation).toEqual({
+                kind: "markdown",
+                value: "Top-level document.",
+            });
         });
 
         it("Includes summary as documentation on child-element completions and applies childContextHelp aliases", () => {
@@ -1278,7 +1281,10 @@ describe("AutoCompleter", () => {
             const row = items.find((i) => i.label === "row");
             // Inside <matrix>, the `row` child should pull its summary from
             // the `matrixRow` alias, not the generic `row` entry.
-            expect(row?.documentation).toBe("A row inside a matrix.");
+            expect(row?.documentation).toEqual({
+                kind: "markdown",
+                value: "A row inside a matrix.",
+            });
         });
 
         it("Includes attribute description as documentation, alias-aware for child elements", () => {
@@ -1288,7 +1294,10 @@ describe("AutoCompleter", () => {
                 const autoCompleter = createDocAutoCompleter(source);
                 const items = autoCompleter.getCompletionItems(source.length);
                 const simplify = items.find((i) => i.label === "simplify");
-                expect(simplify?.documentation).toBe("Simplify form.");
+                expect(simplify?.documentation).toEqual({
+                    kind: "markdown",
+                    value: "Simplify form.",
+                });
                 const noDesc = items.find((i) => i.label === "noDescAttr");
                 expect(noDesc?.documentation).toBeUndefined();
             }
@@ -1298,7 +1307,10 @@ describe("AutoCompleter", () => {
                 const autoCompleter = createDocAutoCompleter(source);
                 const items = autoCompleter.getCompletionItems(source.length);
                 const color = items.find((i) => i.label === "color");
-                expect(color?.documentation).toBe("Color of the matrix row.");
+                expect(color?.documentation).toEqual({
+                    kind: "markdown",
+                    value: "Color of the matrix row.",
+                });
             }
         });
 
@@ -1307,7 +1319,10 @@ describe("AutoCompleter", () => {
             const autoCompleter = createDocAutoCompleter(source);
             const items = autoCompleter.getCompletionItems(source.length);
             const value = items.find((i) => i.label === "value");
-            expect(value?.documentation).toBe("Math value.");
+            expect(value?.documentation).toEqual({
+                kind: "markdown",
+                value: "Math value.",
+            });
             const noDescProp = items.find((i) => i.label === "noDescProp");
             expect(noDescProp?.documentation).toBeUndefined();
         });
@@ -1319,7 +1334,10 @@ describe("AutoCompleter", () => {
             const m = items.find((i) => i.label === "m");
             expect(m).toBeDefined();
             expect(m?.detail).toMatch(/^\(<math>, line \d+\)$/);
-            expect(m?.documentation).toBe("A math expression.");
+            expect(m?.documentation).toEqual({
+                kind: "markdown",
+                value: "A math expression.",
+            });
         });
 
         it("Reuses detail/documentation on the $name[] takesIndex variant", () => {
@@ -1329,9 +1347,10 @@ describe("AutoCompleter", () => {
             const indexed = items.find((i) => i.label === "s[]");
             expect(indexed).toBeDefined();
             expect(indexed?.detail).toMatch(/^\(<select>, line \d+\)$/);
-            expect(indexed?.documentation).toBe(
-                "A composite that picks one of several options.",
-            );
+            expect(indexed?.documentation).toEqual({
+                kind: "markdown",
+                value: "A composite that picks one of several options.",
+            });
         });
     });
 

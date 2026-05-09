@@ -100,7 +100,10 @@ describe("Doenet Language Server", async () => {
         expect(diags).toMatchInlineSnapshot(`
           [
             {
-              "documentation": "A coordinate-axis graph that contains graphical objects.",
+              "documentation": {
+                "kind": "markdown",
+                "value": "A coordinate-axis graph that contains graphical objects.",
+              },
               "kind": 10,
               "label": "graph",
             },
@@ -143,7 +146,10 @@ describe("Doenet Language Server", async () => {
         expect(diags).toMatchInlineSnapshot(`
           [
             {
-              "documentation": "A coordinate-axis graph that contains graphical objects.",
+              "documentation": {
+                "kind": "markdown",
+                "value": "A coordinate-axis graph that contains graphical objects.",
+              },
               "kind": 10,
               "label": "graph",
             },

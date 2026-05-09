@@ -2,6 +2,33 @@ import React from "react";
 import { HelpContent } from "./types";
 import "./context-help-panel.css";
 
+/**
+ * Render schema description text with inline-code spans for backtick-quoted
+ * fragments (e.g. `` `<answer>` `` becomes a `<code>` element). Schema text
+ * uses backticks for component/attribute names so the same string can be
+ * surfaced in autocomplete (rendered as markdown by LSP clients) and here.
+ *
+ * Only inline code is supported — that's all the schema currently uses.
+ * Unmatched trailing backticks are emitted as literal text.
+ */
+function renderInlineMarkdown(text: string): React.ReactNode[] {
+    const parts: React.ReactNode[] = [];
+    const re = /`([^`]+)`/g;
+    let lastIndex = 0;
+    let match: RegExpExecArray | null;
+    while ((match = re.exec(text)) !== null) {
+        if (match.index > lastIndex) {
+            parts.push(text.slice(lastIndex, match.index));
+        }
+        parts.push(<code key={parts.length}>{match[1]}</code>);
+        lastIndex = match.index + match[0].length;
+    }
+    if (lastIndex < text.length) {
+        parts.push(text.slice(lastIndex));
+    }
+    return parts;
+}
+
 export function ContextHelpPanel({
     content,
     docsURL,
@@ -42,7 +69,9 @@ export function ContextHelpPanel({
                             {`<${content.elementName}>`}
                         </span>
                     </div>
-                    <p className="help-description">{content.summary}</p>
+                    <p className="help-description">
+                        {renderInlineMarkdown(content.summary)}
+                    </p>
                     {content.docsSlug && (
                         <a
                             className="help-docs-link"
@@ -76,7 +105,9 @@ export function ContextHelpPanel({
                             {attributeName}
                         </span>
                     </div>
-                    <p className="help-description">{description}</p>
+                    <p className="help-description">
+                        {renderInlineMarkdown(description)}
+                    </p>
                     {defaultValue !== undefined && defaultValue !== null && (
                         <div className="help-detail">
                             <span className="help-detail-label">Default:</span>
@@ -135,7 +166,9 @@ export function ContextHelpPanel({
                             {propertyName}
                         </span>
                     </div>
-                    <p className="help-description">{description}</p>
+                    <p className="help-description">
+                        {renderInlineMarkdown(description)}
+                    </p>
                     {type !== undefined && (
                         <div className="help-detail">
                             <span className="help-detail-label">Type:</span>

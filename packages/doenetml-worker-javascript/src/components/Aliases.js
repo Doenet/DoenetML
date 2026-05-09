@@ -138,7 +138,7 @@ export class cascadeMessage extends P {
     static inSchemaOnlyInheritAs = [];
 
     static componentDocs = {
-        summary: "An individual message displayed within a <cascade>.",
+        summary: "An individual message displayed within a `<cascade>`.",
     };
 }
 
@@ -150,6 +150,6 @@ export class Else extends Case {
 
     static componentDocs = {
         summary:
-            "Default branch within a <conditionalContent>; matched when no <case> condition is true.",
+            "Default branch within a `<conditionalContent>`; matched when no `<case>` condition is true.",
     };
 }

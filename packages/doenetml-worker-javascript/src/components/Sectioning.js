@@ -321,7 +321,7 @@ export class Task extends Part {
     static componentType = "task";
 
     static componentDocs = {
-        summary: "A numbered task (alias for <part>).",
+        summary: "A numbered task (alias for `<part>`).",
     };
 }
 
@@ -429,7 +429,7 @@ export class Exercises extends Problems {
     static componentType = "exercises";
 
     static componentDocs = {
-        summary: "A section grouping exercises (alias for <problems>).",
+        summary: "A section grouping exercises (alias for `<problems>`).",
     };
 }
 

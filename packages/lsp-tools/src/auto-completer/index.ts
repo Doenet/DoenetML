@@ -168,7 +168,7 @@ export class AutoCompleter {
             // When the caller used the default `doenetSchema.elements`, also
             // load the bundled aliased entries so help/documentation lookup
             // is alias-aware out of the box. Custom schemas pass their own
-            // alias map via `setAliasedSchemaElements()` if needed.
+            // alias map via the second argument to `setSchema()` if needed.
             const aliased =
                 schema === doenetSchema.elements
                     ? (doenetSchema.aliasedElements as Record<

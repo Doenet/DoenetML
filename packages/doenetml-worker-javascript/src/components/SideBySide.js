@@ -1259,7 +1259,7 @@ export class SbsGroup extends BlockComponent {
 
     static componentDocs = {
         summary:
-            "A group of <sideBySide> components that share alignment and spacing.",
+            "A group of `<sideBySide>` components that share alignment and spacing.",
     };
 
     static createAttributesObject() {
