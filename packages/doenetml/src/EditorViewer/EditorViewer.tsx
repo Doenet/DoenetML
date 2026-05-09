@@ -419,6 +419,11 @@ export function EditorViewer({
         const visible = infoPanelIsOpen && selectedTabId === "help";
         helpIsVisibleRef.current = visible;
         if (!visible) {
+            // Cancel any in-flight debounced compute scheduled while help was
+            // visible — otherwise it would fire after we set HELP_NONE here
+            // and repopulate state for an invisible panel (flashing on next
+            // open).
+            window.clearTimeout(cursorDebounceTimer.current);
             setHelpContent(HELP_NONE);
             return;
         }
@@ -541,7 +546,6 @@ export function EditorViewer({
                         setIsOpen={setInfoPanelIsOpen}
                         showDiagnostics={showDiagnostics}
                         showResponses={showResponses}
-                        helpContent={helpContent}
                     />
                 }
                 isOpen={infoPanelIsOpen}

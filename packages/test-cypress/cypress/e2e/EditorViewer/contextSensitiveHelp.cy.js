@@ -93,6 +93,10 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
             // Default + chip value for boolean default `true`.
             cy.contains(".help-detail-label", "Default:").should("exist");
             cy.get(".help-value-item").should("contain.text", "true");
+            // Reference link points back to the owning component's docs page.
+            cy.get(".help-docs-link")
+                .should("have.attr", "href")
+                .and("include", "/reference/point");
         });
     });
 

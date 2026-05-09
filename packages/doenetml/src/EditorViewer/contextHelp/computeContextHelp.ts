@@ -223,6 +223,10 @@ function helpForAttribute(
         elementName: ownEntry.name,
         attributeName: schemaAttr.name,
         description: schemaAttr.description,
+        // Use `effectiveEntry` so the docs link follows alias redirection,
+        // matching `helpForElement`. (E.g. `<row functionSymbols>` inside
+        // `<matrix>` shows `matrixRow`'s description and links to its page.)
+        docsSlug: effectiveEntry.docsSlug,
         // Prefer `autocompleteValues` so boolean aliases (e.g. "true"/"false"
         // injected alongside `validValues`) don't pollute the displayed list.
         allowedValues: schemaAttr.autocompleteValues ?? schemaAttr.values,
@@ -285,6 +289,7 @@ function helpForPropertyReference(
         elementName: elementEntry.name,
         propertyName: prop.name,
         description: prop.description,
+        docsSlug: elementEntry.docsSlug,
         isArray: prop.isArray,
     };
     if (prop.type !== undefined) result.type = prop.type;

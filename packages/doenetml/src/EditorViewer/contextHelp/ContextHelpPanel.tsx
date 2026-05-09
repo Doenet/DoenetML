@@ -61,6 +61,7 @@ export function ContextHelpPanel({
                 elementName,
                 attributeName,
                 description,
+                docsSlug,
                 allowedValues,
                 defaultValue,
             } = content;
@@ -100,13 +101,29 @@ export function ContextHelpPanel({
                             </div>
                         </div>
                     )}
+                    {docsSlug && (
+                        <a
+                            className="help-docs-link"
+                            href={`${docsBase}/reference/${docsSlug}`}
+                            target="_blank"
+                            rel="noreferrer noopener"
+                        >
+                            Reference page →
+                        </a>
+                    )}
                 </div>
             );
         }
 
         case "property": {
-            const { elementName, propertyName, description, type, isArray } =
-                content;
+            const {
+                elementName,
+                propertyName,
+                description,
+                docsSlug,
+                type,
+                isArray,
+            } = content;
             return (
                 <div className="help-panel">
                     <div className="help-title">
@@ -127,6 +144,16 @@ export function ContextHelpPanel({
                                 {isArray ? "[]" : ""}
                             </span>
                         </div>
+                    )}
+                    {docsSlug && (
+                        <a
+                            className="help-docs-link"
+                            href={`${docsBase}/reference/${docsSlug}`}
+                            target="_blank"
+                            rel="noreferrer noopener"
+                        >
+                            Reference page →
+                        </a>
                     )}
                 </div>
             );

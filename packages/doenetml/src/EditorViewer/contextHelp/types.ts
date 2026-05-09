@@ -12,6 +12,12 @@ export type HelpContent =
           elementName: string;
           attributeName: string;
           description: string;
+          /**
+           * Reference-page slug for the owning element (with alias redirection
+           * applied — e.g. `<row functionSymbols>` inside `<matrix>` carries
+           * the `matrixRow` slug). `null` when intentionally undocumented.
+           */
+          docsSlug: string | null;
           allowedValues?: unknown[];
           defaultValue?: unknown;
       }
@@ -20,6 +26,8 @@ export type HelpContent =
           elementName: string;
           propertyName: string;
           description: string;
+          /** Reference-page slug for the resolved container element. */
+          docsSlug: string | null;
           /** Optional: some properties have no declared component type. */
           type?: string;
           isArray: boolean;

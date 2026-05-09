@@ -272,4 +272,39 @@ describe("computeContextHelp — docsSlug propagation", () => {
             expect.fail(`expected element help, got ${help.kind}`);
         }
     });
+
+    it("attribute help carries the owning element's docsSlug", () => {
+        const source = `<point draggable="true"/>`;
+        const offset = source.indexOf("draggable") + 3;
+        const help = helpAt(source, offset);
+        if (help.kind !== "attribute") {
+            expect.fail(`expected attribute help, got ${help.kind}`);
+            return;
+        }
+        expect(help.docsSlug).toBe("point");
+    });
+
+    it("attribute help on alias-redirected child uses the alias target's slug", () => {
+        // `<row>` inside `<matrix>` is sugared to `<matrixRow>`. Help text
+        // and the docs link must follow the alias so the link goes to the
+        // matrixRow page, not the unrelated tabular row page.
+        const source = `<matrix>\n  <row functionSymbols="f">x</row>\n</matrix>`;
+        const offset = source.indexOf("functionSymbols") + 3;
+        const help = helpAt(source, offset);
+        if (help.kind !== "attribute") {
+            expect.fail(`expected attribute help, got ${help.kind}`);
+            return;
+        }
+        expect(help.docsSlug).toBe("row_matrix");
+    });
+
+    it("property help carries the resolved container's docsSlug", () => {
+        const source = `<math name="m">x</math>\n$m.displayDecimals`;
+        const help = helpAt(source, source.length);
+        if (help.kind !== "property") {
+            expect.fail(`expected property help, got ${help.kind}`);
+            return;
+        }
+        expect(help.docsSlug).toBe("math");
+    });
 });

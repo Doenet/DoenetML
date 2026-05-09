@@ -220,7 +220,6 @@ export function DiagnosticsResponseTabstrip({
     submittedResponses,
     setIsOpen,
     showResponses,
-    helpContent,
 }: {
     store: TabStore;
 
@@ -233,7 +232,6 @@ export function DiagnosticsResponseTabstrip({
     setIsOpen: (arg: boolean) => void;
     showDiagnostics?: boolean;
     showResponses?: boolean;
-    helpContent: HelpContent;
 }) {
     const hasLevel1Accessibility = accessibility.some(
         (diagnostic) => diagnostic.level === 1,
