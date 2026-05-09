@@ -1,6 +1,12 @@
 import { AutoCompleter } from "@doenet/lsp-tools";
 import { HelpContent } from "./types";
 
+/** Derived from the source object so we don't take a `@doenet/parser` dep
+ * just for the `DastElement` type. */
+type ElementNode = NonNullable<
+    ReturnType<AutoCompleter["sourceObj"]["elementAtOffsetWithContext"]>["node"]
+>;
+
 export type SchemaElementForHelp = {
     name: string;
     summary?: string;
@@ -104,12 +110,12 @@ export function computeContextHelp(
 function resolveEffectiveElementName(
     completer: AutoCompleter,
     schemaMap: SchemaMap,
-    node: { name: string },
+    node: ElementNode,
 ): string {
     const normalized = completer.normalizeElementName(node.name);
     if (normalized === "UNKNOWN_NAME") return node.name;
 
-    const parent = completer.sourceObj.getParent(node as any);
+    const parent = completer.sourceObj.getParent(node);
     if (!parent || !("name" in parent)) return normalized;
 
     const parentNormalized = completer.normalizeElementName(parent.name);

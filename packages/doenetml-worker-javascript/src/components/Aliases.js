@@ -59,7 +59,7 @@ export class MatrixRow extends MathList {
     static componentType = "matrixRow";
 
     static componentDocs = {
-        summary: "A list of math values defining the row a matrix.",
+        summary: "A list of math values defining the row of a matrix.",
         docsSlug: "row_matrix",
     };
     static excludeFromSchema = true;

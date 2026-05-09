@@ -12,7 +12,7 @@ import type { HelpContent } from "./types";
 // the same data the editor consumes at runtime.
 const SCHEMA_MAP = buildSchemaElementsByName(
     doenetSchema.elements,
-    (doenetSchema as any).aliasedElements,
+    doenetSchema.aliasedElements,
 );
 
 function helpAt(source: string, offset: number): HelpContent {

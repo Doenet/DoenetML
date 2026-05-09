@@ -165,7 +165,8 @@ export function EditorViewer({
 
     const completerRef = useRef(new AutoCompleter(initialDoenetML));
     const [helpContent, setHelpContent] = useState<HelpContent>(HELP_NONE);
-    const cursorDebounceTimer = useRef<number | null>(null);
+    const cursorDebounceTimer = useRef<number | undefined>(undefined);
+    const isMountedRef = useRef(true);
 
     const tabStore = useTabStore({
         defaultSelectedId: showDiagnostics ? "errors" : "responses",
@@ -387,8 +388,9 @@ export function EditorViewer({
 
     const onCursorChange = useCallback((selection: EditorSelection) => {
         const offset = selection.main.head;
-        window.clearTimeout(cursorDebounceTimer.current ?? undefined);
+        window.clearTimeout(cursorDebounceTimer.current);
         cursorDebounceTimer.current = window.setTimeout(() => {
+            if (!isMountedRef.current) return;
             setHelpContent(
                 computeContextHelp(completerRef.current, offset, SCHEMA_MAP),
             );
@@ -456,9 +458,8 @@ export function EditorViewer({
                     doenetmlChangeCallback?.(editorDoenetMLRef.current);
                 }
             }
-            if (cursorDebounceTimer.current !== null) {
-                window.clearTimeout(cursorDebounceTimer.current);
-            }
+            window.clearTimeout(cursorDebounceTimer.current);
+            isMountedRef.current = false;
         };
     }, []);
 

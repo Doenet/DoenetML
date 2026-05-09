@@ -54,8 +54,9 @@ function main() {
     const failures: string[] = [];
     /** Allow-listed: still missing docs — warn so the list shrinks over time. */
     const warnings: string[] = [];
-    /** Class declared a slug string that doesn't resolve to a real .mdx file. */
-    const brokenSlugs: { name: string; slug: string }[] = [];
+    /** Class declared a slug string that doesn't resolve to a real .mdx file,
+     * or an alias target that doesn't resolve to any class at all. */
+    const brokenSlugs: { name: string; reason: string }[] = [];
     /** Allow-list entries no longer needed. */
     const obsoleteAllowlistEntries: string[] = [];
 
@@ -94,7 +95,10 @@ function main() {
         // An explicit override that doesn't resolve is always a hard error,
         // regardless of allow-list (a typo in the slug should never be hidden).
         if (declaredAsOverride) {
-            brokenSlugs.push({ name: type, slug: declared });
+            brokenSlugs.push({
+                name: type,
+                reason: `declares docsSlug "${declared}" but pages/reference/${declared}.mdx does not exist`,
+            });
             continue;
         }
 
@@ -110,7 +114,10 @@ function main() {
     for (const target of aliasTargets) {
         const cClass = allComponentClasses[target];
         if (!cClass) {
-            brokenSlugs.push({ name: `(alias target) ${target}`, slug: "" });
+            brokenSlugs.push({
+                name: `(alias target) ${target}`,
+                reason: `no component class named "${target}" — check childAliases for a typo`,
+            });
             continue;
         }
         const declared = getDeclaredDocsSlug(cClass.componentDocs, target);
@@ -118,7 +125,7 @@ function main() {
         if (docsPages.has(declared)) continue;
         brokenSlugs.push({
             name: `(alias target) ${target}`,
-            slug: declared,
+            reason: `resolves to docsSlug "${declared}" but pages/reference/${declared}.mdx does not exist`,
         });
     }
 
@@ -165,11 +172,10 @@ function main() {
 
     if (brokenSlugs.length > 0) {
         console.error(
-            `\n[error] ${brokenSlugs.length} components declare a docsSlug that doesn't ` +
-                `match any .mdx file in pages/reference/:`,
+            `\n[error] ${brokenSlugs.length} components have unresolvable docs references:`,
         );
-        for (const { name, slug } of brokenSlugs) {
-            console.error(`  - ${name} → ${slug}.mdx (missing)`);
+        for (const { name, reason } of brokenSlugs) {
+            console.error(`  - ${name}: ${reason}`);
         }
     }
 
