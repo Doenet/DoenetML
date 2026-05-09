@@ -20,7 +20,8 @@ export type SchemaElementForHelp = {
     }[];
     properties: {
         name: string;
-        type: string;
+        /** Optional: some array slots have no `createComponentOfType`. */
+        type?: string;
         isArray: boolean;
         description?: string;
     }[];
@@ -239,12 +240,13 @@ function helpForPropertyReference(
     );
     if (!prop?.description) return NONE;
 
-    return {
+    const result: HelpContent = {
         kind: "property",
         elementName,
         propertyName: prop.name,
         description: prop.description,
-        type: prop.type,
         isArray: prop.isArray,
     };
+    if (prop.type !== undefined) result.type = prop.type;
+    return result;
 }

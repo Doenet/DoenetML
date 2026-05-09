@@ -157,7 +157,10 @@ interface ComponentInfoObjects extends ReturnType<
 
 type PropertyDescription = {
     name: string;
-    type: string;
+    /** Component type the property resolves to. Optional because some
+     * public state variables (mainly array slots) don't declare a
+     * `createComponentOfType`. */
+    type?: string;
     isArray: boolean;
     numDimensions?: number;
     indexedArrayDescription?: ArrayElementDescription[];
@@ -166,7 +169,10 @@ type PropertyDescription = {
 };
 
 type ArrayElementDescription = {
-    type: string;
+    /** Component type at this dimension. Optional for the same reason as
+     * `PropertyDescription.type`: an unwrapped array slot whose parent
+     * state variable lacks `createComponentOfType` has no type. */
+    type?: string;
     isArray: boolean;
     numDimensions?: number;
 };
@@ -808,11 +814,14 @@ function singlePropFromDescription({
 }): PropertyDescription {
     const componentType = description.createComponentOfType;
 
-    const prop: PropertyDescription = {
-        name: varName,
-        type: componentType,
-        isArray: description.isArray,
-    };
+    const prop: PropertyDescription =
+        componentType !== undefined
+            ? {
+                  name: varName,
+                  type: componentType,
+                  isArray: description.isArray,
+              }
+            : { name: varName, isArray: description.isArray };
 
     if (description.description) {
         prop.description = description.description;
@@ -891,7 +900,7 @@ function singlePropFromDescription({
 function createArrayElementDescription(
     wrappingComponents: WrappingComponentElement[][],
     numDimensions: number,
-    componentType: string,
+    componentType: string | undefined,
 ): ArrayElementDescription {
     if (wrappingComponents.length === numDimensions) {
         // the last dimension of the array is wrapped,
@@ -922,11 +931,9 @@ function createArrayElementDescription(
         };
     } else {
         // array is not wrapped
-        return {
-            isArray: true,
-            type: componentType,
-            numDimensions,
-        };
+        return componentType !== undefined
+            ? { isArray: true, type: componentType, numDimensions }
+            : { isArray: true, numDimensions };
     }
 }
 

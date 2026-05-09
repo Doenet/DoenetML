@@ -138,4 +138,27 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
                 .and("include", "/reference/row_table");
         });
     });
+
+    it("omits the reference link for an allow-listed undocumented component", () => {
+        // <codeEditor> is on the undocumented allow-list, so its schema
+        // docsSlug is clamped to null and the help panel must not render
+        // a "Reference page" link (which would otherwise 404).
+        const doenetML = `<codeEditor/>`;
+        cy.window().then((win) => {
+            win.postMessage({ doenetML }, "*");
+        });
+        cy.get(".cm-content", { timeout: 10000 }).should(
+            "contain.text",
+            "codeEditor",
+        );
+
+        openHelpTab();
+        // Cursor mid-tag-name of "codeEditor" (offset 5 = between 'd' and 'E').
+        moveCursorToOffset(5);
+
+        cy.get(".help-panel", { timeout: 5000 }).within(() => {
+            cy.get(".help-element-name").should("contain.text", "codeEditor");
+            cy.get(".help-docs-link").should("not.exist");
+        });
+    });
 });

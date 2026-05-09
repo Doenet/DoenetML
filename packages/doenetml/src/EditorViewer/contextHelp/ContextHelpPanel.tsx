@@ -105,13 +105,15 @@ export function ContextHelpPanel({
                         </span>
                     </div>
                     <p className="help-description">{description}</p>
-                    <div className="help-detail">
-                        <span className="help-detail-label">Type:</span>
-                        <span className="help-detail-value">
-                            {`<${type}>`}
-                            {isArray ? "[]" : ""}
-                        </span>
-                    </div>
+                    {type !== undefined && (
+                        <div className="help-detail">
+                            <span className="help-detail-label">Type:</span>
+                            <span className="help-detail-value">
+                                {`<${type}>`}
+                                {isArray ? "[]" : ""}
+                            </span>
+                        </div>
+                    )}
                 </div>
             );
         }

@@ -20,6 +20,7 @@ export type HelpContent =
           elementName: string;
           propertyName: string;
           description: string;
-          type: string;
+          /** Optional: some properties have no declared component type. */
+          type?: string;
           isArray: boolean;
       };
