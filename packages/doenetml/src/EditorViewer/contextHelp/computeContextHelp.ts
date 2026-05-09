@@ -32,7 +32,15 @@ export type SchemaElementForHelp = {
 type SchemaAttribute = SchemaElementForHelp["attributes"][number];
 type SchemaProperty = SchemaElementForHelp["properties"][number];
 
-export type SchemaMap = Record<string, SchemaElementForHelp>;
+/**
+ * Schema lookup table built once at module load. Carries both a canonical-case
+ * map (for the hot exact-match path) and a precomputed lowercase index so
+ * non-canonical author casing resolves in O(1) instead of scanning the map.
+ */
+export type SchemaMap = {
+    byName: Record<string, SchemaElementForHelp>;
+    byLowerName: Map<string, SchemaElementForHelp>;
+};
 
 const NONE: HelpContent = { kind: "none" };
 
@@ -40,9 +48,9 @@ export function buildSchemaElementsByName(
     elements: readonly SchemaElementForHelp[],
     aliasedElements?: Readonly<Record<string, SchemaElementForHelp>>,
 ): SchemaMap {
-    const map: SchemaMap = {};
+    const byName: Record<string, SchemaElementForHelp> = {};
     for (const el of elements) {
-        map[el.name] = el;
+        byName[el.name] = el;
     }
     if (aliasedElements) {
         for (const name in aliasedElements) {
@@ -55,30 +63,30 @@ export function buildSchemaElementsByName(
             // `acceptsStringChildren`, and `takesIndex`. Today the names are
             // disjoint by construction (alias targets are excludeFromSchema),
             // but this guard preserves the invariant if that ever changes.
-            if (map[name]) continue;
-            map[name] = aliasedElements[name];
+            if (byName[name]) continue;
+            byName[name] = aliasedElements[name];
         }
     }
-    return map;
+    const byLowerName = new Map<string, SchemaElementForHelp>();
+    for (const name in byName) {
+        byLowerName.set(name.toLowerCase(), byName[name]);
+    }
+    return { byName, byLowerName };
 }
 
 /**
  * Case-insensitive lookup of a schema element by author-typed name. Schema
  * keys are canonical case, so the exact-match path is the fast common case;
- * the linear scan only runs when the author typed a non-canonical case.
+ * the precomputed lowercase index handles non-canonical casing in O(1).
  */
 function findSchemaElement(
     schemaMap: SchemaMap,
     name: string,
 ): SchemaElementForHelp | undefined {
-    if (Object.prototype.hasOwnProperty.call(schemaMap, name)) {
-        return schemaMap[name];
+    if (Object.prototype.hasOwnProperty.call(schemaMap.byName, name)) {
+        return schemaMap.byName[name];
     }
-    const lower = name.toLowerCase();
-    for (const key in schemaMap) {
-        if (key.toLowerCase() === lower) return schemaMap[key];
-    }
-    return undefined;
+    return schemaMap.byLowerName.get(name.toLowerCase());
 }
 
 function findSchemaAttribute(
@@ -251,12 +259,19 @@ function helpForPropertyReference(
     // to length-2 chains because the JS path resolves only `pathParts[0]`
     // and would otherwise look up the cursor identifier as a property of
     // the root referent, producing wrong help for `$a.b.c`. Multi-part
-    // resolution is tracked in #1086.
-    const containerNode =
-        resolved.node ??
-        (ctx.pathParts.length === 2
-            ? completer.sourceObj.getReferentAtOffset(offset, ctx.pathParts[0])
-            : null);
+    // resolution is tracked in #1087.
+    let containerNode = resolved.node;
+    if (!containerNode) {
+        if (ctx.pathParts.length === 2) {
+            containerNode =
+                completer.sourceObj.getReferentAtOffset(
+                    offset,
+                    ctx.pathParts[0],
+                ) ?? null;
+        } else if (ctx.pathParts.length > 2) {
+            return { kind: "unsupportedRefChain" };
+        }
+    }
     if (!containerNode) return NONE;
 
     const elementEntry = findSchemaElement(schemaMap, containerNode.name);

@@ -9,6 +9,10 @@ export function ContextHelpPanel({
     content: HelpContent;
     docsURL: string;
 }) {
+    // Tolerate a trailing slash on the consumer-supplied `docsURL` so that
+    // e.g. "https://docs.doenet.org/" doesn't produce "//reference/..." URLs.
+    const docsBase = docsURL.replace(/\/+$/, "");
+
     switch (content.kind) {
         case "none":
             return (
@@ -16,6 +20,16 @@ export function ContextHelpPanel({
                     <p className="help-placeholder">
                         Place cursor on a tag name, attribute, or{" "}
                         <code>$ref.property</code> for documentation.
+                    </p>
+                </div>
+            );
+
+        case "unsupportedRefChain":
+            return (
+                <div className="help-panel help-panel-empty">
+                    <p className="help-placeholder">
+                        Help for multi-part references like <code>$a.b.c</code>{" "}
+                        is not yet supported.
                     </p>
                 </div>
             );
@@ -32,7 +46,7 @@ export function ContextHelpPanel({
                     {content.docsSlug && (
                         <a
                             className="help-docs-link"
-                            href={`${docsURL}/reference/${content.docsSlug}`}
+                            href={`${docsBase}/reference/${content.docsSlug}`}
                             target="_blank"
                             rel="noreferrer noopener"
                         >
@@ -62,7 +76,7 @@ export function ContextHelpPanel({
                         </span>
                     </div>
                     <p className="help-description">{description}</p>
-                    {defaultValue !== undefined && (
+                    {defaultValue !== undefined && defaultValue !== null && (
                         <div className="help-detail">
                             <span className="help-detail-label">Default:</span>
                             <div className="help-values-list">
@@ -121,12 +135,6 @@ export function ContextHelpPanel({
 }
 
 function formatValue(val: unknown): string {
-    // `null` is a meaningful default for many attributes (e.g. <slider>
-    // initialValue) — display it as a human-readable "(none)" rather than
-    // the JSON-stringified literal.
-    if (val === null) {
-        return "(none)";
-    }
     if (Array.isArray(val)) {
         return val.map((v) => formatValue(v)).join(", ");
     }

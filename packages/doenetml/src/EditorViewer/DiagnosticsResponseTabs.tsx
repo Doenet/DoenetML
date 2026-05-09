@@ -233,7 +233,7 @@ export function DiagnosticsResponseTabstrip({
     setIsOpen: (arg: boolean) => void;
     showDiagnostics?: boolean;
     showResponses?: boolean;
-    helpContent?: HelpContent;
+    helpContent: HelpContent;
 }) {
     const hasLevel1Accessibility = accessibility.some(
         (diagnostic) => diagnostic.level === 1,
@@ -351,13 +351,11 @@ export function DiagnosticsResponseTabstrip({
                         count={submittedResponses.length}
                     />
                 )}
-                {helpContent && (
-                    <TabTrigger
-                        id="help"
-                        icon={<BsQuestionCircle />}
-                        label="Context-sensitive help"
-                    />
-                )}
+                <TabTrigger
+                    id="help"
+                    icon={<BsQuestionCircle />}
+                    label="Context-sensitive help"
+                />
                 {isOpen ? (
                     <Button
                         title="Close panel"
@@ -407,7 +405,7 @@ export function DiagnosticsResponseTabContents({
     showResponses?: boolean;
     showInfoAnnotations: boolean;
     setShowInfoAnnotations: (checked: boolean) => void;
-    helpContent?: HelpContent;
+    helpContent: HelpContent;
     docsURL: string;
 }) {
     const panels = useRef<HTMLDivElement>(null);
@@ -631,18 +629,16 @@ export function DiagnosticsResponseTabContents({
                                 )}
                             </TabPanel>
                         )}
-                        {helpContent && (
-                            <TabPanel
-                                store={store}
-                                tabId="help"
-                                className="diagnostic-panel"
-                            >
-                                <ContextHelpPanel
-                                    content={helpContent}
-                                    docsURL={docsURL}
-                                />
-                            </TabPanel>
-                        )}
+                        <TabPanel
+                            store={store}
+                            tabId="help"
+                            className="diagnostic-panel"
+                        >
+                            <ContextHelpPanel
+                                content={helpContent}
+                                docsURL={docsURL}
+                            />
+                        </TabPanel>
                     </div>
                 )}
             </TabProvider>

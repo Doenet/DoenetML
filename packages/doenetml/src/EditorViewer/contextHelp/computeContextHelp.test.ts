@@ -119,10 +119,11 @@ describe("computeContextHelp — attribute help", () => {
         });
     });
 
-    it("preserves an explicit null defaultValue (so the panel can show '(none)')", () => {
+    it("preserves an explicit null defaultValue", () => {
         // <slider initialValue> declares `defaultValue: null` to mean
-        // "no initial value" — the help pipeline must surface that
-        // through to the panel rather than dropping it.
+        // "no initial value". The help pipeline must surface the null
+        // through to the panel (which then chooses to hide the Default
+        // row entirely rather than render a misleading value).
         const source = `<slider initialValue="3"/>`;
         const offset = source.indexOf("initialValue") + 3;
         const help = helpAt(source, offset);
@@ -172,13 +173,14 @@ describe("computeContextHelp — property reference (refMember)", () => {
         expect(helpAt(source, source.length).kind).toBe("none");
     });
 
-    it("returns none for multi-part chains under the JS fallback", () => {
+    it("returns an unsupportedRefChain placeholder for multi-part chains under the JS fallback", () => {
         // Without a Rust resolver adapter, the JS fallback can only
         // resolve `$ref.prop`. For longer chains it would otherwise
         // look up the cursor identifier as a property of the root,
-        // producing wrong help. Tracked in #1086.
+        // producing wrong help — so we surface a placeholder instead.
+        // Tracked in #1087.
         const source = `<math name="m">x</math>\n$m.foo.displayDecimals`;
-        expect(helpAt(source, source.length).kind).toBe("none");
+        expect(helpAt(source, source.length).kind).toBe("unsupportedRefChain");
     });
 });
 

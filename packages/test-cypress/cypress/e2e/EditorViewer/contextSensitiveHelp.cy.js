@@ -17,22 +17,28 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
     });
 
     /**
-     * Place the cursor at `offset` characters into the source. Assumes the
-     * editor is currently empty/the source has been seeded via postMessage,
-     * and the offset is 0-indexed from the start of the document.
+     * Place the cursor at `offset` characters into the source by dispatching
+     * a selection update directly to the CodeMirror EditorView. Avoids the
+     * per-character keyboard walk that scales poorly and makes offsets
+     * sensitive to autocomplete popups, line wrapping, etc.
+     *
+     * The editor must already have rendered the source (assert on `.cm-content`
+     * before calling).
      */
     function moveCursorToOffset(offset) {
-        cy.get(".cm-content").click();
-        // CodeMirror's "go to document start" binding differs by platform:
-        // Cmd-Up on Mac, Ctrl-Home elsewhere.
-        if (Cypress.platform === "darwin") {
-            cy.get(".cm-activeLine").type("{cmd+upArrow}");
-        } else {
-            cy.get(".cm-activeLine").type("{ctrl+home}");
-        }
-        if (offset > 0) {
-            cy.get(".cm-activeLine").type("{rightArrow}".repeat(offset));
-        }
+        cy.get(".cm-content").then(($content) => {
+            // In CodeMirror 6 the contentDOM (`.cm-content`) carries a
+            // `cmView` back-reference whose `editorView` is the public view.
+            // This is the same path `EditorView.findFromDOM` takes.
+            const view = $content[0].cmView?.editorView;
+            if (!view) {
+                throw new Error(
+                    "Could not locate CodeMirror EditorView from .cm-content",
+                );
+            }
+            view.focus();
+            view.dispatch({ selection: { anchor: offset } });
+        });
     }
 
     function openHelpTab() {
