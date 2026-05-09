@@ -2,7 +2,13 @@ import React from "react";
 import { HelpContent } from "./types";
 import "./context-help-panel.css";
 
-export function ContextHelpPanel({ content }: { content: HelpContent }) {
+export function ContextHelpPanel({
+    content,
+    docsURL,
+}: {
+    content: HelpContent;
+    docsURL: string;
+}) {
     switch (content.kind) {
         case "none":
             return (
@@ -23,6 +29,14 @@ export function ContextHelpPanel({ content }: { content: HelpContent }) {
                         </span>
                     </div>
                     <p className="help-description">{content.summary}</p>
+                    <a
+                        className="help-docs-link"
+                        href={`${docsURL}/reference/${content.elementName}`}
+                        target="_blank"
+                        rel="noreferrer noopener"
+                    >
+                        Reference page →
+                    </a>
                 </div>
             );
 

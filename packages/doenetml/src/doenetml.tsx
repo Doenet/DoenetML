@@ -347,6 +347,7 @@ export function DoenetEditor({
     initialErrors,
     initialWarnings,
     fetchExternalDoenetML,
+    docsURL = "https://docs.doenet.org",
 }: {
     doenetML: string;
     activityId?: string;
@@ -379,6 +380,7 @@ export function DoenetEditor({
     initialErrors?: ErrorRecord[];
     initialWarnings?: WarningRecord[];
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
+    docsURL?: string;
 }) {
     const normalizedShowDiagnostics =
         showDiagnostics ?? showErrorsWarnings ?? true;
@@ -455,6 +457,7 @@ export function DoenetEditor({
             border={border}
             initialDiagnostics={normalizedInitialDiagnostics}
             fetchExternalDoenetML={fetchExternalDoenetML}
+            docsURL={docsURL}
         />
     );
 

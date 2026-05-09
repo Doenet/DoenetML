@@ -393,6 +393,7 @@ export function DiagnosticsResponseTabContents({
     showInfoAnnotations,
     setShowInfoAnnotations,
     helpContent,
+    docsURL,
 }: {
     store: TabStore;
     warnings: WarningRecord[];
@@ -407,6 +408,7 @@ export function DiagnosticsResponseTabContents({
     showInfoAnnotations: boolean;
     setShowInfoAnnotations: (checked: boolean) => void;
     helpContent?: HelpContent;
+    docsURL: string;
 }) {
     const panels = useRef<HTMLDivElement>(null);
     const lastScrolledToBottom = useRef(true);
@@ -635,7 +637,10 @@ export function DiagnosticsResponseTabContents({
                                 tabId="help"
                                 className="diagnostic-panel"
                             >
-                                <ContextHelpPanel content={helpContent} />
+                                <ContextHelpPanel
+                                    content={helpContent}
+                                    docsURL={docsURL}
+                                />
                             </TabPanel>
                         )}
                     </div>

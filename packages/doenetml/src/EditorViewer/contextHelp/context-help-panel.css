@@ -86,3 +86,14 @@
     font-family: monospace;
     font-size: 0.85rem;
 }
+
+.editor-panel .help-docs-link {
+    color: var(--mainBlue);
+    text-decoration: none;
+    width: fit-content;
+}
+
+.editor-panel .help-docs-link:hover,
+.editor-panel .help-docs-link:focus {
+    text-decoration: underline;
+}

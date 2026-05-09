@@ -73,6 +73,7 @@ export function EditorViewer({
     border = "1px solid",
     initialDiagnostics = EMPTY_INITIAL_DIAGNOSTICS,
     fetchExternalDoenetML,
+    docsURL = "https://docs.doenet.org",
 }: {
     doenetML: string;
     activityId?: string;
@@ -99,6 +100,7 @@ export function EditorViewer({
     border?: string;
     initialDiagnostics?: DiagnosticRecord[];
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
+    docsURL?: string;
 }) {
     //Win, Mac or Linux
     let platform = "Linux";
@@ -487,6 +489,7 @@ export function EditorViewer({
                         showInfoAnnotations={showInfoAnnotations}
                         setShowInfoAnnotations={setShowInfoAnnotations}
                         helpContent={helpContent}
+                        docsURL={docsURL}
                     />
                 }
                 alwaysVisiblePanel={
