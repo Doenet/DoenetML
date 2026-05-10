@@ -11,9 +11,6 @@ concurrency:
     group: ${{ github.workflow }}-${{ github.head_ref || github.run_id }}
     cancel-in-progress: true
 
-env:
-    FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
-
 jobs:
     changes:
         name: Detect Changed Paths
@@ -21,8 +18,8 @@ jobs:
         outputs:
             prefigure: ${{ steps.filter.outputs.prefigure }}
         steps:
-            - uses: actions/checkout@v3
-            - uses: dorny/paths-filter@v3
+            - uses: actions/checkout@v6
+            - uses: dorny/paths-filter@v4
               id: filter
               with:
                   filters: |
@@ -39,9 +36,9 @@ jobs:
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v6
             - name: Use Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v6
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "npm"
@@ -62,7 +59,7 @@ jobs:
 
             # upload all the .wireit directories so that the test job can use them.
             - name: Upload build artifacts
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: build-artifacts
                   include-hidden-files: true
@@ -81,15 +78,15 @@ jobs:
                 node-version: [24.x]
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v6
             - name: Use Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v6
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "npm"
             - run: npm ci
             - name: Download build artifacts
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   name: build-artifacts
 
@@ -119,15 +116,15 @@ jobs:
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
                 test-group: [group1, group2, group3, group4]
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v6
             - name: Use Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v6
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "npm"
             - run: npm ci
             - name: Download build artifacts
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   name: build-artifacts
 
@@ -166,15 +163,15 @@ jobs:
                         doenetml-cypress,
                     ]
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v6
             - name: Use Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v6
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "npm"
             - run: npm ci
             - name: Download build artifacts
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   name: build-artifacts
 
@@ -216,7 +213,7 @@ jobs:
 
             - name: Upload screenshots on failure
               if: failure()
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v7
               with:
                   name: cypress-screenshots-${{ matrix.test-group }}
                   path: ./packages/test-cypress/cypress/screenshots
@@ -230,16 +227,16 @@ jobs:
             matrix:
                 node-version: [24.x]
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v6
             - name: Use Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v6
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "npm"
             - run: npm ci
 
             - name: Download build artifacts
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   name: build-artifacts
 
@@ -259,7 +256,7 @@ jobs:
 
         steps:
             - name: Checkout sources
-              uses: actions/checkout@v3
+              uses: actions/checkout@v6
 
             - name: Install toolchain
               run: |
@@ -286,16 +283,16 @@ jobs:
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v6
             - name: Use Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v6
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "npm"
             - run: npm ci
 
             - name: Download build artifacts
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   name: build-artifacts
 
@@ -331,9 +328,9 @@ jobs:
 
         steps:
             - name: Checkout sources
-              uses: actions/checkout@v3
+              uses: actions/checkout@v6
             - name: Use Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v6
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "npm"
@@ -352,15 +349,15 @@ jobs:
                 node-version: [24.x]
 
         steps:
-            - uses: actions/checkout@v3
+            - uses: actions/checkout@v6
             - name: Use Node.js ${{ matrix.node-version }}
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v6
               with:
                   node-version: ${{ matrix.node-version }}
                   cache: "npm"
             - run: npm ci
             - name: Download build artifacts
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v8
               with:
                   name: build-artifacts
 
