@@ -165,8 +165,9 @@ export const EditorViewer = React.forwardRef<
     });
 
     // Resolve `initialOpenTab` once at mount: if the requested tab is disabled
-    // by `showDiagnostics={false}` / `showResponses={false}` (and inferring
-    // `showResponses` from `showViewer` above), warn and fall back to default.
+    // by `showDiagnostics={false}` / `showResponses={false}` (with
+    // `showResponses` forced to `false` by `showViewer={false}` above), warn
+    // and fall back to default.
     const [resolvedInitialOpenTab] = useState<DiagnosticsTabId | undefined>(
         () => {
             if (initialOpenTab === undefined) {
