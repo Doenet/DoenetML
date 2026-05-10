@@ -2,6 +2,7 @@ import React, {
     ReactElement,
     useCallback,
     useEffect,
+    useImperativeHandle,
     useMemo,
     useRef,
     useState,
@@ -13,6 +14,10 @@ import { DocViewer } from "../Viewer/DocViewer";
 import {
     DiagnosticsResponseTabContents,
     DiagnosticsResponseTabstrip,
+} from "./DiagnosticsResponseTabs";
+import type {
+    DiagnosticsTabId,
+    DoenetEditorHandle,
 } from "./DiagnosticsResponseTabs";
 import { DiagnosticRecord, nanInfinityReviver } from "@doenet/utils";
 import { nanoid } from "nanoid";
@@ -41,35 +46,7 @@ const HELP_NONE: HelpContent = { kind: "none" };
 // each render, refiring every effect/memo that depends on `initialDiagnostics`.
 const EMPTY_INITIAL_DIAGNOSTICS: DiagnosticRecord[] = [];
 
-/**
- * Combined DoenetML editor/viewer shell with diagnostics, responses, formatting, and variants.
- */
-export function EditorViewer({
-    doenetML: initialDoenetML,
-    activityId: specifiedActivityId,
-    prefixForIds = "",
-    doenetViewerUrl,
-    darkMode = "light",
-    showAnswerResponseButton = false,
-    answerResponseCounts = {},
-    width = "100%",
-    height = "500px",
-    showViewer = true,
-    viewerLocation = "right",
-    doenetmlChangeCallback,
-    immediateDoenetmlChangeCallback,
-    documentStructureCallback,
-    diagnosticsSummaryCallback,
-    id: specifiedId,
-    readOnly = false,
-    showFormatter = true,
-    showDiagnostics = true,
-    showResponses = true,
-    border = "1px solid",
-    initialDiagnostics = EMPTY_INITIAL_DIAGNOSTICS,
-    fetchExternalDoenetML,
-    docsURL = "https://docs.doenet.org",
-}: {
+type EditorViewerProps = {
     doenetML: string;
     activityId?: string;
     prefixForIds?: string;
@@ -96,7 +73,50 @@ export function EditorViewer({
     initialDiagnostics?: DiagnosticRecord[];
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
     docsURL?: string;
-}) {
+    /**
+     * If set, the diagnostics/responses panel mounts open on the given tab.
+     * Reactive changes after mount are ignored — use the imperative ref handle
+     * (`openDiagnosticsTab` / `closeDiagnosticsPanel`) for runtime control.
+     */
+    initialOpenTab?: DiagnosticsTabId;
+};
+
+/**
+ * Combined DoenetML editor/viewer shell with diagnostics, responses, formatting, and variants.
+ */
+export const EditorViewer = React.forwardRef<
+    DoenetEditorHandle,
+    EditorViewerProps
+>(function EditorViewer(
+    {
+        doenetML: initialDoenetML,
+        activityId: specifiedActivityId,
+        prefixForIds = "",
+        doenetViewerUrl,
+        darkMode = "light",
+        showAnswerResponseButton = false,
+        answerResponseCounts = {},
+        width = "100%",
+        height = "500px",
+        showViewer = true,
+        viewerLocation = "right",
+        doenetmlChangeCallback,
+        immediateDoenetmlChangeCallback,
+        documentStructureCallback,
+        diagnosticsSummaryCallback,
+        id: specifiedId,
+        readOnly = false,
+        showFormatter = true,
+        showDiagnostics = true,
+        showResponses = true,
+        border = "1px solid",
+        initialDiagnostics = EMPTY_INITIAL_DIAGNOSTICS,
+        fetchExternalDoenetML,
+        docsURL = "https://docs.doenet.org",
+        initialOpenTab,
+    },
+    ref,
+) {
     //Win, Mac or Linux
     let platform = "Linux";
     if (navigator.platform.indexOf("Win") != -1) {
@@ -144,7 +164,31 @@ export function EditorViewer({
         allPossibleVariants: ["a"],
     });
 
-    const [infoPanelIsOpen, setInfoPanelIsOpen] = useState(false);
+    // Resolve `initialOpenTab` once at mount: if the requested tab is disabled
+    // by `showDiagnostics={false}` / `showResponses={false}` (and inferring
+    // `showResponses` from `showViewer` above), warn and fall back to default.
+    const [resolvedInitialOpenTab] = useState<DiagnosticsTabId | undefined>(
+        () => {
+            if (initialOpenTab === undefined) {
+                return undefined;
+            }
+            const tabEnabled =
+                initialOpenTab === "responses"
+                    ? showResponses
+                    : showDiagnostics;
+            if (!tabEnabled) {
+                console.warn(
+                    `DoenetEditor: initialOpenTab="${initialOpenTab}" is not enabled (showDiagnostics=${showDiagnostics}, showResponses=${showResponses}); falling back to default.`,
+                );
+                return undefined;
+            }
+            return initialOpenTab;
+        },
+    );
+
+    const [infoPanelIsOpen, setInfoPanelIsOpen] = useState(
+        resolvedInitialOpenTab !== undefined,
+    );
 
     const [diagnostics, setDiagnostics] = useState<DiagnosticRecord[]>([]);
     // Track whether we've received diagnostics from the viewer at least once.
@@ -168,7 +212,9 @@ export function EditorViewer({
     const helpIsVisibleRef = useRef(false);
 
     const tabStore = useTabStore({
-        defaultSelectedId: showDiagnostics ? "errors" : "responses",
+        defaultSelectedId:
+            resolvedInitialOpenTab ??
+            (showDiagnostics ? "errors" : "responses"),
     });
     const selectedTabId = tabStore.useState("selectedId");
     const isAccessibilityReportOpen =
@@ -184,6 +230,28 @@ export function EditorViewer({
         tabStore.setSelectedId("accessibility");
         setInfoPanelIsOpen(true);
     }
+
+    useImperativeHandle(
+        ref,
+        () => ({
+            openDiagnosticsTab(tabId: DiagnosticsTabId) {
+                const tabEnabled =
+                    tabId === "responses" ? showResponses : showDiagnostics;
+                if (!tabEnabled) {
+                    console.warn(
+                        `DoenetEditor: openDiagnosticsTab("${tabId}") ignored — tab is not enabled (showDiagnostics=${showDiagnostics}, showResponses=${showResponses}).`,
+                    );
+                    return;
+                }
+                tabStore.setSelectedId(tabId);
+                setInfoPanelIsOpen(true);
+            },
+            closeDiagnosticsPanel() {
+                setInfoPanelIsOpen(false);
+            },
+        }),
+        [tabStore, showDiagnostics, showResponses],
+    );
 
     /** Receives diagnostics from DocViewer and stores them for panel/LSP sync. */
     function setDiagnosticsCallback(newDiagnostics: DiagnosticRecord[]) {
@@ -693,4 +761,4 @@ export function EditorViewer({
             border={border}
         />
     );
-}
+});

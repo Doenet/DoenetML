@@ -1,0 +1,11 @@
+{
+    "extends": "../../../tsconfig.build.json",
+    "compilerOptions": {
+        "noEmit": true,
+        "rootDir": "../",
+        "types": ["cypress", "node"]
+    },
+    "include": ["../**/*.ts", "../**/*.tsx"],
+    "exclude": ["node_modules", "./vite.config.ts"],
+    "references": []
+}

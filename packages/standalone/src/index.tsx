@@ -9,6 +9,10 @@ import {
     DoenetViewer,
     DoenetEditor,
 } from "@doenet/doenetml/doenetml-inline-worker.js";
+import type {
+    DiagnosticsTabId,
+    DoenetEditorHandle,
+} from "@doenet/doenetml/doenetml-inline-worker.js";
 import "@doenet/doenetml/style.css";
 import "./pretext-compat.css";
 import { ResizeWatcher } from "./resize-watcher";
@@ -119,13 +123,47 @@ export function renderDoenetEditorToContainer(
     // DoenetEditor doesn't accept flags, so only attribute using is addVirtualKeyboard
     const { addVirtualKeyboard } = attrs;
 
+    // Hold pending control actions until the inner DoenetEditor commits
+    // (callback ref fires). React commits asynchronously after `createRoot.render`,
+    // so a synchronous caller cannot rely on the ref being populated immediately
+    // — queue and replay on mount.
+    let mountedHandle: DoenetEditorHandle | null = null;
+    const pendingHandleActions: ((h: DoenetEditorHandle) => void)[] = [];
+    function refCallback(h: DoenetEditorHandle | null) {
+        mountedHandle = h;
+        if (h) {
+            const queued = pendingHandleActions.splice(0);
+            for (const action of queued) {
+                action(h);
+            }
+        }
+    }
+
     ReactDOM.createRoot(container).render(
         <DoenetEditor
+            ref={refCallback}
             doenetML={doenetMLSource}
             addVirtualKeyboard={addVirtualKeyboard}
             {...config}
         />,
     );
+
+    return {
+        openDiagnosticsTab(tabId: DiagnosticsTabId) {
+            if (mountedHandle) {
+                mountedHandle.openDiagnosticsTab(tabId);
+            } else {
+                pendingHandleActions.push((h) => h.openDiagnosticsTab(tabId));
+            }
+        },
+        closeDiagnosticsPanel() {
+            if (mountedHandle) {
+                mountedHandle.closeDiagnosticsPanel();
+            } else {
+                pendingHandleActions.push((h) => h.closeDiagnosticsPanel());
+            }
+        },
+    };
 }
 
 function normalizeBooleanAttr(attr: string | undefined | null) {

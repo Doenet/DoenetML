@@ -38,6 +38,26 @@ type SubmittedResponse = {
     submittedAt: string;
 };
 
+/** IDs of the tabs rendered by `DiagnosticsResponseTabstrip`. */
+export type DiagnosticsTabId =
+    | "errors"
+    | "warnings"
+    | "info"
+    | "accessibility"
+    | "responses";
+
+/** Imperative handle exposed by `<DoenetEditor>` for programmatic panel control. */
+export type DoenetEditorHandle = {
+    /**
+     * Switch the diagnostics/responses panel to `tabId` and open it.
+     * If `tabId` references a tab disabled by `showDiagnostics={false}` or
+     * `showResponses={false}`, the call is ignored with a `console.warn`.
+     */
+    openDiagnosticsTab: (tabId: DiagnosticsTabId) => void;
+    /** Close the diagnostics/responses panel. */
+    closeDiagnosticsPanel: () => void;
+};
+
 /** Human-readable label for diagnostic source line, when position exists. */
 function diagnosticLocationLabel(diagnostic: {
     position?: { start: { line: number } };

@@ -21,6 +21,8 @@ const latestDoenetmlVersion: string = version;
 
 export { mathjaxConfig } from "@doenet/utils";
 export type { DiagnosticRecord, ErrorRecord, WarningRecord };
+export type { DiagnosticsTabId, DoenetEditorHandle } from "@doenet/doenetml";
+import type { DiagnosticsTabId, DoenetEditorHandle } from "@doenet/doenetml";
 import { detectVersionFromDoenetML } from "@doenet/parser";
 
 import { ExternalVirtualKeyboard } from "@doenet/virtual-keyboard";
@@ -305,24 +307,67 @@ export function DoenetViewer({
  * DoenetML component. Instead you must use the message passing interface of `DoenetEditor` to communicate
  * with the underlying DoenetML component.
  */
-export function DoenetEditor({
-    doenetML,
-    standaloneUrl: specifiedStandaloneUrl,
-    cssUrl: specifiedCssUrl,
-    doenetmlVersion: specifiedDoenetmlVersion,
-    width = "100%",
-    height = "500px",
-    autodetectVersion = true,
-    ...doenetEditorProps
-}: DoenetEditorIframeProps) {
+type EditorIframeRemote = Comlink.Remote<{
+    renderEditorWithFunctionProps: (...args: (string | Function)[]) => void;
+    openDiagnosticsTab: (tabId: string) => void;
+    closeDiagnosticsPanel: () => void;
+}>;
+
+export const DoenetEditor = React.forwardRef<
+    DoenetEditorHandle,
+    DoenetEditorIframeProps
+>(function DoenetEditor(
+    {
+        doenetML,
+        standaloneUrl: specifiedStandaloneUrl,
+        cssUrl: specifiedCssUrl,
+        doenetmlVersion: specifiedDoenetmlVersion,
+        width = "100%",
+        height = "500px",
+        autodetectVersion = true,
+        ...doenetEditorProps
+    },
+    forwardedRef,
+) {
     const [id, _] = React.useState(() => Math.random().toString(36).slice(2));
     const ref = React.useRef<HTMLIFrameElement>(null);
+    const editorIframeRef = React.useRef<EditorIframeRemote | null>(null);
+    const pendingActions = React.useRef<
+        ((remote: EditorIframeRemote) => void)[]
+    >([]);
     const [inErrorState, setInErrorState] = React.useState<string | null>(null);
     const [ignoreDetectedVersion, setIgnoreDetectedVersion] =
         React.useState(false);
     const [initialDiagnostics, setInitialDiagnostics] = React.useState<
         DiagnosticRecord[]
     >([]);
+
+    React.useImperativeHandle(
+        forwardedRef,
+        () => ({
+            openDiagnosticsTab(tabId: DiagnosticsTabId) {
+                const action = (remote: EditorIframeRemote) => {
+                    remote.openDiagnosticsTab(tabId);
+                };
+                if (editorIframeRef.current) {
+                    action(editorIframeRef.current);
+                } else {
+                    pendingActions.current.push(action);
+                }
+            },
+            closeDiagnosticsPanel() {
+                const action = (remote: EditorIframeRemote) => {
+                    remote.closeDiagnosticsPanel();
+                };
+                if (editorIframeRef.current) {
+                    action(editorIframeRef.current);
+                } else {
+                    pendingActions.current.push(action);
+                }
+            },
+        }),
+        [],
+    );
 
     // Augment the DoenetEditor props by adding any initial diagnostics found
     const augmentedDoenetEditorProps = { ...doenetEditorProps };
@@ -383,11 +428,7 @@ export function DoenetEditor({
                 // and we can call `renderEditorWithFunctionProps`
 
                 if (ref.current) {
-                    const editorIframe: Comlink.Remote<{
-                        renderEditorWithFunctionProps: (
-                            ...args: (string | Function)[]
-                        ) => void;
-                    }> = Comlink.wrap(
+                    const editorIframe: EditorIframeRemote = Comlink.wrap(
                         Comlink.windowEndpoint(ref.current.contentWindow!),
                     );
 
@@ -407,6 +448,15 @@ export function DoenetEditor({
                     editorIframe?.renderEditorWithFunctionProps(
                         ...proxiedFunctions,
                     );
+
+                    // Make the remote available to the imperative handle and
+                    // replay any actions queued before the iframe was ready.
+                    editorIframeRef.current = editorIframe;
+                    const queued = pendingActions.current;
+                    pendingActions.current = [];
+                    for (const action of queued) {
+                        action(editorIframe);
+                    }
                 }
             }
         };
@@ -485,4 +535,4 @@ export function DoenetEditor({
             />
         </React.Fragment>
     );
-}
+});

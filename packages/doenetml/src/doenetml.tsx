@@ -20,6 +20,14 @@ import { VirtualKeyboard } from "@doenet/virtual-keyboard";
 import "@doenet/virtual-keyboard/style.css";
 import "@doenet/ui-components/style.css";
 import { EditorViewer } from "./EditorViewer/EditorViewer.js";
+import type {
+    DiagnosticsTabId,
+    DoenetEditorHandle,
+} from "./EditorViewer/DiagnosticsResponseTabs";
+export type {
+    DiagnosticsTabId,
+    DoenetEditorHandle,
+} from "./EditorViewer/DiagnosticsResponseTabs";
 import VariantSelect from "./EditorViewer/VariantSelect";
 import { useIsOnPage } from "./utils/visibility";
 import { Provider as ReduxProvider } from "react-redux";
@@ -317,38 +325,7 @@ export function DoenetViewer({
     );
 }
 
-export function DoenetEditor({
-    doenetML,
-    activityId = "a",
-    prefixForIds = "",
-    addVirtualKeyboard = true,
-    externalVirtualKeyboardProvided = false,
-    doenetViewerUrl,
-    darkMode = "light",
-    showAnswerResponseButton = false,
-    answerResponseCounts = {},
-    width,
-    height,
-    viewerLocation,
-    backgroundColor,
-    showViewer,
-    doenetmlChangeCallback,
-    immediateDoenetmlChangeCallback,
-    documentStructureCallback,
-    diagnosticsSummaryCallback,
-    id,
-    readOnly = false,
-    showFormatter = true,
-    showDiagnostics,
-    showErrorsWarnings,
-    showResponses = true,
-    border = "1px solid",
-    initialDiagnostics = EMPTY_INITIAL_DIAGNOSTICS,
-    initialErrors,
-    initialWarnings,
-    fetchExternalDoenetML,
-    docsURL,
-}: {
+type DoenetEditorProps = {
     doenetML: string;
     activityId?: string;
     prefixForIds?: string;
@@ -381,7 +358,53 @@ export function DoenetEditor({
     initialWarnings?: WarningRecord[];
     fetchExternalDoenetML?: (arg: string) => Promise<string>;
     docsURL?: string;
-}) {
+    /**
+     * If set, the diagnostics/responses panel mounts open on the given tab.
+     * Reactive changes after mount are ignored — use the imperative ref handle
+     * (`openDiagnosticsTab` / `closeDiagnosticsPanel`) for runtime control.
+     */
+    initialOpenTab?: DiagnosticsTabId;
+};
+
+export const DoenetEditor = React.forwardRef<
+    DoenetEditorHandle,
+    DoenetEditorProps
+>(function DoenetEditor(
+    {
+        doenetML,
+        activityId = "a",
+        prefixForIds = "",
+        addVirtualKeyboard = true,
+        externalVirtualKeyboardProvided = false,
+        doenetViewerUrl,
+        darkMode = "light",
+        showAnswerResponseButton = false,
+        answerResponseCounts = {},
+        width,
+        height,
+        viewerLocation,
+        backgroundColor,
+        showViewer,
+        doenetmlChangeCallback,
+        immediateDoenetmlChangeCallback,
+        documentStructureCallback,
+        diagnosticsSummaryCallback,
+        id,
+        readOnly = false,
+        showFormatter = true,
+        showDiagnostics,
+        showErrorsWarnings,
+        showResponses = true,
+        border = "1px solid",
+        initialDiagnostics = EMPTY_INITIAL_DIAGNOSTICS,
+        initialErrors,
+        initialWarnings,
+        fetchExternalDoenetML,
+        docsURL,
+        initialOpenTab,
+    },
+    ref,
+) {
     const normalizedShowDiagnostics =
         showDiagnostics ?? showErrorsWarnings ?? true;
 
@@ -434,6 +457,7 @@ export function DoenetEditor({
 
     const editor = (
         <EditorViewer
+            ref={ref}
             doenetML={doenetML}
             activityId={activityId}
             prefixForIds={prefixForIds}
@@ -458,6 +482,7 @@ export function DoenetEditor({
             initialDiagnostics={normalizedInitialDiagnostics}
             fetchExternalDoenetML={fetchExternalDoenetML}
             docsURL={docsURL}
+            initialOpenTab={initialOpenTab}
         />
     );
 
@@ -475,7 +500,7 @@ export function DoenetEditor({
             </MathJaxContext>
         </ReduxProvider>
     );
-}
+});
 
 /**
  * Component that wraps its children and provides a VirtualKeyboard

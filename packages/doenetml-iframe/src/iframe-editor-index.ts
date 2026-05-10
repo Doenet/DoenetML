@@ -4,13 +4,19 @@ declare const editorId: string;
 declare const doenetEditorProps: Record<string, any>;
 declare const doenetEditorPropsSpecified: string[];
 declare const ComlinkEditor: { expose: Function; windowEndpoint: Function };
+type EditorControlHandle = {
+    openDiagnosticsTab: (tabId: string) => void;
+    closeDiagnosticsPanel: () => void;
+};
 interface Window {
     renderDoenetEditorToContainer: (
         container: Element,
         doenetMLSource?: string,
         config?: object,
-    ) => void;
+    ) => EditorControlHandle | void;
 }
+
+let editorControlHandle: EditorControlHandle | null = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
     let pause100 = function () {
@@ -35,7 +41,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 ComlinkEditor.expose(
-    { renderEditorWithFunctionProps },
+    {
+        renderEditorWithFunctionProps,
+        openDiagnosticsTab(tabId: string) {
+            if (!editorControlHandle) {
+                console.warn(
+                    "iframe DoenetEditor: openDiagnosticsTab invoked before render",
+                );
+                return;
+            }
+            editorControlHandle.openDiagnosticsTab(tabId);
+        },
+        closeDiagnosticsPanel() {
+            if (!editorControlHandle) {
+                console.warn(
+                    "iframe DoenetEditor: closeDiagnosticsPanel invoked before render",
+                );
+                return;
+            }
+            editorControlHandle.closeDiagnosticsPanel();
+        },
+    },
     ComlinkEditor.windowEndpoint(globalThis.parent),
 );
 
@@ -64,11 +90,14 @@ function renderEditorWithFunctionProps(...args: (string | Function)[]) {
         }
     }
 
-    window.renderDoenetEditorToContainer(
+    const handle = window.renderDoenetEditorToContainer(
         document.getElementById("root")!,
         undefined,
         augmentedDoenetEditorProps,
     );
+    if (handle) {
+        editorControlHandle = handle;
+    }
 }
 
 messageParentFromEditor({ iframeReady: true });
