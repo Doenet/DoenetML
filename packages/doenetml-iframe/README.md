@@ -49,6 +49,12 @@ Valid tab IDs: `"errors" | "warnings" | "info" | "accessibility" | "responses"`.
 See the `@doenet/doenetml` README for usage patterns including the lazy-mount
 "link in a different panel" scenario.
 
+> **Note:** The handle methods are fire-and-forget across the iframe boundary.
+> Although they share the same `DoenetEditorHandle` type as the in-process
+> editor (so consumers can swap implementations), the iframe variant cannot
+> surface a completion signal or error to the caller — failures from the
+> underlying ComLink RPC are logged to the console rather than thrown.
+
 ## Development
 
 Source code in `src/iframe-viewer-index.ts` and `src/iframe-editor-index.ts`
