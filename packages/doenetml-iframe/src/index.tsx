@@ -21,8 +21,8 @@ const latestDoenetmlVersion: string = version;
 
 export { mathjaxConfig } from "@doenet/utils";
 export type { DiagnosticRecord, ErrorRecord, WarningRecord };
-export type { DiagnosticsTabId, DoenetEditorHandle } from "@doenet/doenetml";
 import type { DiagnosticsTabId, DoenetEditorHandle } from "@doenet/doenetml";
+export type { DiagnosticsTabId, DoenetEditorHandle };
 import { detectVersionFromDoenetML } from "@doenet/parser";
 
 import { ExternalVirtualKeyboard } from "@doenet/virtual-keyboard";

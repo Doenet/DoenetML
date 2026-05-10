@@ -136,6 +136,11 @@ export function renderDoenetEditorToContainer(
             for (const action of queued) {
                 action(h);
             }
+        } else {
+            // On unmount, drop any actions that were queued after the editor
+            // detached so we don't replay them against a stale handle if the
+            // editor is ever re-mounted into the same container.
+            pendingHandleActions.length = 0;
         }
     }
 
