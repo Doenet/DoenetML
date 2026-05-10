@@ -1,7 +1,12 @@
 import { defineConfig } from "cypress";
 import vitePreprocessor from "cypress-vite";
 import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
 import { version as doenetmlVersion } from "./package.json";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const codemirrorSrc = path.resolve(__dirname, "../codemirror/src/index.ts");
 
 export default defineConfig({
     component: {
@@ -11,6 +16,27 @@ export default defineConfig({
             viteConfig: {
                 define: {
                     DOENETML_VERSION: JSON.stringify(doenetmlVersion),
+                },
+                resolve: {
+                    alias: [
+                        // Resolve `@doenet/codemirror` to its source rather
+                        // than the built dist. The dist embeds the LSP IIFE
+                        // (which itself contains a data-URL-inlined WASM) as
+                        // a single string literal: when Rust builds the WASM
+                        // unoptimized (e.g. CI without `wasm-opt`), that
+                        // literal exceeds esbuild's parser limits and Vite's
+                        // `vite:client-inject` transform fails with
+                        // "Unterminated string literal". Consuming the source
+                        // routes the `?raw` LSP import through the
+                        // `raw-large-bundle` plugin below, which sidesteps
+                        // the problem regardless of WASM size. Subpath
+                        // imports (`/style.css`, `/*json`) still resolve via
+                        // the package exports against the dist.
+                        {
+                            find: /^@doenet\/codemirror$/,
+                            replacement: codemirrorSrc,
+                        },
+                    ],
                 },
                 plugins: [
                     {
@@ -43,7 +69,11 @@ export default defineConfig({
                     },
                 ],
                 optimizeDeps: {
-                    exclude: ["@doenet/lsp", "@doenet/doenetml-worker"],
+                    exclude: [
+                        "@doenet/lsp",
+                        "@doenet/doenetml-worker",
+                        "@doenet/codemirror",
+                    ],
                 },
             },
         },
