@@ -98,26 +98,52 @@ export function computeContextHelp(
     return NONE;
 }
 
-const IDENTIFIER_CHAR_REGEX = /[A-Za-z0-9_]/;
+// Mirrors the parser grammar (see `get-completion-context.ts`):
+//   SimpleIdent = [A-Za-z_][A-Za-z0-9_]*  — bare `$name`
+//   Ident       = [A-Za-z0-9_-]+          — parenthesized `$(foo-bar)`
+const SIMPLE_IDENT_CHAR_REGEX = /[A-Za-z0-9_]/;
+const MACRO_IDENT_CHAR_REGEX = /[A-Za-z0-9_-]/;
 
 /**
  * The completion context's `typedPrefix` only captures identifier chars BEFORE
  * the cursor. Walk forward from the cursor to also capture chars to the right
  * so that placing the cursor mid-word still resolves the full identifier.
+ *
+ * Pass `parenthesized: true` when the segment is inside `$(...)` so hyphens
+ * are preserved (`$(foo-bar)`). The left bound (`startOffset`) already
+ * reflects the right char class because `getCompletionContext` walked back
+ * with the macro regex for parenthesized contexts.
  */
 function fullIdentifierAtOffset(
     source: string,
     startOffset: number,
     cursorOffset: number,
+    parenthesized: boolean = false,
 ): string {
+    const charRegex = parenthesized
+        ? MACRO_IDENT_CHAR_REGEX
+        : SIMPLE_IDENT_CHAR_REGEX;
     let endOffset = cursorOffset;
     while (
         endOffset < source.length &&
-        IDENTIFIER_CHAR_REGEX.test(source.charAt(endOffset))
+        charRegex.test(source.charAt(endOffset))
     ) {
         endOffset++;
     }
     return source.slice(startOffset, endOffset);
+}
+
+/**
+ * Detect whether the segment under the cursor sits inside a `$(...)` macro,
+ * by checking whether the char immediately before `replaceFromOffset` is `(`.
+ * This is the same signal `getCompletionContext` uses to choose the macro
+ * char class for `replaceFromOffset` and `typedPrefix`.
+ */
+function isParenthesizedSegment(
+    source: string,
+    replaceFromOffset: number,
+): boolean {
+    return source.charAt(replaceFromOffset - 1) === "(";
 }
 
 function helpForElement(
@@ -174,6 +200,7 @@ function helpForRefMember(
         completer.source,
         ctx.replaceFromOffset,
         offset,
+        isParenthesizedSegment(completer.source, ctx.replaceFromOffset),
     );
     if (!memberName) return NONE;
 
@@ -206,12 +233,11 @@ function helpForRefMember(
     // Match runtime ref-resolution precedence: a named descendant of the
     // container shadows a same-named property. Try the descendant first;
     // only fall back to property lookup when no descendant matches.
-    const descendant = completer.sourceObj.getNamedDescendant(
+    const descendantInfo = completer.resolveRefMemberDescendantHelp(
         containerNode,
         memberName,
     );
-    if (descendant) {
-        const info = completer._buildRefHelpInfo(descendant);
+    if (descendantInfo) {
         const displayPath = [...ctx.pathParts.slice(0, -1), memberName].join(
             ".",
         );
@@ -219,10 +245,10 @@ function helpForRefMember(
             kind: "refName",
             refName: memberName,
             displayPath,
-            targetElementName: info.referent.name,
-            summary: info.effectiveEntry?.summary ?? null,
-            line: info.line,
-            docsSlug: info.effectiveEntry?.docsSlug ?? null,
+            targetElementName: descendantInfo.referent.name,
+            summary: descendantInfo.effectiveEntry?.summary ?? null,
+            line: descendantInfo.line,
+            docsSlug: descendantInfo.effectiveEntry?.docsSlug ?? null,
         };
     }
 
@@ -277,6 +303,7 @@ function helpForRefName(
         completer.source,
         ctx.replaceFromOffset,
         offset,
+        isParenthesizedSegment(completer.source, ctx.replaceFromOffset),
     );
     if (!refName) return NONE;
 

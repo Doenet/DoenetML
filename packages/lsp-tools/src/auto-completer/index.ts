@@ -418,6 +418,27 @@ export class AutoCompleter {
     }
 
     /**
+     * For a `$container.member` cursor whose container is already resolved,
+     * decide whether `memberName` matches a uniquely-addressable named
+     * descendant of `container`. Returns the help bundle when it does;
+     * otherwise `null` so the caller can fall back to property lookup.
+     *
+     * Mirrors runtime ref-resolution precedence (`getMacroReferentAtOffset`):
+     * a same-named descendant shadows a property on the container.
+     */
+    resolveRefMemberDescendantHelp(
+        container: DastElement,
+        memberName: string,
+    ): RefHelpInfo | null {
+        const descendant = this.sourceObj.getNamedDescendant(
+            container,
+            memberName,
+        );
+        if (!descendant) return null;
+        return this._buildRefHelpInfo(descendant);
+    }
+
+    /**
      * Build the schema/line bundle the help panel needs from an
      * already-resolved referent node. Shared between the bare-ref path
      * (`resolveRefNameForHelp`) and the member-ref path that resolves a
