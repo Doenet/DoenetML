@@ -414,7 +414,7 @@ export class AutoCompleter {
     resolveRefNameForHelp(offset: number, name: string): RefHelpInfo | null {
         const referent = this.sourceObj.getReferentAtOffset(offset, name);
         if (!referent) return null;
-        return this.buildRefHelpInfo(referent);
+        return this._buildRefHelpInfo(referent);
     }
 
     /**
@@ -423,7 +423,7 @@ export class AutoCompleter {
      * (`resolveRefNameForHelp`) and the member-ref path that resolves a
      * named descendant of a container.
      */
-    buildRefHelpInfo(referent: DastElement): RefHelpInfo {
+    _buildRefHelpInfo(referent: DastElement): RefHelpInfo {
         // Recompute the line from the byte offset against the live source so
         // the displayed number always matches CodeMirror's (1-indexed) gutter.
         // Trusting `position.start.line` directly would surface stale or

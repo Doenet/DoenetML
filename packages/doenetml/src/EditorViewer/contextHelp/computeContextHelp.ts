@@ -211,7 +211,7 @@ function helpForRefMember(
         memberName,
     );
     if (descendant) {
-        const info = completer.buildRefHelpInfo(descendant);
+        const info = completer._buildRefHelpInfo(descendant);
         const displayPath = [...ctx.pathParts.slice(0, -1), memberName].join(
             ".",
         );

@@ -34,7 +34,13 @@ export type HelpContent =
       }
     | {
           kind: "refName";
-          /** The bare identifier under the cursor (no leading `$`). */
+          /**
+           * The bare identifier under the cursor (no leading `$`).
+           *
+           * NOTE (2026-05-10): currently unused by `ContextHelpPanel` — the
+           * panel renders `displayPath` only. Tests assert this field but
+           * nothing else consumes it. Consider deleting if it remains unused.
+           */
           refName: string;
           /**
            * Full chain prefix to render with the leading `$` in the panel.
