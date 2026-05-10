@@ -482,6 +482,24 @@ export const DoenetEditor = React.forwardRef<
         };
     }, []);
 
+    const srcDoc = createHtmlForDoenetEditor(
+        id,
+        doenetML,
+        width,
+        augmentedDoenetEditorProps,
+        standaloneUrl,
+        cssUrl,
+    );
+
+    // When `srcDoc` changes, React updates the iframe attribute and the browser
+    // reloads the iframe document. The previous Comlink remote becomes bound to
+    // a torn-down `contentWindow` until the new iframe sends `iframeReady`.
+    // Clear the remote so calls during the reload window queue and replay on
+    // the next `iframeReady` instead of dispatching into a dead remote.
+    React.useEffect(() => {
+        editorIframeRef.current = null;
+    }, [srcDoc]);
+
     if (inErrorState) {
         if (foundAutoVersion) {
             setIgnoreDetectedVersion(true);
@@ -530,14 +548,7 @@ export const DoenetEditor = React.forwardRef<
             <iframe
                 title="Doenet Editor"
                 ref={ref}
-                srcDoc={createHtmlForDoenetEditor(
-                    id,
-                    doenetML,
-                    width,
-                    augmentedDoenetEditorProps,
-                    standaloneUrl,
-                    cssUrl,
-                )}
+                srcDoc={srcDoc}
                 style={{
                     width,
                     boxSizing: "content-box",
