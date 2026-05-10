@@ -854,9 +854,10 @@ function formatContents(
 
 /**
  * Build the `info` payload for an autocomplete entry. When the LSP supplied
- * markdown content, render inline backticks as `<code>` (the only markdown
- * the schema currently uses). Plaintext content is returned as-is so
- * CodeMirror renders it via its default text path.
+ * markdown content, run it through the shared inline-markdown tokenizer
+ * (`` `code` ``, `**strong**`, `*em*`) and emit the matching DOM nodes.
+ * Plaintext content is returned as-is so CodeMirror renders it via its
+ * default text path.
  */
 function renderDocumentation(
     contents: MarkupContent | MarkedString | MarkedString[],
@@ -890,6 +891,11 @@ function isMarkdown(
  * Append `text` to `parent`, mapping the shared inline-markdown tokens
  * (`` `code` ``, `**strong**`, `*em*`) to their HTML element equivalents.
  * Anything else is emitted as a literal text node.
+ *
+ * The tokenizer is intentionally non-recursive — leftmost match wins and
+ * its content is emitted verbatim into a single element. Don't add a
+ * recursive walker thinking nested constructs are missing; the schema
+ * doesn't use them.
  */
 function appendInlineMarkdown(parent: HTMLElement, text: string) {
     for (const token of parseInlineMarkdown(text)) {

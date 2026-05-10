@@ -227,6 +227,34 @@ describe("computeContextHelp — childAliases (sugar redirection)", () => {
             attributeName: "functionSymbols",
         });
     });
+
+    it("routes $ref.property lookup through the alias target", () => {
+        // `maxNumber` lives on matrixRow (math-list semantics), not on the
+        // canonical tabular `row` entry. Without alias-aware property
+        // resolution, $r.maxNumber inside <matrix> would surface no help —
+        // disagreeing with the autocomplete dropdown, which IS alias-aware.
+        const source = `<matrix>\n  <row name="r">1 2 3</row>\n</matrix>\n$r.maxNumber`;
+        const help = helpAt(source, source.length);
+        if (help.kind !== "property") {
+            expect.fail(`expected property help, got ${help.kind}`);
+            return;
+        }
+        expect(help.elementName).toBe("row"); // authored name preserved
+        expect(help.propertyName.toLowerCase()).toBe("maxnumber");
+        expect(help.description).toBeTruthy();
+        // docsSlug follows the alias redirect, like helpForElement /
+        // helpForAttribute do — so the link points at the matrixRow page.
+        expect(help.docsSlug).toBe("row_matrix");
+    });
+
+    it("returns none for a $ref.property whose name only exists on the canonical entry when alias is in scope", () => {
+        // `rowNum` is a tabular-row property. Inside <matrix>, the `<row>`
+        // is sugared to matrixRow, which has no `rowNum`. Returning none
+        // (rather than the misleading tabular description) keeps the panel
+        // honest about what's in scope.
+        const source = `<matrix>\n  <row name="r">1 2 3</row>\n</matrix>\n$r.rowNum`;
+        expect(helpAt(source, source.length).kind).toBe("none");
+    });
 });
 
 describe("computeContextHelp — docsSlug propagation", () => {

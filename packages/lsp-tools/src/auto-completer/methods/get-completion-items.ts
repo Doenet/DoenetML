@@ -348,12 +348,14 @@ function createElementAndSnippetCompletionItems(
 }
 
 /**
- * Per-label override for ref completion `detail` / `documentation`. Values may
- * be omitted to fall back to the call-site default `detail` and no
- * documentation.
+ * Per-label override for ref completion `detail` / `documentation`. `detail`
+ * is required: when a per-label override exists at all, the producer always
+ * has a referent-specific detail string to surface (e.g.
+ * `"(<math>, line 83)"`). `documentation` is optional — only present when
+ * the referent's schema entry carries a summary.
  */
 type RefCompletionLabelInfo = {
-    detail?: string;
+    detail: string;
     documentation?: string;
 };
 
@@ -666,7 +668,7 @@ export function getCompletionItems(
             const item: CompletionItem = {
                 label: `${name}[]`,
                 kind: CompletionItemKind.Reference,
-                detail: info.labelInfo.detail ?? "Indexed reference",
+                detail: info.labelInfo.detail,
                 textEdit: {
                     range: replaceRange,
                     newText: insertText,

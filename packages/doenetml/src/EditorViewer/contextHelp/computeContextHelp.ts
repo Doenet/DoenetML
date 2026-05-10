@@ -200,18 +200,30 @@ function helpForPropertyReference(
     }
     if (!containerNode) return NONE;
 
-    const elementEntry = completer.findSchemaElement(containerNode.name);
-    if (!elementEntry) return NONE;
+    const ownEntry = completer.findSchemaElement(containerNode.name);
+    if (!ownEntry) return NONE;
 
-    const prop = findSchemaProperty(elementEntry, propertyName);
+    // Mirror the alias-aware path used by `helpForElement`/`helpForAttribute`
+    // and by `$ref.member` autocomplete: a `<row>` inside `<matrix>` looks up
+    // its property docs on the `matrixRow` entry, so the panel and the
+    // dropdown agree on what each property means in context. Property names
+    // and descriptions on alias-only properties (e.g. `maxNumber`) are
+    // otherwise invisible to the help panel.
+    const parent = completer.sourceObj.getParent(containerNode);
+    const parentName = parent && "name" in parent ? parent.name : undefined;
+    const effectiveEntry =
+        completer.resolveEffectiveSchemaElement(ownEntry, parentName) ??
+        ownEntry;
+
+    const prop = findSchemaProperty(effectiveEntry, propertyName);
     if (!prop?.description) return NONE;
 
     const result: HelpContent = {
         kind: "property",
-        elementName: elementEntry.name,
+        elementName: ownEntry.name,
         propertyName: prop.name,
         description: prop.description,
-        docsSlug: elementEntry.docsSlug ?? null,
+        docsSlug: effectiveEntry.docsSlug ?? null,
         isArray: prop.isArray ?? false,
     };
     if (prop.type !== undefined) result.type = prop.type;

@@ -7,6 +7,11 @@ import "./context-help-panel.css";
  * Render schema description text, mapping the shared inline-markdown tokens
  * to React elements. The schema uses `` `code` ``, `**strong**`, and
  * `*em*`; anything else is emitted as literal text.
+ *
+ * The tokenizer is intentionally non-recursive — leftmost match wins and
+ * its content is rendered verbatim (e.g. `*a `b` c*` → one `<em>a `b` c</em>`,
+ * NOT `<em>a <code>b</code> c</em>`). Don't add a recursive renderer
+ * thinking it's a bug; the schema doesn't use nested inline formatting.
  */
 function renderInlineMarkdown(text: string): React.ReactNode[] {
     return parseInlineMarkdown(text).map((token, i) => {

@@ -254,6 +254,12 @@ export class AutoCompleter {
      * works automatically — no matter whether the schema is set via the
      * constructor or via a later `setSchema()` call. Pass `{}` explicitly to
      * opt out.
+     *
+     * Note: the auto-load is keyed on **reference identity** to
+     * `doenetSchema.elements`, not on deep equality. Callers that pass a copy
+     * — e.g. `setSchema([...doenetSchema.elements])` to clone before
+     * mutating — silently lose alias-awareness. Pass
+     * `doenetSchema.aliasedElements` explicitly in that case.
      */
     setSchema(
         schema: ElementSchema[],
