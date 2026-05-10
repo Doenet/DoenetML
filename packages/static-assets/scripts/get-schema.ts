@@ -490,6 +490,20 @@ export function getSchema() {
     > {
         const attributes: SchemaAttribute[] = [];
         const attrObj = cClass.createAttributesObject();
+        // Collect state-variable names produced by attributes that are
+        // themselves excluded from the schema. Their companion properties
+        // should be excluded too — otherwise `<booleanInput>`'s already
+        // hidden `collaborateGroups` attribute leaks back into the schema
+        // as a property. Tracked in #1089; the broader proposal is to also
+        // honor an explicit `excludeFromSchema` flag on state-variable
+        // definitions for properties not derived from attributes.
+        const excludedStateVariableNames = new Set<string>();
+        for (const attrName in attrObj) {
+            const attrDef = attrObj[attrName];
+            if (attrDef.excludeFromSchema && attrDef.createStateVariable) {
+                excludedStateVariableNames.add(attrDef.createStateVariable);
+            }
+        }
         for (const attrName in attrObj) {
             const attrDef = attrObj[attrName];
             if (attrDef.excludeFromSchema) continue;
@@ -530,7 +544,10 @@ export function getSchema() {
             attributes.push(attrSpec);
         }
 
-        const properties = buildPropertiesForType(type);
+        const properties = buildPropertiesForType(
+            type,
+            excludedStateVariableNames,
+        );
 
         const out: Pick<
             SchemaElement,
@@ -550,7 +567,10 @@ export function getSchema() {
         return out;
     }
 
-    function buildPropertiesForType(type: string): PropertyDescription[] {
+    function buildPropertiesForType(
+        type: string,
+        excludedStateVariableNames: ReadonlySet<string> = new Set(),
+    ): PropertyDescription[] {
         const info = componentInfoObjects.publicStateVariableInfo[type];
         if (!info) return [];
         const {
@@ -572,6 +592,7 @@ export function getSchema() {
         const properties: PropertyDescription[] = [];
 
         for (const varName in publicStateVariableDescriptions) {
+            if (excludedStateVariableNames.has(varName)) continue;
             const description = publicStateVariableDescriptions[varName];
             properties.push(
                 ...propFromDescription({
@@ -590,6 +611,10 @@ export function getSchema() {
         for (const aliasName in aliases) {
             const aliasInfo = aliases[aliasName];
             const aliasTargetName = aliasInfo.target;
+            // Skip aliases that point at an excluded state variable; they
+            // would otherwise act as a backdoor for the same excluded property.
+            if (excludedStateVariableNames.has(aliasTargetName)) continue;
+            if (excludedStateVariableNames.has(aliasName)) continue;
             const aliasTarget =
                 publicStateVariableDescriptions[aliasTargetName];
             if (aliasTarget) {
