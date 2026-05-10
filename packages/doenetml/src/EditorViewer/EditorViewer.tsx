@@ -166,26 +166,39 @@ export const EditorViewer = React.forwardRef<
 
     // Resolve `initialOpenTab` once at mount: if the requested tab is disabled
     // by `showDiagnostics={false}` / `showResponses={false}` (with
-    // `showResponses` forced to `false` by `showViewer={false}` above), warn
-    // and fall back to default.
-    const [resolvedInitialOpenTab] = useState<DiagnosticsTabId | undefined>(
-        () => {
-            if (initialOpenTab === undefined) {
-                return undefined;
-            }
-            const tabEnabled =
-                initialOpenTab === "responses"
-                    ? showResponses
-                    : showDiagnostics;
-            if (!tabEnabled) {
-                console.warn(
-                    `DoenetEditor: initialOpenTab="${initialOpenTab}" is not enabled (showDiagnostics=${showDiagnostics}, showResponses=${showResponses}); falling back to default.`,
-                );
-                return undefined;
-            }
-            return initialOpenTab;
-        },
-    );
+    // `showResponses` forced to `false` by `showViewer={false}` above), capture
+    // a warning message and fall back to default. The warning is emitted from
+    // an effect below so the initializer stays pure (StrictMode double-invokes
+    // useState initializers in dev).
+    const [{ resolvedInitialOpenTab, initialOpenTabWarning }] = useState<{
+        resolvedInitialOpenTab: DiagnosticsTabId | undefined;
+        initialOpenTabWarning: string | null;
+    }>(() => {
+        if (initialOpenTab === undefined) {
+            return {
+                resolvedInitialOpenTab: undefined,
+                initialOpenTabWarning: null,
+            };
+        }
+        const tabEnabled =
+            initialOpenTab === "responses" ? showResponses : showDiagnostics;
+        if (!tabEnabled) {
+            return {
+                resolvedInitialOpenTab: undefined,
+                initialOpenTabWarning: `DoenetEditor: initialOpenTab="${initialOpenTab}" is not enabled (showDiagnostics=${showDiagnostics}, showResponses=${showResponses}); falling back to default.`,
+            };
+        }
+        return {
+            resolvedInitialOpenTab: initialOpenTab,
+            initialOpenTabWarning: null,
+        };
+    });
+
+    useEffect(() => {
+        if (initialOpenTabWarning) {
+            console.warn(initialOpenTabWarning);
+        }
+    }, []);
 
     const [infoPanelIsOpen, setInfoPanelIsOpen] = useState(
         resolvedInitialOpenTab !== undefined,
