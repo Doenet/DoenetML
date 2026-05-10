@@ -163,6 +163,7 @@ jobs:
                         e2e-group4,
                         e2e-group5,
                         codemirror-cypress,
+                        doenetml-cypress,
                     ]
         steps:
             - uses: actions/checkout@v3
@@ -190,17 +191,17 @@ jobs:
                   WIREIT_CACHE: "local"
 
             - name: Start preview server
-              if: matrix.test-group != 'codemirror-cypress'
+              if: matrix.test-group != 'codemirror-cypress' && matrix.test-group != 'doenetml-cypress'
               run: |
                   npm run preview --workspace packages/test-cypress > /tmp/preview-server.log 2>&1 &
                   echo $! > /tmp/preview-server.pid
 
             - name: Wait for server
-              if: matrix.test-group != 'codemirror-cypress'
+              if: matrix.test-group != 'codemirror-cypress' && matrix.test-group != 'doenetml-cypress'
               run: npx wait-on http://localhost:4173 --timeout 60000
 
             - name: Check server logs if wait-on fails
-              if: failure() && matrix.test-group != 'codemirror-cypress'
+              if: failure() && matrix.test-group != 'codemirror-cypress' && matrix.test-group != 'doenetml-cypress'
               run: |
                   echo "=== Preview Server Log ===" && cat /tmp/preview-server.log || true
                   echo "=== Server processes ===" && ps aux | grep "node\|npm" || true
