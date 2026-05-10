@@ -19,7 +19,7 @@ export default class Interval extends MathComponent {
 
         stateVariableDefinitions.createIntervals = {
             description:
-                "Whether this math component renders intervals as intervals (always true for <interval>).",
+                "Whether this math component renders intervals as intervals (always true for `<interval>`).",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",

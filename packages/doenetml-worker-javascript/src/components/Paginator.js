@@ -275,7 +275,7 @@ export class PaginatorControls extends BlockComponent {
         attributes.paginator = {
             createReferences: true,
             description:
-                "Reference to the <paginator> these controls operate on.",
+                "Reference to the `<paginator>` these controls operate on.",
         };
 
         return attributes;

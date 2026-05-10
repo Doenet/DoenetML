@@ -30,18 +30,10 @@ import {
     toAdditionalDiagnosticsForLsp,
 } from "./diagnostics";
 import { AutoCompleter } from "@doenet/lsp-tools";
-import { doenetSchema } from "@doenet/static-assets/schema";
-import {
-    buildSchemaElementsByName,
-    computeContextHelp,
-} from "./contextHelp/computeContextHelp";
+import { computeContextHelp } from "./contextHelp/computeContextHelp";
 import type { HelpContent } from "./contextHelp/types";
 import { EditorSelection } from "@codemirror/state";
 
-const SCHEMA_MAP = buildSchemaElementsByName(
-    doenetSchema.elements,
-    doenetSchema.aliasedElements,
-);
 const HELP_NONE: HelpContent = { kind: "none" };
 
 // Module-level constant so the default for `initialDiagnostics` is referentially
@@ -405,9 +397,7 @@ export function EditorViewer({
         // visible effect below will compute on demand for the current cursor.
         if (!helpIsVisibleRef.current) return;
         cursorDebounceTimer.current = window.setTimeout(() => {
-            setHelpContent(
-                computeContextHelp(completerRef.current, offset, SCHEMA_MAP),
-            );
+            setHelpContent(computeContextHelp(completerRef.current, offset));
         }, 150);
     }, []);
 
@@ -429,9 +419,7 @@ export function EditorViewer({
         }
         const offset = lastCursorOffsetRef.current;
         if (offset == null) return;
-        setHelpContent(
-            computeContextHelp(completerRef.current, offset, SCHEMA_MAP),
-        );
+        setHelpContent(computeContextHelp(completerRef.current, offset));
     }, [infoPanelIsOpen, selectedTabId]);
 
     useEffect(() => {

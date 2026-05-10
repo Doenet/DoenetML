@@ -43,7 +43,7 @@ export default class Input extends InlineComponent {
         attributes.forAnswer = {
             createReferences: true,
             description:
-                "References to <answer> elements that this input should submit to.",
+                "References to `<answer>` elements that this input should submit to.",
         };
 
         Object.assign(attributes, returnLabelAttributes());

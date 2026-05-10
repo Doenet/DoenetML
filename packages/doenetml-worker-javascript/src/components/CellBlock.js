@@ -6,7 +6,7 @@ export default class CellBlock extends BaseComponent {
 
     static componentDocs = {
         summary:
-            "A block of cells, rows, and columns inside a <table> with a starting row/column.",
+            "A block of cells, rows, and columns inside a `<table>` with a starting row/column.",
     };
 
     static createAttributesObject() {

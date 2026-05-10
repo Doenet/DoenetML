@@ -1149,6 +1149,257 @@ describe("AutoCompleter", () => {
         });
     });
 
+    describe("Schema-derived documentation on completions", () => {
+        const docSchema = {
+            elements: [
+                {
+                    name: "doc",
+                    summary: "Top-level document.",
+                    children: ["matrix", "math", "select"],
+                    attributes: [],
+                    top: true,
+                    acceptsStringChildren: true,
+                },
+                {
+                    name: "math",
+                    summary: "A math expression.",
+                    children: [],
+                    attributes: [
+                        { name: "simplify", description: "Simplify form." },
+                        { name: "noDescAttr" },
+                    ],
+                    properties: [
+                        { name: "value", description: "Math value." },
+                        { name: "noDescProp" },
+                    ],
+                    top: true,
+                    acceptsStringChildren: true,
+                },
+                {
+                    name: "matrix",
+                    summary: "A matrix container.",
+                    children: ["row"],
+                    attributes: [],
+                    top: false,
+                    acceptsStringChildren: false,
+                    childContextHelp: { row: "matrixRow" },
+                },
+                {
+                    name: "row",
+                    summary: "A generic row element.",
+                    children: [],
+                    attributes: [
+                        { name: "color", description: "Generic row color." },
+                    ],
+                    top: false,
+                    acceptsStringChildren: true,
+                },
+                {
+                    name: "select",
+                    summary: "A composite that picks one of several options.",
+                    children: [],
+                    attributes: [],
+                    properties: [],
+                    top: true,
+                    acceptsStringChildren: true,
+                    takesIndex: true,
+                },
+            ],
+            aliasedElements: {
+                matrixRow: {
+                    name: "matrixRow",
+                    summary: "A row inside a matrix.",
+                    attributes: [
+                        {
+                            name: "color",
+                            description: "Color of the matrix row.",
+                        },
+                    ],
+                },
+            },
+        };
+
+        function createDocAutoCompleter(source: string) {
+            const sourceObj = new DoenetSourceObject();
+            sourceObj.setSource(source + " ");
+            const ac = new AutoCompleter(undefined, docSchema.elements, {
+                sourceObj,
+                rustResolverAdapter: {
+                    isNameAddressableFromOffset: () => true,
+                    resolveRefMemberContainerAtOffset: (
+                        offset: number,
+                        pathParts: string[],
+                    ) => {
+                        const lookupParts = pathParts.slice(0, -1);
+                        if (lookupParts.length === 0) {
+                            return {
+                                node: null,
+                                unresolvedPathParts: [],
+                            };
+                        }
+                        const referent = sourceObj.getReferentAtOffset(
+                            offset,
+                            lookupParts[0],
+                        );
+                        if (!referent) {
+                            return {
+                                node: null,
+                                unresolvedPathParts: lookupParts,
+                            };
+                        }
+                        return {
+                            node: referent,
+                            unresolvedPathParts: [],
+                            visibleDescendantNames:
+                                sourceObj.getUniqueDescendantNamesForNode(
+                                    referent,
+                                ),
+                        };
+                    },
+                } as unknown as RustResolverAdapter,
+            });
+            // Also expose the aliased entries for alias-aware help lookup.
+            ac.setSchema(docSchema.elements, docSchema.aliasedElements);
+            return ac;
+        }
+
+        it("Includes summary as documentation on top-level element completions", () => {
+            const source = `<`;
+            const autoCompleter = new AutoCompleter(source, docSchema.elements);
+            const items = autoCompleter.getCompletionItems(source.length);
+            const doc = items.find((i) => i.label === "doc");
+            expect(doc?.documentation).toEqual({
+                kind: "markdown",
+                value: "Top-level document.",
+            });
+        });
+
+        it("Includes summary as documentation on child-element completions and applies childContextHelp aliases", () => {
+            const source = `<doc><matrix><`;
+            const autoCompleter = createDocAutoCompleter(source);
+            const items = autoCompleter.getCompletionItems(source.length);
+            const row = items.find((i) => i.label === "row");
+            // Inside <matrix>, the `row` child should pull its summary from
+            // the `matrixRow` alias, not the generic `row` entry.
+            expect(row?.documentation).toEqual({
+                kind: "markdown",
+                value: "A row inside a matrix.",
+            });
+        });
+
+        it("Includes attribute description as documentation, alias-aware for child elements", () => {
+            // Plain <math> attribute: own description.
+            {
+                const source = `<doc><math `;
+                const autoCompleter = createDocAutoCompleter(source);
+                const items = autoCompleter.getCompletionItems(source.length);
+                const simplify = items.find((i) => i.label === "simplify");
+                expect(simplify?.documentation).toEqual({
+                    kind: "markdown",
+                    value: "Simplify form.",
+                });
+                const noDesc = items.find((i) => i.label === "noDescAttr");
+                expect(noDesc?.documentation).toBeUndefined();
+            }
+            // <row> inside <matrix>: alias attribute description wins.
+            {
+                const source = `<doc><matrix><row `;
+                const autoCompleter = createDocAutoCompleter(source);
+                const items = autoCompleter.getCompletionItems(source.length);
+                const color = items.find((i) => i.label === "color");
+                expect(color?.documentation).toEqual({
+                    kind: "markdown",
+                    value: "Color of the matrix row.",
+                });
+            }
+        });
+
+        it("Includes property description as documentation on $ref.member completions", () => {
+            const source = `<doc><math name="m">x</math></doc>\n$m.`;
+            const autoCompleter = createDocAutoCompleter(source);
+            const items = autoCompleter.getCompletionItems(source.length);
+            const value = items.find((i) => i.label === "value");
+            expect(value?.documentation).toEqual({
+                kind: "markdown",
+                value: "Math value.",
+            });
+            const noDescProp = items.find((i) => i.label === "noDescProp");
+            expect(noDescProp?.documentation).toBeUndefined();
+        });
+
+        it("Sets detail to '(<type>, line N)' and documentation to summary on $name completions", () => {
+            // `<math>` opens on line 2 (line 1 is `<doc>`). The displayed line
+            // must be 1-indexed so it matches CodeMirror's gutter.
+            const source = `<doc>\n  <math name="m">x</math>\n</doc>\n$m`;
+            const autoCompleter = createDocAutoCompleter(source);
+            const items = autoCompleter.getCompletionItems(source.length);
+            const m = items.find((i) => i.label === "m");
+            expect(m).toBeDefined();
+            expect(m?.detail).toBe("(<math>, line 2)");
+            expect(m?.documentation).toEqual({
+                kind: "markdown",
+                value: "A math expression.",
+            });
+        });
+
+        it("Reuses detail/documentation on the $name[] takesIndex variant", () => {
+            const source = `<doc><select name="s" /></doc>\n$s`;
+            const autoCompleter = createDocAutoCompleter(source);
+            const items = autoCompleter.getCompletionItems(source.length);
+            const indexed = items.find((i) => i.label === "s[]");
+            expect(indexed).toBeDefined();
+            // `<select>` is on the first (and only-content) line of the source.
+            expect(indexed?.detail).toBe("(<select>, line 1)");
+            expect(indexed?.documentation).toEqual({
+                kind: "markdown",
+                value: "A composite that picks one of several options.",
+            });
+        });
+
+        it("Auto-loads bundled aliased entries when setSchema is called later with the default schema", () => {
+            // Regression for the constructor-vs-setSchema gap: a consumer
+            // that re-installs the bundled schema via `setSchema()` must
+            // still get alias-aware help without having to pass
+            // `doenetSchema.aliasedElements` explicitly. (Reported by the
+            // PR #1088 Copilot review.)
+            const autoCompleter = new AutoCompleter();
+            // Wipe and re-install the default schema with no alias map.
+            autoCompleter.setSchema(doenetSchema.elements);
+            const matrixRow =
+                autoCompleter.findAliasedSchemaElement("matrixRow");
+            expect(matrixRow?.summary).toBeTruthy();
+            // And alias-aware resolution should still walk the redirect:
+            // `<row>` inside `<matrix>` resolves to `matrixRow`'s entry.
+            const rowEntry = autoCompleter.findSchemaElement("row");
+            const effective = autoCompleter.resolveEffectiveSchemaElement(
+                rowEntry,
+                "matrix",
+            );
+            expect(effective?.name).toBe("matrixRow");
+        });
+
+        it("Falls back to no aliases when setSchema receives a custom schema", () => {
+            // The auto-load is keyed on reference identity to `doenetSchema.
+            // elements`. A custom schema must NOT silently inherit doenet's
+            // alias map (which would graft unrelated docs onto the user's
+            // own elements).
+            const autoCompleter = new AutoCompleter();
+            autoCompleter.setSchema([
+                {
+                    name: "foo",
+                    summary: "A foo.",
+                    children: [],
+                    attributes: [],
+                    top: true,
+                    acceptsStringChildren: true,
+                },
+            ]);
+            expect(
+                autoCompleter.findAliasedSchemaElement("matrixRow"),
+            ).toBeUndefined();
+        });
+    });
+
     describe("Snippet completions", () => {
         it("Includes snippets after top-level `<`", () => {
             let source: string;

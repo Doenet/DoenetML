@@ -4865,7 +4865,7 @@
             "acceptsStringChildren": true,
             "takesIndex": false,
             "docsSlug": null,
-            "summary": "An individual message displayed within a <cascade>."
+            "summary": "An individual message displayed within a `<cascade>`."
         },
         {
             "name": "else",
@@ -5250,7 +5250,7 @@
             "acceptsStringChildren": true,
             "takesIndex": false,
             "docsSlug": "else",
-            "summary": "Default branch within a <conditionalContent>; matched when no <case> condition is true."
+            "summary": "Default branch within a `<conditionalContent>`; matched when no `<case>` condition is true."
         },
         {
             "name": "m",
@@ -43948,7 +43948,7 @@
             "acceptsStringChildren": true,
             "takesIndex": false,
             "docsSlug": null,
-            "summary": "A numbered task (alias for <part>)."
+            "summary": "A numbered task (alias for `<part>`)."
         },
         {
             "name": "proof",
@@ -45913,7 +45913,7 @@
             "acceptsStringChildren": true,
             "takesIndex": false,
             "docsSlug": null,
-            "summary": "A section grouping exercises (alias for <problems>)."
+            "summary": "A section grouping exercises (alias for `<problems>`)."
         },
         {
             "name": "ol",
@@ -46744,7 +46744,7 @@
             "acceptsStringChildren": true,
             "takesIndex": false,
             "docsSlug": "li",
-            "summary": "A list item within <ol>/<ul>."
+            "summary": "A list item within `<ol>` / `<ul>`."
         },
         {
             "name": "odeSystem",
@@ -52584,7 +52584,7 @@
             "acceptsStringChildren": false,
             "takesIndex": false,
             "docsSlug": "sbsGroup",
-            "summary": "A group of <sideBySide> components that share alignment and spacing."
+            "summary": "A group of `<sideBySide>` components that share alignment and spacing."
         },
         {
             "name": "stack",
@@ -55783,7 +55783,7 @@
                 },
                 {
                     "name": "paginator",
-                    "description": "Reference to the <paginator> these controls operate on."
+                    "description": "Reference to the `<paginator>` these controls operate on."
                 }
             ],
             "properties": [
@@ -55971,7 +55971,7 @@
                 },
                 {
                     "name": "forAnswer",
-                    "description": "References to <answer> elements that this input should submit to."
+                    "description": "References to `<answer>` elements that this input should submit to."
                 },
                 {
                     "name": "labelIsName",
@@ -62469,7 +62469,7 @@
                     "name": "createVectors",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether tuple-like expressions render as vectors (always true for <coords>)."
+                    "description": "Whether tuple-like expressions render as vectors (always true for `<coords>`)."
                 },
                 {
                     "name": "x",
@@ -69136,7 +69136,7 @@
             "acceptsStringChildren": true,
             "takesIndex": false,
             "docsSlug": "controlVectors",
-            "summary": "Bezier control vectors at a polyline/curve vertex (used inside <bezierControls>)."
+            "summary": "Bezier control vectors at a polyline/curve vertex (used inside `<bezierControls>`)."
         },
         {
             "name": "vector",
@@ -71689,7 +71689,7 @@
             "acceptsStringChildren": true,
             "takesIndex": false,
             "docsSlug": "award",
-            "summary": "An award rule within an <answer> that grants credit when matched."
+            "summary": "An award rule within an `<answer>` that grants credit when matched."
         },
         {
             "name": "when",
@@ -72323,7 +72323,7 @@
                 },
                 {
                     "name": "forAnswer",
-                    "description": "References to <answer> elements that this input should submit to."
+                    "description": "References to `<answer>` elements that this input should submit to."
                 },
                 {
                     "name": "labelIsName",
@@ -72981,7 +72981,7 @@
                 },
                 {
                     "name": "forAnswer",
-                    "description": "References to <answer> elements that this input should submit to."
+                    "description": "References to `<answer>` elements that this input should submit to."
                 },
                 {
                     "name": "labelIsName",
@@ -73476,7 +73476,7 @@
                 },
                 {
                     "name": "forAnswer",
-                    "description": "References to <answer> elements that this input should submit to."
+                    "description": "References to `<answer>` elements that this input should submit to."
                 },
                 {
                     "name": "labelIsName",
@@ -73792,7 +73792,7 @@
                 },
                 {
                     "name": "forAnswer",
-                    "description": "References to <answer> elements that this input should submit to."
+                    "description": "References to `<answer>` elements that this input should submit to."
                 },
                 {
                     "name": "labelIsName",
@@ -74581,7 +74581,7 @@
             "acceptsStringChildren": true,
             "takesIndex": false,
             "docsSlug": "choice",
-            "summary": "A single choice within a <choiceInput>."
+            "summary": "A single choice within a `<choiceInput>`."
         },
         {
             "name": "number",
@@ -76178,7 +76178,7 @@
                     "name": "hasAuthorAnnotations",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the graph contains any author-provided <annotations> child."
+                    "description": "Whether the graph contains any author-provided `<annotations>` child."
                 },
                 {
                     "name": "prefigureXML",
@@ -78764,7 +78764,7 @@
                     "name": "createIntervals",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether this math component renders intervals as intervals (always true for <interval>)."
+                    "description": "Whether this math component renders intervals as intervals (always true for `<interval>`)."
                 },
                 {
                     "name": "x",
@@ -81325,7 +81325,7 @@
             "acceptsStringChildren": false,
             "takesIndex": false,
             "docsSlug": null,
-            "summary": "A block of cells, rows, and columns inside a <table> with a starting row/column."
+            "summary": "A block of cells, rows, and columns inside a `<table>` with a starting row/column."
         },
         {
             "name": "tabular",
@@ -85727,7 +85727,7 @@
             "acceptsStringChildren": true,
             "takesIndex": false,
             "docsSlug": "conditionalContent",
-            "summary": "Renders content conditionally based on its <case> children."
+            "summary": "Renders content conditionally based on its `<case>` children."
         },
         {
             "name": "asList",
@@ -93033,7 +93033,7 @@
             "acceptsStringChildren": true,
             "takesIndex": false,
             "docsSlug": "case",
-            "summary": "A single conditional branch within <conditionalContent>."
+            "summary": "A single conditional branch within `<conditionalContent>`."
         },
         {
             "name": "lorem",
@@ -94990,7 +94990,7 @@
             "acceptsStringChildren": true,
             "takesIndex": false,
             "docsSlug": "moduleAttributes",
-            "summary": "Declares attributes accepted by an enclosing <module>."
+            "summary": "Declares attributes accepted by an enclosing `<module>`."
         },
         {
             "name": "setup",

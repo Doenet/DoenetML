@@ -64,6 +64,7 @@ import {
     type WordToken,
 } from "./reopen-latch";
 import { renderDiagnosticMarkdownHtml } from "@doenet/utils/diagnostics/renderDiagnosticMarkdownHtml";
+import { parseInlineMarkdown } from "@doenet/utils/markdown/parseInlineMarkdown";
 import type {
     MarkupContent,
     MarkedString,
@@ -372,7 +373,7 @@ export class LSPPlugin implements PluginValue {
                     filterText: filterText ?? label,
                 };
                 if (documentation) {
-                    completion.info = formatContents(documentation);
+                    completion.info = renderDocumentation(documentation);
                 }
                 // Store range info if present for custom apply logic later
                 if (textEdit && "range" in textEdit) {
@@ -848,5 +849,62 @@ function formatContents(
         return contents;
     } else {
         return contents.value;
+    }
+}
+
+/**
+ * Build the `info` payload for an autocomplete entry. When the LSP supplied
+ * markdown content, run it through the shared inline-markdown tokenizer
+ * (`` `code` ``, `**strong**`, `*em*`) and emit the matching DOM nodes.
+ * Plaintext content is returned as-is so CodeMirror renders it via its
+ * default text path.
+ */
+function renderDocumentation(
+    contents: MarkupContent | MarkedString | MarkedString[],
+): string | (() => Node) {
+    const text = formatContents(contents);
+    if (!isMarkdown(contents)) {
+        return text;
+    }
+    return () => {
+        const div = document.createElement("div");
+        appendInlineMarkdown(div, text);
+        return div;
+    };
+}
+
+function isMarkdown(
+    contents: MarkupContent | MarkedString | MarkedString[],
+): boolean {
+    if (Array.isArray(contents)) {
+        return contents.some((c) => isMarkdown(c));
+    }
+    if (typeof contents === "string") {
+        return false;
+    }
+    // `MarkupContent` always has `kind`; `MarkedString`'s object form has
+    // `language`, not `kind`. So this discriminates correctly.
+    return "kind" in contents && contents.kind === "markdown";
+}
+
+/**
+ * Append `text` to `parent`, mapping the shared inline-markdown tokens
+ * (`` `code` ``, `**strong**`, `*em*`) to their HTML element equivalents.
+ * Anything else is emitted as a literal text node.
+ *
+ * The tokenizer is intentionally non-recursive — leftmost match wins and
+ * its content is emitted verbatim into a single element. Don't add a
+ * recursive walker thinking nested constructs are missing; the schema
+ * doesn't use them.
+ */
+function appendInlineMarkdown(parent: HTMLElement, text: string) {
+    for (const token of parseInlineMarkdown(text)) {
+        if (token.kind === "text") {
+            parent.appendChild(document.createTextNode(token.text));
+        } else {
+            const el = document.createElement(token.kind);
+            el.textContent = token.text;
+            parent.appendChild(el);
+        }
     }
 }

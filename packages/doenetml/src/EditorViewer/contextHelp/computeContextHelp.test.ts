@@ -1,22 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { AutoCompleter } from "@doenet/lsp-tools";
-import { doenetSchema } from "@doenet/static-assets/schema";
-import {
-    buildSchemaElementsByName,
-    computeContextHelp,
-} from "./computeContextHelp";
+import { computeContextHelp } from "./computeContextHelp";
 import type { HelpContent } from "./types";
 
-// Use the real, generated schema rather than hand-rolled fixtures so that
-// alias resolution and other cross-element behaviors are exercised against
-// the same data the editor consumes at runtime.
-const SCHEMA_MAP = buildSchemaElementsByName(
-    doenetSchema.elements,
-    doenetSchema.aliasedElements,
-);
-
+// Default `new AutoCompleter(source)` already binds the bundled doenetSchema
+// + aliasedElements, so alias resolution and other cross-element behaviours
+// are exercised against the same data the editor consumes at runtime.
 function helpAt(source: string, offset: number): HelpContent {
-    return computeContextHelp(new AutoCompleter(source), offset, SCHEMA_MAP);
+    return computeContextHelp(new AutoCompleter(source), offset);
 }
 
 describe("computeContextHelp — element help", () => {
@@ -235,6 +226,34 @@ describe("computeContextHelp — childAliases (sugar redirection)", () => {
             kind: "attribute",
             attributeName: "functionSymbols",
         });
+    });
+
+    it("routes $ref.property lookup through the alias target", () => {
+        // `maxNumber` lives on matrixRow (math-list semantics), not on the
+        // canonical tabular `row` entry. Without alias-aware property
+        // resolution, $r.maxNumber inside <matrix> would surface no help —
+        // disagreeing with the autocomplete dropdown, which IS alias-aware.
+        const source = `<matrix>\n  <row name="r">1 2 3</row>\n</matrix>\n$r.maxNumber`;
+        const help = helpAt(source, source.length);
+        if (help.kind !== "property") {
+            expect.fail(`expected property help, got ${help.kind}`);
+            return;
+        }
+        expect(help.elementName).toBe("row"); // authored name preserved
+        expect(help.propertyName.toLowerCase()).toBe("maxnumber");
+        expect(help.description).toBeTruthy();
+        // docsSlug follows the alias redirect, like helpForElement /
+        // helpForAttribute do — so the link points at the matrixRow page.
+        expect(help.docsSlug).toBe("row_matrix");
+    });
+
+    it("returns none for a $ref.property whose name only exists on the canonical entry when alias is in scope", () => {
+        // `rowNum` is a tabular-row property. Inside <matrix>, the `<row>`
+        // is sugared to matrixRow, which has no `rowNum`. Returning none
+        // (rather than the misleading tabular description) keeps the panel
+        // honest about what's in scope.
+        const source = `<matrix>\n  <row name="r">1 2 3</row>\n</matrix>\n$r.rowNum`;
+        expect(helpAt(source, source.length).kind).toBe("none");
     });
 });
 
