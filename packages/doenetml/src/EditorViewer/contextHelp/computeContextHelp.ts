@@ -146,6 +146,22 @@ function isParenthesizedSegment(
     return source.charAt(replaceFromOffset - 1) === "(";
 }
 
+const SIMPLE_IDENT_REGEX = /^[A-Za-z_][A-Za-z0-9_]*$/;
+
+/**
+ * Wrap a path segment in parens if it isn't a SimpleIdent (e.g., contains
+ * hyphens), mirroring the grammar that requires `$(foo-bar)` over `$foo-bar`.
+ * Used to format `displayPath` for the help-panel sentence so it renders the
+ * same syntax the author would type.
+ */
+function formatPathSegment(segment: string): string {
+    return SIMPLE_IDENT_REGEX.test(segment) ? segment : `(${segment})`;
+}
+
+function formatDisplayPath(segments: string[]): string {
+    return segments.map(formatPathSegment).join(".");
+}
+
 function helpForElement(
     ownEntry: ElementSchema | undefined,
     effectiveEntry: SchemaEntryForHelp | undefined,
@@ -238,9 +254,10 @@ function helpForRefMember(
         memberName,
     );
     if (descendantInfo) {
-        const displayPath = [...ctx.pathParts.slice(0, -1), memberName].join(
-            ".",
-        );
+        const displayPath = formatDisplayPath([
+            ...ctx.pathParts.slice(0, -1),
+            memberName,
+        ]);
         return {
             kind: "refName",
             refName: memberName,
@@ -314,7 +331,7 @@ function helpForRefName(
     return {
         kind: "refName",
         refName,
-        displayPath: refName,
+        displayPath: formatPathSegment(refName),
         targetElementName: referent.name,
         summary: effectiveEntry?.summary ?? null,
         line,

@@ -313,14 +313,16 @@ describe("computeContextHelp — hyphenated names in $(...) macros", () => {
         // The rightward identifier scan must use the macro char class
         // (`[A-Za-z0-9_-]`) when the cursor sits inside `$(...)`, so a cursor
         // between the `o` of "foo" and the `-` of "-bar" still captures the
-        // full "foo-bar" rather than truncating at `-`.
+        // full "foo-bar" rather than truncating at `-`. The displayed path
+        // wraps the hyphenated segment in parens so the sentence reads
+        // `$(foo-bar) references <math> ...`.
         const source = `<math name="foo-bar">x</math>\n$(foo-bar)`;
         const offset = source.indexOf("foo-bar)") + 3; // between 'foo' and '-bar'
         const help = helpAt(source, offset);
         expect(help).toMatchObject({
             kind: "refName",
             refName: "foo-bar",
-            displayPath: "foo-bar",
+            displayPath: "(foo-bar)",
             targetElementName: "math",
         });
     });
@@ -328,13 +330,14 @@ describe("computeContextHelp — hyphenated names in $(...) macros", () => {
     it("resolves a hyphenated descendant name in $(base).(my-p) with cursor mid-identifier", () => {
         // `$(base).(my-p)` should resolve to the descendant `<p name="my-p"/>`,
         // not truncate at the hyphen and fall through to property lookup.
+        // Only the hyphenated segment is wrapped in parens.
         const source = `<section name="base"><p name="my-p"/></section>\n$(base).(my-p)`;
         const offset = source.indexOf("my-p)") + 2; // between 'my' and '-p'
         const help = helpAt(source, offset);
         expect(help).toMatchObject({
             kind: "refName",
             refName: "my-p",
-            displayPath: "base.my-p",
+            displayPath: "base.(my-p)",
             targetElementName: "p",
         });
     });
