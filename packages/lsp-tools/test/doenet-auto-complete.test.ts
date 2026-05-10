@@ -1328,12 +1328,14 @@ describe("AutoCompleter", () => {
         });
 
         it("Sets detail to '(<type>, line N)' and documentation to summary on $name completions", () => {
+            // `<math>` opens on line 2 (line 1 is `<doc>`). The displayed line
+            // must be 1-indexed so it matches CodeMirror's gutter.
             const source = `<doc>\n  <math name="m">x</math>\n</doc>\n$m`;
             const autoCompleter = createDocAutoCompleter(source);
             const items = autoCompleter.getCompletionItems(source.length);
             const m = items.find((i) => i.label === "m");
             expect(m).toBeDefined();
-            expect(m?.detail).toMatch(/^\(<math>, line \d+\)$/);
+            expect(m?.detail).toBe("(<math>, line 2)");
             expect(m?.documentation).toEqual({
                 kind: "markdown",
                 value: "A math expression.",
@@ -1346,7 +1348,8 @@ describe("AutoCompleter", () => {
             const items = autoCompleter.getCompletionItems(source.length);
             const indexed = items.find((i) => i.label === "s[]");
             expect(indexed).toBeDefined();
-            expect(indexed?.detail).toMatch(/^\(<select>, line \d+\)$/);
+            // `<select>` is on the first (and only-content) line of the source.
+            expect(indexed?.detail).toBe("(<select>, line 1)");
             expect(indexed?.documentation).toEqual({
                 kind: "markdown",
                 value: "A composite that picks one of several options.",

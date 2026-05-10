@@ -607,7 +607,19 @@ export function getCompletionItems(
                 ownEntry,
                 getParentName(this, referent),
             );
-            const line = referent.position?.start.line;
+            // Recompute the line from the byte offset against the live
+            // source so the displayed number always matches CodeMirror's
+            // (1-indexed) gutter. Trusting `position.start.line` directly
+            // would surface stale or synthetic line numbers (e.g. sugar
+            // transformations stamp placeholder `{line:1, column:1}`
+            // positions on synthetic nodes — see
+            // `parser/src/lezer-to-dast/gobble-function-arguments.ts`).
+            const startOffset = referent.position?.start.offset;
+            const line =
+                startOffset != null &&
+                startOffset < this.sourceObj.source.length
+                    ? this.sourceObj.offsetToRowCol(startOffset).line
+                    : undefined;
             const detail =
                 line !== undefined
                     ? `(<${referent.name}>, line ${line})`
