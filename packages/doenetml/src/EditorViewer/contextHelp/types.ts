@@ -36,6 +36,13 @@ export type HelpContent =
           kind: "refName";
           /** The bare identifier under the cursor (no leading `$`). */
           refName: string;
+          /**
+           * Full chain prefix to render with the leading `$` in the panel.
+           * For a bare `$name`, equals `refName` (e.g. `"m"`). For a member
+           * ref whose cursor segment resolves to a named descendant
+           * (`$sec.bi`), this is the dotted chain (`"sec.bi"`).
+           */
+          displayPath: string;
           /** Tag name of the referent element (e.g. `math`). */
           targetElementName: string;
           /** Component summary for the referent's element type, alias-aware. */

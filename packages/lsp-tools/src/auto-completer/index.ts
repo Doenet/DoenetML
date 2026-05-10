@@ -99,6 +99,18 @@ export type ResolveRefMemberContainer = (
     args: ResolveRefMemberContainerArgs,
 ) => RefMemberContainerResolution | null;
 
+/**
+ * Bundle of resolution + schema data the help layer needs to describe a
+ * referent: which node the ref points at, where it lives in the source, and
+ * the alias-aware schema entries that provide its summary and docs link.
+ */
+export type RefHelpInfo = {
+    referent: DastElement;
+    line: number | undefined;
+    ownEntry: ElementSchema | undefined;
+    effectiveEntry: ElementSchema | AliasedElementSchema | undefined;
+};
+
 export type AutoCompleterOptions = {
     sourceObj?: DoenetSourceObject;
     rustResolverAdapter?: RustResolverAdapter;
@@ -399,17 +411,19 @@ export class AutoCompleter {
      * finds elements with a `name` attribute but does not see repeat-introduced
      * names (`valueName`/`indexName`); those require the Rust resolver.
      */
-    resolveRefNameForHelp(
-        offset: number,
-        name: string,
-    ): {
-        referent: DastElement;
-        line: number | undefined;
-        ownEntry: ElementSchema | undefined;
-        effectiveEntry: ElementSchema | AliasedElementSchema | undefined;
-    } | null {
+    resolveRefNameForHelp(offset: number, name: string): RefHelpInfo | null {
         const referent = this.sourceObj.getReferentAtOffset(offset, name);
         if (!referent) return null;
+        return this.buildRefHelpInfo(referent);
+    }
+
+    /**
+     * Build the schema/line bundle the help panel needs from an
+     * already-resolved referent node. Shared between the bare-ref path
+     * (`resolveRefNameForHelp`) and the member-ref path that resolves a
+     * named descendant of a container.
+     */
+    buildRefHelpInfo(referent: DastElement): RefHelpInfo {
         // Recompute the line from the byte offset against the live source so
         // the displayed number always matches CodeMirror's (1-indexed) gutter.
         // Trusting `position.start.line` directly would surface stale or

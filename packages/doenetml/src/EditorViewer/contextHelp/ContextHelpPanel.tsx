@@ -85,12 +85,12 @@ export function ContextHelpPanel({
             );
 
         case "refName": {
-            const { refName, targetElementName, summary, line, docsSlug } =
+            const { displayPath, targetElementName, summary, line, docsSlug } =
                 content;
             return (
                 <div className="help-panel">
                     <p className="help-ref-sentence">
-                        <code>{`$${refName}`}</code> references{" "}
+                        <code>{`$${displayPath}`}</code> references{" "}
                         <code>{`<${targetElementName}>`}</code>
                         {line !== undefined ? ` on line ${line}` : ""}.
                     </p>

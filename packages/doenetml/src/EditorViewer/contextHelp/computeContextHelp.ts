@@ -92,7 +92,7 @@ export function computeContextHelp(
         return helpForRefName(completer, offset, ctx);
     }
     if (ctx.cursorPos === "refMember") {
-        return helpForPropertyReference(completer, offset, ctx);
+        return helpForRefMember(completer, offset, ctx);
     }
 
     return NONE;
@@ -160,7 +160,7 @@ function helpForAttribute(
     };
 }
 
-function helpForPropertyReference(
+function helpForRefMember(
     completer: AutoCompleter,
     offset: number,
     ctx: {
@@ -170,12 +170,12 @@ function helpForPropertyReference(
         pathPartHasIndex: boolean[];
     },
 ): HelpContent {
-    const propertyName = fullIdentifierAtOffset(
+    const memberName = fullIdentifierAtOffset(
         completer.source,
         ctx.replaceFromOffset,
         offset,
     );
-    if (!propertyName) return NONE;
+    if (!memberName) return NONE;
 
     const resolved = completer.resolveRefMemberContainerAtOffset(
         offset,
@@ -183,12 +183,12 @@ function helpForPropertyReference(
         ctx.pathPartHasIndex,
     );
 
-    // Fallback to pure-JS resolution for simple `$name.property` when no
-    // Rust resolver adapter is configured (browser-only setups). Restricted
-    // to length-2 chains because the JS path resolves only `pathParts[0]`
-    // and would otherwise look up the cursor identifier as a property of
-    // the root referent, producing wrong help for `$a.b.c`. Multi-part
-    // resolution is tracked in #1086.
+    // Fallback to pure-JS resolution for simple `$name.member` when no Rust
+    // resolver adapter is configured (browser-only setups). Restricted to
+    // length-2 chains because the JS path resolves only `pathParts[0]` and
+    // would otherwise look up the cursor identifier on the root referent,
+    // producing wrong help for `$a.b.c`. Multi-part resolution is tracked in
+    // #1086.
     let containerNode = resolved.node;
     if (!containerNode) {
         if (ctx.pathParts.length === 2) {
@@ -202,6 +202,29 @@ function helpForPropertyReference(
         }
     }
     if (!containerNode) return NONE;
+
+    // Match runtime ref-resolution precedence: a named descendant of the
+    // container shadows a same-named property. Try the descendant first;
+    // only fall back to property lookup when no descendant matches.
+    const descendant = completer.sourceObj.getNamedDescendant(
+        containerNode,
+        memberName,
+    );
+    if (descendant) {
+        const info = completer.buildRefHelpInfo(descendant);
+        const displayPath = [...ctx.pathParts.slice(0, -1), memberName].join(
+            ".",
+        );
+        return {
+            kind: "refName",
+            refName: memberName,
+            displayPath,
+            targetElementName: info.referent.name,
+            summary: info.effectiveEntry?.summary ?? null,
+            line: info.line,
+            docsSlug: info.effectiveEntry?.docsSlug ?? null,
+        };
+    }
 
     const ownEntry = completer.findSchemaElement(containerNode.name);
     if (!ownEntry) return NONE;
@@ -218,7 +241,7 @@ function helpForPropertyReference(
         completer.resolveEffectiveSchemaElement(ownEntry, parentName) ??
         ownEntry;
 
-    const prop = findSchemaProperty(effectiveEntry, propertyName);
+    const prop = findSchemaProperty(effectiveEntry, memberName);
     if (!prop?.description) return NONE;
 
     const result: HelpContent = {
@@ -264,6 +287,7 @@ function helpForRefName(
     return {
         kind: "refName",
         refName,
+        displayPath: refName,
         targetElementName: referent.name,
         summary: effectiveEntry?.summary ?? null,
         line,

@@ -182,6 +182,8 @@ describe("computeContextHelp — bare ref ($name)", () => {
         expect(help).toMatchObject({
             kind: "refName",
             refName: "m",
+            // For bare refs the displayed chain is just the ref name itself.
+            displayPath: "m",
             targetElementName: "math",
             docsSlug: "math",
         });
@@ -246,6 +248,63 @@ describe("computeContextHelp — bare ref ($name)", () => {
         }
         // <math> sits on line 3 in the authored source.
         expect(help.line).toBe(3);
+    });
+});
+
+describe("computeContextHelp — refMember resolving to a named descendant", () => {
+    it("returns refName help when $sec.bi resolves to a named child element", () => {
+        const source = `<section name="sec"><booleanInput name="bi"/></section>\n$sec.bi`;
+        const help = helpAt(source, source.length);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "bi",
+            displayPath: "sec.bi",
+            targetElementName: "booleanInput",
+            docsSlug: "booleanInput",
+        });
+        if (help.kind === "refName") {
+            expect(help.summary).toBeTruthy();
+        }
+    });
+
+    it("returns refName help with cursor mid-segment in $sec.bi.fixed (cursor on bi)", () => {
+        // The chain has three parts but the cursor sits on the middle
+        // segment, so the question is "what is $sec.bi?" — a 2-part chain.
+        // The booleanInput descendant of section answers it; the trailing
+        // ".fixed" is irrelevant to help at this cursor position.
+        const source = `<section name="sec"><booleanInput name="bi"/></section>\n$sec.bi.fixed`;
+        // Cursor right after the second 'i' in 'bi', before the '.'.
+        const offset = source.indexOf(".bi.fixed") + 3;
+        const help = helpAt(source, offset);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "bi",
+            displayPath: "sec.bi",
+            targetElementName: "booleanInput",
+        });
+    });
+
+    it("falls through to property help when no named descendant matches", () => {
+        // `displayDecimals` is a math property; <math> has no descendants
+        // named "displayDecimals", so the existing property branch handles
+        // it and we get property help, not refName help.
+        const source = `<math name="m">x</math>\n$m.displayDecimals`;
+        const help = helpAt(source, source.length);
+        expect(help.kind).toBe("property");
+    });
+
+    it("prefers a named descendant over a same-named property (descendants shadow properties)", () => {
+        // Construct a case where the property name is shadowed by a child
+        // element with the same name. <section> has a `hidden` property
+        // (inherited from base components); a child element named "hidden"
+        // shadows the property under runtime ref-resolution rules.
+        const source = `<section name="sec"><booleanInput name="hidden"/></section>\n$sec.hidden`;
+        const help = helpAt(source, source.length);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "hidden",
+            targetElementName: "booleanInput",
+        });
     });
 });
 
