@@ -1,4 +1,5 @@
 export { DoenetViewer, DoenetEditor } from "./doenetml";
+export type { DiagnosticsTabId, DoenetEditorHandle } from "./doenetml";
 
 export {
     mathjaxConfig,

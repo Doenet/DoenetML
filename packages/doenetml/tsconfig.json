@@ -14,6 +14,8 @@
     ],
     "exclude": [
         "vite.config.ts",
+        "cypress.config.ts",
+        "test/cypress/**",
         "node_modules",
         "runner-results",
         ".wireit",

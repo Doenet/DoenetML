@@ -163,6 +163,7 @@ jobs:
                         e2e-group4,
                         e2e-group5,
                         codemirror-cypress,
+                        doenetml-cypress,
                     ]
         steps:
             - uses: actions/checkout@v3
@@ -189,18 +190,21 @@ jobs:
               env:
                   WIREIT_CACHE: "local"
 
+            # Cypress *component* test groups (codemirror-cypress, doenetml-cypress, ...)
+            # spin up their own Vite dev server. Only the e2e groups need the
+            # shared preview server below.
             - name: Start preview server
-              if: matrix.test-group != 'codemirror-cypress'
+              if: ${{ !endsWith(matrix.test-group, '-cypress') }}
               run: |
                   npm run preview --workspace packages/test-cypress > /tmp/preview-server.log 2>&1 &
                   echo $! > /tmp/preview-server.pid
 
             - name: Wait for server
-              if: matrix.test-group != 'codemirror-cypress'
+              if: ${{ !endsWith(matrix.test-group, '-cypress') }}
               run: npx wait-on http://localhost:4173 --timeout 60000
 
             - name: Check server logs if wait-on fails
-              if: failure() && matrix.test-group != 'codemirror-cypress'
+              if: ${{ failure() && !endsWith(matrix.test-group, '-cypress') }}
               run: |
                   echo "=== Preview Server Log ===" && cat /tmp/preview-server.log || true
                   echo "=== Server processes ===" && ps aux | grep "node\|npm" || true

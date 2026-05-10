@@ -1,16 +1,22 @@
 // All code in this file will be executed in the context of an iframe
 // created by DoenetEditor.
+import type { DiagnosticsTabId, DoenetEditorHandle } from "@doenet/doenetml";
+
 declare const editorId: string;
 declare const doenetEditorProps: Record<string, any>;
 declare const doenetEditorPropsSpecified: string[];
 declare const ComlinkEditor: { expose: Function; windowEndpoint: Function };
-interface Window {
-    renderDoenetEditorToContainer: (
-        container: Element,
-        doenetMLSource?: string,
-        config?: object,
-    ) => void;
+declare global {
+    interface Window {
+        renderDoenetEditorToContainer: (
+            container: Element,
+            doenetMLSource?: string,
+            config?: object,
+        ) => DoenetEditorHandle | void;
+    }
 }
+
+let editorControlHandle: DoenetEditorHandle | null = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
     let pause100 = function () {
@@ -35,7 +41,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 
 ComlinkEditor.expose(
-    { renderEditorWithFunctionProps },
+    {
+        renderEditorWithFunctionProps,
+        openDiagnosticsTab(tabId: DiagnosticsTabId) {
+            if (!editorControlHandle) {
+                console.warn(
+                    "iframe DoenetEditor: openDiagnosticsTab arrived before renderEditorWithFunctionProps completed — likely a bug in the iframe wrapper's queue/replay sequencing.",
+                );
+                return;
+            }
+            editorControlHandle.openDiagnosticsTab(tabId);
+        },
+        closeDiagnosticsPanel() {
+            if (!editorControlHandle) {
+                console.warn(
+                    "iframe DoenetEditor: closeDiagnosticsPanel arrived before renderEditorWithFunctionProps completed — likely a bug in the iframe wrapper's queue/replay sequencing.",
+                );
+                return;
+            }
+            editorControlHandle.closeDiagnosticsPanel();
+        },
+    },
     ComlinkEditor.windowEndpoint(globalThis.parent),
 );
 
@@ -64,11 +90,14 @@ function renderEditorWithFunctionProps(...args: (string | Function)[]) {
         }
     }
 
-    window.renderDoenetEditorToContainer(
+    const handle = window.renderDoenetEditorToContainer(
         document.getElementById("root")!,
         undefined,
         augmentedDoenetEditorProps,
     );
+    if (handle) {
+        editorControlHandle = handle;
+    }
 }
 
 messageParentFromEditor({ iframeReady: true });

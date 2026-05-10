@@ -28,6 +28,8 @@
         "build": "wireit",
         "preview": "vite preview",
         "test": "vitest",
+        "test-cypress": "cypress open --component",
+        "test-cypress-all": "cypress run --component -b 'chrome' --config video=false --headless",
         "publish": "npm run build && cd dist && npm publish"
     },
     "wireit": {

@@ -21,6 +21,8 @@ const latestDoenetmlVersion: string = version;
 
 export { mathjaxConfig } from "@doenet/utils";
 export type { DiagnosticRecord, ErrorRecord, WarningRecord };
+import type { DiagnosticsTabId, DoenetEditorHandle } from "@doenet/doenetml";
+export type { DiagnosticsTabId, DoenetEditorHandle };
 import { detectVersionFromDoenetML } from "@doenet/parser";
 
 import { ExternalVirtualKeyboard } from "@doenet/virtual-keyboard";
@@ -305,24 +307,81 @@ export function DoenetViewer({
  * DoenetML component. Instead you must use the message passing interface of `DoenetEditor` to communicate
  * with the underlying DoenetML component.
  */
-export function DoenetEditor({
-    doenetML,
-    standaloneUrl: specifiedStandaloneUrl,
-    cssUrl: specifiedCssUrl,
-    doenetmlVersion: specifiedDoenetmlVersion,
-    width = "100%",
-    height = "500px",
-    autodetectVersion = true,
-    ...doenetEditorProps
-}: DoenetEditorIframeProps) {
+type EditorIframeRemote = Comlink.Remote<{
+    renderEditorWithFunctionProps: (...args: (string | Function)[]) => void;
+    openDiagnosticsTab: (tabId: DiagnosticsTabId) => void;
+    closeDiagnosticsPanel: () => void;
+}>;
+
+// ComLink RPC calls return Promises, but the imperative handle methods are
+// `void` (matching the in-process handle so consumers can use one type for
+// both). Attach an explicit catch handler so we don't leave the Promise
+// unhandled — surface errors via console rather than swallowing them.
+function logComlinkError(method: string) {
+    return (err: unknown) => {
+        console.warn(`iframe DoenetEditor: ${method} failed`, err);
+    };
+}
+
+export const DoenetEditor = React.forwardRef<
+    DoenetEditorHandle,
+    DoenetEditorIframeProps
+>(function DoenetEditor(
+    {
+        doenetML,
+        standaloneUrl: specifiedStandaloneUrl,
+        cssUrl: specifiedCssUrl,
+        doenetmlVersion: specifiedDoenetmlVersion,
+        width = "100%",
+        height = "500px",
+        autodetectVersion = true,
+        ...doenetEditorProps
+    },
+    forwardedRef,
+) {
     const [id, _] = React.useState(() => Math.random().toString(36).slice(2));
     const ref = React.useRef<HTMLIFrameElement>(null);
+    const editorIframeRef = React.useRef<EditorIframeRemote | null>(null);
+    const pendingActions = React.useRef<
+        ((remote: EditorIframeRemote) => void)[]
+    >([]);
     const [inErrorState, setInErrorState] = React.useState<string | null>(null);
     const [ignoreDetectedVersion, setIgnoreDetectedVersion] =
         React.useState(false);
     const [initialDiagnostics, setInitialDiagnostics] = React.useState<
         DiagnosticRecord[]
     >([]);
+
+    React.useImperativeHandle(
+        forwardedRef,
+        () => ({
+            openDiagnosticsTab(tabId: DiagnosticsTabId) {
+                const action = (remote: EditorIframeRemote) => {
+                    remote
+                        .openDiagnosticsTab(tabId)
+                        .catch(logComlinkError("openDiagnosticsTab"));
+                };
+                if (editorIframeRef.current) {
+                    action(editorIframeRef.current);
+                } else {
+                    pendingActions.current.push(action);
+                }
+            },
+            closeDiagnosticsPanel() {
+                const action = (remote: EditorIframeRemote) => {
+                    remote
+                        .closeDiagnosticsPanel()
+                        .catch(logComlinkError("closeDiagnosticsPanel"));
+                };
+                if (editorIframeRef.current) {
+                    action(editorIframeRef.current);
+                } else {
+                    pendingActions.current.push(action);
+                }
+            },
+        }),
+        [],
+    );
 
     // Augment the DoenetEditor props by adding any initial diagnostics found
     const augmentedDoenetEditorProps = { ...doenetEditorProps };
@@ -383,11 +442,7 @@ export function DoenetEditor({
                 // and we can call `renderEditorWithFunctionProps`
 
                 if (ref.current) {
-                    const editorIframe: Comlink.Remote<{
-                        renderEditorWithFunctionProps: (
-                            ...args: (string | Function)[]
-                        ) => void;
-                    }> = Comlink.wrap(
+                    const editorIframe: EditorIframeRemote = Comlink.wrap(
                         Comlink.windowEndpoint(ref.current.contentWindow!),
                     );
 
@@ -404,9 +459,19 @@ export function DoenetEditor({
                             proxiedFunctions.push(Comlink.proxy(prop));
                         }
                     }
-                    editorIframe?.renderEditorWithFunctionProps(
-                        ...proxiedFunctions,
-                    );
+                    editorIframe
+                        ?.renderEditorWithFunctionProps(...proxiedFunctions)
+                        .catch(
+                            logComlinkError("renderEditorWithFunctionProps"),
+                        );
+
+                    // Make the remote available to the imperative handle and
+                    // replay any actions queued before the iframe was ready.
+                    editorIframeRef.current = editorIframe;
+                    const queued = pendingActions.current.splice(0);
+                    for (const action of queued) {
+                        action(editorIframe);
+                    }
                 }
             }
         };
@@ -418,6 +483,25 @@ export function DoenetEditor({
             window.removeEventListener("message", listener);
         };
     }, []);
+
+    const srcDoc = createHtmlForDoenetEditor(
+        id,
+        doenetML,
+        width,
+        augmentedDoenetEditorProps,
+        standaloneUrl,
+        cssUrl,
+    );
+
+    // When `srcDoc` changes, React updates the iframe attribute and the browser
+    // reloads the iframe document. The previous Comlink remote becomes bound to
+    // a torn-down `contentWindow` until the new iframe sends `iframeReady`.
+    // Clear the remote synchronously at commit (via `useLayoutEffect`) so any
+    // imperative-handle calls between commit and the next paint queue and
+    // replay against the new remote instead of dispatching into a dead one.
+    React.useLayoutEffect(() => {
+        editorIframeRef.current = null;
+    }, [srcDoc]);
 
     if (inErrorState) {
         if (foundAutoVersion) {
@@ -467,14 +551,7 @@ export function DoenetEditor({
             <iframe
                 title="Doenet Editor"
                 ref={ref}
-                srcDoc={createHtmlForDoenetEditor(
-                    id,
-                    doenetML,
-                    width,
-                    augmentedDoenetEditorProps,
-                    standaloneUrl,
-                    cssUrl,
-                )}
+                srcDoc={srcDoc}
                 style={{
                     width,
                     boxSizing: "content-box",
@@ -485,4 +562,4 @@ export function DoenetEditor({
             />
         </React.Fragment>
     );
-}
+});

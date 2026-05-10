@@ -38,6 +38,26 @@ type SubmittedResponse = {
     submittedAt: string;
 };
 
+/** IDs of the tabs rendered by `DiagnosticsResponseTabstrip`. */
+export type DiagnosticsTabId =
+    | "errors"
+    | "warnings"
+    | "info"
+    | "accessibility"
+    | "responses";
+
+/** Imperative handle exposed by `<DoenetEditor>` for programmatic panel control. */
+export type DoenetEditorHandle = {
+    /**
+     * Switch the diagnostics/responses panel to `tabId` and open it.
+     * If `tabId` references a tab disabled by `showDiagnostics={false}` or
+     * `showResponses={false}`, the call is ignored with a `console.warn`.
+     */
+    openDiagnosticsTab: (tabId: DiagnosticsTabId) => void;
+    /** Close the diagnostics/responses panel. */
+    closeDiagnosticsPanel: () => void;
+};
+
 /** Human-readable label for diagnostic source line, when position exists. */
 function diagnosticLocationLabel(diagnostic: {
     position?: { start: { line: number } };
@@ -359,6 +379,7 @@ export function DiagnosticsResponseTabstrip({
                         title="Close panel"
                         aria-label="Close panel"
                         className="close-button"
+                        data-test="diagnostics-panel-close"
                         onClick={() => {
                             setIsOpen(false);
                         }}
@@ -441,14 +462,20 @@ export function DiagnosticsResponseTabContents({
         };
     }, [isOpen]);
 
+    // Auto-scroll-to-bottom is desired only for the "responses" tab so the
+    // most recent submission is in view; for other tabs it would jump the
+    // user past the top of the report. Firing on `selectedTabIdForScroll`
+    // changes too is intentional: switching to "responses" while the panel
+    // is already open should also bring the latest submission into view.
+    const selectedTabIdForScroll = store.useState("selectedId");
     useEffect(() => {
-        if (isOpen) {
+        if (isOpen && selectedTabIdForScroll === "responses") {
             scrollToBottom();
         }
-    }, [isOpen]);
+    }, [isOpen, selectedTabIdForScroll]);
 
     useEffect(() => {
-        if (isOpen) {
+        if (isOpen && selectedTabIdForScroll === "responses") {
             if (lastScrolledToBottom.current) {
                 scrollToBottom();
             }
