@@ -379,6 +379,7 @@ export function DiagnosticsResponseTabstrip({
                         title="Close panel"
                         aria-label="Close panel"
                         className="close-button"
+                        data-test="diagnostics-panel-close"
                         onClick={() => {
                             setIsOpen(false);
                         }}
