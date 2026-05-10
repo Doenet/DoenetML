@@ -74,6 +74,23 @@ export default defineConfig({
                         "@doenet/doenetml-worker",
                         "@doenet/codemirror",
                     ],
+                    // Aliasing `@doenet/codemirror` to source means Vite only
+                    // discovers its transitive deps when the first spec is
+                    // already loading, triggering a mid-flight reload that
+                    // aborts the spec's dynamic import (one spec fails, the
+                    // next passes). Pre-include them so the first scan
+                    // catches everything before any spec runs.
+                    include: [
+                        "@codemirror/state",
+                        "@codemirror/view",
+                        "@codemirror/language",
+                        "@codemirror/lint",
+                        "@codemirror/autocomplete",
+                        "@uiw/react-codemirror",
+                        "@lezer/highlight",
+                        "@qualified/lsp-connection",
+                        "@qualified/vscode-jsonrpc-ww",
+                    ],
                 },
             },
         },
