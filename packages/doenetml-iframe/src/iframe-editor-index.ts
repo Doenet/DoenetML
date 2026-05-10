@@ -50,7 +50,7 @@ ComlinkEditor.expose(
         openDiagnosticsTab(tabId: DiagnosticsTabId) {
             if (!editorControlHandle) {
                 console.warn(
-                    "iframe DoenetEditor: openDiagnosticsTab invoked before render",
+                    "iframe DoenetEditor: openDiagnosticsTab arrived before renderEditorWithFunctionProps completed — likely a bug in the iframe wrapper's queue/replay sequencing.",
                 );
                 return;
             }
@@ -59,7 +59,7 @@ ComlinkEditor.expose(
         closeDiagnosticsPanel() {
             if (!editorControlHandle) {
                 console.warn(
-                    "iframe DoenetEditor: closeDiagnosticsPanel invoked before render",
+                    "iframe DoenetEditor: closeDiagnosticsPanel arrived before renderEditorWithFunctionProps completed — likely a bug in the iframe wrapper's queue/replay sequencing.",
                 );
                 return;
             }

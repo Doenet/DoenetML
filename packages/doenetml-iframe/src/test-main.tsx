@@ -3,9 +3,9 @@
  * It does not show up in the bundled package.
  */
 
-import React from "react";
+import React, { useRef } from "react";
 import ReactDOM from "react-dom/client";
-import { DoenetViewer, DoenetEditor } from "./index";
+import { DoenetViewer, DoenetEditor, type DoenetEditorHandle } from "./index";
 
 // @ts-ignore
 import STANDALONE_SOURCE from "@doenet/standalone/doenet-standalone.js?raw";
@@ -28,6 +28,7 @@ root.render(<App />);
 
 function App() {
     const DOENET_LEGACY_VERSION = "0.6.5";
+    const editorRef = useRef<DoenetEditorHandle>(null);
 
     return (
         <React.Fragment>
@@ -59,7 +60,38 @@ function App() {
             </button>
 
             <h4>DoenetML {STANDALONE_VERSION} (locally-built copy):</h4>
+            <div
+                style={{ display: "flex", gap: "0.5em", marginBottom: "0.5em" }}
+            >
+                <button
+                    onClick={() =>
+                        editorRef.current?.openDiagnosticsTab("errors")
+                    }
+                >
+                    Open errors
+                </button>
+                <button
+                    onClick={() =>
+                        editorRef.current?.openDiagnosticsTab("warnings")
+                    }
+                >
+                    Open warnings
+                </button>
+                <button
+                    onClick={() =>
+                        editorRef.current?.openDiagnosticsTab("accessibility")
+                    }
+                >
+                    Open accessibility
+                </button>
+                <button
+                    onClick={() => editorRef.current?.closeDiagnosticsPanel()}
+                >
+                    Close panel
+                </button>
+            </div>
             <DoenetEditor
+                ref={editorRef}
                 doenetML={`<mathInput /><p><mathInput />Use this to test DoenetML<mathInput /></p>
                 <problem copy="doenet:abcdef" />
                 <graph />
@@ -69,7 +101,7 @@ function App() {
                 standaloneUrl={STANDALONE_BLOB_URL}
                 cssUrl={STANDALONE_CSS_BLOB_URL}
                 activityId={"a"}
-                showDiagnostics={false}
+                showDiagnostics={true}
                 showResponses={false}
                 fetchExternalDoenetML={fetchExternalDoenetML}
             />

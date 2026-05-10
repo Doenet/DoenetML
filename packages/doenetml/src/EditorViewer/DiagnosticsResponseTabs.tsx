@@ -461,9 +461,11 @@ export function DiagnosticsResponseTabContents({
         };
     }, [isOpen]);
 
-    // Auto-scroll-to-bottom on open is desired only for the "responses" tab so
-    // the most recent submission is in view; for other tabs it would jump the
-    // user past the top of the report when the panel opens.
+    // Auto-scroll-to-bottom is desired only for the "responses" tab so the
+    // most recent submission is in view; for other tabs it would jump the
+    // user past the top of the report. Firing on `selectedTabIdForScroll`
+    // changes too is intentional: switching to "responses" while the panel
+    // is already open should also bring the latest submission into view.
     const selectedTabIdForScroll = store.useState("selectedId");
     useEffect(() => {
         if (isOpen && selectedTabIdForScroll === "responses") {
