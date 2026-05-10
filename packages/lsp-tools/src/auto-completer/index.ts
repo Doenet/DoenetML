@@ -389,6 +389,50 @@ export class AutoCompleter {
     }
 
     /**
+     * Look up a bare ref `$name` at `offset` and return the data both the
+     * autocomplete dropdown and the context-help panel need: the referent
+     * node, the 1-indexed source line where it's defined, and the alias-aware
+     * schema entries for help text. Returns `null` when the name doesn't
+     * resolve from `offset`.
+     *
+     * Uses the AST-only parent-chain walk in `getReferentAtOffset`, so it
+     * finds elements with a `name` attribute but does not see repeat-introduced
+     * names (`valueName`/`indexName`); those require the Rust resolver.
+     */
+    resolveRefNameForHelp(
+        offset: number,
+        name: string,
+    ): {
+        referent: DastElement;
+        line: number | undefined;
+        ownEntry: ElementSchema | undefined;
+        effectiveEntry: ElementSchema | AliasedElementSchema | undefined;
+    } | null {
+        const referent = this.sourceObj.getReferentAtOffset(offset, name);
+        if (!referent) return null;
+        // Recompute the line from the byte offset against the live source so
+        // the displayed number always matches CodeMirror's (1-indexed) gutter.
+        // Trusting `position.start.line` directly would surface stale or
+        // synthetic line numbers (e.g. sugar transformations stamp placeholder
+        // `{line:1, column:1}` positions on synthetic nodes — see
+        // `parser/src/lezer-to-dast/gobble-function-arguments.ts`).
+        const startOffset = referent.position?.start.offset;
+        const line =
+            startOffset != null && startOffset < this.sourceObj.source.length
+                ? this.sourceObj.offsetToRowCol(startOffset).line
+                : undefined;
+        const normalized = this.normalizeElementName(referent.name);
+        const ownEntry = this.schemaElementsByName[normalized];
+        const parent = this.sourceObj.getParent(referent);
+        const parentName = parent && "name" in parent ? parent.name : undefined;
+        const effectiveEntry = this.resolveEffectiveSchemaElement(
+            ownEntry,
+            parentName,
+        );
+        return { referent, line, ownEntry, effectiveEntry };
+    }
+
+    /**
      * Gets the attribute where offset is between its start and end position, if one exists.
      */
     _getAttributeContainsOffset(

@@ -175,6 +175,80 @@ describe("computeContextHelp — property reference (refMember)", () => {
     });
 });
 
+describe("computeContextHelp — bare ref ($name)", () => {
+    it("returns refName help when cursor is on a bare $name", () => {
+        const source = `<math name="m">x</math>\n$m`;
+        const help = helpAt(source, source.length);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "m",
+            targetElementName: "math",
+            docsSlug: "math",
+        });
+        if (help.kind === "refName") {
+            // <math> starts at offset 0 — line 1.
+            expect(help.line).toBe(1);
+            expect(help.summary).toBeTruthy();
+        }
+    });
+
+    it("returns refName help when cursor is mid-identifier on $myName", () => {
+        const source = `<math name="myName">x</math>\n$myName`;
+        // Cursor between 'y' and 'N' inside "myName" of the ref.
+        const offset = source.length - 4;
+        const help = helpAt(source, offset);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "myName",
+            targetElementName: "math",
+        });
+    });
+
+    it("returns refName help when cursor sits on the name segment of $name.descendant", () => {
+        const source = `<math name="m">x</math>\n$m.displayDecimals`;
+        // Cursor right after the 'm', before the '.'.
+        const offset = source.indexOf("$m") + 2;
+        const help = helpAt(source, offset);
+        expect(help).toMatchObject({
+            kind: "refName",
+            refName: "m",
+            targetElementName: "math",
+        });
+    });
+
+    it("returns none for a $name that doesn't resolve", () => {
+        const source = `<math>x</math>\n$nonexistent`;
+        expect(helpAt(source, source.length).kind).toBe("none");
+    });
+
+    it("uses the alias target's summary and docsSlug for $name inside <matrix>", () => {
+        // <row name="r"> inside <matrix> sugars to matrixRow. The bare-ref
+        // help should follow the same alias redirection as element/attribute/
+        // property help so the docs link lands on the matrixRow page.
+        const source = `<matrix>\n  <row name="r">1 2 3</row>\n</matrix>\n$r`;
+        const help = helpAt(source, source.length);
+        if (help.kind !== "refName") {
+            expect.fail(`expected refName help, got ${help.kind}`);
+            return;
+        }
+        expect(help.refName).toBe("r");
+        expect(help.targetElementName).toBe("row");
+        expect(help.docsSlug).toBe("row_matrix");
+        expect(help.summary).toMatch(/matrix/i);
+    });
+
+    it("reports the line where the referent is defined", () => {
+        const source = `<p>intro</p>\n<p>more</p>\n<math name="m">x</math>\n$m`;
+        const help = helpAt(source, source.length);
+        if (help.kind !== "refName") {
+            expect.fail(`expected refName help, got ${help.kind}`);
+            return;
+        }
+        // <math> sits on line 3 in the authored source.
+        expect(help.line).toBe(3);
+    });
+});
+
 describe("computeContextHelp — childAliases (sugar redirection)", () => {
     it("redirects <row> inside <matrix> to matrixRow help", () => {
         const source = `<matrix>\n  <row>1 2 3</row>\n</matrix>`;

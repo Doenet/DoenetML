@@ -88,6 +88,9 @@ export function computeContextHelp(
     }
 
     const ctx = completer.getCompletionContext(offset);
+    if (ctx.cursorPos === "refName") {
+        return helpForRefName(completer, offset, ctx);
+    }
     if (ctx.cursorPos === "refMember") {
         return helpForPropertyReference(completer, offset, ctx);
     }
@@ -228,4 +231,42 @@ function helpForPropertyReference(
     };
     if (prop.type !== undefined) result.type = prop.type;
     return result;
+}
+
+/**
+ * Help for a bare `$name` cursor. Uses the AST-only parent-chain walk in
+ * `AutoCompleter.resolveRefNameForHelp`, which finds elements via a `name=`
+ * attribute up the parent chain. It does NOT see repeat-introduced names
+ * (`valueName`/`indexName`) — those need the Rust resolver, which is not
+ * wired into the editor's context-help instance. Cursor on a `name` segment
+ * inside a deeper chain like `$container.name.descendant` would likewise
+ * need resolver-backed multi-part walking. Both gaps are tracked in #1086.
+ */
+function helpForRefName(
+    completer: AutoCompleter,
+    offset: number,
+    ctx: {
+        typedPrefix: string;
+        replaceFromOffset: number;
+    },
+): HelpContent {
+    const refName = fullIdentifierAtOffset(
+        completer.source,
+        ctx.replaceFromOffset,
+        offset,
+    );
+    if (!refName) return NONE;
+
+    const resolved = completer.resolveRefNameForHelp(offset, refName);
+    if (!resolved) return NONE;
+
+    const { referent, line, effectiveEntry } = resolved;
+    return {
+        kind: "refName",
+        refName,
+        targetElementName: referent.name,
+        summary: effectiveEntry?.summary ?? null,
+        line,
+        docsSlug: effectiveEntry?.docsSlug ?? null,
+    };
 }
