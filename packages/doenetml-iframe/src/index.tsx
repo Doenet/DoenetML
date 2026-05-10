@@ -313,6 +313,16 @@ type EditorIframeRemote = Comlink.Remote<{
     closeDiagnosticsPanel: () => void;
 }>;
 
+// ComLink RPC calls return Promises, but the imperative handle methods are
+// `void` (matching the in-process handle so consumers can use one type for
+// both). Attach an explicit catch handler so we don't leave the Promise
+// unhandled — surface errors via console rather than swallowing them.
+function logComlinkError(method: string) {
+    return (err: unknown) => {
+        console.warn(`iframe DoenetEditor: ${method} failed`, err);
+    };
+}
+
 export const DoenetEditor = React.forwardRef<
     DoenetEditorHandle,
     DoenetEditorIframeProps
@@ -347,7 +357,9 @@ export const DoenetEditor = React.forwardRef<
         () => ({
             openDiagnosticsTab(tabId: DiagnosticsTabId) {
                 const action = (remote: EditorIframeRemote) => {
-                    remote.openDiagnosticsTab(tabId);
+                    remote
+                        .openDiagnosticsTab(tabId)
+                        .catch(logComlinkError("openDiagnosticsTab"));
                 };
                 if (editorIframeRef.current) {
                     action(editorIframeRef.current);
@@ -357,7 +369,9 @@ export const DoenetEditor = React.forwardRef<
             },
             closeDiagnosticsPanel() {
                 const action = (remote: EditorIframeRemote) => {
-                    remote.closeDiagnosticsPanel();
+                    remote
+                        .closeDiagnosticsPanel()
+                        .catch(logComlinkError("closeDiagnosticsPanel"));
                 };
                 if (editorIframeRef.current) {
                     action(editorIframeRef.current);
@@ -452,8 +466,7 @@ export const DoenetEditor = React.forwardRef<
                     // Make the remote available to the imperative handle and
                     // replay any actions queued before the iframe was ready.
                     editorIframeRef.current = editorIframe;
-                    const queued = pendingActions.current;
-                    pendingActions.current = [];
+                    const queued = pendingActions.current.splice(0);
                     for (const action of queued) {
                         action(editorIframe);
                     }

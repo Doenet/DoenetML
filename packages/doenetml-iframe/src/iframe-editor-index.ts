@@ -1,26 +1,22 @@
 // All code in this file will be executed in the context of an iframe
 // created by DoenetEditor.
-import type { DiagnosticsTabId } from "@doenet/doenetml";
+import type { DiagnosticsTabId, DoenetEditorHandle } from "@doenet/doenetml";
 
 declare const editorId: string;
 declare const doenetEditorProps: Record<string, any>;
 declare const doenetEditorPropsSpecified: string[];
 declare const ComlinkEditor: { expose: Function; windowEndpoint: Function };
-type EditorControlHandle = {
-    openDiagnosticsTab: (tabId: DiagnosticsTabId) => void;
-    closeDiagnosticsPanel: () => void;
-};
 declare global {
     interface Window {
         renderDoenetEditorToContainer: (
             container: Element,
             doenetMLSource?: string,
             config?: object,
-        ) => EditorControlHandle | void;
+        ) => DoenetEditorHandle | void;
     }
 }
 
-let editorControlHandle: EditorControlHandle | null = null;
+let editorControlHandle: DoenetEditorHandle | null = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
     let pause100 = function () {
