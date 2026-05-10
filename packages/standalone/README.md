@@ -49,6 +49,31 @@ For example,
 </div>
 ```
 
+## Editor control handle
+
+`renderDoenetEditorToContainer` (also exposed as a global) returns a small
+control handle so the host page can drive the editor's diagnostics/responses
+panel. Calls made before the editor finishes mounting are queued and replayed
+on first commit.
+
+```html
+<script type="module">
+    const handle = renderDoenetEditorToContainer(
+        document.querySelector(".doenetml-editor"),
+    );
+    document
+        .querySelector("#open-accessibility")
+        .addEventListener("click", () =>
+            handle.openDiagnosticsTab("accessibility"),
+        );
+    document
+        .querySelector("#close-panel")
+        .addEventListener("click", () => handle.closeDiagnosticsPanel());
+</script>
+```
+
+Valid tab IDs: `"errors" | "warnings" | "info" | "accessibility" | "responses"`.
+
 ## Development
 
 Run

@@ -16,6 +16,81 @@ Semantic markup for building interactive web activities.
 
 -   Internally manages a directed acyclic graph of dependencies to coordinate updates of self-referential worksheets
 
+## DoenetEditor
+
+### Programmatic control of the diagnostics panel
+
+`<DoenetEditor>` exposes a ref handle (`DoenetEditorHandle`) so embedding apps
+can open or close the diagnostics/responses panel and switch between its tabs
+(`"errors" | "warnings" | "info" | "accessibility" | "responses"`). Each call
+is independent, so re-clicking a link after the user has closed the panel
+reopens it without consumer state management.
+
+```tsx
+import { useRef } from "react";
+import { DoenetEditor, type DoenetEditorHandle } from "@doenet/doenetml";
+
+function App() {
+    const editorRef = useRef<DoenetEditorHandle>(null);
+    return (
+        <>
+            <button
+                onClick={() =>
+                    editorRef.current?.openDiagnosticsTab("accessibility")
+                }
+            >
+                Show accessibility violations
+            </button>
+            <button
+                onClick={() => editorRef.current?.closeDiagnosticsPanel()}
+            >
+                Close panel
+            </button>
+            <DoenetEditor ref={editorRef} doenetML="..." />
+        </>
+    );
+}
+```
+
+For the "open with the panel already on a tab on first paint" case, set
+`initialOpenTab`. Reactive changes after mount are ignored — use the ref
+handle for runtime control.
+
+```tsx
+<DoenetEditor doenetML="..." initialOpenTab="accessibility" />
+```
+
+If the editor may be lazy-mounted (e.g., the link is in a different panel of
+your app from the editor embed), combine the two: pass `initialOpenTab` on
+first mount, then use the ref handle on subsequent clicks.
+
+```tsx
+const [showEditor, setShowEditor] = useState(false);
+const [pendingTab, setPendingTab] = useState<
+    DiagnosticsTabId | undefined
+>(undefined);
+const editorRef = useRef<DoenetEditorHandle>(null);
+
+function onLinkClick(tab: DiagnosticsTabId) {
+    if (showEditor && editorRef.current) {
+        editorRef.current.openDiagnosticsTab(tab);
+    } else {
+        setShowEditor(true);
+        setPendingTab(tab);
+    }
+}
+
+return (
+    showEditor && (
+        <DoenetEditor
+            ref={editorRef}
+            doenetML="..."
+            initialOpenTab={pendingTab}
+        />
+    )
+);
+```
+
 ## Quick Start
 
 In the project folder:
