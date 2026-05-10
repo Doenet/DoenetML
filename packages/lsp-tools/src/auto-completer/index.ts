@@ -188,18 +188,7 @@ export class AutoCompleter {
         this._rustResolverAdapter = options?.rustResolverAdapter;
         this._getAdditionalRefNamesImpl = options?.getAdditionalRefNames;
         if (schema) {
-            // When the caller used the default `doenetSchema.elements`, also
-            // load the bundled aliased entries so help/documentation lookup
-            // is alias-aware out of the box. Custom schemas pass their own
-            // alias map via the second argument to `setSchema()` if needed.
-            const aliased =
-                schema === doenetSchema.elements
-                    ? (doenetSchema.aliasedElements as Record<
-                          string,
-                          AliasedElementSchema
-                      >)
-                    : undefined;
-            this.setSchema(schema, aliased);
+            this.setSchema(schema);
         }
     }
 
@@ -259,14 +248,26 @@ export class AutoCompleter {
     /**
      * Set the schema to be used for auto-completion. Optionally also pass an
      * `aliasedElements` map (e.g. `doenetSchema.aliasedElements`) so help
-     * lookups can resolve parent-scoped child aliases.
+     * lookups can resolve parent-scoped child aliases. When `schema` is the
+     * bundled `doenetSchema.elements` and no explicit alias map is provided,
+     * the bundled `doenetSchema.aliasedElements` is used so alias-aware help
+     * works automatically — no matter whether the schema is set via the
+     * constructor or via a later `setSchema()` call. Pass `{}` explicitly to
+     * opt out.
      */
     setSchema(
         schema: ElementSchema[],
         aliasedElements?: Record<string, AliasedElementSchema>,
     ) {
         this.schema = schema;
-        this.schemaAliasedElementsByName = aliasedElements ?? {};
+        this.schemaAliasedElementsByName =
+            aliasedElements ??
+            (schema === doenetSchema.elements
+                ? (doenetSchema.aliasedElements as Record<
+                      string,
+                      AliasedElementSchema
+                  >)
+                : {});
         this.schemaAliasedElementsByLowerName = new Map(
             Object.entries(this.schemaAliasedElementsByName).map(([k, v]) => [
                 k.toLowerCase(),

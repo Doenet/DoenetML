@@ -1355,6 +1355,49 @@ describe("AutoCompleter", () => {
                 value: "A composite that picks one of several options.",
             });
         });
+
+        it("Auto-loads bundled aliased entries when setSchema is called later with the default schema", () => {
+            // Regression for the constructor-vs-setSchema gap: a consumer
+            // that re-installs the bundled schema via `setSchema()` must
+            // still get alias-aware help without having to pass
+            // `doenetSchema.aliasedElements` explicitly. (Reported by the
+            // PR #1088 Copilot review.)
+            const autoCompleter = new AutoCompleter();
+            // Wipe and re-install the default schema with no alias map.
+            autoCompleter.setSchema(doenetSchema.elements);
+            const matrixRow =
+                autoCompleter.findAliasedSchemaElement("matrixRow");
+            expect(matrixRow?.summary).toBeTruthy();
+            // And alias-aware resolution should still walk the redirect:
+            // `<row>` inside `<matrix>` resolves to `matrixRow`'s entry.
+            const rowEntry = autoCompleter.findSchemaElement("row");
+            const effective = autoCompleter.resolveEffectiveSchemaElement(
+                rowEntry,
+                "matrix",
+            );
+            expect(effective?.name).toBe("matrixRow");
+        });
+
+        it("Falls back to no aliases when setSchema receives a custom schema", () => {
+            // The auto-load is keyed on reference identity to `doenetSchema.
+            // elements`. A custom schema must NOT silently inherit doenet's
+            // alias map (which would graft unrelated docs onto the user's
+            // own elements).
+            const autoCompleter = new AutoCompleter();
+            autoCompleter.setSchema([
+                {
+                    name: "foo",
+                    summary: "A foo.",
+                    children: [],
+                    attributes: [],
+                    top: true,
+                    acceptsStringChildren: true,
+                },
+            ]);
+            expect(
+                autoCompleter.findAliasedSchemaElement("matrixRow"),
+            ).toBeUndefined();
+        });
     });
 
     describe("Snippet completions", () => {
