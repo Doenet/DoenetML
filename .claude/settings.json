@@ -18,7 +18,7 @@
                 "hooks": [
                     {
                         "type": "command",
-                        "command": "jq -r '.tool_response.filePath // .tool_input.file_path' 2>/dev/null | { read -r f; [ -n \"$f\" ] && repo_root=$(realpath \"$PWD\") && target=$(realpath \"$f\") && case \"$target\" in \"$repo_root\"|\"$repo_root\"/*) npx --no-install prettier --write --ignore-unknown \"$target\" ;; esac; } 2>/dev/null || true",
+                        "command": "jq -r '.tool_response.filePath // .tool_input.file_path' 2>/dev/null | { read -r f; [ -n \"$f\" ] || exit 0; repo_root=\"${CLAUDE_PROJECT_DIR:-$(git -C \"$(dirname \"$f\")\" rev-parse --show-toplevel 2>/dev/null)}\"; [ -n \"$repo_root\" ] || exit 0; repo_root=$(realpath \"$repo_root\"); target=$(realpath \"$f\"); case \"$target\" in \"$repo_root\"|\"$repo_root\"/*) (cd \"$repo_root\" && npx --no-install prettier --write --ignore-unknown \"$target\") ;; esac; }",
                         "timeout": 30
                     }
                 ]
