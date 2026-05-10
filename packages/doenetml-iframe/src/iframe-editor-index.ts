@@ -1,19 +1,23 @@
 // All code in this file will be executed in the context of an iframe
 // created by DoenetEditor.
+import type { DiagnosticsTabId } from "@doenet/doenetml";
+
 declare const editorId: string;
 declare const doenetEditorProps: Record<string, any>;
 declare const doenetEditorPropsSpecified: string[];
 declare const ComlinkEditor: { expose: Function; windowEndpoint: Function };
 type EditorControlHandle = {
-    openDiagnosticsTab: (tabId: string) => void;
+    openDiagnosticsTab: (tabId: DiagnosticsTabId) => void;
     closeDiagnosticsPanel: () => void;
 };
-interface Window {
-    renderDoenetEditorToContainer: (
-        container: Element,
-        doenetMLSource?: string,
-        config?: object,
-    ) => EditorControlHandle | void;
+declare global {
+    interface Window {
+        renderDoenetEditorToContainer: (
+            container: Element,
+            doenetMLSource?: string,
+            config?: object,
+        ) => EditorControlHandle | void;
+    }
 }
 
 let editorControlHandle: EditorControlHandle | null = null;
@@ -43,7 +47,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 ComlinkEditor.expose(
     {
         renderEditorWithFunctionProps,
-        openDiagnosticsTab(tabId: string) {
+        openDiagnosticsTab(tabId: DiagnosticsTabId) {
             if (!editorControlHandle) {
                 console.warn(
                     "iframe DoenetEditor: openDiagnosticsTab invoked before render",

@@ -309,7 +309,7 @@ export function DoenetViewer({
  */
 type EditorIframeRemote = Comlink.Remote<{
     renderEditorWithFunctionProps: (...args: (string | Function)[]) => void;
-    openDiagnosticsTab: (tabId: string) => void;
+    openDiagnosticsTab: (tabId: DiagnosticsTabId) => void;
     closeDiagnosticsPanel: () => void;
 }>;
 
