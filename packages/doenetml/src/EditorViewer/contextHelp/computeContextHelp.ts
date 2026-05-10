@@ -49,8 +49,7 @@ function resolveEntriesForNode(
 ): [ElementSchema | undefined, SchemaEntryForHelp | undefined] {
     const ownEntry = completer.findSchemaElement(node.name);
     const parent = completer.sourceObj.getParent(node);
-    const parentName =
-        parent && "name" in parent ? parent.name : undefined;
+    const parentName = parent && "name" in parent ? parent.name : undefined;
     const effective = completer.resolveEffectiveSchemaElement(
         ownEntry,
         parentName,

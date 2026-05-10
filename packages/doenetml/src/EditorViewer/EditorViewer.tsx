@@ -397,9 +397,7 @@ export function EditorViewer({
         // visible effect below will compute on demand for the current cursor.
         if (!helpIsVisibleRef.current) return;
         cursorDebounceTimer.current = window.setTimeout(() => {
-            setHelpContent(
-                computeContextHelp(completerRef.current, offset),
-            );
+            setHelpContent(computeContextHelp(completerRef.current, offset));
         }, 150);
     }, []);
 
@@ -421,9 +419,7 @@ export function EditorViewer({
         }
         const offset = lastCursorOffsetRef.current;
         if (offset == null) return;
-        setHelpContent(
-            computeContextHelp(completerRef.current, offset),
-        );
+        setHelpContent(computeContextHelp(completerRef.current, offset));
     }, [infoPanelIsOpen, selectedTabId]);
 
     useEffect(() => {
