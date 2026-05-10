@@ -72,4 +72,28 @@ describe("DoenetEditor initialOpenTab", () => {
         );
         cy.get("@consoleWarn").should("have.been.called");
     });
+
+    it("falls back to default and warns when initialOpenTab='responses' but showResponses={false}", () => {
+        const warnSpy = cy.stub().as("consoleWarn");
+        cy.window().then((win) => {
+            cy.stub(win.console, "warn").callsFake(warnSpy);
+        });
+
+        cy.mount(
+            <div style={{ height: "500px", width: "900px" }}>
+                <DoenetEditor
+                    doenetML={SAMPLE_DOENETML}
+                    initialOpenTab="responses"
+                    showResponses={false}
+                    addVirtualKeyboard={false}
+                />
+            </div>,
+        );
+
+        cy.get(".diagnostics-response-tabs-container").should(
+            "not.have.class",
+            "is-open",
+        );
+        cy.get("@consoleWarn").should("have.been.called");
+    });
 });
