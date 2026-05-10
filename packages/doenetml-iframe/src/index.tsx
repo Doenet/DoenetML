@@ -459,9 +459,11 @@ export const DoenetEditor = React.forwardRef<
                             proxiedFunctions.push(Comlink.proxy(prop));
                         }
                     }
-                    editorIframe?.renderEditorWithFunctionProps(
-                        ...proxiedFunctions,
-                    );
+                    editorIframe
+                        ?.renderEditorWithFunctionProps(...proxiedFunctions)
+                        .catch(
+                            logComlinkError("renderEditorWithFunctionProps"),
+                        );
 
                     // Make the remote available to the imperative handle and
                     // replay any actions queued before the iframe was ready.
