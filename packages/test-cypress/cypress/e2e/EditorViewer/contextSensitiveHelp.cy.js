@@ -155,6 +155,59 @@ describe("Context-sensitive help panel", { tags: ["@group5"] }, function () {
         });
     });
 
+    it("shows refName sentence and reference link for cursor on a bare $name", () => {
+        const doenetML = `<math name="m">x</math>\n$m`;
+        cy.window().then((win) => {
+            win.postMessage({ doenetML }, "*");
+        });
+        cy.get(".cm-content", { timeout: 10000 }).should("contain.text", "$m");
+
+        openHelpTab();
+        // Cursor at the very end (after the 'm' of `$m`).
+        moveCursorToOffset(doenetML.length);
+
+        cy.get(".help-panel", { timeout: 5000 }).within(() => {
+            cy.get(".help-ref-sentence")
+                .invoke("text")
+                .should("match", /\$m\s+references\s+<math>\s+on\s+line\s+1/);
+            cy.get(".help-description").should("not.be.empty");
+            cy.get(".help-docs-link")
+                .should("have.attr", "href")
+                .and("include", "/reference/math");
+        });
+    });
+
+    it("shows refName help with full chain for $sec.bi resolving to a named child", () => {
+        // The bi inside section is a named descendant; runtime ref-resolution
+        // picks it over any same-named property, so the help panel surfaces
+        // the booleanInput descendant rather than a section property.
+        const doenetML = `<section name="sec"><booleanInput name="bi"/></section>\n$sec.bi`;
+        cy.window().then((win) => {
+            win.postMessage({ doenetML }, "*");
+        });
+        cy.get(".cm-content", { timeout: 10000 }).should(
+            "contain.text",
+            "$sec.bi",
+        );
+
+        openHelpTab();
+        // Cursor at the very end (after the 'i' of `bi`).
+        moveCursorToOffset(doenetML.length);
+
+        cy.get(".help-panel", { timeout: 5000 }).within(() => {
+            cy.get(".help-ref-sentence")
+                .invoke("text")
+                .should(
+                    "match",
+                    /\$sec\.bi\s+references\s+<booleanInput>\s+on\s+line\s+1/,
+                );
+            cy.get(".help-description").should("not.be.empty");
+            cy.get(".help-docs-link")
+                .should("have.attr", "href")
+                .and("include", "/reference/booleanInput");
+        });
+    });
+
     it("omits the reference link for an allow-listed undocumented component", () => {
         // <codeEditor> is on the undocumented allow-list, so its schema
         // docsSlug is clamped to null and the help panel must not render
