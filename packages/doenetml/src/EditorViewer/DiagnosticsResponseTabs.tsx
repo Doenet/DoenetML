@@ -475,7 +475,7 @@ export function DiagnosticsResponseTabContents({
     }, [isOpen, selectedTabIdForScroll]);
 
     useEffect(() => {
-        if (isOpen) {
+        if (isOpen && selectedTabIdForScroll === "responses") {
             if (lastScrolledToBottom.current) {
                 scrollToBottom();
             }
