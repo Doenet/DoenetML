@@ -589,12 +589,11 @@ export function getCompletionItems(
 
         // Resolve each candidate's referent once and reuse the resulting
         // info for both the base `$name` item and the `$name[]` snippet.
-        // The base item's `detail` becomes "(<math>, line 83)" — parens
-        // and the comma keep the metadata visually separated from the
-        // completion label so "bi" + "a <booleanInput>..." can't read as
-        // one English phrase. `documentation` carries the component-type
-        // summary (alias-aware: a `<row>` inside `<matrix>` gets the
-        // `matrixRow` summary).
+        // The base item's `detail` is `(<type>, line N)` — parens and
+        // the comma frame the type/line as parenthetical metadata,
+        // visually separate from the completion label. `documentation`
+        // carries the component-type summary (alias-aware: a `<row>`
+        // inside `<matrix>` gets the `matrixRow` summary).
         type ReferentInfo = {
             takesIndex: boolean;
             labelInfo: RefCompletionLabelInfo;
