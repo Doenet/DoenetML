@@ -496,9 +496,10 @@ export const DoenetEditor = React.forwardRef<
     // When `srcDoc` changes, React updates the iframe attribute and the browser
     // reloads the iframe document. The previous Comlink remote becomes bound to
     // a torn-down `contentWindow` until the new iframe sends `iframeReady`.
-    // Clear the remote so calls during the reload window queue and replay on
-    // the next `iframeReady` instead of dispatching into a dead remote.
-    React.useEffect(() => {
+    // Clear the remote synchronously at commit (via `useLayoutEffect`) so any
+    // imperative-handle calls between commit and the next paint queue and
+    // replay against the new remote instead of dispatching into a dead one.
+    React.useLayoutEffect(() => {
         editorIframeRef.current = null;
     }, [srcDoc]);
 
