@@ -198,7 +198,7 @@ export const EditorViewer = React.forwardRef<
         if (initialOpenTabWarning) {
             console.warn(initialOpenTabWarning);
         }
-    }, []);
+    }, [initialOpenTabWarning]);
 
     const [infoPanelIsOpen, setInfoPanelIsOpen] = useState(
         resolvedInitialOpenTab !== undefined,
