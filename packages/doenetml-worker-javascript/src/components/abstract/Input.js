@@ -36,7 +36,16 @@ export default class Input extends InlineComponent {
             public: true,
             forRenderer: true,
             toLowerCase: true,
-            validValues: ["left", "right"],
+            validValues: [
+                {
+                    value: "left",
+                    description: "Place the label to the left of the input.",
+                },
+                {
+                    value: "right",
+                    description: "Place the label to the right of the input.",
+                },
+            ],
             description: "Position of the label relative to the input.",
         };
 

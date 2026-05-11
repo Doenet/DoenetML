@@ -92,7 +92,17 @@ export default class SubsetOfRealsInput extends BlockComponent {
             defaultValue: "text",
             public: true,
             toLowerCase: true,
-            validValues: ["text", "latex"],
+            validValues: [
+                {
+                    value: "text",
+                    description:
+                        "Parse entered subsets as plain-text notation.",
+                },
+                {
+                    value: "latex",
+                    description: "Parse entered subsets as LaTeX notation.",
+                },
+            ],
         };
         attributes.prefill = {
             description: "Initial subset displayed in the input.",

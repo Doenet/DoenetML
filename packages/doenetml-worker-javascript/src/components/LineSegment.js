@@ -57,7 +57,17 @@ export default class LineSegment extends GraphicalComponent {
             public: true,
             forRenderer: true,
             toLowerCase: true,
-            validValues: ["endpoints", "none"],
+            validValues: [
+                {
+                    value: "endpoints",
+                    description:
+                        "Show control handles for both endpoints of the segment.",
+                },
+                {
+                    value: "none",
+                    description: "Show no control handles.",
+                },
+            ],
             valueForTrue: "endpoints",
             valueForFalse: "none",
         };

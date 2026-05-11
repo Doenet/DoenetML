@@ -94,14 +94,44 @@ export default class Point extends GraphicalComponent {
             forRenderer: true,
             toLowerCase: true,
             validValues: [
-                "upperRight",
-                "upperLeft",
-                "lowerRight",
-                "lowerLeft",
-                "top",
-                "bottom",
-                "left",
-                "right",
+                {
+                    value: "upperRight",
+                    description:
+                        "Place the label above and to the right of the point.",
+                },
+                {
+                    value: "upperLeft",
+                    description:
+                        "Place the label above and to the left of the point.",
+                },
+                {
+                    value: "lowerRight",
+                    description:
+                        "Place the label below and to the right of the point.",
+                },
+                {
+                    value: "lowerLeft",
+                    description:
+                        "Place the label below and to the left of the point.",
+                },
+                {
+                    value: "top",
+                    description: "Place the label directly above the point.",
+                },
+                {
+                    value: "bottom",
+                    description: "Place the label directly below the point.",
+                },
+                {
+                    value: "left",
+                    description:
+                        "Place the label directly to the left of the point.",
+                },
+                {
+                    value: "right",
+                    description:
+                        "Place the label directly to the right of the point.",
+                },
             ],
         };
 
@@ -128,7 +158,27 @@ export default class Point extends GraphicalComponent {
             // The preprocessAttributesObject() utility lowercases all defined validValues values,
             // so both the source declaration (camelCase) and stored value (lowercase) coexist.
             // Code comparisons should use lowercase "xonly", "yonly", etc.
-            validValues: ["none", "both", "xOnly", "yOnly"],
+            validValues: [
+                {
+                    value: "none",
+                    description: "Show no control handles.",
+                },
+                {
+                    value: "both",
+                    description:
+                        "Show control handles for moving the point in both x and y.",
+                },
+                {
+                    value: "xOnly",
+                    description:
+                        "Show a control handle that constrains motion to the x direction.",
+                },
+                {
+                    value: "yOnly",
+                    description:
+                        "Show a control handle that constrains motion to the y direction.",
+                },
+            ],
         };
 
         attributes.hideOffGraphIndicator = {

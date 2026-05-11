@@ -1254,11 +1254,31 @@ export class ExtractMath extends MathBaseOperatorOneInput {
             defaultValue: null,
             toLowerCase: true,
             validValues: [
-                "operand",
-                "function",
-                "functionArgument",
-                "numOperands",
-                "recursiveOperands",
+                {
+                    value: "operand",
+                    description:
+                        "Extract a single operand of the top-level operation.",
+                },
+                {
+                    value: "function",
+                    description:
+                        "Extract the function being applied (for a function call).",
+                },
+                {
+                    value: "functionArgument",
+                    description:
+                        "Extract an argument of the function being called.",
+                },
+                {
+                    value: "numOperands",
+                    description:
+                        "Extract the count of operands at the top level.",
+                },
+                {
+                    value: "recursiveOperands",
+                    description:
+                        "Extract all operands found recursively through nested operations.",
+                },
             ],
             description: "What kind of sub-expression to extract.",
         };

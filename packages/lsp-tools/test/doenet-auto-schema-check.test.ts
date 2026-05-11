@@ -30,12 +30,18 @@ const schema = {
                 {
                     name: "mode",
                     values: ["none", "full", "true", "false"],
-                    autocompleteValues: [{ value: "none" }, { value: "full" }],
+                    autocompleteValues: [
+                        { value: "none", description: "None." },
+                        { value: "full", description: "Full." },
+                    ],
                 },
                 {
                     name: "modeOneSided",
                     values: ["none", "full", "true"],
-                    autocompleteValues: [{ value: "none" }, { value: "full" }],
+                    autocompleteValues: [
+                        { value: "none", description: "None." },
+                        { value: "full", description: "Full." },
+                    ],
                 },
             ],
             top: true,

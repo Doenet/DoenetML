@@ -300,12 +300,10 @@ export type AttributeDefinition<T> = {
      * use is on a string-typed attribute; a numeric enum would need a
      * separate mechanism.
      *
-     * Entries may be either bare strings or `{value, description}` objects.
-     * The description is surfaced in editor autocomplete and the
-     * context-sensitive help panel. New declarations should use the object
-     * form; the string form remains accepted to allow gradual migration.
+     * Each entry is a `{value, description}` pair. The description is
+     * surfaced in editor autocomplete and the context-sensitive help panel.
      */
-    validValues?: Array<string | ValidValueEntry>;
+    validValues?: ValidValueEntry[];
     /** When the value of this attribute is changed, call the action `triggerActionOnChange`. */
     triggerActionOnChange?: string;
     /** One-sentence description of the attribute, surfaced in editor help and docs. */

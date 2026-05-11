@@ -72,7 +72,16 @@ export default class MathComponent extends InlineComponent {
             defaultValue: "text",
             public: true,
             toLowerCase: true,
-            validValues: ["text", "latex"],
+            validValues: [
+                {
+                    value: "text",
+                    description: "Plain-text math notation (e.g., `x^2 + 1`).",
+                },
+                {
+                    value: "latex",
+                    description: "LaTeX-formatted math (e.g., `x^{2} + 1`).",
+                },
+            ],
         };
         // let simplify="" or simplify="true" be full simplify
         attributes.simplify = {
@@ -85,11 +94,29 @@ export default class MathComponent extends InlineComponent {
             valueForTrue: "full",
             valueForFalse: "none",
             validValues: [
-                "none",
-                "full",
-                "numbers",
-                "numbersPreserveOrder",
-                "normalizeOrder",
+                {
+                    value: "none",
+                    description: "No simplification is applied.",
+                },
+                {
+                    value: "full",
+                    description: "Fully simplify the expression.",
+                },
+                {
+                    value: "numbers",
+                    description:
+                        "Simplify numeric subexpressions only, leaving symbolic structure intact.",
+                },
+                {
+                    value: "numbersPreserveOrder",
+                    description:
+                        "Like `numbers`, but does not reorder commutative operands.",
+                },
+                {
+                    value: "normalizeOrder",
+                    description:
+                        "Reorder commutative operands into a canonical form without simplifying values.",
+                },
             ],
         };
         attributes.expand = {

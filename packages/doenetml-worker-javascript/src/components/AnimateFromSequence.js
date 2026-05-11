@@ -53,11 +53,31 @@ export default class AnimateFromSequence extends BaseComponent {
             createStateVariable: "animationMode",
             defaultValue: "increase",
             validValues: [
-                "increase",
-                "decrease",
-                "increase once",
-                "decrease once",
-                "oscillate",
+                {
+                    value: "increase",
+                    description:
+                        "Step through values from first to last, looping back to the start.",
+                },
+                {
+                    value: "decrease",
+                    description:
+                        "Step through values from last to first, looping back to the end.",
+                },
+                {
+                    value: "increase once",
+                    description:
+                        "Step from first to last and stop without looping.",
+                },
+                {
+                    value: "decrease once",
+                    description:
+                        "Step from last to first and stop without looping.",
+                },
+                {
+                    value: "oscillate",
+                    description:
+                        "Step from first to last, then reverse direction at each end.",
+                },
             ],
             toLowerCase: true,
             public: true,

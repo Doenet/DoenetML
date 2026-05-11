@@ -57,11 +57,29 @@ export default class Function extends InlineComponent {
             valueForTrue: "full",
             valueForFalse: "none",
             validValues: [
-                "none",
-                "full",
-                "numbers",
-                "numbersPreserveOrder",
-                "normalizeOrder",
+                {
+                    value: "none",
+                    description: "No simplification is applied.",
+                },
+                {
+                    value: "full",
+                    description: "Fully simplify the function's formula.",
+                },
+                {
+                    value: "numbers",
+                    description:
+                        "Simplify numeric subexpressions only, leaving symbolic structure intact.",
+                },
+                {
+                    value: "numbersPreserveOrder",
+                    description:
+                        "Like `numbers`, but does not reorder commutative operands.",
+                },
+                {
+                    value: "normalizeOrder",
+                    description:
+                        "Reorder commutative operands into a canonical form without simplifying values.",
+                },
             ],
             description:
                 "Level of simplification applied to the function's formula.",
@@ -124,14 +142,46 @@ export default class Function extends InlineComponent {
             forRenderer: true,
             toLowerCase: true,
             validValues: [
-                "upperRight",
-                "upperLeft",
-                "lowerRight",
-                "lowerLeft",
-                "top",
-                "bottom",
-                "left",
-                "right",
+                {
+                    value: "upperRight",
+                    description:
+                        "Place the label above and to the right of the function curve.",
+                },
+                {
+                    value: "upperLeft",
+                    description:
+                        "Place the label above and to the left of the function curve.",
+                },
+                {
+                    value: "lowerRight",
+                    description:
+                        "Place the label below and to the right of the function curve.",
+                },
+                {
+                    value: "lowerLeft",
+                    description:
+                        "Place the label below and to the left of the function curve.",
+                },
+                {
+                    value: "top",
+                    description:
+                        "Place the label directly above the function curve.",
+                },
+                {
+                    value: "bottom",
+                    description:
+                        "Place the label directly below the function curve.",
+                },
+                {
+                    value: "left",
+                    description:
+                        "Place the label directly to the left of the function curve.",
+                },
+                {
+                    value: "right",
+                    description:
+                        "Place the label directly to the right of the function curve.",
+                },
             ],
         };
 

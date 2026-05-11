@@ -3,12 +3,12 @@ import { preprocessAttributesObject } from "../../utils/attributes";
 import type { AttributeDefinition } from "../../utils/dast/types";
 
 describe("preprocessAttributesObject", () => {
-    it("normalizes a mix of string and object entries and lower-cases values without touching descriptions", () => {
+    it("lower-cases each validValues entry's value when toLowerCase is set, without touching descriptions", () => {
         const attrs: Record<string, AttributeDefinition<unknown>> = {
             mode: {
                 toLowerCase: true,
                 validValues: [
-                    "Block",
+                    { value: "Block", description: "Block Display Mode." },
                     {
                         value: "Inline",
                         description: "Inline With Surrounding Text.",
@@ -20,7 +20,7 @@ describe("preprocessAttributesObject", () => {
         const result = preprocessAttributesObject(attrs);
 
         expect(result.mode.validValues).toEqual([
-            { value: "block" },
+            { value: "block", description: "Block Display Mode." },
             {
                 value: "inline",
                 description: "Inline With Surrounding Text.",
@@ -35,7 +35,10 @@ describe("preprocessAttributesObject", () => {
                 defaultValue: "OFF",
                 valueForTrue: "ON",
                 valueForFalse: "OFF",
-                validValues: ["ON", "OFF"],
+                validValues: [
+                    { value: "ON", description: "Turned on." },
+                    { value: "OFF", description: "Turned off." },
+                ],
             },
         };
 
@@ -45,17 +48,23 @@ describe("preprocessAttributesObject", () => {
         expect(result.flag.valueForTrue).toBe("on");
         expect(result.flag.valueForFalse).toBe("off");
         expect(result.flag.validValues).toEqual([
-            { value: "on" },
-            { value: "off" },
+            { value: "on", description: "Turned on." },
+            { value: "off", description: "Turned off." },
         ]);
     });
 
-    it("normalizes validValues even when toLowerCase is not set, and preserves casing on both values and descriptions", () => {
+    it("leaves validValues casing intact when toLowerCase is not set", () => {
         const attrs: Record<string, AttributeDefinition<unknown>> = {
             mode: {
                 validValues: [
-                    "CamelCase",
-                    { value: "PascalCase", description: "Preserved Casing." },
+                    {
+                        value: "CamelCase",
+                        description: "Original casing.",
+                    },
+                    {
+                        value: "PascalCase",
+                        description: "Preserved Casing.",
+                    },
                 ],
             },
         };
@@ -63,31 +72,8 @@ describe("preprocessAttributesObject", () => {
         const result = preprocessAttributesObject(attrs);
 
         expect(result.mode.validValues).toEqual([
-            { value: "CamelCase" },
+            { value: "CamelCase", description: "Original casing." },
             { value: "PascalCase", description: "Preserved Casing." },
         ]);
-    });
-
-    it("is idempotent — a second pass leaves an already-normalized spec unchanged", () => {
-        const attrs: Record<string, AttributeDefinition<unknown>> = {
-            mode: {
-                toLowerCase: true,
-                validValues: [
-                    "Block",
-                    {
-                        value: "Inline",
-                        description: "Inline With Surrounding Text.",
-                    },
-                ],
-            },
-        };
-
-        const first = preprocessAttributesObject(attrs);
-        const firstSnapshot = JSON.parse(
-            JSON.stringify(first.mode.validValues),
-        );
-        const second = preprocessAttributesObject(first);
-
-        expect(second.mode.validValues).toEqual(firstSnapshot);
     });
 });

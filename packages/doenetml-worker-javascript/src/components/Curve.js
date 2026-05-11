@@ -55,14 +55,44 @@ export default class Curve extends GraphicalComponent {
             forRenderer: true,
             toLowerCase: true,
             validValues: [
-                "upperRight",
-                "upperLeft",
-                "lowerRight",
-                "lowerLeft",
-                "top",
-                "bottom",
-                "left",
-                "right",
+                {
+                    value: "upperRight",
+                    description:
+                        "Place the label above and to the right of the curve.",
+                },
+                {
+                    value: "upperLeft",
+                    description:
+                        "Place the label above and to the left of the curve.",
+                },
+                {
+                    value: "lowerRight",
+                    description:
+                        "Place the label below and to the right of the curve.",
+                },
+                {
+                    value: "lowerLeft",
+                    description:
+                        "Place the label below and to the left of the curve.",
+                },
+                {
+                    value: "top",
+                    description: "Place the label directly above the curve.",
+                },
+                {
+                    value: "bottom",
+                    description: "Place the label directly below the curve.",
+                },
+                {
+                    value: "left",
+                    description:
+                        "Place the label directly to the left of the curve.",
+                },
+                {
+                    value: "right",
+                    description:
+                        "Place the label directly to the right of the curve.",
+                },
             ],
         };
 
@@ -126,7 +156,18 @@ export default class Curve extends GraphicalComponent {
             defaultValue: "centripetal",
             public: true,
             toLowerCase: true,
-            validValues: ["centripetal", "uniform"],
+            validValues: [
+                {
+                    value: "centripetal",
+                    description:
+                        "Centripetal Catmull-Rom spline (avoids self-intersection at sharp turns).",
+                },
+                {
+                    value: "uniform",
+                    description:
+                        "Uniform Catmull-Rom spline with evenly spaced parameterization.",
+                },
+            ],
         };
         attributes.variable = {
             createComponentOfType: "_variableName",

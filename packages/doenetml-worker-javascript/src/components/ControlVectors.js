@@ -22,7 +22,32 @@ export default class ControlVectors extends VectorListComponent {
             defaultValue: "symmetric",
             public: true,
             toLowerCase: true,
-            validValues: ["symmetric", "previous", "next", "both", "none"],
+            validValues: [
+                {
+                    value: "symmetric",
+                    description:
+                        "Mirror the control vector on both sides of the vertex.",
+                },
+                {
+                    value: "previous",
+                    description:
+                        "Apply the control vector toward the previous segment only.",
+                },
+                {
+                    value: "next",
+                    description:
+                        "Apply the control vector toward the next segment only.",
+                },
+                {
+                    value: "both",
+                    description:
+                        "Apply independent control vectors to both adjacent segments.",
+                },
+                {
+                    value: "none",
+                    description: "No control vector at this vertex.",
+                },
+            ],
             description:
                 "Direction in which the control vectors apply at the vertex.",
         };

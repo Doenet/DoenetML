@@ -16,15 +16,50 @@ export function returnAnchorAttributes() {
             toLowerCase: true,
             isLocation: true,
             validValues: [
-                "upperRight",
-                "upperLeft",
-                "lowerRight",
-                "lowerLeft",
-                "top",
-                "bottom",
-                "left",
-                "right",
-                "center",
+                {
+                    value: "upperRight",
+                    description:
+                        "Place the component above and to the right of the anchor point.",
+                },
+                {
+                    value: "upperLeft",
+                    description:
+                        "Place the component above and to the left of the anchor point.",
+                },
+                {
+                    value: "lowerRight",
+                    description:
+                        "Place the component below and to the right of the anchor point.",
+                },
+                {
+                    value: "lowerLeft",
+                    description:
+                        "Place the component below and to the left of the anchor point.",
+                },
+                {
+                    value: "top",
+                    description:
+                        "Place the component directly above the anchor point.",
+                },
+                {
+                    value: "bottom",
+                    description:
+                        "Place the component directly below the anchor point.",
+                },
+                {
+                    value: "left",
+                    description:
+                        "Place the component directly to the left of the anchor point.",
+                },
+                {
+                    value: "right",
+                    description:
+                        "Place the component directly to the right of the anchor point.",
+                },
+                {
+                    value: "center",
+                    description: "Center the component on the anchor point.",
+                },
             ],
             description:
                 "Where this component sits relative to its anchor point.",

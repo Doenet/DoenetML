@@ -27,7 +27,16 @@ export default class Substitute extends CompositeComponent {
             createStateVariable: "type",
             defaultPrimitiveValue: "math",
             toLowerCase: true,
-            validValues: ["math", "text"],
+            validValues: [
+                {
+                    value: "math",
+                    description: "Substitute within math expressions.",
+                },
+                {
+                    value: "text",
+                    description: "Substitute within text values.",
+                },
+            ],
             public: true,
         };
 
@@ -57,11 +66,29 @@ export default class Substitute extends CompositeComponent {
             valueForTrue: "full",
             valueForFalse: "none",
             validValues: [
-                "none",
-                "full",
-                "numbers",
-                "numbersPreserveOrder",
-                "normalizeOrder",
+                {
+                    value: "none",
+                    description: "No simplification is applied.",
+                },
+                {
+                    value: "full",
+                    description: "Fully simplify the resulting expression.",
+                },
+                {
+                    value: "numbers",
+                    description:
+                        "Simplify numeric subexpressions only, leaving symbolic structure intact.",
+                },
+                {
+                    value: "numbersPreserveOrder",
+                    description:
+                        "Like `numbers`, but does not reorder commutative operands.",
+                },
+                {
+                    value: "normalizeOrder",
+                    description:
+                        "Reorder commutative operands into a canonical form without simplifying values.",
+                },
             ],
         };
 

@@ -161,7 +161,18 @@ export default class Pretzel extends BlockScoredComponent {
             public: true,
             forRenderer: true,
             toLowerCase: true,
-            validValues: ["pretzel", "circuit"],
+            validValues: [
+                {
+                    value: "pretzel",
+                    description:
+                        "Interleaved arrangement where each problem's answer feeds the next.",
+                },
+                {
+                    value: "circuit",
+                    description:
+                        "Linear circuit arrangement of the child problems.",
+                },
+            ],
         };
 
         return attributes;

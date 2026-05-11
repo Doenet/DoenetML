@@ -49,7 +49,24 @@ export default class UpdateValue extends InlineComponent {
             createStateVariable: "type",
             defaultPrimitiveValue: "math",
             toLowerCase: true,
-            validValues: ["math", "number", "boolean", "text"],
+            validValues: [
+                {
+                    value: "math",
+                    description: "Treat the new value as a math expression.",
+                },
+                {
+                    value: "number",
+                    description: "Treat the new value as a number.",
+                },
+                {
+                    value: "boolean",
+                    description: "Treat the new value as a boolean.",
+                },
+                {
+                    value: "text",
+                    description: "Treat the new value as text.",
+                },
+            ],
             description: "Component type used to interpret the new value.",
         };
 
@@ -89,11 +106,29 @@ export default class UpdateValue extends InlineComponent {
             valueForTrue: "full",
             valueForFalse: "none",
             validValues: [
-                "none",
-                "full",
-                "numbers",
-                "numbersPreserveOrder",
-                "normalizeOrder",
+                {
+                    value: "none",
+                    description: "No simplification is applied.",
+                },
+                {
+                    value: "full",
+                    description: "Fully simplify the new value.",
+                },
+                {
+                    value: "numbers",
+                    description:
+                        "Simplify numeric subexpressions only, leaving symbolic structure intact.",
+                },
+                {
+                    value: "numbersPreserveOrder",
+                    description:
+                        "Like `numbers`, but does not reorder commutative operands.",
+                },
+                {
+                    value: "normalizeOrder",
+                    description:
+                        "Reorder commutative operands into a canonical form without simplifying values.",
+                },
             ],
         };
 

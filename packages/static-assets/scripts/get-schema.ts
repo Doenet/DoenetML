@@ -6,7 +6,6 @@ import {
     createComponentInfoObjects,
     SchemaSubarrayDescription,
 } from "../../doenetml-worker-javascript/src/utils/componentInfoObjects";
-import { normalizeValidValues } from "../../doenetml-worker-javascript/src/utils/validValues";
 import type { ValidValueEntry } from "../src/schema";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -85,7 +84,7 @@ type AttributeObject = {
     defaultValue: unknown;
     public: boolean;
     excludeFromSchema: boolean;
-    validValues?: Array<string | ValidValueEntry>;
+    validValues?: ValidValueEntry[];
     valueForTrue?: unknown;
     valueForFalse?: unknown;
     description?: string;
@@ -530,8 +529,9 @@ export function getSchema() {
                 booleanAliasValues.push("false");
 
             if (attrDef.validValues) {
-                const normalized = normalizeValidValues(attrDef.validValues);
-                const validValueStrings = normalized.map((v) => v.value);
+                const validValueStrings = attrDef.validValues.map(
+                    (v) => v.value,
+                );
                 attrSpec.values =
                     booleanAliasValues.length > 0
                         ? [
@@ -541,7 +541,7 @@ export function getSchema() {
                               ]),
                           ]
                         : validValueStrings;
-                attrSpec.autocompleteValues = normalized;
+                attrSpec.autocompleteValues = attrDef.validValues;
             } else if (
                 attrDef.createPrimitiveOfType === "boolean" ||
                 attrDef.createComponentOfType === "boolean"
