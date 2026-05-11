@@ -9,7 +9,24 @@ export type CompletionSnippetCursor =
 
 export type CompletionSnippetCompletionItemData = {
     snippetCursor?: CompletionSnippetCursor;
+    // Marker for "wrap the typed bare attribute value in quotes" completions.
+    // The CodeMirror plugin recognizes this, sets `filter: false` on the
+    // result, and provides an `update` callback that regenerates the
+    // completion's label/displayLabel from the live text on every keystroke
+    // -- otherwise CodeMirror filters the cached option out as the typed
+    // prefix grows beyond the cached label, closing the menu mid-type.
+    livePreviewQuoteWrap?: boolean;
 };
+
+export function hasLivePreviewQuoteWrap(data: unknown): boolean {
+    if (!data || typeof data !== "object") {
+        return false;
+    }
+    return (
+        (data as CompletionSnippetCompletionItemData).livePreviewQuoteWrap ===
+        true
+    );
+}
 
 function isNonNegativeInteger(value: unknown): value is number {
     return typeof value === "number" && Number.isInteger(value) && value >= 0;

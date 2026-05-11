@@ -50,11 +50,13 @@ import {
     autocompletion,
     CompletionContext,
     Completion,
+    CompletionResult,
     completionStatus,
     startCompletion,
 } from "@codemirror/autocomplete";
 import {
     getSnippetCursorFromCompletionItemData,
+    hasLivePreviewQuoteWrap,
     type CompletionSnippetCursor,
 } from "@doenet/static-assets/completion-snippet-protocol";
 import {
@@ -75,6 +77,10 @@ import "./tooltip.css";
 // Keep identifier policy aligned with macro parsing/completion rules.
 const MACRO_IDENTIFIER_CHAR_REGEX = /[A-Za-z0-9_-]/;
 const MACRO_IDENTIFIER_SEGMENT_REGEX = /[A-Za-z0-9_-]+$/;
+// Matches a non-empty run of bare-value characters only (no whitespace, no
+// `"`, no `>`). Used by the live-preview wrap-in-quotes hint to decide
+// whether the user is still inside an unquoted attribute value.
+const MACRO_IDENTIFIER_BARE_VALUE_REGEX = /^[A-Za-z0-9_-]+$/;
 
 /** Escape a string for safe interpolation into an HTML context. */
 function escapeHtml(str: string): string {
@@ -491,12 +497,100 @@ export class LSPPlugin implements PluginValue {
             return opt;
         });
 
+        // "Live preview" options (e.g. the free-text wrap-in-quotes hint)
+        // carry a sentinel via `data.livePreviewQuoteWrap`. For those we have
+        // to skip CodeMirror's fuzzy filter (the cached `label` is the typed
+        // prefix at query time and would be rejected the moment the user
+        // types one more character, closing the menu) and instead regenerate
+        // the option synchronously on every transaction via `update`. The
+        // mixed case -- a result that contains both a live-preview option
+        // and ordinary options -- doesn't occur today; the LSP returns the
+        // wrap-in-quotes hint by itself.
+        const livePreview = items.some((item) =>
+            hasLivePreviewQuoteWrap(item.data),
+        );
+        if (livePreview) {
+            return {
+                from: pos,
+                options: finalOptions,
+                filter: false,
+                update: this.refreshLivePreview,
+            };
+        }
+
         return {
             from: pos,
             options: finalOptions,
             validFor: new RegExp(`^${MACRO_IDENTIFIER_CHAR_REGEX.source}*$`),
         };
     }
+
+    // Synchronously regenerates the wrap-in-quotes option from the live
+    // document text. CodeMirror calls this on every transaction when
+    // `result.validFor` is absent, so the option's `displayLabel` (and
+    // `apply` text) tracks what the user has typed without bouncing off
+    // the LSP. We re-attach the same callback on the new result so
+    // subsequent keystrokes keep refreshing -- the autocomplete subsystem
+    // only consults `update` on the active result, not the original one.
+    private refreshLivePreview = (
+        _current: CompletionResult,
+        from: number,
+        to: number,
+        context: CompletionContext,
+    ): CompletionResult | null => {
+        const text = context.state.sliceDoc(from, to);
+        if (
+            text.length === 0 ||
+            !MACRO_IDENTIFIER_BARE_VALUE_REGEX.test(text)
+        ) {
+            // User stepped outside a bare value (typed `"`, whitespace,
+            // `>`, etc.). Returning an empty-options result closes the
+            // menu cleanly without bouncing through Pending state.
+            return { from, to, options: [], filter: false };
+        }
+        const wrapped = `"${text}"`;
+        return {
+            from,
+            to,
+            options: [
+                {
+                    label: text,
+                    displayLabel: wrapped,
+                    apply: (view, _completion, applyFrom, applyTo) => {
+                        // Walk back over whitespace to find the anchoring
+                        // `=` so the apply swallows `   foo` into `="foo"`
+                        // (matching the LSP-side textEdit range used by
+                        // the initial query).
+                        const doc = view.state.doc;
+                        let walk = applyFrom - 1;
+                        while (
+                            walk >= 0 &&
+                            /\s/.test(doc.sliceString(walk, walk + 1))
+                        ) {
+                            walk -= 1;
+                        }
+                        const replaceFrom =
+                            walk >= 0 && doc.sliceString(walk, walk + 1) === "="
+                                ? walk + 1
+                                : applyFrom;
+                        view.dispatch({
+                            changes: {
+                                from: replaceFrom,
+                                to: applyTo,
+                                insert: wrapped,
+                            },
+                            selection: {
+                                anchor: replaceFrom + wrapped.length,
+                            },
+                        });
+                    },
+                    type: "value",
+                },
+            ],
+            filter: false,
+            update: this.refreshLivePreview,
+        };
+    };
 }
 
 export const lspPlugin = (documentId: string) => {

@@ -246,6 +246,11 @@ describe("AutoCompleter", () => {
                 end: { line: 0, character: offset },
             },
         });
+        // The CodeMirror plugin reads this sentinel to set `filter: false`
+        // on the completion result and attach a live-update callback.
+        // Without it the cached `label` ("foo") goes stale the moment the
+        // user types another character and the menu closes mid-type.
+        expect(items[0].data).toMatchObject({ livePreviewQuoteWrap: true });
     });
 
     it("Swallows whitespace between `=` and a bare free-text value into the quoted textEdit", () => {
